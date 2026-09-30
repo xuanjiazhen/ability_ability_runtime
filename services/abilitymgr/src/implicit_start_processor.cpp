@@ -12,7 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <map>
+
 #include "implicit_start_processor.h"
+#include "permission_constants.h"
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
@@ -20,8 +23,12 @@
 #include "app_utils.h"
 #include "dialog_session_manager.h"
 #include "ecological_rule/ability_ecological_rule_mgr_service.h"
+#include "event_report.h"
+#include "in_process_call_wrapper.h"
+#include "ipc_skeleton.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
+#include "multi_app_utils.h"
 #include "start_ability_utils.h"
 #include "startup_util.h"
 #ifdef WITH_DLP
@@ -81,6 +88,23 @@ bool ImplicitStartProcessor::IsImplicitStartAction(const Want &want)
 {
     auto element = want.GetElement();
     if (!element.GetAbilityName().empty()) {
+        if (element.GetBundleName().empty()) {
+            int32_t callingUid = IPCSkeleton::GetCallingUid();
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "ImplicitStart with no bundleName, %{public}s, callingUid:%{public}d",
+                element.GetAbilityName().c_str(), callingUid);
+            std::string callerBundleName;
+            auto bms = AbilityUtil::GetBundleManagerHelper();
+            if (bms != nullptr) {
+                IN_PROCESS_CALL_WITHOUT_RET(bms->GetNameForUid(callingUid, callerBundleName));
+            }
+            EventInfo eventInfo;
+            eventInfo.moduleName = "ImplicitStart";
+            eventInfo.abilityName = element.GetAbilityName();
+            eventInfo.callerBundleName =
+                callerBundleName.empty() ? std::to_string(callingUid) : callerBundleName;
+            EventReport::SendStartAbilityOtherExtensionEvent(
+                EventName::START_ABILITY_OTHER_EXTENSION, eventInfo);
+        }
         return false;
     }
 
@@ -151,6 +175,12 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate request failed");
         return ret;
+    }
+    if (dialogAppInfos.size() == 1 && request.specifyTokenId > 0 && !dialogAppInfos[0].visible &&
+        !PermissionVerification::GetInstance()->VerifyCallingPermission(
+            PermissionConstants::PERMISSION_START_INVISIBLE_ABILITY, request.specifyTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Caller without permission");
+        return CHECK_PERMISSION_FAILED;
     }
     AbilityUtil::WantSetParameterWindowMode(request.want, windowMode);
     request.callerAccessTokenId = IPCSkeleton::GetCallingTokenID();
@@ -329,7 +359,7 @@ std::string ImplicitStartProcessor::MatchTypeAndUri(const AAFwk::Want &want)
     return type;
 }
 
-static void ProcessLinkType(std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
+void ImplicitStartProcessor::ProcessLinkType(std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
 {
     bool appLinkingExist = false;
     bool defaultAppExist = false;
@@ -450,7 +480,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s.", __func__);
     // get abilityinfos from bms
-    auto bundleMgrHelper = GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, GET_ABILITY_SERVICE_FAILED);
     auto abilityInfoFlag = AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_DEFAULT
         | AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_SKILL_URI
@@ -458,7 +488,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
     bool withDefault = false;
-    withDefault = request.want.GetBoolParam(SHOW_DEFAULT_PICKER_FLAG, withDefault) ? false : true;
+    withDefault = request.want.GetBoolParam(SHOW_DEFAULT_PICKER_FLAG, false) ? false : true;
     bool appLinkingOnly = false;
     bool isOpenLink = false;
     isOpenLink = request.want.HasParameter(OPEN_LINK_APP_LINKING_ONLY);
@@ -584,9 +614,11 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
         }
     }
 
+    std::string defaultBundleName;
+    int32_t defaultAppIndex = -1;
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "for (const auto &info : abilityInfos)");
-        bool isExistDefaultApp = IsExistDefaultApp(userId, typeName);
+        bool isExistDefaultApp = IsExistDefaultApp(userId, typeName, defaultBundleName, defaultAppIndex);
         for (const auto &info : abilityInfos) {
             AddInfoParam param = {
                 .isExtension = isExtension,
@@ -622,6 +654,11 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
     }
     KioskManager::GetInstance().FilterDialogAppInfos(dialogAppInfos);
 
+    if (!defaultBundleName.empty() && withDefault) {
+        FilterCloneByDefaultApp(dialogAppInfos, defaultBundleName, defaultAppIndex);
+    }
+    FilterClonesByPreferredIndex(dialogAppInfos, userId);
+
     return ERR_OK;
 }
 
@@ -633,7 +670,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAppIndexes(int32_t userId, A
         TAG_LOGE(AAFwkTag::ABILITYMGR, "too large appIndexes");
         return ERR_TOO_LARGE_APPINDEXES;
     }
-    auto bms = GetBundleManagerHelper();
+    auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, GET_ABILITY_SERVICE_FAILED);
     auto abilityInfoFlag = static_cast<uint32_t>(AbilityRuntime::StartupUtil::BuildAbilityInfoFlag()) |
         static_cast<uint32_t>(AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_SKILL);
@@ -672,6 +709,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAppIndexes(int32_t userId, A
         dialogAppInfo.installSource = info.applicationInfo.installSource;
         dialogAppInfos.emplace_back(dialogAppInfo);
     }
+    FilterClonesByPreferredIndex(dialogAppInfos, userId);
     return ERR_OK;
 }
 
@@ -679,7 +717,7 @@ int ImplicitStartProcessor::FindExtensionInfo(const AppExecFwk::ElementName &ele
     int32_t userId, int32_t appIndex, AppExecFwk::AbilityInfo &abilityInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    auto bms = GetBundleManagerHelper();
+    auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, GET_ABILITY_SERVICE_FAILED);
     AppExecFwk::ExtensionAbilityInfo extensionInfo;
     TAG_LOGD(AAFwkTag::ABILITYMGR,
@@ -701,7 +739,7 @@ int ImplicitStartProcessor::FindExtensionInfo(const AppExecFwk::ElementName &ele
 int ImplicitStartProcessor::QueryBmsAppInfos(AbilityRequest &request, int32_t userId,
     std::vector<DialogAppInfo> &dialogAppInfos)
 {
-    auto bundleMgrHelper = GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     std::vector<AppExecFwk::AbilityInfo> bmsApps;
     auto abilityInfoFlag = AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_DEFAULT
         | AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_SKILL_URI
@@ -853,17 +891,9 @@ int ImplicitStartProcessor::CallStartAbilityInner(int32_t userId,
     return ret;
 }
 
-std::shared_ptr<AppExecFwk::BundleMgrHelper> ImplicitStartProcessor::GetBundleManagerHelper()
-{
-    if (iBundleManagerHelper_ == nullptr) {
-        iBundleManagerHelper_ = AbilityUtil::GetBundleManagerHelper();
-    }
-    return iBundleManagerHelper_;
-}
-
 sptr<AppExecFwk::IDefaultApp> ImplicitStartProcessor::GetDefaultAppProxy()
 {
-    auto bundleMgrHelper = GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleMgrHelper");
         return nullptr;
@@ -898,7 +928,7 @@ void ImplicitStartProcessor::GetEcologicalCallerInfo(const Want &want, ErmsCalle
     callerInfo.targetAppType = ErmsCallerInfo::TYPE_INVALID;
     callerInfo.callerAppType = ErmsCallerInfo::TYPE_INVALID;
 
-    auto bundleMgrHelper = GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleMgrHelper empty");
         return;
@@ -1011,7 +1041,8 @@ void ImplicitStartProcessor::AddAbilityInfoToDialogInfos(const AddInfoParam &par
     dialogAppInfos.emplace_back(dialogAppInfo);
 }
 
-bool ImplicitStartProcessor::IsExistDefaultApp(int32_t userId, const std::string &typeName)
+bool ImplicitStartProcessor::IsExistDefaultApp(int32_t userId, const std::string &typeName,
+    std::string &defaultBundleName, int32_t &defaultAppIndex)
 {
     auto defaultMgr = GetDefaultAppProxy();
     CHECK_POINTER_AND_RETURN_LOG(defaultMgr, false, "defaultMgr null");
@@ -1024,10 +1055,16 @@ bool ImplicitStartProcessor::IsExistDefaultApp(int32_t userId, const std::string
     }
 
     if (bundleInfo.abilityInfos.size() == 1) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "find default ability");
+        defaultBundleName = bundleInfo.abilityInfos.front().bundleName;
+        defaultAppIndex = bundleInfo.abilityInfos.front().appIndex;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "find default ability, bundle: %{public}s, appIndex: %{public}d",
+            defaultBundleName.c_str(), defaultAppIndex);
         return true;
     } else if (bundleInfo.extensionInfos.size() == 1) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "find default extension");
+        defaultBundleName = bundleInfo.extensionInfos.front().bundleName;
+        defaultAppIndex = bundleInfo.extensionInfos.front().appIndex;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "find default extension, bundle: %{public}s, appIndex: %{public}d",
+            defaultBundleName.c_str(), defaultAppIndex);
         return true;
     } else {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "getDefaultApplication failed");
@@ -1138,7 +1175,7 @@ void ImplicitStartProcessor::TrustlistIntersectionProcess(const AbilityRequest &
             appLaunchTrustlist.size(), TRUSTLIST_MAX_SIZE);
         appLaunchTrustlist.resize(TRUSTLIST_MAX_SIZE);
     }
-    auto bundleMgrHelper = GetBundleManagerHelper();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleMgrHelper empty");
         return;
@@ -1185,6 +1222,71 @@ bool ImplicitStartProcessor::FindExtensionAppClone(std::vector<AppExecFwk::Exten
         }
     }
     return true;
+}
+
+void ImplicitStartProcessor::FilterCloneByDefaultApp(std::vector<DialogAppInfo> &dialogAppInfos,
+    const std::string &defaultBundleName, int32_t defaultAppIndex)
+{
+    for (auto it = dialogAppInfos.begin(); it != dialogAppInfos.end(); ++it) {
+        if (it->bundleName == defaultBundleName && it->appIndex == defaultAppIndex) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "default clone matched, bundle: %{public}s, appIndex: %{public}d, skip selector",
+                defaultBundleName.c_str(), defaultAppIndex);
+            dialogAppInfos = { *it };
+            return;
+        }
+    }
+}
+
+void ImplicitStartProcessor::FilterClonesByPreferredIndex(
+    std::vector<DialogAppInfo> &dialogAppInfos, int32_t userId)
+{
+    if (dialogAppInfos.size() <= 1) {
+        return;
+    }
+    std::map<std::string, int32_t> cloneCount;
+    for (const auto &info : dialogAppInfos) {
+        cloneCount[info.bundleName]++;
+    }
+    std::map<std::string, int32_t> preferredMap;
+    for (const auto &item : cloneCount) {
+        if (item.second <= 1) {
+            continue;
+        }
+        int32_t preferredAppIndex = 0;
+        if (MultiAppUtils::GetPreferredAppCloneIndex(item.first, userId, preferredAppIndex) &&
+            IsPreferredCloneExist(dialogAppInfos, item.first, preferredAppIndex)) {
+            preferredMap[item.first] = preferredAppIndex;
+        }
+    }
+    if (preferredMap.empty()) {
+        return;
+    }
+    std::vector<DialogAppInfo> result;
+    for (const auto &info : dialogAppInfos) {
+        auto it = preferredMap.find(info.bundleName);
+        if (it != preferredMap.end() && info.appIndex != it->second) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "filter clone, bundle: %{public}s, appIndex: %{public}d, preferred: %{public}d",
+                info.bundleName.c_str(), info.appIndex, it->second);
+            continue;
+        }
+        result.push_back(info);
+    }
+    if (result.size() < dialogAppInfos.size()) {
+        dialogAppInfos = std::move(result);
+    }
+}
+
+bool ImplicitStartProcessor::IsPreferredCloneExist(const std::vector<DialogAppInfo> &dialogAppInfos,
+    const std::string &bundleName, int32_t preferredAppIndex)
+{
+    for (const auto &info : dialogAppInfos) {
+        if (info.bundleName == bundleName && info.appIndex == preferredAppIndex) {
+            return true;
+        }
+    }
+    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

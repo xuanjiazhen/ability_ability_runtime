@@ -80,10 +80,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
     auto recordId = AppRecordId::Create();
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
 
-    std::regex rule("[a-zA-Z.]+[-_#]{1}");
-    std::string signCode;
     bool isStageBasedModel = false;
-    ClipStringContent(rule, bundleInfo.appId, signCode);
     if (!bundleInfo.hapModuleInfos.empty()) {
         isStageBasedModel = bundleInfo.hapModuleInfos.back().isStageBasedModel;
     }
@@ -94,8 +91,6 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
     appRecord->SetStageModelState(isStageBasedModel);
     appRecord->SetSingleton(bundleInfo.singleton);
     appRecord->SetKeepAliveBundle(bundleInfo.isKeepAlive);
-    appRecord->SetSignCode(signCode);
-    appRecord->SetJointUserId(bundleInfo.jointUserId);
     appRecord->SetAppIdentifier(bundleInfo.signatureInfo.appIdentifier);
     appRecord->SetInstanceKey(instanceKey);
     appRecord->SetCustomProcessFlag(customProcessFlag);
@@ -130,27 +125,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
         "appName: %{public}s, processName: %{public}s, uid: %{public}d, specifiedProcessFlag: %{public}s, \
          customProcessFlag: %{public}s",
         appName.c_str(), processName.c_str(), uid, specifiedProcessFlag.c_str(), customProcessFlag.c_str());
-    std::regex rule("[a-zA-Z.]+[-_#]{1}");
-    std::string signCode;
-    auto jointUserId = bundleInfo.jointUserId;
-    TAG_LOGD(AAFwkTag::APPMGR, "jointUserId : %{public}s", jointUserId.c_str());
-    ClipStringContent(rule, bundleInfo.appId, signCode);
-    auto findSameProcess = [signCode, specifiedProcessFlag, processName, jointUserId, customProcessFlag, isFromPreload]
-        (const auto &pair) {
-            return (pair.second != nullptr) &&
-            (specifiedProcessFlag.empty() || pair.second->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
-            (pair.second->GetCustomProcessFlag() == customProcessFlag) &&
-            (pair.second->GetSignCode() == signCode) &&
-            AppRunningManager::CheckAppProcessNameIsSame(pair.second, processName, isFromPreload) &&
-            (pair.second->GetJointUserId() == jointUserId) && !(pair.second->IsTerminating()) &&
-            !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag()) &&
-            !(pair.second->IsKillPrecedeStart());
-    };
     auto appRunningMap = GetAppRunningRecordMap();
-    if (!jointUserId.empty()) {
-        auto iter = std::find_if(appRunningMap.begin(), appRunningMap.end(), findSameProcess);
-        return ((iter == appRunningMap.end()) ? nullptr : iter->second);
-    }
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
         if (appRecord && CheckAppProcessNameIsSame(appRecord, processName, isFromPreload) &&
@@ -412,8 +387,7 @@ int32_t AppRunningManager::IsAppRunningByBundleName(const std::string &bundleNam
     for (const auto &item : appRunningRecordMap_) {
         const auto &appRecord = item.second;
         if (appRecord && appRecord->GetBundleName() == bundleName && !(appRecord->GetRestartAppFlag()) &&
-            (appCloneIndex < 0 || appRecord->GetAppIndex() == appCloneIndex) &&
-            (userId < 0 || appRecord->GetUserId() == userId)) {
+            appRecord->GetAppIndex() == appCloneIndex && appRecord->GetUserId() == userId) {
             isRunning = true;
             break;
         }
@@ -1015,7 +989,13 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         appRecord->TerminateAbility(token, false);
     }
 #endif //SUPPORT_SCREEN
-    auto isLauncherApp = appRecord->GetApplicationInfo()->isLauncherApp;
+    auto appInfo = appRecord->GetApplicationInfo();
+    if (appInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null applicationInfo, bundle:%{public}s recordId:%{public}d",
+            appRecord->GetBundleName().c_str(), appRecord->GetRecordId());
+        return;
+    }
+    auto isLauncherApp = appInfo->isLauncherApp;
     auto isKeepAliveApp = appRecord->IsKeepAliveApp();
     TAG_LOGI(AAFwkTag::PROCESSMGR, "term isLast:%{public}d,%{public}d alive:%{public}d",
         isLastAbility, isLastAgentAbility, isKeepAliveApp);

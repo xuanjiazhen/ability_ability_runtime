@@ -30,6 +30,9 @@ namespace OHOS {
 namespace Rosen {
 enum class WSError;
 }
+namespace Ace {
+struct ModalUIExtensionCallbacks;
+}
 namespace AbilityRuntime {
 class AbilityContextImpl : public AbilityContext {
 public:
@@ -317,9 +320,11 @@ public:
      *
      * @param label the label of this ability.
      * @param icon the icon of this ability.
+     * @param groupId the group id of this ability.
      * @return Returns ERR_OK if success.
      */
-    ErrCode SetAbilityInstanceInfo(const std::string& label, std::shared_ptr<OHOS::Media::PixelMap> icon) override;
+    ErrCode SetAbilityInstanceInfo(const std::string& label, std::shared_ptr<OHOS::Media::PixelMap> icon,
+        const std::string& groupId) override;
 
     /**
      * @brief get current window mode.
@@ -467,6 +472,11 @@ private:
     void SetWindowRectangleParams(AAFwk::Want &want);
     void GetFailureInfoByMessage(const std::string &message, int32_t &failureCode,
         std::string &failureMessage, int32_t resultCode);
+#ifdef SUPPORT_SCREEN
+    Ace::ModalUIExtensionCallbacks SetupModalUIExtensionCallbacks(
+        std::shared_ptr<UIExtensionCallback> uiExtensionCallback,
+        std::shared_ptr<std::atomic<bool>> errorFired);
+#endif
 
     std::mutex onRequestResultMutex_;
     std::mutex onAtomicRequestResultMutex_;

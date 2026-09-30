@@ -112,6 +112,7 @@
 #endif
 
 #include "sleep_clean.h"
+#include "extractor.h"
 
 #if defined(NWEB)
 #include <thread>
@@ -149,12 +150,13 @@ constexpr char FORM_RENDER_LIB_PATH[] = "/system/lib64/libformrender.z.so";
 #else
 constexpr char FORM_RENDER_LIB_PATH[] = "/system/lib64/libformrender.z.so";
 #endif
-
+using ExtractorUtil = AbilityBase::ExtractorUtil;
 constexpr int32_t DELIVERY_TIME = 200;
 constexpr int32_t DISTRIBUTE_TIME = 100;
 constexpr int32_t START_HIGH_SENSITIVE = 1;
 constexpr int32_t EXIT_HIGH_SENSITIVE = 2;
 constexpr int32_t UNSPECIFIED_USERID = -2;
+constexpr int32_t APP_UNVISIBLE_STATE = 4;
 constexpr int32_t JS_ERROR_EXIT = -2;
 constexpr int32_t TIME_OUT = 120;
 constexpr int32_t DEFAULT_SLEEP_TIME = 100000;
@@ -1327,8 +1329,7 @@ std::vector<std::string> MainThread::GetOverlayPaths(const std::string &bundleNa
     std::vector<std::string> overlayPaths;
     for (auto &it : overlayModuleInfos_) {
         if (std::regex_search(it.hapPath, std::regex(bundleName))) {
-            it.hapPath = std::regex_replace(it.hapPath, std::regex(std::string(ABS_CODE_PATH) +
-                std::string(FILE_SEPARATOR) + bundleName), std::string(LOCAL_CODE_PATH));
+            it.hapPath = ExtractorUtil::GetLoadFilePath(it.hapPath);
         } else {
             it.hapPath = std::regex_replace(it.hapPath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
         }
@@ -2108,8 +2109,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     auto moduleName = entryHapModuleInfo.moduleName;
     std::string loadPath =
         entryHapModuleInfo.hapPath.empty() ? entryHapModuleInfo.resourcePath : entryHapModuleInfo.hapPath;
-    std::regex inner_pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleInfo.name);
-    loadPath = std::regex_replace(loadPath, inner_pattern, LOCAL_CODE_PATH);
+    loadPath = ExtractorUtil::GetLoadFilePath(loadPath);
     application_->SetEntryLoadPath(loadPath);
     auto res = GetOverlayModuleInfos(bundleInfo.name, moduleName, overlayModuleInfos_);
     std::vector<std::string> overlayPaths;
@@ -2548,8 +2548,7 @@ void MainThread::ChangeToLocalPath(const std::string &bundleName,
         if (item.empty()) {
             continue;
         }
-        localPath.emplace_back(
-            std::regex_replace(item, pattern, std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR)));
+        localPath.emplace_back(ExtractorUtil::GetLoadFilePath(item));
     }
 }
 
@@ -2568,7 +2567,7 @@ void MainThread::ChangeToLocalPath(const std::string &bundleName,
             localPath.c_str(), bundleName.c_str());
     }
     if (isExist) {
-        localPath = std::regex_replace(localPath, pattern, std::string(LOCAL_CODE_PATH));
+        localPath = ExtractorUtil::GetLoadFilePath(localPath);
     } else {
         localPath = std::regex_replace(localPath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
     }
@@ -4197,6 +4196,11 @@ int32_t MainThread::ChangeAppGcState(int32_t state, uint64_t tid)
     if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::CJ) {
         return NO_ERROR;
     }
+    if (state == APP_UNVISIBLE_STATE) {
+        TAG_LOGI(AAFwkTag::APPKIT, "notify application unvisible state for GC");
+        runtime->NotifyApplicationState(true);
+        return NO_ERROR;
+    }
 
     NativeEngine* nativeEngine = nullptr;
 
@@ -4774,8 +4778,12 @@ void MainThread::SleepCleanKill()
         }
         if (AbilityRuntime::TimeUtil::SystemTimeMillisecond() - beginTime < AppExecFwk::SLEEP_CLEAN_TIMEOUT &&
             appThread->applicationImpl_->GetState() != ApplicationImpl::APP_STATE_FOREGROUND) {
-            AbilityManagerClient::GetInstance()->RecordAppExitReason({ REASON_RESOURCE_CONTROL,
-                "Js_Heap_Sleep_Clean_Kill" });
+            int32_t pid = getpid();
+            AAFwk::ExitReasonCompability exitReason = { REASON_RESOURCE_CONTROL, "Js_Heap_Sleep_Clean_Kill" };
+            exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_HEAP_SLEEP_CLEAN_KILL;
+            exitReason.killMsg = "Js_Heap_Sleep_Clean_Kill";
+            exitReason.innerMsg = "Js_Heap_Sleep_Clean_Kill";
+            AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, getuid(), exitReason);
             _exit(0);
         }
     };

@@ -70,6 +70,8 @@ public:
 
     bool VerifyGetBundleInfoPrivilegedPermission() const;
 
+    bool VerifyBlockAllAppStartPermission() const;
+
     int CheckCallDataAbilityPermission(const VerificationInfo &verificationInfo, bool isShell) const;
 
     int CheckCallServiceAbilityPermission(const VerificationInfo &verificationInfo) const;
@@ -98,6 +100,7 @@ public:
     bool JudgeCallerIsAllowedToUseSystemAPI() const;
     bool JudgeCallerIsAllowedToUseSystemAPIByTokenId(uint64_t specifiedFullTokenId) const;
     bool IsSystemAppCall() const;
+    bool IsLocalDebugOtherAppsCall() const;
 };
 } // namespace AAFwk
 } // namespace OHOS

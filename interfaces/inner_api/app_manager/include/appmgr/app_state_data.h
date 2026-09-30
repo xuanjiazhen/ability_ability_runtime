@@ -66,7 +66,7 @@ struct AppStateData : public Parcelable {
     int32_t uid = 0;
     int32_t callerUid = -1;
     int32_t state = 0;
-    int32_t appIndex = 0;
+    int32_t appIndex = -1;
     uint32_t accessTokenId = 0;
     int32_t preloadMode = -1;
     ExtensionAbilityType extensionType = ExtensionAbilityType::UNSPECIFIED;
@@ -75,6 +75,8 @@ struct AppStateData : public Parcelable {
     std::string callerBundleName;
     bool isFromWindowFocusChanged = false;
     int32_t byCallStatus = 0;
+    int32_t lastUIAbilityCallerUid = -1;
+    std::string lastUIAbilityCallerName;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

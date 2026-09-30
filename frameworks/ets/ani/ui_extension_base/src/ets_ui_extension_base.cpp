@@ -522,10 +522,7 @@ void EtsUIExtensionBase::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo
         CallObjectMethod(false, "onForeground", nullptr);
     }
 
-    auto filtered = result;
-    filtered.interactionInfo = nullptr;
-    TAG_LOGW(AAFwkTag::UI_EXT, "filter interactionInfo in window path");
-    OnInsightIntentExecuteDone(sessionInfo, filtered);
+    OnInsightIntentExecuteDone(sessionInfo, result);
 
     if (needForeground) {
         // If need foreground, that means triggered by onForeground.
@@ -680,7 +677,8 @@ bool EtsUIExtensionBase::CallEtsOnSessionCreate(const AAFwk::Want &want, const s
     return true;
 }
 
-sptr<Rosen::WindowOption> EtsUIExtensionBase::CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo)
+sptr<Rosen::WindowOption> EtsUIExtensionBase::CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo,
+    const AAFwk::Want &want)
 {
     auto option = sptr<Rosen::WindowOption>::MakeSptr();
     if (option == nullptr) {
@@ -696,7 +694,7 @@ sptr<Rosen::WindowOption> EtsUIExtensionBase::CreateWindowOption(const sptr<AAFw
     option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     option->SetDensity(sessionInfo->density);
-    option->SetIsDensityFollowHost(sessionInfo->isDensityFollowHost);
+    option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
     if (context_->isNotAllow != -1) {
         bool isNotAllow = context_->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
@@ -706,6 +704,7 @@ sptr<Rosen::WindowOption> EtsUIExtensionBase::CreateWindowOption(const sptr<AAFw
         AppExecFwk::ExtensionAbilityType::AGENT_UI) {
         option->SetIsBlockSubwindow(true);
     }
+    option->SetCallerPid(want.GetIntParam(AAFwk::Want::PARAM_RESV_CALLER_PID, -1));
     return option;
 }
 
@@ -729,7 +728,7 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
             TAG_LOGE(AAFwkTag::UI_EXT, "null context");
             return false;
         }
-        auto option = CreateWindowOption(sessionInfo);
+        auto option = CreateWindowOption(sessionInfo, want);
         if (option == nullptr) {
             return false;
         }

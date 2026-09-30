@@ -167,13 +167,14 @@ export default class UIAbilityContext extends Context {
 
   private native nativeChangeAbilityVisibility(isShow: boolean, callback: AsyncCallbackWrapper<void>): void;
 
-  private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, RecordData>,
-    startCallback: AbilityStartCallback): BusinessError;
+  private native nativeStartAbilityByType(type: string, wantParam: Record<string, RecordData>,
+    startCallback: AbilityStartCallback, callback: AsyncCallbackWrapper<void>): void;
  
   private native nativeRequestDialogService(want: Want,
     result: AsyncCallbackWrapper<dialogRequest.RequestResult>): void;
 
-  private native nativeSetAbilityInstanceInfo(label: string, icon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeSetAbilityInstanceInfo(label: string, icon: image.PixelMap, groupId: string,
+    callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
 
@@ -235,7 +236,7 @@ export default class UIAbilityContext extends Context {
 
   private native nativeOpenAtomicServiceCheck(): void;
 
-  private native nativeSetAbilityInstanceInfoCheck(label: string, icon: image.PixelMap): void;
+  private native nativeSetAbilityInstanceInfoCheck(label: string, icon: image.PixelMap, groupId: string): void;
 
   private native nativeSetMissionIconCheck(icon: image.PixelMap): void;
 
@@ -572,18 +573,15 @@ export default class UIAbilityContext extends Context {
 
   startAbilityByType(type: string, wantParam: Record<string, RecordData>, startCallback: AbilityStartCallback,
     callback: AsyncCallback<void>): void {
-    let p1 = taskpool.execute((): BusinessError => {
-      return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
-    });
-    p1.then((e: Any) => {
-      let retError = e as BusinessError;
-      if (retError.code === 0) {
+    let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+      if (err == null || err.code == 0) {
         callback(null, undefined);
       } else {
-        callback(retError, undefined);
+        callback(err, undefined);
       }
-    }, (err: Error): void => {
-      callback(err as BusinessError, undefined);
+    });
+    taskpool.execute((): void => {
+      this.nativeStartAbilityByType(type, wantParam, startCallback, asyncCall);
     });
   }
 
@@ -624,18 +622,15 @@ hideAbility(): Promise<void> {
   startAbilityByType(type: string, wantParam: Record<string, RecordData>,
     startCallback: AbilityStartCallback): Promise<void> {
     let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError) => void): void => {
-      let p1 = taskpool.execute((): BusinessError => {
-        return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
-      });
-      p1.then((e: Any) => {
-        let retError = e as BusinessError;
-        if (retError.code === 0) {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
-          reject(retError);
+          reject(err);
         }
-      }).catch((err: Error): void => {
-        reject(err as BusinessError);
+      });
+      taskpool.execute((): void => {
+        this.nativeStartAbilityByType(type, wantParam, startCallback, myCall);
       });
     });
     return p;
@@ -777,7 +772,7 @@ hideAbility(): Promise<void> {
   }
 
   setAbilityInstanceInfo(label: string, icon: image.PixelMap): Promise<void> {
-    this.nativeSetAbilityInstanceInfoCheck(label, icon);
+    this.nativeSetAbilityInstanceInfoCheck(label, icon, '');
     let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject: (err: BusinessError)=>void):void => {
       let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
         if (err == null || err.code == 0) {
@@ -787,7 +782,24 @@ hideAbility(): Promise<void> {
         }
       });
       taskpool.execute((): void => {
-        this.nativeSetAbilityInstanceInfo(label, icon, syncCall);
+        this.nativeSetAbilityInstanceInfo(label, icon, '', syncCall);
+      });
+    });
+    return p;
+  }
+
+  setAbilityInstanceInfo(label: string, icon: image.PixelMap, groupId: string): Promise<void> {
+    this.nativeSetAbilityInstanceInfoCheck(label, icon, groupId);
+    let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject: (err: BusinessError)=>void):void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeSetAbilityInstanceInfo(label, icon, groupId, syncCall);
       });
     });
     return p;

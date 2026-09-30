@@ -23,7 +23,10 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "insight_intent_execute_param.h"
+#include "insight_intent_execute_lite_param.h"
 #include "insight_intent_execute_manager.h"
+#include "permission_verification.h"
+#include "process_options.h"
 #include "skill_execute_param.h"
 #include "status_bar_delegate_interface.h"
 #include <iterator>
@@ -33,6 +36,7 @@
 #ifdef SUPPORT_SCREEN
 #include "pixel_map_bridge.h"
 #endif //SUPPORT_SCREEN
+#include "ws_common.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -44,7 +48,6 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t MAX_KILL_PROCESS_PID_COUNT = 100;
 constexpr int32_t MAX_UPDATE_CONFIG_SIZE = 100;
 constexpr int32_t MAX_WANT_LIST_SIZE = 4;
-constexpr int32_t INVALID_USER_ID = -1;
 } // namespace
 AbilityManagerStub::AbilityManagerStub()
 {}
@@ -56,6 +59,19 @@ void AbilityManagerStub::SanitizeWantParams(Want &want)
 {
     AppExecFwk::InsightIntentExecuteParam::RemoveInsightIntent(want);
     AppExecFwk::SkillExecuteParam::RemoveSkillParam(want);
+    // Pass-through of non-standard scheme uri is only allowed for system apps
+    // and native processes. Third-party apps cannot set this flag, so the raw
+    // uri is cleared here as the final interception point on the server side.
+    if (want.GetBoolParam(Want::PARAM_SET_URI_WITH_ORIGIN_STRING, false)) {
+        if (!PermissionVerification::GetInstance()->IsSACall() &&
+            !PermissionVerification::GetInstance()->IsSystemAppCall()) {
+            want.RemoveParam(Want::PARAM_SET_URI_WITH_ORIGIN_STRING);
+            // Re-set the uri so that the Uri constructor re-runs scheme validation:
+            // non-standard scheme uri is cleared, valid uri is kept.
+            want.SetUri(want.GetUriString());
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "third-party want uri pass-through blocked");
+        }
+    }
 }
 
 int AbilityManagerStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
@@ -406,6 +422,9 @@ int AbilityManagerStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel 
     }
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_FUNCTION_CALL) {
         return ExecuteIntentByFunctionCallInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_WITH_SPECIFY_TOKEN_ID) {
+        return ExecuteUIAbilityForegroundIntentWithSpecifyTokenIdInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_SA_INTERCEPTOR) {
         return UnregisterSAInterceptorInner(data, reply);
@@ -939,6 +958,15 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::UPDATE_KIOSK_APP_LIST) {
         return UpdateKioskApplicationListInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::ADD_KIOSK_APP_LIST) {
+        return AddKioskApplicationListInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::DELETE_KIOSK_APP_FROM_LIST) {
+        return DeleteKioskApplicationListInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_WANT_AGENT_HOLDER) {
+        return RegisterWantAgentHolderInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::ENTER_KIOSK_MODE) {
         return EnterKioskModeInner(data, reply);
     }
@@ -1038,9 +1066,6 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     }
     if (interfaceCode == AbilityManagerInterfaceCode::INSIGHT_INTENT_QUERY_ENTITY) {
         return QueryEntityInner(data, reply);
-    }
-    if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_IN_APP_SKILL) {
-        return ExecuteInAppSkillInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_IN_APP_SKILL_WITH_TOKEN_ID) {
         return ExecuteInAppSkillWithTokenIdInner(data, reply);
@@ -1202,8 +1227,16 @@ int AbilityManagerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mess
 
 int AbilityManagerStub::GetTopAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    bool isNeedLocalDeviceId = data.ReadBool();
-    AppExecFwk::ElementName result = GetTopAbility(isNeedLocalDeviceId);
+    bool isNeedLocalDeviceId = false;
+    if (!data.ReadBool(isNeedLocalDeviceId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read isNeedLocalDeviceId failed");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t userId = INVALID_USER_ID;
+    if (!data.ReadInt32(userId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "read userId fail, use default");
+    }
+    AppExecFwk::ElementName result = GetTopAbility(isNeedLocalDeviceId, userId);
     if (result.GetDeviceID().empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "GetTopAbilityInner is nullptr");
     }
@@ -2124,6 +2157,7 @@ int AbilityManagerStub::StartAbilityForOptionsInner(MessageParcel &data, Message
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_INVALID_VALUE;
     }
+    ProcessOptions::SanitizeSystemFields(startOptions->processOptions);
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
         callerToken = data.ReadRemoteObject();
@@ -2190,6 +2224,9 @@ int AbilityManagerStub::SendWantSenderInner(MessageParcel &data, MessageParcel &
         return ERR_INVALID_VALUE;
     }
     SanitizeWantParams(senderInfo->want);
+    if (senderInfo->startOptions) {
+        ProcessOptions::SanitizeSystemFields(senderInfo->startOptions->processOptions);
+    }
     int32_t result = SendWantSender(wantSender, *senderInfo);
     if (!reply.WriteParcelable(senderInfo.get())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "completedData write fail");
@@ -2207,6 +2244,9 @@ int AbilityManagerStub::SendLocalWantSenderInner(MessageParcel &data, MessagePar
         return ERR_INVALID_VALUE;
     }
     SanitizeWantParams(senderInfo->want);
+    if (senderInfo->startOptions) {
+        ProcessOptions::SanitizeSystemFields(senderInfo->startOptions->processOptions);
+    }
     int32_t result = SendLocalWantSender(*senderInfo);
     reply.WriteInt32(result);
     senderInfo->want.CloseAllFd();
@@ -2394,6 +2434,17 @@ int AbilityManagerStub::GetWantSenderInfoInner(MessageParcel &data, MessageParce
         return ERR_INVALID_VALUE;
     }
     reply.WriteParcelable(info.get());
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::RegisterWantAgentHolderInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IWantSender> wantSender = iface_cast<IWantSender>(data.ReadRemoteObject());
+    if (wantSender == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "wantSender null");
+        return ERR_INVALID_VALUE;
+    }
+    RegisterWantAgentHolder(wantSender);
     return NO_ERROR;
 }
 
@@ -3114,8 +3165,12 @@ int AbilityManagerStub::FinishUserTestInner(MessageParcel &data, MessageParcel &
 
 int AbilityManagerStub::GetTopAbilityTokenInner(MessageParcel &data, MessageParcel &reply)
 {
+    int32_t userId = INVALID_USER_ID;
+    if (!data.ReadInt32(userId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "read userId fail, use default");
+    }
     sptr<IRemoteObject> token;
-    auto result = GetTopAbility(token);
+    auto result = GetTopAbility(token, userId);
     if (!reply.WriteRemoteObject(token)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "data write fail");
         return ERR_INVALID_VALUE;
@@ -4434,6 +4489,30 @@ int32_t AbilityManagerStub::ExecuteIntentByFunctionCallInner(MessageParcel &data
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::ExecuteUIAbilityForegroundIntentWithSpecifyTokenIdInner(
+    MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        return ERR_INVALID_VALUE;
+    }
+    sptr<IRemoteObject> callerAbilityToken = data.ReadRemoteObject();
+    std::unique_ptr<InsightIntentExecuteLiteParam> param(data.ReadParcelable<InsightIntentExecuteLiteParam>());
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "param null");
+        return ERR_INVALID_VALUE;
+    }
+    uint64_t specifiedFullTokenId = data.ReadUint64();
+    auto result = ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(
+        *want, callerAbilityToken, *param, specifiedFullTokenId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int AbilityManagerStub::StartAbilityForResultAsCallerInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
@@ -4536,6 +4615,7 @@ int AbilityManagerStub::StartAbilityForResultAsCallerForOptionsInner(MessageParc
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_INVALID_VALUE;
     }
+    ProcessOptions::SanitizeSystemFields(startOptions->processOptions);
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
         callerToken = data.ReadRemoteObject();
@@ -4865,6 +4945,7 @@ int32_t AbilityManagerStub::OpenAtomicServiceInner(MessageParcel &data, MessageP
         TAG_LOGE(AAFwkTag::ABILITYMGR, "options null");
         return ERR_INVALID_VALUE;
     }
+    ProcessOptions::SanitizeSystemFields(options->processOptions);
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
         callerToken = data.ReadRemoteObject();
@@ -5016,7 +5097,7 @@ int32_t AbilityManagerStub::OpenLinkInner(MessageParcel &data, MessageParcel &re
         TAG_LOGE(AAFwkTag::ABILITYMGR, "openLink fail");
     }
     reply.WriteInt32(result);
-    return result;
+    return NO_ERROR;
 }
 
 int32_t AbilityManagerStub::TerminateMissionInner(MessageParcel &data, MessageParcel &reply)
@@ -5027,7 +5108,7 @@ int32_t AbilityManagerStub::TerminateMissionInner(MessageParcel &data, MessagePa
         TAG_LOGE(AAFwkTag::ABILITYMGR, "openLink fail");
     }
     reply.WriteInt32(result);
-    return result;
+    return NO_ERROR;
 }
 
 int32_t AbilityManagerStub::BlockAllAppStartInner(MessageParcel &data, MessageParcel &reply)
@@ -5222,6 +5303,7 @@ int32_t AbilityManagerStub::StartSelfUIAbilityWithStartOptionsInner(MessageParce
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_READ_START_OPTIONS;
     }
+    ProcessOptions::SanitizeSystemFields(options->processOptions);
     int32_t result = StartSelfUIAbilityWithStartOptions(*want, *options);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write StartSelfUIAbilityWithStartOptions result fail");
@@ -5265,6 +5347,7 @@ int32_t AbilityManagerStub::StartSelfUIAbilityWithStartOptionsAndTokenInner(Mess
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_READ_START_OPTIONS;
     }
+    ProcessOptions::SanitizeSystemFields(options->processOptions);
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
         callerToken = data.ReadRemoteObject();
@@ -5291,6 +5374,7 @@ int32_t AbilityManagerStub::StartSelfUIAbilityWithPidResultInner(MessageParcel &
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_READ_START_OPTIONS;
     }
+    ProcessOptions::SanitizeSystemFields(options->processOptions);
     auto callbackId = data.ReadUint64();
     int32_t result = StartSelfUIAbilityWithPidResult(*want, *options, callbackId);
     if (!reply.WriteInt32(result)) {
@@ -5578,10 +5662,38 @@ int32_t AbilityManagerStub::UpdateKioskApplicationListInner(MessageParcel &data,
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::AddKioskApplicationListInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> appList;
+    data.ReadStringVector(&appList);
+
+    auto result = AddKioskApplicationList(appList);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::DeleteKioskApplicationListInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> appList;
+    data.ReadStringVector(&appList);
+
+    auto result = DeleteKioskApplicationList(appList);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
 int32_t AbilityManagerStub::EnterKioskModeInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> token = data.ReadRemoteObject();
-    auto result = EnterKioskMode(token);
+    int32_t kioskType = static_cast<int32_t>(Rosen::KioskType::DEFAULT);
+    data.ReadInt32(kioskType);
+    auto result = EnterKioskMode(token, kioskType);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_WRITE_RESULT_CODE_FAILED;
@@ -5737,6 +5849,7 @@ int AbilityManagerStub::StartSelfUIAbilityInCurrentProcessInner(MessageParcel &d
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_INVALID_VALUE;
     }
+    ProcessOptions::SanitizeSystemFields(startOptions->processOptions);
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
         callerToken = data.ReadRemoteObject();
@@ -5867,38 +5980,6 @@ int32_t AbilityManagerStub::SetAppRecoveryFlagInner(MessageParcel &data, Message
     return NO_ERROR;
 }
 
-int32_t AbilityManagerStub::ExecuteInAppSkillInner(MessageParcel &data, MessageParcel &reply)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "execute in-app skill stub");
-    std::string bundleName = Str16ToStr8(data.ReadString16());
-    std::string moduleName = Str16ToStr8(data.ReadString16());
-    std::string skillName = Str16ToStr8(data.ReadString16());
-    std::string scriptPath = Str16ToStr8(data.ReadString16());
-    std::string functionName = Str16ToStr8(data.ReadString16());
-
-    auto *args = data.ReadParcelable<AAFwk::WantParams>();
-    std::shared_ptr<AAFwk::WantParams> skillArgs;
-    if (args != nullptr) {
-        skillArgs = std::shared_ptr<AAFwk::WantParams>(args);
-    } else {
-        skillArgs = std::make_shared<AAFwk::WantParams>();
-    }
-
-    sptr<ISkillExecuteCallback> callback = nullptr;
-    bool hasCallback = data.ReadBool();
-    if (hasCallback) {
-        auto callbackObj = data.ReadRemoteObject();
-        if (callbackObj != nullptr) {
-            callback = iface_cast<ISkillExecuteCallback>(callbackObj);
-        }
-    }
-
-    int32_t result = ExecuteInAppSkill(
-        bundleName, moduleName, skillName, scriptPath, functionName, skillArgs, callback);
-    reply.WriteInt32(result);
-    return NO_ERROR;
-}
-
 int32_t AbilityManagerStub::ExecuteInAppSkillWithTokenIdInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "execute in-app skill with tokenId stub");
@@ -5924,6 +6005,10 @@ int32_t AbilityManagerStub::ExecuteInAppSkillWithTokenIdInner(MessageParcel &dat
         if (callbackObj != nullptr) {
             callback = iface_cast<ISkillExecuteCallback>(callbackObj);
         }
+    }
+
+    if (data.GetReadableBytes() > 0) {
+        request.toolCallId = Str16ToStr8(data.ReadString16());
     }
 
     int32_t result = ExecuteInAppSkillWithTokenId(request, callback);

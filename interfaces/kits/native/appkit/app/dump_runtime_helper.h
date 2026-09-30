@@ -71,6 +71,9 @@ private:
     static bool CheckOomdumpSwitch();
     static bool Check2CQuota();
     static bool Check2DQuota(bool needDecreaseQuota);
+    static bool CheckRandomTelemetryQuota();
+    static bool IsInFilterList();
+    static bool CheckDumpQuota(const std::string &eventConfig, bool needDecreaseQuota);
     static bool SafeStoll(const std::string &str, long long &value);
     static GetMemLeakStringFunc LoadMemLeakFunc(void **handle);
     static bool GetDumpResult(std::string &dumpResult);
@@ -83,6 +86,8 @@ private:
     void DumpKmpKotlinHeap(const OHOS::AppExecFwk::MemDumpInfo &info);
     void DumpJsvmHeap(const OHOS::AppExecFwk::MemDumpInfo &info);
     void DumpArkwebJsHeap(const OHOS::AppExecFwk::MemDumpInfo &info);
+    static constexpr int32_t THREAD_NAME_MAX_LEN = 16;
+    void DumpArktsHeapSize(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
 };
 } // namespace AppExecFwk
 } // namespace OHOS

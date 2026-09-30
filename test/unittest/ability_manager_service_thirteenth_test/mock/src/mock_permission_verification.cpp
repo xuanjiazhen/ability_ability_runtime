@@ -87,6 +87,10 @@ bool PermissionVerification::VerifyGetBundleInfoPrivilegedPermission() const
 {
     return !!(MyStatus::GetInstance().permPermission_);
 }
+bool PermissionVerification::VerifyBlockAllAppStartPermission() const
+{
+    return MyStatus::GetInstance().permVerifyBlockAllAppStartPermission_;
+}
 int PermissionVerification::CheckCallDataAbilityPermission(const VerificationInfo &verificationInfo, bool isShell) const
 {
     return MyStatus::GetInstance().permPermission_;
@@ -139,6 +143,10 @@ bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPIByTokenId(uint64_
 bool PermissionVerification::IsSystemAppCall() const
 {
     return MyStatus::GetInstance().isSystemAppCall_;
+}
+bool PermissionVerification::IsLocalDebugOtherAppsCall() const
+{
+    return false;
 }
 } // namespace AAFwk
 } // namespace OHOS

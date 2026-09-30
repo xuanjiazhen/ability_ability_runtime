@@ -19,10 +19,12 @@
 #include "ability_util.h"
 #include "atomic_service_status_callback.h"
 #include "distributed_client.h"
+#include "extension_query_event_util.h"
 #include "hitrace_meter.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_utils.h"
 #include "ipc_capacity_wrap.h"
+#include "ipc_skeleton.h"
 #include "permission_constants.h"
 #include "start_ability_utils.h"
 #include "support_system_ability_permission.h"
@@ -100,8 +102,9 @@ bool FreeInstallManager::IsTopAbility(sptr<IRemoteObject> callerToken)
     }
 #ifdef SUPPORT_SCREEN
     if (OHOS::Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
         OHOS::Rosen::FocusChangeInfo focusChangeInfo;
-        OHOS::Rosen::WindowManager::GetInstance().GetFocusWindowInfoByAbilityToken(focusChangeInfo, callerToken);
+        OHOS::Rosen::WindowManager::GetInstance(userId).GetFocusWindowInfoByAbilityToken(focusChangeInfo, callerToken);
         return focusChangeInfo.abilityToken_ == callerToken;
     } else {
         auto wmsHandler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetWMSHandler();
@@ -621,6 +624,7 @@ int FreeInstallManager::ConnectFreeInstall(const Want &want, int32_t userId,
         queryExtensionResult = IN_PROCESS_CALL(bundleMgrHelper->QueryExtensionAbilityInfos(
             want, AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, extensionInfos));
     }
+    ExtensionQueryEventUtil::ReportExtensionQueryMultiResult(extensionInfos, false);
     bool hasAgentExtension = false;
     for (const auto &extensionInfo : extensionInfos) {
         if (AgentAbilityUtil::IsAgentExtensionInfo(extensionInfo)) {

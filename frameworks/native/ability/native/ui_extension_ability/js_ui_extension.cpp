@@ -64,13 +64,30 @@ bool IsEmbeddableStart(int32_t screenMode)
     return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
         screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
 }
+
+void *DetachNewUIExtensionContext(napi_env, void *nativeObject, void *)
+{
+    auto *origContext = static_cast<std::weak_ptr<UIExtensionContext> *>(nativeObject);
+    if (origContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "origContext is null");
+        return nullptr;
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "new detached ui extension context");
+    return new (std::nothrow) std::weak_ptr<UIExtensionContext>(*origContext);
 }
 
-napi_value AttachUIExtensionContext(napi_env env, void *value, void *extValue)
+void DetachFinalizeUIExtensionContext(void *detachedObject, void *)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "finalize detached ui extension context");
+    delete static_cast<std::weak_ptr<UIExtensionContext> *>(detachedObject);
+}
+}
+
+napi_value AttachUIExtensionContext(napi_env env, void *value, void *)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
     HandleEscape handleEscape(env);
-    if (value == nullptr || extValue == nullptr) {
+    if (value == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "invalid parameter");
         return nullptr;
     }
@@ -92,9 +109,15 @@ napi_value AttachUIExtensionContext(napi_env env, void *value, void *extValue)
         TAG_LOGE(AAFwkTag::UI_EXT, "null contextObj");
         return nullptr;
     }
-    napi_coerce_to_native_binding_object(env, contextObj, DetachCallbackFunc,
-        AttachUIExtensionContext, value, extValue);
     auto workContext = new (std::nothrow) std::weak_ptr<UIExtensionContext>(ptr);
+    napi_status coerceStatus = napi_coerce_to_native_binding_object(env, contextObj, DetachNewUIExtensionContext,
+        AttachUIExtensionContext, workContext, nullptr);
+    if (coerceStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "coerce ui extension context failed: %{public}d", coerceStatus);
+        delete workContext;
+        return nullptr;
+    }
+    napi_add_detached_finalizer(env, contextObj, DetachFinalizeUIExtensionContext, nullptr);
     napi_status status = napi_wrap(env, contextObj, workContext,
         [](napi_env, void *data, void *) {
             TAG_LOGD(AAFwkTag::UI_EXT, "Finalizer for weak_ptr ui extension context is called");
@@ -234,15 +257,14 @@ void JsUIExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr<AA
     }
     auto workContext = new (std::nothrow) std::weak_ptr<UIExtensionContext>(context);
     CHECK_POINTER(workContext);
-    screenModePtr_ = std::make_shared<int32_t>(screenMode);
-    auto workScreenMode = new (std::nothrow) std::weak_ptr<int32_t>(screenModePtr_);
-    if (workScreenMode == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "workScreenMode is null");
+    napi_status coerceStatus = napi_coerce_to_native_binding_object(
+        env, contextObj, DetachNewUIExtensionContext, AttachUIExtensionContext, workContext, nullptr);
+    if (coerceStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "coerce ui extension context failed: %{public}d", coerceStatus);
         delete workContext;
         return;
     }
-    napi_coerce_to_native_binding_object(
-        env, contextObj, DetachCallbackFunc, AttachUIExtensionContext, workContext, workScreenMode);
+    napi_add_detached_finalizer(env, contextObj, DetachFinalizeUIExtensionContext, nullptr);
     context->Bind(jsRuntime_, shellContextRef_.get());
     napi_set_named_property(env, obj, "context", contextObj);
     napi_status status = napi_wrap(env, contextObj, workContext,
@@ -561,10 +583,7 @@ void JsUIExtension::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &se
         CallObjectMethod("onForeground");
     }
 
-    auto filtered = result;
-    filtered.interactionInfo = nullptr;
-    TAG_LOGW(AAFwkTag::UI_EXT, "filter interactionInfo in window path");
-    OnInsightIntentExecuteDone(sessionInfo, filtered);
+    OnInsightIntentExecuteDone(sessionInfo, result);
 
     if (needForeground) {
         // If need foreground, that means triggered by onForeground.
@@ -707,7 +726,7 @@ sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtens
     option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     option->SetDensity(sessionInfo->density);
-    option->SetIsDensityFollowHost(sessionInfo->isDensityFollowHost);
+    option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
     option->SetDisplayId(sessionInfo->displayId);
     if (context->isNotAllow != -1) {
         bool isNotAllow = context->isNotAllow == 1 ? true : false;
@@ -724,6 +743,7 @@ sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtens
         launchTimestamp = static_cast<int64_t>(temp);
     }
     option->SetStartModalExtensionTimeStamp(launchTimestamp);
+    option->SetCallerPid(want.GetIntParam(AAFwk::Want::PARAM_RESV_CALLER_PID, -1));
     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
     return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
 }

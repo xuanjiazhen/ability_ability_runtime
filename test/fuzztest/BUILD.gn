@@ -490,7 +490,6 @@ group("fuzztest") {
     "prepareterminate_fuzzer:fuzztest",
     "prestartnwebspawnprocess_fuzzer:fuzztest",
     "rdbdatamanagerfirst_fuzzer:fuzztest",
-    "rdbdatamanagersecond_fuzzer:fuzztest",
     "rdbdatamanagerthird_fuzzer:fuzztest",
     "rdbdatamanagerfourth_fuzzer:fuzztest",
     "registerabilitylifecyclecallback_fuzzer:fuzztest",
@@ -563,7 +562,6 @@ group("fuzztest") {
     "usercontrollerfourth_fuzzer:fuzztest",
     "wantagenthelperstring_fuzzer:fuzztest",
     "wantagenthelpertrigger_fuzzer:fuzztest",
-    "wantsenderstub_fuzzer:fuzztest",
     "wantutils_fuzzer:fuzztest",
     "windowoptionsutils_fuzzer:fuzztest",
   ]

@@ -43,9 +43,11 @@ ohos_shared_library("agentextensionability") {
   relative_install_dir = "module/app/agent"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("js_agent_connection") {
+  version_script = "libjs_agent_connection.map"
   sanitize = {
     integer_overflow = true
     ubsan = true
@@ -182,6 +184,8 @@ ohos_shared_library("js_agent_extension") {
       "window_manager:libwsutils",
     ]
   }
+
+  version_script = "libjs_agent_extension.map"
 
   subsystem_name = "ability"
   part_name = "ability_runtime"

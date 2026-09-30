@@ -54,7 +54,9 @@ public:
     static bool retGetBundleInfos;
     static std::vector<AppExecFwk::BundleInfo> mockBundleInfos;
     static std::vector<std::string> getBundleInfoV9CallNames;
+    static int32_t lastGetBundleInfosUserId;
     static std::vector<std::string> insertDataCallNames;
+    static std::vector<std::string> deleteDataCallNames;
 
     // Mock data for GetResConfigFile
     static std::vector<std::string> mockProfileInfos;

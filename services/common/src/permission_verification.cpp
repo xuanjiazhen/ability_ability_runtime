@@ -19,6 +19,7 @@
 #include "accesstoken_kit.h"
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
+#include "parameters.h"
 #include "permission_constants.h"
 #include "server_constant.h"
 #include "support_system_ability_permission.h"
@@ -30,11 +31,14 @@
 namespace OHOS {
 namespace AAFwk {
 const std::string DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
+const std::string DLP_PARAMS_CUSTOM_FLAG = "ohos.dlp.params.customFlag";
+
 namespace {
 const int32_t SHELL_START_EXTENSION_FLOOR = 0; // FORM
 const int32_t SHELL_START_EXTENSION_CEIL = 21; // EMBEDDED_UI
 const int32_t TOKEN_ID_BIT_SIZE = 32;
 const std::string FOUNDATION_PROCESS_NAME = "foundation";
+const std::string DEVELOPER_MODE_STATE = "const.security.developermode.state";
 const std::set<std::string> OBSERVER_NATIVE_CALLER = {
     "memmgrservice",
     "resource_schedule_service",
@@ -179,6 +183,7 @@ bool PermissionVerification::VerifyDlpPermission(Want &want) const
 {
     if (want.GetIntParam(AbilityRuntime::ServerConstant::DLP_INDEX, 0) == 0) {
         want.RemoveParam(DLP_PARAMS_SECURITY_FLAG);
+        want.RemoveParam(DLP_PARAMS_CUSTOM_FLAG);
         return true;
     }
 
@@ -492,7 +497,7 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
         TAG_LOGE(AAFwkTag::DEFAULT, "caller INVISIBLE permission invalid");
         return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
     }
-    if (!JudgeStartAbilityFromBackground(verificationInfo.isBackgroundCall, specifyTokenId)) {
+    if (!JudgeStartAbilityFromBackground(verificationInfo.isBackgroundCall, verificationInfo.skillCallerTokenId)) {
         TAG_LOGE(AAFwkTag::DEFAULT, "caller START_ABILITIES_FROM_BACKGROUND permission invalid");
         return CHECK_PERMISSION_FAILED;
     }
@@ -651,6 +656,38 @@ bool PermissionVerification::VerifySuperviseKiaServicePermission() const
 bool PermissionVerification::VerifyStartLocalDebug(int32_t tokenId) const
 {
     if (VerifyPermissionByTokenId(tokenId, PermissionConstants::PERMISSION_PERFORM_LOCAL_DEBUG)) {
+        TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
+        return true;
+    }
+    TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+    return false;
+}
+
+
+bool PermissionVerification::VerifyLocalDebugOtherApps() const
+{
+    return VerifyCallingPermission(PermissionConstants::PERMISSION_LOCAL_DEBUG_OTHER_APPS);
+}
+
+bool PermissionVerification::IsAllowLocalDebugOtherApps(bool isDebugFromLocal) const
+{
+    if (!isDebugFromLocal) {
+        return false;
+    }
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        return false;
+    }
+    return VerifyLocalDebugOtherApps();
+}
+
+bool PermissionVerification::IsLocalDebugOtherAppsCall() const
+{
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGD(AAFwkTag::DEFAULT, "not developer mode");
+        return false;
+    }
+    auto callerToken = GetCallingTokenID();
+    if (VerifyPermissionByTokenId(callerToken, PermissionConstants::PERMISSION_LOCAL_DEBUG_OTHER_APPS)) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }

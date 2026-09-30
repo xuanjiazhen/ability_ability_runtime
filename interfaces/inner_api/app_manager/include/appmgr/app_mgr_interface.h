@@ -57,6 +57,7 @@
 #include "app_cjheap_mem_info.h"
 #include "running_multi_info.h"
 #include "native_child_notify_interface.h"
+#include "hyper_snap_error_record.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -83,7 +84,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0)
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1)
     {
         return 0;
     }
@@ -98,12 +99,24 @@ public:
     }
 
     virtual int32_t MakeImage(const AAFwk::Want &want, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr)
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1, sptr<IImageErrorHandler> errorHandler = nullptr)
     {
         return 0;
     }
 
     virtual int32_t DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler = nullptr)
+    {
+        return 0;
+    }
+
+    /**
+     * Get last HyperSnap error information.
+     *
+     * @param errType Error type (0: CREATE_SNAPSHOT, 1: FORK_FROM_SNAPSHOT)
+     * @param record Output parameter for error record
+     * @return ERR_OK on success, ERR_INVALID_VALUE on parameter error
+     */
+    virtual int32_t GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecord &record)
     {
         return 0;
     }
@@ -255,6 +268,18 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) = 0;
+
+    /**
+     * GetSelfChildrenProcesses, call GetSelfChildrenProcesses() through proxy project.
+     * Obtains information about children processes that are running for the calling application.
+     *
+     * @param info, child process info.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int GetSelfChildrenProcesses(std::vector<ChildProcessInfo> &info)
+    {
+        return 0;
+    }
 
     /**
      * JudgeSandboxByPid, call JudgeSandboxByPid() through proxy project.
@@ -592,7 +617,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
-        int32_t appIndex = 0) = 0;
+        int32_t appIndex = -1) = 0;
 
     /**
      * Register configuration observer.
@@ -1096,6 +1121,17 @@ public:
         return 0;
     };
 #endif // SUPPORT_CHILD_PROCESS
+
+    /**
+     * Get all UIAbility child processes of the calling application (aggregated across all
+     * processes sharing the caller's accessTokenId).
+     * @param infos Output vector of child process info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetSelfUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos)
+    {
+        return 0;
+    }
 
      /**
      * Register native child exit callback to notify.
