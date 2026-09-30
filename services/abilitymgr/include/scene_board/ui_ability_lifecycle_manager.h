@@ -81,6 +81,10 @@ struct AbilitySessionInfo {
     int32_t sandBoxCloneIndex = 0;
     std::string creatorBundleName;
     uint32_t specifyTokenId = 0;
+    int32_t callerToken = 0;
+    int32_t callerUid = 0;
+    int32_t callerPid = 0;
+    std::string callerNativeName;
 };
 
 class UIAbilityLifecycleManager : public std::enable_shared_from_this<UIAbilityLifecycleManager> {

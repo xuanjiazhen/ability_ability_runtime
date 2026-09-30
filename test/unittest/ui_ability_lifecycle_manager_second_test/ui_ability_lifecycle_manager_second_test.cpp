@@ -1213,6 +1213,16 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, CacheAbilitySessionInfo_002, TestS
     abilityRequest.isWebSandBoxClone = false;
     abilityRequest.specifyTokenId = 13579;
     abilityRequest.abilityInfo.applicationInfo.appIndex = 2000;
+    const int32_t callerToken = 11111;
+    const int32_t callerUid = 22222;
+    const int32_t callerPid = 33333;
+    const std::string callerBundleName = "com.test.caller";
+    const std::string callerNativeName = "_native_proc";
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_TOKEN, callerToken);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, callerUid);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, callerPid);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_NATIVE_NAME, callerNativeName);
 
     mgr->CacheAbilitySessionInfo(sessionInfo, abilityRequest);
 
@@ -1224,6 +1234,12 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, CacheAbilitySessionInfo_002, TestS
     EXPECT_TRUE(mgr->GetAbilitySessionInfo(sessionInfo->requestId, info));
     EXPECT_FALSE(info.isWebSandBoxClone);
     EXPECT_EQ(info.specifyTokenId, 13579u);
+    // Caller info from want is cached.
+    EXPECT_EQ(info.callerToken, callerToken);
+    EXPECT_EQ(info.callerUid, callerUid);
+    EXPECT_EQ(info.callerPid, callerPid);
+    EXPECT_EQ(info.callerBundleName, callerBundleName);
+    EXPECT_EQ(info.callerNativeName, callerNativeName);
     mgr->RemoveAbilitySessionInfo(sessionInfo->requestId);
 }
 
@@ -1245,10 +1261,19 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, CacheAbilitySessionInfo_003, TestS
     const std::string callerBundleName = "com.test.cli.caller";
     const uint32_t callerTokenId = 537919265;
     const uint32_t specifyTokenId = 24680;
+    const int32_t callerToken = 11111;
+    const int32_t callerUid = 22222;
+    const int32_t callerPid = 33333;
+    const std::string callerNativeName = "_native_proc";
     abilityRequest.specifyTokenId = specifyTokenId;
     abilityRequest.sandboxCloneParams = std::make_shared<SandboxCloneParams>();
     abilityRequest.sandboxCloneParams->callerBundleName = callerBundleName;
     abilityRequest.sandboxCloneParams->callerTokenId = callerTokenId;
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_TOKEN, callerToken);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, callerUid);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, callerPid);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_NATIVE_NAME, callerNativeName);
 
     mgr->CacheAbilitySessionInfo(sessionInfo, abilityRequest);
 
@@ -1263,6 +1288,11 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, CacheAbilitySessionInfo_003, TestS
     EXPECT_TRUE(info.isWebSandBoxClone);
     EXPECT_EQ(info.sandBoxCloneIndex, abilityRequest.abilityInfo.applicationInfo.appIndex);
     EXPECT_EQ(info.specifyTokenId, specifyTokenId);
+    // Caller info from want is cached.
+    EXPECT_EQ(info.callerToken, callerToken);
+    EXPECT_EQ(info.callerUid, callerUid);
+    EXPECT_EQ(info.callerPid, callerPid);
+    EXPECT_EQ(info.callerNativeName, callerNativeName);
     mgr->RemoveAbilitySessionInfo(sessionInfo->requestId);
 }
 
@@ -1351,11 +1381,20 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetSandboxCloneParamsForSession_00
     const std::string callerBundleName = "com.test.cli.caller";
     const uint32_t callerTokenId = 537919265;
     const std::string creatorBundleName = "com.test.creator";
+    const int32_t callerToken = 11111;
+    const int32_t callerUid = 22222;
+    const int32_t callerPid = 33333;
+    const std::string callerNativeName = "_native_proc";
     auto params = std::make_shared<SandboxCloneParams>();
     params->callerBundleName = callerBundleName;
     params->callerTokenId = callerTokenId;
     params->creatorBundleName = creatorBundleName;
     abilityRecord->SetSandboxCloneParams(params);
+    sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_TOKEN, callerToken);
+    sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_UID, callerUid);
+    sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_PID, callerPid);
+    sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
+    sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_NATIVE_NAME, callerNativeName);
 
     mgr->SetSandboxCloneParamsForSession(sessionInfo, abilityRecord);
 
@@ -1367,6 +1406,11 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetSandboxCloneParamsForSession_00
     EXPECT_EQ(info.callerBundleName, callerBundleName);
     EXPECT_EQ(info.callerTokenId, callerTokenId);
     EXPECT_EQ(info.creatorBundleName, creatorBundleName);
+    // Caller info from want is cached.
+    EXPECT_EQ(info.callerToken, callerToken);
+    EXPECT_EQ(info.callerUid, callerUid);
+    EXPECT_EQ(info.callerPid, callerPid);
+    EXPECT_EQ(info.callerNativeName, callerNativeName);
     mgr->RemoveAbilitySessionInfo(sessionInfo->requestId);
 }
 
