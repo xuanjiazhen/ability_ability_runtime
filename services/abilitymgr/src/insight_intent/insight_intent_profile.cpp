@@ -45,6 +45,7 @@ const std::string INSIGHT_INTENT_DISPLAY_NAME = "displayName";
 const std::string INSIGHT_INTENT_DISPLAY_DESCRIPTION = "displayDescription";
 const std::string INSIGHT_INTENT_ICON = "icon";
 const std::string INSIGHT_INTENT_KEYWORDS = "keywords";
+const std::string INSIGHT_INTENT_PERMISSIONS = "permissions";
 const std::string INSIGHT_INTENT_BUNDLE_NAME = "bundleName";
 const std::string INSIGHT_INTENT_MODULE_NAME = "moduleName";
 const std::string INSIGHT_INTENT_INPUT_PARAMS = "inputParams";
@@ -89,6 +90,7 @@ struct InsightIntentProfileInfo {
     std::string bundleName;
     std::string moduleName;
     std::vector<std::string> keywords;
+    std::vector<std::string> permissions;
     UIAbilityProfileInfo uiAbilityProfileInfo;
     UIExtensionProfileInfo uiExtensionProfileInfo;
     ServiceExtensionProfileInfo serviceExtensionProfileInfo;
@@ -293,6 +295,14 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
         false,
         g_parseResult,
         ArrayType::STRING);
+    AppExecFwk::GetValueIfFindKey<std::vector<std::string>>(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_PERMISSIONS,
+        insightIntentInfo.permissions,
+        JsonType::ARRAY,
+        false,
+        g_parseResult,
+        ArrayType::STRING);
     AppExecFwk::GetValueIfFindKey<UIAbilityProfileInfo>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_UI_ABILITY,
@@ -371,6 +381,7 @@ bool TransformToInsightIntentInfo(const InsightIntentProfileInfo &insightIntent,
     info.displayDescription = insightIntent.displayDescription;
     info.icon = insightIntent.icon;
     info.keywords.assign(insightIntent.keywords.begin(), insightIntent.keywords.end());
+    info.permissions.assign(insightIntent.permissions.begin(), insightIntent.permissions.end());
     info.cfgEntities = insightIntent.cfgEntities;
 
     info.uiAbilityIntentInfo.abilityName = insightIntent.uiAbilityProfileInfo.abilityName;
@@ -481,6 +492,7 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentInfo& info)
         {INSIGHT_INTENT_DISPLAY_DESCRIPTION, info.displayDescription},
         {INSIGHT_INTENT_ICON, info.icon},
         {INSIGHT_INTENT_KEYWORDS, info.keywords},
+        {INSIGHT_INTENT_PERMISSIONS, info.permissions},
         {INSIGHT_INTENT_UI_ABILITY, info.uiAbilityIntentInfo},
         {INSIGHT_INTENT_UI_EXTENSION, info.uiExtensionIntentInfo},
         {INSIGHT_INTENT_SERVICE_EXTENSION, info.serviceExtensionIntentInfo},
