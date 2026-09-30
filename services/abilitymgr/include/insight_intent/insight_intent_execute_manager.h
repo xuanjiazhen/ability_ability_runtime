@@ -117,6 +117,9 @@ public:
     static int32_t CheckGetInsightIntenInfoPermission(
         const std::string &targetBundleName = "");
 
+    static int32_t CheckIntentPermission(uint64_t specifiedFullTokenId,
+        const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param);
+
     static std::string GetCallerBundleNameByUid();
 
     void OnInsightAppDied(const std::string &bundleName);
@@ -136,6 +139,10 @@ private:
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
         uint64_t &intentId, const std::string &callerBundleName, bool isDistributed = false,
         const std::string &deviceId = "", uint64_t requestCode = 0);
+
+    static void GetInsightIntentPermissions(const std::string &bundleName,
+        const std::string &moduleName, const std::string &intentName, const int32_t userId,
+        std::vector<std::string> &permissions);
 
     static int32_t IsValidCall(const Want &want);
 

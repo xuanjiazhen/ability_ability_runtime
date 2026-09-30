@@ -180,6 +180,9 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentInfo(
     for (auto &keyword : intentInfo.keywords) {
         queryInfo.keywords.emplace_back(keyword);
     }
+    for (auto &permission : intentInfo.permissions) {
+        queryInfo.permissions.emplace_back(permission);
+    }
 
     if (getEntity) {
         for (auto &entityInfo : intentInfo.entities) {
@@ -214,6 +217,9 @@ uint32_t InsightIntentUtils::ConvertConfigInsightIntentInfo(
 
     for (auto &keyword : intentInfo.keywords) {
         queryInfo.keywords.emplace_back(keyword);
+    }
+    for (auto &permission : intentInfo.permissions) {
+        queryInfo.permissions.emplace_back(permission);
     }
     for (auto &inputParams : intentInfo.inputParams) {
         queryInfo.inputParams.emplace_back(inputParams);

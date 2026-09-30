@@ -28,6 +28,7 @@
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_callback_interface.h"
 #include "insight_intent_db_cache.h"
+#include "insight_intent_profile.h"
 #include "insight_intent_utils.h"
 #include "permission_verification.h"
 #include "want_params_wrapper.h"
@@ -123,6 +124,7 @@ bool GetMethodParamNamesFromSchema(const std::vector<std::string> &methodParams,
 using namespace AppExecFwk;
 using InsightIntentType = AbilityRuntime::InsightIntentType;
 using ExtractInsightIntentInfo = AbilityRuntime::ExtractInsightIntentInfo;
+using InsightIntentInfo = AbilityRuntime::InsightIntentInfo;
 using InsightIntentPageInfo = AbilityRuntime::InsightIntentPageInfo;
 using InsightIntentFunctionInfo = AbilityRuntime::InsightIntentFunctionInfo;
 using InsightIntentEntryInfo = AbilityRuntime::InsightIntentEntryInfo;
@@ -148,6 +150,10 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
 {
     std::string targetBundleName = (param != nullptr) ? param->bundleName_ : "";
     int32_t result = CheckCallerPermission(specifiedFullTokenId, callerBundleName, targetBundleName);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = CheckIntentPermission(specifiedFullTokenId, param);
     if (result != ERR_OK) {
         return result;
     }
@@ -767,6 +773,48 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
             "permission %{public}s verification failed",
             EXECUTE_INSIGHT_INTENT_PERMISSION);
         return ERR_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
+void InsightIntentExecuteManager::GetInsightIntentPermissions(const std::string &bundleName,
+    const std::string &moduleName, const std::string &intentName, const int32_t userId,
+    std::vector<std::string> &permissions)
+{
+    InsightIntentInfo configInfo;
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfo(
+        bundleName, moduleName, intentName, userId, configInfo);
+    if (!configInfo.intentName.empty()) {
+        permissions.assign(configInfo.permissions.begin(), configInfo.permissions.end());
+        return;
+    }
+    ExtractInsightIntentInfo extractInfo;
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
+        bundleName, moduleName, intentName, userId, extractInfo);
+    permissions.assign(extractInfo.permissions.begin(), extractInfo.permissions.end());
+}
+
+int32_t InsightIntentExecuteManager::CheckIntentPermission(uint64_t specifiedFullTokenId,
+    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param)
+{
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null param");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t userId = param->userId_;
+    if (userId == DEFAULT_INVAL_VALUE) {
+        userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+    }
+    std::vector<std::string> permissions;
+    GetInsightIntentPermissions(param->bundleName_, param->moduleName_,
+        param->insightIntentName_, userId, permissions);
+    for (const auto &permission : permissions) {
+        if (!PermissionVerification::GetInstance()->VerifyCallingPermission(
+            permission, static_cast<uint32_t>(specifiedFullTokenId))) {
+            TAG_LOGE(AAFwkTag::INTENT, "intent permission %{public}s verification failed",
+                permission.c_str());
+            return ERR_PERMISSION_DENIED;
+        }
     }
     return ERR_OK;
 }
