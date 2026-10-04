@@ -75,6 +75,7 @@ ohos_shared_library("libappms") {
     "src/killing_process_manager.cpp",
     "src/modal_system_app_freeze_uiextension.cpp",
     "src/module_running_record.cpp",
+    "src/multi_foreground_observer_adapter.cpp",
     "src/multi_user_config_mgr.cpp",
     "src/quick_fix_callback_with_record.cpp",
     "src/remote_client_manager.cpp",
