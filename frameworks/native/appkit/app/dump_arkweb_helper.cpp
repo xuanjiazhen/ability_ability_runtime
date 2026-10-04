@@ -16,12 +16,12 @@
 #include "dump_arkweb_helper.h"
 
 #include <cstdint>
+#include <cstdio>
 #include <ctime>
 #include <cstring>
 #include <unistd.h>
 
 #include "dfx_socket_request.h"
-#include "dump_fd_guard.h"
 #include "faultloggerd_client.h"
 
 #if defined(NWEB)
@@ -30,6 +30,38 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+namespace {
+constexpr uint64_t ARKWEB_DUMP_FD_TAG = 0xD001317; // APPKIT domain
+
+class ArkWebDumpFdGuard {
+public:
+    explicit ArkWebDumpFdGuard(int32_t fd) : fd_(fd)
+    {
+        if (fd_ >= 0) {
+            fdsan_exchange_owner_tag(fd_, 0, ARKWEB_DUMP_FD_TAG);
+        }
+    }
+
+    ~ArkWebDumpFdGuard()
+    {
+        if (fd_ >= 0) {
+            fdsan_close_with_tag(fd_, ARKWEB_DUMP_FD_TAG);
+        }
+    }
+
+    ArkWebDumpFdGuard(const ArkWebDumpFdGuard &) = delete;
+    ArkWebDumpFdGuard &operator=(const ArkWebDumpFdGuard &) = delete;
+
+    int32_t Get() const
+    {
+        return fd_;
+    }
+
+private:
+    int32_t fd_ = -1;
+};
+} // namespace
+
 constexpr const uint32_t MAX_BUF_SIZE = (1U << 19);
 int DumpArkWebHelper::DumpArkWeb(const std::string &customArgs, std::string &result)
 {
@@ -64,9 +96,7 @@ void DumpArkWebHelper::DumpArkWebJSHeap(int32_t appPid, int32_t renderPid, bool 
             return;
         }
     }
-    // RAII: claims the fd with the module fdsan tag on construction (fd may be
-    // -1 when needSnapshot is false) and always closes it with the same tag.
-    OHOS::AppExecFwk::DumpFdGuard fdGuard(fd);
+    ArkWebDumpFdGuard fdGuard(fd);
 #if defined(NWEB)
     OHOS::NWeb::NWebHelper &nWebHelper = OHOS::NWeb::NWebHelper::Instance();
     nWebHelper.DumpArkWebJSHeap(fdGuard.Get(), renderPid, needSnapshot, needGC, needRaw);
