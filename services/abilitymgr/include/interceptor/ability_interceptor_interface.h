@@ -26,6 +26,7 @@
 
 namespace OHOS {
 namespace AAFwk {
+struct AbilityRequest;
 struct AbilityInterceptorParam {
     // Core fields (read by 3+ interceptors)
     Want want;
@@ -50,8 +51,15 @@ struct AbilityInterceptorParam {
     // require a locally-resolved target (DisposedRule / ExtensionControl / EcologicalRule)
     // defer to the remote device's own enforcement when this context is present.
     struct RemoteDispatchCtx {};
+    // Context carrying the in-scope AbilityRequest pointer for BlockAllAppStart's escape-hatch
+    // query (is the already-started PAGE UIAbility allowed through in low-memory block mode).
+    // Only meaningful at post-resolution chain sites where the request has been generated.
+    struct BlockAllAppStartCtx {
+        AbilityRequest *abilityRequest = nullptr;
+    };
 
-    using Context = std::variant<std::monostate, EcologicalCtx, DisposedCtx, RemoteDispatchCtx>;
+    using Context = std::variant<std::monostate, EcologicalCtx, DisposedCtx, RemoteDispatchCtx,
+        BlockAllAppStartCtx>;
     std::vector<Context> contexts;
 
     template<typename T>
