@@ -5180,6 +5180,17 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         SendExtensionReport(*eventInfo, ERR_CROSS_USER);
         return ERR_INVALID_VALUE;
     }
+    // Check target window state: if a specific displayId is requested in the Want,
+    // verify the target user is foreground on that display to ensure the UIExtension
+    // window appears on the target screen (R-6/AC-3.1).
+    int32_t targetDisplayId = extensionSessionInfo->want.GetIntParam(Want::PARAM_RESV_DISPLAY_ID, -1);
+    if (targetDisplayId >= 0 && validUserId > U1_USER_ID) {
+        if (!AbilityRuntime::UserController::GetInstance().IsForegroundUser(
+            validUserId, static_cast<uint64_t>(targetDisplayId))) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "target user %{public}d not foreground on display %{public}d, "
+                "window may not appear on target screen", validUserId, targetDisplayId);
+        }
+    }
 #ifdef SUPPORT_GRAPHICS
     if (ImplicitStartProcessor::IsImplicitStartAction(extensionSessionInfo->want)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "UI extension ability not support implicit start");
@@ -7297,6 +7308,20 @@ int AbilityManagerService::SendWantSender(sptr<IWantSender> target, SenderInfo &
     int32_t userId = -1;
     if (record->GetKey() != nullptr) {
         userId = record->GetKey()->GetUserId();
+    }
+    // Check target user foreground status for multi-foreground user isolation (R-7/R-8/R-9).
+    // Degradation: if UserController has no foreground users tracked (system startup early
+    // or error state), degrade to direct trigger preserving original behavior (R-9/AC-4.3).
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
+        std::vector<int32_t> foregroundUserIds;
+        AbilityRuntime::UserController::GetInstance().GetAllForegroundUserId(foregroundUserIds);
+        if (!foregroundUserIds.empty()) {
+            if (!AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
+                TAG_LOGE(AAFwkTag::WANTAGENT, "target userId:%{public}d not in foreground, reject trigger",
+                    userId);
+                return ERR_OPERATION_NOT_SUPPORTED_ON_CURRENT_DEVICE;
+            }
+        }
     }
     std::shared_ptr<PendingWantManager> pendingWantManager;
     if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {

@@ -68,6 +68,7 @@ ohos_unittest("cache_process_manager_second_test") {
     "${ability_runtime_services_path}/appmgr/src/killing_process_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/modal_system_app_freeze_uiextension.cpp",
     "${ability_runtime_services_path}/appmgr/src/module_running_record.cpp",
+    "${ability_runtime_services_path}/appmgr/src/multi_foreground_observer_adapter.cpp",
     "${ability_runtime_services_path}/appmgr/src/multi_user_config_mgr.cpp",
     "${ability_runtime_services_path}/appmgr/src/quick_fix_callback_with_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/remote_client_manager.cpp",
