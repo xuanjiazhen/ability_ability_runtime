@@ -352,7 +352,8 @@ std::string ImplicitStartProcessor::MatchTypeAndUri(const AAFwk::Want &want)
     return type;
 }
 
-void ImplicitStartProcessor::ProcessLinkType(std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
+void ImplicitStartProcessor::ProcessLinkType(std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
+    const AbilityRequest &request)
 {
     bool appLinkingExist = false;
     bool defaultAppExist = false;
@@ -372,6 +373,23 @@ void ImplicitStartProcessor::ProcessLinkType(std::vector<AppExecFwk::AbilityInfo
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "appLinkingExist: %{public}d, defaultAppExist: %{public}d",
         appLinkingExist, defaultAppExist);
+    // When the caller sets preferDefaultBrowser for an http/https link and an app-link
+    // candidate exists to override, keep only the default browser (LinkType::DEFAULT_APP)
+    // so the normal single-app start path launches it directly. The http/https scheme is
+    // verified here (not at the call site) so the guarantee holds for any caller.
+    const std::string scheme = request.want.GetUri().GetScheme();
+    if (request.startOptions.GetPreferDefaultBrowser() && defaultAppExist &&
+        (scheme == HTTP_SCHEME_NAME || scheme == HTTPS_SCHEME_NAME)) {
+        for (auto it = abilityInfos.begin(); it != abilityInfos.end();) {
+            if (it->linkType == AppExecFwk::LinkType::DEFAULT_APP) {
+                it++;
+                continue;
+            }
+            it = abilityInfos.erase(it);
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "preferDefaultBrowser, query size:%{public}zu", abilityInfos.size());
+        return;
+    }
     for (auto it = abilityInfos.begin(); it != abilityInfos.end();) {
         if (it->linkType == AppExecFwk::LinkType::APP_LINK) {
             it++;
@@ -546,7 +564,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
 #endif // APP_DOMAIN_VERIFY_ENABLED
 
     if (!appLinkingOnly) {
-        ProcessLinkType(abilityInfos);
+        ProcessLinkType(abilityInfos, request);
     }
 
     if (auto ret = StartAbilityUtils::HandleSelfRedirection(request.isFromOpenLink, abilityInfos); ret != ERR_OK) {
