@@ -33,8 +33,8 @@ constexpr int32_t MAX_PC_TABLET_AI_AGENT_INDEX = 13000;
 // Helper functions to determine index type
 constexpr bool IsAppCloneIndex(int32_t index)
 {
-    return (index >= 0 && index <= MAX_APP_CLONE_INDEX) ||
-           (index >= PC_TABLET_INDEX && index <= MAX_PC_TABLET_CLONE_INDEX);
+    return (index > 0 && index <= MAX_APP_CLONE_INDEX) ||
+           (index > PC_TABLET_INDEX && index <= MAX_PC_TABLET_CLONE_INDEX);
 }
 
 constexpr bool IsSandboxCloneIndex(int32_t index)
@@ -47,7 +47,7 @@ constexpr bool IsDlpIndex(int32_t index)
 {
     // DLP indices are those that are neither AppClone nor SandboxClone
     // AppClone: [0~1000], SandboxClone: [2000~3000], DLP: other non-negative ranges.
-    return index >= 0 && !IsAppCloneIndex(index) && !IsSandboxCloneIndex(index);
+    return index > 0 && index != PC_TABLET_INDEX && !IsAppCloneIndex(index) && !IsSandboxCloneIndex(index);
 }
 
 constexpr int32_t TIMEOUT_UNIT_TIME = 1000;

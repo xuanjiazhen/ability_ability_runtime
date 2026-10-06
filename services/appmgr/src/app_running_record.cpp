@@ -20,6 +20,8 @@
 #include "ability_window_configuration.h"
 #include "app_running_record.h"
 #include "app_utils.h"
+#include "bundle_mgr_helper.h"
+#include "in_process_call_wrapper.h"
 #include "render_record.h"
 #include "app_mgr_service_inner.h"
 #include "app_state_observer_manager.h"
@@ -51,6 +53,7 @@ constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias s
 constexpr int32_t MAX_RESTART_COUNT = 3;
 constexpr int32_t RESTART_INTERVAL_TIME = 120000;
 constexpr int32_t HALF_TIMEOUT = 2;
+// SCB（大桌面 / SceneBoard）的 bundle name，用于 SCB 发起前台时 last-caller 兜底记录与保活判断。
 constexpr const char* LAUNCHER_NAME = "com.ohos.sceneboard";
 constexpr const char *EVENT_KEY_VERSION_NAME = "VERSION_NAME";
 constexpr const char *EVENT_KEY_VERSION_CODE = "VERSION_CODE";
@@ -123,6 +126,31 @@ int32_t AppRunningRecord::GetCallerUid() const
 void AppRunningRecord::SetCallerUid(int32_t uid)
 {
     callerUid_ = uid;
+    {
+        std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+        callerBundleName_ = "";
+    }
+    if (uid >= 0) {
+        auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+        std::string bundleName;
+        if (bundleMgrHelper != nullptr &&
+            IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(uid, bundleName)) == ERR_OK) {
+            std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+            callerBundleName_ = bundleName;
+        }
+    }
+}
+
+std::string AppRunningRecord::GetCallerBundleName() const
+{
+    std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+    return callerBundleName_;
+}
+
+void AppRunningRecord::SetCallerBundleName(const std::string &name)
+{
+    std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+    callerBundleName_ = name;
 }
 
 int32_t AppRunningRecord::GetCallerTokenId() const
@@ -133,6 +161,30 @@ int32_t AppRunningRecord::GetCallerTokenId() const
 void AppRunningRecord::SetCallerTokenId(int32_t tokenId)
 {
     callerTokenId_ = tokenId;
+}
+
+int32_t AppRunningRecord::GetLastUIAbilityCallerUid() const
+{
+    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    return lastUIAbilityCallerUid_;
+}
+
+void AppRunningRecord::SetLastUIAbilityCallerUid(int32_t uid)
+{
+    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    lastUIAbilityCallerUid_ = uid;
+}
+
+std::string AppRunningRecord::GetLastUIAbilityCallerName() const
+{
+    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    return lastUIAbilityCallerName_;
+}
+
+void AppRunningRecord::SetLastUIAbilityCallerName(const std::string &name)
+{
+    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    lastUIAbilityCallerName_ = name;
 }
 
 bool AppRunningRecord::IsLauncherApp() const
@@ -148,26 +200,6 @@ int32_t AppRunningRecord::GetRecordId() const
 const std::string &AppRunningRecord::GetName() const
 {
     return mainAppName_;
-}
-
-const std::string &AppRunningRecord::GetSignCode() const
-{
-    return signCode_;
-}
-
-void AppRunningRecord::SetSignCode(const std::string &signCode)
-{
-    signCode_ = signCode;
-}
-
-const std::string &AppRunningRecord::GetJointUserId() const
-{
-    return jointUserId_;
-}
-
-void AppRunningRecord::SetJointUserId(const std::string &jointUserId)
-{
-    jointUserId_ = jointUserId;
 }
 
 const std::string &AppRunningRecord::GetProcessName() const
@@ -807,7 +839,23 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
         TAG_LOGE(AAFwkTag::APPMGR, "null abilityInfo");
         return;
     }
+    AbilityStateData abilityStateData = BuildAbilityStateData(ability, state, isAbility);
+    BundleType bundleType = AppExecFwk::BundleType::APP;
+    auto applicationInfo = GetApplicationInfo();
+    if (applicationInfo) {
+        bundleType = applicationInfo->bundleType;
+    }
+    auto serviceInner = appMgrServiceInner_.lock();
+    if (serviceInner) {
+        serviceInner->StateChangedNotifyObserver(abilityStateData, isAbility, isFromWindowFocusChanged, bundleType);
+    }
+}
+
+AbilityStateData AppRunningRecord::BuildAbilityStateData(
+    const std::shared_ptr<AbilityRunningRecord> &ability, int32_t state, bool isAbility)
+{
     AbilityStateData abilityStateData;
+    auto abilityInfo = ability->GetAbilityInfo();
     abilityStateData.bundleName = abilityInfo->applicationInfo.bundleName;
     abilityStateData.moduleName = abilityInfo->moduleName;
     abilityStateData.abilityName = ability->GetName();
@@ -829,6 +877,11 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
         abilityStateData.callerUid = ability->GetWant()->GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
         abilityStateData.callerPid = ability->GetWant()->GetIntParam(Want::PARAM_RESV_CALLER_PID, -1);
     }
+    {
+        std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+        abilityStateData.lastUIAbilityCallerUid = lastUIAbilityCallerUid_;
+        abilityStateData.lastUIAbilityCallerName = lastUIAbilityCallerName_;
+    }
     if (applicationInfo && applicationInfo->bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE) {
         abilityStateData.isAtomicService = true;
     }
@@ -839,11 +892,7 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
     }
     abilityStateData.processType = static_cast<int32_t>(processType_);
     abilityStateData.preloadMode = static_cast<int32_t>(preloadMode_);
-    BundleType bundleType = applicationInfo ? applicationInfo->bundleType : AppExecFwk::BundleType::APP;
-    auto serviceInner = appMgrServiceInner_.lock();
-    if (serviceInner) {
-        serviceInner->StateChangedNotifyObserver(abilityStateData, isAbility, isFromWindowFocusChanged, bundleType);
-    }
+    return abilityStateData;
 }
 
 std::shared_ptr<ModuleRunningRecord> AppRunningRecord::GetModuleRunningRecordByToken(
@@ -924,7 +973,7 @@ bool AppRunningRecord::UpdateAbilityFocusState(const sptr<IRemoteObject> &token,
 }
 
 void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-    bool isFromScreenOffBackground)
+    bool isFromScreenOffBackground, const UiAbilityLastCallerInfo &callerInfo)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "state is :%{public}d", static_cast<int32_t>(state));
     auto abilityRecord = GetAbilityRunningRecordByToken(token);
@@ -943,7 +992,7 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
     }
 
     if (state == AbilityState::ABILITY_STATE_FOREGROUND) {
-        AbilityForeground(abilityRecord);
+        AbilityForeground(abilityRecord, callerInfo);
     } else if (state == AbilityState::ABILITY_STATE_BACKGROUND) {
         AbilityBackground(abilityRecord, isFromScreenOffBackground);
     } else {
@@ -951,7 +1000,30 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
     }
 }
 
-void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRecord> &ability)
+bool AppRunningRecord::HandleForegroundStateChange(const std::shared_ptr<AbilityRunningRecord> &ability)
+{
+    if (GetState() != ApplicationState::APP_STATE_FOREGROUND
+        || pendingState_ == ApplicationPendingState::BACKGROUNDING) {
+        return false;
+    }
+    // Just change ability to foreground if current application state is foreground or focus.
+    auto moduleRecord = GetModuleRunningRecordByToken(ability->GetToken());
+    if (moduleRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null moduleRecord");
+        return true;
+    }
+    moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_FOREGROUND);
+    StateChangedNotifyObserver(
+        ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
+    auto serviceInner = appMgrServiceInner_.lock();
+    if (serviceInner) {
+        serviceInner->OnAppStateChanged(shared_from_this(), GetState(), false, false, false);
+    }
+    return true;
+}
+
+void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRecord> &ability,
+    const UiAbilityLastCallerInfo &callerInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!ability) {
@@ -966,26 +1038,18 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         return;
     }
 
+    TAG_LOGI(AAFwkTag::APPMGR, "AbilityForeground set caller info, callerUid:%{public}d, "
+        "callerBundleName:%{public}s", callerInfo.callerUid, callerInfo.callerBundleName.c_str());
+    {
+        std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+        lastUIAbilityCallerUid_ = callerInfo.callerUid;
+        lastUIAbilityCallerName_ = callerInfo.callerBundleName;
+    }
+
     TAG_LOGI(AAFwkTag::APPMGR, "appState: %{public}d, pState: %{public}d, %{public}s/%{public}s",
         GetState(), pendingState_, mainBundleName_.c_str(), ability->GetName().c_str());
     // We need schedule application to foregrounded when current application state is ready or background running.
-    if (GetState() == ApplicationState::APP_STATE_FOREGROUND
-        && pendingState_ != ApplicationPendingState::BACKGROUNDING) {
-        // Just change ability to foreground if current application state is foreground or focus.
-        auto moduleRecord = GetModuleRunningRecordByToken(ability->GetToken());
-        if (moduleRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "null moduleRecord");
-            return;
-        }
-
-        moduleRecord->OnAbilityStateChanged(ability, AbilityState::ABILITY_STATE_FOREGROUND);
-        StateChangedNotifyObserver(
-            ability, static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND), true, false);
-
-        auto serviceInner = appMgrServiceInner_.lock();
-        if (serviceInner) {
-            serviceInner->OnAppStateChanged(shared_from_this(), GetState(), false, false, false);
-        }
+    if (HandleForegroundStateChange(ability)) {
         return;
     }
     if (GetState() == ApplicationState::APP_STATE_READY
@@ -2405,21 +2469,25 @@ ProcessType AppRunningRecord::GetProcessType() const
 
 std::map<pid_t, std::weak_ptr<AppRunningRecord>> AppRunningRecord::GetChildAppRecordMap() const
 {
+    std::lock_guard lock(childAppRecordMapLock_);
     return childAppRecordMap_;
 }
 
 void AppRunningRecord::AddChildAppRecord(pid_t pid, std::shared_ptr<AppRunningRecord> appRecord)
 {
+    std::lock_guard lock(childAppRecordMapLock_);
     childAppRecordMap_[pid] = appRecord;
 }
 
 void AppRunningRecord::RemoveChildAppRecord(pid_t pid)
 {
+    std::lock_guard lock(childAppRecordMapLock_);
     childAppRecordMap_.erase(pid);
 }
 
 void AppRunningRecord::ClearChildAppRecordMap()
 {
+    std::lock_guard lock(childAppRecordMapLock_);
     childAppRecordMap_.clear();
 }
 
@@ -2774,6 +2842,25 @@ std::string AppRunningRecord::GetInnerMsg() const
 {
     std::lock_guard<ffrt::mutex> lock(innerMsgLock_);
     return innerMsg_;
+}
+
+void AppRunningRecord::SetKillCallerInfo(int32_t killCallerPid, const std::string &killCallerProcessName)
+{
+    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    killCallerPid_ = killCallerPid;
+    killCallerProcessName_ = killCallerProcessName;
+}
+
+int32_t AppRunningRecord::GetKillCallerPid() const
+{
+    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    return killCallerPid_;
+}
+
+std::string AppRunningRecord::GetKillCallerProcessName() const
+{
+    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    return killCallerProcessName_;
 }
 
 int AppRunningRecord::DumpIpcStart(std::string& result)

@@ -28,7 +28,7 @@ constexpr const char* INTERCEPT_MODULE_NAME = "intercept_moduleName";
 constexpr const char* IS_FROM_PARENTCONTROL = "ohos.ability.isFromParentControl";
 }
 
-ErrCode ControlInterceptor::DoProcess(const AbilityInterceptorParam &param)
+ErrCode ControlInterceptor::DoProcess(AbilityInterceptorParam &param)
 {
     AppExecFwk::AppRunningControlRuleResult controlRule;
     if (CheckControl(param.want, param.userId, controlRule)) {
@@ -51,6 +51,10 @@ ErrCode ControlInterceptor::DoProcess(const AbilityInterceptorParam &param)
             controlWant->SetParam(INTERCEPT_BUNDLE_NAME, wantEle.GetBundleName());
             controlWant->SetParam(INTERCEPT_ABILITY_NAME, wantEle.GetAbilityName());
             controlWant->SetParam(INTERCEPT_MODULE_NAME, wantEle.GetModuleNameRef());
+        }
+        if (controlRule.controlWant->GetBundle() == param.want.GetBundleNameRef()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "no control want, with same bundleName");
+            return AbilityUtil::EdmErrorType(controlRule.isEdm);
         }
         int ret = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartAbility(*controlRule.controlWant,
             param.requestCode, param.userId));

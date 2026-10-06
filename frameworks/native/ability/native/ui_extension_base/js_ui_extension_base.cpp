@@ -585,10 +585,7 @@ void JsUIExtensionBase::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo>
         CallObjectMethod("onForeground");
     }
 
-    auto filtered = result;
-    filtered.interactionInfo = nullptr;
-    TAG_LOGW(AAFwkTag::UI_EXT, "filter interactionInfo in window path");
-    OnInsightIntentExecuteDone(sessionInfo, filtered);
+    OnInsightIntentExecuteDone(sessionInfo, result);
 
     if (needForeground) {
         // If need foreground, that means triggered by onForeground.
@@ -759,7 +756,7 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
     option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     option->SetDensity(sessionInfo->density);
-    option->SetIsDensityFollowHost(sessionInfo->isDensityFollowHost);
+    option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
     if (context_->isNotAllow != -1) {
         bool isNotAllow = context_->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
@@ -792,10 +789,6 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64 ", bundle/ability:%{public}s/%{public}s",
         sessionInfo->uiExtensionComponentId, want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str());
-    if (sessionInfo == nullptr || sessionInfo->uiExtensionComponentId == 0) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Invalid sessionInfo");
-        return false;
-    }
     std::shared_ptr<AAFwk::Want> sharedWant = std::make_shared<AAFwk::Want>(want);
     auto componentId = sessionInfo->uiExtensionComponentId;
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {

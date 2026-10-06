@@ -62,9 +62,9 @@ bool BundleMgrHelper::GetApplicationInfo(
 }
 
 int32_t BundleMgrHelper::GetDualModeBundleInfo(const std::string& bundleName, int32_t userId,
-                                               DualModeBundleInfo &preference)
+                                               int32_t &appIndex)
 {
-    preference.appIndex = 0;
+    appIndex = 0;
     return 0;
 }
 

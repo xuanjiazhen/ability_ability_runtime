@@ -236,9 +236,10 @@ public:
      * otherwise from the mission stack.
      *
      * @param isNeedLocalDeviceId If true, fill an empty deviceId field with the local device id.
+     * @param userId The user id.
      * @return The ElementName of the focus ability, or an empty ElementName on failure/no focus.
      */
-    AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true);
+    AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true, int32_t userId = INVALID_USER_ID);
 
     /**
      * Get the ElementName of the ability identified by token. No permission check — returns an
@@ -2000,13 +2001,14 @@ public:
     ErrCode FinishUserTest(const std::string &msg, const int64_t &resultCode, const std::string &bundleName);
 
     /**
-     * @brief Get the token of the current top ability. System ability only:
+     * @brief Get the token of the top ability. System ability only:
      * the caller must be an SA (IsSACall), otherwise CHECK_PERMISSION_FAILED.
      * Client side: when SCB is enabled the client routes to scene board first.
      * @param token Output, top ability token.
+     * @param userId The user id, INVALID_USER_ID for the caller's user.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode GetTopAbility(sptr<IRemoteObject> &token);
+    ErrCode GetTopAbility(sptr<IRemoteObject> &token, int32_t userId = INVALID_USER_ID);
 
     /**
      * @brief Check whether a UIExtension (or window extension) belongs to the
@@ -2446,6 +2448,17 @@ public:
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0);
 
     /**
+     * @brief Execute UIAbility foreground intent with specified token id.
+     * @param want The info of the target ability and custom parameters.
+     * @param callerAbilityToken The caller ability token.
+     * @param param The lightweight intent execute param.
+     * @param specifiedFullTokenId The specified access token id for permission checking.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want, sptr<IRemoteObject> callerAbilityToken,
+        const InsightIntentExecuteLiteParam &param, uint64_t specifiedFullTokenId = 0);
+
+    /**
      * @brief Query entity info of a target app via insight intent (background
      * call to its entity provider). Cross-user requires account permission and
      * multi-user concurrency. Result is returned asynchronously via the intent
@@ -2458,19 +2471,6 @@ public:
      */
     ErrCode QueryEntityInfo(uint64_t key, sptr<IRemoteObject> callerToken,
         const InsightIntentQueryParam &param);
-     
-    /**
-     * @brief Execute an insight intent synchronously and wait for the result.
-     * Client-side wrapper over ExecuteIntent using a promise; blocks up to
-     * timeoutMs (default 30000 ms) and returns INSIGHT_INTENT_EXECUTE_TIMEOUT
-     * on timeout (the underlying execution continues).
-     * @param param The intent execute param.
-     * @param result Output, intent execute result filled by the target app.
-     * @param timeoutMs Timeout in milliseconds, default 30000.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode ExecuteIntentWithResult(const InsightIntentExecuteParam &param, InsightIntentExecuteResult &result,
-        int32_t timeoutMs = 30000);
 
     /**
      * @brief Report insight intent execution result from the target ability.
@@ -2898,9 +2898,14 @@ public:
      * @brief Enter kiosk mode. The caller must be the ability owning the token
      * (self only).
      * @param callerToken Caller ability token.
+     * @param kioskType Distinguish between regular kiosk mode and exam mode.
      * @return Returns ERR_OK on success; CHECK_PERMISSION_FAILED if not self.
      */
-    ErrCode EnterKioskMode(sptr<IRemoteObject> callerToken);
+    ErrCode EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t kioskType = 0);
+
+    ErrCode AddKioskApplicationList(const std::vector<std::string> &appList);
+
+    ErrCode DeleteKioskApplicationList(const std::vector<std::string> &appList);
 
     /**
      * @brief Exit kiosk mode. Self only (same as EnterKioskMode).
@@ -3103,26 +3108,6 @@ public:
      * @return Returns ERR_OK on success; ERR_INVALID_VALUE for invalid token.
      */
     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag);
-
-    /**
-     * @brief Execute an in-app skill (skill entry defined in the target bundle).
-     * The skill config is queried from bundle framework; caller permission is
-     * verified against the skill's configured allow rules (CheckSkillPermission).
-     * Result is delivered asynchronously via callback with a requestCode.
-     * @param bundleName Target bundle name.
-     * @param moduleName Target module name.
-     * @param skillName Target skill name.
-     * @param arkTSPath Optional skill script path override, default "".
-     * @param funcName Optional function name override, default "".
-     * @param skillArgs Optional skill arguments, default nullptr.
-     * @param callback Optional result callback, default nullptr.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode ExecuteInAppSkill(const std::string &bundleName, const std::string &moduleName,
-        const std::string &skillName, const std::string &arkTSPath = "",
-        const std::string &funcName = "",
-        const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
-        const sptr<ISkillExecuteCallback> &callback = nullptr);
 
     /**
      * @brief Execute an in-app skill on behalf of an explicit caller token id

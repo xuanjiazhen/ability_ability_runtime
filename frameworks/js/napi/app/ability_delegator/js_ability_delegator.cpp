@@ -54,6 +54,7 @@ std::map<std::weak_ptr<NativeReference>, sptr<IRemoteObject>, std::owner_less<>>
 std::mutex g_mutexAbilityRecord;
 std::mutex g_mtxStageMonitorRecord;
 std::map<std::shared_ptr<NativeReference>, std::shared_ptr<InteropAbilityMonitor>> g_interopMonitorRecord;
+std::mutex g_mtxInteropMonitorRecord;
 
 enum ERROR_CODE {
     INCORRECT_PARAMETERS    = 401,
@@ -791,19 +792,19 @@ napi_value JSAbilityDelegator::OnGetAbilityState(napi_env env, NapiCallbackInfo&
     HandleEscape handleEscape(env);
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "invalid argc");
-        return ThrowJsError(env, INCORRECT_PARAMETERS, "Parameter error. Too few parameters.");
+        return CreateJsUndefined(env);
     }
 
     sptr<OHOS::IRemoteObject> remoteObject = nullptr;
     if (!ParseAbilityPara(env, info.argv[INDEX_ZERO], remoteObject)) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "invalid params");
-        return ThrowJsError(env, INCORRECT_PARAMETERS, "Parse ability failed.");
+        return CreateJsUndefined(env);
     }
 
     auto delegator = AbilityDelegatorRegistry::GetAbilityDelegator();
     if (!delegator) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
-        return ThrowJsError(env, COMMON_FAILED, "Calling GetAbilityState failed.");
+        return CreateJsNull(env);
     }
     AbilityDelegator::AbilityState lifeState = delegator->GetAbilityState(remoteObject);
     AbilityLifecycleState abilityLifeState = AbilityLifecycleState::UNINITIALIZED;
@@ -1609,14 +1610,17 @@ napi_value JSAbilityDelegator::OnRemoveInteropAbilityMonitorSync(napi_env env, N
         ThrowError(env, COMMON_FAILED, "Calling RemoveInteropAbilityMonitorSync failed.");
         return CreateJsUndefined(env);
     }
-    for (auto iter = g_interopMonitorRecord.begin(); iter != g_interopMonitorRecord.end(); ++iter) {
-        std::shared_ptr<NativeReference> jsMonitor = iter->first;
-        bool isEquals = false;
-        napi_strict_equals(env, info.argv[INDEX_ZERO], jsMonitor->GetNapiValue(), &isEquals);
-        if (isEquals) {
-            delegator->RemoveInteropAbilityMonitor(iter->second);
-            g_interopMonitorRecord.erase(iter);
-            break;
+    {
+        std::lock_guard<std::mutex> lock(g_mtxInteropMonitorRecord);
+        for (auto iter = g_interopMonitorRecord.begin(); iter != g_interopMonitorRecord.end(); ++iter) {
+            std::shared_ptr<NativeReference> jsMonitor = iter->first;
+            bool isEquals = false;
+            napi_strict_equals(env, info.argv[INDEX_ZERO], jsMonitor->GetNapiValue(), &isEquals);
+            if (isEquals) {
+                delegator->RemoveInteropAbilityMonitor(iter->second);
+                g_interopMonitorRecord.erase(iter);
+                break;
+            }
         }
     }
     return CreateJsUndefined(env);
@@ -1625,17 +1629,19 @@ napi_value JSAbilityDelegator::OnRemoveInteropAbilityMonitorSync(napi_env env, N
 napi_value JSAbilityDelegator::ParseInteropMonitorPara(napi_env env, napi_value value,
     std::shared_ptr<InteropAbilityMonitor> &monitor)
 {
-    TAG_LOGI(AAFwkTag::DELEGATOR, "interopMonitorRecord size: %{public}zu", g_interopMonitorRecord.size());
-
     HandleScope handleScope(env);
-    for (auto iter = g_interopMonitorRecord.begin(); iter != g_interopMonitorRecord.end(); ++iter) {
-        std::shared_ptr<NativeReference> jsMonitor = iter->first;
-        bool isEquals = false;
-        napi_strict_equals(env, value, jsMonitor->GetNapiValue(), &isEquals);
-        if (isEquals) {
-            TAG_LOGW(AAFwkTag::DELEGATOR, "interop monitor exist");
-            monitor = iter->second;
-            return monitor ? CreateJsNull(env) : nullptr;
+    {
+        std::lock_guard<std::mutex> lock(g_mtxInteropMonitorRecord);
+        TAG_LOGI(AAFwkTag::DELEGATOR, "interopMonitorRecord size: %{public}zu", g_interopMonitorRecord.size());
+        for (auto iter = g_interopMonitorRecord.begin(); iter != g_interopMonitorRecord.end(); ++iter) {
+            std::shared_ptr<NativeReference> jsMonitor = iter->first;
+            bool isEquals = false;
+            napi_strict_equals(env, value, jsMonitor->GetNapiValue(), &isEquals);
+            if (isEquals) {
+                TAG_LOGW(AAFwkTag::DELEGATOR, "interop monitor exist");
+                monitor = iter->second;
+                return monitor ? CreateJsNull(env) : nullptr;
+            }
         }
     }
 
@@ -1671,7 +1677,10 @@ napi_value JSAbilityDelegator::ParseInteropMonitorPara(napi_env env, napi_value 
     napi_ref ref = nullptr;
     napi_create_reference(env, value, 1, &ref);
     reference.reset(reinterpret_cast<NativeReference*>(ref));
-    g_interopMonitorRecord.emplace(reference, monitor);
+    {
+        std::lock_guard<std::mutex> lock(g_mtxInteropMonitorRecord);
+        g_interopMonitorRecord.emplace(reference, monitor);
+    }
 
     return CreateJsNull(env);
 }

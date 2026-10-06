@@ -14,6 +14,7 @@
  */
 
 #include "insight_intent_execute_manager.h"
+#include "json_safe_util.h"
 
 #include <algorithm>
 #include <unordered_map>
@@ -98,8 +99,8 @@ bool GetMethodParamNamesFromSchema(const std::vector<std::string> &methodParams,
     std::unordered_map<std::string, ParamType> typeMap;
     std::vector<std::string> requiredList;
     if (!parameters.empty()) {
-        auto jsonObj = nlohmann::json::parse(parameters, nullptr, false);
-        if (jsonObj.is_discarded() || !jsonObj.is_object()) {
+        nlohmann::json jsonObj;
+        if (!AbilityRuntime::SafeParse(parameters, jsonObj) || !jsonObj.is_object()) {
             TAG_LOGW(AAFwkTag::INTENT, "parameters parse failed or not object");
         } else {
             GetMethodParamTypeMap(jsonObj, typeMap);
@@ -277,6 +278,13 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     records_[intentId] = record;
     if (intentId > INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE) {
         // save the latest INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE records
+        auto oldIt = records_.find(intentId - INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE);
+        if (oldIt != records_.end() && oldIt->second != nullptr) {
+            auto &oldRecord = oldIt->second;
+            if (oldRecord->callerToken != nullptr && oldRecord->deathRecipient != nullptr) {
+                oldRecord->callerToken->RemoveDeathRecipient(oldRecord->deathRecipient);
+            }
+        }
         records_.erase(intentId - INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE);
     }
     return ERR_OK;
@@ -638,12 +646,21 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     }
     want.SetElementName("", param->bundleName_, param->abilityName_, param->moduleName_);
 
+    if (!param->toolCallId_.empty()) {
+        want.SetParam(INSIGHT_INTENT_TOOL_CALL_ID, param->toolCallId_);
+        TAG_LOGI(AAFwkTag::INTENT, "GenerateWant with toolCallId: %{public}s", param->toolCallId_.c_str());
+    }
+
     if (param->insightIntentParam_ != nullptr) {
         sptr<AAFwk::IWantParams> pExecuteParams = WantParamWrapper::Box(*param->insightIntentParam_);
         if (pExecuteParams != nullptr) {
             WantParams wantParams;
             wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
-            want.SetParams(wantParams);
+            WantParams merged = want.GetParams();
+            for (const auto &p : wantParams.GetParams()) {
+                merged.SetParam(p.first, p.second);
+            }
+            want.SetParams(merged);
         }
     }
 

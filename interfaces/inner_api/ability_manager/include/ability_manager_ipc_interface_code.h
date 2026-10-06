@@ -498,6 +498,9 @@ enum class AbilityManagerInterfaceCode {
     // Execute intent by function call (1146)
     EXECUTE_INTENT_BY_FUNCTION_CALL = 1146,
 
+    // Execute intent with specify token id (1147)
+    EXECUTE_INTENT_WITH_SPECIFY_TOKEN_ID = 1147,
+
     // ipc id 2001-3000 for tools
     // ipc id for dumping state (2001)
     DUMP_STATE = 2001,
@@ -756,9 +759,6 @@ enum class AbilityManagerInterfaceCode {
     // start self uiability with start options and caller token
     START_SELF_UI_ABILITY_WITH_OPTIONS_AND_TOKEN = 6168,
 
-    // execute in-app skill
-    EXECUTE_IN_APP_SKILL = 6169,
-
     // query skill type (independent or in-app)
     QUERY_SKILL_TYPE = 6171,
 
@@ -783,8 +783,17 @@ enum class AbilityManagerInterfaceCode {
     // unregister sa interceptor
     UNREGISTER_SA_INTERCEPTOR = 6178,
 
+    // set the list of applications allowed in kiosk mode with caller uid isolation
+    ADD_KIOSK_APP_LIST = 6179,
+
+    // delete caller's own kiosk application list entries
+    DELETE_KIOSK_APP_FROM_LIST = 6180,
+    
+    // register want agent holder for shared detection
+    REGISTER_WANT_AGENT_HOLDER = 6181,
+
     // notify the target process pid of an insight intent execution
-    SET_INSIGHT_INTENT_TARGET_PID = 6179,
+    SET_INSIGHT_INTENT_TARGET_PID = 6182,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

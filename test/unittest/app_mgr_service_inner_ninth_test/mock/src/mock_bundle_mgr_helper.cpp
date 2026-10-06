@@ -403,9 +403,9 @@ ErrCode BundleMgrHelper::GetPluginExtensionInfo(const std::string &hostBundleNam
 }
 
 ErrCode BundleMgrHelper::GetDualModeBundleInfo(const std::string& bundleName, int32_t userId,
-                                               DualModeBundleInfo &preference)
+                                               int32_t &appIndex)
 {
-    preference.appIndex = 0;
+    appIndex = 0;
     return ERR_OK;
 }
 } // namespace AppExecFwk
