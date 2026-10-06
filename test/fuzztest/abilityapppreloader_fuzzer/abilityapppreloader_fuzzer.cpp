@@ -61,7 +61,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     appPreloader->CheckPreloadConditions(abilityInfo);
     appPreloader->GetLaunchWant(bundleName, userId, launchWant);
     appPreloader->GetLaunchAbilityInfo(launchWant, userId, abilityInfo);
-    appPreloader->GetBundleAndHapInfo(bundleName, userId, abilityInfo, bundleInfo, hapModuleInfo);
+    appPreloader->GetBundleAndHapInfo(bundleName, userId, 0, abilityInfo, bundleInfo, hapModuleInfo);
     appPreloader->PreCheck(bundleName, PreloadMode::PRE_MAKE);
     return true;
 }
