@@ -343,6 +343,17 @@ void QuickFixManagerApplyTask::HandlePatchDeployed()
 
     isRunning_ = GetRunningState();
     if (isRunning_ && isSoContained_) {
+        ApplicationQuickFixInfo quickFixInfo;
+        auto service = quickFixMgrService_.promote();
+        if (service != nullptr) {
+            auto ret = service->GetApplyedQuickFixInfo(bundleName_, quickFixInfo);
+            if (ret == QUICK_FIX_OK && quickFixInfo.appqfInfo.nativeLibraryPath.empty()) {
+                TAG_LOGD(AAFwkTag::QUICKFIX, "isSoContained_ corrected to false: nativeLibraryPath is empty");
+                isSoContained_ = false;
+            }
+        }
+    }
+    if (isRunning_ && isSoContained_) {
         return RegAppStateObserver();
     } else if (isRunning_ && !isSoContained_) {
         ApplicationQuickFixInfo quickFixInfo;
@@ -429,6 +440,9 @@ void QuickFixManagerApplyTask::PostDeployQuickFixTask(const std::vector<std::str
     };
     if (eventHandler_ == nullptr || !eventHandler_->PostTask(deployTask, "QuickFixManager:deployTask")) {
         TAG_LOGE(AAFwkTag::QUICKFIX, "post deploy task failed");
+        NotifyApplyStatus(QUICK_FIX_DEPLOY_FAILED);
+        RemoveSelf();
+        return;
     }
     PostTimeOutTask();
 }

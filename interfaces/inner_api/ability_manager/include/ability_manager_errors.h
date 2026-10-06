@@ -740,11 +740,6 @@ enum {
     ERR_NULL_INTERCEPTOR_EXECUTER = 2097312,
 
     /**
-     * Result (2097313) for after check executer is nullptr.
-     */
-    ERR_NULL_AFTER_CHECK_EXECUTER = 2097313,
-
-    /**
      * Result (2097314) for mission list manager is nullptr.
      */
     ERR_NULL_MISSION_LIST_MANAGER = 2097314,
@@ -1197,6 +1192,11 @@ enum {
      * Result(2099422) for query disposed rule failed.
      */
     ERR_QUERY_DISPOSED_RULE_FAILED = 2099422,
+
+    /**
+     * Result(2099423) for the UIAbility is not a native ability.
+     */
+    ERR_NOT_NATIVE_UI_ABILITY = 2099423,
 
     /**
      * Native error(3000000) for target bundle not exist.

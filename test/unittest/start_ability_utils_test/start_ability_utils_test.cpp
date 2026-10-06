@@ -614,7 +614,7 @@ HWTEST_F(StartAbilityUtilsTest, ResolveTargetAppCloneIndex_004, TestSize.Level1)
 
     StartAbilityUtils::ResolveTargetAppCloneIndex(want, nullptr, 100);
     int32_t appCloneIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
-    EXPECT_EQ(appCloneIndex, 0);
+    EXPECT_EQ(appCloneIndex, 2);
     EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceBundleName_, "com.ohos.test");
     EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceUserId_, 100);
 

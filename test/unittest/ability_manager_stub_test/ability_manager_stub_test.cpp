@@ -20,6 +20,7 @@
 #include "accesstoken_kit.h"
 #include "app_debug_listener_stub_mock.h"
 #include "hilog_tag_wrapper.h"
+#include "insight_intent_execute_param.h"
 #include "iremote_proxy.h"
 #include "mock_ability_connect_callback.h"
 #include "mock_ability_token.h"
@@ -27,6 +28,7 @@
 #include "nativetoken_kit.h"
 #include "process_options.h"
 #include "sandbox_clone_params.h"
+#include "string_wrapper.h"
 #include "token_setproc.h"
 
 using namespace testing::ext;
@@ -967,6 +969,42 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetTopAbilityInner_001, Test
 {
     MessageParcel data;
     MessageParcel reply;
+    data.WriteBool(true);  // isNeedLocalDeviceId
+    data.WriteInt32(INVALID_USER_ID);  // userId
+    auto res = stub_->GetTopAbilityInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetTopAbilityInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetTopAbilityInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function GetTopAbilityInner returns error with malformed parcel.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetTopAbilityInner_002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    auto res = stub_->GetTopAbilityInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetTopAbilityInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetTopAbilityInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function GetTopAbilityInner is compatible with the old-format
+ *                 parcel that does not carry userId.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetTopAbilityInner_003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    data.WriteBool(true);  // isNeedLocalDeviceId, old clients do not write userId
     auto res = stub_->GetTopAbilityInner(data, reply);
     EXPECT_EQ(res, NO_ERROR);
 }
@@ -4679,6 +4717,7 @@ HWTEST_F(AbilityManagerStubTest, EnterKioskModeInner, TestSize.Level1)
     bool writeRet = data.WriteInterfaceToken(AbilityManagerStubImplMock::GetDescriptor());
     auto token = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     writeRet &= data.WriteRemoteObject(token);
+    writeRet &= data.WriteInt32(0); // kioskType
     EXPECT_EQ(writeRet, true);
 
     MessageParcel reply;
@@ -4727,6 +4766,50 @@ HWTEST_F(AbilityManagerStubTest, GetKioskStatusInner, TestSize.Level1)
     MessageOption option;
     auto ret = stub_->OnRemoteRequest(
         static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_KIOSK_INFO), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
+ * @tc.name: AddKioskApplicationListInner
+ * @tc.desc: AddKioskApplicationListInner IPC dispatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, AddKioskApplicationListInner, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+    MessageParcel data;
+    bool writeRet = data.WriteInterfaceToken(AbilityManagerStubImplMock::GetDescriptor());
+    std::vector<std::string> appList = {"com.ohos.test1"};
+    writeRet &= data.WriteStringVector(appList);
+    EXPECT_EQ(writeRet, true);
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::ADD_KIOSK_APP_LIST), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
+ * @tc.name: DeleteKioskApplicationListInner
+ * @tc.desc: DeleteKioskApplicationListInner IPC dispatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, DeleteKioskApplicationListInner, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+    MessageParcel data;
+    bool writeRet = data.WriteInterfaceToken(AbilityManagerStubImplMock::GetDescriptor());
+    std::vector<std::string> appList = {"com.ohos.test1"};
+    writeRet &= data.WriteStringVector(appList);
+    EXPECT_EQ(writeRet, true);
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::DELETE_KIOSK_APP_FROM_LIST), data, reply, option);
     EXPECT_EQ(ret, NO_ERROR);
     TAG_LOGI(AAFwkTag::TEST, "end");
 }
@@ -6117,6 +6200,174 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_SendLocalWantSenderInner_San
     auto res = stub->SendLocalWantSenderInner(data, reply);
     EXPECT_EQ(res, NO_ERROR);
     ExpectSystemFieldsSanitized(capture->capturedOpts);
+}
+
+namespace {
+class ExecuteIntentByFunctionCallCapturingStub : public AbilityManagerStubImplMock {
+public:
+    WantParams capturedWantParam;
+    bool called = false;
+
+    int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override
+    {
+        called = true;
+        capturedWantParam = wantParam;
+        return 0;
+    }
+};
+}  // namespace
+
+/*
+ * Function: ExecuteIntentByFunctionCallInner
+ * CaseDescription: the unchanged IPC layout accepts a request without the reserved toolCallId key.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExecuteIntentByFunctionCall_WithoutToolCallId_0100, TestSize.Level1)
+{
+    auto stub = sptr<AbilityManagerStubImplMock>(new ExecuteIntentByFunctionCallCapturingStub());
+    auto capture = static_cast<ExecuteIntentByFunctionCallCapturingStub*>(stub.GetRefPtr());
+    MessageParcel data;
+    MessageParcel reply;
+    sptr<IRemoteObject> token = sptr<AppExecFwk::MockAbilityToken>(new (std::nothrow) AppExecFwk::MockAbilityToken());
+    data.WriteUint64(1);
+    data.WriteRemoteObject(token);
+    data.WriteString("test.bundleName");
+    data.WriteString("PlayMusic");
+    WantParams wantParam;
+    data.WriteParcelable(&wantParam);
+    auto res = stub->ExecuteIntentByFunctionCallInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_TRUE(capture->called);
+    EXPECT_FALSE(capture->capturedWantParam.HasParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID));
+    EXPECT_EQ(data.GetReadableBytes(), 0u);
+}
+
+/*
+ * Function: ExecuteIntentByFunctionCallInner
+ * CaseDescription: toolCallId travels in the existing WantParams parcel, without an extra IPC field.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExecuteIntentByFunctionCall_WithToolCallId_0200, TestSize.Level1)
+{
+    auto stub = sptr<AbilityManagerStubImplMock>(new ExecuteIntentByFunctionCallCapturingStub());
+    auto capture = static_cast<ExecuteIntentByFunctionCallCapturingStub*>(stub.GetRefPtr());
+    MessageParcel data;
+    MessageParcel reply;
+    sptr<IRemoteObject> token = sptr<AppExecFwk::MockAbilityToken>(new (std::nothrow) AppExecFwk::MockAbilityToken());
+    data.WriteUint64(1);
+    data.WriteRemoteObject(token);
+    data.WriteString("test.bundleName");
+    data.WriteString("PlayMusic");
+    WantParams wantParam;
+    wantParam.SetParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID, String::Box("tc-003"));
+    wantParam.SetParam("city", String::Box("Shanghai"));
+    data.WriteParcelable(&wantParam);
+    auto res = stub->ExecuteIntentByFunctionCallInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_TRUE(capture->called);
+    EXPECT_EQ(capture->capturedWantParam.GetStringParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID), "tc-003");
+    EXPECT_EQ(capture->capturedWantParam.GetStringParam("city"), "Shanghai");
+    EXPECT_EQ(data.GetReadableBytes(), 0u);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub ExecuteInAppSkillWithTokenIdInner
+ * EnvConditions: code is EXECUTE_IN_APP_SKILL_WITH_TOKEN_ID, peer writes tail toolCallId
+ * CaseDescription: Verify toolCallId is parsed from the tail appended field and the
+ *                  preceding fields keep their original wire positions
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExecuteInAppSkillWithTokenId_ToolCallId_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    const uint32_t callerTokenId = 3200001;
+
+    WriteInterfaceToken(data);
+    data.WriteUint32(callerTokenId);
+    data.WriteString16(Str8ToStr16("com.example.skill"));
+    data.WriteString16(Str8ToStr16("entry"));
+    data.WriteString16(Str8ToStr16("demoSkill"));
+    data.WriteString16(Str8ToStr16("ets/script.abc"));
+    data.WriteString16(Str8ToStr16("onExecute"));
+    AAFwk::WantParams skillArgs;
+    skillArgs.SetParam("key0", String::Box("value0"));
+    skillArgs.SetParam("toolCallId", String::Box("business-value"));
+    data.WriteParcelable(&skillArgs);
+    data.WriteBool(false);
+    data.WriteString16(Str8ToStr16("tc-20260804-0001"));
+
+    AppExecFwk::SkillExecuteRequest captured;
+    EXPECT_CALL(*stub_, ExecuteInAppSkillWithTokenId(_, _))
+        .WillOnce(DoAll(SaveArg<0>(&captured), Return(ERR_OK)));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::EXECUTE_IN_APP_SKILL_WITH_TOKEN_ID),
+        data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    EXPECT_EQ(captured.callerTokenId, callerTokenId);
+    EXPECT_EQ(captured.bundleName, "com.example.skill");
+    EXPECT_EQ(captured.moduleName, "entry");
+    EXPECT_EQ(captured.skillName, "demoSkill");
+    EXPECT_EQ(captured.scriptPath, "ets/script.abc");
+    EXPECT_EQ(captured.functionName, "onExecute");
+    EXPECT_EQ(captured.toolCallId, "tc-20260804-0001");
+    ASSERT_NE(captured.skillArgs, nullptr);
+    EXPECT_EQ(captured.skillArgs->GetStringParam("key0"), "value0");
+    EXPECT_EQ(captured.skillArgs->GetStringParam("toolCallId"), "business-value");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub ExecuteInAppSkillWithTokenIdInner
+ * EnvConditions: code is EXECUTE_IN_APP_SKILL_WITH_TOKEN_ID, peer is an older proxy
+ *                  that does not write toolCallId at all
+ * CaseDescription: Verify the tail field is treated as absent instead of consuming the
+ *                  WantParams length prefix, so every preceding field still parses and
+ *                  toolCallId falls back to empty
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExecuteInAppSkillWithTokenId_ToolCallId_0200, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    const uint32_t callerTokenId = 3200002;
+
+    WriteInterfaceToken(data);
+    data.WriteUint32(callerTokenId);
+    data.WriteString16(Str8ToStr16("com.example.skill"));
+    data.WriteString16(Str8ToStr16("entry"));
+    data.WriteString16(Str8ToStr16("demoSkill"));
+    data.WriteString16(Str8ToStr16("ets/script.abc"));
+    data.WriteString16(Str8ToStr16("onExecute"));
+    AAFwk::WantParams skillArgs;
+    skillArgs.SetParam("key0", String::Box("value0"));
+    skillArgs.SetParam("toolCallId", String::Box("business-value"));
+    data.WriteParcelable(&skillArgs);
+    data.WriteBool(false);
+
+    AppExecFwk::SkillExecuteRequest captured;
+    EXPECT_CALL(*stub_, ExecuteInAppSkillWithTokenId(_, _))
+        .WillOnce(DoAll(SaveArg<0>(&captured), Return(ERR_OK)));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::EXECUTE_IN_APP_SKILL_WITH_TOKEN_ID),
+        data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    EXPECT_EQ(captured.callerTokenId, callerTokenId);
+    EXPECT_EQ(captured.bundleName, "com.example.skill");
+    EXPECT_EQ(captured.moduleName, "entry");
+    EXPECT_EQ(captured.skillName, "demoSkill");
+    EXPECT_EQ(captured.scriptPath, "ets/script.abc");
+    EXPECT_EQ(captured.functionName, "onExecute");
+    EXPECT_EQ(captured.toolCallId, "");
+    ASSERT_NE(captured.skillArgs, nullptr);
+    EXPECT_EQ(captured.skillArgs->GetStringParam("key0"), "value0");
+    EXPECT_EQ(captured.skillArgs->GetStringParam("toolCallId"), "business-value");
 }
 } // namespace AAFwk
 } // namespace OHOS

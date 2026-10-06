@@ -19,6 +19,7 @@
 #include <memory>
 #include <unordered_set>
 
+#include "ui_ability_last_caller_info.h"
 #include "ability_debug_response_interface.h"
 #include "ability_info.h"
 #include "ability_manager_client.h"
@@ -80,7 +81,7 @@ struct AppInfo {
     std::vector<AppData> appData;
     pid_t pid = 0;
     int32_t userId = -1;
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     AppState state;
 };
 /**
@@ -267,8 +268,9 @@ public:
      * move ability to foreground.
      *
      * @param token, the token of ability.
+     * @param callerInfo, the caller info including uid and bundle name.
      */
-    void MoveToForeground(const sptr<IRemoteObject> &token);
+    void MoveToForeground(const sptr<IRemoteObject> &token, const AppExecFwk::UiAbilityLastCallerInfo &callerInfo = {});
 
     /**
      * move ability to background.
@@ -591,7 +593,8 @@ public:
     virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg);
 
     virtual int32_t NotifyAppMgrRecordExitReasonCompability(
-        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason);
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg,
+        int32_t reason, int32_t callerPid);
 
     /**
      * Set enable start process flag by userId

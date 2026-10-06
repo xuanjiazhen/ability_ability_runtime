@@ -711,10 +711,12 @@ public:
     /**
      * Get top ability.
      *
-     * @param isNeedLocalDeviceId is need local device id.
+     * @param isNeedLocalDeviceId Indicates whether to need local device id.
+     * @param userId The user id.
      * @return Returns front desk focus ability elementName.
      */
-    virtual AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true) override;
+    virtual AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true,
+        int32_t userId = INVALID_USER_ID) override;
 
     /**
      * Get element name by token.
@@ -1134,7 +1136,7 @@ public:
      * @param token, the token of top ability.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int GetTopAbility(sptr<IRemoteObject> &token) override;
+    virtual int GetTopAbility(sptr<IRemoteObject> &token, int32_t userId = INVALID_USER_ID) override;
 
     virtual int CheckUIExtensionIsFocused(
         uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId = 0) override;
@@ -1559,6 +1561,18 @@ public:
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
 
     /**
+     * @brief Execute intent with specified token id.
+     * @param want The want carrying the card params and intent execution info.
+     * @param callerAbilityToken The caller ability token.
+     * @param param The Intent execute param.
+     * @param specifiedFullTokenId The specified access token id for permission checking.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,
+        const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param,
+        uint64_t specifiedFullTokenId) override;
+
+    /**
      * @brief Query entity.
      * @param key The key of intent executing client.
      * @param callerToken Caller ability token.
@@ -1799,12 +1813,6 @@ public:
     virtual int32_t UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
         const std::list<std::string>& exportConfigs, int32_t flag) override;
 
-    virtual int32_t ExecuteInAppSkill(const std::string &bundleName, const std::string &moduleName,
-        const std::string &skillName, const std::string &arkTSPath = "",
-        const std::string &funcName = "",
-        const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
-        const sptr<ISkillExecuteCallback> &callback = nullptr) override;
-
     virtual int32_t ExecuteInAppSkillWithTokenId(const AppExecFwk::SkillExecuteRequest &request,
         const sptr<ISkillExecuteCallback> &callback) override;
 
@@ -2037,7 +2045,11 @@ public:
 
     int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
 
-    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override;
+    int32_t AddKioskApplicationList(const std::vector<std::string> &appList) override;
+
+    int32_t DeleteKioskApplicationList(const std::vector<std::string> &appList) override;
+
+    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t kioskType = 0) override;
 
     int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
 

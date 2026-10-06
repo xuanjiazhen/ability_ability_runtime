@@ -25,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+#include "ui_ability_last_caller_info.h"
 #include "ability_debug_response_interface.h"
 #include "ability_foreground_state_observer_interface.h"
 #include "ability_info.h"
@@ -215,11 +216,13 @@ public:
      *
      * @param token, the unique identification to update the ability.
      * @param state, ability status that needs to be updated.
+     * @param isFromScreenOffBackground Whether from screen off background.
+     * @param callerInfo The caller info including uid and bundle name.
      *
      * @return
      */
     virtual void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-        bool isFromScreenOffBackground = false);
+        bool isFromScreenOffBackground = false, const UiAbilityLastCallerInfo &callerInfo = {});
 
     /**
      * UpdateExtensionState, call UpdateExtensionState() through the proxy object, update the extension status.
@@ -426,7 +429,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t ForceKillApplication(const std::string &bundleName, const int userId = -1,
-        const int appIndex = -1);
+        int appIndex = -1);
 
     /**
      * KillApplicationWithUserId, force kill the application.
@@ -1163,7 +1166,8 @@ public:
     int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg);
 
     int32_t NotifyAppMgrRecordExitReasonCompability(
-        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason);
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg,
+        int32_t reason, int32_t callerPid = -1);
 #ifdef APP_MGR_KILL_REASON_TAG
     void RecordAppWithReasonByUserId(int32_t userId, int32_t killId);
 #endif
@@ -2105,7 +2109,7 @@ private:
     void HandleAddAbilityStageTimeOut(std::shared_ptr<AppRunningRecord> appRecord);
 
     bool GetBundleAndHapInfo(const AbilityInfo &abilityInfo, const std::shared_ptr<ApplicationInfo> &appInfo,
-        BundleInfo &bundleInfo, HapModuleInfo &hapModuleInfo, int32_t appIndex = -1) const;
+        BundleInfo &bundleInfo, HapModuleInfo &hapModuleInfo, int32_t appIndex) const;
     AppProcessData WrapAppProcessData(const std::shared_ptr<AppRunningRecord> &appRecord,
         const ApplicationState state, bool isFromWindowFocusChanged = false);
 
@@ -2487,7 +2491,7 @@ private:
         std::vector<std::string> &instanceKeys, int32_t userId);
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
         const std::string& killReason, std::shared_ptr<AppRunningRecord> appRecord, bool isKillPrecedeStart);
-    void SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo);
+    static void SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo);
     void AddToKillProcessMap(const std::string &processName);
     bool IsAllowedNWebPreload(const std::string &processName);
     void ParseInfoToAppfreeze(const FaultData &faultData, int32_t pid, int32_t uid, const std::string &bundleName,
@@ -2512,6 +2516,7 @@ private:
         const std::shared_ptr<AppRunningRecord> &appRecord, const UIExtensionProcessBindInfo &bindInfo);
     void UnBindUIExtensionProcess(
         const std::shared_ptr<AppRunningRecord> &appRecord, const UIExtensionProcessBindInfo &bindInfo);
+    std::string GetStoragePath(const std::string& hapPath);
     bool WrapBindInfo(std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AppRunningRecord> &appRecord,
         UIExtensionProcessBindInfo &bindInfo);
     void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,

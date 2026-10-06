@@ -67,7 +67,8 @@ bool MultiAppUtils::GetPreferredAppCloneIndex(const std::string &bundleName, int
         return false;
     }
 
-    if (!AbilityRuntime::GlobalConstant::IsAppCloneIndex(preference.appIndex)) {
+    if (appIndex != 0 && appIndex != AbilityRuntime::GlobalConstant::PC_TABLET_INDEX &&
+        !AbilityRuntime::GlobalConstant::IsAppCloneIndex(preference.appIndex)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid default clone index:%{public}d", preference.appIndex);
         return false;
     }

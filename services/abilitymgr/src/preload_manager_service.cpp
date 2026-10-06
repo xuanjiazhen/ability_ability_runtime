@@ -87,18 +87,14 @@ int32_t PreloadManagerService::LaunchGameCustomized(const std::string &bundleNam
 {
     Want launchWant;
     AppExecFwk::AbilityInfo abilityInfo;
+    if (appIndex == -1) {
+        auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+        bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appIndex);
+    }
     if (auto ret = PreloadApplicationVerification(bundleName, userId, appIndex, launchWant,
         abilityInfo); ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "verify preload game failed");
         return ret;
-    }
-    if (appIndex == -1) {
-        AppExecFwk::DualModeBundleInfo bundleinfo;
-        auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
-        auto appRecord = bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, bundleinfo);
-        if (appRecord == ERR_OK) {
-            appIndex = bundleinfo.appIndex;
-        }
     }
 
     bool isGameSACall = IPCSkeleton::GetCallingUid() == AbilityRuntime::GlobalConstant::GAME_SA_UID;

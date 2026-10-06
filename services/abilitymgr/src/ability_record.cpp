@@ -26,6 +26,7 @@
 #include "app_utils.h"
 #include "array_wrapper.h"
 #include "accesstoken_kit.h"
+#include "bundle_mgr_helper.h"
 #include "configuration_convertor.h"
 #include "connection_state_manager.h"
 #include "common_event_manager.h"
@@ -484,7 +485,8 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
     }
 }
 
-void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options)
+void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options,
+    bool isCallBySCB)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability record: %{public}s/%{public}s", GetInfoBundleName().c_str(),
@@ -533,6 +535,11 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
         return;
     }
     // background to active state
+    HandleBackgroundToForeground(options, isCallBySCB);
+}
+
+void AbilityRecord::HandleBackgroundToForeground(const ForegroundOptions &options, bool isCallBySCB)
+{
     TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s/%{public}s", GetInfoBundleName().c_str(),
         GetInfoAbilityName().c_str());
     lifeCycleStateInfo_.sceneFlagBak = options.sceneFlag;
@@ -545,7 +552,51 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
         SendAppStartupTypeEvent(AppExecFwk::AppStartType::HOT);
     }
     SetAbilityStateInner(AbilityState::FOREGROUNDING);
-    DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token_);
+    DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token_,
+        GetRealLastCallerInfo(options.callerUid, options.callerBundleName, isCallBySCB));
+}
+
+AppExecFwk::UiAbilityLastCallerInfo AbilityRecord::GetRealLastCallerInfo(int32_t callerUid,
+    const std::string &callerBundleName, bool isCallBySCB)
+{
+    AppExecFwk::UiAbilityLastCallerInfo callerInfo;
+    callerInfo.callerUid = callerUid;
+    callerInfo.callerBundleName = callerBundleName;
+
+    if (callerInfo.callerUid == -1 && callerInfo.callerBundleName.empty()) {
+        callerInfo.callerUid = GetWant().GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
+        callerInfo.callerBundleName = GetWant().GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityForeground set caller info, callerUid:%{public}d, "
+        "callerBundleName:%{public}s, isCallBySCB:%{public}d", callerUid,
+        callerBundleName.c_str(), isCallBySCB);
+
+    if (isCallBySCB ||
+        (!isCallBySCB && callerUid == -1 && callerBundleName.empty())) {
+        int32_t scbUid = -1;
+        {
+            std::lock_guard<ffrt::mutex> lock(scbUidLock_);
+            scbUid = scbUid_;
+        }
+        if (scbUid < 0) {
+            auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+            scbUid = bundleMgrHelper != nullptr ?
+                IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(
+                    AbilityConfig::SCENEBOARD_BUNDLE_NAME, GetOwnerMissionUserId(), 0)) : -1;
+            std::lock_guard<ffrt::mutex> lock(scbUidLock_);
+            scbUid_ = scbUid;
+        }
+        if (scbUid >= 0) {
+            callerInfo.callerUid = scbUid;
+            callerInfo.callerBundleName = AbilityConfig::SCENEBOARD_BUNDLE_NAME;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityForeground set scb caller info, scbUid:%{public}d, "
+                "scbBundleName:%{public}s", scbUid, AbilityConfig::SCENEBOARD_BUNDLE_NAME);
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "AbilityForeground skip scb caller, uid query failed");
+        }
+    }
+    return callerInfo;
 }
 
 void AbilityRecord::PostForegroundTimeoutTask()
@@ -703,12 +754,23 @@ sptr<AbilityTransitionInfo> AbilityRecord::CreateAbilityTransitionInfo(const Abi
     if (abilityStartSetting) {
         auto windowMode = abilityStartSetting->GetProperty(AbilityStartSetting::WINDOW_MODE_KEY);
         auto displayId = abilityStartSetting->GetProperty(AbilityStartSetting::WINDOW_DISPLAY_ID_KEY);
-        try {
-            info->mode_ = static_cast<uint32_t>(std::stoi(windowMode));
-            info->displayId_ = static_cast<uint64_t>(std::stoi(displayId));
-        } catch (...) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "windowMode: stoi(%{public}s) failed", windowMode.c_str());
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "displayId: stoi(%{public}s) failed", displayId.c_str());
+        auto safeStoi = [](const std::string &str, int32_t &out) -> bool {
+            auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), out);
+            return ec == std::errc() && ptr == str.data() + str.size();
+        };
+        int32_t modeValue = 0;
+        int32_t displayIdValue = 0;
+        bool modeOk = safeStoi(windowMode, modeValue) && modeValue >= 0;
+        bool displayIdOk = safeStoi(displayId, displayIdValue) && displayIdValue >= 0;
+        if (modeOk) {
+            info->mode_ = static_cast<uint32_t>(modeValue);
+        }
+        if (displayIdOk) {
+            info->displayId_ = static_cast<uint64_t>(displayIdValue);
+        }
+        if (!modeOk || !displayIdOk) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "stoi failed, windowMode:%{public}s,displayId:%{public}s",
+                windowMode.c_str(), displayId.c_str());
         }
     } else {
         SetWindowModeAndDisplayId(info, std::make_shared<Want>(abilityRequest.want));
@@ -3531,7 +3593,7 @@ bool AbilityRecord::GetPromotePriority()
 
 bool AbilityRecord::PromotePriority()
 {
-    if (IsStartedByCall() && GetPromotePriority()) {
+    if (GetPromotePriority()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "promoting priority: %{public}s", GetAbilityInfo().bundleName.c_str());
         ResSchedUtil::GetInstance().PromotePriorityToRSS(uiAbilityProperty_->byCallCallerSaUid,
             uiAbilityProperty_->byCallCallerSaPid, GetAbilityInfo().bundleName, GetUid(), GetPid());
