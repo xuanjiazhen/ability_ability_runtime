@@ -30,21 +30,50 @@
 #include "common_event_support.h"
 #include "app_utils.h"
 #include "ffrt.h"
+#include "global_constant.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+InsightIntentEventMgr::DualModeContext ResolveDualModeContext(
+    const std::string &bundleName, int32_t userId, int32_t appIndexFromEvent)
+{
+    InsightIntentEventMgr::DualModeContext ctx;
+    ctx.appIndex = appIndexFromEvent;
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "bundleMgrHelper null, fallback non-dual-mode");
+        return ctx;
+    }
+    int32_t dualAppIndex = 0;
+    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, dualAppIndex));
+    if (ret == ERR_OK) {
+        ctx.isDualMode = true;
+        ctx.appIndex = dualAppIndex;
+        TAG_LOGI(AAFwkTag::INTENT, "dual-mode app, bundle:%{public}s, appIndex:%{public}d",
+            bundleName.c_str(), dualAppIndex);
+    } else {
+        ctx.isDualMode = false;
+        ctx.appIndex = 0;
+        TAG_LOGI(AAFwkTag::INTENT, "non-dual-mode app, bundle:%{public}s", bundleName.c_str());
+    }
+    return ctx;
+}
+} // namespace
+
 void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName,
-    int32_t userId)
+    int32_t userId, const DualModeContext &ctx)
 {
     if (!DelayedSingleton<InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
-        bundleName, moduleName, userId)) {
+        bundleName, moduleName, userId, ctx.appIndex, ctx.isDualMode)) {
         return;
     }
     TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent", bundleName.c_str());
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->BackupRdb();
 }
 
-void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId)
+void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId,
+    int32_t appIndex)
 {
     auto bundleName = elementName.GetBundleName();
     auto moduleName = elementName.GetModuleNameRef();
@@ -62,7 +91,8 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
 
-    ffrt::submit([moduleName, bundleName, userId] () {
+    auto ctx = ResolveDualModeContext(bundleName, userId, appIndex);
+    ffrt::submit([moduleName, bundleName, userId, ctx] () {
         ErrCode ret;
         std::vector<std::string> moduleNameVec;
         std::string profile;
@@ -90,7 +120,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
                 bundleName, moduleNameLocal, profile, userId));
             if (ret != ERR_OK) {
                 TAG_LOGI(AAFwkTag::INTENT, "get json failed code: %{public}d", ret);
-                DeleteInsightIntent(bundleName, moduleNameLocal, userId);
+                DeleteInsightIntent(bundleName, moduleNameLocal, userId, ctx);
                 continue;
             }
 
@@ -101,7 +131,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
                 profile, configIntentInfos) || configIntentInfos.size() == 0);
             if (isTransformExtractIntent && isTransformConfigIntent) {
                 TAG_LOGW(AAFwkTag::INTENT, "transform profile failed, profile:%{public}s", profile.c_str());
-                DeleteInsightIntent(bundleName, moduleNameLocal, userId);
+                DeleteInsightIntent(bundleName, moduleNameLocal, userId, ctx);
                 continue;
             }
 
@@ -139,6 +169,10 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
             return;
         }
         // save database in one batch
+        for (auto &sp : saveParams) {
+            sp.appIndex = ctx.appIndex;
+            sp.isDualMode = ctx.isDualMode;
+        }
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveBatchInsightIntentTotalInfo(
             bundleName, userId, bundleInfo.versionCode, saveParams);
         TAG_LOGI(AAFwkTag::INTENT, "collected intents for batch update, profile:%{public}zu config:%{public}zu, "
@@ -175,11 +209,23 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
 
-    if (appIndex > 0) {
-        TAG_LOGI(AAFwkTag::INTENT, "this application is a simulation, not support to delete intent info, "
+    auto ctx = ResolveDualModeContext(bundleName, userId, appIndex);
+    // 卸载场景兜底：GetDualModeBundleInfo 可能因应用已卸载而失败，按 appIndex 兜底判断双模式
+    if (!ctx.isDualMode && appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
+        ctx.isDualMode = true;
+        ctx.appIndex = appIndex;
+        TAG_LOGI(AAFwkTag::INTENT, "fallback dual-mode by appIndex, bundle:%{public}s, appIndex:%{public}d",
+            bundleName.c_str(), appIndex);
+    }
+
+    // 非双模式应用且 appIndex>0：维持原有跳过行为（克隆/DLP/AI Agent 索引）
+    if (!ctx.isDualMode && appIndex > 0) {
+        TAG_LOGI(AAFwkTag::INTENT, "non-dual-mode app with appIndex>0 (clone/dlp), skip delete, "
             "bundleName: %{public}s, appIndex: %{public}d", bundleName.c_str(), appIndex);
         return;
     }
+    // 双模式应用：无论主模式(0)还是副模式(10000)都执行删除
+    // 非双模式应用且 appIndex==0：原有逻辑执行删除
 
     if (userId < 0) {
         TAG_LOGI(AAFwkTag::INTENT, "invalid userId: %{public}d", userId);
@@ -191,9 +237,10 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
 
-    ffrt::submit([bundleName, moduleName, userId]() {
+    ffrt::submit([bundleName, moduleName, userId, ctx]() {
         auto dbCache = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance();
-        if (!dbCache->DeleteInsightIntentTotalInfo(bundleName, moduleName, userId)) {
+        if (!dbCache->DeleteInsightIntentTotalInfo(
+            bundleName, moduleName, userId, ctx.appIndex, ctx.isDualMode)) {
             return;
         }
         dbCache->BackupRdb();
