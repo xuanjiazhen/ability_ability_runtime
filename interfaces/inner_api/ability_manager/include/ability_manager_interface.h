@@ -2910,6 +2910,11 @@ public:
     {
         return ERR_OK;
     }
+
+    virtual int32_t SetInsightIntentTargetPid(uint64_t intentId)
+    {
+        return ERR_OK;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS
