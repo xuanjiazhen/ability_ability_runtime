@@ -4581,7 +4581,7 @@ int AbilityManagerService::GetDisplayIdByAccount(int32_t accountId, uint64_t &di
 int AbilityManagerService::RequestModalUIExtensionInner(Want want)
 {
     sptr<IRemoteObject> token = nullptr;
-    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
     uint64_t displayId = 0;
     auto displayRet = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(userId, displayId);
     if (displayRet != ERR_OK) {
@@ -13623,9 +13623,12 @@ bool AbilityManagerService::CheckUIExtensionCallerIsForeground(const AbilityRequ
         if (UIExtensionWrapper::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
             auto tokenId = callerAbility->GetApplicationInfo().accessTokenId;
             bool isFocused = false;
-            int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+            int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
             uint64_t displayId = 0;
             auto displayRet = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(userId, displayId);
+            if (displayRet != ERR_OK) {
+                    TAG_LOGE(AAFwkTag::ABILITYMGR, "get foreground display id failed, ret=%{public}d", displayRet);
+                }
             if (CheckUIExtensionIsFocused(tokenId, isFocused, displayId) == ERR_OK && isFocused) {
                 TAG_LOGD(AAFwkTag::ABILITYMGR, "Root caller is foreground");
                 return true;
