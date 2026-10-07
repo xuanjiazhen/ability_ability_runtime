@@ -139,6 +139,9 @@ private:
 
     static int32_t IsValidCall(const Want &want);
 
+    static bool CollectFileEntityUrisAndFlags(const WantParams &params,
+        std::vector<std::string> &uris, int32_t &flags);
+
     static int32_t AddWantUirsAndFlagsFromParam(
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, Want &want);
     static int32_t CheckAndUpdateDecoratorParams(
