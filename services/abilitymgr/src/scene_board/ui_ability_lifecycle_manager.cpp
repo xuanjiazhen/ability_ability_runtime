@@ -752,8 +752,11 @@ void UIAbilityLifecycleManager::StoreAbilitySessionInfo(int32_t requestId, const
     std::lock_guard<ffrt::mutex> guard(abilitySessionInfoMapLock_);
     abilitySessionInfoMap_[requestId] = info;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "StoreAbilitySessionInfo requestId=%{public}d, bundle=%{public}s, "
-        "tokenId=%{public}u, isWebSandBoxClone=%{public}d, specifyTokenId=%{public}u", requestId,
-        info.callerBundleName.c_str(), info.callerTokenId, info.isWebSandBoxClone, info.specifyTokenId);
+        "tokenId=%{public}u, isWebSandBoxClone=%{public}d, specifyTokenId=%{public}u, "
+        "callerUid=%{public}d, callerPid=%{public}d, "
+        "callerNativeName=%{public}s", requestId, info.callerBundleName.c_str(), info.callerTokenId,
+        info.isWebSandBoxClone, info.specifyTokenId, info.callerUid, info.callerPid,
+        info.callerNativeName.c_str());
 }
 
 bool UIAbilityLifecycleManager::GetAbilitySessionInfo(int32_t requestId, AbilitySessionInfo &info) const
@@ -766,8 +769,10 @@ bool UIAbilityLifecycleManager::GetAbilitySessionInfo(int32_t requestId, Ability
     }
     info = it->second;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "GetAbilitySessionInfo requestId=%{public}d, bundle=%{public}s, tokenId=%{public}u, "
-        "isWebSandBoxClone=%{public}d, specifyTokenId=%{public}u", requestId, info.callerBundleName.c_str(),
-        info.callerTokenId, info.isWebSandBoxClone, info.specifyTokenId);
+        "isWebSandBoxClone=%{public}d, specifyTokenId=%{public}u, callerUid=%{public}d, callerPid=%{public}d, "
+        "callerNativeName=%{public}s", requestId, info.callerBundleName.c_str(),
+        info.callerTokenId, info.isWebSandBoxClone, info.specifyTokenId, info.callerUid,
+        info.callerPid, info.callerNativeName.c_str());
     return true;
 }
 
@@ -799,13 +804,24 @@ void UIAbilityLifecycleManager::CacheAbilitySessionInfo(sptr<SessionInfo> &sessi
             info.callerTokenId = abilityRequest.sandboxCloneParams->callerTokenId;
             info.creatorBundleName = abilityRequest.sandboxCloneParams->creatorBundleName;
         }
+    } else {
+        info.callerBundleName = abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+        info.callerTokenId = static_cast<uint32_t>(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
     }
+    info.callerUid = abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, 0);
+    info.callerPid = abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_PID, 0);
+    info.callerNativeName = abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_NATIVE_NAME);
+    info.callerAbilityName = abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_ABILITY_NAME);
+    info.callerAppId = abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_APP_ID);
+    info.callerAppIdentifier = abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
+    info.callerAppCloneIndex = abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, 0);
     StoreAbilitySessionInfo(sessionInfo->requestId, info);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilitySessionInfo cached: bundle = %{public}s, tokenId = %{public}u, "
         "isWebSandBoxClone = %{public}d, sandBoxCloneIndex = %{public}d, creatorBundleName = %{public}s, "
-        "specifyTokenId = %{public}u, requestId = %{public}d", info.callerBundleName.c_str(), info.callerTokenId,
+        "specifyTokenId = %{public}u, callerUid = %{public}d, callerPid = %{public}d, "
+        "callerNativeName = %{public}s, requestId = %{public}d", info.callerBundleName.c_str(), info.callerTokenId,
         info.isWebSandBoxClone, info.sandBoxCloneIndex, info.creatorBundleName.c_str(), info.specifyTokenId,
-        sessionInfo->requestId);
+        info.callerUid, info.callerPid, info.callerNativeName.c_str(), sessionInfo->requestId);
 }
 
 void UIAbilityLifecycleManager::SetSandboxCloneParamsForSession(sptr<SessionInfo> &sessionInfo,
@@ -827,12 +843,25 @@ void UIAbilityLifecycleManager::SetSandboxCloneParamsForSession(sptr<SessionInfo
         info.callerTokenId = sandboxCloneParams->callerTokenId;
         info.creatorBundleName = sandboxCloneParams->creatorBundleName;
     }
+    auto callerWant = abilityRecord->GetWant();
+    if (sandboxCloneParams == nullptr) {
+        info.callerTokenId = static_cast<uint32_t>(callerWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
+    }
+    info.callerUid = callerWant.GetIntParam(Want::PARAM_RESV_CALLER_UID, 0);
+    info.callerPid = callerWant.GetIntParam(Want::PARAM_RESV_CALLER_PID, 0);
+    info.callerNativeName = callerWant.GetStringParam(Want::PARAM_RESV_CALLER_NATIVE_NAME);
+    info.callerAbilityName = callerWant.GetStringParam(Want::PARAM_RESV_CALLER_ABILITY_NAME);
+    info.callerAppId = callerWant.GetStringParam(Want::PARAM_RESV_CALLER_APP_ID);
+    info.callerAppIdentifier = callerWant.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
+    info.callerAppCloneIndex = callerWant.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, 0);
     StoreAbilitySessionInfo(sessionInfo->requestId, info);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "SandboxClone params stored for warm path: bundle = %{public}s, "
         "tokenId = %{public}u, isWebSandBoxClone = %{public}d, sandBoxCloneIndex = %{public}d, "
-        "creatorBundleName = %{public}s, requestId = %{public}d", info.callerBundleName.c_str(),
-        info.callerTokenId, info.isWebSandBoxClone, info.sandBoxCloneIndex,
-        info.creatorBundleName.c_str(), sessionInfo->requestId);
+        "creatorBundleName = %{public}s, callerUid = %{public}d, callerPid = %{public}d, "
+        "callerNativeName = %{public}s, requestId = %{public}d",
+        info.callerBundleName.c_str(), info.callerTokenId, info.isWebSandBoxClone,
+        info.sandBoxCloneIndex, info.creatorBundleName.c_str(), info.callerUid,
+        info.callerPid, info.callerNativeName.c_str(), sessionInfo->requestId);
 }
 
 bool UIAbilityLifecycleManager::HandleHookModule(AbilityRequest &abilityRequest, int32_t &ret)
