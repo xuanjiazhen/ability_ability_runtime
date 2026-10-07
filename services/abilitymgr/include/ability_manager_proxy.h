@@ -1825,6 +1825,8 @@ public:
     virtual int32_t NotifySkillFunctionInvoked(const sptr<IRemoteObject> &token,
         const std::string &requestCode) override;
 
+    virtual int32_t SetInsightIntentExecutorPid(uint64_t intentId) override;
+
     /**
      * Set keep-alive flag for application under a specific user.
      * @param bundleName Bundle name.
