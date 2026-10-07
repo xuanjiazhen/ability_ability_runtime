@@ -2400,5 +2400,167 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckCanQueryEntity_0900, TestSi
     TAG_LOGI(AAFwkTag::TEST, "CheckCanQueryEntity_0900 end.");
 }
 
+/**
+ * @tc.name: SetTargetPid_0100
+ * @tc.desc: Test SetTargetPid sets targetPid on an existing record.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, SetTargetPid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0100 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    uint64_t key = 100;
+    uint64_t intentId = 0;
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+    std::string bundleName = "test.bundle.setpid";
+    manager->AddRecord(key, callToken, bundleName, intentId, "caller.bundle");
+    ASSERT_EQ(manager->records_.count(intentId), 1);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, 0);
+
+    pid_t pid = 12345;
+    manager->SetTargetPid(intentId, pid);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, pid);
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0100 end.");
+}
+
+/**
+ * @tc.name: SetTargetPid_0200
+ * @tc.desc: Test SetTargetPid ignores a non-existent intentId.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, SetTargetPid_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0200 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    uint64_t invalidIntentId = 99999;
+    manager->SetTargetPid(invalidIntentId, 12345);
+    EXPECT_EQ(manager->records_.size(), 0);
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0200 end.");
+}
+
+/**
+ * @tc.name: SetTargetPid_0300
+ * @tc.desc: Test SetTargetPid ignores a null record.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, SetTargetPid_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0300 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    uint64_t intentId = 888;
+    manager->records_[intentId] = nullptr;
+    manager->SetTargetPid(intentId, 12345);
+    EXPECT_EQ(manager->records_[intentId], nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0300 end.");
+}
+
+/**
+ * @tc.name: OnInsightAppDied_016
+ * @tc.desc: Test cleanup only removes the record whose targetPid matches the died pid.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_016, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_016 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    const std::string bundleName = "test.bundle.multiprocess";
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+
+    uint64_t intentIdA = 0;
+    uint64_t intentIdB = 0;
+    manager->AddRecord(100, callToken, bundleName, intentIdA, "caller.bundle");
+    manager->AddRecord(101, callToken, bundleName, intentIdB, "caller.bundle");
+    ASSERT_EQ(manager->records_.size(), 2);
+
+    pid_t pidA = 1000;
+    pid_t pidB = 2000;
+    manager->SetTargetPid(intentIdA, pidA);
+    manager->SetTargetPid(intentIdB, pidB);
+
+    manager->OnInsightAppDied(bundleName, pidA);
+
+    EXPECT_TRUE(WaitUntil([&manager, intentIdA]() {
+        return manager->records_.count(intentIdA) == 0;
+    }, WAIT_APP_DIED_CLEANUP_MS));
+    EXPECT_EQ(manager->records_.count(intentIdA), 0);
+    EXPECT_EQ(manager->records_.count(intentIdB), 1);
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_016 end.");
+}
+
+/**
+ * @tc.name: OnInsightAppDied_017
+ * @tc.desc: Test cleanup skips a record whose targetPid is still 0 (not dispatched).
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_017, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_017 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    const std::string bundleName = "test.bundle.notdispatched";
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+
+    uint64_t intentId = 0;
+    manager->AddRecord(100, callToken, bundleName, intentId, "caller.bundle");
+    ASSERT_EQ(manager->records_.count(intentId), 1);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, 0);
+
+    manager->OnInsightAppDied(bundleName, 3000);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_APP_DIED_CLEANUP_MS));
+    EXPECT_EQ(manager->records_.count(intentId), 1);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, 0);
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_017 end.");
+}
+
+/**
+ * @tc.name: OnInsightAppDied_018
+ * @tc.desc: Test cleanup falls back to bundle-wide removal when died pid is 0.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_018, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_018 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    const std::string bundleName = "test.bundle.legacy";
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+
+    uint64_t intentIdA = 0;
+    uint64_t intentIdB = 0;
+    manager->AddRecord(100, callToken, bundleName, intentIdA, "caller.bundle");
+    manager->AddRecord(101, callToken, bundleName, intentIdB, "caller.bundle");
+    manager->SetTargetPid(intentIdA, 1000);
+    manager->SetTargetPid(intentIdB, 2000);
+
+    manager->OnInsightAppDied(bundleName, 0);
+
+    EXPECT_TRUE(WaitUntil([&manager]() {
+        return manager->records_.size() == 0;
+    }, WAIT_APP_DIED_CLEANUP_MS));
+    EXPECT_EQ(manager->records_.size(), 0);
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_018 end.");
+}
+
 } // namespace AAFwk
 } // namespace OHOS
