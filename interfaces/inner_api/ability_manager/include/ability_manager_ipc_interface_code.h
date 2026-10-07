@@ -791,6 +791,9 @@ enum class AbilityManagerInterfaceCode {
     
     // register want agent holder for shared detection
     REGISTER_WANT_AGENT_HOLDER = 6181,
+
+    // notify the target process pid of an insight intent execution
+    SET_INSIGHT_INTENT_TARGET_PID = 6182,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -16,6 +16,7 @@
 #include "insight_intent_executor_mgr.h"
 
 #include "ability_business_error.h"
+#include "ability_manager_client.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -56,6 +57,9 @@ bool InsightIntentExecutorMgr::ExecuteInsightIntent(Runtime& runtime, const Insi
             executorMgr->RemoveInsightIntentExecutor(intentId);
         };
     callback->Push(asyncCallback);
+
+    // Notify AMS of the target process pid for this intent execution.
+    AAFwk::AbilityManagerClient::GetInstance()->SetInsightIntentTargetPid(executeParam->insightIntentId_);
 
     // Create insight intent executor
     InsightIntentType type = static_cast<InsightIntentType>(executeParam->decoratorType_);
