@@ -40,6 +40,7 @@ ohos_unittest("insight_intent_sys_event_receiver_test") {
     "${ability_runtime_services_path}/common/src/json_utils.cpp",
     "insight_intent_sys_event_receiver_test.cpp",
     "mock/src/mock_bundle_mgr_helper.cpp",
+    "mock/src/mock_app_mgr_util.cpp",
     #"insight_intent_utils_mock.cpp",
   ]
 

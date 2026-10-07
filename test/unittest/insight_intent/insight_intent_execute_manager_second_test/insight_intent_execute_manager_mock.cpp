@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "app_mgr_util.h"
 #include "permission_verification.h"
 #include "insight_intent_utils.h"
 
@@ -22,6 +23,13 @@ constexpr uint64_t ERRIGHT_INVALID_COMPONRNT = 2097269;
 namespace OHOS {
 namespace AAFwk {
 using namespace AppExecFwk;
+sptr<OHOS::AppExecFwk::IAppMgr> AppMgrUtil::appMgr_ = nullptr;
+
+OHOS::sptr<AppExecFwk::IAppMgr> AppMgrUtil::GetAppMgr()
+{
+    return appMgr_;
+}
+
 bool PermissionVerification::VerifyCallingPermission(
     const std::string &permissionName, const uint32_t specifyTokenId) const
 {
