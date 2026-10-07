@@ -3533,10 +3533,24 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
     auto sandboxCloneParams = std::make_shared<SandboxCloneParams>();
     AbilitySessionInfo abilitySessionInfo;
     auto uiAbilityManager = GetUIAbilityManagerByUserId(currentUserId);
+    bool hasCachedInfo = false;
     // Retrieve sandbox clone info from the map (stored before SCB notification).
     if (uiAbilityManager != nullptr) {
-        uiAbilityManager->GetAbilitySessionInfo(sessionInfo->requestId, abilitySessionInfo);
+        hasCachedInfo = uiAbilityManager->GetAbilitySessionInfo(sessionInfo->requestId, abilitySessionInfo);
         uiAbilityManager->RemoveAbilitySessionInfo(sessionInfo->requestId);
+    }
+    // Restore cached caller info to want so SCB-returned IPC values don't override the originals.
+    if (hasCachedInfo) {
+        sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_TOKEN,
+            static_cast<int32_t>(abilitySessionInfo.callerTokenId));
+        sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_UID, abilitySessionInfo.callerUid);
+        sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_PID, abilitySessionInfo.callerPid);
+        sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, abilitySessionInfo.callerBundleName);
+        sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_NATIVE_NAME, abilitySessionInfo.callerNativeName);
+        sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, abilitySessionInfo.callerAbilityName);
+        sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_APP_ID, abilitySessionInfo.callerAppId);
+        sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER, abilitySessionInfo.callerAppIdentifier);
+        sessionInfo->want.SetParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, abilitySessionInfo.callerAppCloneIndex);
     }
     if (abilitySessionInfo.isWebSandBoxClone) {
         sessionInfo->want.RemoveParam(AbilityRuntime::ServerConstant::DLP_INDEX);
