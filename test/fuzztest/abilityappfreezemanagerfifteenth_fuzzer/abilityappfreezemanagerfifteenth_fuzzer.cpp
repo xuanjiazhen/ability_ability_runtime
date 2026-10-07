@@ -63,12 +63,12 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     freeze->FindStackByPid(ret, pid2);
     freeze->CatcherStacktrace(pid2);
     freeze->CatchJsonStacktrace(pid2, faultType);
-    freeze->ResetAppfreezeState(pid2, bundleName2);
     freeze->IsProcessDebug(pid2, processName2);
     freeze->IsHandleAppfreeze(bundleName2);
     freeze->IsValidFreezeFilter(pid2, bundleName2);
-    freeze->CancelAppFreezeDetect(pid2, bundleName2);
     freeze->IsNeedIgnoreFreezeEvent(key2, errorName2);
+    freeze->ResetAppfreezeState(pid2, bundleName2);
+    freeze->CancelAppFreezeDetect(pid2, bundleName2);
 
     return true;
 }
