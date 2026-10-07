@@ -26,9 +26,13 @@
 #include "insight_intent_execute_param.h"
 #include "insight_intent_query_param.h"
 #include "extract_insight_intent_profile.h"
+#include "ability_config.h"
+#include "array_wrapper.h"
 #include "mock_ability_token.h"
+#include "int_wrapper.h"
 #include "string_wrapper.h"
 #include "want.h"
+#include "want_params_wrapper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -477,6 +481,309 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, AddWantUirsAndFlagsFromParam_002
     paramPtr->uris_.emplace_back("testUri2");
     auto ret = InsightIntentExecuteManager::AddWantUirsAndFlagsFromParam(paramPtr, want);
     EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+namespace {
+WantParams MakeFileEntity(const std::vector<std::string> &uris, int32_t flags)
+{
+    WantParams entity;
+    entity.SetParam("entityId", AAFwk::String::Box("OHOS_FILE_ENTITY"));
+    sptr<AAFwk::IArray> uriArray = new (std::nothrow) AAFwk::Array(uris.size(), AAFwk::g_IID_IString);
+    if (uriArray != nullptr) {
+        for (size_t i = 0; i < uris.size(); i++) {
+            uriArray->Set(i, AAFwk::String::Box(uris[i]));
+        }
+        entity.SetParam("uris", uriArray);
+    }
+    if (flags >= 0) {
+        entity.SetParam("flags", AAFwk::Integer::Box(flags));
+    }
+    return entity;
+}
+}
+
+/**
+ * @tc.name: CollectFileEntityUrisAndFlags_0100
+ * @tc.desc: empty params has no file entity, nothing collected.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    WantParams params;
+    std::vector<std::string> uris;
+    int32_t flags = 0;
+    bool found = InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, uris, flags);
+    EXPECT_FALSE(found);
+    EXPECT_TRUE(uris.empty());
+    EXPECT_EQ(flags, 0);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CollectFileEntityUrisAndFlags_0200
+ * @tc.desc: nested object without entityId is not treated as a file entity.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    WantParams notEntity;
+    notEntity.SetParam("name", std::string("abc"));
+    WantParams params;
+    params.SetParam("obj", WantParamWrapper::Box(notEntity));
+    std::vector<std::string> uris;
+    int32_t flags = 0;
+    bool found = InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, uris, flags);
+    EXPECT_FALSE(found);
+    EXPECT_TRUE(uris.empty());
+    EXPECT_EQ(flags, 0);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CollectFileEntityUrisAndFlags_0300
+ * @tc.desc: entityId not equal to OHOS_FILE_ENTITY is ignored.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    WantParams otherEntity;
+    otherEntity.SetParam("entityId", std::string("OTHER_ENTITY"));
+    std::vector<std::string> urisInput = {"file://other"};
+    otherEntity.SetParam("uris", urisInput);
+    WantParams params;
+    params.SetParam("obj", WantParamWrapper::Box(otherEntity));
+    std::vector<std::string> uris;
+    int32_t flags = 0;
+    bool found = InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, uris, flags);
+    EXPECT_FALSE(found);
+    EXPECT_TRUE(uris.empty());
+    EXPECT_EQ(flags, 0);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CollectFileEntityUrisAndFlags_0400
+ * @tc.desc: file entity without flags is granted read permission by default.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    std::vector<std::string> urisInput = {"file://a", "file://b"};
+    WantParams fileEntity = MakeFileEntity(urisInput, -1);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    std::vector<std::string> uris;
+    int32_t flags = 0;
+    bool found = InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, uris, flags);
+    EXPECT_TRUE(found);
+    ASSERT_EQ(uris.size(), static_cast<size_t>(2));
+    EXPECT_EQ(uris[0], std::string("file://a"));
+    EXPECT_EQ(uris[1], std::string("file://b"));
+    EXPECT_EQ(flags, static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION));
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CollectFileEntityUrisAndFlags_0500
+ * @tc.desc: file entity with read/write flags keeps the granted flags.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    int32_t readWrite = static_cast<int32_t>(
+        Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+    std::vector<std::string> urisInput = {"file://c"};
+    WantParams fileEntity = MakeFileEntity(urisInput, readWrite);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    std::vector<std::string> uris;
+    int32_t flags = 0;
+    bool found = InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, uris, flags);
+    EXPECT_TRUE(found);
+    ASSERT_EQ(uris.size(), static_cast<size_t>(1));
+    EXPECT_EQ(uris[0], std::string("file://c"));
+    EXPECT_EQ(flags, readWrite);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CollectFileEntityUrisAndFlags_0600
+ * @tc.desc: multiple file entities are merged with flags ORed, plain params ignored.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    WantParams fileEntity1 = MakeFileEntity({"file://x"}, -1);
+    WantParams fileEntity2 = MakeFileEntity({"file://y"}, static_cast<int32_t>(Want::FLAG_AUTH_WRITE_URI_PERMISSION));
+    WantParams params;
+    params.SetParam("plain", std::string("not an entity"));
+    params.SetParam("f1", WantParamWrapper::Box(fileEntity1));
+    params.SetParam("f2", WantParamWrapper::Box(fileEntity2));
+    std::vector<std::string> uris;
+    int32_t flags = 0;
+    bool found = InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, uris, flags);
+    EXPECT_TRUE(found);
+    ASSERT_EQ(uris.size(), static_cast<size_t>(2));
+    EXPECT_EQ(uris[0], std::string("file://x"));
+    EXPECT_EQ(uris[1], std::string("file://y"));
+    int32_t expectedFlags = static_cast<int32_t>(
+        Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+    EXPECT_EQ(flags, expectedFlags);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CollectFileEntityUrisAndFlags_0700
+ * @tc.desc: file entity with empty uris is recognized but collects nothing, default read flag granted.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    WantParams fileEntity = MakeFileEntity({}, -1);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    std::vector<std::string> uris;
+    int32_t flags = 0;
+    bool found = InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, uris, flags);
+    EXPECT_TRUE(found);
+    EXPECT_TRUE(uris.empty());
+    EXPECT_EQ(flags, static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION));
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CheckAndUpdateWant_FileEntity_0100
+ * @tc.desc: CheckAndUpdateWant moves file entity uris into PARAMS_STREAM with default read flag.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateWant_FileEntity_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    WantParams fileEntity = MakeFileEntity({"file://a", "file://b"}, -1);
+    WantParams customParams;
+    customParams.SetParam("file", WantParamWrapper::Box(fileEntity));
+
+    Want want;
+    WantParams allParams;
+    allParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, std::string("com.example.test"));
+    allParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM, WantParamWrapper::Box(customParams));
+    want.SetParams(allParams);
+
+    auto ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateWant(
+        want, AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY, 100, "test");
+    (void)ret;
+    auto uriVec = want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM);
+    ASSERT_EQ(uriVec.size(), static_cast<size_t>(2));
+    EXPECT_EQ(uriVec[0], std::string("file://a"));
+    EXPECT_EQ(uriVec[1], std::string("file://b"));
+    EXPECT_NE(want.GetFlags() & Want::FLAG_AUTH_READ_URI_PERMISSION, 0U);
+    EXPECT_EQ(want.GetFlags() & Want::FLAG_AUTH_WRITE_URI_PERMISSION, 0U);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CheckAndUpdateWant_FileEntity_0200
+ * @tc.desc: CheckAndUpdateWant keeps read/write flag when file entity specifies it.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateWant_FileEntity_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    int32_t readWrite = static_cast<int32_t>(
+        Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+    WantParams fileEntity = MakeFileEntity({"file://c"}, readWrite);
+    WantParams customParams;
+    customParams.SetParam("file", WantParamWrapper::Box(fileEntity));
+
+    Want want;
+    WantParams allParams;
+    allParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, std::string("com.example.test"));
+    allParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM, WantParamWrapper::Box(customParams));
+    want.SetParams(allParams);
+
+    auto ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateWant(
+        want, AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY, 100, "test");
+    (void)ret;
+    EXPECT_NE(want.GetFlags() & Want::FLAG_AUTH_READ_URI_PERMISSION, 0U);
+    EXPECT_NE(want.GetFlags() & Want::FLAG_AUTH_WRITE_URI_PERMISSION, 0U);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateWant_FileEntity_0100
+ * @tc.desc: GenerateWant moves file entity uris/flags into executeParam with default read flag.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_FileEntity_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    AppExecFwk::InsightIntentExecuteParam param;
+    param.bundleName_ = "test.bundleName";
+    param.moduleName_ = "test.entry";
+    param.abilityName_ = "test.abilityName";
+    param.insightIntentName_ = "PlayMusic";
+    param.insightIntentParam_ = std::make_shared<WantParams>();
+    WantParams fileEntity = MakeFileEntity({"file://a", "file://b"}, -1);
+    param.insightIntentParam_->SetParam("file", WantParamWrapper::Box(fileEntity));
+    auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
+
+    AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
+    Want want;
+    InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, want);
+
+    ASSERT_EQ(paramPtr->uris_.size(), static_cast<size_t>(2));
+    EXPECT_EQ(paramPtr->uris_[0], std::string("file://a"));
+    EXPECT_EQ(paramPtr->uris_[1], std::string("file://b"));
+    EXPECT_EQ(paramPtr->flags_, static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION));
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateWant_FileEntity_0200
+ * @tc.desc: GenerateWant keeps read/write flag when file entity specifies it.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_FileEntity_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    int32_t readWrite = static_cast<int32_t>(
+        Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+    AppExecFwk::InsightIntentExecuteParam param;
+    param.bundleName_ = "test.bundleName";
+    param.moduleName_ = "test.entry";
+    param.abilityName_ = "test.abilityName";
+    param.insightIntentName_ = "PlayMusic";
+    param.insightIntentParam_ = std::make_shared<WantParams>();
+    WantParams fileEntity = MakeFileEntity({"file://c"}, readWrite);
+    param.insightIntentParam_->SetParam("file", WantParamWrapper::Box(fileEntity));
+    auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
+
+    AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
+    Want want;
+    InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, want);
+
+    ASSERT_EQ(paramPtr->uris_.size(), static_cast<size_t>(1));
+    EXPECT_EQ(paramPtr->uris_[0], std::string("file://c"));
+    EXPECT_EQ(paramPtr->flags_, readWrite);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
 
