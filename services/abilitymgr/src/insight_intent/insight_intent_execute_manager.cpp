@@ -21,6 +21,7 @@
 
 #include "ability_config.h"
 #include "ability_util.h"
+#include "array_wrapper.h"
 #include "ability_manager_errors.h"
 #include "distributed_ability_runtime/distributed_client.h"
 #include "extract_insight_intent_profile.h"
@@ -33,6 +34,7 @@
 #include "want_params_wrapper.h"
 #include "time_util.h"
 #include "res_sched_util.h"
+#include "string_wrapper.h"
 #include "nlohmann/json.hpp"
 
 namespace OHOS {
@@ -48,6 +50,10 @@ constexpr const char *KEY_INTERACTION_INFO = "interactionInfo";
 constexpr int32_t OPERATION_DURATION = 10000;
 constexpr int32_t DYING_CALLBACK_DELAY_MS = 100;
 constexpr int64_t MICROSECONDS_PER_MILLISECOND = 1000;
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_ID = "OHOS_FILE_ENTITY";
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_ID_KEY = "entityId";
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_URIS_KEY = "uris";
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_FLAGS_KEY = "flags";
 
 ParamType StringToParamType(const std::string &typeStr)
 {
@@ -176,9 +182,64 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     return ERR_OK;
 }
 
+bool InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(const WantParams &params,
+    std::vector<std::string> &uris, int32_t &flags)
+{
+    bool found = false;
+    auto paramMap = params.GetParams();
+    for (auto it = paramMap.begin(); it != paramMap.end(); it++) {
+        IWantParams *wantParamsObj = IWantParams::Query(it->second);
+        if (wantParamsObj == nullptr) {
+            continue;
+        }
+        WantParams entity = WantParamWrapper::Unbox(wantParamsObj);
+        if (!entity.HasParam(INSIGHT_INTENT_FILE_ENTITY_ID_KEY)) {
+            continue;
+        }
+        if (entity.GetStringParam(INSIGHT_INTENT_FILE_ENTITY_ID_KEY) != INSIGHT_INTENT_FILE_ENTITY_ID) {
+            continue;
+        }
+        std::vector<std::string> entityUris;
+        sptr<IInterface> uriValue = entity.GetParam(INSIGHT_INTENT_FILE_ENTITY_URIS_KEY);
+        IArray *arrayObj = IArray::Query(uriValue);
+        if (arrayObj != nullptr) {
+            long size = 0;
+            if (arrayObj->GetLength(size) == ERR_OK) {
+                for (long i = 0; i < size; i++) {
+                    sptr<IInterface> iface = nullptr;
+                    if (arrayObj->Get(i, iface) == ERR_OK) {
+                        IString *strValue = IString::Query(iface);
+                        if (strValue != nullptr) {
+                            entityUris.push_back(String::Unbox(strValue));
+                        }
+                    }
+                }
+            }
+        }
+        uris.insert(uris.end(), entityUris.begin(), entityUris.end());
+        int32_t entityFlags = entity.GetIntParam(INSIGHT_INTENT_FILE_ENTITY_FLAGS_KEY, 0);
+        if (entityFlags == 0) {
+            entityFlags = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+        }
+        flags |= entityFlags;
+        found = true;
+        TAG_LOGI(AAFwkTag::INTENT, "collect file entity uris:%{public}zu, flags:%{public}d",
+            entityUris.size(), entityFlags);
+    }
+    return found;
+}
+
 int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode executeMode, int32_t userId,
     std::string callerBundleName)
 {
+    std::vector<std::string> uris = want.GetStringArrayParam(INSIGHT_INTENT_EXECUTE_PARAM_URI);
+    int32_t flags = want.GetIntParam(INSIGHT_INTENT_EXECUTE_PARAM_FLAGS, 0);
+    const WantParams &wantParams = want.GetParams();
+    WantParams params = wantParams.GetWantParams(INSIGHT_INTENT_EXECUTE_PARAM_PARAM);
+    if (CollectFileEntityUrisAndFlags(params, uris, flags)) {
+        want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_URI, uris);
+        want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_FLAGS, flags);
+    }
     auto uriVec = want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM);
     auto uriVecTemp = want.GetStringArrayParam(INSIGHT_INTENT_EXECUTE_PARAM_URI);
     uriVec.insert(uriVec.begin(), uriVecTemp.begin(), uriVecTemp.end());
@@ -661,6 +722,10 @@ int32_t InsightIntentExecuteManager::GenerateWant(
             }
             want.SetParams(merged);
         }
+    }
+
+    if (param->insightIntentParam_ != nullptr) {
+        CollectFileEntityUrisAndFlags(*param->insightIntentParam_, param->uris_, param->flags_);
     }
 
     std::string srcEntry;
