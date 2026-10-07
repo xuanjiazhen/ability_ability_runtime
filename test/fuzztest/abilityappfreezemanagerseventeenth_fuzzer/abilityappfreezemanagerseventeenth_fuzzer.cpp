@@ -54,7 +54,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     FuzzedDataProvider fdp(data, size);
     FaultData faultData;
     if (fdp.ConsumeBool()) {
-        faultData.errorObject.name = FREEZE_TYPES[fdp.ConsumeIntegral<uint32_t>() % FREEZE_TYPE_COUNT];
+        faultData.errorObject.name = FREEZE_TYPES[fdp.ConsumeIntegralInRange<size_t>(0, FREEZE_TYPE_COUNT - 1)];
     } else {
         faultData.errorObject.name = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     }

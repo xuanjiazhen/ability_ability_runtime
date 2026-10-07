@@ -66,7 +66,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         stringParam, stringParam);
     AppMgrEventUtil::SendProcessStartEvent(callerAppRecord, appRecord, eventInfo);
     int32_t appUid = fdp.ConsumeIntegral<int32_t>();
-    int64_t restartTime = static_cast<int64_t>(fdp.ConsumeIntegral<int32_t>());
+    int64_t restartTime = fdp.ConsumeIntegral<int64_t>();
     AppMgrEventUtil::SendReStartProcessEvent(eventInfo, appUid, restartTime);
     AppMgrEventUtil::GetCallerPid(callerAppRecord);
     std::shared_ptr<AbilityInfo> abilityInfo;
