@@ -53,6 +53,11 @@ void StartupTaskManager::SetConfig(const std::shared_ptr<StartupConfig> &config)
     config_ = config;
 }
 
+void StartupTaskManager::SetPreAbilityStageLoad(bool preAbilityStageLoad)
+{
+    preAbilityStageLoad_ = preAbilityStageLoad;
+}
+
 std::map<std::string, std::shared_ptr<StartupTask>> StartupTaskManager::GetStartupTasks()
 {
     return tasks_;
@@ -81,7 +86,7 @@ int32_t StartupTaskManager::Prepare()
         TAG_LOGW(AAFwkTag::STARTUP, "no tasks");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
-    dispatcher_ = std::make_shared<StartupTaskDispatcher>(tasks_, startupSortResult);
+    dispatcher_ = std::make_shared<StartupTaskDispatcher>(tasks_, startupSortResult, preAbilityStageLoad_);
     return ERR_OK;
 }
 
