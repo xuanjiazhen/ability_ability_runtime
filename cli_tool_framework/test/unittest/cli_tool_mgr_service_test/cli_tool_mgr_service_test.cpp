@@ -957,6 +957,7 @@ HWTEST_F(CliToolManagerServiceTest, CriticalRefcount_0100, TestSize.Level1)
 
     service_->criticalSessionCount_.store(0);
     service_->shuttingDown_.store(false);
+    service_->memMgrNotified_.store(true);
     OHOS::Memory::MemMgrClient::Reset();
 
     auto firstRecord = std::make_shared<SessionRecord>();
@@ -995,6 +996,7 @@ HWTEST_F(CliToolManagerServiceTest, CriticalRefcount_0200, TestSize.Level1)
 
     service_->criticalSessionCount_.store(0);
     service_->shuttingDown_.store(false);
+    service_->memMgrNotified_.store(true);
     OHOS::Memory::MemMgrClient::Reset();
 
     auto record = std::make_shared<SessionRecord>();
@@ -1028,6 +1030,7 @@ HWTEST_F(CliToolManagerServiceTest, ProcessDied_0100, TestSize.Level1)
 
     service_->criticalSessionCount_.store(0);
     service_->shuttingDown_.store(false);
+    service_->memMgrNotified_.store(true);
     OHOS::Memory::MemMgrClient::Reset();
 
     auto deadCallerRecord = std::make_shared<SessionRecord>();
@@ -1066,13 +1069,12 @@ HWTEST_F(CliToolManagerServiceTest, OnStopCritical_0100, TestSize.Level1)
 
     service_->criticalSessionCount_.store(0);
     service_->shuttingDown_.store(false);
-    service_->memMgrNotified_.store(false);
+    service_->memMgrNotified_.store(true);
     OHOS::Memory::MemMgrClient::Reset();
 
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "stop_critical_session";
     service_->AddSessionRecord(record);
-    service_->memMgrNotified_.store(true);
 
     service_->OnStop();
 
@@ -1138,6 +1140,7 @@ HWTEST_F(CliToolManagerServiceTest, CriticalTeardown_0100, TestSize.Level1)
 
     service_->criticalSessionCount_.store(0);
     service_->shuttingDown_.store(false);
+    service_->memMgrNotified_.store(true);
     OHOS::Memory::MemMgrClient::Reset();
 
     auto liveRecord = std::make_shared<SessionRecord>();
@@ -1176,7 +1179,7 @@ HWTEST_F(CliToolManagerServiceTest, MemMgrFailureTolerance_0100, TestSize.Level1
 
     service_->criticalSessionCount_.store(0);
     service_->shuttingDown_.store(false);
-    service_->memMgrNotified_.store(false);
+    service_->memMgrNotified_.store(true);
     OHOS::Memory::MemMgrClient::Reset();
     OHOS::Memory::MemMgrClient::SetForcedReturn(1);
 
@@ -1189,10 +1192,14 @@ HWTEST_F(CliToolManagerServiceTest, MemMgrFailureTolerance_0100, TestSize.Level1
     service_->OnAddSystemAbility(MEMORY_MANAGER_SA_ID, "");
     EXPECT_TRUE(service_->memMgrNotified_.load());
     ASSERT_EQ(OHOS::Memory::MemMgrClient::notifyStatusCalls_.size(), 1);
+    // re-establish with an active session also tolerates the forced failure
+    ASSERT_EQ(OHOS::Memory::MemMgrClient::setCriticalCalls_.size(), 2);
+    EXPECT_TRUE(OHOS::Memory::MemMgrClient::setCriticalCalls_[1].critical);
 
     service_->OnStop();
     EXPECT_EQ(service_->criticalSessionCount_.load(), 0);
-    ASSERT_EQ(OHOS::Memory::MemMgrClient::setCriticalCalls_.size(), 2);
+    ASSERT_EQ(OHOS::Memory::MemMgrClient::setCriticalCalls_.size(), 3);
+    EXPECT_FALSE(OHOS::Memory::MemMgrClient::setCriticalCalls_[2].critical);
     ASSERT_EQ(OHOS::Memory::MemMgrClient::notifyStatusCalls_.size(), 2);
     EXPECT_EQ(OHOS::Memory::MemMgrClient::notifyStatusCalls_[1].status, 0);
 
@@ -1238,6 +1245,43 @@ HWTEST_F(CliToolManagerServiceTest, OnAddSystemAbility_0100, TestSize.Level1)
     service_->memMgrNotified_.store(false);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnAddSystemAbility_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CriticalNotReady_0100
+ * @tc.desc: Test add while memmgr not ready skips SetCritical and refcounts for re-establish
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CriticalNotReady_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CriticalNotReady_0100 start");
+
+    service_->criticalSessionCount_.store(0);
+    service_->shuttingDown_.store(false);
+    service_->memMgrNotified_.store(false);
+    OHOS::Memory::MemMgrClient::Reset();
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "not_ready_session";
+    service_->AddSessionRecord(record);
+    // memmgr not ready: no IPC sent, but the refcount is recorded for re-establish.
+    EXPECT_EQ(service_->criticalSessionCount_.load(), 1);
+    EXPECT_TRUE(OHOS::Memory::MemMgrClient::setCriticalCalls_.empty());
+
+    // memmgr online: re-establish fires SetCritical(true) once.
+    service_->OnAddSystemAbility(MEMORY_MANAGER_SA_ID, "");
+    ASSERT_EQ(OHOS::Memory::MemMgrClient::setCriticalCalls_.size(), 1);
+    EXPECT_TRUE(OHOS::Memory::MemMgrClient::setCriticalCalls_[0].critical);
+
+    // last session leaves: paired release.
+    service_->RemoveSessionRecord("not_ready_session");
+    EXPECT_EQ(service_->criticalSessionCount_.load(), 0);
+    ASSERT_EQ(OHOS::Memory::MemMgrClient::setCriticalCalls_.size(), 2);
+    EXPECT_FALSE(OHOS::Memory::MemMgrClient::setCriticalCalls_[1].critical);
+
+    service_->memMgrNotified_.store(false);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CriticalNotReady_0100 end");
 }
 #endif
 

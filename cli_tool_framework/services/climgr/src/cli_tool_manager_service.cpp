@@ -352,7 +352,8 @@ void CliToolManagerService::OnAddSystemAbility(int32_t systemAbilityId, const st
     (void)deviceId;
 #ifdef MEMMGR_OVERRIDE_ENABLE
     if (systemAbilityId == MEMORY_MANAGER_SA_ID) {
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "memmgrservice ready, notify process status");
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "memmgrservice ready, notify process status, criticalSessionCount=%{public}d",
+            criticalSessionCount_.load());
         auto pid = static_cast<int32_t>(getpid());
         int32_t ret = Memory::MemMgrClient::GetInstance().NotifyProcessStatus(pid, 1, 1, CLI_TOOL_MGR_SERVICE_ID);
         if (ret != ERR_OK) {
@@ -364,6 +365,8 @@ void CliToolManagerService::OnAddSystemAbility(int32_t systemAbilityId, const st
             ret = Memory::MemMgrClient::GetInstance().SetCritical(pid, true, CLI_TOOL_MGR_SERVICE_ID);
             if (ret != ERR_OK) {
                 TAG_LOGW(AAFwkTag::CLI_TOOL, "SetCritical(true) re-establish failed, ret=%{public}d", ret);
+            } else {
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "SetCritical(true) re-established");
             }
         }
     }
@@ -416,16 +419,22 @@ void CliToolManagerService::OnStop()
     if (memMgrNotified_.exchange(false)) {
         shuttingDown_.store(true);
         auto pid = static_cast<int32_t>(getpid());
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "release critical state on stop, criticalSessionCount=%{public}d",
+            criticalSessionCount_.load());
         // Clear critical state before exit; critical must not last the whole process lifetime.
         if (criticalSessionCount_.exchange(0) > 0) {
             int32_t ret = Memory::MemMgrClient::GetInstance().SetCritical(pid, false, CLI_TOOL_MGR_SERVICE_ID);
             if (ret != ERR_OK) {
                 TAG_LOGW(AAFwkTag::CLI_TOOL, "SetCritical(false) on stop failed, ret=%{public}d", ret);
+            } else {
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "SetCritical(false) released on stop");
             }
         }
         int32_t ret = Memory::MemMgrClient::GetInstance().NotifyProcessStatus(pid, 1, 0, CLI_TOOL_MGR_SERVICE_ID);
         if (ret != ERR_OK) {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "NotifyProcessStatus died failed, ret=%{public}d", ret);
+        } else {
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "NotifyProcessStatus died");
         }
     }
 #endif
@@ -508,12 +517,19 @@ void CliToolManagerService::AddSessionRecord(const std::shared_ptr<SessionRecord
     }
 #ifdef MEMMGR_OVERRIDE_ENABLE
     // Tool execution is critical: protect climgr from low-memory kill while sessions exist.
+    // Skip the IPC while memmgr is not ready; OnAddSystemAbility re-establishes it once online.
     if (!shuttingDown_.load() &&
         criticalSessionCount_.fetch_add(1, std::memory_order_acq_rel) == 0) {
-        auto pid = static_cast<int32_t>(getpid());
-        int32_t ret = Memory::MemMgrClient::GetInstance().SetCritical(pid, true, CLI_TOOL_MGR_SERVICE_ID);
-        if (ret != ERR_OK) {
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "SetCritical(true) failed, ret=%{public}d", ret);
+        if (memMgrNotified_.load()) {
+            auto pid = static_cast<int32_t>(getpid());
+            int32_t ret = Memory::MemMgrClient::GetInstance().SetCritical(pid, true, CLI_TOOL_MGR_SERVICE_ID);
+            if (ret != ERR_OK) {
+                TAG_LOGW(AAFwkTag::CLI_TOOL, "SetCritical(true) failed, ret=%{public}d", ret);
+            } else {
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "SetCritical(true) acquired");
+            }
+        } else {
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "SetCritical deferred: memmgr not ready");
         }
     }
 #endif
@@ -567,6 +583,8 @@ void CliToolManagerService::RemoveSessionRecord(const std::string &sessionId)
             int32_t ret = Memory::MemMgrClient::GetInstance().SetCritical(pid, false, CLI_TOOL_MGR_SERVICE_ID);
             if (ret != ERR_OK) {
                 TAG_LOGW(AAFwkTag::CLI_TOOL, "SetCritical(false) failed, ret=%{public}d", ret);
+            } else {
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "SetCritical(false) released");
             }
         }
     }
