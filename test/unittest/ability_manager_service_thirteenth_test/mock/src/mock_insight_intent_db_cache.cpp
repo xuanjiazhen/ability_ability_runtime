@@ -47,7 +47,7 @@ InsightIntentDbCache::~InsightIntentDbCache()
 
 int32_t InsightIntentDbCache::SaveInsightIntentTotalInfo(const std::string &bundleName, const std::string &moduleName,
     const int32_t userId, uint32_t versionCode, ExtractInsightIntentProfileInfoVec profileInfos,
-    std::vector<InsightIntentInfo> configInfos)
+    std::vector<InsightIntentInfo> configInfos, int32_t appIndex, bool isDualMode)
 {
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
     if (userId != userId_) {
@@ -85,7 +85,7 @@ int32_t InsightIntentDbCache::SaveBatchInsightIntentTotalInfo(const std::string 
 }
 
 bool InsightIntentDbCache::HasInsightIntentByName(uint32_t versionCode,
-    const std::string &bundleName, const int32_t userId)
+    const std::string &bundleName, const int32_t userId, int32_t appIndex, bool isDualMode)
 {
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
     if (userId != userId_) {
@@ -100,7 +100,8 @@ bool InsightIntentDbCache::HasInsightIntentByName(uint32_t versionCode,
     return false;
 }
 
-bool InsightIntentDbCache::HasBundleCache(const std::string &bundleName, int32_t userId)
+bool InsightIntentDbCache::HasBundleCache(const std::string &bundleName, int32_t userId,
+    int32_t appIndex, bool isDualMode)
 {
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
     if (userId_ != userId) {
@@ -119,9 +120,9 @@ bool InsightIntentDbCache::IsCacheInitialized(int32_t userId)
 }
 
 bool InsightIntentDbCache::DeleteInsightIntentTotalInfo(const std::string &bundleName,
-    const std::string &moduleName, const int32_t userId)
+    const std::string &moduleName, const int32_t userId, int32_t appIndex, bool isDualMode)
 {
-    if (!HasBundleCache(bundleName, userId)) {
+    if (!HasBundleCache(bundleName, userId, appIndex, isDualMode)) {
         return false;
     }
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
@@ -159,11 +160,12 @@ void InsightIntentDbCache::GetInsightIntentGenericInfoByName(const std::string &
 }
 
 void InsightIntentDbCache::GetInsightIntentGenericInfo(const std::string &bundleName, const std::string &moduleName,
-    const std::string &intentName, const int32_t userId, ExtractInsightIntentGenericInfo &genericInfo)
+    const std::string &intentName, const int32_t userId, ExtractInsightIntentGenericInfo &genericInfo,
+    int32_t appIndex, bool isDualMode)
 {
     ExtractInsightIntentInfo info;
     if (DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->
-        LoadInsightIntentInfo(bundleName, moduleName, intentName, userId, info) != ERR_OK) {
+        LoadInsightIntentInfo(bundleName, moduleName, intentName, userId, info, appIndex, isDualMode) != ERR_OK) {
         TAG_LOGW(AAFwkTag::INTENT, "GetInsightIntentInfo failed");
         return;
     }
@@ -205,7 +207,7 @@ void InsightIntentDbCache::GetAllConfigInsightIntentInfo(
 }
 
 void InsightIntentDbCache::GetInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
-    std::vector<ExtractInsightIntentInfo> &infos)
+    std::vector<ExtractInsightIntentInfo> &infos, int32_t appIndex, bool isDualMode)
 {
     ExtractInsightIntentInfo info;
     info.decoratorClass = "decoratorClass";
@@ -214,7 +216,7 @@ void InsightIntentDbCache::GetInsightIntentInfoByName(const std::string &bundleN
 }
 
 void InsightIntentDbCache::GetConfigInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
-    std::vector<InsightIntentInfo> &infos)
+    std::vector<InsightIntentInfo> &infos, int32_t appIndex, bool isDualMode)
 {
     InsightIntentInfo info;
     info.bundleName = bundleName;
@@ -226,7 +228,8 @@ void InsightIntentDbCache::GetConfigInsightIntentInfoByName(const std::string &b
 }
 
 void InsightIntentDbCache::GetInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
-    const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &info)
+    const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &info,
+    int32_t appIndex, bool isDualMode)
 {
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
     if (intentName == "mockQueryEntryProfile" || intentName == "mockQueryFunctionProfile") {
@@ -255,7 +258,8 @@ void InsightIntentDbCache::GetInsightIntentInfo(const std::string &bundleName, c
 }
 
 void InsightIntentDbCache::GetConfigInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
-    const std::string &intentName, const int32_t userId, InsightIntentInfo &info)
+    const std::string &intentName, const int32_t userId, InsightIntentInfo &info,
+    int32_t appIndex, bool isDualMode)
 {
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
     if (userId != userId_) {
@@ -263,7 +267,7 @@ void InsightIntentDbCache::GetConfigInsightIntentInfo(const std::string &bundleN
         return;
     }
     if (DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->
-        LoadConfigInsightIntentInfo(bundleName, moduleName, intentName, userId, info) != ERR_OK) {
+        LoadConfigInsightIntentInfo(bundleName, moduleName, intentName, userId, info, appIndex, isDualMode) != ERR_OK) {
         TAG_LOGW(AAFwkTag::INTENT, "GetInsightIntentInfo failed");
         return;
     }
