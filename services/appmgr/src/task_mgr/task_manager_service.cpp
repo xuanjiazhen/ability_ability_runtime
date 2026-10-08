@@ -78,6 +78,21 @@ TaskManagerService::TaskManagerService(const std::shared_ptr<AAFwk::TaskHandlerW
     TAG_LOGI(AAFwkTag::TASKMGR, "created");
 }
 
+std::mutex TaskManagerService::instanceMutex_;
+wptr<TaskManagerService> TaskManagerService::instance_;
+
+void TaskManagerService::SetInstance(const sptr<TaskManagerService> &service)
+{
+    std::lock_guard<std::mutex> lock(instanceMutex_);
+    instance_ = service;
+}
+
+sptr<TaskManagerService> TaskManagerService::GetInstance()
+{
+    std::lock_guard<std::mutex> lock(instanceMutex_);
+    return instance_.promote();
+}
+
 int32_t TaskManagerService::StartTask(const std::string &taskId, int32_t priority)
 {
     XCOLLIE_TIMER_LESS("TaskManagerService::StartTask");

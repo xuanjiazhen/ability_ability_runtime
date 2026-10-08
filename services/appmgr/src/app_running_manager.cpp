@@ -753,8 +753,11 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::OnRemoteDied(const wptr<IRe
         appRecord = iter->second;
         appRunningRecordMap_.erase(iter);
     }
-    if (appRecord != nullptr && taskManagerService_ != nullptr) {
-        taskManagerService_->PostProcessDied(appRecord->GetPid(), appRecord->GetUid());
+    if (appRecord != nullptr) {
+        auto taskManagerService = TaskManagerService::GetInstance();
+        if (taskManagerService != nullptr) {
+            taskManagerService->PostProcessDied(appRecord->GetPid(), appRecord->GetUid());
+        }
     }
     if (appRecord != nullptr) {
         {
@@ -786,11 +789,6 @@ std::map<const int32_t, const std::shared_ptr<AppRunningRecord>> AppRunningManag
     return appRunningRecordMap_;
 }
 
-void AppRunningManager::SetTaskManagerService(const sptr<TaskManagerService> &taskManagerService)
-{
-    taskManagerService_ = taskManagerService;
-}
-
 void AppRunningManager::RemoveAppRunningRecordById(const int32_t recordId)
 {
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
@@ -807,8 +805,11 @@ void AppRunningManager::RemoveAppRunningRecordById(const int32_t recordId)
         updateConfigurationDelayedMap_.erase(recordId);
     }
 
-    if (appRecord != nullptr && taskManagerService_ != nullptr) {
-        taskManagerService_->PostProcessDied(appRecord->GetPid(), appRecord->GetUid());
+    if (appRecord != nullptr) {
+        auto taskManagerService = TaskManagerService::GetInstance();
+        if (taskManagerService != nullptr) {
+            taskManagerService->PostProcessDied(appRecord->GetPid(), appRecord->GetUid());
+        }
     }
 
     if (appRecord != nullptr && appRecord->GetPriorityObject() != nullptr) {

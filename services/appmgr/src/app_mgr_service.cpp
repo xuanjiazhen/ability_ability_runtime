@@ -246,7 +246,7 @@ ErrCode AppMgrService::Init()
         TAG_LOGE(AAFwkTag::TASKMGR, "init failed");
         return ERR_INVALID_OPERATION;
     }
-    appMgrServiceInner_->SetTaskManagerService(taskManagerService_);
+    TaskManagerService::SetInstance(taskManagerService_);
     if (!Publish(this)) {
         TAG_LOGE(AAFwkTag::APPMGR, " publish fail");
         return ERR_APPEXECFWK_SERVICE_NOT_CONNECTED;
