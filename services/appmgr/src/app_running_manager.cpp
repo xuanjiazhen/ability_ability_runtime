@@ -972,6 +972,8 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             TAG_LOGE(AAFwkTag::APPMGR, "pid error");
             return;
         }
+        appRecordSptr->SetKillReasonIfAbsent(
+            HiviewDFX::ProcessKillReason::KillEventId::REASON_APP_EXIT, "Kill Reason:app exit");
         auto result = inner->KillProcessByPid(pid, "TerminateAbility", false, appRecordSptr->GetRecordId());
         if (result < 0) {
             TAG_LOGW(AAFwkTag::APPMGR, "failed, pid: %{public}d", pid);
