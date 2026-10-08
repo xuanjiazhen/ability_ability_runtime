@@ -412,9 +412,8 @@ void CliToolManagerService::OnStart()
     TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr start success");
 }
 
-void CliToolManagerService::OnStop()
+void CliToolManagerService::ReleaseMemMgrStateOnStop()
 {
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr stop");
 #ifdef MEMMGR_OVERRIDE_ENABLE
     if (memMgrNotified_.exchange(false)) {
         shuttingDown_.store(true);
@@ -438,6 +437,12 @@ void CliToolManagerService::OnStop()
         }
     }
 #endif
+}
+
+void CliToolManagerService::OnStop()
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr stop");
+    ReleaseMemMgrStateOnStop();
     initialized_ = false;
 
     // Collect active PIDs before clearing sessions.

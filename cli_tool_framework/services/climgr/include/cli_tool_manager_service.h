@@ -215,6 +215,9 @@ protected:
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
 
 private:
+    // Paired memmgr unregister in OnStop: release critical refcount and notify process died.
+    void ReleaseMemMgrStateOnStop();
+
     CliToolManagerService() : SystemAbility(CLI_TOOL_MGR_SERVICE_ID, false) {};
 
     // RAII wrapper for interface call counter
