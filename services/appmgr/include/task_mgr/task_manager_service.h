@@ -17,6 +17,7 @@
 #define OHOS_APP_EXECFWK_TASK_MGR_TASK_MANAGER_SERVICE_H
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 
@@ -40,6 +41,18 @@ class TaskManagerService : public TaskManagerStub {
 public:
     explicit TaskManagerService(const std::shared_ptr<AAFwk::TaskHandlerWrap> &taskHandler);
     ~TaskManagerService() override = default;
+
+    /**
+     * @brief Registers the service instance once in AppMgrService::Init.
+     * @param service Indicates the task manager service instance.
+     */
+    static void SetInstance(const sptr<TaskManagerService> &service);
+
+    /**
+     * @brief Gets the registered service instance.
+     * @return Returns the instance; null when not registered (for example before Init).
+     */
+    static sptr<TaskManagerService> GetInstance();
 
     /**
      * @brief Caller identity captured on the binder thread, taken from the IPC framework
@@ -183,6 +196,9 @@ private:
      * @return Returns the captured caller information.
      */
     static TaskCallerInfo GetCallerInfo();
+
+    static std::mutex instanceMutex_;
+    static wptr<TaskManagerService> instance_;
 
     /**
      * @brief Checks the task id length and the priority value.

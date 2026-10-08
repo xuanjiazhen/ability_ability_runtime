@@ -71,8 +71,6 @@ ohos_unittest("app_mgr_service_inner_ninth_test") {
     "${ability_runtime_services_path}/appmgr/src/quick_fix_callback_with_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/render_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/render_state_observer_manager.cpp",
-    "${ability_runtime_services_path}/appmgr/src/task_mgr/common.cpp",
-    "${ability_runtime_services_path}/appmgr/src/task_mgr/task_manager_service.cpp",
     "${ability_runtime_services_path}/appmgr/src/window_focus_changed_listener.cpp",
     "${ability_runtime_services_path}/appmgr/src/window_pid_visibility_changed_listener.cpp",
     "${ability_runtime_services_path}/appmgr/src/window_visibility_changed_listener.cpp",
@@ -103,6 +101,7 @@ ohos_unittest("app_mgr_service_inner_ninth_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_services_path}/appmgr:task_mgr_source",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",

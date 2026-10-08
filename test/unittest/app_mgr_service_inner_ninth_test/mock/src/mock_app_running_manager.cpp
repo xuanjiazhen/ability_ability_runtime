@@ -18,7 +18,6 @@
 #include "app_mgr_service_inner.h"
 #include "datetime_ex.h"
 #include "iremote_object.h"
-#include "task_mgr/task_manager_service.h"
 
 #include "appexecfwk_errors.h"
 #include "app_utils.h"
