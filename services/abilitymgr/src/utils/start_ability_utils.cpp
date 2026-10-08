@@ -54,7 +54,7 @@ thread_local bool StartAbilityUtils::startSpecifiedBySCB = false;
 thread_local bool StartAbilityUtils::isSandBoxClone = false;
 
 bool StartAbilityUtils::GetAppIndex(const Want &want, sptr callerToken, int32_t userId,
-int32_t &appIndex)
+                                    int32_t &appIndex)
 {
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord && abilityRecord->GetApplicationInfo().bundleName == want.GetBundleNameRef() &&
