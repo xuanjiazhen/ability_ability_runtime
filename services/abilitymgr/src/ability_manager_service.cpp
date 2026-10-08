@@ -4581,7 +4581,7 @@ int AbilityManagerService::GetDisplayIdByAccount(int32_t accountId, uint64_t &di
 int AbilityManagerService::RequestModalUIExtensionInner(Want want)
 {
     sptr<IRemoteObject> token = nullptr;
-    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
     uint64_t displayId = 0;
     auto displayRet = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(userId, displayId);
     if (displayRet != ERR_OK) {
@@ -13623,9 +13623,12 @@ bool AbilityManagerService::CheckUIExtensionCallerIsForeground(const AbilityRequ
         if (UIExtensionWrapper::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
             auto tokenId = callerAbility->GetApplicationInfo().accessTokenId;
             bool isFocused = false;
-            int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+            int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
             uint64_t displayId = 0;
             auto displayRet = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(userId, displayId);
+            if (displayRet != ERR_OK) {
+                    TAG_LOGE(AAFwkTag::ABILITYMGR, "get foreground display id failed, ret=%{public}d", displayRet);
+                }
             if (CheckUIExtensionIsFocused(tokenId, isFocused, displayId) == ERR_OK && isFocused) {
                 TAG_LOGD(AAFwkTag::ABILITYMGR, "Root caller is foreground");
                 return true;
@@ -13652,7 +13655,8 @@ bool AbilityManagerService::CheckUIExtensionCallerIsForeground(const AbilityRequ
 bool AbilityManagerService::CheckStartCallHasFloatingWindowForUIExtension(const sptr<IRemoteObject> &callerToken)
 {
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        auto callerRecord = Token::GetAbilityRecordByToken(callerToken);
+        int32_t userId = callerRecord->GetOwnerMissionUserId();
         auto sceneSessionManager = IN_PROCESS_CALL(
             Rosen::SessionManagerLite::GetInstance(userId).GetSceneSessionManagerLiteProxy());
         CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, CHECK_PERMISSION_FAILED, "sceneSessionManager is nullptr");
