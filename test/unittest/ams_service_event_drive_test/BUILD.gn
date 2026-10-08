@@ -24,6 +24,7 @@ ohos_unittest("AmsServiceEventDriveTest") {
     "${ability_runtime_test_path}/mock/common/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
     "${ability_runtime_services_path}/appmgr/src",
+    "${ability_runtime_innerkits_path}/runtime/include",
   ]
 
   sources = [

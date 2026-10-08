@@ -212,7 +212,7 @@ napi_status JsRuntimeLite::Init(const Options& options, napi_env env)
         panda::JSNApi::SetBundle(vm, options.isBundle);
         panda::JSNApi::SetBundleName(vm, options.bundleName);
         panda::JSNApi::SetHostResolveBufferTracker(
-            vm, JsModuleReader(options.bundleName, options.hapPath, options.isUnique));
+            vm, JsModuleReader(options.bundleName, options.hapPath, options.isUnique, options.userId));
         isModular = !panda::JSNApi::IsBundle(vm);
         panda::JSNApi::SetSearchHapPathTracker(
             vm, [options](const std::string moduleName, std::string &hapPath) -> bool {

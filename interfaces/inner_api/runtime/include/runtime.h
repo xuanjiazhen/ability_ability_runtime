@@ -27,6 +27,18 @@ namespace AppExecFwk {
 class EventRunner;
 } // namespace AppExecFwk
 namespace AbilityRuntime {
+
+constexpr int32_t BASE_USER_RANGE = 200000;
+
+inline int32_t GetUserIdByUid(int32_t uid)
+{
+    return uid / BASE_USER_RANGE;
+}
+
+inline std::string GetAbsCodePath(int32_t userId)
+{
+    return "/data/app/el1/bundle/" + std::to_string(userId);
+}
 struct CommonHspBundleInfo {
     uint32_t versionCode;
     std::string bundleName;
@@ -93,6 +105,7 @@ public:
         std::string arkTSMode;
         bool isMainProcess = true;
         std::vector<std::string> staticPluginHspPathList;
+        int32_t userId = 0;
     };
 
     struct DebugOption {

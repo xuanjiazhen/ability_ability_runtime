@@ -37,7 +37,8 @@ void GetEtsPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNa
     AppLibPathMap &appLibPaths, std::map<std::string, std::string> &abcPathsToBundleModuleNameMap);
 
 void GetEtsNativeLibPath(const BundleInfo &bundleInfo, const std::vector<BaseSharedBundleInfo> &hspList,
-    AppLibPathMap &appLibPaths, std::map<std::string, std::string> &abcPathsToBundleModuleNameMap);
+    AppLibPathMap &appLibPaths, std::map<std::string, std::string> &abcPathsToBundleModuleNameMap,
+    int32_t userId = 0);
 void GetLibrarySupportDirectory(
     const std::vector<HapModuleInfo> &hapModuleInfos,
     const std::string &nativeLibraryPath,

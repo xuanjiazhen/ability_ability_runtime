@@ -1147,7 +1147,9 @@ ohos_unittest("ets_native_lib_util_test") {
     debug = false
     blocklist = "../../cfi_blocklist.txt"
   }
-  include_dirs = []
+  include_dirs = [
+    "${ability_runtime_innerkits_path}/runtime/include",
+  ]
   module_out_path = module_output_path
 
   sources = [

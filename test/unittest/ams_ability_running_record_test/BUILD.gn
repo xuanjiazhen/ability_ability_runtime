@@ -23,6 +23,7 @@ ohos_unittest("AmsAbilityRunningRecordTest") {
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_innerkits_path}/app_manager/inclide",
+    "${ability_runtime_innerkits_path}/runtime/include",
   ]
 
   sources = [

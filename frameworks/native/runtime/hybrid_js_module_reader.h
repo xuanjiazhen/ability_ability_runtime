@@ -21,6 +21,7 @@
 
 #include "js_module_searcher.h"
 #include "extractor.h"
+#include "runtime.h"
 
 using Extractor = OHOS::AbilityBase::Extractor;
 
@@ -29,12 +30,12 @@ namespace AbilityRuntime {
 class HybridJsModuleReader final : private JsModuleSearcher {
 public:
     static constexpr char ABS_CODE_PATH[] = "/data/storage/el1/";
-    static constexpr char ABS_DATA_CODE_PATH[] = "/data/app/el1/bundle/public/";
     static constexpr char MERGE_ABC_PATH[] = "ets/modules.abc";
     static constexpr char SYS_ABS_CODE_PATH[] = "/system/app/appServiceFwk/";
     static constexpr char SHARED_FILE_SUFFIX[] = ".hsp";
     static constexpr char ABILITY_FILE_SUFFIX[] = ".hap";
-    HybridJsModuleReader(const std::string& bundleName, const std::string& hapPath, bool isFormRender = false);
+    HybridJsModuleReader(const std::string& bundleName, const std::string& hapPath, bool isFormRender = false,
+        int32_t userId = 0);
     ~HybridJsModuleReader() = default;
 
     HybridJsModuleReader(const HybridJsModuleReader&) = default;
@@ -62,6 +63,7 @@ private:
 
     bool isSystemPath_ = false;
     bool isFormRender_ = false;
+    int32_t userId_ = 0;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

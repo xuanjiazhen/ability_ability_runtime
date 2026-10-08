@@ -770,7 +770,7 @@ bool JsRuntime::Initialize(const Options& options)
             panda::JSNApi::SetBundleName(vm, options.bundleName);
             panda::JSNApi::SetIsMainProcess(options.isMainProcess);
             panda::JSNApi::SetHostResolveBufferTracker(
-                vm, JsModuleReader(options.bundleName, options.hapPath, options.isUnique));
+                vm, JsModuleReader(options.bundleName, options.hapPath, options.isUnique, options.userId));
             isModular = !panda::JSNApi::IsBundle(vm);
             std::vector<panda::HmsMap> systemKitsMap = GetSystemKitsMap(apiTargetVersion_);
             panda::JSNApi::SetHmsModuleList(vm, systemKitsMap);

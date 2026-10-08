@@ -91,6 +91,7 @@
 #include "permission_verification.h"
 #include "process_uid_define.h"
 #include "record_cost_time_util.h"
+#include "runtime.h"
 #include "render_state_observer_manager.h"
 #include "res_sched_util.h"
 #include "startup_util.h"
@@ -198,7 +199,6 @@ constexpr const int32_t API15 = 15;
 constexpr const int32_t API_VERSION_MOD = 100;
 constexpr const int32_t U0_USER_ID = 0;
 constexpr const int32_t U1_USER_ID = 1;
-constexpr const char* ABS_CODE_PATH = "/data/app/el1/bundle/public";
 constexpr const char* LOCAL_CODE_PATH = "/data/storage/el1/bundle";
 constexpr const char* FILE_SEPARATOR = "/";
 constexpr const char* CLASS_NAME = "ohos.app.MainThread";
@@ -2274,8 +2274,8 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             auto userId = want->GetIntParam(UIEXTENSION_HOST_UID, -1) / BASE_USER_RANGE;
             appInfo->bundleName = hostBundleName;
             if (!hostBundleName.empty()) {
-                abilityInfo->hapPath = GetStoragePath(abilityInfo->hapPath);
-                abilityInfo->resourcePath = GetStoragePath(abilityInfo->resourcePath);
+                abilityInfo->hapPath = GetStoragePath(abilityInfo->hapPath, userId);
+                abilityInfo->resourcePath = GetStoragePath(abilityInfo->resourcePath, userId);
             }
             GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex);
             appInfo = std::make_shared<ApplicationInfo>(bundleInfo.applicationInfo);
@@ -13502,11 +13502,11 @@ void AppMgrServiceInner::CheckRenderAttachTimeout(std::shared_ptr<RenderRecord> 
         ProcessStartFailedReason::ATTACH_TIMEOUT, elapsedMs);
 }
 
-std::string AppMgrServiceInner::GetStoragePath(const std::string& hapPath) {
+std::string AppMgrServiceInner::GetStoragePath(const std::string& hapPath, int32_t userId) {
     if (hapPath.empty()) {
         return hapPath;
     }
-    std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
+    std::string absPrefix = AbilityRuntime::GetAbsCodePath(userId) + std::string(FILE_SEPARATOR);
     size_t prefixPos = hapPath.find(absPrefix);
     if (prefixPos != 0) {
         return hapPath;

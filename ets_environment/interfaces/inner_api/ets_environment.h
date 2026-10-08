@@ -66,7 +66,8 @@ public:
         const std::vector<std::string> &staticHapModuleNameList,
         const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
         const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner, const bool isBaseLineProfile,
-        const std::vector<std::string> &staticPluginHspPathList, const std::string &bundleName);
+        const std::vector<std::string> &staticPluginHspPathList, const std::string &bundleName,
+        int32_t userId = 0);
     bool PreloadSystemClass(const char *className);
 
     int32_t HotReload(const std::string &target, const std::string &patch);
@@ -136,6 +137,7 @@ private:
     std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> commonHspBundleInfos_;
     std::vector<std::string> staticPluginHspPathList_;
     std::string bundleName_;
+    int32_t userId_ = 0;
 };
 } // namespace EtsEnv
 } // namespace OHOS

@@ -30,10 +30,12 @@ using namespace OHOS::AbilityBase;
 namespace OHOS {
 namespace AbilityRuntime {
 
-HybridJsModuleReader::HybridJsModuleReader(const std::string& bundleName, const std::string& hapPath, bool isFormRender)
-    : JsModuleSearcher(bundleName), isFormRender_(isFormRender)
+HybridJsModuleReader::HybridJsModuleReader(const std::string& bundleName, const std::string& hapPath,
+    bool isFormRender, int32_t userId)
+    : JsModuleSearcher(bundleName), isFormRender_(isFormRender), userId_(userId)
 {
-    if (!hapPath.empty() && hapPath.find(std::string(ABS_DATA_CODE_PATH)) != 0) {
+    std::string absDataCodePath = GetAbsCodePath(userId_) + "/";
+    if (!hapPath.empty() && hapPath.find(absDataCodePath) != 0) {
         isSystemPath_ = true;
     } else {
         isSystemPath_ = false;
@@ -182,7 +184,8 @@ std::string HybridJsModuleReader::GetCommonAppPath(const std::string& inputPath,
     const std::string& suffix, bool& needFindPluginHsp) const
 {
     std::string realHapPath = GetPresetAppHapPath(inputPath, bundleName_, needFindPluginHsp);
-    if ((realHapPath.find(ABS_DATA_CODE_PATH) == 0) || (realHapPath == inputPath)) {
+    std::string absDataCodePath = GetAbsCodePath(userId_) + "/";
+    if ((realHapPath.find(absDataCodePath) == 0) || (realHapPath == inputPath)) {
         realHapPath = std::string(ABS_CODE_PATH) + inputPath + suffix;
     }
 

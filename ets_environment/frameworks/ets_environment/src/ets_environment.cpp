@@ -65,7 +65,6 @@ constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr char SANDBOX_ARK_PROFILE_PATH[] = "/data/storage/ark-profile/";
 constexpr char ARK_PROFILE_SUFFIX[] = ".ap";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
-constexpr char ABS_DATA_CODE_PATH[] = "/data/app/el1/bundle/public/";
 
 
 using CreateVMETSRuntimeType = ani_status (*)(const ani_options *options, uint32_t version, ani_vm **result);
@@ -655,7 +654,7 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     const std::vector<std::string> &appInnerHspPathList, const std::vector<std::string> &staticHapModuleNameList,
     const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
     const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner, const bool isBaseLineProfile,
-    const std::vector<std::string> &staticPluginHspPathList, const std::string &bundleName)
+    const std::vector<std::string> &staticPluginHspPathList, const std::string &bundleName, int32_t userId)
 {
     InitEventHandler(eventRunner);
 
@@ -691,7 +690,8 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     commonHspBundleInfos_ = commonHspBundleInfos;
     staticPluginHspPathList_ = staticPluginHspPathList;
     bundleName_ = bundleName;
-    
+    userId_ = userId;
+
     RegisterProfilePaths(staticHapModuleNameList);
     ARKVM_RegisterExternalScheduler(PostTaskWrapper);
 
@@ -871,10 +871,11 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             const std::vector<std::string> &staticHapModuleNameList,
             const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
             const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner, const bool isBaseLineProfile,
-            const std::vector<std::string> &staticPluginHspPathList, const std::string &bundleName) {
+            const std::vector<std::string> &staticPluginHspPathList, const std::string &bundleName,
+            int32_t userId) {
             ETSEnvironment::GetInstance()->PostFork(napiEnv, aotPath, appInnerHspPathList,
                 staticHapModuleNameList, commonHspBundleInfos, eventRunner, isBaseLineProfile, staticPluginHspPathList,
-                bundleName);
+                bundleName, userId);
         },
         .PreloadSystemClass = [](const char *className) {
             ETSEnvironment::GetInstance()->PreloadSystemClass(className);
@@ -1091,7 +1092,7 @@ std::vector<std::string> ETSEnvironment::GetHspPathList()
 
     for (const auto &pluginHspPath : staticPluginHspPathList_) {
         std::string targetPath = pluginHspPath;
-        std::string absDataCodePath = std::string(ABS_DATA_CODE_PATH);
+        std::string absDataCodePath = AbilityRuntime::GetAbsCodePath(userId_) + "/";
         if (targetPath.find(absDataCodePath) == 0) {
             std::string remainingPath = targetPath.substr(absDataCodePath.length());
             size_t slashPos = remainingPath.find('/');

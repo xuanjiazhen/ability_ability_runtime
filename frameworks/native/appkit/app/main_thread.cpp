@@ -1844,7 +1844,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         if (IsEtsAPP(appInfo)) {
             AppLibPathMap etsAppLibPaths {};
             std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
-            GetEtsNativeLibPath(bundleInfo, hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
+            GetEtsNativeLibPath(bundleInfo, hspList, etsAppLibPaths,
+                abcPathsToBundleModuleNameMap, AbilityRuntime::GetUserIdByUid(bundleInfo.applicationInfo.uid));
             AbilityRuntime::ETSRuntime::SetAppLibPath(etsAppLibPaths, abcPathsToBundleModuleNameMap, isSystemApp);
         } else {
             AbilityRuntime::JsRuntime::SetAppLibPath(appLibPaths, isSystemApp);
@@ -1877,6 +1878,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         options.isDebugVersion = bundleInfo.applicationInfo.debug;
         options.arkNativeFilePath = bundleInfo.applicationInfo.arkNativeFilePath;
         options.uid = bundleInfo.applicationInfo.uid;
+        options.userId = AbilityRuntime::GetUserIdByUid(bundleInfo.applicationInfo.uid);
         options.apiTargetVersion = appInfo.apiTargetVersion;
         options.pkgContextInfoJsonStringMap = pkgContextInfoJsonStringMap;
         options.isStartWithDebug = appLaunchData.GetDebugApp();
@@ -4819,7 +4821,8 @@ bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
     }
     AppLibPathMap etsAppLibPaths {};
     std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
-    GetEtsNativeLibPath(bundleInfo, hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
+    GetEtsNativeLibPath(bundleInfo, hspList, etsAppLibPaths,
+        abcPathsToBundleModuleNameMap, AbilityRuntime::GetUserIdByUid(bundleInfo.applicationInfo.uid));
     AbilityRuntime::ETSRuntime::SetAppLibPath(
         etsAppLibPaths, abcPathsToBundleModuleNameMap, applicationInfo_->isSystemApp);
     runtimeUpdateParam_.option.preload = false;

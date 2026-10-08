@@ -61,7 +61,8 @@ struct ETSEnvFuncs {
         const std::vector<std::string> &staticHapModuleNameList,
         const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
         const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner, const bool isBaseLineProfile,
-        const std::vector<std::string> &staticPluginHspPathList, const std::string &bundleName) = nullptr;
+        const std::vector<std::string> &staticPluginHspPathList, const std::string &bundleName,
+        int32_t userId) = nullptr;
     void (*PreloadSystemClass)(const char *className) = nullptr;
     void (*SetExtensionApiCheckCallback)(
         std::function<bool(const std::string &className, const std::string &fileName)> &cb) = nullptr;

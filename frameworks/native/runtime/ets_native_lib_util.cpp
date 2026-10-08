@@ -17,6 +17,7 @@
 
 #include "constants.h"
 #include "hilog_tag_wrapper.h"
+#include "runtime.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -130,8 +131,10 @@ void GetEtsPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNa
 }
 
 void GetEtsNativeLibPath(const BundleInfo &bundleInfo, const std::vector<BaseSharedBundleInfo> &hspList,
-    AppLibPathMap &appLibPaths, std::map<std::string, std::string> &abcPathsToBundleModuleNameMap)
+    AppLibPathMap &appLibPaths, std::map<std::string, std::string> &abcPathsToBundleModuleNameMap,
+    int32_t userId)
 {
+    std::string absCodePath = AbilityRuntime::GetAbsCodePath(userId);
     std::string patchNativeLibraryPath = bundleInfo.applicationInfo.appQuickFix.deployedAppqfInfo.nativeLibraryPath;
     abcPathsToBundleModuleNameMap["default"] = "default";
     if (!patchNativeLibraryPath.empty()) {
@@ -161,14 +164,14 @@ void GetEtsNativeLibPath(const BundleInfo &bundleInfo, const std::vector<BaseSha
             "moduleName: %{public}s, isLibIsolated: %{public}d, compressNativeLibs: %{public}d.",
             hapInfo.moduleName.c_str(), hapInfo.isLibIsolated, hapInfo.compressNativeLibs);
         GetEtsPatchNativeLibPath(hapInfo, patchNativeLibraryPath, appLibPaths, abcPathsToBundleModuleNameMap);
-        GetEtsHapSoPath(hapInfo, appLibPaths, hapInfo.hapPath.find(AbilityBase::Constants::ABS_CODE_PATH),
+        GetEtsHapSoPath(hapInfo, appLibPaths, hapInfo.hapPath.find(absCodePath),
             abcPathsToBundleModuleNameMap);
     }
 
     for (auto &hspInfo : hspList) {
         TAG_LOGD(AAFwkTag::APPKIT, "bundle:%s, module:%s, nativeLibraryPath:%s", hspInfo.bundleName.c_str(),
             hspInfo.moduleName.c_str(), hspInfo.nativeLibraryPath.c_str());
-        GetEtsHspNativeLibPath(hspInfo, appLibPaths, hspInfo.hapPath.find(AbilityBase::Constants::ABS_CODE_PATH) != 0u,
+        GetEtsHspNativeLibPath(hspInfo, appLibPaths, hspInfo.hapPath.find(absCodePath) != 0u,
             bundleInfo.applicationInfo.bundleName, abcPathsToBundleModuleNameMap);
     }
 }

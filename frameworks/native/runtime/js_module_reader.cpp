@@ -33,10 +33,12 @@ namespace OHOS {
 namespace AbilityRuntime {
 using IBundleMgr = AppExecFwk::IBundleMgr;
 
-JsModuleReader::JsModuleReader(const std::string& bundleName, const std::string& hapPath, bool isFormRender)
-    : JsModuleSearcher(bundleName), isFormRender_(isFormRender)
+JsModuleReader::JsModuleReader(const std::string& bundleName, const std::string& hapPath, bool isFormRender,
+    int32_t userId)
+    : JsModuleSearcher(bundleName), isFormRender_(isFormRender), userId_(userId)
 {
-    if (!hapPath.empty() && hapPath.find(std::string(ABS_DATA_CODE_PATH)) != 0) {
+    std::string absDataCodePath = GetAbsCodePath(userId_) + "/";
+    if (!hapPath.empty() && hapPath.find(absDataCodePath) != 0) {
         isSystemPath_ = true;
     } else {
         isSystemPath_ = false;
@@ -183,7 +185,8 @@ std::string JsModuleReader::GetCommonAppHspPath(const std::string& inputPath,
             errorMsg = "Get shared HspPath failed, please check the module is correct";
         }
     }
-    if ((realHapPath.find(ABS_DATA_CODE_PATH) == 0) || (realHapPath == inputPath)) {
+    std::string absDataCodePath = GetAbsCodePath(userId_) + "/";
+    if ((realHapPath.find(absDataCodePath) == 0) || (realHapPath == inputPath)) {
         realHapPath = std::string(ABS_CODE_PATH) + inputPath + suffix;
     }
 
