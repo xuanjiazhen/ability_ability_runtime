@@ -38,6 +38,10 @@ int MyFlag::retVerifyAgentConnectRequest = 0;
 int MyFlag::retVerifyAgentDisconnectRequests = 0;
 int MyFlag::retConnectAgentExtensionAbilityForCli = 0;
 int MyFlag::retDisconnectAgentExtensionAbilityForCli = 0;
+int MyFlag::retStartTask = 0;
+int MyFlag::retFinishTask = 0;
+int MyFlag::retAbortTask = 0;
+std::string MyFlag::lastTaskId;
 AgentCard MyFlag::lastRegisterCard;
 AgentCard MyFlag::lastUpdateCard;
 AAFwk::Want MyFlag::lastVerifyAgentConnectWant;
@@ -169,6 +173,24 @@ int32_t MockAgentManagerService::DisconnectAgentExtensionAbilityForCli(
     MyFlag::lastForCliConnection = connection;
     MyFlag::lastForCliCallerIdentity = callerIdentity;
     return MyFlag::retDisconnectAgentExtensionAbilityForCli;
+}
+
+int32_t MockAgentManagerService::StartTask(const std::string &taskId)
+{
+    MyFlag::lastTaskId = taskId;
+    return MyFlag::retStartTask;
+}
+
+int32_t MockAgentManagerService::FinishTask(const std::string &taskId)
+{
+    MyFlag::lastTaskId = taskId;
+    return MyFlag::retFinishTask;
+}
+
+int32_t MockAgentManagerService::AbortTask(const std::string &taskId)
+{
+    MyFlag::lastTaskId = taskId;
+    return MyFlag::retAbortTask;
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS

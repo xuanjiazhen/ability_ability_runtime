@@ -67,6 +67,12 @@ public:
 
     virtual int32_t DisconnectAgentExtensionAbilityForCli(const sptr<AAFwk::IAbilityConnection> &connection,
         const std::string &callerIdentity) override;
+
+    virtual int32_t StartTask(const std::string &taskId) override;
+
+    virtual int32_t FinishTask(const std::string &taskId) override;
+
+    virtual int32_t AbortTask(const std::string &taskId) override;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

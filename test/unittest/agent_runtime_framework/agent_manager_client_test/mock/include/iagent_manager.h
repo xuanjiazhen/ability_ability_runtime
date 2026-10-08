@@ -120,6 +120,21 @@ public:
     {
         return 0;
     }
+
+    virtual int32_t StartTask(const std::string &taskId)
+    {
+        return 0;
+    }
+
+    virtual int32_t FinishTask(const std::string &taskId)
+    {
+        return 0;
+    }
+
+    virtual int32_t AbortTask(const std::string &taskId)
+    {
+        return 0;
+    }
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

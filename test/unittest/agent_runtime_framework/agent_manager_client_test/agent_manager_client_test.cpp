@@ -72,6 +72,10 @@ void AgentManagerClientTest::SetUp(void)
     MyFlag::retVerifyAgentDisconnectRequests = ERR_OK;
     MyFlag::retConnectAgentExtensionAbilityForCli = ERR_OK;
     MyFlag::retDisconnectAgentExtensionAbilityForCli = ERR_OK;
+    MyFlag::retStartTask = ERR_OK;
+    MyFlag::retFinishTask = ERR_OK;
+    MyFlag::retAbortTask = ERR_OK;
+    MyFlag::lastTaskId.clear();
     MyFlag::nullSystemAbility = false;
     MyFlag::retRegisterAgentCard = ERR_OK;
     MyFlag::retUpdateAgentCard = ERR_OK;
@@ -521,6 +525,153 @@ HWTEST_F(AgentManagerClientTest, DeleteAgentCard_003, TestSize.Level1)
 
     int32_t result = client.DeleteAgentCard("bundle", "agentId");
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+* @tc.name  : StartTask_001
+* @tc.number: StartTask_001
+* @tc.desc  : Test StartTask returns ERR_NULL_AGENT_MGR_PROXY when proxy is null
+*/
+HWTEST_F(AgentManagerClientTest, StartTask_001, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = true;
+
+    int32_t result = client.StartTask("taskId");
+    EXPECT_EQ(result, ERR_NULL_AGENT_MGR_PROXY);
+}
+
+/**
+* @tc.name  : StartTask_002
+* @tc.number: StartTask_002
+* @tc.desc  : Test StartTask returns error when agent mgr call fails
+*/
+HWTEST_F(AgentManagerClientTest, StartTask_002, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retStartTask = -1;
+
+    int32_t result = client.StartTask("taskId");
+    EXPECT_EQ(result, -1);
+}
+
+/**
+* @tc.name  : StartTask_003
+* @tc.number: StartTask_003
+* @tc.desc  : Test StartTask returns ERR_OK and forwards taskId when all operations succeed
+*/
+HWTEST_F(AgentManagerClientTest, StartTask_003, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retStartTask = ERR_OK;
+
+    int32_t result = client.StartTask("taskId");
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(MyFlag::lastTaskId, "taskId");
+}
+
+/**
+* @tc.name  : FinishTask_001
+* @tc.number: FinishTask_001
+* @tc.desc  : Test FinishTask returns ERR_NULL_AGENT_MGR_PROXY when proxy is null
+*/
+HWTEST_F(AgentManagerClientTest, FinishTask_001, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = true;
+
+    int32_t result = client.FinishTask("taskId");
+    EXPECT_EQ(result, ERR_NULL_AGENT_MGR_PROXY);
+}
+
+/**
+* @tc.name  : FinishTask_002
+* @tc.number: FinishTask_002
+* @tc.desc  : Test FinishTask returns error when agent mgr call fails
+*/
+HWTEST_F(AgentManagerClientTest, FinishTask_002, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retFinishTask = -1;
+
+    int32_t result = client.FinishTask("taskId");
+    EXPECT_EQ(result, -1);
+}
+
+/**
+* @tc.name  : FinishTask_003
+* @tc.number: FinishTask_003
+* @tc.desc  : Test FinishTask returns ERR_OK and forwards taskId when all operations succeed
+*/
+HWTEST_F(AgentManagerClientTest, FinishTask_003, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retFinishTask = ERR_OK;
+
+    int32_t result = client.FinishTask("taskId");
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(MyFlag::lastTaskId, "taskId");
+}
+
+/**
+* @tc.name  : AbortTask_001
+* @tc.number: AbortTask_001
+* @tc.desc  : Test AbortTask returns ERR_NULL_AGENT_MGR_PROXY when proxy is null
+*/
+HWTEST_F(AgentManagerClientTest, AbortTask_001, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = true;
+
+    int32_t result = client.AbortTask("taskId");
+    EXPECT_EQ(result, ERR_NULL_AGENT_MGR_PROXY);
+}
+
+/**
+* @tc.name  : AbortTask_002
+* @tc.number: AbortTask_002
+* @tc.desc  : Test AbortTask returns error when agent mgr call fails
+*/
+HWTEST_F(AgentManagerClientTest, AbortTask_002, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retAbortTask = -1;
+
+    int32_t result = client.AbortTask("taskId");
+    EXPECT_EQ(result, -1);
+}
+
+/**
+* @tc.name  : AbortTask_003
+* @tc.number: AbortTask_003
+* @tc.desc  : Test AbortTask returns ERR_OK and forwards taskId when all operations succeed
+*/
+HWTEST_F(AgentManagerClientTest, AbortTask_003, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retAbortTask = ERR_OK;
+
+    int32_t result = client.AbortTask("taskId");
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(MyFlag::lastTaskId, "taskId");
 }
 
 /**

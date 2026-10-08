@@ -47,6 +47,10 @@ public:
     static int retVerifyAgentDisconnectRequests;
     static int retConnectAgentExtensionAbilityForCli;
     static int retDisconnectAgentExtensionAbilityForCli;
+    static int retStartTask;
+    static int retFinishTask;
+    static int retAbortTask;
+    static std::string lastTaskId;
     static AAFwk::Want lastForCliConnectWant;
     static sptr<AAFwk::IAbilityConnection> lastForCliConnection;
     static std::string lastForCliCallerIdentity;
