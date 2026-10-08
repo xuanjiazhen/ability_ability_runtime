@@ -53,8 +53,8 @@ thread_local bool StartAbilityUtils::ermsSupportBackToCallerFlag = false;
 thread_local bool StartAbilityUtils::startSpecifiedBySCB = false;
 thread_local bool StartAbilityUtils::isSandBoxClone = false;
 
-bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId,
-                                    int32_t &appIndex)
+bool StartAbilityUtils::GetAppIndex(const Want &want, sptr callerToken, int32_t userId,
+int32_t &appIndex)
 {
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord && abilityRecord->GetApplicationInfo().bundleName == want.GetBundleNameRef() &&
@@ -62,23 +62,21 @@ bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> caller
         appIndex = abilityRecord->GetAppIndex();
         return true;
     }
-    int32_t defaultAppIndex = -1;
-    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
-    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetDualModeBundleInfo(want.GetBundleNameRef(),
-                                                                      userId, defaultAppIndex));
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetDualModeBundleInfo appIndex:%{public}d", defaultAppIndex);
- 
     if (want.HasParameter(AbilityRuntime::ServerConstant::DLP_INDEX)) {
         appIndex = want.GetIntParam(AbilityRuntime::ServerConstant::DLP_INDEX, 0);
         return AbilityRuntime::GlobalConstant::IsDlpIndex(appIndex);
     }
-    if (want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
-        appIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, defaultAppIndex);
-        return AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
-            appIndex == 0 || appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX;
+    appIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, -1);
+    if (appIndex == -1) {
+        auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+        IN_PROCESS_CALL(bundleMgrHelper->GetDualModeBundleInfo(want.GetBundleNameRef(), userId, appIndex));
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "GetDualModeBundleInfo appIndex:%{public}d", appIndex);
     }
-    appIndex = defaultAppIndex;
-    return true;
+    if (!want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        const_cast<Want &>(want).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
+    }
+    return AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        appIndex == 0 || appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX;
 }
 
 bool StartAbilityUtils::GetApplicationInfo(const std::string &bundleName, int32_t userId,
@@ -490,9 +488,6 @@ int32_t StartAbilityUtils::StartUIAbilitiesProcessAppIndex(Want &want,
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, userId, appIndex)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilities GetAppIndex failed.");
         return ERR_APP_CLONE_INDEX_INVALID;
-    }
-    if (!want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
-        want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
     }
     return ERR_OK;
 }
