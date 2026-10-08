@@ -96,6 +96,16 @@ public:
         return true;
     }
 
+    ErrCode GetCloneBundleInfo(const std::string &bundleName, int32_t flags, int32_t appCloneIndex,
+        BundleInfo &bundleInfo, int32_t userId)
+    {
+        if (userId == UID_CHECK_BUNDLE_INFO) {
+            return ERR_INVALID_NUM_ARGS_ERROR;
+        }
+        bundleInfo.applicationInfo.uid = appCloneIndex + 10000;
+        return ERR_OK;
+    }
+
     bool GetHapModuleInfo(const AbilityInfo &abilityInfo, int32_t userId, HapModuleInfo &hapModuleInfo)
     {
         switch (userId) {

@@ -76,7 +76,7 @@ int32_t AppPreloader::GeneratePreloadRequest(const std::string &bundleName, int3
 
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
-    if (!GetBundleAndHapInfo(bundleName, userId, abilityInfo, bundleInfo, hapModuleInfo)) {
+    if (!GetBundleAndHapInfo(bundleName, userId, appIndex, abilityInfo, bundleInfo, hapModuleInfo)) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetBundleAndHapInfo failed");
         return AAFwk::GET_BUNDLE_INFO_FAILED;
     }
@@ -166,7 +166,7 @@ int32_t AppPreloader::GeneratePreloadExtensionRequest(const AAFwk::Want &want,
 
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
-    if (!GetBundleAndHapInfo(bundleName, userId, abilityInfo, bundleInfo, hapModuleInfo)) {
+    if (!GetBundleAndHapInfo(bundleName, userId, appIndex, abilityInfo, bundleInfo, hapModuleInfo)) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetBundleAndHapInfo failed");
         return AAFwk::GET_BUNDLE_INFO_FAILED;
     }
@@ -200,7 +200,7 @@ bool AppPreloader::GetLaunchAbilityInfo(const AAFwk::Want &want, int32_t userId,
     return true;
 }
 
-bool AppPreloader::GetBundleAndHapInfo(const std::string &bundleName, int32_t userId,
+bool AppPreloader::GetBundleAndHapInfo(const std::string &bundleName, int32_t userId, int32_t appIndex,
     const AbilityInfo &abilityInfo, BundleInfo &bundleInfo, HapModuleInfo &hapModuleInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -210,11 +210,23 @@ bool AppPreloader::GetBundleAndHapInfo(const std::string &bundleName, int32_t us
         return false;
     }
 
-    TAG_LOGD(AAFwkTag::APPMGR, "userId: %{public}d, bundleName: %{public}s", userId, bundleName.c_str());
-    if (!IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfo(bundleName,
-        BundleFlag::GET_BUNDLE_WITH_REQUESTED_PERMISSION,
-        bundleInfo, userId))) {
-        TAG_LOGE(AAFwkTag::APPMGR, "GetBundleInfo failed");
+    TAG_LOGD(AAFwkTag::APPMGR, "userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d",
+        userId, bundleName.c_str(), appIndex);
+    bool ret;
+    if (appIndex > 0) {
+        ret = IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(bundleName,
+            BundleFlag::GET_BUNDLE_WITH_REQUESTED_PERMISSION, appIndex, bundleInfo, userId)) == ERR_OK;
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetCloneBundleInfo failed, appIndex: %{public}d", appIndex);
+        }
+    } else {
+        ret = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfo(bundleName,
+            BundleFlag::GET_BUNDLE_WITH_REQUESTED_PERMISSION, bundleInfo, userId));
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetBundleInfo failed");
+        }
+    }
+    if (!ret) {
         return false;
     }
 
