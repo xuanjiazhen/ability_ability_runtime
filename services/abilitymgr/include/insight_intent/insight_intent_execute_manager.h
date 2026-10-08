@@ -46,6 +46,8 @@ struct InsightIntentExecuteRecord {
     bool isDistributed = false;
     std::string deviceId;
     uint64_t requestCode = 0;
+    int32_t appIndex = 0;
+    bool isDualMode = false;
 };
 
 class InsightIntentExecuteConnection : public AbilityConnectionStub {
@@ -81,7 +83,8 @@ public:
     int32_t CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, std::string callerBundleName = "",
         const bool ignoreAbilityName = false, bool isDistributed = false,
-        const std::string &srcDeviceId = "", uint64_t requestCode = 0, uint64_t specifiedFullTokenId = 0);
+        const std::string &srcDeviceId = "", uint64_t requestCode = 0, uint64_t specifiedFullTokenId = 0,
+        int32_t appIndex = 0, bool isDualMode = false);
 
     int32_t CheckAndUpdateWant(Want &want, AppExecFwk::ExecuteMode executeMode, int32_t userId,
         std::string callerBundleName = "");
@@ -122,7 +125,8 @@ public:
     void OnInsightAppDied(const std::string &bundleName);
 
     int32_t CheckAndUpdateQueryEntityParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
-        std::shared_ptr<OHOS::AppExecFwk::InsightIntentQueryParam> &param, const std::string& callerBundleName);
+        std::shared_ptr<OHOS::AppExecFwk::InsightIntentQueryParam> &param, const std::string& callerBundleName,
+        int32_t appIndex = 0, bool isDualMode = false);
 
     static int32_t GenerateQueryEntityWant(const std::shared_ptr<AppExecFwk::InsightIntentQueryParam> &param,
         Want &want);

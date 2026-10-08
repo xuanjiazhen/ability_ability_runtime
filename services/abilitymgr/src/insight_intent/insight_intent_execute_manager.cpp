@@ -144,7 +144,7 @@ InsightIntentExecuteManager::~InsightIntentExecuteManager() = default;
 int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, std::string callerBundleName,
     const bool ignoreAbilityName, bool isDistributed, const std::string &srcDeviceId, uint64_t requestCode,
-    uint64_t specifiedFullTokenId)
+    uint64_t specifiedFullTokenId, int32_t appIndex, bool isDualMode)
 {
     std::string targetBundleName = (param != nullptr) ? param->bundleName_ : "";
     int32_t result = CheckCallerPermission(specifiedFullTokenId, callerBundleName, targetBundleName);
@@ -173,6 +173,11 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     }
 
     param->insightIntentId_ = intentId;
+    auto recordIter = records_.find(intentId);
+    if (recordIter != records_.end() && recordIter->second != nullptr) {
+        recordIter->second->appIndex = appIndex;
+        recordIter->second->isDualMode = isDualMode;
+    }
     return ERR_OK;
 }
 
@@ -912,7 +917,7 @@ void InsightIntentExecuteManager::HandleDiedRecordsCleanup(const std::vector<uin
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateQueryEntityParam(uint64_t key,
     const sptr<IRemoteObject> &callerToken, std::shared_ptr<AppExecFwk::InsightIntentQueryParam> &param,
-    const std::string& callerBundleName)
+    const std::string& callerBundleName, int32_t appIndex, bool isDualMode)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
     int32_t result = CheckCallerPermission();
@@ -1017,7 +1022,8 @@ int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
 
     ExtractInsightIntentInfo intentInfo;
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        param->bundleName_, param->moduleName_, param->intentName_, param->userId_, intentInfo);
+        param->bundleName_, param->moduleName_, param->intentName_, param->userId_, intentInfo,
+        appIndex, isDualMode);
 
     auto entity = CheckEntityQueryable(intentInfo, param->className_, param->queryEntityParam_);
     if (entity == nullptr) {

@@ -36,7 +36,8 @@ public:
     void GetInsightIntentGenericInfoByName(const std::string &bundleName, const int32_t userId,
         std::vector<ExtractInsightIntentGenericInfo> &genericInfos);
     void GetInsightIntentGenericInfo(const std::string &bundleName, const std::string &moduleName,
-        const std::string &intentName, const int32_t userId, ExtractInsightIntentGenericInfo &genericInfos);
+        const std::string &intentName, const int32_t userId, ExtractInsightIntentGenericInfo &genericInfos,
+        int32_t appIndex = 0, bool isDualMode = false);
     void GetAllInsightIntentInfo(const int32_t userId, std::vector<ExtractInsightIntentInfo> &infos,
         std::vector<InsightIntentInfo> &configInfos);
     void GetAllInsightIntentInfoForRegister(const int32_t userId,
@@ -44,24 +45,28 @@ public:
     void GetAllConfigInsightIntentInfo(
         const int32_t userId, std::vector<InsightIntentInfo> &configInfos);
     void GetInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
-        std::vector<ExtractInsightIntentInfo> &infos);
+        std::vector<ExtractInsightIntentInfo> &infos, int32_t appIndex = 0, bool isDualMode = false);
     void GetConfigInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
-        std::vector<InsightIntentInfo> &infos);
+        std::vector<InsightIntentInfo> &infos, int32_t appIndex = 0, bool isDualMode = false);
     void GetInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
-        const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &infos);
+        const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &infos,
+        int32_t appIndex = 0, bool isDualMode = false);
     void GetConfigInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
-        const std::string &intentName, const int32_t userId, InsightIntentInfo &info);
+        const std::string &intentName, const int32_t userId, InsightIntentInfo &info,
+        int32_t appIndex = 0, bool isDualMode = false);
     int32_t SaveInsightIntentTotalInfo(const std::string &bundleName, const std::string &moduleName,
         const int32_t userId, uint32_t versionCode, ExtractInsightIntentProfileInfoVec profileInfos,
-        std::vector<InsightIntentInfo> configInfos);
+        std::vector<InsightIntentInfo> configInfos, int32_t appIndex = 0, bool isDualMode = false);
     int32_t SaveBatchInsightIntentTotalInfo(const std::string &bundleName, const int32_t userId,
         uint32_t versionCode, const std::vector<InsightIntentSaveParam> &saveParams);
     bool DeleteInsightIntentTotalInfo(const std::string &bundleName,
-        const std::string &moduleName, const int32_t userId);
+        const std::string &moduleName, const int32_t userId, int32_t appIndex = 0, bool isDualMode = false);
     int32_t DeleteInsightIntentByUserId(const int32_t userId);
-    bool HasInsightIntentByName(uint32_t versionCode, const std::string &bundleName, const int32_t userId);
+    bool HasInsightIntentByName(uint32_t versionCode, const std::string &bundleName, const int32_t userId,
+        int32_t appIndex = 0, bool isDualMode = false);
     bool IsCacheInitialized(int32_t userId);
-    bool HasBundleCache(const std::string &bundleName, int32_t userId);
+    bool HasBundleCache(const std::string &bundleName, int32_t userId,
+        int32_t appIndex = 0, bool isDualMode = false);
     void BackupRdb();
 private:
     int32_t userId_ = -1;

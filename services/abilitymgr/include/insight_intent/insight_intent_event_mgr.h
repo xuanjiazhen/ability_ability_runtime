@@ -26,14 +26,21 @@ namespace OHOS {
 namespace AbilityRuntime {
 class InsightIntentEventMgr : public std::enable_shared_from_this<InsightIntentEventMgr> {
 public:
-    static void UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId);
-    static void DeleteInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId, int32_t appIndex);
+    struct DualModeContext {
+        int32_t appIndex = 0;
+        bool isDualMode = false;
+    };
+    static void UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId,
+        int32_t appIndex = 0);
+    static void DeleteInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId,
+        int32_t appIndex);
 
     void SubscribeSysEventReceiver();
 private:
     std::shared_ptr<InsightIntentSysEventReceiver> insightIntentSysEventReceiver_ = nullptr;
 
-    static void DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName, int32_t userId);
+    static void DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName,
+        int32_t userId, const DualModeContext &ctx);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
