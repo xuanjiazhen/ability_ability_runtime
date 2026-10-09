@@ -212,6 +212,9 @@ enum class AbilityErrorCode {
     // the target has not been started yet.
     ERROR_CODE_TARGET_NOT_STARTED = 16000201,
 
+    // the specified launch service does not exist.
+    ERROR_CODE_LAUNCH_SERVICE_NOT_FOUND = 16002011,
+
     // The context is not UIAbilityContext.
     ERROR_CODE_NOT_UI_ABILITY_CONTEXT = 16000086,
 

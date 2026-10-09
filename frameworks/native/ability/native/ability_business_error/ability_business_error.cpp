@@ -110,6 +110,7 @@ constexpr const char* ERROR_MSG_FROM_WINDOW =
 constexpr const char* ERROR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST =
     "The caller is not in the appIdentifierAllowList of the target appliaction.";
 constexpr const char* ERROR_TARGET_NOT_STARTED = "The target service has not been started yet.";
+constexpr const char* ERROR_MSG_LAUNCH_SERVICE_NOT_FOUND = "The specified launch service does not exist.";
 constexpr const char* ERROR_MSG_CALLER_NOT_ATOMIC_SERVICE =
     "The caller is not an atomic service.";
 constexpr const char* ERROR_MSG_AGENT_ID_NOT_EXIST =
@@ -425,6 +426,7 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST,
         ERROR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST},
     { AbilityErrorCode::ERROR_CODE_TARGET_NOT_STARTED, ERROR_TARGET_NOT_STARTED},
+    { AbilityErrorCode::ERROR_CODE_LAUNCH_SERVICE_NOT_FOUND, ERROR_MSG_LAUNCH_SERVICE_NOT_FOUND },
     { AbilityErrorCode::ERROR_CODE_CALLER_NOT_ATOMIC_SERVICE, ERROR_MSG_CALLER_NOT_ATOMIC_SERVICE},
     { AbilityErrorCode::ERROR_CODE_AGENT_ID_NOT_EXIST, ERROR_MSG_AGENT_ID_NOT_EXIST},
     { AbilityErrorCode::ERROR_CODE_AGENT_CARD_LIST_OUT_OF_RANGE, ERROR_MSG_AGENT_CARD_LIST_OUT_OF_RANGE},
@@ -516,6 +518,7 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_RESTART_APP_INCORRECT_ABILITY, AbilityErrorCode::ERROR_CODE_RESTART_APP_INCORRECT_ABILITY},
     {ERR_RESTART_APP_FREQUENT, AbilityErrorCode::ERROR_CODE_RESTART_APP_FREQUENT},
     {ERR_CAPABILITY_NOT_SUPPORT, AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT},
+    {16002011, AbilityErrorCode::ERROR_CODE_LAUNCH_SERVICE_NOT_FOUND},
     {ERR_NOT_ALLOW_IMPLICIT_START, AbilityErrorCode::ERROR_CODE_RESOLVE_ABILITY},
     {ERR_START_OPTIONS_CHECK_FAILED, AbilityErrorCode::ERROR_START_OPTIONS_CHECK_FAILED},
     {ERR_ABILITY_ALREADY_RUNNING, AbilityErrorCode::ERROR_ABILITY_ALREADY_RUNNING},
