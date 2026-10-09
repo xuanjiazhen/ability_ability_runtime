@@ -19,6 +19,7 @@ export interface AutoStartupInfo {
   abilityName: string;
   abilityTypeName?: string;
   appCloneIndex?: int;
+  isBootApp?: boolean;
   readonly userId?: int;
   readonly setterUserId?: int;
   readonly canUserModify?: boolean;
@@ -30,6 +31,7 @@ class AutoStartupInfoInner implements AutoStartupInfo {
   abilityName: string = '';
   abilityTypeName?: string = '';
   appCloneIndex?: int = 0;
+  isBootApp?: boolean = false;
   readonly userId?: int = 0;
   readonly setterUserId?: int = 0;
   readonly canUserModify?: boolean = false;
