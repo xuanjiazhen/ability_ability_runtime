@@ -2212,6 +2212,8 @@ public:
      */
     virtual int32_t StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params) override;
 
+    int32_t StartDaemon(const std::string &bundleName, const std::string &daemonName) override;
+    int32_t StopDaemon(const std::string &bundleName, const std::string &daemonName) override;
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);

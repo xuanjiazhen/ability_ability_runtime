@@ -806,6 +806,11 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventeenth(uint32_t code, MessagePa
     }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_AUTO_STARTUP_STATUS_FOR_SELF) {
         return GetAutoStartupStatusForSelfInner(data, reply);
+    if (interfaceCode == AbilityManagerInterfaceCode::START_DAEMON) {
+        return StartDaemonInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::STOP_DAEMON) {
+        return StopDaemonInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -6098,6 +6103,16 @@ int32_t AbilityManagerStub::StartSandboxCloneAbilityInner(MessageParcel &data, M
     int32_t result = StartSandboxCloneAbility(*want, *params);
     reply.WriteInt32(result);
     return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartDaemonInner(MessageParcel &data, MessageParcel &reply)
+{
+    return HandleDaemonRequestInner(data, reply, DaemonOp::START);
+}
+
+int32_t AbilityManagerStub::StopDaemonInner(MessageParcel &data, MessageParcel &reply)
+{
+    return HandleDaemonRequestInner(data, reply, DaemonOp::STOP);
 }
 } // namespace AAFwk
 } // namespace OHOS

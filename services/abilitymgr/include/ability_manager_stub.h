@@ -466,6 +466,8 @@ private:
     int32_t QuerySkillTypeInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSelfUIAbilityByAppContextInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSandboxCloneAbilityInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartDaemonInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StopDaemonInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -2062,6 +2062,20 @@ ErrCode AbilityManagerClient::SetApplicationAutoStartup(const AutoStartupInfo &i
     return abms->SetApplicationAutoStartup(info);
 }
 
+
+ErrCode AbilityManagerClient::StartDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->StartDaemon(bundleName, daemonName);
+}
+
+ErrCode AbilityManagerClient::StopDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->StopDaemon(bundleName, daemonName);
+}
 ErrCode AbilityManagerClient::CancelApplicationAutoStartup(const AutoStartupInfo &info)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");

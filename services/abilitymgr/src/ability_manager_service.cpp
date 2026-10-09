@@ -19209,6 +19209,106 @@ int32_t AbilityManagerService::EnterKioskMode(sptr<IRemoteObject> callerToken, i
     return KioskManager::GetInstance().EnterKioskMode(callerToken, kioskType);
 }
 
+
+int32_t AbilityManagerService::StartDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    if (bundleName.empty() || daemonName.empty()) {
+        return ERR_INVALID_VALUE;
+    }
+    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon permission denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon device not supported");
+        return ERR_DAEMON_DEVICE_NOT_SUPPORTED;
+    }
+
+    DaemonRecord record;
+    auto registryResult = DaemonRegistry::GetInstance().GetStatus(bundleName, daemonName, record);
+    if (registryResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon not registered, result=%{public}d", registryResult);
+        return registryResult;
+    }
+    if (record.status != DaemonStatus::ENABLED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon disabled");
+        return ERR_DAEMON_DISABLED;
+    }
+    if (record.pid > 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "start daemon already running, pid=%{public}d", record.pid);
+        return ERR_OK;
+    }
+
+    int32_t pid = 0;
+    auto spawnResult = SpawnDaemonProcess(bundleName, daemonName, pid);
+    if (spawnResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon spawn failed, result=%{public}d", spawnResult);
+        return spawnResult;
+    }
+    DaemonRegistry::GetInstance().SetPid(bundleName, daemonName, pid);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start daemon finished, pid=%{public}d", pid);
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::StopDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    if (bundleName.empty() || daemonName.empty()) {
+        return ERR_INVALID_VALUE;
+    }
+    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon permission denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    DaemonRecord record;
+    auto registryResult = DaemonRegistry::GetInstance().GetStatus(bundleName, daemonName, record);
+    if (registryResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon not registered, result=%{public}d", registryResult);
+        return registryResult;
+    }
+    if (record.pid <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon not running");
+        return ERR_DAEMON_NOT_RUNNING;
+    }
+
+    auto stopResult = StopDaemonProcess(bundleName, daemonName, record.pid);
+    if (stopResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon failed, result=%{public}d", stopResult);
+        return stopResult;
+    }
+    DaemonRegistry::GetInstance().SetPid(bundleName, daemonName, 0);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "stop daemon finished");
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::SpawnDaemonProcess(
+    const std::string &bundleName, const std::string &daemonName, int32_t &pid) const
+{
+    // FEAT-DAEMON-03: daemon processes are spawned through appspawn. The dedicated
+    // appspawn daemon spawn channel is not integrated yet; wire the spawn request here
+    // (via AppManagerService/AppSpawnClient) and report the resulting pid.
+    (void)bundleName;
+    (void)daemonName;
+    (void)pid;
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "daemon appspawn spawn channel not integrated");
+    return ERR_DAEMON_IPC_DEAD;
+}
+
+int32_t AbilityManagerService::StopDaemonProcess(
+    const std::string &bundleName, const std::string &daemonName, int32_t pid) const
+{
+    // FEAT-DAEMON-03: stop the daemon process identified by pid via appspawn.
+    // The kill channel is not integrated yet; wire it here once appspawn supports it.
+    (void)bundleName;
+    (void)daemonName;
+    (void)pid;
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "daemon appspawn stop channel not integrated");
+    return ERR_DAEMON_IPC_DEAD;
+}
 int32_t AbilityManagerService::ExitKioskMode(sptr<IRemoteObject> callerToken)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "request ExitKioskMode");

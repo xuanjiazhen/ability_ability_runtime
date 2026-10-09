@@ -8620,5 +8620,15 @@ int32_t AbilityManagerProxy::StartSandboxCloneAbility(const Want &want, const Sa
 
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::StartDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    return SendDaemonRequest(AbilityManagerInterfaceCode::START_DAEMON, bundleName, daemonName);
+}
+
+int32_t AbilityManagerProxy::StopDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    return SendDaemonRequest(AbilityManagerInterfaceCode::STOP_DAEMON, bundleName, daemonName);
+}
 } // namespace AAFwk
 } // namespace OHOS

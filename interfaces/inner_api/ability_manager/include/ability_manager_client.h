@@ -3114,6 +3114,18 @@ public:
     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag);
 
     /**
+
+    /**
+     * Start a registered and enabled daemon process via appspawn.
+     * Public API.
+     */
+    ErrCode StartDaemon(const std::string &bundleName, const std::string &daemonName);
+
+    /**
+     * Stop a running daemon process.
+     * Public API.
+     */
+    ErrCode StopDaemon(const std::string &bundleName, const std::string &daemonName);
      * @brief Execute an in-app skill on behalf of an explicit caller token id
      * (used by broker/framework scenarios). The request.callerTokenId must
      * resolve to a valid HAP token; permission is checked with that identity.

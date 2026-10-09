@@ -2679,6 +2679,8 @@ public:
 
     int32_t EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t kioskType = 0) override;
 
+    int32_t StartDaemon(const std::string &bundleName, const std::string &daemonName) override;
+    int32_t StopDaemon(const std::string &bundleName, const std::string &daemonName) override;
     int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
 
     int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
@@ -2935,6 +2937,8 @@ protected:
 
 private:
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId, int32_t userId);
+    int32_t SpawnDaemonProcess(const std::string &bundleName, const std::string &daemonName, int32_t &pid) const;
+    int32_t StopDaemonProcess(const std::string &bundleName, const std::string &daemonName, int32_t pid) const;
 
     /**
      * Run the post-check interceptors for a prelaunch request and report a fault event on failure.
