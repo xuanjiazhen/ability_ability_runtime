@@ -251,15 +251,14 @@ void UserController::AddToUserLockedBundleList(const std::string &bundleName, in
         return;
     }
 
-    auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(userId);
-    if (userLockStatus != AbilityRuntime::UserController::UserLockStatus::USER_LOCKED) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid user lock status: %{public}d",
-            static_cast<int32_t>(userLockStatus));
-        return;
-    }
-
     {
         std::lock_guard<ffrt::mutex> guard(userLockedBundleMapMutex_);
+        auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(userId);
+        if (userLockStatus != AbilityRuntime::UserController::UserLockStatus::USER_LOCKED) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid user lock status: %{public}d",
+                static_cast<int32_t>(userLockStatus));
+            return;
+        }
         userLockedBundleMap_[userId].insert(bundleName);
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AddToUserLockedBundleList success, userId: %{public}d, bundleName: %{public}s",
