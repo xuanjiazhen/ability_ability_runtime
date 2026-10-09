@@ -318,6 +318,14 @@ class ApplicationContext {
     return this.__context_impl__.offSystemConfigurationUpdated(colorMode);
   }
 
+  onProcessLifecycle(callback) {
+    return this.__context_impl__.onProcessLifecycle(callback);
+  }
+
+  offProcessLifecycle(observerId) {
+    return this.__context_impl__.offProcessLifecycle(observerId);
+  }
+
   setLanguage(language) {
     return this.__context_impl__.setLanguage(language);
   }
