@@ -58,6 +58,8 @@ public:
     virtual int MoveAbilityToBackground(const std::shared_ptr<AbilityRecord> &abilityRecord) = 0;
     virtual int32_t BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
         int32_t resultCode, const Want *resultWant, int64_t callerRequestCode) = 0;
+    virtual int32_t BackToCallerAppWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+        int32_t resultCode, const Want *resultWant, int64_t callerRequestCode) = 0;
     virtual int TerminateAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,
         int resultCode, const Want *resultWant, bool flag) = 0;
     virtual int AbilityTransactionDone(const sptr<IRemoteObject> &token, int state, const PacMap &saveData) = 0;

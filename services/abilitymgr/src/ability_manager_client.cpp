@@ -512,6 +512,15 @@ ErrCode AbilityManagerClient::BackToCallerAbilityWithResult(const sptr<IRemoteOb
     return abms->BackToCallerAbilityWithResult(token, resultCode, resultWant, callerRequestCode);
 }
 
+ErrCode AbilityManagerClient::BackToCallerAppWithResult(const sptr<IRemoteObject> &token, int resultCode,
+    const Want *resultWant, int64_t callerRequestCode)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->BackToCallerAppWithResult(token, resultCode, resultWant, callerRequestCode);
+}
+
 ErrCode AbilityManagerClient::TerminateUIServiceExtensionAbility(sptr<IRemoteObject> token)
 {
     auto abms = GetAbilityManager();

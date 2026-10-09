@@ -791,6 +791,9 @@ enum class AbilityManagerInterfaceCode {
     
     // register want agent holder for shared detection
     REGISTER_WANT_AGENT_HOLDER = 6181,
+
+    // back to caller with result, independent from BACK_TO_CALLER_UIABILITY(82)
+    BACK_TO_CALLER_APP_WITH_RESULT = 6182,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

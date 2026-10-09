@@ -452,6 +452,18 @@ ErrCode AbilityContextImpl::BackToCallerAbilityWithResult(const AAFwk::Want& wan
     return static_cast<int32_t>(err);
 }
 
+ErrCode AbilityContextImpl::BackToCallerAppWithResult(const AAFwk::Want& want, int resultCode, int64_t requestCode)
+{
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->BackToCallerAppWithResult(
+        token_, resultCode, &want, requestCode);
+    if (err == AAFwk::ERR_NOT_SUPPORT_BACK_TO_CALLER) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "not _for_result, ignore silently");
+        return ERR_OK;
+    }
+    TAG_LOGI(AAFwkTag::CONTEXT, "ret:%{public}d", err);
+    return static_cast<int32_t>(err);
+}
+
 void AbilityContextImpl::SetWeakSessionToken(const wptr<IRemoteObject>& sessionToken)
 {
     std::lock_guard lock(sessionTokenMutex_);

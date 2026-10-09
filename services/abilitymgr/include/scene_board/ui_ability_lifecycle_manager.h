@@ -21,6 +21,7 @@
 #include <memory>
 #include <queue>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "ui_ability_last_caller_info.h"
 #include "ability_manager_constants.h"
@@ -189,6 +190,9 @@ public:
     UIAbilityRecordPtr GetUIAbilityRecordBySessionInfo(const sptr<SessionInfo> &sessionInfo);
 
     int32_t BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+        int resultCode, const Want *resultWant, int64_t callerRequestCode);
+
+    int32_t BackToCallerAppWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
         int resultCode, const Want *resultWant, int64_t callerRequestCode);
 
     int CloseUIAbility(const UIAbilityRecordPtr &abilityRecord,
@@ -871,6 +875,9 @@ private:
     int32_t BackToCallerAbilityWithResultLocked(sptr<SessionInfo> currentSessionInfo,
         std::shared_ptr<AbilityRecord> callerAbilityRecord);
 
+    int32_t BackToCallerAppWithResultLocked(sptr<SessionInfo> currentSessionInfo,
+        std::shared_ptr<AbilityRecord> callerAbilityRecord);
+
     // byCall
     /**
      * @brief Call ability with lock held
@@ -1178,6 +1185,12 @@ private:
     void PostCallTimeoutTask(int32_t requestId);
 
     /**
+     * @brief Post timeout task to clean up a back-to-caller request
+     * @param requestId The request ID to clean up
+     */
+    void PostBackToCallerTimeoutTask(int32_t requestId);
+
+    /**
      * @brief Add caller timestamp
      * @param callerUid The caller UID
      * @return true if added, false if rate limited
@@ -1373,6 +1386,7 @@ private:
     int64_t gamePreLaunchCompleteTime_ = 30 * 1000 * 1000; // 30s
     mutable ffrt::mutex sessionLock_;
     std::unordered_map<int32_t, UIAbilityRecordPtr> sessionAbilityMap_;
+    std::unordered_set<int32_t> backToCallerRequests_;
     std::unordered_map<int32_t, UIAbilityRecordPtr> lowMemKillAbilityMap_;
     std::unordered_map<int32_t, UIAbilityRecordPtr> tmpAbilityMap_;
     std::unordered_map<UIAbilityRecordPtr, std::list<AbilityRequest>> callRequestCache_;

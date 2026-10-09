@@ -675,6 +675,12 @@ public:
         return 0;
     };
 
+    virtual int BackToCallerAppWithResult(const sptr<IRemoteObject> &token, int resultCode,
+        const Want *resultWant, int64_t callerRequestCode)
+    {
+        return 0;
+    };
+
     /**
      * TerminateUIServiceExtensionAbility, terminate the UIServiceExtensionAbility.
      *

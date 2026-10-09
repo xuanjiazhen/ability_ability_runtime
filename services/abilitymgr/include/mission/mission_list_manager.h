@@ -202,6 +202,9 @@ public:
     int32_t BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
         int32_t resultCode, const Want *resultWant, int64_t callerRequestCode) override;
 
+    int32_t BackToCallerAppWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+        int32_t resultCode, const Want *resultWant, int64_t callerRequestCode) override;
+
     /**
      * @brief Terminate ability with the given abilityRecord
      *

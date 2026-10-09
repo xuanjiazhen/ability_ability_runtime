@@ -312,6 +312,18 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(sptr<Sess
     return ERR_OK;
 }
 
+int32_t UIAbilityLifecycleManager::BackToCallerAppWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+    int resultCode, const Want *resultWant, int64_t callerRequestCode)
+{
+    return ERR_OK;
+}
+
+int32_t UIAbilityLifecycleManager::BackToCallerAppWithResultLocked(sptr<SessionInfo> currentSessionInfo,
+    std::shared_ptr<AbilityRecord> callerAbilityRecord)
+{
+    return ERR_OK;
+}
+
 int UIAbilityLifecycleManager::CloseUIAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,
     int resultCode, const Want *resultWant, bool isClearSession, bool isIndependentRecovery)
 {

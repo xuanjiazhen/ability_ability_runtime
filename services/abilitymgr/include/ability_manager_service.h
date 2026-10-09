@@ -653,6 +653,18 @@ public:
         const Want *resultWant, int64_t callerRequestCode) override;
 
     /**
+     * BackToCallerAppWithResult, return to the caller ability without terminating self.
+     *
+     * @param token, the token of the ability.
+     * @param resultCode, the resultCode of the ability to return.
+     * @param resultWant, the Want of the ability to return.
+     * @param callerRequestCode, the requestCode of caller ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int BackToCallerAppWithResult(const sptr<IRemoteObject> &token, int resultCode,
+        const Want *resultWant, int64_t callerRequestCode) override;
+
+    /**
      * TerminateAbility, terminate the special ui extension ability.
      *
      * @param extensionSessionInfo the extension session info of the ability to terminate.

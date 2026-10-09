@@ -784,6 +784,9 @@ public:
     ErrCode BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
         const Want *resultWant, int64_t callerRequestCode);
 
+    ErrCode BackToCallerAppWithResult(const sptr<IRemoteObject> &token, int resultCode,
+        const Want *resultWant, int64_t callerRequestCode);
+
     /**
      * Terminate a UIServiceExtensionAbility. SceneBoard callers ONLY (ERR_WRONG_INTERFACE_CALL
      * otherwise); the token must be valid and reference an EXTENSION of type UI_SERVICE,

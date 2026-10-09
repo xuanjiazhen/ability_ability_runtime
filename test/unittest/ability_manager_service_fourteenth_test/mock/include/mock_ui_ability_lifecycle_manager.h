@@ -178,6 +178,9 @@ public:
     int32_t BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
         int resultCode, const Want *resultWant, int64_t callerRequestCode);
 
+    int32_t BackToCallerAppWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+        int resultCode, const Want *resultWant, int64_t callerRequestCode);
+
     /**
      * CloseUIAbility, close the special ability by scb.
      *
@@ -495,6 +498,9 @@ private:
         int resultCode, const Want *resultWant, bool isClearSession);
     int CloseUIAbilityInner(std::shared_ptr<AbilityRecord> abilityRecord);
     int32_t BackToCallerAbilityWithResultLocked(sptr<SessionInfo> currentSessionInfo,
+        std::shared_ptr<AbilityRecord> callerAbilityRecord);
+
+    int32_t BackToCallerAppWithResultLocked(sptr<SessionInfo> currentSessionInfo,
         std::shared_ptr<AbilityRecord> callerAbilityRecord);
 
     // byCall
