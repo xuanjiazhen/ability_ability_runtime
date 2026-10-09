@@ -246,6 +246,9 @@ enum class AbilityErrorCode {
     // The caller is not main thread
     ERROR_CODE_MAIN_THREAD = 16000205,
 
+    // The target application is not authorized for startup before the first unlock.
+    ERROR_CODE_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT = 16000206,
+
     // Setting permissions for resident processes
     ERROR_CODE_NO_RESIDENT_PERMISSION = 16200006,
 
