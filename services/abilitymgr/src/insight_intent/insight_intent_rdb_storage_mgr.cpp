@@ -68,26 +68,6 @@ std::string InsightRdbStorageMgr::BuildBundlePrefix(int32_t userId, const std::s
     return prefix;
 }
 
-void InsightRdbStorageMgr::FilterResultByKey(std::unordered_map<std::string, std::string> &value,
-    int32_t appIndex, bool isDualMode)
-{
-    for (auto it = value.begin(); it != value.end();) {
-        auto segments = SplitStringBySlash(it->first);
-        if (isDualMode) {
-            if (segments.size() != 6 || segments[5] != std::to_string(appIndex)) {
-                it = value.erase(it);
-                continue;
-            }
-        } else {
-            if (segments.size() != 5) {
-                it = value.erase(it);
-                continue;
-            }
-        }
-        ++it;
-    }
-}
-
 int32_t InsightRdbStorageMgr::LoadInsightIntentBundleInfos(const int32_t userId,
     std::map<std::string, std::string> &bundleVersionMap)
 {
@@ -159,7 +139,6 @@ int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfoByName(const std::strin
         TAG_LOGE(AAFwkTag::INTENT, "get entries error");
         return ERR_INVALID_VALUE;
     }
-    FilterResultByKey(value, appIndex, isDualMode);
     TransformConfigIntent(value, totalInfos);
     return ERR_OK;
 }
@@ -175,7 +154,6 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfoByName(const std::string &bun
         TAG_LOGE(AAFwkTag::INTENT, "get entries error");
         return ERR_INVALID_VALUE;
     }
-    FilterResultByKey(value, appIndex, isDualMode);
     std::vector<InsightIntentInfo> configInfos;
     Transform(value, totalInfos, configInfos);
     return ERR_OK;
@@ -196,7 +174,6 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfo(const std::string &bundleNam
     } else if (value.size() == 0) {
         return ERR_OK;
     }
-    FilterResultByKey(value, appIndex, isDualMode);
     ExtractInsightIntentProfileInfoVec profileInfos;
     //only one intent
     if (!ExtractInsightIntentProfile::TransformTo(value.begin()->second, profileInfos)) {
@@ -226,7 +203,6 @@ int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfo(const std::string &bun
     } else if (value.size() == 0) {
         return ERR_OK;
     }
-    FilterResultByKey(value, appIndex, isDualMode);
     std::vector<InsightIntentInfo> configIntentInfos;
     //only one intent
     if (!InsightIntentProfile::TransformTo(value.begin()->second, configIntentInfos)) {
@@ -377,6 +353,43 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::strin
     if (!DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->BatchInsertData(keyValues)) {
         TAG_LOGE(AAFwkTag::INTENT, "BatchInsertData error, bundleName: %{public}s", bundleName.c_str());
         return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+int32_t InsightRdbStorageMgr::DeleteIntentByAppIndex(const std::string &bundleName,
+    const std::string &moduleName, const int32_t userId, int32_t appIndex)
+{
+    std::string prefix = std::to_string(userId).append("/").append(bundleName).append("/");
+    std::unordered_map<std::string, std::string> value;
+    bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(prefix, value);
+    if (!result) {
+        TAG_LOGE(AAFwkTag::INTENT, "query for delete by appIndex error");
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
+    for (const auto &item : value) {
+        auto segments = SplitStringBySlash(item.first);
+        if (segments.size() < INTENT_KEY_LENGTH) {
+            continue;
+        }
+        bool shouldDelete = false;
+        if (segments.size() == INTENT_KEY_LENGTH) {
+            shouldDelete = (appIndex == 0);
+        } else if (segments.size() == INTENT_KEY_LENGTH + 1) {
+            shouldDelete = (segments[2] == std::to_string(appIndex));
+        }
+        if (!shouldDelete) {
+            continue;
+        }
+        if (!moduleName.empty()) {
+            size_t moduleNameIdx = (segments.size() == INTENT_KEY_LENGTH) ? 2 : 3;
+            if (segments[moduleNameIdx] != moduleName) {
+                continue;
+            }
+        }
+        DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->DeleteData(item.first);
+        TAG_LOGD(AAFwkTag::INTENT, "delete key by appIndex: %{private}s", item.first.c_str());
     }
     return ERR_OK;
 }

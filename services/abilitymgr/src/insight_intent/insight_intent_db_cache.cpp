@@ -228,12 +228,12 @@ void InsightIntentDbCache::GetAllInsightIntentGenericInfo(const int32_t userId,
 }
 
 void InsightIntentDbCache::GetInsightIntentGenericInfoByName(const std::string &bundleName, const int32_t userId,
-    std::vector<ExtractInsightIntentGenericInfo> &genericInfos)
+    std::vector<ExtractInsightIntentGenericInfo> &genericInfos, int32_t appIndex, bool isDualMode)
 {
     std::vector<ExtractInsightIntentInfo> totalInfos;
     genericInfos.clear();
     if (DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->
-        LoadInsightIntentInfoByName(bundleName, userId, totalInfos) != ERR_OK) {
+        LoadInsightIntentInfoByName(bundleName, userId, totalInfos, appIndex, isDualMode) != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "GetInsightIntentInfoByName failed");
         return;
     }

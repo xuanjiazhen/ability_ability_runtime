@@ -34,6 +34,8 @@ public:
         int32_t appIndex = 0;
         bool isDualMode = false;
     };
+    static DualModeContext ResolveDualModeContext(const std::string &bundleName,
+        int32_t userId, int32_t appIndexFromEvent);
     static void UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId,
         int32_t appIndex = 0);
     static void DeleteInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId,

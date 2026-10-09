@@ -152,7 +152,7 @@ void InsightIntentDbCache::GetAllInsightIntentGenericInfo(const int32_t userId,
 }
 
 void InsightIntentDbCache::GetInsightIntentGenericInfoByName(const std::string &bundleName, const int32_t userId,
-    std::vector<ExtractInsightIntentGenericInfo> &genericInfos)
+    std::vector<ExtractInsightIntentGenericInfo> &genericInfos, int32_t appIndex, bool isDualMode)
 {
     ExtractInsightIntentGenericInfo info;
     info.bundleName = "bundleName";

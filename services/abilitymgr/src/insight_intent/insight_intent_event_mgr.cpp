@@ -34,8 +34,8 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-namespace {
-InsightIntentEventMgr::DualModeContext ResolveDualModeContext(
+
+InsightIntentEventMgr::DualModeContext InsightIntentEventMgr::ResolveDualModeContext(
     const std::string &bundleName, int32_t userId, int32_t appIndexFromEvent)
 {
     InsightIntentEventMgr::DualModeContext ctx;
@@ -47,7 +47,7 @@ InsightIntentEventMgr::DualModeContext ResolveDualModeContext(
     }
     AppExecFwk::BundleInfo bundleInfo;
     auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
-        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_DEFAULT),
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
         bundleInfo, userId));
     if (ret == ERR_OK) {
         auto policy = bundleInfo.deviceModeDistributionPolicy;
@@ -57,10 +57,17 @@ InsightIntentEventMgr::DualModeContext ResolveDualModeContext(
              policy == AppExecFwk::DeviceModeDistributionPolicy::FULL_COMPATIBLE_DIFFERENT_PACKAGE);
         if (isDifferentPackage) {
             ctx.isDualMode = true;
-            ctx.appIndex = bundleInfo.appIndex;
+            int32_t preferredAppIndex = 0;
+            auto dualRet = IN_PROCESS_CALL(bundleMgrHelper->GetDualModeBundleInfo(
+                bundleName, userId, preferredAppIndex));
+            if (dualRet == ERR_OK) {
+                ctx.appIndex = preferredAppIndex;
+            } else {
+                ctx.appIndex = bundleInfo.appIndex;
+            }
             TAG_LOGI(AAFwkTag::INTENT, "same-name-different-package app, bundle:%{public}s, "
-                "policy:%{public}d, appIndex:%{public}d",
-                bundleName.c_str(), static_cast<int32_t>(policy), bundleInfo.appIndex);
+                "policy:%{public}d, preferredAppIndex:%{public}d",
+                bundleName.c_str(), static_cast<int32_t>(policy), ctx.appIndex);
         } else {
             ctx.isDualMode = false;
             ctx.appIndex = 0;
@@ -73,7 +80,6 @@ InsightIntentEventMgr::DualModeContext ResolveDualModeContext(
     }
     return ctx;
 }
-} // namespace
 
 void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName,
     int32_t userId, const DualModeContext &ctx)
@@ -104,6 +110,8 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
     auto ctx = ResolveDualModeContext(bundleName, userId, appIndex);
+    // 更新场景使用事件 appIndex（正在更新的模式），而非偏好 appIndex（查询用的当前模式）
+    ctx.appIndex = appIndex;
     ffrt::submit([moduleName, bundleName, userId, ctx] () {
         auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
         if (bundleMgrHelper == nullptr) {
@@ -112,7 +120,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
         }
         AppExecFwk::BundleInfo bundleInfo;
         if (IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
-            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_DEFAULT),
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
             bundleInfo, userId)) != ERR_OK) {
             TAG_LOGE(AAFwkTag::INTENT, "get bundle info failed");
             return;
@@ -253,13 +261,10 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
     }
 
     // 卸载场景不能依赖 GetBundleInfoV9（应用已卸载），也不能依赖 HasBundleCache（缓存 key 格式不匹配）
-    // 直接调存储层，同时尝试双模式和非双模式两种 Key 格式删除
+    // 使用 DeleteIntentByAppIndex 按 Key 段数精确删除：只删目标模式，不影响其他模式
     ffrt::submit([bundleName, moduleName, userId, appIndex]() {
         auto storage = DelayedSingleton<AbilityRuntime::InsightRdbStorageMgr>::GetInstance();
-        // 尝试双模式 Key 删除（匹配 userId/bundleName/appIndex/... 格式的 Key）
-        storage->DeleteStorageInsightIntentData(bundleName, moduleName, userId, appIndex, true);
-        // 尝试非双模式 Key 删除（匹配 userId/bundleName/moduleName/... 格式的 Key）
-        storage->DeleteStorageInsightIntentData(bundleName, moduleName, userId, 0, false);
+        storage->DeleteIntentByAppIndex(bundleName, moduleName, userId, appIndex);
         auto dbCache = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance();
         dbCache->BackupRdb();
         bool unregistered = CliTool::UnregisterInsightIntentFunctions(bundleName, userId);
