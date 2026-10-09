@@ -31,8 +31,11 @@ public:
 
     static void Finalizer(napi_env env, void *data, void *hint);
     static napi_value ReloadInModal(napi_env env, napi_callback_info info);
+    static napi_value ConnectAbility(napi_env env, napi_callback_info info);
+    static napi_value DisconnectAbility(napi_env env, napi_callback_info info);
     static napi_value CreateJsAutoFillExtensionContext(
         napi_env env, const std::shared_ptr<AutoFillExtensionContext> &context);
+    static void DisconnectAllConnections(const std::shared_ptr<AutoFillExtensionContext> &context);
     std::shared_ptr<AutoFillExtensionContext> GetAutoFillExtensionContext()
     {
         return context_.lock();
@@ -40,6 +43,8 @@ public:
 
 private:
     napi_value OnReloadInModal(napi_env env, NapiCallbackInfo &info);
+    napi_value OnConnectAbility(napi_env env, NapiCallbackInfo &info);
+    napi_value OnDisconnectAbility(napi_env env, NapiCallbackInfo &info);
     std::weak_ptr<AutoFillExtensionContext> context_;
 };
 } // namespace AbilityRuntime
