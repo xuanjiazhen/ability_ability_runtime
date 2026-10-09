@@ -2452,6 +2452,10 @@ private:
     void HandleConfigurationChange(const Configuration &config, const std::set<int32_t> &userIds);
     bool CheckIsThreadInFoundation(pid_t pid);
     bool CheckAppFault(const std::shared_ptr<AppRunningRecord> &appRecord, const FaultData &faultData);
+    int64_t GetAppFaultNotifyLatency(const std::string& marker, int32_t pid, int32_t recordId,
+        int64_t receiveTime) const;
+    bool PreprocessAppFault(FaultData &faultData, const std::shared_ptr<AppRunningRecord> &appRecord,
+        int32_t pid, int32_t uid, int64_t receiveTime, bool &isExit, std::string &processName);
     int32_t KillFaultApp(int32_t pid, const std::string &bundleName, const FaultData &faultData,
         bool isNeedExit = false, int32_t recordId = -1);
 #ifdef APP_MGR_KILL_REASON_TAG
