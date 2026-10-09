@@ -2212,10 +2212,17 @@ public:
      */
     virtual int32_t StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params) override;
 
+    int32_t RegisterDaemon(const std::string &bundleName, const std::string &daemonName) override;
+    int32_t UnregisterDaemon(const std::string &bundleName, const std::string &daemonName) override;
+    int32_t StartDaemon(const std::string &bundleName, const std::string &daemonName) override;
+    int32_t StopDaemon(const std::string &bundleName, const std::string &daemonName) override;
+
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);
     bool WriteInterfaceToken(MessageParcel &data);
+    int32_t SendDaemonRequest(AbilityManagerInterfaceCode code,
+        const std::string &bundleName, const std::string &daemonName);
     // flag = true : terminate; flag = false : close
     int TerminateAbility(const sptr<IRemoteObject> &token, int resultCode, const Want *resultWant, bool flag);
     ErrCode SendRequest(AbilityManagerInterfaceCode code, MessageParcel &data, MessageParcel &reply,
