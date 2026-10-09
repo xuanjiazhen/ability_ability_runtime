@@ -807,6 +807,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventeenth(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::GET_AUTO_STARTUP_STATUS_FOR_SELF) {
         return GetAutoStartupStatusForSelfInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_DAEMON_ENABLED) {
+        return SetDaemonEnabledInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -6097,6 +6100,23 @@ int32_t AbilityManagerStub::StartSandboxCloneAbilityInner(MessageParcel &data, M
 
     int32_t result = StartSandboxCloneAbility(*want, *params);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::SetDaemonEnabledInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName;
+    std::string daemonName;
+    bool enabled = false;
+    if (!data.ReadString(bundleName) || !data.ReadString(daemonName) || !data.ReadBool(enabled)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read daemon arguments failed");
+        return ERR_INVALID_VALUE;
+    }
+    if (bundleName.empty() || daemonName.empty()) {
+        reply.WriteInt32(ERR_INVALID_VALUE);
+        return NO_ERROR;
+    }
+    reply.WriteInt32(SetDaemonEnabled(bundleName, daemonName, enabled));
     return NO_ERROR;
 }
 } // namespace AAFwk

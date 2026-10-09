@@ -14,6 +14,7 @@
  */
 
 #include "ability_manager_service.h"
+#include "daemon/daemon_registry.h"
 
 #include <dlfcn.h>
 #include <sys/epoll.h>
@@ -19174,6 +19175,26 @@ int32_t AbilityManagerService::EnterKioskMode(sptr<IRemoteObject> callerToken, i
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "request EnterKioskMode");
     return KioskManager::GetInstance().EnterKioskMode(callerToken, kioskType);
+}
+
+int32_t AbilityManagerService::SetDaemonEnabled(
+    const std::string &bundleName, const std::string &daemonName, bool enabled)
+{
+    if (bundleName.empty() || daemonName.empty()) {
+        return ERR_INVALID_VALUE;
+    }
+    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "set daemon enabled permission denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    bool changed = false;
+    auto result = DaemonRegistry::GetInstance().UpdateEnabledStatus(bundleName, daemonName, enabled, changed);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "set daemon enabled finished, changed=%{public}d, result=%{public}d",
+        changed, result);
+    return result;
 }
 
 int32_t AbilityManagerService::ExitKioskMode(sptr<IRemoteObject> callerToken)

@@ -88,6 +88,7 @@ ohos_unittest("ability_manager_service_second_test") {
     "${ability_runtime_services_path}/abilitymgr/src/ability_manager_collaborator_proxy.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_manager_event_subscriber.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_manager_service.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/daemon/daemon_registry.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_manager_stub.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_record/ability_request.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_running_info.cpp",
