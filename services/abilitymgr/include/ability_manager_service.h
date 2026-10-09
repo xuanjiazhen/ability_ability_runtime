@@ -2679,6 +2679,8 @@ public:
 
     int32_t EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t kioskType = 0) override;
 
+    int32_t SetDaemonEnabled(const std::string &bundleName, const std::string &daemonName, bool enabled) override;
+
     int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
 
     int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
