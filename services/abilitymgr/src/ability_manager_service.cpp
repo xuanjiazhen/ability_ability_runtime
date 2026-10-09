@@ -10106,20 +10106,45 @@ void AbilityManagerService::StartKeepAliveApps(int32_t userId)
     KeepAliveProcessManager::GetInstance().StartKeepAliveProcessWithMainElement(bundleInfos, userId);
 }
 
-bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart)
+bool AbilityManagerService::IsBootStartupTaskActive(int32_t userId, uint64_t bootGeneration)
+{
+    if (AbilityRuntime::UserController::GetInstance().GetUserLockStatus(userId) ==
+        AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(bootStartupMutex_);
+    auto it = bootStartupStates_.find(userId);
+    return it != bootStartupStates_.end() && it->second.generation == bootGeneration;
+}
+
+void AbilityManagerService::ClearBootStartupUser(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(bootStartupMutex_);
+    // A new cycle receives a fresh generation, so erasing also invalidates queued work.
+    bootStartupStates_.erase(userId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "clear boot startup user:%{public}d", userId);
+}
+
+bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart, bool isDirectBoot)
 {
     if (userId == DEFAULT_INVAL_VALUE) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid userId");
         return false;
     }
-    bool isAutoStartupReady = system::GetBoolParameter(AUTO_STARTUP_READY, true);
-    if (!isAutoStartupReady) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "isReady %{public}d, userId %{public}d", isAutoStartupReady, userId);
-        return false;
+    if (!isDirectBoot) {
+        bool isAutoStartupReady = system::GetBoolParameter(AUTO_STARTUP_READY, true);
+        if (!isAutoStartupReady) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "isReady %{public}d, userId %{public}d", isAutoStartupReady, userId);
+            return false;
+        }
     }
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return false;
+    }
+    if (isDirectBoot) {
+        // The SCB path does not depend on the ordinary post-unlock trigger.
+        return true;
     }
     if (isEDMStart) {
         // EDM start is an explicit command guarded by its own permission check,
@@ -10137,10 +10162,14 @@ bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart
     return true;
 }
 
-void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart)
+void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart,
+    bool isDirectBoot, uint64_t bootGeneration)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAutoStartupApps called");
-    if (!IsAutoStartupAllowed(userId, isEDMStart)) {
+    if (!IsAutoStartupAllowed(userId, isEDMStart, isDirectBoot)) {
+        return;
+    }
+    if (isDirectBoot && !IsBootStartupTaskActive(userId, bootGeneration)) {
         return;
     }
     std::vector<AutoStartupInfo> infoList;
@@ -10157,11 +10186,24 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart
     std::queue<AutoStartupInfo> infoQueue;
     for (auto &info : infoList) {
         info.retryCount = START_AUTO_START_APP_RETRY_MAX_TIMES;
-        infoQueue.push(info);
+        if (info.isDirectBoot == isDirectBoot) {
+            infoQueue.push(info);
+        }
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAutoStartupApps userId:%{public}d", userId);
-    StartAutoStartupApps(infoQueue, userId);
-    if (isEDMStart) {
+    if (isDirectBoot) {
+        std::lock_guard<std::mutex> lock(bootStartupMutex_);
+        auto it = bootStartupStates_.find(userId);
+        if (it == bootStartupStates_.end() || it->second.generation != bootGeneration || it->second.scheduled) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "skip repeated or stopped boot startup user:%{public}d", userId);
+            return;
+        }
+        it->second.scheduled = true;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAutoStartupApps user:%{public}d boot:%{public}d "
+        "total:%{public}zu queued:%{public}zu",
+        userId, isDirectBoot, infoList.size(), infoQueue.size());
+    StartAutoStartupApps(std::move(infoQueue), userId, isDirectBoot, bootGeneration);
+    if (isEDMStart || isDirectBoot) {
         return;
     }
     // The auto startup trigger is done regardless of the launch results, consume the
@@ -10177,17 +10219,8 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart
     taskHandler_->SubmitTask(removeParameterWatcherTask, "removeParameterWatcherTask");
 }
 
-void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> infoQueue, int32_t userId)
+int32_t AbilityManagerService::StartAutoStartupApp(const AutoStartupInfo &info, int32_t userId)
 {
-    if (infoQueue.empty()) {
-        return;
-    }
-    if (taskHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler null");
-        return;
-    }
-    auto info = infoQueue.front();
-    infoQueue.pop();
     AppExecFwk::ElementName element;
     element.SetBundleName(info.bundleName);
     element.SetAbilityName(info.abilityName);
@@ -10198,30 +10231,56 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
     if (info.appCloneIndex >= 0 && info.appCloneIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
         want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, info.appCloneIndex);
     }
-    int32_t result = ERR_OK;
     if (info.abilityTypeName == AbilityRuntime::EXTENSION_TYPE_APP_SERVICE) {
-        result = StartExtensionAbility(
-            want, nullptr, userId, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+        return StartExtensionAbility(want, nullptr, userId, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+    }
+    if (info.isHiddenStart && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
+        return abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId);
+    }
+    return StartAbility(want, userId);
+}
+
+void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> infoQueue, int32_t userId,
+    bool isDirectBoot, uint64_t bootGeneration)
+{
+    if (infoQueue.empty() || (isDirectBoot && !IsBootStartupTaskActive(userId, bootGeneration))) {
+        return;
+    }
+    if (taskHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler null");
+        return;
+    }
+    auto info = infoQueue.front();
+    infoQueue.pop();
+    if (isDirectBoot && (abilityAutoStartupService_ == nullptr ||
+        !abilityAutoStartupService_->CanStartBootApp(info))) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "skip invalid boot app user:%{public}d bundle:%{public}s",
+            userId, info.bundleName.c_str());
     } else {
-        if (info.isHiddenStart && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
-            result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId);
-        } else {
-            result = StartAbility(want, userId);
+        if (isDirectBoot && !IsBootStartupTaskActive(userId, bootGeneration)) {
+            return;
+        }
+        int32_t result = StartAutoStartupApp(info, userId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "auto startup user:%{public}d boot:%{public}d bundle:%{public}s "
+            "ability:%{public}s type:%{public}s hidden:%{public}d ret:%{public}d retry:%{public}d",
+            userId, isDirectBoot, info.bundleName.c_str(), info.abilityName.c_str(), info.abilityTypeName.c_str(),
+            info.isHiddenStart, result, info.retryCount);
+        if (result != ERR_OK && info.retryCount > 0) {
+            --info.retryCount;
+            infoQueue.push(info);
         }
     }
-    if ((result != ERR_OK) && (info.retryCount > 0)) {
-        info.retryCount--;
-        infoQueue.push(info);
-    }
-    auto nextStartAutoStartupAppsTask = [aams = weak_from_this(), infoQueue, userId]() {
+    auto nextStartAutoStartupAppsTask = [aams = weak_from_this(), infoQueue = std::move(infoQueue),
+        userId, isDirectBoot, bootGeneration]() mutable {
         auto obj = aams.lock();
         if (obj == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "start auto startup app error, obj null");
             return;
         }
-        obj->StartAutoStartupApps(infoQueue, userId);
+        obj->StartAutoStartupApps(std::move(infoQueue), userId, isDirectBoot, bootGeneration);
     };
-    taskHandler_->SubmitTask(nextStartAutoStartupAppsTask, "StartAutoStartupApps", START_AUTO_START_APP_DELAY_TIME);
+    taskHandler_->SubmitTask(
+        std::move(nextStartAutoStartupAppsTask), "StartAutoStartupApps", START_AUTO_START_APP_DELAY_TIME);
 }
 
 void AbilityManagerService::SubscribeUserUnlockedEvent()
@@ -11112,6 +11171,7 @@ int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callb
     if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_) {
         abilityAutoStartupService_->RemoveHandledAutoStartupUsers(userId);
     }
+    ClearBootStartupUser(userId);
     AbilityRuntime::AbilityEventMapManager::GetInstance().RemoveUser(userId);
     AbilityRuntime::AbilityEventMapManager::GetInstance().RemovePendingUserId(userId);
 
@@ -11180,6 +11240,7 @@ int AbilityManagerService::LogoutUser(int32_t userId, sptr<IUserCallback> callba
     if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_) {
         abilityAutoStartupService_->RemoveHandledAutoStartupUsers(userId);
     }
+    ClearBootStartupUser(userId);
     AbilityRuntime::AbilityEventMapManager::GetInstance().RemoveUser(userId);
     AbilityRuntime::AbilityEventMapManager::GetInstance().RemovePendingUserId(userId);
 
@@ -14444,6 +14505,38 @@ void AbilityManagerService::SetRootSceneSession(const sptr<IRemoteObject> &rootS
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER(uiAbilityManager);
     uiAbilityManager->SetRootSceneSession(rootSceneSession);
+    if (rootSceneSession == nullptr || taskHandler_ == nullptr || system::GetDeviceType() != "2in1") {
+        return;
+    }
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    if (AppExecFwk::OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(
+        IPCSkeleton::GetCallingUid(), userId) != ERR_OK) {
+        return;
+    }
+    if (userId == U0_USER_ID) {
+        userId = AbilityRuntime::UserController::GetInstance().GetForegroundUserId(
+            AbilityRuntime::ServerConstant::DEFAULT_DISPLAY_ID);
+    }
+    if (userId <= U0_USER_ID) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid boot startup user:%{public}d", userId);
+        return;
+    }
+    uint64_t bootGeneration;
+    {
+        std::lock_guard<std::mutex> lock(bootStartupMutex_);
+        auto [it, inserted] = bootStartupStates_.try_emplace(userId);
+        if (inserted) {
+            it->second.generation = ++bootStartupGeneration_;
+        }
+        bootGeneration = it->second.generation;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SCB root session ready, boot startup user:%{public}d", userId);
+    taskHandler_->SubmitTask([weak = weak_from_this(), userId, bootGeneration]() {
+        auto service = weak.lock();
+        if (service != nullptr) {
+            service->StartAutoStartupApps(userId, false, true, bootGeneration);
+        }
+    }, "StartBootAutoStartupApps");
 }
 
 void AbilityManagerService::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
