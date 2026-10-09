@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_AUTO_STARTUP_INFO_H
 #define OHOS_ABILITY_RUNTIME_AUTO_STARTUP_INFO_H
 
+#include <cstdint>
 #include <string>
 
 #include "parcel.h"
@@ -44,6 +45,7 @@ public:
     int32_t setterUserId = -1;
     bool canUserModify = false;
     bool isHiddenStart = false;
+    bool isDirectBoot = false;
     std::string bundleName;
     std::string abilityName;
     std::string moduleName;
@@ -65,6 +67,12 @@ struct AutoStartupStatus {
     AutoStartupSetterType setterType = AutoStartupSetterType::UNSPECIFIED;
     int32_t code = -1;
     bool isHiddenStart = false;
+    bool isDirectBoot = false;
+};
+
+struct BootStartupState {
+    uint64_t generation = 0;
+    bool scheduled = false;
 };
 
 struct AutoStartupAbilityData {
