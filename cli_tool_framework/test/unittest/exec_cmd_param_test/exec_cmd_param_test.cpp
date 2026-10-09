@@ -30,6 +30,7 @@ const std::string TEST_CMD = "ohos-aa start --bundleName=com.example";
 const std::string TEST_CHALLENGE = "test_challenge_token";
 const std::string TEST_TOOL_CALL_ID = "tool-call-123_ABC";
 const std::string TEST_DM_SESSION_ID = "dm-session-456_xyz";
+const std::string TEST_SUBJECT_ID = "test_agent_subject_id";
 constexpr int64_t TEST_YIELD_MS = 50;
 constexpr int64_t TEST_TIMEOUT = 3000;
 }
@@ -282,6 +283,48 @@ HWTEST_F(ExecCmdParamTest, ExecCmdParam_Unmarshalling_0100, TestSize.Level1)
     // Trace identifiers fall back to "" (not provided).
     EXPECT_TRUE(noIdsResult->execCmdOptions.toolCallId.empty());
     EXPECT_TRUE(noIdsResult->execCmdOptions.dmSessionId.empty());
+}
+
+/**
+ * @tc.name: ExecCmdParam_SubjectId_0100
+ * @tc.desc: Test ExecCmdParam marshalling and unmarshalling preserves subjectId value
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExecCmdParamTest, ExecCmdParam_SubjectId_0100, TestSize.Level1)
+{
+    ExecCmdParam param;
+    param.cmd = TEST_CMD;
+    param.execCmdOptions.isShellCommand = false;
+    param.execCmdOptions.challenge = TEST_CHALLENGE;
+    param.execCmdOptions.subjectId = TEST_SUBJECT_ID;
+
+    Parcel parcel;
+    ASSERT_TRUE(param.Marshalling(parcel));
+    parcel.RewindRead(0);
+
+    std::unique_ptr<ExecCmdParam> result(ExecCmdParam::Unmarshalling(parcel));
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->execCmdOptions.subjectId, TEST_SUBJECT_ID);
+}
+
+/**
+ * @tc.name: ExecCmdParam_SubjectId_0200
+ * @tc.desc: Test ExecCmdParam round-trip with empty subjectId (backward compatible)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExecCmdParamTest, ExecCmdParam_SubjectId_0200, TestSize.Level1)
+{
+    ExecCmdParam param;
+    param.cmd = "ls -l";
+    EXPECT_TRUE(param.execCmdOptions.subjectId.empty());
+
+    Parcel parcel;
+    ASSERT_TRUE(param.Marshalling(parcel));
+    parcel.RewindRead(0);
+
+    std::unique_ptr<ExecCmdParam> result(ExecCmdParam::Unmarshalling(parcel));
+    ASSERT_NE(result, nullptr);
+    EXPECT_TRUE(result->execCmdOptions.subjectId.empty());
 }
 } // namespace CliTool
 } // namespace OHOS
