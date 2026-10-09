@@ -3114,6 +3114,12 @@ public:
     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag);
 
     /**
+     * Set whether a registered daemon can be started.
+     * System API, requires ohos.permission.MANAGE_DAEMON_SERVICE.
+     */
+    ErrCode SetDaemonEnabled(const std::string &bundleName, const std::string &daemonName, bool enabled);
+
+    /**
      * @brief Execute an in-app skill on behalf of an explicit caller token id
      * (used by broker/framework scenarios). The request.callerTokenId must
      * resolve to a valid HAP token; permission is checked with that identity.
