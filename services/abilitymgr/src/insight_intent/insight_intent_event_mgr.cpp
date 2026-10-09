@@ -34,8 +34,8 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-namespace {
-InsightIntentEventMgr::DualModeContext ResolveDualModeContext(
+
+InsightIntentEventMgr::DualModeContext InsightIntentEventMgr::ResolveDualModeContext(
     const std::string &bundleName, int32_t userId, int32_t appIndexFromEvent)
 {
     InsightIntentEventMgr::DualModeContext ctx;
@@ -73,7 +73,6 @@ InsightIntentEventMgr::DualModeContext ResolveDualModeContext(
     }
     return ctx;
 }
-} // namespace
 
 void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName,
     int32_t userId, const DualModeContext &ctx)
@@ -253,13 +252,10 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
     }
 
     // 卸载场景不能依赖 GetBundleInfoV9（应用已卸载），也不能依赖 HasBundleCache（缓存 key 格式不匹配）
-    // 直接调存储层，同时尝试双模式和非双模式两种 Key 格式删除
+    // 使用 DeleteIntentByAppIndex 按 Key 段数精确删除：只删目标模式，不影响其他模式
     ffrt::submit([bundleName, moduleName, userId, appIndex]() {
         auto storage = DelayedSingleton<AbilityRuntime::InsightRdbStorageMgr>::GetInstance();
-        // 尝试双模式 Key 删除（匹配 userId/bundleName/appIndex/... 格式的 Key）
-        storage->DeleteStorageInsightIntentData(bundleName, moduleName, userId, appIndex, true);
-        // 尝试非双模式 Key 删除（匹配 userId/bundleName/moduleName/... 格式的 Key）
-        storage->DeleteStorageInsightIntentData(bundleName, moduleName, userId, 0, false);
+        storage->DeleteIntentByAppIndex(bundleName, moduleName, userId, appIndex);
         auto dbCache = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance();
         dbCache->BackupRdb();
         bool unregistered = CliTool::UnregisterInsightIntentFunctions(bundleName, userId);

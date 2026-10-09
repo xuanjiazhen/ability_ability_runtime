@@ -58,6 +58,8 @@ public:
         uint32_t versionCode, const std::vector<InsightIntentSaveParam> &saveParams);
     int32_t DeleteStorageInsightIntentData(const std::string &bundleName,
         const std::string &moduleName, const int32_t userId, int32_t appIndex = 0, bool isDualMode = false);
+    int32_t DeleteIntentByAppIndex(const std::string &bundleName,
+        const std::string &moduleName, const int32_t userId, int32_t appIndex);
     int32_t DeleteStorageInsightIntentByUserId(const int32_t userId);
     void BackupRdb();
 
@@ -66,8 +68,6 @@ private:
         const std::string &intentName, int32_t userId, uint32_t versionCode,
         int32_t appIndex, bool isDualMode);
     static std::string BuildBundlePrefix(int32_t userId, const std::string &bundleName,
-        int32_t appIndex, bool isDualMode);
-    static void FilterResultByKey(std::unordered_map<std::string, std::string> &value,
         int32_t appIndex, bool isDualMode);
     void Transform(std::unordered_map<std::string, std::string> value,
         std::vector<ExtractInsightIntentInfo> &totalInfos, std::vector<InsightIntentInfo> &configInfos);

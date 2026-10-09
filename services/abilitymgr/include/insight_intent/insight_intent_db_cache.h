@@ -31,7 +31,8 @@ public:
     void GetAllInsightIntentGenericInfo(const int32_t userId,
         std::vector<ExtractInsightIntentGenericInfo> &genericInfos);
     void GetInsightIntentGenericInfoByName(const std::string &bundleName, const int32_t userId,
-         std::vector<ExtractInsightIntentGenericInfo> &genericInfos);
+        std::vector<ExtractInsightIntentGenericInfo> &genericInfos,
+        int32_t appIndex = 0, bool isDualMode = false);
     void GetInsightIntentGenericInfo(const std::string &bundleName, const std::string &moduleName,
         const std::string &intentName, const int32_t userId, ExtractInsightIntentGenericInfo &genericInfo,
         int32_t appIndex = 0, bool isDualMode = false);

@@ -28,6 +28,7 @@
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_callback_interface.h"
 #include "insight_intent_db_cache.h"
+#include "insight_intent_event_mgr.h"
 #include "insight_intent_utils.h"
 #include "permission_verification.h"
 #include "want_params_wrapper.h"
@@ -234,8 +235,11 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
     if (userId == DEFAULT_INVAL_VALUE) {
         userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
+    auto ctx = AbilityRuntime::InsightIntentEventMgr::ResolveDualModeContext(
+        want.GetBundleNameRef(), userId, 0);
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        want.GetBundleNameRef(), want.GetModuleNameRef(), intentName, userId, info);
+        want.GetBundleNameRef(), want.GetModuleNameRef(), intentName, userId, info,
+        ctx.appIndex, ctx.isDualMode);
     if (info.genericInfo.decoratorType != AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY) {
         TAG_LOGW(AAFwkTag::INTENT, "decorator %{public}s misMatch", info.genericInfo.decoratorType.c_str());
         return ERR_INVALID_VALUE;
@@ -598,8 +602,11 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
     if (userId == DEFAULT_INVAL_VALUE) {
         userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
+    auto ctx = AbilityRuntime::InsightIntentEventMgr::ResolveDualModeContext(
+        param->bundleName_, userId, 0);
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        param->bundleName_, param->moduleName_, param->insightIntentName_, userId, info);
+        param->bundleName_, param->moduleName_, param->insightIntentName_, userId, info,
+        ctx.appIndex, ctx.isDualMode);
 
     InsightIntentType type = InsightIntentType::DECOR_NONE;
     std::string decoratorType = info.genericInfo.decoratorType;
@@ -1021,8 +1028,11 @@ int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
     }
 
     ExtractInsightIntentInfo intentInfo;
+    auto ctx = AbilityRuntime::InsightIntentEventMgr::ResolveDualModeContext(
+        param->bundleName_, param->userId_, 0);
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        param->bundleName_, param->moduleName_, param->intentName_, param->userId_, intentInfo);
+        param->bundleName_, param->moduleName_, param->intentName_, param->userId_, intentInfo,
+        ctx.appIndex, ctx.isDualMode);
 
     auto entity = CheckEntityQueryable(intentInfo, param->className_, param->queryEntityParam_);
     if (entity == nullptr) {
