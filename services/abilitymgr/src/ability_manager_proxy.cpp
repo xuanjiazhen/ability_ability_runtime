@@ -8616,5 +8616,27 @@ int32_t AbilityManagerProxy::StartSandboxCloneAbility(const Want &want, const Sa
 
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::SetDaemonEnabled(
+    const std::string &bundleName, const std::string &daemonName, bool enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token failed");
+        return INNER_ERR;
+    }
+    if (!data.WriteString(bundleName) || !data.WriteString(daemonName) || !data.WriteBool(enabled)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write daemon arguments failed");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::SET_DAEMON_ENABLED, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "set daemon enabled request failed: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS

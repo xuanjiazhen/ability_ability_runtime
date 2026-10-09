@@ -2941,6 +2941,11 @@ public:
     {
         return ERR_OK;
     }
+
+    virtual int32_t SetDaemonEnabled(const std::string &bundleName, const std::string &daemonName, bool enabled)
+    {
+        return ERR_OK;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS
