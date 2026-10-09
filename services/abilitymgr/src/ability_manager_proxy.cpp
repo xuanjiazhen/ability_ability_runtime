@@ -8620,5 +8620,37 @@ int32_t AbilityManagerProxy::StartSandboxCloneAbility(const Want &want, const Sa
 
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::RegisterDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    return SendDaemonRequest(AbilityManagerInterfaceCode::REGISTER_DAEMON, bundleName, daemonName);
+}
+
+int32_t AbilityManagerProxy::UnregisterDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    return SendDaemonRequest(AbilityManagerInterfaceCode::UNREGISTER_DAEMON, bundleName, daemonName);
+}
+
+int32_t AbilityManagerProxy::SendDaemonRequest(
+    AbilityManagerInterfaceCode code, const std::string &bundleName, const std::string &daemonName)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token failed");
+        return INNER_ERR;
+    }
+    if (!data.WriteString(bundleName) || !data.WriteString(daemonName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write daemon arguments failed");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = SendRequest(code, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "daemon request failed: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS

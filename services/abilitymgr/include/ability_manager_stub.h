@@ -466,6 +466,17 @@ private:
     int32_t QuerySkillTypeInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSelfUIAbilityByAppContextInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSandboxCloneAbilityInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RegisterDaemonInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnregisterDaemonInner(MessageParcel &data, MessageParcel &reply);
+
+private:
+    enum class DaemonOp {
+        REGISTER,
+        UNREGISTER,
+        START,
+        STOP,
+    };
+    int32_t HandleDaemonRequestInner(MessageParcel &data, MessageParcel &reply, DaemonOp op);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

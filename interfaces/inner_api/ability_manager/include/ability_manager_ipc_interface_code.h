@@ -791,6 +791,12 @@ enum class AbilityManagerInterfaceCode {
     
     // register want agent holder for shared detection
     REGISTER_WANT_AGENT_HOLDER = 6181,
+
+    // register daemon (FEAT-DAEMON-01)
+    REGISTER_DAEMON = 6183,
+
+    // unregister daemon (FEAT-DAEMON-01)
+    UNREGISTER_DAEMON = 6184,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

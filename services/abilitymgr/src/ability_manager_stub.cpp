@@ -807,6 +807,13 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventeenth(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::GET_AUTO_STARTUP_STATUS_FOR_SELF) {
         return GetAutoStartupStatusForSelfInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_DAEMON) {
+        return RegisterDaemonInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_DAEMON) {
+        return UnregisterDaemonInner(data, reply);
+    }
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -6096,6 +6103,50 @@ int32_t AbilityManagerStub::StartSandboxCloneAbilityInner(MessageParcel &data, M
     }
 
     int32_t result = StartSandboxCloneAbility(*want, *params);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::RegisterDaemonInner(MessageParcel &data, MessageParcel &reply)
+{
+    return HandleDaemonRequestInner(data, reply, DaemonOp::REGISTER);
+}
+
+int32_t AbilityManagerStub::UnregisterDaemonInner(MessageParcel &data, MessageParcel &reply)
+{
+    return HandleDaemonRequestInner(data, reply, DaemonOp::UNREGISTER);
+}
+
+int32_t AbilityManagerStub::HandleDaemonRequestInner(MessageParcel &data, MessageParcel &reply, DaemonOp op)
+{
+    std::string bundleName;
+    std::string daemonName;
+    if (!data.ReadString(bundleName) || !data.ReadString(daemonName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read daemon arguments failed");
+        return ERR_INVALID_VALUE;
+    }
+    if (bundleName.empty() || daemonName.empty()) {
+        reply.WriteInt32(ERR_INVALID_VALUE);
+        return NO_ERROR;
+    }
+
+    int32_t result = ERR_INVALID_VALUE;
+    switch (op) {
+        case DaemonOp::REGISTER:
+            result = RegisterDaemon(bundleName, daemonName);
+            break;
+        case DaemonOp::UNREGISTER:
+            result = UnregisterDaemon(bundleName, daemonName);
+            break;
+        case DaemonOp::START:
+            result = StartDaemon(bundleName, daemonName);
+            break;
+        case DaemonOp::STOP:
+            result = StopDaemon(bundleName, daemonName);
+            break;
+        default:
+            break;
+    }
     reply.WriteInt32(result);
     return NO_ERROR;
 }
