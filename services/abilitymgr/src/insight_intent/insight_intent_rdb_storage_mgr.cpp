@@ -46,6 +46,48 @@ std::vector<std::string> SplitStringBySlash(const std::string& inputStr)
     return result;
 }
 
+std::string InsightRdbStorageMgr::BuildIntentKey(const std::string &bundleName,
+    const std::string &moduleName, const std::string &intentName, int32_t userId,
+    uint32_t versionCode, int32_t appIndex, bool isDualMode)
+{
+    std::string key = std::to_string(userId).append("/").append(bundleName).append("/").append(moduleName)
+        .append("/").append(intentName).append("/").append(std::to_string(versionCode));
+    if (isDualMode) {
+        key.append("/").append(std::to_string(appIndex));
+    }
+    return key;
+}
+
+std::string InsightRdbStorageMgr::BuildBundlePrefix(int32_t userId, const std::string &bundleName,
+    int32_t appIndex, bool isDualMode)
+{
+    std::string prefix = std::to_string(userId).append("/").append(bundleName).append("/");
+    if (isDualMode) {
+        prefix.append(std::to_string(appIndex)).append("/");
+    }
+    return prefix;
+}
+
+void InsightRdbStorageMgr::FilterResultByKey(std::unordered_map<std::string, std::string> &value,
+    int32_t appIndex, bool isDualMode)
+{
+    for (auto it = value.begin(); it != value.end();) {
+        auto segments = SplitStringBySlash(it->first);
+        if (isDualMode) {
+            if (segments.size() != 6 || segments[5] != std::to_string(appIndex)) {
+                it = value.erase(it);
+                continue;
+            }
+        } else {
+            if (segments.size() != 5) {
+                it = value.erase(it);
+                continue;
+            }
+        }
+        ++it;
+    }
+}
+
 int32_t InsightRdbStorageMgr::LoadInsightIntentBundleInfos(const int32_t userId,
     std::map<std::string, std::string> &bundleVersionMap)
 {
@@ -107,42 +149,45 @@ int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfos(const int32_t userId,
 }
 
 int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
-    std::vector<InsightIntentInfo> &totalInfos)
+    std::vector<InsightIntentInfo> &totalInfos, int32_t appIndex, bool isDualMode)
 {
     TAG_LOGD(AAFwkTag::INTENT, "load intent total infos by bundleName, %{public}s", bundleName.c_str());
     std::unordered_map<std::string, std::string> value;
-    std::string key = std::to_string(userId).append("/").append(bundleName).append("/");
+    std::string key = BuildBundlePrefix(userId, bundleName, appIndex, isDualMode);
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
     if (!result) {
         TAG_LOGE(AAFwkTag::INTENT, "get entries error");
         return ERR_INVALID_VALUE;
     }
+    FilterResultByKey(value, appIndex, isDualMode);
     TransformConfigIntent(value, totalInfos);
     return ERR_OK;
 }
 
 int32_t InsightRdbStorageMgr::LoadInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
-    std::vector<ExtractInsightIntentInfo> &totalInfos)
+    std::vector<ExtractInsightIntentInfo> &totalInfos, int32_t appIndex, bool isDualMode)
 {
     TAG_LOGD(AAFwkTag::INTENT, "load intent total infos by bundleName, %{public}s", bundleName.c_str());
     std::unordered_map<std::string, std::string> value;
-    std::string key = std::to_string(userId).append("/").append(bundleName).append("/");
+    std::string key = BuildBundlePrefix(userId, bundleName, appIndex, isDualMode);
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
     if (!result) {
         TAG_LOGE(AAFwkTag::INTENT, "get entries error");
         return ERR_INVALID_VALUE;
     }
+    FilterResultByKey(value, appIndex, isDualMode);
     std::vector<InsightIntentInfo> configInfos;
     Transform(value, totalInfos, configInfos);
     return ERR_OK;
 }
 
 int32_t InsightRdbStorageMgr::LoadInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
-    const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &totalInfo)
+    const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &totalInfo,
+    int32_t appIndex, bool isDualMode)
 {
     TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load intent total info");
     std::unordered_map<std::string, std::string> value;
-    std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
+    std::string key = BuildBundlePrefix(userId, bundleName, appIndex, isDualMode)
         .append(moduleName).append("/").append(intentName).append("/");
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
     if (!result) {
@@ -151,6 +196,7 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfo(const std::string &bundleNam
     } else if (value.size() == 0) {
         return ERR_OK;
     }
+    FilterResultByKey(value, appIndex, isDualMode);
     ExtractInsightIntentProfileInfoVec profileInfos;
     //only one intent
     if (!ExtractInsightIntentProfile::TransformTo(value.begin()->second, profileInfos)) {
@@ -166,11 +212,12 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfo(const std::string &bundleNam
 }
 
 int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
-    const std::string &intentName, const int32_t userId, InsightIntentInfo &totalInfo)
+    const std::string &intentName, const int32_t userId, InsightIntentInfo &totalInfo,
+    int32_t appIndex, bool isDualMode)
 {
     TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load intent total info");
     std::unordered_map<std::string, std::string> value;
-    std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
+    std::string key = BuildBundlePrefix(userId, bundleName, appIndex, isDualMode)
         .append(moduleName).append("/").append(intentName).append("/");
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
     if (!result) {
@@ -179,6 +226,7 @@ int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfo(const std::string &bun
     } else if (value.size() == 0) {
         return ERR_OK;
     }
+    FilterResultByKey(value, appIndex, isDualMode);
     std::vector<InsightIntentInfo> configIntentInfos;
     //only one intent
     if (!InsightIntentProfile::TransformTo(value.begin()->second, configIntentInfos)) {
@@ -240,12 +288,12 @@ void InsightRdbStorageMgr::Transform(std::unordered_map<std::string, std::string
 
 int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bundleName, const std::string &moduleName,
     const int32_t userId, uint32_t versionCode, ExtractInsightIntentProfileInfoVec &profileInfos,
-    std::vector<InsightIntentInfo> &configInfos)
+    std::vector<InsightIntentInfo> &configInfos, int32_t appIndex, bool isDualMode)
 {
     std::vector<std::pair<std::string, std::string>> keyValues;
     for (auto profileInfo : profileInfos.insightIntents) {
-        std::string key = std::to_string(userId).append("/").append(bundleName).append("/").append(moduleName).
-            append("/").append(profileInfo.intentName).append("/").append(std::to_string(versionCode));
+        std::string key = BuildIntentKey(bundleName, moduleName, profileInfo.intentName, userId,
+            versionCode, appIndex, isDualMode);
         nlohmann::json jsonObject;
         if (!ExtractInsightIntentProfile::ToJson(profileInfo, jsonObject)) {
             TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{private}s", key.c_str());
@@ -259,8 +307,8 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bu
         keyValues.emplace_back(key, value);
     }
     for (auto configInfo : configInfos) {
-        std::string key = std::to_string(userId).append("/").append(bundleName).append("/").append(moduleName).
-            append("/").append(configInfo.intentName).append("/").append(std::to_string(versionCode));
+        std::string key = BuildIntentKey(bundleName, moduleName, configInfo.intentName, userId,
+            versionCode, appIndex, isDualMode);
         nlohmann::json jsonObject;
         configInfo.moduleName = moduleName;
         configInfo.bundleName = bundleName;
@@ -290,9 +338,8 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::strin
     std::vector<std::pair<std::string, std::string>> keyValues;
     for (const auto &saveParam : saveParams) {
         for (auto profileInfo : saveParam.profileInfos.insightIntents) {
-            std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
-                .append(saveParam.moduleName).append("/").append(profileInfo.intentName).append("/")
-                .append(std::to_string(versionCode));
+            std::string key = BuildIntentKey(bundleName, saveParam.moduleName, profileInfo.intentName,
+                userId, versionCode, saveParam.appIndex, saveParam.isDualMode);
             nlohmann::json jsonObject;
             if (!ExtractInsightIntentProfile::ToJson(profileInfo, jsonObject)) {
                 TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{private}s", key.c_str());
@@ -306,9 +353,8 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::strin
             keyValues.emplace_back(key, value);
         }
         for (auto configInfo : saveParam.configInfos) {
-            std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
-                .append(saveParam.moduleName).append("/").append(configInfo.intentName).append("/")
-                .append(std::to_string(versionCode));
+            std::string key = BuildIntentKey(bundleName, saveParam.moduleName, configInfo.intentName,
+                userId, versionCode, saveParam.appIndex, saveParam.isDualMode);
             nlohmann::json jsonObject;
             configInfo.moduleName = saveParam.moduleName;
             configInfo.bundleName = bundleName;
@@ -351,18 +397,17 @@ int32_t InsightRdbStorageMgr::DeleteStorageInsightIntentByUserId(const int32_t u
 }
 
 int32_t InsightRdbStorageMgr::DeleteStorageInsightIntentData(const std::string &bundleName,
-    const std::string &moduleName, const int32_t userId)
+    const std::string &moduleName, const int32_t userId, int32_t appIndex, bool isDualMode)
 {
     bool result;
     {
         std::string key;
         std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
         if (!moduleName.empty()) {
-            key = std::to_string(userId).append("/")
-                .append(bundleName).append("/").append(moduleName).append("/"); 
+            key = BuildBundlePrefix(userId, bundleName, appIndex, isDualMode)
+                .append(moduleName).append("/");
         } else {
-            key = std::to_string(userId).append("/")
-                .append(bundleName).append("/");
+            key = BuildBundlePrefix(userId, bundleName, appIndex, isDualMode);
         }
         result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->DeleteDataBeginWithKey(key);
     }
