@@ -133,7 +133,7 @@ int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfos(
 }
 
 int32_t  InsightRdbStorageMgr::LoadInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
-    std::vector<ExtractInsightIntentInfo> &totalInfos)
+    std::vector<ExtractInsightIntentInfo> &totalInfos, int32_t appIndex, bool isDualMode)
 {
     ExtractInsightIntentInfo totalInfo;
     totalInfo.genericInfo.bundleName = bundleName;
@@ -147,7 +147,8 @@ int32_t  InsightRdbStorageMgr::LoadInsightIntentInfoByName(const std::string &bu
 }
 
 int32_t  InsightRdbStorageMgr::LoadConfigInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
-    const std::string &intentName, const int32_t userId, InsightIntentInfo &totalInfo)
+    const std::string &intentName, const int32_t userId, InsightIntentInfo &totalInfo,
+    int32_t appIndex, bool isDualMode)
 {
     if (g_mockLoadConfigInsightIntentInfoRet) {
         totalInfo.bundleName = bundleName;
@@ -159,7 +160,8 @@ int32_t  InsightRdbStorageMgr::LoadConfigInsightIntentInfo(const std::string &bu
 }
 
 int32_t  InsightRdbStorageMgr::LoadInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
-    const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &totalInfo)
+    const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &totalInfo,
+    int32_t appIndex, bool isDualMode)
 {
     if (g_mockLoadInsightIntentInfoRet) {
         totalInfo.genericInfo.bundleName = bundleName;
@@ -172,7 +174,8 @@ int32_t  InsightRdbStorageMgr::LoadInsightIntentInfo(const std::string &bundleNa
 
 int32_t  InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bundleName,
     const std::string &moduleName, const int32_t userId, uint32_t versionCode,
-    ExtractInsightIntentProfileInfoVec &profileInfos, std::vector<InsightIntentInfo> &configInfos)
+    ExtractInsightIntentProfileInfoVec &profileInfos, std::vector<InsightIntentInfo> &configInfos,
+    int32_t appIndex, bool isDualMode)
 {
     if (g_mockSaveStorageInsightIntentDataRet) {
         return ERR_OK;
@@ -190,7 +193,7 @@ int32_t  InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::stri
 }
 
 int32_t  InsightRdbStorageMgr::DeleteStorageInsightIntentData(const std::string &bundleName,
-    const std::string &moduleName, const int32_t userId)
+    const std::string &moduleName, const int32_t userId, int32_t appIndex, bool isDualMode)
 {
     if (g_mockDeleteStorageInsightIntentDataRet) {
         return ERR_OK;
@@ -207,7 +210,7 @@ int32_t  InsightRdbStorageMgr::DeleteStorageInsightIntentByUserId(const int32_t 
 }
 
 int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfoByName(const std::string &bundleName,
-    const int32_t userId, std::vector<InsightIntentInfo> &infos)
+    const int32_t userId, std::vector<InsightIntentInfo> &infos, int32_t appIndex, bool isDualMode)
 {
     InsightIntentInfo info;
     info.intentName = "configIntent";
