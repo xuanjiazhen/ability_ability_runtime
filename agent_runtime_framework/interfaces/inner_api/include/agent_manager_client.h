@@ -20,8 +20,13 @@
 #include <vector>
 
 #include "iagent_manager.h"
+#include "launch_service_info.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+class ILaunchServiceObserver;
+}
+
 namespace AgentRuntime {
 using ClearProxyCallback = std::function<void(const wptr<IRemoteObject>&)>;
 
@@ -47,6 +52,13 @@ public:
     int32_t RegisterAgentCard(const AgentCard &card);
     int32_t UpdateAgentCard(const AgentCard &card);
     int32_t DeleteAgentCard(const std::string &bundleName, const std::string &agentId);
+    int32_t GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+        AbilityRuntime::LaunchServiceInformation &information);
+    int32_t GetAllLaunchServiceInformations(
+        std::vector<AbilityRuntime::LaunchServiceInformation> &informations);
+    int32_t RegisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer, int32_t &observerId);
+    int32_t UnregisterLaunchServiceObserver(int32_t observerId);
 
     int32_t ConnectAgentExtensionAbility(const AAFwk::Want &want,
         const sptr<AAFwk::IAbilityConnection> &connection);
