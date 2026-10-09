@@ -14,6 +14,7 @@
  */
 
 #include "ability_manager_service.h"
+#include "daemon/daemon_registry.h"
 
 #include <dlfcn.h>
 #include <sys/epoll.h>
@@ -28,6 +29,7 @@
 #include "ability_start_by_call_helper.h"
 #include "ability_start_with_wait_observer_utils.h"
 #include "ability_start_with_wait_observer_manager.h"
+#include "ability_util.h"
 #include "accesstoken_kit.h"
 #include "agent_card.h"
 #include "agent_extension_connection_constants.h"
@@ -85,6 +87,7 @@
 #include "keep_alive_process_manager.h"
 #include "keep_alive_utils.h"
 #include "main_element_utils.h"
+#include "parameters.h"
 #ifdef MEMMGR_OVERRIDE_ENABLE
 #include "mem_mgr_client.h"
 #include "mem_mgr_process_state_info.h"
@@ -19207,6 +19210,198 @@ int32_t AbilityManagerService::EnterKioskMode(sptr<IRemoteObject> callerToken, i
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "request EnterKioskMode");
     return KioskManager::GetInstance().EnterKioskMode(callerToken, kioskType);
+}
+
+int32_t AbilityManagerService::RegisterDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    if (bundleName.empty() || daemonName.empty()) {
+        return ERR_INVALID_VALUE;
+    }
+    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "register daemon permission denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "register daemon device not supported");
+        return ERR_DAEMON_DEVICE_NOT_SUPPORTED;
+    }
+    if (!IsCallerOwnsBundle(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "register daemon bundleName mismatch caller");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    auto approvalResult = ApproveDaemonRegistration(bundleName, daemonName);
+    if (approvalResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "register daemon approval rejected, result=%{public}d", approvalResult);
+        return approvalResult;
+    }
+
+    DaemonRecord record;
+    record.bundleName = bundleName;
+    record.daemonName = daemonName;
+    record.status = DaemonStatus::ENABLED;
+    auto result = DaemonRegistry::GetInstance().Register(record);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "register daemon finished, result=%{public}d", result);
+    return result;
+}
+
+int32_t AbilityManagerService::UnregisterDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    if (bundleName.empty() || daemonName.empty()) {
+        return ERR_INVALID_VALUE;
+    }
+    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "unregister daemon permission denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    int32_t pid = 0;
+    auto result = DaemonRegistry::GetInstance().Unregister(bundleName, daemonName, pid);
+    if (result == ERR_OK && pid > 0) {
+        (void)StopDaemonProcess(bundleName, daemonName, pid);
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "unregister daemon finished, result=%{public}d", result);
+    return result;
+}
+
+int32_t AbilityManagerService::StartDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    if (bundleName.empty() || daemonName.empty()) {
+        return ERR_INVALID_VALUE;
+    }
+    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon permission denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon device not supported");
+        return ERR_DAEMON_DEVICE_NOT_SUPPORTED;
+    }
+
+    DaemonRecord record;
+    auto registryResult = DaemonRegistry::GetInstance().GetStatus(bundleName, daemonName, record);
+    if (registryResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon not registered, result=%{public}d", registryResult);
+        return registryResult;
+    }
+    if (record.status != DaemonStatus::ENABLED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon disabled");
+        return ERR_DAEMON_DISABLED;
+    }
+    if (record.pid > 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "start daemon already running, pid=%{public}d", record.pid);
+        return ERR_OK;
+    }
+
+    int32_t pid = 0;
+    auto spawnResult = SpawnDaemonProcess(bundleName, daemonName, pid);
+    if (spawnResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon spawn failed, result=%{public}d", spawnResult);
+        return spawnResult;
+    }
+    DaemonRegistry::GetInstance().SetPid(bundleName, daemonName, pid);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start daemon finished, pid=%{public}d", pid);
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::StopDaemon(const std::string &bundleName, const std::string &daemonName)
+{
+    if (bundleName.empty() || daemonName.empty()) {
+        return ERR_INVALID_VALUE;
+    }
+    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon permission denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    DaemonRecord record;
+    auto registryResult = DaemonRegistry::GetInstance().GetStatus(bundleName, daemonName, record);
+    if (registryResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon not registered, result=%{public}d", registryResult);
+        return registryResult;
+    }
+    if (record.pid <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon not running");
+        return ERR_DAEMON_NOT_RUNNING;
+    }
+
+    auto stopResult = StopDaemonProcess(bundleName, daemonName, record.pid);
+    if (stopResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon failed, result=%{public}d", stopResult);
+        return stopResult;
+    }
+    DaemonRegistry::GetInstance().SetPid(bundleName, daemonName, 0);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "stop daemon finished");
+    return ERR_OK;
+}
+
+bool AbilityManagerService::IsDaemonDeviceSupported() const
+{
+    std::string deviceType = OHOS::system::GetDeviceType();
+    // FEAT-DAEMON: daemon management is scoped to PC's PC mode and tablet's PC mode.
+    // The runtime PC-mode state still needs a system-parameter gate; only the device
+    // type is checked here until the PC-mode parameter is frozen.
+    return deviceType == "2in1" || deviceType == "pc";
+}
+
+bool AbilityManagerService::IsCallerOwnsBundle(const std::string &bundleName) const
+{
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    std::string callerBundleName;
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    if (bms == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundle manager helper failed");
+        return false;
+    }
+    if (IN_PROCESS_CALL(bms->GetNameForUid(callerUid, callerBundleName)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get caller bundle name failed");
+        return false;
+    }
+    return callerBundleName == bundleName;
+}
+
+int32_t AbilityManagerService::ApproveDaemonRegistration(
+    const std::string &bundleName, const std::string &daemonName) const
+{
+    // FEAT-DAEMON-01: registration requires IAM administrator approval. The approval
+    // channel is not integrated yet; default to approved and return ERR_OK. Wire the
+    // IAM approval service here and return ERR_DAEMON_APPROVAL_REJECTED on rejection.
+    (void)bundleName;
+    (void)daemonName;
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::SpawnDaemonProcess(
+    const std::string &bundleName, const std::string &daemonName, int32_t &pid) const
+{
+    // FEAT-DAEMON-03: daemon processes are spawned through appspawn. The dedicated
+    // appspawn daemon spawn channel is not integrated yet; wire the spawn request here
+    // (via AppManagerService/AppSpawnClient) and report the resulting pid.
+    (void)bundleName;
+    (void)daemonName;
+    (void)pid;
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "daemon appspawn spawn channel not integrated");
+    return ERR_DAEMON_IPC_DEAD;
+}
+
+int32_t AbilityManagerService::StopDaemonProcess(
+    const std::string &bundleName, const std::string &daemonName, int32_t pid) const
+{
+    // FEAT-DAEMON-03: stop the daemon process identified by pid via appspawn.
+    // The kill channel is not integrated yet; wire it here once appspawn supports it.
+    (void)bundleName;
+    (void)daemonName;
+    (void)pid;
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "daemon appspawn stop channel not integrated");
+    return ERR_DAEMON_IPC_DEAD;
 }
 
 int32_t AbilityManagerService::ExitKioskMode(sptr<IRemoteObject> callerToken)
