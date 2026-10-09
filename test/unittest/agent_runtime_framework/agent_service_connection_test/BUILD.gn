@@ -44,6 +44,7 @@ ohos_unittest("agent_service_connection_test") {
     "${agent_runtime_framework_path}/services/agentmgr/src/agent_host_connection.cpp",
     "${agent_runtime_framework_path}/services/agentmgr/src/agent_manager_service.cpp",
     "${agent_runtime_framework_path}/services/agentmgr/src/agent_service_connection.cpp",
+    "${agent_runtime_framework_path}/services/agentmgr/src/launch_service_observer_manager.cpp",
     "${agent_runtime_framework_path}/services/common/src/agent_card_utils.cpp",
     "${agent_runtime_framework_path}/services/common/src/sem_ver.cpp",
     "${agent_runtime_framework_path}/services/common/src/agent_utils.cpp",

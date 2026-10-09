@@ -43,6 +43,7 @@
 #include "parameters.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
+#include "launch_service_observer_manager.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -67,6 +68,15 @@ bool IsLowCodeTargetMatched(const AAFwk::Want &want, const AgentCard &card)
 }
 
 constexpr char OHOS_AGENT_CLI_ENABLED[] = "const.product.ohos_agent_cli.enabled";
+constexpr char DEVICE_TYPE_PARAMETER[] = "const.product.devicetype";
+constexpr char PC_MODE_PARAMETER[] = "persist.sceneboard.ispcmode";
+
+bool IsLaunchServiceSupported()
+{
+    const std::string deviceType = system::GetParameter(DEVICE_TYPE_PARAMETER, "");
+    return deviceType == "2in1" ||
+        (deviceType == "tablet" && system::GetBoolParameter(PC_MODE_PARAMETER, false));
+}
 
 // ADR-5(revised): IsCliToolToken + CCM is a FEATURE GATE only ("is CLI-driven agent connect supported on
 // this device"), NOT a security bypass. The CLI tool process (TOKEN_SHELL) lacks app A's HAP identity,
@@ -217,6 +227,75 @@ int32_t AgentManagerService::GetAllAgentCards(AgentCardsRawData &cards)
         return ERR_PERMISSION_DENIED;
     }
     return AgentCardMgr::GetInstance().GetAllAgentCards(cards);
+}
+
+int32_t AgentManagerService::GetLaunchServiceInformation(
+    const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+    AbilityRuntime::LaunchServiceInformation &information)
+{
+    if (!IsLaunchServiceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_USE_DAEMON_SERVICE)) {
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!descriptor.IsValid()) {
+        return ERR_INVALID_VALUE;
+    }
+
+    // The registration feature will replace this fail-closed data-source boundary.
+    information = {};
+    return AbilityRuntime::ERR_LAUNCH_SERVICE_NOT_FOUND;
+}
+
+int32_t AgentManagerService::GetAllLaunchServiceInformations(
+    AbilityRuntime::LaunchServiceInformationsRawData &informations)
+{
+    if (!IsLaunchServiceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        return ERR_PERMISSION_DENIED;
+    }
+    return AbilityRuntime::LaunchServiceInformationsRawData::FromVector({}, informations) ? ERR_OK : ERR_INVALID_VALUE;
+}
+
+int32_t AgentManagerService::RegisterLaunchServiceObserver(
+    const sptr<IRemoteObject> &observer, int32_t &observerId)
+{
+    if (!IsLaunchServiceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        return ERR_PERMISSION_DENIED;
+    }
+    return LaunchServiceObserverManager::GetInstance().RegisterObserver(
+        observer, IPCSkeleton::GetCallingTokenID(), observerId);
+}
+
+int32_t AgentManagerService::UnregisterLaunchServiceObserver(int32_t observerId)
+{
+    if (!IsLaunchServiceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        return ERR_PERMISSION_DENIED;
+    }
+    return LaunchServiceObserverManager::GetInstance().UnregisterObserver(
+        observerId, IPCSkeleton::GetCallingTokenID());
 }
 
 int32_t AgentManagerService::GetAgentCardsByBundleName(const std::string &bundleName, AgentCardsRawData &cards)

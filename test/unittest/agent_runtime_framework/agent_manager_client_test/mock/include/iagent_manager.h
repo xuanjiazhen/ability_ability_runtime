@@ -21,6 +21,7 @@
 #include "agent_card.h"
 #include "iability_connection.h"
 #include "iremote_broker.h"
+#include "launch_service_info.h"
 #include "want.h"
 
 namespace OHOS {
@@ -60,6 +61,27 @@ public:
     }
 
     virtual int32_t DeleteAgentCard(const std::string &bundleName, const std::string &agentId)
+    {
+        return 0;
+    }
+
+    virtual int32_t GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+        AbilityRuntime::LaunchServiceInformation &information)
+    {
+        return 0;
+    }
+
+    virtual int32_t GetAllLaunchServiceInformations(AbilityRuntime::LaunchServiceInformationsRawData &rawData)
+    {
+        return 0;
+    }
+
+    virtual int32_t RegisterLaunchServiceObserver(const sptr<IRemoteObject> &observer, int32_t &observerId)
+    {
+        return 0;
+    }
+
+    virtual int32_t UnregisterLaunchServiceObserver(int32_t observerId)
     {
         return 0;
     }

@@ -18,6 +18,9 @@ sequenceable OHOS.AAFwk.Want;
 sequenceable OHOS.IRemoteObject;
 interface OHOS.AAFwk.IAbilityConnection;
 rawdata AgentCard..OHOS.AgentRuntime.AgentCardsRawData;
+sequenceable LaunchServiceDescriptor..OHOS.AbilityRuntime.LaunchServiceDescriptor;
+sequenceable LaunchServiceInformation..OHOS.AbilityRuntime.LaunchServiceInformation;
+rawdata LaunchServiceInformation..OHOS.AbilityRuntime.LaunchServiceInformationsRawData;
 interface OHOS.AgentRuntime.IAgentManager {
     void GetAllAgentCards([out] AgentCardsRawData cards);
     void GetAgentCardsByBundleName([in] String bundleName, [out] AgentCardsRawData cards);
@@ -42,4 +45,9 @@ interface OHOS.AgentRuntime.IAgentManager {
     void ConnectAgentExtensionAbilityForCli([in] Want want, [in] IAbilityConnection connect,
         [in] String callerIdentity);
     void DisconnectAgentExtensionAbilityForCli([in] IAbilityConnection connect, [in] String callerIdentity);
+    void GetLaunchServiceInformation([in] LaunchServiceDescriptor descriptor,
+        [out] LaunchServiceInformation information);
+    void GetAllLaunchServiceInformations([out] LaunchServiceInformationsRawData informations);
+    void RegisterLaunchServiceObserver([in] IRemoteObject observer, [out] int observerId);
+    void UnregisterLaunchServiceObserver([in] int observerId);
 }
