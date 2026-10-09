@@ -30,21 +30,64 @@
 #include "common_event_support.h"
 #include "app_utils.h"
 #include "ffrt.h"
+#include "global_constant.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+InsightIntentEventMgr::DualModeContext ResolveDualModeContext(
+    const std::string &bundleName, int32_t userId, int32_t appIndexFromEvent)
+{
+    InsightIntentEventMgr::DualModeContext ctx;
+    ctx.appIndex = appIndexFromEvent;
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "bundleMgrHelper null, fallback same-name-same-package");
+        return ctx;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_DEFAULT),
+        bundleInfo, userId));
+    if (ret == ERR_OK) {
+        auto policy = bundleInfo.deviceModeDistributionPolicy;
+        bool isDifferentPackage =
+            (policy == AppExecFwk::DeviceModeDistributionPolicy::UNIVERSAL_DIFFERENT_PACKAGE ||
+             policy == AppExecFwk::DeviceModeDistributionPolicy::PARTIAL_COMPATIBLE_DIFFERENT_PACKAGE ||
+             policy == AppExecFwk::DeviceModeDistributionPolicy::FULL_COMPATIBLE_DIFFERENT_PACKAGE);
+        if (isDifferentPackage) {
+            ctx.isDualMode = true;
+            ctx.appIndex = bundleInfo.appIndex;
+            TAG_LOGI(AAFwkTag::INTENT, "same-name-different-package app, bundle:%{public}s, "
+                "policy:%{public}d, appIndex:%{public}d",
+                bundleName.c_str(), static_cast<int32_t>(policy), bundleInfo.appIndex);
+        } else {
+            ctx.isDualMode = false;
+            ctx.appIndex = 0;
+            TAG_LOGI(AAFwkTag::INTENT, "same-name-same-package app, bundle:%{public}s, policy:%{public}d",
+                bundleName.c_str(), static_cast<int32_t>(policy));
+        }
+    } else {
+        TAG_LOGI(AAFwkTag::INTENT, "GetBundleInfoV9 failed, bundle:%{public}s, fallback by appIndex",
+            bundleName.c_str());
+    }
+    return ctx;
+}
+} // namespace
+
 void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName,
-    int32_t userId)
+    int32_t userId, const DualModeContext &ctx)
 {
     if (!DelayedSingleton<InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
-        bundleName, moduleName, userId)) {
+        bundleName, moduleName, userId, ctx.appIndex, ctx.isDualMode)) {
         return;
     }
     TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent", bundleName.c_str());
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->BackupRdb();
 }
 
-void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId)
+void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId,
+    int32_t appIndex)
 {
     auto bundleName = elementName.GetBundleName();
     auto moduleName = elementName.GetModuleNameRef();
@@ -56,22 +99,12 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
         TAG_LOGW(AAFwkTag::INTENT, "invalid userId: %{public}d", userId);
         return;
     }
-
     if (AAFwk::AppUtils::GetInstance().IsBopdOrRescueMode()) {
         TAG_LOGI(AAFwkTag::INTENT, "BOPD or rescue mode, skip package update: %{public}s", bundleName.c_str());
         return;
     }
-
-    ffrt::submit([moduleName, bundleName, userId] () {
-        ErrCode ret;
-        std::vector<std::string> moduleNameVec;
-        std::string profile;
-        AbilityRuntime::ExtractInsightIntentProfileInfoVec infos = {};
-        std::vector<InsightIntentInfo> configIntentInfos = {};
-        AbilityRuntime::ExtractInsightIntentProfileInfoVec allInfos = {};
-        std::vector<InsightIntentInfo> allConfigInfos = {};
-        std::vector<AbilityRuntime::InsightIntentSaveParam> saveParams;
-
+    auto ctx = ResolveDualModeContext(bundleName, userId, appIndex);
+    ffrt::submit([moduleName, bundleName, userId, ctx] () {
         auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
         if (bundleMgrHelper == nullptr) {
             TAG_LOGE(AAFwkTag::INTENT, "get bundleMgrHelper instance failed");
@@ -84,84 +117,111 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
             TAG_LOGE(AAFwkTag::INTENT, "get bundle info failed");
             return;
         }
-        OHOS::SplitStr(moduleName, ",", moduleNameVec);
-        for (std::string moduleNameLocal : moduleNameVec) { // Get json profile firstly
-            ret = IN_PROCESS_CALL(bundleMgrHelper->GetJsonProfile(AppExecFwk::INTENT_PROFILE,
-                bundleName, moduleNameLocal, profile, userId));
-            if (ret != ERR_OK) {
-                TAG_LOGI(AAFwkTag::INTENT, "get json failed code: %{public}d", ret);
-                DeleteInsightIntent(bundleName, moduleNameLocal, userId);
-                continue;
-            }
-
-            // Transform json string
-            bool isTransformExtractIntent = (!AbilityRuntime::ExtractInsightIntentProfile::TransformTo(
-                profile, infos) ||infos.insightIntents.size() == 0);
-            bool isTransformConfigIntent = (!AbilityRuntime::InsightIntentProfile::TransformTo(
-                profile, configIntentInfos) || configIntentInfos.size() == 0);
-            if (isTransformExtractIntent && isTransformConfigIntent) {
-                TAG_LOGW(AAFwkTag::INTENT, "transform profile failed, profile:%{public}s", profile.c_str());
-                DeleteInsightIntent(bundleName, moduleNameLocal, userId);
-                continue;
-            }
-
-            // force BMS bundleName/moduleName over the profile values so the function
-            // namespace matches the name UnregisterInsightIntentFunctions uses and the
-            // db cache erase-by-moduleName hits stale entries
-            for (auto &item : configIntentInfos) {
-                item.bundleName = bundleName;
-                item.moduleName = moduleNameLocal;
-            }
-            for (auto &item : infos.insightIntents) {
-                item.bundleName = bundleName;
-                item.moduleName = moduleNameLocal;
-            }
-            // collect module data for batch save
-            AbilityRuntime::InsightIntentSaveParam saveParam;
-            saveParam.moduleName = moduleNameLocal;
-            saveParam.profileInfos = infos;
-            saveParam.configInfos = configIntentInfos;
-            saveParams.emplace_back(std::move(saveParam));
-            for (const auto &item : infos.insightIntents) {
-                allInfos.insightIntents.push_back(item);
-            }
-            for (const auto &item : configIntentInfos) {
-                allConfigInfos.push_back(item);
-            }
-        }
+        ExtractInsightIntentProfileInfoVec allInfos = {};
+        std::vector<InsightIntentInfo> allConfigInfos = {};
+        std::vector<InsightIntentSaveParam> saveParams;
+        CollectModuleSaveParams(bundleName, moduleName, userId, ctx,
+            bundleMgrHelper, saveParams, allInfos, allConfigInfos);
         if (allInfos.insightIntents.empty() && allConfigInfos.empty()) {
-            TAG_LOGI(AAFwkTag::INTENT, "no intent in new version, clear stale functions, bundle:%{public}s",
-                bundleName.c_str());
-            bool unregistered = CliTool::UnregisterInsightIntentFunctions(bundleName, userId);
-            TAG_LOGI(AAFwkTag::INTENT, "unregister done, bundle:%{public}s, success:%{public}d",
-                bundleName.c_str(), unregistered);
-            DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
+            ClearStaleIntentFunctions(bundleName, userId);
             return;
         }
-        // save database in one batch
+        for (auto &sp : saveParams) {
+            sp.appIndex = ctx.appIndex;
+            sp.isDualMode = ctx.isDualMode;
+        }
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveBatchInsightIntentTotalInfo(
             bundleName, userId, bundleInfo.versionCode, saveParams);
-        TAG_LOGI(AAFwkTag::INTENT, "collected intents for batch update, profile:%{public}zu config:%{public}zu, "
-            "bundle:%{public}s", allInfos.insightIntents.size(), allConfigInfos.size(), bundleName.c_str());
-        std::vector<AbilityRuntime::ExtractInsightIntentInfo> genericInfos;
-        for (const auto &profileInfo : allInfos.insightIntents) {
-            AbilityRuntime::ExtractInsightIntentInfo generic;
-            if (AbilityRuntime::ExtractInsightIntentProfile::ProfileInfoFormat(profileInfo, generic)) {
-                genericInfos.push_back(std::move(generic));
-            }
-        }
-        CliTool::IntentFilterUtil intentFilter;
-        TAG_LOGI(AAFwkTag::INTENT, "before filter, generic:%{public}zu config:%{public}zu",
-            genericInfos.size(), allConfigInfos.size());
-        intentFilter.FilterGeneric(genericInfos);
-        intentFilter.FilterConfig(allConfigInfos);
-        TAG_LOGI(AAFwkTag::INTENT, "after filter, generic:%{public}zu config:%{public}zu, bundle:%{public}s",
-            genericInfos.size(), allConfigInfos.size(), bundleName.c_str());
-        CliTool::BatchUpdateInsightIntentFunctions(
-            genericInfos, allConfigInfos, bundleName, bundleInfo.versionCode, userId);
-        TAG_LOGI(AAFwkTag::INTENT, "batch update request done, bundle:%{public}s", bundleName.c_str());
-        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
+        FilterAndRegisterIntentFunctions(bundleName, userId, bundleInfo.versionCode, allInfos, allConfigInfos);
     });
+}
+
+void InsightIntentEventMgr::CollectModuleSaveParams(const std::string &bundleName,
+    const std::string &moduleName, int32_t userId, const DualModeContext &ctx,
+    const std::shared_ptr<AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+    std::vector<InsightIntentSaveParam> &saveParams,
+    ExtractInsightIntentProfileInfoVec &allInfos,
+    std::vector<InsightIntentInfo> &allConfigInfos)
+{
+    std::vector<std::string> moduleNameVec;
+    OHOS::SplitStr(moduleName, ",", moduleNameVec);
+    for (std::string moduleNameLocal : moduleNameVec) {
+        std::string profile;
+        ErrCode ret = IN_PROCESS_CALL(bundleMgrHelper->GetJsonProfile(AppExecFwk::INTENT_PROFILE,
+            bundleName, moduleNameLocal, profile, userId));
+        if (ret != ERR_OK) {
+            TAG_LOGI(AAFwkTag::INTENT, "get json failed code: %{public}d", ret);
+            DeleteInsightIntent(bundleName, moduleNameLocal, userId, ctx);
+            continue;
+        }
+        ExtractInsightIntentProfileInfoVec infos = {};
+        std::vector<InsightIntentInfo> configIntentInfos = {};
+        bool isTransformExtractIntent = (!AbilityRuntime::ExtractInsightIntentProfile::TransformTo(
+            profile, infos) || infos.insightIntents.size() == 0);
+        bool isTransformConfigIntent = (!AbilityRuntime::InsightIntentProfile::TransformTo(
+            profile, configIntentInfos) || configIntentInfos.size() == 0);
+        if (isTransformExtractIntent && isTransformConfigIntent) {
+            TAG_LOGW(AAFwkTag::INTENT, "transform profile failed, profile:%{public}s", profile.c_str());
+            DeleteInsightIntent(bundleName, moduleNameLocal, userId, ctx);
+            continue;
+        }
+        for (auto &item : configIntentInfos) {
+            item.bundleName = bundleName;
+            item.moduleName = moduleNameLocal;
+        }
+        for (auto &item : infos.insightIntents) {
+            item.bundleName = bundleName;
+            item.moduleName = moduleNameLocal;
+        }
+        InsightIntentSaveParam saveParam;
+        saveParam.moduleName = moduleNameLocal;
+        saveParam.profileInfos = infos;
+        saveParam.configInfos = configIntentInfos;
+        saveParams.emplace_back(std::move(saveParam));
+        for (const auto &item : infos.insightIntents) {
+            allInfos.insightIntents.push_back(item);
+        }
+        for (const auto &item : configIntentInfos) {
+            allConfigInfos.push_back(item);
+        }
+    }
+}
+
+void InsightIntentEventMgr::ClearStaleIntentFunctions(const std::string &bundleName, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "no intent in new version, clear stale functions, bundle:%{public}s",
+        bundleName.c_str());
+    bool unregistered = CliTool::UnregisterInsightIntentFunctions(bundleName, userId);
+    TAG_LOGI(AAFwkTag::INTENT, "unregister done, bundle:%{public}s, success:%{public}d",
+        bundleName.c_str(), unregistered);
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
+}
+
+void InsightIntentEventMgr::FilterAndRegisterIntentFunctions(const std::string &bundleName,
+    int32_t userId, uint32_t versionCode,
+    const ExtractInsightIntentProfileInfoVec &allInfos,
+    std::vector<InsightIntentInfo> &allConfigInfos)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "collected intents for batch update, profile:%{public}zu config:%{public}zu, "
+        "bundle:%{public}s", allInfos.insightIntents.size(), allConfigInfos.size(), bundleName.c_str());
+    std::vector<AbilityRuntime::ExtractInsightIntentInfo> genericInfos;
+    for (const auto &profileInfo : allInfos.insightIntents) {
+        AbilityRuntime::ExtractInsightIntentInfo generic;
+        if (AbilityRuntime::ExtractInsightIntentProfile::ProfileInfoFormat(profileInfo, generic)) {
+            genericInfos.push_back(std::move(generic));
+        }
+    }
+    CliTool::IntentFilterUtil intentFilter;
+    TAG_LOGI(AAFwkTag::INTENT, "before filter, generic:%{public}zu config:%{public}zu",
+        genericInfos.size(), allConfigInfos.size());
+    intentFilter.FilterGeneric(genericInfos);
+    intentFilter.FilterConfig(allConfigInfos);
+    TAG_LOGI(AAFwkTag::INTENT, "after filter, generic:%{public}zu config:%{public}zu, bundle:%{public}s",
+        genericInfos.size(), allConfigInfos.size(), bundleName.c_str());
+    CliTool::BatchUpdateInsightIntentFunctions(
+        genericInfos, allConfigInfos, bundleName, versionCode, userId);
+    TAG_LOGI(AAFwkTag::INTENT, "batch update request done, bundle:%{public}s", bundleName.c_str());
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
 }
 
 void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId,
@@ -175,11 +235,23 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
 
-    if (appIndex > 0) {
-        TAG_LOGI(AAFwkTag::INTENT, "this application is a simulation, not support to delete intent info, "
+    auto ctx = ResolveDualModeContext(bundleName, userId, appIndex);
+    // 卸载场景兜底：GetBundleInfoV9 可能因应用已卸载而失败，按 appIndex 兜底判断同名不同包
+    if (!ctx.isDualMode && appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
+        ctx.isDualMode = true;
+        ctx.appIndex = appIndex;
+        TAG_LOGI(AAFwkTag::INTENT, "fallback same-name-different-package by appIndex, "
+            "bundle:%{public}s, appIndex:%{public}d", bundleName.c_str(), appIndex);
+    }
+
+    // 同名同包应用且 appIndex>0：维持原有跳过行为（克隆/DLP/AI Agent 索引）
+    if (!ctx.isDualMode && appIndex > 0) {
+        TAG_LOGI(AAFwkTag::INTENT, "same-name-same-package app with appIndex>0 (clone/dlp), skip delete, "
             "bundleName: %{public}s, appIndex: %{public}d", bundleName.c_str(), appIndex);
         return;
     }
+    // 双模式应用：无论主模式(0)还是副模式(10000)都执行删除
+    // 非双模式应用且 appIndex==0：原有逻辑执行删除
 
     if (userId < 0) {
         TAG_LOGI(AAFwkTag::INTENT, "invalid userId: %{public}d", userId);
@@ -191,9 +263,10 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
 
-    ffrt::submit([bundleName, moduleName, userId]() {
+    ffrt::submit([bundleName, moduleName, userId, ctx]() {
         auto dbCache = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance();
-        if (!dbCache->DeleteInsightIntentTotalInfo(bundleName, moduleName, userId)) {
+        if (!dbCache->DeleteInsightIntentTotalInfo(
+            bundleName, moduleName, userId, ctx.appIndex, ctx.isDualMode)) {
             return;
         }
         dbCache->BackupRdb();

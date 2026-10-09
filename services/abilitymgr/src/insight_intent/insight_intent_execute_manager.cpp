@@ -144,7 +144,7 @@ InsightIntentExecuteManager::~InsightIntentExecuteManager() = default;
 int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, std::string callerBundleName,
     const bool ignoreAbilityName, bool isDistributed, const std::string &srcDeviceId, uint64_t requestCode,
-    uint64_t specifiedFullTokenId)
+    uint64_t specifiedFullTokenId, int32_t appIndex, bool isDualMode)
 {
     std::string targetBundleName = (param != nullptr) ? param->bundleName_ : "";
     int32_t result = CheckCallerPermission(specifiedFullTokenId, callerBundleName, targetBundleName);
@@ -173,6 +173,11 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     }
 
     param->insightIntentId_ = intentId;
+    auto recordIter = records_.find(intentId);
+    if (recordIter != records_.end() && recordIter->second != nullptr) {
+        recordIter->second->appIndex = appIndex;
+        recordIter->second->isDualMode = isDualMode;
+    }
     return ERR_OK;
 }
 
@@ -912,7 +917,7 @@ void InsightIntentExecuteManager::HandleDiedRecordsCleanup(const std::vector<uin
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateQueryEntityParam(uint64_t key,
     const sptr<IRemoteObject> &callerToken, std::shared_ptr<AppExecFwk::InsightIntentQueryParam> &param,
-    const std::string& callerBundleName)
+    const std::string& callerBundleName, int32_t appIndex, bool isDualMode)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
     int32_t result = CheckCallerPermission();
@@ -1036,34 +1041,44 @@ int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
     }
     want.SetElementName("", param->bundleName_, abilityName, param->moduleName_);
 
-    WantParams wantParams;
-    sptr<AAFwk::IWantParams> pExecuteParams = WantParamWrapper::Box(wantParams);
-    if (pExecuteParams != nullptr) {
-        wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
-    }
-    if (param->queryEntityParam_.parameters_ != nullptr) {
-        sptr<AAFwk::IWantParams> pQueryEntityParams = WantParamWrapper::Box(*param->queryEntityParam_.parameters_);
-        wantParams.SetParam(INSIGHT_INTENT_QUERY_ENTITY_PARAM_PARAM, pQueryEntityParams);
-    }
-    want.SetParams(wantParams);
-
+    BuildQueryEntityWantParams(want, *param);
     intentInfo.decoratorFile = entity->decoratorFile;
     TAG_LOGD(AAFwkTag::INTENT, "intentId %{public}" PRIu64 ", arkTSMode is %{public}s, srcEntry is %{public}s,"
         "intentName is %{public}s, className is %{public}s, queryType is %{public}s", param->intentId_,
         intentInfo.arkTSMode.c_str(), intentInfo.decoratorFile.c_str(), param->intentName_.c_str(),
         param->className_.c_str(), param->queryEntityParam_.queryType_.c_str());
+    SetQueryEntityWantExtras(want, *param, intentInfo);
+    return ERR_OK;
+}
 
+void InsightIntentExecuteManager::BuildQueryEntityWantParams(Want &want,
+    const AppExecFwk::InsightIntentQueryParam &param)
+{
+    WantParams wantParams;
+    sptr<AAFwk::IWantParams> pExecuteParams = WantParamWrapper::Box(wantParams);
+    if (pExecuteParams != nullptr) {
+        wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
+    }
+    if (param.queryEntityParam_.parameters_ != nullptr) {
+        sptr<AAFwk::IWantParams> pQueryEntityParams = WantParamWrapper::Box(*param.queryEntityParam_.parameters_);
+        wantParams.SetParam(INSIGHT_INTENT_QUERY_ENTITY_PARAM_PARAM, pQueryEntityParams);
+    }
+    want.SetParams(wantParams);
+}
+
+void InsightIntentExecuteManager::SetQueryEntityWantExtras(Want &want,
+    const AppExecFwk::InsightIntentQueryParam &param,
+    const AbilityRuntime::ExtractInsightIntentInfo &intentInfo)
+{
     want.SetParam(INSIGHT_INTENT_ARKTS_MODE, intentInfo.arkTSMode);
     want.SetParam(INSIGHT_INTENT_SRC_ENTRANCE, intentInfo.decoratorFile);
-    want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME, param->intentName_);
+    want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME, param.intentName_);
     want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_MODE,
         static_cast<int32_t>(AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND));
-    want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(param->intentId_));
+    want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(param.intentId_));
     want.SetParam(INSIGHT_INTENT_DECORATOR_TYPE, static_cast<int>(InsightIntentType::DECOR_QUERY_ENTITY));
-
-    want.SetParam(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME, param->className_);
-    want.SetParam(INSIGHT_INTENT_QUERY_TYPE, param->queryEntityParam_.queryType_);
-    return ERR_OK;
+    want.SetParam(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME, param.className_);
+    want.SetParam(INSIGHT_INTENT_QUERY_TYPE, param.queryEntityParam_.queryType_);
 }
 } // namespace AAFwk
 } // namespace OHOS
