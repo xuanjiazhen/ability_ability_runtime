@@ -215,6 +215,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
         if (UpdateEntryDecoratorParams(want, executeMode, userId) != ERR_OK) {
             return ERR_INVALID_VALUE;
         }
+        srcEntry = want.GetStringParam(INSIGHT_INTENT_SRC_ENTRANCE);
     }
 
     want.SetParam(INSIGHT_INTENT_SRC_ENTRY, srcEntry);
