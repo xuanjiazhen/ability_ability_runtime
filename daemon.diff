@@ -1,0 +1,1687 @@
+diff --git a/frameworks/ets/ani/BUILD.gn b/frameworks/ets/ani/BUILD.gn
+index 1521677220..a9591e7410 100644
+--- a/frameworks/ets/ani/BUILD.gn
++++ b/frameworks/ets/ani/BUILD.gn
+@@ -48,6 +48,7 @@ group("ani_packages") {
+     "${ability_runtime_path}/frameworks/ets/ani/caller_complex:caller_complex_ani",
+     "${ability_runtime_path}/frameworks/ets/ani/child_process_manager:ability_child_process_manager_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/dialog_session:dialog_session_ani_kit",
++    "${ability_runtime_path}/frameworks/ets/ani/daemon_service_manager:daemon_service_manager_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/embedded_ui_extension_ability:embedded_ui_extension_ani",
+     "${ability_runtime_path}/frameworks/ets/ani/ets_dialog_request:dialogrequest_ani_kit",
+     "${ability_runtime_path}/frameworks/ets/ani/event_hub:event_hub_ani_kit",
+diff --git a/frameworks/ets/ani/daemon_service_manager/BUILD.gn b/frameworks/ets/ani/daemon_service_manager/BUILD.gn
+new file mode 100644
+index 0000000000..03bd51fe39
+--- /dev/null
++++ b/frameworks/ets/ani/daemon_service_manager/BUILD.gn
+@@ -0,0 +1,51 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++import("//build/ohos.gni")
++import("//foundation/ability/ability_runtime/ability_runtime.gni")
++
++ohos_shared_library("daemon_service_manager_ani_kit") {
++  branch_protector_ret = "pac_ret"
++  shlib_type = "ani"
++  sanitize = {
++    cfi = true
++    cfi_cross_dso = true
++    cfi_vcall_icall_only = true
++    cfi_policy = "adaptive"
++    debug = false
++  }
++
++  include_dirs = [
++    "./include",
++    "${ability_runtime_services_path}/common/include",
++  ]
++  sources = [ "./src/ets_daemon_service_manager.cpp" ]
++  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
++
++  deps = [
++    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
++    "${ability_runtime_innerkits_path}/runtime:runtime",
++    "${ability_runtime_native_path}/ability/native:ability_business_error",
++    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
++  ]
++  external_deps = [
++    "c_utils:utils",
++    "hilog:libhilog",
++    "ipc:ipc_core",
++    "runtime_core:ani",
++  ]
++
++  innerapi_tags = [ "platformsdk" ]
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++}
+diff --git a/frameworks/ets/ani/daemon_service_manager/include/ets_daemon_service_manager.h b/frameworks/ets/ani/daemon_service_manager/include/ets_daemon_service_manager.h
+new file mode 100644
+index 0000000000..1561b5d2b5
+--- /dev/null
++++ b/frameworks/ets/ani/daemon_service_manager/include/ets_daemon_service_manager.h
+@@ -0,0 +1,27 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_ETS_DAEMON_SERVICE_MANAGER_H
++#define OHOS_ABILITY_RUNTIME_ETS_DAEMON_SERVICE_MANAGER_H
++
++#include "ani.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++void EtsDaemonServiceManagerInit(ani_env *env);
++} // namespace AbilityRuntime
++} // namespace OHOS
++
++#endif // OHOS_ABILITY_RUNTIME_ETS_DAEMON_SERVICE_MANAGER_H
+diff --git a/frameworks/ets/ani/daemon_service_manager/src/ets_daemon_service_manager.cpp b/frameworks/ets/ani/daemon_service_manager/src/ets_daemon_service_manager.cpp
+new file mode 100644
+index 0000000000..cf4edce4fc
+--- /dev/null
++++ b/frameworks/ets/ani/daemon_service_manager/src/ets_daemon_service_manager.cpp
+@@ -0,0 +1,183 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "ets_daemon_service_manager.h"
++
++#include <array>
++#include <functional>
++#include <memory>
++
++#include "ability_business_error.h"
++#include "ability_manager_client.h"
++#include "ability_manager_errors.h"
++#include "ani_common_util.h"
++#include "daemon_service_errors.h"
++#include "errors.h"
++#include "ets_error_utils.h"
++#include "hilog_tag_wrapper.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++namespace {
++constexpr const char *DAEMON_MANAGER_NAMESPACE = "@ohos.daemonServiceManager.daemonServiceManager";
++constexpr const char *DAEMON_CALL_SIGNATURE =
++    "C{std.core.String}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
++constexpr int32_t EXTERNAL_PERMISSION_DENIED = 201;
++constexpr int32_t EXTERNAL_INVALID_PARAMETER = 401;
++constexpr int32_t EXTERNAL_INNER_ERROR = 16000050;
++
++int32_t ToExternalError(int32_t result)
++{
++    if (result == AAFwk::CHECK_PERMISSION_FAILED) {
++        return EXTERNAL_PERMISSION_DENIED;
++    }
++    if (result == ERR_INVALID_VALUE) {
++        return EXTERNAL_INVALID_PARAMETER;
++    }
++    if (result == AAFwk::ERR_DAEMON_ALREADY_REGISTERED || result == AAFwk::ERR_DAEMON_APPROVAL_REJECTED ||
++        result == AAFwk::ERR_DAEMON_NOT_REGISTERED || result == AAFwk::ERR_DAEMON_DISABLED ||
++        result == AAFwk::ERR_DAEMON_NOT_RUNNING || result == AAFwk::ERR_DAEMON_DEVICE_NOT_SUPPORTED ||
++        result == AAFwk::ERR_DAEMON_IPC_DEAD || result == AAFwk::ERR_DAEMON_STORAGE_FAILED) {
++        return result;
++    }
++    return result == ERR_OK ? ERR_OK : EXTERNAL_INNER_ERROR;
++}
++
++std::string GetDaemonErrorMessage(int32_t result)
++{
++    switch (result) {
++        case EXTERNAL_PERMISSION_DENIED:
++            return "Permission denied.";
++        case EXTERNAL_INVALID_PARAMETER:
++            return "Parameter error.";
++        case AAFwk::ERR_DAEMON_ALREADY_REGISTERED:
++            return "Daemon is already registered.";
++        case AAFwk::ERR_DAEMON_APPROVAL_REJECTED:
++            return "Daemon registration was rejected by the administrator.";
++        case AAFwk::ERR_DAEMON_NOT_REGISTERED:
++            return "Daemon is not registered.";
++        case AAFwk::ERR_DAEMON_DISABLED:
++            return "Daemon is disabled.";
++        case AAFwk::ERR_DAEMON_NOT_RUNNING:
++            return "Daemon is not running.";
++        case AAFwk::ERR_DAEMON_DEVICE_NOT_SUPPORTED:
++            return "Device does not support daemon service.";
++        case AAFwk::ERR_DAEMON_STORAGE_FAILED:
++            return "Failed to persist daemon state.";
++        case AAFwk::ERR_DAEMON_IPC_DEAD:
++            return "Daemon service is unavailable.";
++        default:
++            return "Internal error.";
++    }
++}
++
++using DaemonClientCall = std::function<int32_t(const std::shared_ptr<AAFwk::AbilityManagerClient> &,
++    const std::string &, const std::string &)>;
++
++void InvokeDaemonCall(ani_env *env, ani_string aniBundleName, ani_string aniDaemonName,
++    ani_object callback, const DaemonClientCall &call)
++{
++    if (env == nullptr) {
++        return;
++    }
++    std::string bundleName;
++    std::string daemonName;
++    if (!AppExecFwk::GetStdString(env, aniBundleName, bundleName) || bundleName.empty() ||
++        !AppExecFwk::GetStdString(env, aniDaemonName, daemonName) || daemonName.empty()) {
++        AppExecFwk::AsyncCallback(env, callback,
++            EtsErrorUtil::CreateError(env, EXTERNAL_INVALID_PARAMETER, "Names must be non-empty strings."), nullptr);
++        return;
++    }
++
++    int32_t result = EXTERNAL_INNER_ERROR;
++    auto client = AAFwk::AbilityManagerClient::GetInstance();
++    if (client != nullptr) {
++        result = call(client, bundleName, daemonName);
++    }
++    int32_t externalCode = ToExternalError(result);
++    if (externalCode != ERR_OK) {
++        AppExecFwk::AsyncCallback(env, callback,
++            EtsErrorUtil::CreateError(env, externalCode, GetDaemonErrorMessage(externalCode)), nullptr);
++        return;
++    }
++    AppExecFwk::AsyncCallback(env, callback, nullptr, nullptr);
++}
++
++void RegisterDaemon(ani_env *env, ani_string aniBundleName, ani_string aniDaemonName, ani_object callback)
++{
++    InvokeDaemonCall(env, aniBundleName, aniDaemonName, callback,
++        [](const std::shared_ptr<AAFwk::AbilityManagerClient> &client, const std::string &bundleName,
++            const std::string &daemonName) { return client->RegisterDaemon(bundleName, daemonName); });
++}
++
++void UnregisterDaemon(ani_env *env, ani_string aniBundleName, ani_string aniDaemonName, ani_object callback)
++{
++    InvokeDaemonCall(env, aniBundleName, aniDaemonName, callback,
++        [](const std::shared_ptr<AAFwk::AbilityManagerClient> &client, const std::string &bundleName,
++            const std::string &daemonName) { return client->UnregisterDaemon(bundleName, daemonName); });
++}
++
++void StartDaemon(ani_env *env, ani_string aniBundleName, ani_string aniDaemonName, ani_object callback)
++{
++    InvokeDaemonCall(env, aniBundleName, aniDaemonName, callback,
++        [](const std::shared_ptr<AAFwk::AbilityManagerClient> &client, const std::string &bundleName,
++            const std::string &daemonName) { return client->StartDaemon(bundleName, daemonName); });
++}
++
++void StopDaemon(ani_env *env, ani_string aniBundleName, ani_string aniDaemonName, ani_object callback)
++{
++    InvokeDaemonCall(env, aniBundleName, aniDaemonName, callback,
++        [](const std::shared_ptr<AAFwk::AbilityManagerClient> &client, const std::string &bundleName,
++            const std::string &daemonName) { return client->StopDaemon(bundleName, daemonName); });
++}
++} // namespace
++
++void EtsDaemonServiceManagerInit(ani_env *env)
++{
++    ani_namespace ns = nullptr;
++    if (env == nullptr || env->FindNamespace(DAEMON_MANAGER_NAMESPACE, &ns) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "find daemon service manager namespace failed");
++        return;
++    }
++    std::array methods = {
++        ani_native_function { "nativeRegisterDaemon", DAEMON_CALL_SIGNATURE,
++            reinterpret_cast<void *>(RegisterDaemon) },
++        ani_native_function { "nativeUnregisterDaemon", DAEMON_CALL_SIGNATURE,
++            reinterpret_cast<void *>(UnregisterDaemon) },
++        ani_native_function { "nativeStartDaemon", DAEMON_CALL_SIGNATURE,
++            reinterpret_cast<void *>(StartDaemon) },
++        ani_native_function { "nativeStopDaemon", DAEMON_CALL_SIGNATURE,
++            reinterpret_cast<void *>(StopDaemon) },
++    };
++    if (env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size()) != ANI_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "bind daemon service manager methods failed");
++    }
++}
++
++extern "C" ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
++{
++    if (vm == nullptr || result == nullptr) {
++        return ANI_INVALID_ARGS;
++    }
++    ani_env *env = nullptr;
++    if (vm->GetEnv(ANI_VERSION_1, &env) != ANI_OK || env == nullptr) {
++        return ANI_NOT_FOUND;
++    }
++    EtsDaemonServiceManagerInit(env);
++    *result = ANI_VERSION_1;
++    return ANI_OK;
++}
++} // namespace AbilityRuntime
++} // namespace OHOS
+diff --git a/frameworks/ets/ets/@ohos.daemonServiceManager.ets b/frameworks/ets/ets/@ohos.daemonServiceManager.ets
+new file mode 100644
+index 0000000000..5417d3c5db
+--- /dev/null
++++ b/frameworks/ets/ets/@ohos.daemonServiceManager.ets
+@@ -0,0 +1,125 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import { BusinessError } from '@ohos.base';
++import AsyncCallbackWrapper from './utils/AbilityUtils';
++
++export default namespace daemonServiceManager {
++  loadLibrary('daemon_service_manager_ani_kit.z')
++
++  export native function nativeRegisterDaemon(bundleName: string, daemonName: string,
++    callback: AsyncCallbackWrapper<void>): void;
++
++  export native function nativeUnregisterDaemon(bundleName: string, daemonName: string,
++    callback: AsyncCallbackWrapper<void>): void;
++
++  export native function nativeStartDaemon(bundleName: string, daemonName: string,
++    callback: AsyncCallbackWrapper<void>): void;
++
++  export native function nativeStopDaemon(bundleName: string, daemonName: string,
++    callback: AsyncCallbackWrapper<void>): void;
++
++  /**
++   * Registers a daemon declared in module.json5 daemonServices.
++   *
++   * @permission ohos.permission.MANAGE_DAEMON_SERVICE
++   */
++  export function register(bundleName: string, daemonName: string): Promise<void> {
++    return new Promise<void>((resolve: (data: undefined) => void,
++      reject: (err: BusinessError) => void): void => {
++      let callback = new AsyncCallbackWrapper<void>((err: BusinessError | null): void => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        daemonServiceManager.nativeRegisterDaemon(bundleName, daemonName, callback);
++      }).catch((err: Error): void => {
++        reject(err as BusinessError);
++      });
++    });
++  }
++
++  /**
++   * Unregisters a previously registered daemon.
++   *
++   * @permission ohos.permission.MANAGE_DAEMON_SERVICE
++   */
++  export function unregister(bundleName: string, daemonName: string): Promise<void> {
++    return new Promise<void>((resolve: (data: undefined) => void,
++      reject: (err: BusinessError) => void): void => {
++      let callback = new AsyncCallbackWrapper<void>((err: BusinessError | null): void => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        daemonServiceManager.nativeUnregisterDaemon(bundleName, daemonName, callback);
++      }).catch((err: Error): void => {
++        reject(err as BusinessError);
++      });
++    });
++  }
++
++  /**
++   * Starts a registered and enabled daemon process.
++   *
++   * @permission ohos.permission.MANAGE_DAEMON_SERVICE
++   */
++  export function start(bundleName: string, daemonName: string): Promise<void> {
++    return new Promise<void>((resolve: (data: undefined) => void,
++      reject: (err: BusinessError) => void): void => {
++      let callback = new AsyncCallbackWrapper<void>((err: BusinessError | null): void => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        daemonServiceManager.nativeStartDaemon(bundleName, daemonName, callback);
++      }).catch((err: Error): void => {
++        reject(err as BusinessError);
++      });
++    });
++  }
++
++  /**
++   * Stops a running daemon process.
++   *
++   * @permission ohos.permission.MANAGE_DAEMON_SERVICE
++   */
++  export function stop(bundleName: string, daemonName: string): Promise<void> {
++    return new Promise<void>((resolve: (data: undefined) => void,
++      reject: (err: BusinessError) => void): void => {
++      let callback = new AsyncCallbackWrapper<void>((err: BusinessError | null): void => {
++        if (err == null || err.code == 0) {
++          resolve(undefined);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        daemonServiceManager.nativeStopDaemon(bundleName, daemonName, callback);
++      }).catch((err: Error): void => {
++        reject(err as BusinessError);
++      });
++    });
++  }
++}
+diff --git a/frameworks/ets/ets/BUILD.gn b/frameworks/ets/ets/BUILD.gn
+index 535b015af6..0b2379581e 100644
+--- a/frameworks/ets/ets/BUILD.gn
++++ b/frameworks/ets/ets/BUILD.gn
+@@ -2089,6 +2089,22 @@ generate_static_abc("ability_runtime_kiosk_manager_abc") {
+   device_dst_file = "/system/framework/ability_runtime_kiosk_manager_abc.abc"
+ }
+ 
++generate_static_abc("ability_runtime_daemon_service_manager_abc") {
++  base_url = "./"
++  files = [ "./@ohos.daemonServiceManager.ets" ]
++  is_boot_abc = "True"
++  device_dst_file =
++      "/system/framework/ability_runtime_daemon_service_manager_abc.abc"
++}
++
++ohos_prebuilt_etc("ability_runtime_daemon_service_manager_abc_etc") {
++  source = "$target_out_dir/ability_runtime_daemon_service_manager_abc.abc"
++  module_install_dir = "framework"
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++  deps = [ ":ability_runtime_daemon_service_manager_abc" ]
++}
++
+ ohos_prebuilt_etc("ability_runtime_kiosk_manager_abc_etc") {
+   source = "$target_out_dir/ability_runtime_kiosk_manager_abc.abc"
+   module_install_dir = "framework"
+@@ -2223,6 +2239,7 @@ group("ets_packages") {
+     ":ability_runtime_custom_data_abc_etc",
+     ":ability_runtime_data_ability_helper_abc_etc",
+     ":ability_runtime_data_uri_utils_abc_etc",
++    ":ability_runtime_daemon_service_manager_abc_etc",
+     ":ability_runtime_dialog_session_abc_etc",
+     ":ability_runtime_embedded_uiextension_ability_abc_etc",
+     ":ability_runtime_environment_callback_abc_etc",
+diff --git a/frameworks/js/napi/BUILD.gn b/frameworks/js/napi/BUILD.gn
+index 7667b03fff..8650a42604 100644
+--- a/frameworks/js/napi/BUILD.gn
++++ b/frameworks/js/napi/BUILD.gn
+@@ -63,6 +63,7 @@ group("napi_packages") {
+     "${ability_runtime_napi_path}/configuration_constant:configurationconstant",
+     "${ability_runtime_napi_path}/configuration_constant:configurationconstant_napi",
+     "${ability_runtime_napi_path}/dataUriUtils:datauriutils_napi",
++    "${ability_runtime_napi_path}/daemon_service_manager:daemonservicemanager",
+     "${ability_runtime_napi_path}/embeddable_ui_ability:embeddableuiability_napi",
+     "${ability_runtime_napi_path}/embeddable_ui_ability_context:embeddableuiabilitycontext_napi",
+     "${ability_runtime_napi_path}/embedded_ui_extension_ability:embeddeduiextensionability_napi",
+diff --git a/frameworks/js/napi/daemon_service_manager/BUILD.gn b/frameworks/js/napi/daemon_service_manager/BUILD.gn
+new file mode 100644
+index 0000000000..350bbcca02
+--- /dev/null
++++ b/frameworks/js/napi/daemon_service_manager/BUILD.gn
+@@ -0,0 +1,50 @@
++# Copyright (c) 2026 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++import("//build/ohos.gni")
++import("//foundation/ability/ability_runtime/ability_runtime.gni")
++
++ohos_shared_library("daemonservicemanager") {
++  branch_protector_ret = "pac_ret"
++  sanitize = {
++    cfi = true
++    cfi_cross_dso = true
++    debug = false
++  }
++
++  sources = [
++    "daemon_service_manager_module.cpp",
++    "js_daemon_service_manager.cpp",
++  ]
++
++  include_dirs = [ "${ability_runtime_services_path}/common/include" ]
++  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
++
++  deps = [
++    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
++    "${ability_runtime_innerkits_path}/runtime:runtime",
++    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
++    "${ability_runtime_native_path}/ability/native:ability_business_error",
++  ]
++
++  external_deps = [
++    "c_utils:utils",
++    "hilog:libhilog",
++    "ipc:ipc_core",
++    "napi:ace_napi",
++  ]
++
++  relative_install_dir = "module"
++  subsystem_name = "ability"
++  part_name = "ability_runtime"
++}
+diff --git a/frameworks/js/napi/daemon_service_manager/daemon_service_manager_module.cpp b/frameworks/js/napi/daemon_service_manager/daemon_service_manager_module.cpp
+new file mode 100644
+index 0000000000..0d136f3336
+--- /dev/null
++++ b/frameworks/js/napi/daemon_service_manager/daemon_service_manager_module.cpp
+@@ -0,0 +1,28 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "js_daemon_service_manager.h"
++#include "native_engine/native_engine.h"
++
++static napi_module g_daemonServiceManagerModule = {
++    .nm_version = 0,
++    .nm_register_func = OHOS::AbilityRuntime::JsDaemonServiceManagerInit,
++    .nm_modname = "daemonServiceManager",
++};
++
++extern "C" __attribute__((constructor)) void NAPI_DaemonServiceManager_AutoRegister()
++{
++    napi_module_register(&g_daemonServiceManagerModule);
++}
+diff --git a/frameworks/js/napi/daemon_service_manager/js_daemon_service_manager.cpp b/frameworks/js/napi/daemon_service_manager/js_daemon_service_manager.cpp
+new file mode 100644
+index 0000000000..eefe3197d8
+--- /dev/null
++++ b/frameworks/js/napi/daemon_service_manager/js_daemon_service_manager.cpp
+@@ -0,0 +1,166 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "js_daemon_service_manager.h"
++
++#include <functional>
++#include <memory>
++
++#include "ability_business_error.h"
++#include "ability_manager_client.h"
++#include "ability_manager_errors.h"
++#include "daemon_service_errors.h"
++#include "errors.h"
++#include "hilog_tag_wrapper.h"
++#include "js_error_utils.h"
++#include "js_runtime_utils.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++namespace {
++constexpr size_t ARGC_TWO = 2;
++constexpr int32_t EXTERNAL_PERMISSION_DENIED = 201;
++constexpr int32_t EXTERNAL_INVALID_PARAMETER = 401;
++constexpr int32_t EXTERNAL_INNER_ERROR = 16000050;
++
++int32_t ToExternalError(int32_t result)
++{
++    if (result == AAFwk::CHECK_PERMISSION_FAILED) {
++        return EXTERNAL_PERMISSION_DENIED;
++    }
++    if (result == ERR_INVALID_VALUE) {
++        return EXTERNAL_INVALID_PARAMETER;
++    }
++    if (result == AAFwk::ERR_DAEMON_ALREADY_REGISTERED || result == AAFwk::ERR_DAEMON_APPROVAL_REJECTED ||
++        result == AAFwk::ERR_DAEMON_NOT_REGISTERED || result == AAFwk::ERR_DAEMON_DISABLED ||
++        result == AAFwk::ERR_DAEMON_NOT_RUNNING || result == AAFwk::ERR_DAEMON_DEVICE_NOT_SUPPORTED ||
++        result == AAFwk::ERR_DAEMON_IPC_DEAD || result == AAFwk::ERR_DAEMON_STORAGE_FAILED) {
++        return result;
++    }
++    return result == ERR_OK ? ERR_OK : EXTERNAL_INNER_ERROR;
++}
++
++std::string GetDaemonErrorMessage(int32_t result)
++{
++    switch (result) {
++        case EXTERNAL_PERMISSION_DENIED:
++            return "Permission denied.";
++        case EXTERNAL_INVALID_PARAMETER:
++            return "Parameter error.";
++        case AAFwk::ERR_DAEMON_ALREADY_REGISTERED:
++            return "Daemon is already registered.";
++        case AAFwk::ERR_DAEMON_APPROVAL_REJECTED:
++            return "Daemon registration was rejected by the administrator.";
++        case AAFwk::ERR_DAEMON_NOT_REGISTERED:
++            return "Daemon is not registered.";
++        case AAFwk::ERR_DAEMON_DISABLED:
++            return "Daemon is disabled.";
++        case AAFwk::ERR_DAEMON_NOT_RUNNING:
++            return "Daemon is not running.";
++        case AAFwk::ERR_DAEMON_DEVICE_NOT_SUPPORTED:
++            return "Device does not support daemon service.";
++        case AAFwk::ERR_DAEMON_STORAGE_FAILED:
++            return "Failed to persist daemon state.";
++        case AAFwk::ERR_DAEMON_IPC_DEAD:
++            return "Daemon service is unavailable.";
++        default:
++            return "Internal error.";
++    }
++}
++
++using DaemonClientCall = std::function<int32_t(const std::shared_ptr<AAFwk::AbilityManagerClient> &,
++    const std::string &, const std::string &)>;
++
++napi_value InvokeDaemonCall(napi_env env, napi_callback_info info, const std::string &name,
++    const DaemonClientCall &call)
++{
++    size_t argc = ARGC_TWO;
++    napi_value argv[ARGC_TWO] = { nullptr };
++    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc != ARGC_TWO) {
++        ThrowError(env, EXTERNAL_INVALID_PARAMETER, "Exactly two parameters are required.");
++        return CreateJsUndefined(env);
++    }
++
++    std::string bundleName;
++    std::string daemonName;
++    if (!ConvertFromJsValue(env, argv[0], bundleName) || bundleName.empty() ||
++        !ConvertFromJsValue(env, argv[1], daemonName) || daemonName.empty()) {
++        ThrowError(env, EXTERNAL_INVALID_PARAMETER, "bundleName and daemonName must be non-empty strings.");
++        return CreateJsUndefined(env);
++    }
++
++    auto resultCode = std::make_shared<int32_t>(ERR_OK);
++    NapiAsyncTask::ExecuteCallback execute = [bundleName, daemonName, call, resultCode]() {
++        auto client = AAFwk::AbilityManagerClient::GetInstance();
++        if (client == nullptr) {
++            *resultCode = EXTERNAL_INNER_ERROR;
++            return;
++        }
++        *resultCode = call(client, bundleName, daemonName);
++    };
++    NapiAsyncTask::CompleteCallback complete = [resultCode](napi_env env, NapiAsyncTask &task, int32_t status) {
++        int32_t externalCode = ToExternalError(*resultCode);
++        if (externalCode != ERR_OK) {
++            task.Reject(env, CreateJsError(env, externalCode, GetDaemonErrorMessage(externalCode)));
++            return;
++        }
++        task.ResolveWithNoError(env, CreateJsUndefined(env));
++    };
++
++    napi_value result = nullptr;
++    NapiAsyncTask::ScheduleHighQos(name, env,
++        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
++    return result;
++}
++
++napi_value RegisterDaemon(napi_env env, napi_callback_info info)
++{
++    return InvokeDaemonCall(env, info, "JsDaemonServiceManager::RegisterDaemon",
++        [](const std::shared_ptr<AAFwk::AbilityManagerClient> &client, const std::string &bundleName,
++            const std::string &daemonName) { return client->RegisterDaemon(bundleName, daemonName); });
++}
++
++napi_value UnregisterDaemon(napi_env env, napi_callback_info info)
++{
++    return InvokeDaemonCall(env, info, "JsDaemonServiceManager::UnregisterDaemon",
++        [](const std::shared_ptr<AAFwk::AbilityManagerClient> &client, const std::string &bundleName,
++            const std::string &daemonName) { return client->UnregisterDaemon(bundleName, daemonName); });
++}
++
++napi_value StartDaemon(napi_env env, napi_callback_info info)
++{
++    return InvokeDaemonCall(env, info, "JsDaemonServiceManager::StartDaemon",
++        [](const std::shared_ptr<AAFwk::AbilityManagerClient> &client, const std::string &bundleName,
++            const std::string &daemonName) { return client->StartDaemon(bundleName, daemonName); });
++}
++
++napi_value StopDaemon(napi_env env, napi_callback_info info)
++{
++    return InvokeDaemonCall(env, info, "JsDaemonServiceManager::StopDaemon",
++        [](const std::shared_ptr<AAFwk::AbilityManagerClient> &client, const std::string &bundleName,
++            const std::string &daemonName) { return client->StopDaemon(bundleName, daemonName); });
++}
++} // namespace
++
++napi_value JsDaemonServiceManagerInit(napi_env env, napi_value exports)
++{
++    BindNativeFunction(env, exports, "register", "JsDaemonServiceManager", RegisterDaemon);
++    BindNativeFunction(env, exports, "unregister", "JsDaemonServiceManager", UnregisterDaemon);
++    BindNativeFunction(env, exports, "start", "JsDaemonServiceManager", StartDaemon);
++    BindNativeFunction(env, exports, "stop", "JsDaemonServiceManager", StopDaemon);
++    return exports;
++}
++} // namespace AbilityRuntime
++} // namespace OHOS
+diff --git a/frameworks/js/napi/daemon_service_manager/js_daemon_service_manager.h b/frameworks/js/napi/daemon_service_manager/js_daemon_service_manager.h
+new file mode 100644
+index 0000000000..423f0f702f
+--- /dev/null
++++ b/frameworks/js/napi/daemon_service_manager/js_daemon_service_manager.h
+@@ -0,0 +1,27 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_JS_DAEMON_SERVICE_MANAGER_H
++#define OHOS_ABILITY_RUNTIME_JS_DAEMON_SERVICE_MANAGER_H
++
++#include "native_engine/native_engine.h"
++
++namespace OHOS {
++namespace AbilityRuntime {
++napi_value JsDaemonServiceManagerInit(napi_env env, napi_value exports);
++} // namespace AbilityRuntime
++} // namespace OHOS
++
++#endif // OHOS_ABILITY_RUNTIME_JS_DAEMON_SERVICE_MANAGER_H
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_client.h b/interfaces/inner_api/ability_manager/include/ability_manager_client.h
+index 4a82b639ca..eca3457404 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_client.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_client.h
+@@ -3109,6 +3109,30 @@ public:
+      */
+     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag);
+ 
++    /**
++     * Register a daemon declared in module.json5 daemonServices.
++     * Public API, triggers IAM administrator approval before persistence.
++     */
++    ErrCode RegisterDaemon(const std::string &bundleName, const std::string &daemonName);
++
++    /**
++     * Unregister a previously registered daemon. Stops a running daemon process.
++     * Public API.
++     */
++    ErrCode UnregisterDaemon(const std::string &bundleName, const std::string &daemonName);
++
++    /**
++     * Start a registered and enabled daemon process via appspawn.
++     * Public API.
++     */
++    ErrCode StartDaemon(const std::string &bundleName, const std::string &daemonName);
++
++    /**
++     * Stop a running daemon process.
++     * Public API.
++     */
++    ErrCode StopDaemon(const std::string &bundleName, const std::string &daemonName);
++
+     /**
+      * @brief Execute an in-app skill on behalf of an explicit caller token id
+      * (used by broker/framework scenarios). The request.callerTokenId must
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_interface.h b/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
+index 4f06a45764..52ad76d167 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
+@@ -2941,6 +2941,26 @@ public:
+     {
+         return ERR_OK;
+     }
++
++    virtual int32_t RegisterDaemon(const std::string &bundleName, const std::string &daemonName)
++    {
++        return ERR_OK;
++    }
++
++    virtual int32_t UnregisterDaemon(const std::string &bundleName, const std::string &daemonName)
++    {
++        return ERR_OK;
++    }
++
++    virtual int32_t StartDaemon(const std::string &bundleName, const std::string &daemonName)
++    {
++        return ERR_OK;
++    }
++
++    virtual int32_t StopDaemon(const std::string &bundleName, const std::string &daemonName)
++    {
++        return ERR_OK;
++    }
+ };
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h b/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
+index 0a6e78170c..7323f1f9e5 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
+@@ -791,6 +791,18 @@ enum class AbilityManagerInterfaceCode {
+     
+     // register want agent holder for shared detection
+     REGISTER_WANT_AGENT_HOLDER = 6181,
++
++    // register daemon (FEAT-DAEMON-01)
++    REGISTER_DAEMON = 6183,
++
++    // unregister daemon (FEAT-DAEMON-01)
++    UNREGISTER_DAEMON = 6184,
++
++    // start daemon process (FEAT-DAEMON-03)
++    START_DAEMON = 6185,
++
++    // stop daemon process (FEAT-DAEMON-03)
++    STOP_DAEMON = 6186,
+ };
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/interfaces/inner_api/ability_manager/include/daemon_service_errors.h b/interfaces/inner_api/ability_manager/include/daemon_service_errors.h
+new file mode 100644
+index 0000000000..6c2726fd93
+--- /dev/null
++++ b/interfaces/inner_api/ability_manager/include/daemon_service_errors.h
+@@ -0,0 +1,40 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_DAEMON_SERVICE_ERRORS_H
++#define OHOS_ABILITY_RUNTIME_DAEMON_SERVICE_ERRORS_H
++
++#include <cstdint>
++
++namespace OHOS {
++namespace AAFwk {
++constexpr int32_t ERR_DAEMON_ALREADY_REGISTERED = 2930001;
++constexpr int32_t ERR_DAEMON_APPROVAL_REJECTED = 2930002;
++constexpr int32_t ERR_DAEMON_NOT_REGISTERED = 2930003;
++constexpr int32_t ERR_DAEMON_DISABLED = 2930004;
++constexpr int32_t ERR_DAEMON_NOT_RUNNING = 2930005;
++constexpr int32_t ERR_DAEMON_DEVICE_NOT_SUPPORTED = 2930006;
++constexpr int32_t ERR_DAEMON_IPC_DEAD = 2930007;
++constexpr int32_t ERR_DAEMON_STORAGE_FAILED = 2930009;
++
++enum class DaemonStatus : int32_t {
++    NOT_REGISTERED = 0,
++    ENABLED = 1,
++    DISABLED = 2,
++};
++} // namespace AAFwk
++} // namespace OHOS
++
++#endif // OHOS_ABILITY_RUNTIME_DAEMON_SERVICE_ERRORS_H
+diff --git a/interfaces/kits/js/daemon_service_manager/@ohos.daemonServiceManager.d.ts b/interfaces/kits/js/daemon_service_manager/@ohos.daemonServiceManager.d.ts
+new file mode 100644
+index 0000000000..6bef64d655
+--- /dev/null
++++ b/interfaces/kits/js/daemon_service_manager/@ohos.daemonServiceManager.d.ts
+@@ -0,0 +1,82 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++/**
++ * Provides daemon service management APIs.
++ *
++ * @namespace daemonServiceManager
++ * @syscap SystemCapability.Ability.AbilityRuntime.Core
++ * @systemapi
++ */
++declare namespace daemonServiceManager {
++  /**
++   * Registers a daemon declared in module.json5 daemonServices.
++   *
++   * @param bundleName Bundle that owns the daemon. Must match the caller's bundle name.
++   * @param daemonName Name declared in module.json5 daemonServices.
++   * @returns Promise resolved after the daemon is registered.
++   * @throws { BusinessError } 201 - Permission denied.
++   * @throws { BusinessError } 401 - Invalid parameter.
++   * @throws { BusinessError } 2930001 - Daemon is already registered.
++   * @throws { BusinessError } 2930002 - Registration was rejected by the administrator.
++   * @throws { BusinessError } 2930006 - Device does not support daemon service.
++   * @permission ohos.permission.MANAGE_DAEMON_SERVICE
++   */
++  function register(bundleName: string, daemonName: string): Promise<void>;
++
++  /**
++   * Unregisters a previously registered daemon. Stops a running daemon process.
++   *
++   * @param bundleName Bundle that owns the daemon.
++   * @param daemonName Name used when the daemon was registered.
++   * @returns Promise resolved after the daemon is unregistered.
++   * @throws { BusinessError } 201 - Permission denied.
++   * @throws { BusinessError } 401 - Invalid parameter.
++   * @throws { BusinessError } 2930003 - Daemon is not registered.
++   * @permission ohos.permission.MANAGE_DAEMON_SERVICE
++   */
++  function unregister(bundleName: string, daemonName: string): Promise<void>;
++
++  /**
++   * Starts a registered and enabled daemon process.
++   *
++   * @param bundleName Bundle that owns the daemon.
++   * @param daemonName Name used when the daemon was registered.
++   * @returns Promise resolved after the daemon process is started.
++   * @throws { BusinessError } 201 - Permission denied.
++   * @throws { BusinessError } 401 - Invalid parameter.
++   * @throws { BusinessError } 2930003 - Daemon is not registered.
++   * @throws { BusinessError } 2930004 - Daemon is disabled.
++   * @throws { BusinessError } 2930006 - Device does not support daemon service.
++   * @permission ohos.permission.MANAGE_DAEMON_SERVICE
++   */
++  function start(bundleName: string, daemonName: string): Promise<void>;
++
++  /**
++   * Stops a running daemon process.
++   *
++   * @param bundleName Bundle that owns the daemon.
++   * @param daemonName Name used when the daemon was registered.
++   * @returns Promise resolved after the daemon process is stopped.
++   * @throws { BusinessError } 201 - Permission denied.
++   * @throws { BusinessError } 401 - Invalid parameter.
++   * @throws { BusinessError } 2930003 - Daemon is not registered.
++   * @throws { BusinessError } 2930005 - Daemon is not running.
++   * @permission ohos.permission.MANAGE_DAEMON_SERVICE
++   */
++  function stop(bundleName: string, daemonName: string): Promise<void>;
++}
++
++export default daemonServiceManager;
+diff --git a/services/abilitymgr/abilitymgr.gni b/services/abilitymgr/abilitymgr.gni
+index 287974d7f9..4cb57a3537 100644
+--- a/services/abilitymgr/abilitymgr.gni
++++ b/services/abilitymgr/abilitymgr.gni
+@@ -22,6 +22,7 @@ abilityms_files = [
+   "src/disposed_observer.cpp",
+   "src/ability_manager_service.cpp",
+   "src/ability_manager_stub.cpp",
++  "src/daemon/daemon_registry.cpp",
+   "src/ams_want_param_filter.cpp",
+   "src/ability_record.cpp",
+   "src/ability_record/ability_record_utils.cpp",
+diff --git a/services/abilitymgr/include/ability_manager_proxy.h b/services/abilitymgr/include/ability_manager_proxy.h
+index 61c3c1d9d6..106750cd5e 100644
+--- a/services/abilitymgr/include/ability_manager_proxy.h
++++ b/services/abilitymgr/include/ability_manager_proxy.h
+@@ -2212,10 +2212,17 @@ public:
+      */
+     virtual int32_t StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params) override;
+ 
++    int32_t RegisterDaemon(const std::string &bundleName, const std::string &daemonName) override;
++    int32_t UnregisterDaemon(const std::string &bundleName, const std::string &daemonName) override;
++    int32_t StartDaemon(const std::string &bundleName, const std::string &daemonName) override;
++    int32_t StopDaemon(const std::string &bundleName, const std::string &daemonName) override;
++
+ private:
+     template <typename T>
+     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);
+     bool WriteInterfaceToken(MessageParcel &data);
++    int32_t SendDaemonRequest(AbilityManagerInterfaceCode code,
++        const std::string &bundleName, const std::string &daemonName);
+     // flag = true : terminate; flag = false : close
+     int TerminateAbility(const sptr<IRemoteObject> &token, int resultCode, const Want *resultWant, bool flag);
+     ErrCode SendRequest(AbilityManagerInterfaceCode code, MessageParcel &data, MessageParcel &reply,
+diff --git a/services/abilitymgr/include/ability_manager_service.h b/services/abilitymgr/include/ability_manager_service.h
+index 7f1752998e..d301905b10 100644
+--- a/services/abilitymgr/include/ability_manager_service.h
++++ b/services/abilitymgr/include/ability_manager_service.h
+@@ -2679,6 +2679,11 @@ public:
+ 
+     int32_t EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t kioskType = 0) override;
+ 
++    int32_t RegisterDaemon(const std::string &bundleName, const std::string &daemonName) override;
++    int32_t UnregisterDaemon(const std::string &bundleName, const std::string &daemonName) override;
++    int32_t StartDaemon(const std::string &bundleName, const std::string &daemonName) override;
++    int32_t StopDaemon(const std::string &bundleName, const std::string &daemonName) override;
++
+     int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
+ 
+     int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
+@@ -2933,9 +2938,15 @@ protected:
+      */
+     virtual int32_t StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params) override;
+ 
+-private:
++ private:
+     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId, int32_t userId);
+ 
++    bool IsDaemonDeviceSupported() const;
++    bool IsCallerOwnsBundle(const std::string &bundleName) const;
++    int32_t ApproveDaemonRegistration(const std::string &bundleName, const std::string &daemonName) const;
++    int32_t SpawnDaemonProcess(const std::string &bundleName, const std::string &daemonName, int32_t &pid) const;
++    int32_t StopDaemonProcess(const std::string &bundleName, const std::string &daemonName, int32_t pid) const;
++
+     /**
+      * Run the post-check interceptors for a prelaunch request and report a fault event on failure.
+      * Extracted so the failure/redirect paths are unit-testable without bundle resolution.
+diff --git a/services/abilitymgr/include/ability_manager_stub.h b/services/abilitymgr/include/ability_manager_stub.h
+index 00ec7d9d09..f34101d4d8 100644
+--- a/services/abilitymgr/include/ability_manager_stub.h
++++ b/services/abilitymgr/include/ability_manager_stub.h
+@@ -466,6 +466,20 @@ private:
+     int32_t QuerySkillTypeInner(MessageParcel &data, MessageParcel &reply);
+     int32_t StartSelfUIAbilityByAppContextInner(MessageParcel &data, MessageParcel &reply);
+     int32_t StartSandboxCloneAbilityInner(MessageParcel &data, MessageParcel &reply);
++
++    int32_t RegisterDaemonInner(MessageParcel &data, MessageParcel &reply);
++    int32_t UnregisterDaemonInner(MessageParcel &data, MessageParcel &reply);
++    int32_t StartDaemonInner(MessageParcel &data, MessageParcel &reply);
++    int32_t StopDaemonInner(MessageParcel &data, MessageParcel &reply);
++
++private:
++    enum class DaemonOp {
++        REGISTER,
++        UNREGISTER,
++        START,
++        STOP,
++    };
++    int32_t HandleDaemonRequestInner(MessageParcel &data, MessageParcel &reply, DaemonOp op);
+ };
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/services/abilitymgr/include/daemon/daemon_registry.h b/services/abilitymgr/include/daemon/daemon_registry.h
+new file mode 100644
+index 0000000000..a511e1b419
+--- /dev/null
++++ b/services/abilitymgr/include/daemon/daemon_registry.h
+@@ -0,0 +1,72 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef OHOS_ABILITY_RUNTIME_DAEMON_REGISTRY_H
++#define OHOS_ABILITY_RUNTIME_DAEMON_REGISTRY_H
++
++#include <functional>
++#include <shared_mutex>
++#include <string>
++#include <unordered_map>
++
++#include "daemon_service_errors.h"
++
++namespace OHOS {
++namespace AAFwk {
++struct DaemonRecord {
++    std::string bundleName;
++    std::string daemonName;
++    DaemonStatus status = DaemonStatus::ENABLED;
++    int32_t pid = 0;
++    int64_t enabledChangedTime = 0;
++};
++
++class DaemonRegistry final {
++public:
++    using PersistHandler = std::function<bool(const DaemonRecord &)>;
++
++    static DaemonRegistry &GetInstance();
++
++    bool IsRegistered(const std::string &bundleName, const std::string &daemonName) const;
++    int32_t GetStatus(const std::string &bundleName, const std::string &daemonName, DaemonRecord &record) const;
++
++    // FEAT-DAEMON-01 supplies records and persistence when its registration path is integrated.
++    void UpsertRecord(const DaemonRecord &record);
++    void RemoveRecord(const std::string &bundleName, const std::string &daemonName);
++    void SetPersistHandler(PersistHandler handler);
++
++    // FEAT-DAEMON-01 register/unregister.
++    int32_t Register(const DaemonRecord &record);
++    int32_t Unregister(const std::string &bundleName, const std::string &daemonName, int32_t &pid);
++
++    // FEAT-DAEMON-03 start/stop. Tracks the daemon process pid reported by appspawn.
++    void SetPid(const std::string &bundleName, const std::string &daemonName, int32_t pid);
++
++private:
++    DaemonRegistry() = default;
++    ~DaemonRegistry() = default;
++    DaemonRegistry(const DaemonRegistry &) = delete;
++    DaemonRegistry &operator=(const DaemonRegistry &) = delete;
++
++    static std::string MakeKey(const std::string &bundleName, const std::string &daemonName);
++
++    mutable std::shared_mutex mutex_;
++    std::unordered_map<std::string, DaemonRecord> records_;
++    PersistHandler persistHandler_;
++};
++} // namespace AAFwk
++} // namespace OHOS
++
++#endif // OHOS_ABILITY_RUNTIME_DAEMON_REGISTRY_H
+diff --git a/services/abilitymgr/src/ability_manager_client.cpp b/services/abilitymgr/src/ability_manager_client.cpp
+index d659fdfcc7..812a75b4f2 100644
+--- a/services/abilitymgr/src/ability_manager_client.cpp
++++ b/services/abilitymgr/src/ability_manager_client.cpp
+@@ -2080,6 +2080,34 @@ ErrCode AbilityManagerClient::SetApplicationAutoStartup(const AutoStartupInfo &i
+     return abms->SetApplicationAutoStartup(info);
+ }
+ 
++ErrCode AbilityManagerClient::RegisterDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    auto abms = GetAbilityManager();
++    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
++    return abms->RegisterDaemon(bundleName, daemonName);
++}
++
++ErrCode AbilityManagerClient::UnregisterDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    auto abms = GetAbilityManager();
++    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
++    return abms->UnregisterDaemon(bundleName, daemonName);
++}
++
++ErrCode AbilityManagerClient::StartDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    auto abms = GetAbilityManager();
++    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
++    return abms->StartDaemon(bundleName, daemonName);
++}
++
++ErrCode AbilityManagerClient::StopDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    auto abms = GetAbilityManager();
++    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
++    return abms->StopDaemon(bundleName, daemonName);
++}
++
+ ErrCode AbilityManagerClient::CancelApplicationAutoStartup(const AutoStartupInfo &info)
+ {
+     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+diff --git a/services/abilitymgr/src/ability_manager_proxy.cpp b/services/abilitymgr/src/ability_manager_proxy.cpp
+index e472a408fc..9d607fed59 100644
+--- a/services/abilitymgr/src/ability_manager_proxy.cpp
++++ b/services/abilitymgr/src/ability_manager_proxy.cpp
+@@ -8616,5 +8616,47 @@ int32_t AbilityManagerProxy::StartSandboxCloneAbility(const Want &want, const Sa
+ 
+     return reply.ReadInt32();
+ }
++
++int32_t AbilityManagerProxy::RegisterDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    return SendDaemonRequest(AbilityManagerInterfaceCode::REGISTER_DAEMON, bundleName, daemonName);
++}
++
++int32_t AbilityManagerProxy::UnregisterDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    return SendDaemonRequest(AbilityManagerInterfaceCode::UNREGISTER_DAEMON, bundleName, daemonName);
++}
++
++int32_t AbilityManagerProxy::StartDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    return SendDaemonRequest(AbilityManagerInterfaceCode::START_DAEMON, bundleName, daemonName);
++}
++
++int32_t AbilityManagerProxy::StopDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    return SendDaemonRequest(AbilityManagerInterfaceCode::STOP_DAEMON, bundleName, daemonName);
++}
++
++int32_t AbilityManagerProxy::SendDaemonRequest(
++    AbilityManagerInterfaceCode code, const std::string &bundleName, const std::string &daemonName)
++{
++    MessageParcel data;
++    MessageParcel reply;
++    MessageOption option;
++    if (!WriteInterfaceToken(data)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token failed");
++        return INNER_ERR;
++    }
++    if (!data.WriteString(bundleName) || !data.WriteString(daemonName)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write daemon arguments failed");
++        return ERR_INVALID_VALUE;
++    }
++    auto ret = SendRequest(code, data, reply, option);
++    if (ret != NO_ERROR) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "daemon request failed: %{public}d", ret);
++        return ret;
++    }
++    return reply.ReadInt32();
++}
+ } // namespace AAFwk
+ } // namespace OHOS
+diff --git a/services/abilitymgr/src/ability_manager_service.cpp b/services/abilitymgr/src/ability_manager_service.cpp
+index 7dff8b5ce0..c184553100 100644
+--- a/services/abilitymgr/src/ability_manager_service.cpp
++++ b/services/abilitymgr/src/ability_manager_service.cpp
+@@ -14,6 +14,7 @@
+  */
+ 
+ #include "ability_manager_service.h"
++#include "daemon/daemon_registry.h"
+ 
+ #include <dlfcn.h>
+ #include <sys/epoll.h>
+@@ -28,6 +29,7 @@
+ #include "ability_start_by_call_helper.h"
+ #include "ability_start_with_wait_observer_utils.h"
+ #include "ability_start_with_wait_observer_manager.h"
++#include "ability_util.h"
+ #include "accesstoken_kit.h"
+ #include "agent_card.h"
+ #include "agent_extension_connection_constants.h"
+@@ -84,6 +86,7 @@
+ #include "keep_alive_process_manager.h"
+ #include "keep_alive_utils.h"
+ #include "main_element_utils.h"
++#include "parameters.h"
+ #ifdef MEMMGR_OVERRIDE_ENABLE
+ #include "mem_mgr_client.h"
+ #include "mem_mgr_process_state_info.h"
+@@ -19134,6 +19137,198 @@ int32_t AbilityManagerService::EnterKioskMode(sptr<IRemoteObject> callerToken, i
+     return KioskManager::GetInstance().EnterKioskMode(callerToken, kioskType);
+ }
+ 
++int32_t AbilityManagerService::RegisterDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    if (bundleName.empty() || daemonName.empty()) {
++        return ERR_INVALID_VALUE;
++    }
++    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
++    if (permissionVerification == nullptr ||
++        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "register daemon permission denied");
++        return CHECK_PERMISSION_FAILED;
++    }
++    if (!IsDaemonDeviceSupported()) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "register daemon device not supported");
++        return ERR_DAEMON_DEVICE_NOT_SUPPORTED;
++    }
++    if (!IsCallerOwnsBundle(bundleName)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "register daemon bundleName mismatch caller");
++        return CHECK_PERMISSION_FAILED;
++    }
++
++    auto approvalResult = ApproveDaemonRegistration(bundleName, daemonName);
++    if (approvalResult != ERR_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "register daemon approval rejected, result=%{public}d", approvalResult);
++        return approvalResult;
++    }
++
++    DaemonRecord record;
++    record.bundleName = bundleName;
++    record.daemonName = daemonName;
++    record.status = DaemonStatus::ENABLED;
++    auto result = DaemonRegistry::GetInstance().Register(record);
++    TAG_LOGI(AAFwkTag::ABILITYMGR, "register daemon finished, result=%{public}d", result);
++    return result;
++}
++
++int32_t AbilityManagerService::UnregisterDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    if (bundleName.empty() || daemonName.empty()) {
++        return ERR_INVALID_VALUE;
++    }
++    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
++    if (permissionVerification == nullptr ||
++        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "unregister daemon permission denied");
++        return CHECK_PERMISSION_FAILED;
++    }
++
++    int32_t pid = 0;
++    auto result = DaemonRegistry::GetInstance().Unregister(bundleName, daemonName, pid);
++    if (result == ERR_OK && pid > 0) {
++        (void)StopDaemonProcess(bundleName, daemonName, pid);
++    }
++    TAG_LOGI(AAFwkTag::ABILITYMGR, "unregister daemon finished, result=%{public}d", result);
++    return result;
++}
++
++int32_t AbilityManagerService::StartDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    if (bundleName.empty() || daemonName.empty()) {
++        return ERR_INVALID_VALUE;
++    }
++    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
++    if (permissionVerification == nullptr ||
++        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon permission denied");
++        return CHECK_PERMISSION_FAILED;
++    }
++    if (!IsDaemonDeviceSupported()) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon device not supported");
++        return ERR_DAEMON_DEVICE_NOT_SUPPORTED;
++    }
++
++    DaemonRecord record;
++    auto registryResult = DaemonRegistry::GetInstance().GetStatus(bundleName, daemonName, record);
++    if (registryResult != ERR_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon not registered, result=%{public}d", registryResult);
++        return registryResult;
++    }
++    if (record.status != DaemonStatus::ENABLED) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon disabled");
++        return ERR_DAEMON_DISABLED;
++    }
++    if (record.pid > 0) {
++        TAG_LOGI(AAFwkTag::ABILITYMGR, "start daemon already running, pid=%{public}d", record.pid);
++        return ERR_OK;
++    }
++
++    int32_t pid = 0;
++    auto spawnResult = SpawnDaemonProcess(bundleName, daemonName, pid);
++    if (spawnResult != ERR_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "start daemon spawn failed, result=%{public}d", spawnResult);
++        return spawnResult;
++    }
++    DaemonRegistry::GetInstance().SetPid(bundleName, daemonName, pid);
++    TAG_LOGI(AAFwkTag::ABILITYMGR, "start daemon finished, pid=%{public}d", pid);
++    return ERR_OK;
++}
++
++int32_t AbilityManagerService::StopDaemon(const std::string &bundleName, const std::string &daemonName)
++{
++    if (bundleName.empty() || daemonName.empty()) {
++        return ERR_INVALID_VALUE;
++    }
++    auto permissionVerification = DelayedSingleton<PermissionVerification>::GetInstance();
++    if (permissionVerification == nullptr ||
++        !permissionVerification->VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon permission denied");
++        return CHECK_PERMISSION_FAILED;
++    }
++
++    DaemonRecord record;
++    auto registryResult = DaemonRegistry::GetInstance().GetStatus(bundleName, daemonName, record);
++    if (registryResult != ERR_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon not registered, result=%{public}d", registryResult);
++        return registryResult;
++    }
++    if (record.pid <= 0) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon not running");
++        return ERR_DAEMON_NOT_RUNNING;
++    }
++
++    auto stopResult = StopDaemonProcess(bundleName, daemonName, record.pid);
++    if (stopResult != ERR_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "stop daemon failed, result=%{public}d", stopResult);
++        return stopResult;
++    }
++    DaemonRegistry::GetInstance().SetPid(bundleName, daemonName, 0);
++    TAG_LOGI(AAFwkTag::ABILITYMGR, "stop daemon finished");
++    return ERR_OK;
++}
++
++bool AbilityManagerService::IsDaemonDeviceSupported() const
++{
++    std::string deviceType = OHOS::system::GetDeviceType();
++    // FEAT-DAEMON: daemon management is scoped to PC's PC mode and tablet's PC mode.
++    // The runtime PC-mode state still needs a system-parameter gate; only the device
++    // type is checked here until the PC-mode parameter is frozen.
++    return deviceType == "2in1" || deviceType == "pc";
++}
++
++bool AbilityManagerService::IsCallerOwnsBundle(const std::string &bundleName) const
++{
++    int32_t callerUid = IPCSkeleton::GetCallingUid();
++    std::string callerBundleName;
++    auto bms = AbilityUtil::GetBundleManagerHelper();
++    if (bms == nullptr) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundle manager helper failed");
++        return false;
++    }
++    if (IN_PROCESS_CALL(bms->GetNameForUid(callerUid, callerBundleName)) != ERR_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "get caller bundle name failed");
++        return false;
++    }
++    return callerBundleName == bundleName;
++}
++
++int32_t AbilityManagerService::ApproveDaemonRegistration(
++    const std::string &bundleName, const std::string &daemonName) const
++{
++    // FEAT-DAEMON-01: registration requires IAM administrator approval. The approval
++    // channel is not integrated yet; default to approved and return ERR_OK. Wire the
++    // IAM approval service here and return ERR_DAEMON_APPROVAL_REJECTED on rejection.
++    (void)bundleName;
++    (void)daemonName;
++    return ERR_OK;
++}
++
++int32_t AbilityManagerService::SpawnDaemonProcess(
++    const std::string &bundleName, const std::string &daemonName, int32_t &pid) const
++{
++    // FEAT-DAEMON-03: daemon processes are spawned through appspawn. The dedicated
++    // appspawn daemon spawn channel is not integrated yet; wire the spawn request here
++    // (via AppManagerService/AppSpawnClient) and report the resulting pid.
++    (void)bundleName;
++    (void)daemonName;
++    (void)pid;
++    TAG_LOGW(AAFwkTag::ABILITYMGR, "daemon appspawn spawn channel not integrated");
++    return ERR_DAEMON_IPC_DEAD;
++}
++
++int32_t AbilityManagerService::StopDaemonProcess(
++    const std::string &bundleName, const std::string &daemonName, int32_t pid) const
++{
++    // FEAT-DAEMON-03: stop the daemon process identified by pid via appspawn.
++    // The kill channel is not integrated yet; wire it here once appspawn supports it.
++    (void)bundleName;
++    (void)daemonName;
++    (void)pid;
++    TAG_LOGW(AAFwkTag::ABILITYMGR, "daemon appspawn stop channel not integrated");
++    return ERR_DAEMON_IPC_DEAD;
++}
++
+ int32_t AbilityManagerService::ExitKioskMode(sptr<IRemoteObject> callerToken)
+ {
+     TAG_LOGD(AAFwkTag::ABILITYMGR, "request ExitKioskMode");
+diff --git a/services/abilitymgr/src/ability_manager_stub.cpp b/services/abilitymgr/src/ability_manager_stub.cpp
+index 9c078d412b..3da1e3bae6 100644
+--- a/services/abilitymgr/src/ability_manager_stub.cpp
++++ b/services/abilitymgr/src/ability_manager_stub.cpp
+@@ -807,6 +807,18 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventeenth(uint32_t code, MessagePa
+     if (interfaceCode == AbilityManagerInterfaceCode::GET_AUTO_STARTUP_STATUS_FOR_SELF) {
+         return GetAutoStartupStatusForSelfInner(data, reply);
+     }
++    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_DAEMON) {
++        return RegisterDaemonInner(data, reply);
++    }
++    if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_DAEMON) {
++        return UnregisterDaemonInner(data, reply);
++    }
++    if (interfaceCode == AbilityManagerInterfaceCode::START_DAEMON) {
++        return StartDaemonInner(data, reply);
++    }
++    if (interfaceCode == AbilityManagerInterfaceCode::STOP_DAEMON) {
++        return StopDaemonInner(data, reply);
++    }
+     return ERR_CODE_NOT_EXIST;
+ }
+ 
+@@ -6099,5 +6111,59 @@ int32_t AbilityManagerStub::StartSandboxCloneAbilityInner(MessageParcel &data, M
+     reply.WriteInt32(result);
+     return NO_ERROR;
+ }
++
++int32_t AbilityManagerStub::RegisterDaemonInner(MessageParcel &data, MessageParcel &reply)
++{
++    return HandleDaemonRequestInner(data, reply, DaemonOp::REGISTER);
++}
++
++int32_t AbilityManagerStub::UnregisterDaemonInner(MessageParcel &data, MessageParcel &reply)
++{
++    return HandleDaemonRequestInner(data, reply, DaemonOp::UNREGISTER);
++}
++
++int32_t AbilityManagerStub::StartDaemonInner(MessageParcel &data, MessageParcel &reply)
++{
++    return HandleDaemonRequestInner(data, reply, DaemonOp::START);
++}
++
++int32_t AbilityManagerStub::StopDaemonInner(MessageParcel &data, MessageParcel &reply)
++{
++    return HandleDaemonRequestInner(data, reply, DaemonOp::STOP);
++}
++
++int32_t AbilityManagerStub::HandleDaemonRequestInner(MessageParcel &data, MessageParcel &reply, DaemonOp op)
++{
++    std::string bundleName;
++    std::string daemonName;
++    if (!data.ReadString(bundleName) || !data.ReadString(daemonName)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "read daemon arguments failed");
++        return ERR_INVALID_VALUE;
++    }
++    if (bundleName.empty() || daemonName.empty()) {
++        reply.WriteInt32(ERR_INVALID_VALUE);
++        return NO_ERROR;
++    }
++
++    int32_t result = ERR_INVALID_VALUE;
++    switch (op) {
++        case DaemonOp::REGISTER:
++            result = RegisterDaemon(bundleName, daemonName);
++            break;
++        case DaemonOp::UNREGISTER:
++            result = UnregisterDaemon(bundleName, daemonName);
++            break;
++        case DaemonOp::START:
++            result = StartDaemon(bundleName, daemonName);
++            break;
++        case DaemonOp::STOP:
++            result = StopDaemon(bundleName, daemonName);
++            break;
++        default:
++            break;
++    }
++    reply.WriteInt32(result);
++    return NO_ERROR;
++}
+ } // namespace AAFwk
+ } // namespace OHOS
+diff --git a/services/abilitymgr/src/daemon/daemon_registry.cpp b/services/abilitymgr/src/daemon/daemon_registry.cpp
+new file mode 100644
+index 0000000000..b555106a80
+--- /dev/null
++++ b/services/abilitymgr/src/daemon/daemon_registry.cpp
+@@ -0,0 +1,109 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "daemon/daemon_registry.h"
++
++#include <mutex>
++
++#include "errors.h"
++
++namespace OHOS {
++namespace AAFwk {
++DaemonRegistry &DaemonRegistry::GetInstance()
++{
++    static DaemonRegistry instance;
++    return instance;
++}
++
++bool DaemonRegistry::IsRegistered(const std::string &bundleName, const std::string &daemonName) const
++{
++    std::shared_lock lock(mutex_);
++    return records_.find(MakeKey(bundleName, daemonName)) != records_.end();
++}
++
++int32_t DaemonRegistry::GetStatus(
++    const std::string &bundleName, const std::string &daemonName, DaemonRecord &record) const
++{
++    std::shared_lock lock(mutex_);
++    auto iter = records_.find(MakeKey(bundleName, daemonName));
++    if (iter == records_.end()) {
++        return ERR_DAEMON_NOT_REGISTERED;
++    }
++    record = iter->second;
++    return ERR_OK;
++}
++
++void DaemonRegistry::UpsertRecord(const DaemonRecord &record)
++{
++    std::unique_lock lock(mutex_);
++    records_.insert_or_assign(MakeKey(record.bundleName, record.daemonName), record);
++}
++
++void DaemonRegistry::RemoveRecord(const std::string &bundleName, const std::string &daemonName)
++{
++    std::unique_lock lock(mutex_);
++    records_.erase(MakeKey(bundleName, daemonName));
++}
++
++int32_t DaemonRegistry::Register(const DaemonRecord &record)
++{
++    std::unique_lock lock(mutex_);
++    auto key = MakeKey(record.bundleName, record.daemonName);
++    if (records_.find(key) != records_.end()) {
++        return ERR_DAEMON_ALREADY_REGISTERED;
++    }
++    if (persistHandler_ && !persistHandler_(record)) {
++        return ERR_DAEMON_STORAGE_FAILED;
++    }
++    records_.insert_or_assign(key, record);
++    return ERR_OK;
++}
++
++int32_t DaemonRegistry::Unregister(const std::string &bundleName, const std::string &daemonName, int32_t &pid)
++{
++    pid = 0;
++    std::unique_lock lock(mutex_);
++    auto key = MakeKey(bundleName, daemonName);
++    auto iter = records_.find(key);
++    if (iter == records_.end()) {
++        return ERR_DAEMON_NOT_REGISTERED;
++    }
++    pid = iter->second.pid;
++    records_.erase(iter);
++    return ERR_OK;
++}
++
++void DaemonRegistry::SetPid(const std::string &bundleName, const std::string &daemonName, int32_t pid)
++{
++    std::unique_lock lock(mutex_);
++    auto iter = records_.find(MakeKey(bundleName, daemonName));
++    if (iter == records_.end()) {
++        return;
++    }
++    iter->second.pid = pid;
++}
++
++void DaemonRegistry::SetPersistHandler(PersistHandler handler)
++{
++    std::unique_lock lock(mutex_);
++    persistHandler_ = std::move(handler);
++}
++
++std::string DaemonRegistry::MakeKey(const std::string &bundleName, const std::string &daemonName)
++{
++    return bundleName + "#" + daemonName;
++}
++} // namespace AAFwk
++} // namespace OHOS
+diff --git a/services/common/include/permission_constants.h b/services/common/include/permission_constants.h
+index ac0ded212b..ea9313e040 100644
+--- a/services/common/include/permission_constants.h
++++ b/services/common/include/permission_constants.h
+@@ -58,6 +58,9 @@ constexpr const char* PERMISSION_EXEMPT_AS_TARGET = "ohos.permission.EXEMPT_AS_T
+ constexpr const char* PERMISSION_PREPARE_TERMINATE = "ohos.permission.PREPARE_APP_TERMINATE";
+ constexpr const char* PERMISSION_START_RECENT_ABILITY = "ohos.permission.START_RECENT_ABILITY";
+ constexpr const char* PERMISSION_MANAGE_APP_BOOT = "ohos.permission.MANAGE_APP_BOOT";
++// Placeholder for FEAT-DAEMON-01 (spec "permissionA": register/unregister) and
++// FEAT-DAEMON-03 (spec "permissionC": start/stop). Reused until the permission model is frozen.
++constexpr const char* PERMISSION_MANAGE_DAEMON_SERVICE = "ohos.permission.MANAGE_DAEMON_SERVICE";
+ constexpr const char* PERMISSION_START_ABILITY_WITH_ANIMATION = "ohos.permission.START_ABILITY_WITH_ANIMATION";
+ constexpr const char* PERMISSION_MANAGE_APP_BOOT_INTERNAL = "ohos.permission.MANAGE_APP_BOOT_INTERNAL";
+ constexpr const char* PERMISSION_CONNECT_UI_EXTENSION_ABILITY = "ohos.permission.CONNECT_UI_EXTENSION_ABILITY";
