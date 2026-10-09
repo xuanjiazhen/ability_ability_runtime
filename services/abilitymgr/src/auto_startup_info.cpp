@@ -29,6 +29,7 @@ bool AutoStartupInfo::ReadFromParcel(Parcel &parcel)
     setterUserId = parcel.ReadInt32();
     canUserModify = parcel.ReadBool();
     isHiddenStart = parcel.ReadBool();
+    isBootApp = parcel.ReadBool();
     return true;
 }
 
@@ -73,6 +74,9 @@ bool AutoStartupInfo::Marshalling(Parcel &parcel) const
         return false;
     }
     if (!parcel.WriteBool(isHiddenStart)) {
+        return false;
+    }
+    if (!parcel.WriteBool(isBootApp)) {
         return false;
     }
     return true;

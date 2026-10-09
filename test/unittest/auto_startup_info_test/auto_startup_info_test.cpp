@@ -98,5 +98,33 @@ HWTEST_F(AutoStartupInfoTest, Marshalling_100, TestSize.Level1)
     EXPECT_TRUE(result);
     GTEST_LOG_(INFO) << "Marshalling_100 end";
 }
+
+/**
+ * Feature: AutoStartupInfo
+ * Function: Marshalling
+ * FunctionPoints: Mixed startup modes do not consume the next parcelable or following argument.
+ */
+HWTEST_F(AutoStartupInfoTest, BootAppParcelBoundary, TestSize.Level1)
+{
+    AutoStartupInfo boot;
+    boot.bundleName = "com.example.boot";
+    boot.isBootApp = true;
+    boot.isHiddenStart = true;
+    AutoStartupInfo ordinary;
+    ordinary.bundleName = "com.example.ordinary";
+    Parcel parcel;
+    ASSERT_TRUE(boot.Marshalling(parcel));
+    ASSERT_TRUE(ordinary.Marshalling(parcel));
+    ASSERT_TRUE(parcel.WriteInt32(101));
+    AutoStartupInfo first;
+    AutoStartupInfo second;
+    ASSERT_TRUE(first.ReadFromParcel(parcel));
+    ASSERT_TRUE(second.ReadFromParcel(parcel));
+    EXPECT_TRUE(first.isBootApp);
+    EXPECT_TRUE(first.isHiddenStart);
+    EXPECT_FALSE(second.isBootApp);
+    EXPECT_EQ(second.bundleName, ordinary.bundleName);
+    EXPECT_EQ(parcel.ReadInt32(), 101);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
