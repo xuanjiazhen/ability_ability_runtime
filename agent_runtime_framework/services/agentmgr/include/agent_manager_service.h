@@ -94,6 +94,15 @@ public:
     int32_t VerifyAgentDisconnectRequests(const std::vector<AAFwk::Want> &wants,
         const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity) override;
 
+    int32_t GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+        AbilityRuntime::LaunchServiceInformation &information) override;
+
+    int32_t GetAllLaunchServiceInformations(
+        AbilityRuntime::LaunchServiceInformationsRawData &informations) override;
+    int32_t RegisterLaunchServiceObserver(const sptr<IRemoteObject> &observer,
+        int32_t &observerId) override;
+    int32_t UnregisterLaunchServiceObserver(int32_t observerId) override;
+
 private:
     friend class AgentServiceConnection;
     friend class AgentHostConnection;

@@ -124,6 +124,57 @@ int32_t AgentManagerClient::DeleteAgentCard(const std::string &bundleName, const
     return agentMgr->DeleteAgentCard(bundleName, agentId);
 }
 
+int32_t AgentManagerClient::GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+    AbilityRuntime::LaunchServiceInformation &information)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->GetLaunchServiceInformation(descriptor, information);
+}
+
+int32_t AgentManagerClient::GetAllLaunchServiceInformations(
+    std::vector<AbilityRuntime::LaunchServiceInformation> &informations)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    AbilityRuntime::LaunchServiceInformationsRawData rawData;
+    int32_t ret = agentMgr->GetAllLaunchServiceInformations(rawData);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    return AbilityRuntime::LaunchServiceInformationsRawData::ToVector(rawData, informations) ? ERR_OK : ERR_INVALID_VALUE;
+}
+
+int32_t AgentManagerClient::RegisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer, int32_t &observerId)
+{
+    if (observer == nullptr || observer->AsObject() == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->RegisterLaunchServiceObserver(observer->AsObject(), observerId);
+}
+
+int32_t AgentManagerClient::UnregisterLaunchServiceObserver(int32_t observerId)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->UnregisterLaunchServiceObserver(observerId);
+}
+
 int32_t AgentManagerClient::ConnectAgentExtensionAbility(const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connection)
 {

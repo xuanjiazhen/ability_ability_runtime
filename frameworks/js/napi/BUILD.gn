@@ -62,6 +62,7 @@ group("napi_packages") {
     "${ability_runtime_napi_path}/completion_handler_for_atomic_service:completionhandlerforatomicservice",
     "${ability_runtime_napi_path}/configuration_constant:configurationconstant",
     "${ability_runtime_napi_path}/configuration_constant:configurationconstant_napi",
+    "${ability_runtime_napi_path}/launch_service_manager:launchservicemanager_napi",
     "${ability_runtime_napi_path}/dataUriUtils:datauriutils_napi",
     "${ability_runtime_napi_path}/embeddable_ui_ability:embeddableuiability_napi",
     "${ability_runtime_napi_path}/embeddable_ui_ability_context:embeddableuiabilitycontext_napi",
