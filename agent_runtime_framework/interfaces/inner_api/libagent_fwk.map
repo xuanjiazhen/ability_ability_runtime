@@ -20,6 +20,12 @@
       *AgentSkill*;
       *AgentAppInfo*;
       *AgentCardsRawData*;
+      *LaunchServiceDescriptor*;
+      *LaunchServiceInformation*;
+      *LaunchServiceInformationsRawData*;
+      *LaunchServiceStateData*;
+      *LaunchServiceProcessStateData*;
+      *LaunchServiceObserver*;
     };
   local:
     *;
