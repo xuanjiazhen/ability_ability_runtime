@@ -384,10 +384,18 @@ void JsAbilityStage::OnAboutToCreateAbility(bool &isAsyncCallback,
             callback(context);
         });
         napi_value promiseCallback = nullptr;
-        napi_create_function(env, "promiseCallback", strlen("promiseCallback"),
+        status = napi_create_function(env, "promiseCallback", strlen("promiseCallback"),
             OnAboutToCreateAbilityPromiseCallback, callbackInfo, &promiseCallback);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::APPKIT, "napi_create_function failed for promiseCallback");
+            return;
+        }
         napi_value argv[1] = { promiseCallback };
-        napi_call_function(env, result, then, 1, argv, nullptr);
+        status = napi_call_function(env, result, then, 1, argv, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::APPKIT, "napi_call_function failed for onAboutToCreateAbilityAsync");
+            return;
+        }
         isAsyncCallback = true;
         return;
     }

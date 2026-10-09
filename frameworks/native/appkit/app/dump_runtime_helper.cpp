@@ -180,7 +180,14 @@ bool DumpRuntimeHelper::Check2CQuota()
 
     int compressQuota = GetCompressQuota(quota2C);
     int appQuota = static_cast<int>(quota2C[INDEX_APP_QUOTA]);
-    int leftQuota = MIN(compressQuota, appQuota) - static_cast<int>(quota2C[INDEX_HAS_SENT]);
+    int hasSent = static_cast<int>(quota2C[INDEX_HAS_SENT]);
+    if (static_cast<int64_t>(appQuota) != quota2C[INDEX_APP_QUOTA] ||
+        static_cast<int64_t>(hasSent) != quota2C[INDEX_HAS_SENT]) {
+        TAG_LOGE(AAFwkTag::APPKIT, "quota out of int range, appQuota:%{public}" PRId64 " hasSent:%{public}" PRId64,
+            quota2C[INDEX_APP_QUOTA], quota2C[INDEX_HAS_SENT]);
+        return false;
+    }
+    int leftQuota = MIN(compressQuota, appQuota) - hasSent;
     if (leftQuota <= 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid quota, compress: %{public}d, app: %{public}d, sent: %{public}" PRId64,
             compressQuota, appQuota, quota2C[INDEX_HAS_SENT]);
@@ -199,6 +206,11 @@ bool DumpRuntimeHelper::Check2CQuota()
         return false;
     }
 
+    if (quota2C[INDEX_ROM_RSV_SIZE] < 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid quota2C[%{public}d]: %{public}" PRId64,
+            INDEX_ROM_RSV_SIZE, quota2C[INDEX_ROM_RSV_SIZE]);
+        return false;
+    }
     uint64_t spaceQuota = static_cast<uint64_t>(quota2C[INDEX_ROM_RSV_SIZE]) * KB_PER_MB;
     if (!CheckOOMFreeSpace(spaceQuota)) {
         TAG_LOGE(AAFwkTag::APPKIT, "rom free space is less than spaceQuota: %{public}" PRIu64, spaceQuota);

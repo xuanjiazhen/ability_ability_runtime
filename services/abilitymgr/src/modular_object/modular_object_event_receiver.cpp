@@ -90,11 +90,17 @@ void ModularObjectEventReceiver::LoadModularObjectExtensionInfos(int32_t userId)
             DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->QueryVersion(key, versionCode);
         GetModularObjectExtensionInfos(bundleInfo, infos);
         if (hasRecord && bundleInfo.versionCode != versionCode) {
-            DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->InsertOrUpdateData(
+            auto ret = DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->InsertOrUpdateData(
                 key, infos, bundleInfo.versionCode);
+            if (ret != NativeRdb::E_OK) {
+                TAG_LOGE(AAFwkTag::EXT, "InsertOrUpdateData failed, key:%{public}s ret:%{public}d", key.c_str(), ret);
+            }
         } else if (!hasRecord && !infos.empty()) {
-            DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->InsertOrUpdateData(
+            auto ret = DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->InsertOrUpdateData(
                 key, infos, bundleInfo.versionCode);
+            if (ret != NativeRdb::E_OK) {
+                TAG_LOGE(AAFwkTag::EXT, "InsertOrUpdateData failed, key:%{public}s ret:%{public}d", key.c_str(), ret);
+            }
         }
         infos.clear();
     }
@@ -200,6 +206,7 @@ void ModularObjectEventReceiver::HandleBundleChanged(const EventFwk::CommonEvent
 void ModularObjectEventReceiver::InsertModularObjectExtensionInfo(
     const std::string &bundleName, int32_t userId, int32_t appIndex)
 {
+    std::lock_guard<std::mutex> lock(loadMoeMutex_);
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "bundleMgrHelper is null");
@@ -227,6 +234,7 @@ void ModularObjectEventReceiver::InsertModularObjectExtensionInfo(
 void ModularObjectEventReceiver::UpdateModularObjectExtensionInfos(const std::string &bundleName, int32_t userId,
     int32_t appIndex)
 {
+    std::lock_guard<std::mutex> lock(loadMoeMutex_);
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "bundleMgrHelper is null");
@@ -254,6 +262,7 @@ void ModularObjectEventReceiver::UpdateModularObjectExtensionInfos(const std::st
 void ModularObjectEventReceiver::RemoveModularObjectExtensionInfo(
     const std::string &bundleName, int32_t userId, int32_t appIndex)
 {
+    std::lock_guard<std::mutex> lock(loadMoeMutex_);
     std::string key = GenerateModularObjectKey(userId, bundleName, appIndex);
     DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->DeleteData(key);
 }

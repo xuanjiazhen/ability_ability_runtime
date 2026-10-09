@@ -38,7 +38,10 @@ void DebuggerConnectionHandler(const std::string &bundleName)
     int32_t tid = instanceId;
     if (!ConnectServerManager::Get().StoreInstanceMessage(tid, instanceId, bundleName)) {
         ConnectServerManager::Get().RemoveInstance(instanceId);
-        ConnectServerManager::Get().StoreInstanceMessage(tid, instanceId, bundleName);
+        if (!ConnectServerManager::Get().StoreInstanceMessage(tid, instanceId, bundleName)) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "StoreInstanceMessage failed after RemoveInstance");
+            return;
+        }
     }
     ConnectServerManager::Get().SendInstanceMessage(tid, instanceId, bundleName);
 }
