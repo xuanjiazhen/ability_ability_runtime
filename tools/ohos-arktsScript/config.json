@@ -4,6 +4,7 @@
   "description": "Run a specified function from an ArkTS script ABC file",
   "executablePath": "/system/bin/cli_tool/executable/ohos-arkTSScript",
   "requirePermissions": [],
+  "visibility": "private",
   
   "inputSchema": {
     "type": "object",
