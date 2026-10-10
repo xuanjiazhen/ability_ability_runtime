@@ -44,6 +44,7 @@ public:
     std::string outputSchema;
     FunctionType functionType;
     int32_t userId;
+    std::string visibility = "private";  // "public" or "private"
 
     FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION), userId(-1) {}
     ~FunctionInfo() override = default;
