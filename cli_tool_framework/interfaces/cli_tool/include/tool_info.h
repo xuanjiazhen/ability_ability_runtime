@@ -74,6 +74,8 @@ public:
     bool hasSubCommand = false;
     std::map<std::string, SubCommandInfo> subcommands;
     bool isLockScreenExecutionAllowed = false;  // Allow execution when screen is locked
+    std::string visibility = "private";  // "public" or "private"
+    std::vector<std::string> supportedDevices;  // device type identifiers, empty = unrestricted
 
     ToolInfo() = default;
     ~ToolInfo() = default;
