@@ -1,0 +1,9 @@
+# Generated or refreshed when the ODK design-document bundle is submitted.
+# 记录本需求在各代码仓的实现 PR / Issue 链接，建立
+# proposal → spec → design → execution-plan → 实现 PR/issue 的闭环追溯。
+req_id: "20260729708982"
+target_release: "" # TBD
+repos:
+  - repo: "openharmony/ability_ability_runtime"
+    pull_requests: [] # TBD: implementation PR pending
+    issues: [] # TBD: tracking issue pending
