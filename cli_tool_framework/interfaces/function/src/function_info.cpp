@@ -157,6 +157,25 @@ bool ParseUserId(const nlohmann::json &json, int32_t &output)
     return true;
 }
 
+bool ParseVisibility(const nlohmann::json &json, std::string &output)
+{
+    // visibility is optional for compatibility with legacy entries written without it;
+    // absent field keeps the default PRIVATE
+    if (!json.contains("visibility")) {
+        return true;
+    }
+    if (!json["visibility"].is_string()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: visibility is not a string");
+        return false;
+    }
+    output = json["visibility"].get<std::string>();
+    if (output != "public" && output != "private") {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ParseFromJson: invalid visibility value, falling back to private");
+        output = "private";
+    }
+    return true;
+}
+
 } // namespace
 
 bool FunctionInfo::Marshalling(Parcel &parcel) const
@@ -188,6 +207,10 @@ bool FunctionInfo::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteInt32(typeValue)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write functionType failed");
+        return false;
+    }
+    if (!parcel.WriteString(visibility)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write visibility failed");
         return false;
     }
     if (!parcel.WriteInt32(userId)) {
@@ -238,6 +261,16 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     function->functionType = static_cast<FunctionType>(typeValue);
+    if (!parcel.ReadString(function->visibility)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Read visibility failed");
+        return nullptr;
+    }
+    // Validate visibility value: both ends of the same build only write public/private
+    if (function->visibility != "public" && function->visibility != "private") {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid visibility value in parcel: %{public}s",
+            function->visibility.c_str());
+        return nullptr;
+    }
     if (!parcel.ReadInt32(function->userId)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Read userId failed");
         return nullptr;
@@ -254,7 +287,8 @@ bool FunctionInfo::ParseFromJson(const nlohmann::json &json, FunctionInfo &funct
            ParseInputSchema(json, function.inputSchema) &&
            ParseOutputSchema(json, function.outputSchema) &&
            ParseFunctionType(json, function.functionType) &&
-           ParseUserId(json, function.userId);
+           ParseUserId(json, function.userId) &&
+           ParseVisibility(json, function.visibility);
 }
 
 nlohmann::json FunctionInfo::ParseToJson() const
@@ -275,6 +309,7 @@ nlohmann::json FunctionInfo::ParseToJson() const
     }
 
     j["functionType"] = static_cast<int32_t>(functionType);
+    j["visibility"] = visibility;
     j["userId"] = userId;
 
     return j;
@@ -307,6 +342,12 @@ bool FunctionInfo::Validate(const FunctionInfo &function)
     if (function.userId < 0 || function.userId >= MAX_USER_ID) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: userId out of range: %{public}d, must be [0, %{public}d)",
             function.userId, MAX_USER_ID);
+        return false;
+    }
+
+    if (function.visibility != "public" && function.visibility != "private") {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: invalid visibility: %{public}s, must be public or private",
+            function.visibility.c_str());
         return false;
     }
 
