@@ -2240,7 +2240,7 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
     auto funcName = args.GetStringParam("functionName");
     auto toolCallId = param.options.toolCallId;
 
-    ToolUtil::ExpandArgsJsonString(args);
+    ToolUtil::ExpandSkillArgsOrdered(args);
     auto skillArgs = ToolUtil::FilterSkillArgs(args);
 
     auto record = CreateSessionRecord(param, eventId);

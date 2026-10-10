@@ -1560,6 +1560,61 @@ HWTEST_F(ToolUtilTest, ExpandArgsFromJson_0200, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ToolUtil_ExpandSkillArgsOrdered_0100
+ * @tc.desc: ExpandSkillArgsOrdered renames positional args to fixed-width keys preserving input order
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ExpandSkillArgsOrdered_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_ExpandSkillArgsOrdered_0100 start";
+
+    AAFwk::WantParams args;
+    args.SetParam("bundleName", AAFwk::String::Box("com.example.app"));
+    args.SetParam("args", AAFwk::String::Box(R"({"zz":"last","aa":1,"mm":true,"bundleName":"reserved"})"));
+
+    ToolUtil::ExpandSkillArgsOrdered(args);
+
+    EXPECT_TRUE(args.GetStringParam("args").empty());
+    EXPECT_EQ(args.GetStringParam("bundleName"), "com.example.app");
+
+    EXPECT_EQ(args.GetStringParam("arg_001"), "last");
+    auto intVal = AAFwk::IInteger::Query(args.GetParam("arg_002"));
+    ASSERT_NE(intVal, nullptr);
+    int32_t intResult = 0;
+    EXPECT_EQ(intVal->GetValue(intResult), ERR_OK);
+    EXPECT_EQ(intResult, 1);
+    auto boolVal = AAFwk::IBoolean::Query(args.GetParam("arg_003"));
+    ASSERT_NE(boolVal, nullptr);
+    bool boolResult = false;
+    EXPECT_EQ(boolVal->GetValue(boolResult), ERR_OK);
+    EXPECT_TRUE(boolResult);
+
+    GTEST_LOG_(INFO) << "ToolUtil_ExpandSkillArgsOrdered_0100 end";
+}
+
+/**
+ * @tc.name: ToolUtil_ExpandSkillArgsOrdered_0200
+ * @tc.desc: ExpandSkillArgsOrdered falls back to nested want params when args string is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ExpandSkillArgsOrdered_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_ExpandSkillArgsOrdered_0200 start";
+
+    AAFwk::WantParams nestedArgs;
+    nestedArgs.SetParam("target", AAFwk::String::Box("device"));
+
+    AAFwk::WantParams args;
+    args.SetParam("args", AAFwk::WantParamWrapper::Box(nestedArgs));
+
+    ToolUtil::ExpandSkillArgsOrdered(args);
+
+    EXPECT_EQ(args.GetStringParam("target"), "device");
+
+    GTEST_LOG_(INFO) << "ToolUtil_ExpandSkillArgsOrdered_0200 end";
+}
+
+/**
  * @tc.name: ToolUtil_ExpandArgsFromWantParams_0100
  * @tc.desc: Test ExpandArgsFromWantParams expands nested args and skips reserved keys
  * @tc.type: FUNC

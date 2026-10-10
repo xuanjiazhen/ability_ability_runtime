@@ -20,6 +20,7 @@
 #include <climits>
 #include <cstdlib>
 #include <cstdint>
+#include <iomanip>
 #include <nlohmann/json.hpp>
 #include <random>
 #include <set>
@@ -987,6 +988,44 @@ void ToolUtil::ExpandArgsJsonString(AAFwk::WantParams &args)
         return;
     }
     ExpandArgsFromWantParams(args);
+}
+
+void ToolUtil::ExpandSkillArgsOrdered(AAFwk::WantParams &args)
+{
+    auto argsStr = args.GetStringParam("args");
+    if (argsStr.empty()) {
+        ExpandArgsFromWantParams(args);
+        return;
+    }
+    auto jsonObj = nlohmann::ordered_json::parse(argsStr, nullptr, false);
+    if (!jsonObj.is_object() || jsonObj.is_discarded()) {
+        return;
+    }
+    static const std::set<std::string> RESERVED_KEYS = {
+        "bundleName", "moduleName", "skillName", "scriptPath", "functionName"
+    };
+    args.Remove("args");
+    int32_t ordinal = 1;
+    auto makeArgKey = [&ordinal]() {
+        std::ostringstream oss;
+        oss << "arg_" << std::setw(3) << std::setfill('0') << ordinal++;
+        return oss.str();
+    };
+    for (auto &[key, val] : jsonObj.items()) {
+        if (RESERVED_KEYS.count(key) > 0) {
+            continue;
+        }
+        if (val.is_string()) {
+            args.SetParam(makeArgKey(), AAFwk::String::Box(val.get<std::string>()));
+        } else if (val.is_number_integer()) {
+            int64_t intVal = val.get<int64_t>();
+            if (intVal >= INT32_MIN && intVal <= INT32_MAX) {
+                args.SetParam(makeArgKey(), AAFwk::Integer::Box(static_cast<int32_t>(intVal)));
+            }
+        } else if (val.is_boolean()) {
+            args.SetParam(makeArgKey(), AAFwk::Boolean::Box(val.get<bool>()));
+        }
+    }
 }
 
 std::shared_ptr<AAFwk::WantParams> ToolUtil::FilterSkillArgs(const AAFwk::WantParams &args)
