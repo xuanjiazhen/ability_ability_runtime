@@ -57,6 +57,7 @@ private:
     sptr<IBundleInstaller> bundleInstaller_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     std::mutex mutex_;
+    int32_t GetDualModeBundleInfo(const std::string &bundleName, int32_t userId, int32_t &appIndex);
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

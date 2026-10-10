@@ -18,7 +18,6 @@
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_db_cache.h"
-#include "insight_intent_event_mgr.h"
 #include "user_controller.h"
 
 namespace OHOS {
@@ -37,10 +36,9 @@ int32_t InsightIntentMatcher::GetMatchedIntentInfos(const std::string &bundleNam
 {
     matchedInfos.clear();
     int32_t validUserId = GetValidUserId(userId);
-    auto ctx = InsightIntentEventMgr::ResolveDualModeContext(bundleName, validUserId, 0);
     std::vector<ExtractInsightIntentGenericInfo> allInfos;
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfoByName(
-        bundleName, validUserId, allInfos, ctx.appIndex, ctx.isDualMode);
+        bundleName, validUserId, allInfos);
     for (const auto &info : allInfos) {
         if (info.intentName == intentName) {
             matchedInfos.push_back(info);
@@ -49,7 +47,7 @@ int32_t InsightIntentMatcher::GetMatchedIntentInfos(const std::string &bundleNam
 
     std::vector<InsightIntentInfo> configInfos;
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfoByName(
-        bundleName, validUserId, configInfos, ctx.appIndex, ctx.isDualMode);
+        bundleName, validUserId, configInfos);
     for (const auto &config : configInfos) {
         if (config.intentName == intentName) {
             ExtractInsightIntentGenericInfo generic;

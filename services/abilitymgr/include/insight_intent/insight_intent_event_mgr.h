@@ -34,8 +34,6 @@ public:
         int32_t appIndex = 0;
         bool isDualMode = false;
     };
-    static DualModeContext ResolveDualModeContext(const std::string &bundleName,
-        int32_t userId, int32_t appIndexFromEvent);
     static void UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId,
         int32_t appIndex = 0);
     static void DeleteInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId,
@@ -44,6 +42,9 @@ public:
     void SubscribeSysEventReceiver();
 private:
     std::shared_ptr<InsightIntentSysEventReceiver> insightIntentSysEventReceiver_ = nullptr;
+
+    static DualModeContext ResolveDualModeContext(const std::string &bundleName,
+        int32_t userId, int32_t appIndexFromEvent);
 
     static void DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName,
         int32_t userId, const DualModeContext &ctx);

@@ -40,6 +40,7 @@ public:
 
 private:
     DECLARE_DELAYED_SINGLETON(BundleMgrHelper)
+    int32_t GetDualModeBundleInfo(const std::string &bundleName, int32_t userId, int32_t &appIndex);
 };
 } // namespace AppExecFwk
 } // namespace OHOS

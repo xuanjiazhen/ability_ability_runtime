@@ -57,16 +57,9 @@ InsightIntentEventMgr::DualModeContext InsightIntentEventMgr::ResolveDualModeCon
              policy == AppExecFwk::DeviceModeDistributionPolicy::FULL_COMPATIBLE_DIFFERENT_PACKAGE);
         if (isDifferentPackage) {
             ctx.isDualMode = true;
-            int32_t preferredAppIndex = 0;
-            auto dualRet = IN_PROCESS_CALL(bundleMgrHelper->GetDualModeBundleInfo(
-                bundleName, userId, preferredAppIndex));
-            if (dualRet == ERR_OK) {
-                ctx.appIndex = preferredAppIndex;
-            } else {
-                ctx.appIndex = bundleInfo.appIndex;
-            }
+            ctx.appIndex = bundleInfo.appIndex;
             TAG_LOGI(AAFwkTag::INTENT, "same-name-different-package app, bundle:%{public}s, "
-                "policy:%{public}d, preferredAppIndex:%{public}d",
+                "policy:%{public}d, appIndex:%{public}d",
                 bundleName.c_str(), static_cast<int32_t>(policy), ctx.appIndex);
         } else {
             ctx.isDualMode = false;
