@@ -2941,6 +2941,26 @@ public:
     {
         return ERR_OK;
     }
+
+    virtual int32_t RegisterDaemon(const std::string &bundleName, const std::string &daemonName)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t UnregisterDaemon(const std::string &bundleName, const std::string &daemonName)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t StartDaemon(const std::string &bundleName, const std::string &daemonName)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t StopDaemon(const std::string &bundleName, const std::string &daemonName)
+    {
+        return ERR_OK;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS
