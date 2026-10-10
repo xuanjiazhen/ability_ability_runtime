@@ -71,6 +71,7 @@ public:
     static bool IsSkillTool(const std::string &toolName);
     static void NormalizeSkillParamKeys(AAFwk::WantParams &args);
     static void ExpandArgsJsonString(AAFwk::WantParams &args);
+    static void ExpandSkillArgsOrdered(AAFwk::WantParams &args);
     static std::shared_ptr<AAFwk::WantParams> FilterSkillArgs(const AAFwk::WantParams &args);
     static CliSessionInfo BuildSkillSessionInfo(const std::string &sessionId,
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &skillResult);
