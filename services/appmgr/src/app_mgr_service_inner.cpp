@@ -2929,7 +2929,7 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
     }
     bool hapQueryResult = false;
     if (appIndex == 0 || appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX ||
-+       AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
         AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
         hapQueryResult = bundleMgrHelper->GetHapModuleInfo(abilityInfo, userId, hapModuleInfo);
     } else {
