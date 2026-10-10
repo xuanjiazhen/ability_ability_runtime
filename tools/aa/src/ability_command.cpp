@@ -822,6 +822,7 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     auto reason = Reason::REASON_UNKNOWN;
     std::string inputReason = "aa force-stop";
     pid_t pid = 0;
+    int32_t userId = -1;
     for (auto index = INDEX_OFFSET; index < argc_; ++index) {
         TAG_LOGD(AAFwkTag::AA_TOOL, "argv_[%{public}d]: %{public}s", index, argv_[index]);
         std::string opt = argv_[index];
@@ -839,10 +840,21 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
                 inputReason = argv_[index];
                 reason = AbilityToolConvertUtil::ConvertExitReason(inputReason);
             }
+        } else if (opt == "-u") {
+            index++;
+            if (index < argc_) {
+                TAG_LOGD(AAFwkTag::AA_TOOL, "argv_[%{public}d]: %{public}s", index, argv_[index]);
+                std::string inputUserId = argv_[index];
+                if (!StrToInt(inputUserId, userId)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "userId stoi(%{public}s) failed", inputUserId.c_str());
+                    userId = -1;
+                }
+            }
         }
     }
 
-    TAG_LOGI(AAFwkTag::AA_TOOL, "pid %{public}d, reason %{public}s", pid, inputReason.c_str());
+    TAG_LOGI(AAFwkTag::AA_TOOL, "pid %{public}d, reason %{public}s, userId %{public}d", pid, inputReason.c_str(),
+        userId);
     if (pid > 0 && reason != Reason::REASON_UNKNOWN) {
         ExitReason exitReason = {reason, "aa force-stop"};
         exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP;
@@ -852,7 +864,7 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     }
 
     ErrCode result = OHOS::ERR_OK;
-    result = AbilityManagerClient::GetInstance()->KillProcess(bundleName, false, 0, inputReason);
+    result = AbilityManagerClient::GetInstance()->KillProcess(bundleName, false, 0, inputReason, userId);
     if (result == OHOS::ERR_OK) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_FORCE_STOP_OK.c_str());
         resultReceiver_ = STRING_FORCE_STOP_OK + "\n";

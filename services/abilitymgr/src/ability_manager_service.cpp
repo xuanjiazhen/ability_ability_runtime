@@ -9529,7 +9529,7 @@ bool AbilityManagerService::CheckPermissionForKillCollaborator()
 }
 
 int AbilityManagerService::KillProcess(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
-    const std::string& reason)
+    const std::string& reason, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Kill process, bundleName: %{public}s, clearPageStack: %{public}d"
         "callingUid: %{public}d, callingPid: %{public}d", bundleName.c_str(), clearPageStack,
@@ -9544,7 +9544,9 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, bool clear
 
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, KILL_PROCESS_FAILED);
-    int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    if (userId == -1) {
+        userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    }
     AppExecFwk::BundleInfo bundleInfo;
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
     if (appIndex == 0) {
