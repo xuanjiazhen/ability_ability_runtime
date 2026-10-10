@@ -62,6 +62,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_DefaultConstructor_0100, TestSize.Level1
     EXPECT_TRUE(function.inputSchema.empty());
     EXPECT_TRUE(function.outputSchema.empty());
     EXPECT_EQ(function.functionType, FunctionType::INTENT_FUNCTION);
+    EXPECT_EQ(function.visibility, "private");
 
     TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_DefaultConstructor_0100 end");
 }
@@ -180,6 +181,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Unmarshalling_0100, TestSize.Level1)
     original.inputSchema = R"({"type": "object"})";
     original.outputSchema = R"({"type": "string"})";
     original.functionType = FunctionType::INTENT_FUNCTION;
+    original.visibility = "public";
 
     Parcel parcel;
     ASSERT_TRUE(original.Marshalling(parcel));
@@ -195,6 +197,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Unmarshalling_0100, TestSize.Level1)
     EXPECT_FALSE(result->inputSchema.empty());
     EXPECT_FALSE(result->outputSchema.empty());
     EXPECT_EQ(result->functionType, FunctionType::INTENT_FUNCTION);
+    EXPECT_EQ(result->visibility, "public");
 
     delete result;
 
@@ -1475,6 +1478,214 @@ HWTEST_F(FunctionInfoTest, FunctionsRawData_FromFunctionInfoVec_RoundTrip_0100, 
     EXPECT_EQ(parsedFunctions[1].functionName, "testFunction2");
 
     TAG_LOGI(AAFwkTag::TEST, "FunctionsRawData_FromFunctionInfoVec_RoundTrip_0100 end");
+}
+
+// ==================== Visibility Tests ====================
+
+/**
+ * @tc.name: FunctionInfo_ParseFromJson_Visibility_0100
+ * @tc.desc: Test ParseFromJson with explicit visibility values
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_ParseFromJson_Visibility_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_Visibility_0100 start");
+
+    nlohmann::json jsonPublic = R"({
+        "functionName": "publicFunction",
+        "functionNamespace": "com.test.vispublic",
+        "functionType": 0,
+        "visibility": "public"
+    })"_json;
+
+    FunctionInfo function;
+    EXPECT_TRUE(FunctionInfo::ParseFromJson(jsonPublic, function));
+    EXPECT_EQ(function.visibility, "public");
+
+    nlohmann::json jsonPrivate = R"({
+        "functionName": "privateFunction",
+        "functionNamespace": "com.test.visprivate",
+        "functionType": 0,
+        "visibility": "private"
+    })"_json;
+
+    EXPECT_TRUE(FunctionInfo::ParseFromJson(jsonPrivate, function));
+    EXPECT_EQ(function.visibility, "private");
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_Visibility_0100 end");
+}
+
+/**
+ * @tc.name: FunctionInfo_ParseFromJson_Visibility_0200
+ * @tc.desc: Test ParseFromJson without visibility keeps default private (legacy entries)
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_ParseFromJson_Visibility_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_Visibility_0200 start");
+
+    nlohmann::json json = R"({
+        "functionName": "legacyFunction",
+        "functionNamespace": "com.test.legacy",
+        "functionType": 0,
+        "version": "1.0.0",
+        "description": ""
+    })"_json;
+
+    FunctionInfo function;
+    bool result = FunctionInfo::ParseFromJson(json, function);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(function.visibility, "private");
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_Visibility_0200 end");
+}
+
+/**
+ * @tc.name: FunctionInfo_ParseFromJson_Visibility_0300
+ * @tc.desc: Test ParseFromJson falls back to private on invalid visibility value
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_ParseFromJson_Visibility_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_Visibility_0300 start");
+
+    nlohmann::json json = R"({
+        "functionName": "invalidVisibility",
+        "functionNamespace": "com.test.invalvisibility",
+        "functionType": 0,
+        "visibility": "invalid"
+    })"_json;
+
+    FunctionInfo function;
+    bool result = FunctionInfo::ParseFromJson(json, function);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(function.visibility, "private");
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_Visibility_0300 end");
+}
+
+/**
+ * @tc.name: FunctionInfo_ParseFromJson_Visibility_0400
+ * @tc.desc: Test ParseFromJson rejects non-string visibility type
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_ParseFromJson_Visibility_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_Visibility_0400 start");
+
+    nlohmann::json jsonNumber = R"({
+        "functionName": "numVisibility",
+        "functionNamespace": "com.test.numvisibility",
+        "functionType": 0,
+        "visibility": 1
+    })"_json;
+
+    FunctionInfo function;
+    EXPECT_FALSE(FunctionInfo::ParseFromJson(jsonNumber, function));
+
+    nlohmann::json jsonBool = R"({
+        "functionName": "boolVisibility",
+        "functionNamespace": "com.test.boolvisibility",
+        "functionType": 0,
+        "visibility": true
+    })"_json;
+
+    EXPECT_FALSE(FunctionInfo::ParseFromJson(jsonBool, function));
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_Visibility_0400 end");
+}
+
+/**
+ * @tc.name: FunctionInfo_ParseToJson_Visibility_0100
+ * @tc.desc: Test ParseToJson always emits visibility as string
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_ParseToJson_Visibility_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseToJson_Visibility_0100 start");
+
+    FunctionInfo function;
+    function.functionName = "toJsonVisibility";
+    function.functionNamespace = "com.test.tojsonvis";
+
+    nlohmann::json json = function.ParseToJson();
+
+    ASSERT_TRUE(json["visibility"].is_string());
+    EXPECT_EQ(json["visibility"], "private");
+
+    function.visibility = "public";
+    json = function.ParseToJson();
+    ASSERT_TRUE(json["visibility"].is_string());
+    EXPECT_EQ(json["visibility"], "public");
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseToJson_Visibility_0100 end");
+}
+
+/**
+ * @tc.name: FunctionInfo_ParseFromJson_Visibility_RoundTrip_0100
+ * @tc.desc: Test visibility survives JSON and Parcel round trips
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_ParseFromJson_Visibility_RoundTrip_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_Visibility_RoundTrip_0100 start");
+
+    nlohmann::json originalJson = R"({
+        "functionName": "roundTripVisibility",
+        "functionNamespace": "com.test.visroundtrip",
+        "functionType": 0,
+        "visibility": "public"
+    })"_json;
+
+    FunctionInfo function;
+    ASSERT_TRUE(FunctionInfo::ParseFromJson(originalJson, function));
+
+    // JSON round trip keeps explicit public
+    nlohmann::json resultJson = function.ParseToJson();
+    EXPECT_EQ(resultJson["visibility"], "public");
+
+    // Parcel round trip keeps explicit public
+    Parcel parcel;
+    ASSERT_TRUE(function.Marshalling(parcel));
+    parcel.RewindRead(0);
+    FunctionInfo *parsed = FunctionInfo::Unmarshalling(parcel);
+    ASSERT_NE(parsed, nullptr);
+    EXPECT_EQ(parsed->visibility, "public");
+    delete parsed;
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_Visibility_RoundTrip_0100 end");
+}
+
+/**
+ * @tc.name: FunctionInfo_Validate_Visibility_0100
+ * @tc.desc: Test Validate accepts only public/private visibility
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_Validate_Visibility_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_Validate_Visibility_0100 start");
+
+    FunctionInfo function;
+    function.functionName = "visibilityFunction";
+    function.functionNamespace = "com.test.validvis";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 100;
+
+    function.visibility = "private";
+    EXPECT_TRUE(FunctionInfo::Validate(function));
+
+    function.visibility = "public";
+    EXPECT_TRUE(FunctionInfo::Validate(function));
+
+    function.visibility = "invalid";
+    EXPECT_FALSE(FunctionInfo::Validate(function));
+
+    function.visibility = "";
+    EXPECT_FALSE(FunctionInfo::Validate(function));
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_Validate_Visibility_0100 end");
 }
 
 } // namespace CliTool

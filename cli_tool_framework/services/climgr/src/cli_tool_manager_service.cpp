@@ -774,11 +774,24 @@ int32_t CliToolManagerService::GetFunctionInfo(const std::string &functionNamesp
     // Function data is strictly per-user: queries always resolve to the IPC caller's
     // own user, cross-user access is not supported
     int32_t queryUserId = GetCallingUserId();
+
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_ACCESS_FUNCTION)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Permission denied");
+        return ERR_PERMISSION_DENIED;
+    }
+
     ret = CliFunctionDataManager::GetInstance().GetFunctionByName(
         queryUserId, functionNamespace, functionName, function);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Failed to get function, ret=%{public}d", ret);
         return ret;
+    }
+
+    // Visibility check: non-system app cannot access private functions
+    if (!PermissionUtil::IsSystemApp() && function.visibility == "private") {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Not system app, function is private");
+        return ERR_FUNCTION_NOT_EXIST;
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got function: %{public}s/%{public}s",
@@ -926,6 +939,43 @@ int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
         return ret;
     }
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got all functions (raw): %{public}zu", functionList.size());
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::GetPublicFunctions(FunctionsRawData &functions)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "GetPublicFunctions called");
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_ACCESS_FUNCTION)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetPublicFunctions: Permission denied");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    std::vector<FunctionInfo> functionList;
+    // Function data is strictly per-user: public functions are resolved within the
+    // IPC caller's own user, cross-user access is not supported
+    int32_t retCode = CliFunctionDataManager::GetInstance().GetAllFunctions(
+        GetCallingUserId(), functionList);
+    if (retCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetPublicFunctions: Failed to get functions, ret=%{public}d", retCode);
+        return retCode;
+    }
+
+    std::vector<FunctionInfo> publicFunctions;
+    for (const auto &func : functionList) {
+        if (func.visibility == "public") {
+            publicFunctions.push_back(func);
+        }
+    }
+
+    retCode = FunctionsRawData::FromFunctionInfoVec(publicFunctions, functions);
+    if (retCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "FromFunctionInfoVec failed: %{public}d", retCode);
+        return retCode;
+    }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got public functions: %{public}zu", publicFunctions.size());
     return ERR_OK;
 }
 
