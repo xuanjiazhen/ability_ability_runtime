@@ -55,9 +55,11 @@ public:
     static std::string GenerateCliSessionId(const std::string &name, std::shared_ptr<SessionRecord> record);
 
     static bool GenerateSandboxConfig(const ExecToolParam &param, AccessToken::AccessTokenID tokenId,
+        const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
         std::string &sandboxConfig, std::string &bundleName);
 
     static bool GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::AccessTokenID tokenId,
+        const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
         std::string &sandboxConfig, std::string &bundleName);
 
     static void TransferToCmdParam(const AAFwk::WantParams &args, std::vector<std::string> &execArgs);

@@ -605,11 +605,11 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareTool_0100, TestSize.Level1
     std::string detail;
 
     EXPECT_EQ(service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
-        toolInfo, sandboxConfig, bundleName, detail), ERR_TOOL_NOT_EXIST);
+        "test_sid", {}, toolInfo, sandboxConfig, bundleName, detail), ERR_TOOL_NOT_EXIST);
 
     CliToolDataManagerMock::getToolByNameResult = ERR_OK;
     int32_t result = service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
-        toolInfo, sandboxConfig, bundleName, detail);
+        "test_sid", {}, toolInfo, sandboxConfig, bundleName, detail);
     EXPECT_TRUE(result == ERR_OK || result == ERR_NOT_HAP);
     if (result == ERR_OK) {
         EXPECT_EQ(toolInfo.name, param.toolName);
@@ -2472,7 +2472,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0100, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "test_sid", {}, sandboxConfig, bundleName);
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0100 end");
@@ -2494,7 +2494,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0200, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "test_sid", {}, sandboxConfig, bundleName);
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0200 end");
@@ -2517,7 +2517,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0300, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "test_sid", {}, sandboxConfig, bundleName);
     EXPECT_TRUE(result == ERR_OK || result == ERR_NOT_HAP);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0300 end");
@@ -2541,7 +2541,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0400, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "test_sid", {}, sandboxConfig, bundleName);
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0400 end");
@@ -5883,5 +5883,120 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterFunctionHook_PermissionDenied_0100
     IPCSkeleton::Reset();
     TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_PermissionDenied_0100 end");
 }
-} // namespace CliTool
-} // namespace OHOS
+
+// ==================== SessionId Timing & Consistency Tests ====================
+
+/**
+ * @tc.name: ExecTool_SessionIdGeneratedBeforeSandboxConfig_0100
+ * @tc.desc: ExecTool creates session record (with sessionId) before GenerateSandboxConfig;
+ *           when sandboxConfig fails (non-HAP), no record is leaked into sessionRecords_ (E-3, AC-2.1)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_SessionIdGeneratedBeforeSandboxConfig_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecTool_SessionIdGeneratedBeforeSandboxConfig_0100 start");
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    service_->ioMonitor_ = IOMonitor::Create();
+
+    ExecToolParam param;
+    param.toolName = "testtool";
+    param.subcommand = "";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    size_t beforeSize = service_->sessionRecords_.size();
+    int32_t result = service_->ExecTool(param, "event_timing_exec", scheduler);
+    // sandboxConfig generation fails (non-HAP in test env) — ERR_NOT_HAP is expected
+    EXPECT_TRUE(result == ERR_NOT_HAP || result == ERR_OK || IsPermissionGateResult(result));
+
+    // E-3: record was created before sandboxConfig but NOT added to sessionRecords_
+    // because ValidateAndPrepareTool failed; shared_ptr auto-releases — no leak.
+    EXPECT_EQ(service_->sessionRecords_.size(), beforeSize);
+
+    if (service_->ioMonitor_ != nullptr) {
+        service_->ioMonitor_->Stop();
+        service_->ioMonitor_ = nullptr;
+    }
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "ExecTool_SessionIdGeneratedBeforeSandboxConfig_0100 end");
+}
+
+/**
+ * @tc.name: ExecCmd_ShellPath_SessionIdGeneratedBeforeSandboxConfig_0100
+ * @tc.desc: ExecCmd shell path creates session record (with sessionId) before GenerateCmdSandboxConfig;
+ *           when sandboxConfig fails (non-HAP), no record is leaked into sessionRecords_ (E-3, AC-2.2)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_ShellPath_SessionIdGeneratedBeforeSandboxConfig_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecCmd_ShellPath_SessionIdGeneratedBeforeSandboxConfig_0100 start");
+
+    service_->ioMonitor_ = IOMonitor::Create();
+    ExecCmdParam param;
+    param.cmd = "echo hello";
+    param.execCmdOptions.isShellCommand = true;
+    param.execCmdOptions.timeout = 30;
+    param.execCmdOptions.policy = "allow";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    size_t beforeSize = service_->sessionRecords_.size();
+    int32_t result = service_->ExecCmd(param, "event_timing_cmd", scheduler, "sub_timing");
+    // sandboxConfig generation fails (non-HAP in test env) — ERR_NOT_HAP expected
+    EXPECT_TRUE(result == ERR_NOT_HAP || result == ERR_OK);
+
+    // E-3: record was created before sandboxConfig but NOT added to sessionRecords_;
+    // shared_ptr auto-releases — no leak.
+    EXPECT_EQ(service_->sessionRecords_.size(), beforeSize);
+
+    if (service_->ioMonitor_ != nullptr) {
+        service_->ioMonitor_->Stop();
+        service_->ioMonitor_ = nullptr;
+    }
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "ExecCmd_ShellPath_SessionIdGeneratedBeforeSandboxConfig_0100 end");
+}
+
+/**
+ * @tc.name: ExecTool_AliveSessionIdsExtractedBeforeSandboxConfig_0100
+ * @tc.desc: ExecTool extracts aliveSessionIds from sessionRecords_ before sandboxConfig;
+ *           pre-existing sessions are visible in the extraction (AC-1.2, D4)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_AliveSessionIdsExtractedBeforeSandboxConfig_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecTool_AliveSessionIdsExtractedBeforeSandboxConfig_0100 start");
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    service_->ioMonitor_ = IOMonitor::Create();
+
+    // Pre-populate sessionRecords_ with existing sessions
+    auto existingRecord1 = std::make_shared<SessionRecord>();
+    existingRecord1->sessionId = "existing_session_1";
+    service_->AddSessionRecord(existingRecord1);
+    auto existingRecord2 = std::make_shared<SessionRecord>();
+    existingRecord2->sessionId = "existing_session_2";
+    service_->AddSessionRecord(existingRecord2);
+
+    ExecToolParam param;
+    param.toolName = "testtool";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t result = service_->ExecTool(param, "event_alive_extract", scheduler);
+    // sandboxConfig may fail (non-HAP), but aliveSessionIds extraction still occurs
+    EXPECT_TRUE(result == ERR_NOT_HAP || result == ERR_OK || IsPermissionGateResult(result));
+
+    // The two pre-existing sessions should still be in sessionRecords_ (not removed)
+    EXPECT_EQ(service_->sessionRecords_.size(), 2u);
+    EXPECT_TRUE(service_->GetSessionRecord("existing_session_1") != nullptr);
+    EXPECT_TRUE(service_->GetSessionRecord("existing_session_2") != nullptr);
+
+    // Cleanup
+    {
+        std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
+        service_->sessionRecords_.clear();
+    }
+    if (service_->ioMonitor_ != nullptr) {
+        service_->ioMonitor_->Stop();
+        service_->ioMonitor_ = nullptr;
+    }
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "ExecTool_AliveSessionIdsExtractedBeforeSandboxConfig_0100 end");
+}

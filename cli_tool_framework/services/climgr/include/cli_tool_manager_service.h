@@ -301,15 +301,19 @@ private:
     int32_t FilterFunctionsForReset(int32_t userId, const std::string &functionNamespace,
         const std::vector<FunctionInfo> &functionList, std::vector<FunctionInfo> &validFunctions);
     int32_t ValidateAndPrepareTool(const ExecToolParam &param, uint32_t tokenId,
+        const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
         ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName, std::string& detail);
 
     int32_t ValidateAndPrepareCmd(const ExecCmdParam &param, uint32_t tokenId,
+        const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
         std::string &sandboxConfig, std::string &bundleName);
     int32_t ExecCmdToolMode(const ExecCmdParam &param, CmdSessionContext context);
     int32_t SetupCmdSession(const ExecToolParam &toolParam, const ToolInfo &toolInfo,
-        const std::string &sandboxConfig, const std::string &toolName, const CmdSessionContext &context);
+        const std::string &sandboxConfig, const std::string &toolName, const CmdSessionContext &context,
+        const std::shared_ptr<SessionRecord> &record);
     int32_t SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
-        const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName);
+        const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName,
+        const std::shared_ptr<SessionRecord> &record);
 
     int32_t TryDispatchSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched);
