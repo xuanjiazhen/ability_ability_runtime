@@ -57,6 +57,8 @@ bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> caller
                                     int32_t &appIndex)
 {
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (abilityRecord && abilityRecord->GetApplicationInfo().bundleName == want.GetBundleNameRef() &&
+        AbilityRuntime::GlobalConstant::IsDlpIndex(abilityRecord->GetAppIndex())) {
         appIndex = abilityRecord->GetAppIndex();
         return true;
     }
