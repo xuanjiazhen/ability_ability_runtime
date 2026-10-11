@@ -55,6 +55,11 @@ export function callback(cleaner: Cleaner): void {
 let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 
+export interface CompletionHandler {
+  onStartSuccess(windowId: number): void;
+  onStartFailure(errorCode: number): void;
+}
+
 export default class UIAbilityContext extends Context {
   static {
     loadLibraryWithPermissionCheck("ability_context_ani_kit.z", "application.UIAbilityContext");
@@ -124,6 +129,9 @@ export default class UIAbilityContext extends Context {
   }
 
   private native nativeStartAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeStartAbilityWithCompletionHandler(want: Want,
+    completionHandler: CompletionHandler, callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeStartAbilitySyncCheck(options: StartOptions): void;
 
@@ -288,6 +296,23 @@ export default class UIAbilityContext extends Context {
         } else {
           this.nativeStartAbilitySync(want, options as StartOptions, myCall);
         }
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
+  }
+
+  startAbility(want: Want, completionHandler: CompletionHandler): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartAbilityWithCompletionHandler(want, completionHandler, myCall);
       }).catch((err: Error): void => {
         reject(err as BusinessError);
       });

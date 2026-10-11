@@ -47,6 +47,7 @@ public:
 public:
     std::shared_ptr<PendingWantKey> GetKey();
     int32_t GetUid() const;
+    sptr<IRemoteObject> GetCallerToken() const;
     void SetCallerUid(const int32_t callerUid);
     void SetPublisherUid(int32_t publisherUid);
     int32_t GetPublisherUid() const;
