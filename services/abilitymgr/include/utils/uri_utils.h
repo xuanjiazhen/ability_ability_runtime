@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_URI_UTILS_H
 #define OHOS_ABILITY_RUNTIME_URI_UTILS_H
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -40,6 +41,10 @@ struct GrantUriPermissionInfo {
     bool isSandboxApp = false;
     bool isNotifyCollaborator = false;
 };
+
+// URIs grouped by grant flag (Want::FLAG_AUTH_READ_URI_PERMISSION / FLAG_AUTH_WRITE_URI_PERMISSION),
+// so that each group can be granted with its own flag to avoid privilege escalation.
+using UriAuthGroup = std::map<int32_t, std::vector<std::string>>;
 
 class UriUtils {
 public:
@@ -130,6 +135,21 @@ public:
      */
     void GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
         const std::string &targetBundleName, int32_t appIndex, uint32_t initiatorTokenId);
+#endif // SUPPORT_UPMS
+
+#ifdef SUPPORT_UPMS
+    /**
+     * @brief Collect file entity URIs from intent custom parameters, grouped by grant flag.
+     *
+     * A file entity is a nested WantParams whose "entityId" equals "OHOS_FILE_ENTITY".
+     * URIs of file entities are grouped by their "flags" so that a read-only URI is never
+     * granted write permission. URIs with an invalid scheme are dropped with a warning log.
+     *
+     * @param params The intent custom parameters (insightIntentParam).
+     * @param groups Output groups, keyed by grant flag, each holding the URIs with that flag.
+     * @return true if at least one file entity was found, false otherwise.
+     */
+    static bool CollectFileEntityUrisAndFlags(const WantParams &params, UriAuthGroup &groups);
 #endif // SUPPORT_UPMS
 private:
     UriUtils();
