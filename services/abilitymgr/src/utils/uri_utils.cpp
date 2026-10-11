@@ -53,7 +53,6 @@ const std::string ERASE_PARAM_STREAM = "eraseParamStream";
 const std::string SEPARATOR = "/";
 const std::string SCHEME_SEPARATOR = "://";
 const std::string FILE_SCHEME = "file";
-const std::string DATASHARE_SCHEME = "datashare";
 const int32_t MAX_URI_COUNT = 500;
 constexpr int32_t API20 = 20;
 constexpr int32_t API_VERSION_MOD = 100;
@@ -316,10 +315,12 @@ bool UriUtils::CollectFileEntityUrisAndFlags(const WantParams &params, UriAuthGr
         }
 
         // Drop URIs with an invalid scheme so that they are never granted.
+        // Only file:// is accepted; the UPMS batch grant path (BatchUri) only handles file:// (and anco://
+        // for broker content URIs), so anything else would be silently skipped by UPMS anyway.
         std::vector<std::string> validUris;
         for (const auto &uriStr : entityUris) {
             Uri uri(uriStr);
-            if (uri.GetScheme() != FILE_SCHEME && uri.GetScheme() != DATASHARE_SCHEME) {
+            if (uri.GetScheme() != FILE_SCHEME) {
                 TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid file entity uri scheme: %{public}s", uriStr.c_str());
                 continue;
             }
