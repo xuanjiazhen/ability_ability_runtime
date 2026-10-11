@@ -220,5 +220,164 @@ HWTEST_F(JsonSafeUtilTest, SafeJsonGet_0200, TestSize.Level1)
     int intValue = 0;
     EXPECT_FALSE(SafeJsonGet(jsonObject["str"], intValue, "str"));
 }
+
+struct TestSkillInfo {
+    std::string uri;
+    int32_t num = 0;
+};
+
+void from_json(const nlohmann::json &jsonObject, TestSkillInfo &info)
+{
+    auto end = jsonObject.end();
+    if (jsonObject.find("uri") != end) {
+        info.uri = jsonObject.at("uri").get<std::string>();
+    }
+    if (jsonObject.find("num") != end) {
+        info.num = jsonObject.at("num").get<int32_t>();
+    }
+}
+
+/**
+ * @tc.name: GetStrValueIfFindKey_0100
+ * @tc.desc: Get string value, type mismatch, missing required/optional, and short-circuit.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsonSafeUtilTest, GetStrValueIfFindKey_0100, TestSize.Level1)
+{
+    nlohmann::json jsonObject;
+    ASSERT_TRUE(SafeParse(R"({"name":"value","num":42})", jsonObject));
+
+    std::string value;
+    int32_t parseResult = JSON_PARSE_OK;
+    GetStrValueIfFindKey(jsonObject, "name", value, true, parseResult);
+    EXPECT_EQ(parseResult, JSON_PARSE_OK);
+    EXPECT_EQ(value, "value");
+
+    parseResult = JSON_PARSE_OK;
+    GetStrValueIfFindKey(jsonObject, "num", value, false, parseResult);
+    EXPECT_EQ(parseResult, JSON_PARSE_PROP_TYPE_ERROR);
+
+    parseResult = JSON_PARSE_OK;
+    GetStrValueIfFindKey(jsonObject, "missing", value, true, parseResult);
+    EXPECT_EQ(parseResult, JSON_PARSE_PROP_MISSING);
+
+    parseResult = JSON_PARSE_OK;
+    GetStrValueIfFindKey(jsonObject, "missing", value, false, parseResult);
+    EXPECT_EQ(parseResult, JSON_PARSE_OK);
+
+    // 短路：parseResult 已非 0，直接返回不覆盖
+    parseResult = JSON_PARSE_PROP_TYPE_ERROR;
+    GetStrValueIfFindKey(jsonObject, "name", value, true, parseResult);
+    EXPECT_EQ(parseResult, JSON_PARSE_PROP_TYPE_ERROR);
+}
+
+/**
+ * @tc.name: GetStrValueIfFindKey_0200
+ * @tc.desc: Reject string longer than JSON_SAFE_MAX_STRING_LENGTH.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsonSafeUtilTest, GetStrValueIfFindKey_0200, TestSize.Level1)
+{
+    std::string longStr(JSON_SAFE_MAX_STRING_LENGTH + 1, 'a');
+    nlohmann::json jsonObject = nlohmann::json::object();
+    jsonObject["long"] = longStr;
+
+    std::string value;
+    int32_t parseResult = JSON_PARSE_OK;
+    GetStrValueIfFindKey(jsonObject, "long", value, false, parseResult);
+    EXPECT_EQ(parseResult, JSON_PARSE_PROP_SIZE_CHECK_ERROR);
+}
+
+/**
+ * @tc.name: GetValueIfFindKey_0100
+ * @tc.desc: Get object and string-array values.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsonSafeUtilTest, GetValueIfFindKey_0100, TestSize.Level1)
+{
+    nlohmann::json jsonObject;
+    ASSERT_TRUE(SafeParse(R"({"link":{"uri":"u1"},"tags":["a","b"]})", jsonObject));
+    auto end = jsonObject.end();
+
+    TestSkillInfo info;
+    int32_t parseResult = JSON_PARSE_OK;
+    GetValueIfFindKey<TestSkillInfo>(jsonObject, end, "link", info, JsonType::OBJECT,
+        false, parseResult, ArrayType::NOT_ARRAY);
+    EXPECT_EQ(parseResult, JSON_PARSE_OK);
+    EXPECT_EQ(info.uri, "u1");
+
+    std::vector<std::string> tags;
+    GetValueIfFindKey<std::vector<std::string>>(jsonObject, end, "tags", tags, JsonType::ARRAY,
+        false, parseResult, ArrayType::STRING);
+    EXPECT_EQ(parseResult, JSON_PARSE_OK);
+    ASSERT_EQ(tags.size(), 2U);
+    EXPECT_EQ(tags[0], "a");
+    EXPECT_EQ(tags[1], "b");
+}
+
+/**
+ * @tc.name: GetValueIfFindKey_0200
+ * @tc.desc: Get object-array / number values, type mismatch, and missing required.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsonSafeUtilTest, GetValueIfFindKey_0200, TestSize.Level1)
+{
+    nlohmann::json jsonObject;
+    ASSERT_TRUE(SafeParse(R"({"ents":[{"uri":"a"},{"uri":"b"}],"num":42})", jsonObject));
+    auto end = jsonObject.end();
+
+    std::vector<TestSkillInfo> ents;
+    int32_t parseResult = JSON_PARSE_OK;
+    GetValueIfFindKey<std::vector<TestSkillInfo>>(jsonObject, end, "ents", ents, JsonType::ARRAY,
+        false, parseResult, ArrayType::OBJECT);
+    EXPECT_EQ(parseResult, JSON_PARSE_OK);
+    ASSERT_EQ(ents.size(), 2U);
+    EXPECT_EQ(ents[0].uri, "a");
+
+    int32_t num = 0;
+    GetValueIfFindKey<int32_t>(jsonObject, end, "num", num, JsonType::NUMBER,
+        false, parseResult, ArrayType::NOT_ARRAY);
+    EXPECT_EQ(parseResult, JSON_PARSE_OK);
+    EXPECT_EQ(num, 42);
+
+    TestSkillInfo info;
+    parseResult = JSON_PARSE_OK;
+    GetValueIfFindKey<TestSkillInfo>(jsonObject, end, "num", info, JsonType::OBJECT,
+        false, parseResult, ArrayType::NOT_ARRAY);
+    EXPECT_EQ(parseResult, JSON_PARSE_PROP_TYPE_ERROR);
+
+    parseResult = JSON_PARSE_OK;
+    GetValueIfFindKey<TestSkillInfo>(jsonObject, end, "missing", info, JsonType::OBJECT,
+        true, parseResult, ArrayType::NOT_ARRAY);
+    EXPECT_EQ(parseResult, JSON_PARSE_PROP_MISSING);
+}
+
+/**
+ * @tc.name: GetValueIfFindKey_0300
+ * @tc.desc: Reject array element type mismatch and oversized array.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsonSafeUtilTest, GetValueIfFindKey_0300, TestSize.Level1)
+{
+    nlohmann::json jsonObject;
+    ASSERT_TRUE(SafeParse(R"({"tags":[1,2]})", jsonObject));
+
+    std::vector<std::string> tags;
+    int32_t parseResult = JSON_PARSE_OK;
+    GetValueIfFindKey<std::vector<std::string>>(jsonObject, jsonObject.end(), "tags", tags,
+        JsonType::ARRAY, false, parseResult, ArrayType::STRING);
+    EXPECT_EQ(parseResult, JSON_PARSE_PROP_TYPE_ERROR);
+
+    nlohmann::json bigArray = nlohmann::json::array();
+    for (size_t i = 0; i < JSON_SAFE_MAX_ARRAY_LENGTH + 1; ++i) {
+        bigArray.push_back("x");
+    }
+    nlohmann::json bigObj = nlohmann::json::object();
+    bigObj["arr"] = bigArray;
+    parseResult = JSON_PARSE_OK;
+    GetValueIfFindKey<std::vector<std::string>>(bigObj, bigObj.end(), "arr", tags,
+        JsonType::ARRAY, false, parseResult, ArrayType::STRING);
+    EXPECT_EQ(parseResult, JSON_PARSE_PROP_SIZE_CHECK_ERROR);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
