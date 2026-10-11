@@ -119,5 +119,32 @@ std::string SafeDump(const nlohmann::json &jsonObject, size_t maxLen)
     }
     return out;
 }
+
+void GetStrValueIfFindKey(const nlohmann::json &jsonObject,
+    const nlohmann::json::const_iterator &end,
+    const std::string &key, std::string &value,
+    bool isNecessary, int32_t &parseResult)
+{
+    if (parseResult != ERR_OK) {
+        return;
+    }
+    if (jsonObject.find(key) != end) {
+        if (!jsonObject.at(key).is_string()) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "type:%{public}s not string", key.c_str());
+            parseResult = ERR_INVALID_VALUE;
+            return;
+        }
+        value = jsonObject.at(key).get<std::string>();
+        if (value.length() > JSON_SAFE_MAX_STRING_LENGTH) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "string %{public}s size exceeds limit", key.c_str());
+            parseResult = ERR_INVALID_VALUE;
+        }
+        return;
+    }
+    if (isNecessary) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "profile prop %{public}s is missing", key.c_str());
+        parseResult = ERR_INVALID_VALUE;
+    }
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
