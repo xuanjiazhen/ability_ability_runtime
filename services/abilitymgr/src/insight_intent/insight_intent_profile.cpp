@@ -17,12 +17,9 @@
 
 #include "hilog_tag_wrapper.h"
 #include "json_safe_util.h"
-#include "json_util.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-using JsonType = AppExecFwk::JsonType;
-using ArrayType = AppExecFwk::ArrayType;
 
 namespace {
 int32_t g_parseResult = ERR_OK;
@@ -102,13 +99,13 @@ struct InsightIntentProfileInfoVec {
 void from_json(const nlohmann::json &jsonObject, UIAbilityProfileInfo &info)
 {
     const auto &jsonObjectEnd = jsonObject.end();
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_ABILITY,
         info.abilityName,
         true,
         g_parseResult);
-    AppExecFwk::GetValueIfFindKey<std::vector<std::string>>(jsonObject,
+    GetValueIfFindKey<std::vector<std::string>>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_EXECUTE_MODE,
         info.supportExecuteMode,
@@ -121,7 +118,7 @@ void from_json(const nlohmann::json &jsonObject, UIAbilityProfileInfo &info)
 void from_json(const nlohmann::json &jsonObject, UIExtensionProfileInfo &info)
 {
     const auto &jsonObjectEnd = jsonObject.end();
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_ABILITY,
         info.abilityName,
@@ -132,7 +129,7 @@ void from_json(const nlohmann::json &jsonObject, UIExtensionProfileInfo &info)
 void from_json(const nlohmann::json &jsonObject, ServiceExtensionProfileInfo &info)
 {
     const auto &jsonObjectEnd = jsonObject.end();
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_ABILITY,
         info.abilityName,
@@ -143,13 +140,13 @@ void from_json(const nlohmann::json &jsonObject, ServiceExtensionProfileInfo &in
 void from_json(const nlohmann::json &jsonObject, FormProfileInfo &info)
 {
     const auto &jsonObjectEnd = jsonObject.end();
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_ABILITY,
         info.abilityName,
         true,
         g_parseResult);
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_FORM_NAME,
         info.formName,
@@ -225,67 +222,67 @@ void ProcessOutputParams(const nlohmann::json &jsonObject,
 void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insightIntentInfo)
 {
     const auto &jsonObjectEnd = jsonObject.end();
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_NAME,
         insightIntentInfo.intentName,
         true,
         g_parseResult);
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_DOMAIN,
         insightIntentInfo.intentDomain,
         true,
         g_parseResult);
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_VERSION,
         insightIntentInfo.intentVersion,
         true,
         g_parseResult);
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_SRC_ENTRY,
         insightIntentInfo.srcEntry,
         true,
         g_parseResult);
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_ARKTS_MODE,
         insightIntentInfo.arkTSMode,
         false,
         g_parseResult);
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_DISPLAY_NAME,
         insightIntentInfo.displayName,
         false,
         g_parseResult);
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_DISPLAY_DESCRIPTION,
         insightIntentInfo.displayDescription,
         false,
         g_parseResult);
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_ICON,
         insightIntentInfo.icon,
         false,
         g_parseResult);
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_BUNDLE_NAME,
         insightIntentInfo.bundleName,
         false,
         g_parseResult);
-    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+    GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_MODULE_NAME,
         insightIntentInfo.moduleName,
         false,
         g_parseResult);
-    AppExecFwk::GetValueIfFindKey<std::vector<std::string>>(jsonObject,
+    GetValueIfFindKey<std::vector<std::string>>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_KEYWORDS,
         insightIntentInfo.keywords,
@@ -293,7 +290,7 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
         false,
         g_parseResult,
         ArrayType::STRING);
-    AppExecFwk::GetValueIfFindKey<UIAbilityProfileInfo>(jsonObject,
+    GetValueIfFindKey<UIAbilityProfileInfo>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_UI_ABILITY,
         insightIntentInfo.uiAbilityProfileInfo,
@@ -301,7 +298,7 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
         false,
         g_parseResult,
         ArrayType::NOT_ARRAY);
-    AppExecFwk::GetValueIfFindKey<UIExtensionProfileInfo>(jsonObject,
+    GetValueIfFindKey<UIExtensionProfileInfo>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_UI_EXTENSION,
         insightIntentInfo.uiExtensionProfileInfo,
@@ -309,7 +306,7 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
         false,
         g_parseResult,
         ArrayType::NOT_ARRAY);
-    AppExecFwk::GetValueIfFindKey<ServiceExtensionProfileInfo>(jsonObject,
+    GetValueIfFindKey<ServiceExtensionProfileInfo>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_SERVICE_EXTENSION,
         insightIntentInfo.serviceExtensionProfileInfo,
@@ -317,7 +314,7 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
         false,
         g_parseResult,
         ArrayType::NOT_ARRAY);
-    AppExecFwk::GetValueIfFindKey<FormProfileInfo>(jsonObject,
+    GetValueIfFindKey<FormProfileInfo>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_FORM,
         insightIntentInfo.formProfileInfo,
@@ -341,7 +338,7 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
 void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfoVec &infos)
 {
     const auto &jsonObjectEnd = jsonObject.end();
-    AppExecFwk::GetValueIfFindKey<std::vector<InsightIntentProfileInfo>>(jsonObject,
+    GetValueIfFindKey<std::vector<InsightIntentProfileInfo>>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENTS,
         infos.insightIntents,
