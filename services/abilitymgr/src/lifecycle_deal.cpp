@@ -216,6 +216,20 @@ void LifecycleDeal::NotifyAbilityRequestSuccess(const std::string &requestId, co
     abilityScheduler->ScheduleAbilityRequestSuccess(requestId, element);
 }
 
+void LifecycleDeal::NotifyStartAbilitySuccess(const std::string &requestId, int32_t windowId)
+{
+    auto abilityScheduler = GetScheduler();
+    CHECK_POINTER(abilityScheduler);
+    abilityScheduler->ScheduleStartAbilityCompleted(requestId, windowId);
+}
+
+void LifecycleDeal::NotifyStartAbilityFailure(const std::string &requestId, int32_t errorCode)
+{
+    auto abilityScheduler = GetScheduler();
+    CHECK_POINTER(abilityScheduler);
+    abilityScheduler->ScheduleStartAbilityFailed(requestId, errorCode);
+}
+
 void LifecycleDeal::NotifyAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode)
 {
     auto abilityScheduler = GetScheduler();

@@ -1823,6 +1823,68 @@ ErrCode AbilityContextImpl::AddCompletionHandlerForOpenLink(const std::string &r
     return ERR_OK;
 }
 
+ErrCode AbilityContextImpl::AddStartCompletionHandler(const std::string &requestId, OnStartResult onStartSucc,
+    OnStartResult onStartFail)
+{
+    if (onStartSucc == nullptr || onStartFail == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "either func is null");
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard lock(onStartResultMutex_);
+    for (auto iter = onStartResults_.begin(); iter != onStartResults_.end(); iter++) {
+        if ((*iter)->requestId_ == requestId) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "requestId=%{public}s already exists", requestId.c_str());
+            return ERR_OK;
+        }
+    }
+    onStartResults_.emplace_back(std::make_shared<OnStartResultElement>(requestId, onStartSucc, onStartFail));
+    return ERR_OK;
+}
+
+void AbilityContextImpl::OnStartSuccess(const std::string &requestId, int32_t windowId)
+{
+    std::shared_ptr<OnStartResultElement> result = nullptr;
+    {
+        std::lock_guard lock(onStartResultMutex_);
+        for (auto iter = onStartResults_.begin(); iter != onStartResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                result = *iter;
+                onStartResults_.erase(iter);
+                break;
+            }
+        }
+    }
+    if (result != nullptr) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s, call onStartSuccess, windowId=%{public}d",
+            requestId.c_str(), windowId);
+        result->onStartSuccess_(windowId);
+        return;
+    }
+    TAG_LOGW(AAFwkTag::CONTEXT, "requestId=%{public}s not exist in onStartResults", requestId.c_str());
+}
+
+void AbilityContextImpl::OnStartFailure(const std::string &requestId, int32_t errorCode)
+{
+    std::shared_ptr<OnStartResultElement> result = nullptr;
+    {
+        std::lock_guard lock(onStartResultMutex_);
+        for (auto iter = onStartResults_.begin(); iter != onStartResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                result = *iter;
+                onStartResults_.erase(iter);
+                break;
+            }
+        }
+    }
+    if (result != nullptr) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s, call onStartFailure, errorCode=%{public}d",
+            requestId.c_str(), errorCode);
+        result->onStartFailure_(errorCode);
+        return;
+    }
+    TAG_LOGW(AAFwkTag::CONTEXT, "requestId=%{public}s not exist in onStartResults", requestId.c_str());
+}
+
 void AbilityContextImpl::GetFailureInfoByMessage(
     const std::string &message, int32_t &failureCode, std::string &failureMessage, int32_t resultCode)
 {
