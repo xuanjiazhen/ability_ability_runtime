@@ -164,6 +164,10 @@ int AbilitySchedulerStub::OnRemoteRequestInnerThird(
             return ScheduleAbilityRequestSuccessInner(data);
         case SCHEDULE_ABILITIES_REQUEST_DONE:
             return ScheduleAbilitiesRequestDoneInner(data);
+        case SCHEDULE_START_ABILITY_COMPLETED:
+            return ScheduleStartAbilityCompletedInner(data);
+        case SCHEDULE_START_ABILITY_FAILED:
+            return ScheduleStartAbilityFailedInner(data);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -802,6 +806,22 @@ int AbilitySchedulerStub::ScheduleAbilitiesRequestDoneInner(MessageParcel &data)
     std::string requestKey = data.ReadString();
     int32_t resultCode = data.ReadInt32();
     ScheduleAbilitiesRequestDone(requestKey, resultCode);
+    return NO_ERROR;
+}
+
+int AbilitySchedulerStub::ScheduleStartAbilityCompletedInner(MessageParcel &data)
+{
+    std::string requestId = data.ReadString();
+    int32_t windowId = data.ReadInt32();
+    ScheduleStartAbilityCompleted(requestId, windowId);
+    return NO_ERROR;
+}
+
+int AbilitySchedulerStub::ScheduleStartAbilityFailedInner(MessageParcel &data)
+{
+    std::string requestId = data.ReadString();
+    int32_t errorCode = data.ReadInt32();
+    ScheduleStartAbilityFailed(requestId, errorCode);
     return NO_ERROR;
 }
 

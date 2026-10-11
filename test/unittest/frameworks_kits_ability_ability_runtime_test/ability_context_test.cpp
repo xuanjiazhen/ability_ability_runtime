@@ -635,6 +635,22 @@ public:
     void NotifyBindingObjectConfigUpdate() override
     {
     }
+
+    ErrCode AddStartCompletionHandler(const std::string &requestId, OnStartResult onStartSucc,
+        OnStartResult onStartFail) override
+    {
+        return ERR_OK;
+    }
+
+    void OnStartSuccess(const std::string &requestId, int32_t windowId) override
+    {
+        return;
+    }
+
+    void OnStartFailure(const std::string &requestId, int32_t errorCode) override
+    {
+        return;
+    }
 private:
     std::unique_ptr<NativeReference> mockContentStorage_ = nullptr;
 };

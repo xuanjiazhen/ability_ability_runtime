@@ -262,6 +262,11 @@ int32_t PendingWantRecord::GetUid() const
     return uid_;
 }
 
+sptr<IRemoteObject> PendingWantRecord::GetCallerToken() const
+{
+    return callerToken_;
+}
+
 void PendingWantRecord::SetCanceled()
 {
     canceled_.store(true);

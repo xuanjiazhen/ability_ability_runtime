@@ -325,6 +325,20 @@ public:
         const std::string &message) override;
 
     /**
+     * @brief Called when startAbility with completionHandler succeeded (onForeground completed).
+     * @param requestId, the requestId.
+     * @param windowId, the main window id of the target UIAbility.
+     */
+    void OnStartAbilitySuccess(const std::string &requestId, int32_t windowId) override;
+
+    /**
+     * @brief Called when startAbility with completionHandler failed.
+     * @param requestId, the requestId.
+     * @param errorCode, the error code.
+     */
+    void OnStartAbilityFailure(const std::string &requestId, int32_t errorCode) override;
+
+    /**
      * @brief Get WindowStage.
      * @return Returns the ani_object of WindowStage.
      */

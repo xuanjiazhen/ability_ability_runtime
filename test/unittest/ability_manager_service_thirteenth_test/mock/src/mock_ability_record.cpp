@@ -1782,6 +1782,23 @@ void AbilityRecord::NotifyAbilityRequestFailure(const std::string &requestId, co
 {
 }
 
+void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId,
+    const AppExecFwk::ElementName &element)
+{
+}
+
+void AbilityRecord::NotifyStartAbilitySuccess(const std::string &requestId, int32_t windowId)
+{
+}
+
+void AbilityRecord::NotifyStartAbilityFailure(const std::string &requestId, int32_t errorCode)
+{
+}
+
+void AbilityRecord::NotifyAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode)
+{
+}
+
 void AbilityRecord::UpdateUIExtensionBindInfo(const WantParams &wantParams)
 {
 }

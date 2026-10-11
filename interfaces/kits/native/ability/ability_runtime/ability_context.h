@@ -568,6 +568,33 @@ public:
     virtual ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
         OnRequestResult onRequestSucc, OnRequestResult onRequestFail) = 0;
 
+    /**
+     * @brief Add start completion handler for startAbility completionHandler.
+     *
+     * @param requestId, the requestId.
+     * @param onStartSucc, the callback to be called upon start success with windowId.
+     * @param onStartFail, the callback to be called upon start failure with errorCode.
+     * @return ERR_OK on success, otherwise failure.
+     */
+    virtual ErrCode AddStartCompletionHandler(const std::string &requestId, OnStartResult onStartSucc,
+        OnStartResult onStartFail) = 0;
+
+    /**
+     * @brief Callback on start ability success, carrying windowId.
+     *
+     * @param requestId, the requestId.
+     * @param windowId, the main window id of the target UIAbility.
+     */
+    virtual void OnStartSuccess(const std::string &requestId, int32_t windowId) = 0;
+
+    /**
+     * @brief Callback on start ability failure, carrying errorCode.
+     *
+     * @param requestId, the requestId.
+     * @param errorCode, the error code.
+     */
+    virtual void OnStartFailure(const std::string &requestId, int32_t errorCode) = 0;
+
     virtual ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
         const AAFwk::StartOptions &startOptions, bool hasOptions) = 0;
 
