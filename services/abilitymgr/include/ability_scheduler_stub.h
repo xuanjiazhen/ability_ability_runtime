@@ -84,6 +84,8 @@ private:
     int ScheduleAbilityRequestFailureInner(MessageParcel &data);
     int ScheduleAbilityRequestSuccessInner(MessageParcel &data);
     int ScheduleAbilitiesRequestDoneInner(MessageParcel &data);
+    int ScheduleStartAbilityCompletedInner(MessageParcel &data);
+    int ScheduleStartAbilityFailedInner(MessageParcel &data);
 };
 
 /**

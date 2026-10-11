@@ -1059,6 +1059,26 @@ void UIAbilityImpl::ScheduleAbilityRequestSuccess(const std::string &requestId, 
     ability_->OnAbilityRequestSuccess(requestId, element, jsonObject.dump());
 }
 
+void UIAbilityImpl::ScheduleStartAbilityCompleted(const std::string &requestId, int32_t windowId)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleStartAbilityCompleted called");
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    ability_->OnStartAbilitySuccess(requestId, windowId);
+}
+
+void UIAbilityImpl::ScheduleStartAbilityFailed(const std::string &requestId, int32_t errorCode)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleStartAbilityFailed called");
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+    ability_->OnStartAbilityFailure(requestId, errorCode);
+}
+
 void UIAbilityImpl::SetNativeModuleMetaData(const AAFwk::NativeAbilityMetaData& metaData)
 {
     nativeModuleMetaData_ = metaData;

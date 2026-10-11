@@ -153,7 +153,7 @@ void ForegroundAppConnectionManager::OnCallerStarted(int32_t callerPid, int32_t 
 }
 
 void ForegroundAppConnectionManager::AbilityAddPidConnection(ForegroundAppConnectionInfo &info,
-    int32_t abilityRecordId)
+    int32_t abilityRecordId, int32_t windowId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityAddPidConnection called");
     int32_t callerPid = info.callerPid_;
@@ -176,6 +176,7 @@ void ForegroundAppConnectionManager::AbilityAddPidConnection(ForegroundAppConnec
     TAG_LOGI(AAFwkTag::ABILITYMGR, "add pidConnection %{public}s", curObserverKey.c_str());
     AbilityRuntime::ForegroundAppConnectionData data;
     GenerateConnectionData(info, data);
+    data.windowId_ = windowId;
     OnConnected(data);
     pidMap_.emplace(curObserverKey, info);
 }

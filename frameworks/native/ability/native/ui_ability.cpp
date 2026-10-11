@@ -1046,6 +1046,16 @@ void UIAbility::OnAbilityRequestSuccess(const std::string &requestId, const AppE
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
 }
 
+void UIAbility::OnStartAbilitySuccess(const std::string &requestId, int32_t windowId)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+}
+
+void UIAbility::OnStartAbilityFailure(const std::string &requestId, int32_t errorCode)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+}
+
 std::string UIAbility::GetContentInfo()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

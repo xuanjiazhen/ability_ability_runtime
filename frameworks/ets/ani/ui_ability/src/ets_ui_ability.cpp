@@ -1886,6 +1886,30 @@ void EtsUIAbility::OnAbilityRequestSuccess(const std::string &requestId, const A
     abilityContext->OnRequestSuccess(requestId, element, message);
 }
 
+void EtsUIAbility::OnStartAbilitySuccess(const std::string &requestId, int32_t windowId)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnStartAbilitySuccess called, windowId=%{public}d", windowId);
+    UIAbility::OnStartAbilitySuccess(requestId, windowId);
+    auto abilityContext = GetAbilityContext();
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        return;
+    }
+    abilityContext->OnStartSuccess(requestId, windowId);
+}
+
+void EtsUIAbility::OnStartAbilityFailure(const std::string &requestId, int32_t errorCode)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnStartAbilityFailure called, errorCode=%{public}d", errorCode);
+    UIAbility::OnStartAbilityFailure(requestId, errorCode);
+    auto abilityContext = GetAbilityContext();
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        return;
+    }
+    abilityContext->OnStartFailure(requestId, errorCode);
+}
+
 void EtsUIAbility::OnConfigurationUpdated(const Configuration &configuration)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

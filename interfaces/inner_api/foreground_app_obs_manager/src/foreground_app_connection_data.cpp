@@ -39,6 +39,9 @@ bool ForegroundAppConnectionData::Marshalling(Parcel &parcel) const
     if (!parcel.WriteString16(Str8ToStr16(targetBundleName_))) {
         return false;
     }
+    if (!parcel.WriteInt32(windowId_)) {
+        return false;
+    }
 
     return true;
 }
@@ -69,6 +72,10 @@ bool ForegroundAppConnectionData::ReadFromParcel(Parcel &parcel)
         return false;
     }
     targetBundleName_ = Str16ToStr8(strValue);
+
+    if (!parcel.ReadInt32(windowId_)) {
+        return false;
+    }
 
     return true;
 }
