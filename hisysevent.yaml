@@ -533,3 +533,17 @@ EXECUTE_CLI_FAILED:
   DETAIL: {type: STRING, desc: failure detail}
   DURATION_MS: {type: INT64, desc: timeout duration in milliseconds}
   SIGNAL_NUM: {type: INT32, desc: signal number}
+
+# system parameter query event
+
+GET_APP_MEMORY_SIZE:
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: ability, desc: get app memory size from system parameter}
+  MEMORY_SIZE: {type: INT32, desc: parsed app memory size in MB}
+  RAW_VALUE: {type: STRING, desc: raw system parameter value}
+  RET_CODE: {type: INT32, desc: GetParameter return code}
+
+IS_RAM_CONSTRAINED_DEVICE:
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: ability, desc: check whether device is ram constrained}
+  IS_CONSTRAINED: {type: INT32, desc: 1 means low ram device}
+  RAW_VALUE: {type: STRING, desc: raw system parameter value}
+  RET_CODE: {type: INT32, desc: GetParameter return code}
