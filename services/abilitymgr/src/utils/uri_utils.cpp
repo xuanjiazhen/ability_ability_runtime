@@ -498,7 +498,9 @@ bool UriUtils::CheckGrantUriPermissionParams(const GrantUriPermissionInfo &grant
 
 void UriUtils::GrantFileEntityUriPermission(Want &want, const GrantUriPermissionInfo &grantInfo)
 {
-    if (!AppExecFwk::InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
+    // Inline the intent-execute check (same as InsightIntentExecuteParam::IsInsightIntentExecute)
+    // to avoid a cross-library symbol dependency in the unit test link.
+    if (!want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME)) {
         return;
     }
     WantParams params = want.GetParams().GetWantParams(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM);
