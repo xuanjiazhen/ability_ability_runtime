@@ -950,5 +950,52 @@ HWTEST_F(AbilityRecordTest, GetWantParam_0100, TestSize.Level1)
     abilityRecord->RemoveSpecifiedWantParam("testStringKey");
     EXPECT_FALSE(abilityRecord->HasParameter("testStringKey"));
 }
+
+/*
+ * Feature: AbilityRecord
+ * Function: NotifyCallersOnPrelaunchTimeout
+ * SubFunction: NA
+ * FunctionPoints: No crash when callContainer_ is null
+ * EnvConditions: NA
+ * CaseDescription: Verify NotifyCallersOnPrelaunchTimeout does not crash with null container
+ */
+HWTEST_P(AbilityRecordTest, AbilityRecord_NotifyCallersOnPrelaunchTimeout_NullContainer_001, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "testBundle";
+    abilityRequest.abilityInfo.name = "testAbility";
+    abilityRequest.abilityInfo.moduleName = "testModule";
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->NotifyCallersOnPrelaunchTimeout();
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: NotifyCallersOnPrelaunchTimeout
+ * SubFunction: NA
+ * FunctionPoints: Notifies all callers including REQUESTING state
+ * EnvConditions: NA
+ * CaseDescription: Verify NotifyCallersOnPrelaunchTimeout notifies REQUESTING state CallRecord
+ */
+HWTEST_P(AbilityRecordTest, AbilityRecord_NotifyCallersOnPrelaunchTimeout_001, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "testBundle";
+    abilityRequest.abilityInfo.name = "testAbility";
+    abilityRequest.abilityInfo.moduleName = "testModule";
+    abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
+    abilityRequest.callerUid = 0;
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    auto connect = sptr<AbilityConnectCallback>::MakeSptr();
+    abilityRequest.connect = connect;
+    AbilityConnectCallback::onAbilityDisconnectDoneCount = 0;
+    abilityRecord->Resolve(abilityRequest);
+
+    abilityRecord->NotifyCallersOnPrelaunchTimeout();
+    EXPECT_EQ(AbilityConnectCallback::onAbilityDisconnectDoneCount, 1);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

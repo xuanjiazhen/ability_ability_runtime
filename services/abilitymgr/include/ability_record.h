@@ -622,6 +622,7 @@ public:
      * @brief Notify all callers that this ability is terminating
      */
     void NotifyCallersOnTerminate();
+    void NotifyCallersOnPrelaunchTimeout();
     bool IsStartedByCall() const;
     void SetStartedByCall(const bool isFlag);
     int32_t GetByCallStatus() const;
