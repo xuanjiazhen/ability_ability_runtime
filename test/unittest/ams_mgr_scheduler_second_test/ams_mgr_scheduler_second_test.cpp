@@ -517,6 +517,40 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessWithAcc
 }
 
 /**
+ * @tc.name: AmsMgrSchedulerSecondTest_KillProcessWithAccountSafely_001
+ * @tc.desc: Return invalid operation when the app manager service is not ready.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessWithAccountSafely_001, TestSize.Level1)
+{
+    std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
+        std::make_shared<AmsMgrScheduler>(nullptr, taskHandler_);
+
+    int32_t ret = amsMgrScheduler->KillProcessWithAccountSafely("com.example.test", 100, true, 2);
+
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+}
+
+/**
+ * @tc.name: AmsMgrSchedulerSecondTest_KillProcessWithAccountSafely_002
+ * @tc.desc: Forward all safe-kill arguments and return the service result.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessWithAccountSafely_002, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<MockAppMgrServiceInner>();
+    EXPECT_CALL(*appMgrServiceInner, KillApplicationByUserIdSafely(
+        "com.example.protected", 3, 100, true, "KillProcessWithAccountSafely"))
+        .WillOnce(Return(AAFwk::ERR_KILL_PROCESS_MDM_PROTECTED));
+    std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
+        std::make_shared<AmsMgrScheduler>(appMgrServiceInner, taskHandler_);
+
+    int32_t ret = amsMgrScheduler->KillProcessWithAccountSafely("com.example.protected", 100, true, 3);
+
+    EXPECT_EQ(ret, AAFwk::ERR_KILL_PROCESS_MDM_PROTECTED);
+}
+
+/**
  * @tc.name: AmsMgrSchedulerSecondTest_AbilityAttachTimeOut_001
  * @tc.desc: Test AbilityAttachTimeOut
  * @tc.type: FUNC
