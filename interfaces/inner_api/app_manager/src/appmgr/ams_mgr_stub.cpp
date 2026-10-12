@@ -219,6 +219,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleForceKillApplication(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_APPLICATION_WITH_USER_ID):
             return HandleKillApplicationWithUserId(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESS_WITH_ACCOUNT_SAFELY):
+            return HandleKillProcessWithAccountSafely(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::CLEAN_UIABILITY_BY_USER_REQUEST):
             return HandleCleanAbilityByUserRequest(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::FORCE_KILL_APPLICATION_BY_ACCESS_TOKEN_ID):
@@ -414,6 +416,21 @@ ErrCode AmsMgrStub::HandleKillProcessWithAccount(MessageParcel &data, MessagePar
 
     TAG_LOGI(AAFwkTag::APPMGR, "end");
 
+    return NO_ERROR;
+}
+
+ErrCode AmsMgrStub::HandleKillProcessWithAccountSafely(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "enter");
+
+    HITRACE_METER(HITRACE_TAG_APP);
+
+    std::string bundleName = data.ReadString();
+    int accountId = data.ReadInt32();
+    bool clearPageStack = data.ReadBool();
+    auto appIndex = data.ReadInt32();
+    int32_t result = KillProcessWithAccountSafely(bundleName, accountId, clearPageStack, appIndex);
+    reply.WriteInt32(result);
     return NO_ERROR;
 }
 
