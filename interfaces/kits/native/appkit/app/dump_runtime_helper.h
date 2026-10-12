@@ -32,6 +32,16 @@ namespace OHOS {
 namespace AppExecFwk {
 using GetMemLeakStringFunc = bool (*)(int, char **, size_t, int *);
 
+// Represents a leaked thread stack memory region parsed from /proc/self/smaps.
+// Each entry corresponds to an [anon:stack:NNN] mapping whose tid no longer
+// exists in /proc/self/task.
+struct ThreadStackRegion {
+    std::string mapName;   // full map name, e.g. "[anon:stack:12345]"
+    uint64_t begin = 0;    // start address of the mapping
+    uint64_t end = 0;      // end address of the mapping
+    pid_t tid = 0;         // tid parsed from the map name
+};
+
 class DumpRuntimeHelper : public std::enable_shared_from_this<DumpRuntimeHelper> {
 public:
     explicit DumpRuntimeHelper(const std::shared_ptr<OHOSApplication> &application);
@@ -79,6 +89,26 @@ private:
     static GetMemLeakStringFunc LoadMemLeakFunc(void **handle);
     static bool GetDumpResult(std::string &dumpResult);
     static bool GetSnapshot(int fd);
+    static std::string DetectAndUnwindThreadStackLeak();
+    // Extract tid from a thread stack map name like "[anon:stack:11111]".
+    // Returns 0 if the tid cannot be parsed.
+    static pid_t ParseTidFromMapName(const std::string &mapName);
+    // Check whether the given tid is still alive in current process by looking
+    // up /proc/self/task/<tid>. Returns true if the tid directory exists.
+    static bool IsTidAlive(pid_t tid);
+    // Count total alive threads by listing /proc/self/task entries.
+    static size_t CountTotalThreads();
+    // Parse /proc/self/smaps and collect all thread stack map regions whose
+    // name starts with "[anon:stack:" and whose tid is no longer alive.
+    static std::vector<ThreadStackRegion> ParseLeakedThreadStackRegions();
+    // Scan a leaked thread stack region [begin, end) for candidate PC values
+    // that fall inside executable maps. Uses direct pointer dereference with a
+    // SIGSEGV guard since /proc/self/mem is blocked by SELinux for apps.
+    static std::vector<uintptr_t> CollectPcsFromStack(uint64_t begin, uint64_t end);
+    // Format a leaked thread stack into a standardized string using
+    // faultloggerd's Unwinder + DfxFrameFormatter. Returns empty string if
+    // no frames could be resolved.
+    static std::string FormatLeakedStack(pid_t tid, const std::vector<uintptr_t> &pcs);
     static int GetCompressQuota (const std::vector<int64_t> &quotas);
     static bool SplitPropertyByComma(const std::string &property, std::string &runningId, std::string &value);
     static std::string GetEventConfig(const std::string &key);
