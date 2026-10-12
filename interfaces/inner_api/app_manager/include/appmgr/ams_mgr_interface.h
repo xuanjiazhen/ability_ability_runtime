@@ -196,6 +196,17 @@ public:
         const bool clearPageStack = false, int32_t appIndex = 0) = 0;
 
     /**
+     * KillProcessWithAccountSafely, call KillProcessWithAccountSafely() through proxy object,
+     * kill the process.
+     *
+     * @param bundleName, bundle name in Application record.
+     * @param accountId, account ID.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t KillProcessWithAccountSafely(const std::string &bundleName, const int accountId,
+        const bool clearPageStack = false, int32_t appIndex = 0) = 0;
+
+    /**
      * KillProcessesInBatch, kill processes in batch, call KillProcessesInBatch() through proxy object;
      * the killed bundle won't be started by the watcher.
      *
@@ -669,6 +680,7 @@ public:
         KILL_APPLICATION_WITH_USER_ID,
         ATTRIBUTE_PROCESS_FOR_ABILITY,
         UNREGISTER_TASK_ATTRIBUTION,
+        KILL_PROCESS_WITH_ACCOUNT_SAFELY,
         // Add enumeration values above
         END
     };
