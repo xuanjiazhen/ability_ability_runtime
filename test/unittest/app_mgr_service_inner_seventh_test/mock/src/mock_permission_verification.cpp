@@ -23,7 +23,9 @@ namespace AAFwk {
 bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName,
     const uint32_t specifyTokenId) const
 {
-    return AAFwk::MyStatus::GetInstance().verifyCallingPermission_;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    auto iter = status.verifyCallingPermissionByName_.find(permissionName);
+    return iter == status.verifyCallingPermissionByName_.end() ? status.verifyCallingPermission_ : iter->second;
 }
 bool PermissionVerification::IsSACall() const
 {
