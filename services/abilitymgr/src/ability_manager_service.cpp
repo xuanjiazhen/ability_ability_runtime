@@ -606,16 +606,16 @@ ErrCode AbilityManagerService::ExecuteBlockAllAppStartInterceptor(AbilityRequest
      }
      int32_t ret = WatchParameter(APPSPAWN_STARTED, ExitReasonUtil::AppSpawnStartCallback, context);
      if (ret != 0) {
-         TAG_LOGE(AAFwkTag::ABILITYMGR, "watch parameter ret: %{public}d", ret);
-         return;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "watch parameter ret: %{public}d", ret);
+        return;
      }
      ffrt_qos_t taskQos = 0;
      ret = ffrt_epoll_ctl(taskQos, EPOLL_CTL_ADD, rFd_, EPOLLIN, static_cast<void*>(ptrRFd_.get()),
         ExitReasonUtil::ProcessSignalData);
      if (ret != 0) {
-         TAG_LOGE(AAFwkTag::ABILITYMGR, "ffrt_epoll_ctl failed, ret: %{public}d", ret);
-         fdsan_close_with_tag(rFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
-         return;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ffrt_epoll_ctl failed, ret: %{public}d", ret);
+        fdsan_close_with_tag(rFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
+        return;
      }
      TAG_LOGI(AAFwkTag::ABILITYMGR, "Listen signal msg ...");
  }
