@@ -396,7 +396,7 @@ public:
     {
         return ERR_OK;
     }
-    virtual ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
+    virtual ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum, const sptr<IAbilityConnection> &connect)
     {
         return ERR_OK;
     }

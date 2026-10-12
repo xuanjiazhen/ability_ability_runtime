@@ -10938,7 +10938,8 @@ int32_t AbilityManagerService::ExecutePrelaunchInterceptors(AbilityRequest &abil
     return result;
 }
 
-int AbilityManagerService::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
+int AbilityManagerService::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
+    const sptr<IAbilityConnection> &connect)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilityForPrelaunch, bundleName: %{public}s, abilityName: %{public}s, "
@@ -10972,6 +10973,7 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want, const int3
     abilityRequest.callerUid = IPCSkeleton::GetCallingUid();
     abilityRequest.startSetting = nullptr;
     abilityRequest.want = want;
+    abilityRequest.connect = connect;
     int result = GenerateAbilityRequest(want, -1, abilityRequest, nullptr, oriValidUserId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request error");
