@@ -21,14 +21,17 @@
 #include <thread>
 
 #include "hilog_tag_wrapper.h"
+#include "array_wrapper.h"
 #include "insight_intent_execute_callback_stub.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_query_param.h"
 #include "extract_insight_intent_profile.h"
+#include "int_wrapper.h"
 #include "mock_ability_token.h"
 #include "string_wrapper.h"
 #include "want.h"
+#include "want_params_wrapper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2398,6 +2401,179 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckCanQueryEntity_0900, TestSi
     EXPECT_TRUE(ret);
 
     TAG_LOGI(AAFwkTag::TEST, "CheckCanQueryEntity_0900 end.");
+}
+
+namespace {
+WantParams MakeFileEntity(const std::vector<std::string> &uris, int32_t flags)
+{
+    WantParams entity;
+    entity.SetParam("entityId", AAFwk::String::Box("OHOS_FILE_ENTITY"));
+    sptr<AAFwk::IArray> array = new (std::nothrow) AAFwk::Array(uris.size(), AAFwk::g_IID_IString);
+    if (array != nullptr) {
+        for (size_t i = 0; i < uris.size(); i++) {
+            array->Set(i, AAFwk::String::Box(uris[i]));
+        }
+    }
+    entity.SetParam("uris", array);
+    if (flags >= 0) {
+        entity.SetParam("flags", AAFwk::Integer::Box(flags));
+    }
+    return entity;
+}
+}
+
+/*
+ * @tc.name: CollectFileEntityUrisAndFlags_0100
+ * @tc.desc: empty params has no file entity, nothing collected.
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0100, TestSize.Level1)
+{
+    WantParams params;
+    UriAuthGroup groups;
+    InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_TRUE(groups.empty());
+}
+
+/*
+ * @tc.name: CollectFileEntityUrisAndFlags_0200
+ * @tc.desc: nested object without entityId is not treated as a file entity.
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0200, TestSize.Level1)
+{
+    WantParams notEntity;
+    notEntity.SetParam("name", AAFwk::String::Box("abc"));
+    WantParams params;
+    params.SetParam("obj", WantParamWrapper::Box(notEntity));
+    UriAuthGroup groups;
+    InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_TRUE(groups.empty());
+}
+
+/*
+ * @tc.name: CollectFileEntityUrisAndFlags_0300
+ * @tc.desc: entityId not equal to OHOS_FILE_ENTITY is ignored.
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0300, TestSize.Level1)
+{
+    WantParams otherEntity;
+    otherEntity.SetParam("entityId", AAFwk::String::Box("OTHER_ENTITY"));
+    WantParams params;
+    params.SetParam("obj", WantParamWrapper::Box(otherEntity));
+    UriAuthGroup groups;
+    InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_TRUE(groups.empty());
+}
+
+/*
+ * @tc.name: CollectFileEntityUrisAndFlags_0400
+ * @tc.desc: file entity without flags is grouped with default read flag.
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0400, TestSize.Level1)
+{
+    WantParams fileEntity = MakeFileEntity({"file://a", "file://b"}, -1);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, groups);
+    int32_t readFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+    ASSERT_EQ(groups.count(readFlag), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readFlag].size(), static_cast<size_t>(2));
+    EXPECT_EQ(groups[readFlag][0], std::string("file://a"));
+    EXPECT_EQ(groups[readFlag][1], std::string("file://b"));
+}
+
+/*
+ * @tc.name: CollectFileEntityUrisAndFlags_0500
+ * @tc.desc: file entity with read/write flag keeps the granted flag.
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0500, TestSize.Level1)
+{
+    int32_t readWrite = static_cast<int32_t>(
+        Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+    WantParams fileEntity = MakeFileEntity({"file://c"}, readWrite);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, groups);
+    ASSERT_EQ(groups.count(readWrite), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readWrite].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readWrite][0], std::string("file://c"));
+}
+
+/*
+ * @tc.name: CollectFileEntityUrisAndFlags_0600
+ * @tc.desc: multiple file entities are grouped by their own flag, no privilege escalation.
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0600, TestSize.Level1)
+{
+    int32_t readFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+    int32_t readWrite = static_cast<int32_t>(
+        Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+    WantParams fileEntity1 = MakeFileEntity({"file://x"}, readFlag);
+    WantParams fileEntity2 = MakeFileEntity({"file://y"}, readWrite);
+    WantParams params;
+    params.SetParam("plain", AAFwk::String::Box("not an entity"));
+    params.SetParam("f1", WantParamWrapper::Box(fileEntity1));
+    params.SetParam("f2", WantParamWrapper::Box(fileEntity2));
+    UriAuthGroup groups;
+    InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, groups);
+    ASSERT_EQ(groups.count(readFlag), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readFlag].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readFlag][0], std::string("file://x"));
+    ASSERT_EQ(groups.count(readWrite), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readWrite].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readWrite][0], std::string("file://y"));
+}
+
+/*
+ * @tc.name: CollectFileEntityUrisAndFlags_0700
+ * @tc.desc: URIs with invalid scheme are dropped and never granted.
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0700, TestSize.Level1)
+{
+    WantParams fileEntity = MakeFileEntity({"file://ok", "content://bad"}, -1);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, groups);
+    int32_t readFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+    ASSERT_EQ(groups.count(readFlag), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readFlag].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readFlag][0], std::string("file://ok"));
+}
+
+/*
+ * @tc.name: CollectFileEntityUrisAndFlags_0800
+ * @tc.desc: unrelated flag bits are masked out, only read/write bits are kept.
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0800, TestSize.Level1)
+{
+    int32_t junkFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION) |
+        static_cast<int32_t>(Want::FLAG_INSTALL_ON_DEMAND);
+    WantParams fileEntity = MakeFileEntity({"file://a"}, junkFlag);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, groups);
+    int32_t readFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+    ASSERT_EQ(groups.count(readFlag), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readFlag].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readFlag][0], std::string("file://a"));
+    EXPECT_EQ(groups.count(junkFlag), static_cast<size_t>(0));
+}
+
+/*
+ * @tc.name: CollectFileEntityUrisAndFlags_0900
+ * @tc.desc: a file entity whose URIs are all invalid is not counted.
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, CollectFileEntityUrisAndFlags_0900, TestSize.Level1)
+{
+    WantParams fileEntity = MakeFileEntity({"content://a", "content://b"}, -1);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_TRUE(groups.empty());
 }
 
 } // namespace AAFwk
