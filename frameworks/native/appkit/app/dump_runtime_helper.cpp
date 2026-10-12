@@ -15,6 +15,8 @@
 
 #include "dump_runtime_helper.h"
 
+#include <csetjmp>
+#include <csignal>
 #include <cstdio>
 #include <dfx_signal_handler.h>
 #include <malloc.h>
