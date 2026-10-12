@@ -48,6 +48,10 @@ struct InsightIntentExecuteRecord {
     uint64_t requestCode = 0;
 };
 
+// FileEntity URIs grouped by grant flag, so that each group can be granted with its own flag
+// (avoiding privilege escalation of read-only URIs).
+using UriAuthGroup = std::map<int32_t, std::vector<std::string>>;
+
 class InsightIntentExecuteConnection : public AbilityConnectionStub {
 public:
     InsightIntentExecuteConnection() = default;
@@ -118,6 +122,13 @@ public:
         const std::string &targetBundleName = "");
 
     static std::string GetCallerBundleNameByUid();
+
+    /**
+     * @brief Collect FileEntity URIs from intent custom parameters, grouped by grant flag.
+     * @param params The intent custom parameters (insightIntentParam).
+     * @param groups Output groups, keyed by grant flag.
+     */
+    static void CollectFileEntityUrisAndFlags(const WantParams &params, UriAuthGroup &groups);
 
     void OnInsightAppDied(const std::string &bundleName);
 

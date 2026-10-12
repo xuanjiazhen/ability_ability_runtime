@@ -38,6 +38,7 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "image_source.h"
+#include "insight_intent_execute_manager.h"
 #include "json_utils.h"
 #include "last_exit_detail_info.h"
 #include "main_element_utils.h"
@@ -3019,6 +3020,29 @@ void AbilityRecord::GrantUriPermission()
     {
         std::lock_guard guard(wantLock_);
         GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0, false);
+    }
+}
+
+void AbilityRecord::GrantFileEntityUriPermission()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    Want want;
+    {
+        std::lock_guard guard(wantLock_);
+        want = want_;
+    }
+    WantParams params = want.GetParams().GetWantParams(
+        AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM);
+    UriAuthGroup groups;
+    InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(params, groups);
+    if (groups.empty()) {
+        return;
+    }
+    auto callerTokenId = specifyTokenId_ > 0 ? specifyTokenId_ :
+        static_cast<uint32_t>(want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
+    for (const auto &[flag, uris] : groups) {
+        UriUtils::GetInstance().GrantUriPermission(uris, flag,
+            abilityInfo_.applicationInfo.bundleName, appIndex_, callerTokenId);
     }
 }
 #endif // SUPPORT_UPMS

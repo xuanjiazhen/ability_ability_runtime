@@ -740,6 +740,9 @@ public:
 #ifdef SUPPORT_UPMS
     void GrantUriPermission();
 
+    // Grant FileEntity URIs grouped by their own flag, reusing the generic grant in UriUtils.
+    void GrantFileEntityUriPermission();
+
     void GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
         const std::string &targetBundleName, uint32_t callerTokenId);
 #endif // SUPPORT_UPMS
