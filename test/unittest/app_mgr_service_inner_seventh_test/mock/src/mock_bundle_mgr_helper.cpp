@@ -312,6 +312,13 @@ ErrCode BundleMgrHelper::GetUidByBundleName(const std::string& bundleName, int32
     return ERR_OK;
 }
 
+ErrCode BundleMgrHelper::IsApplicationDisableForbidden(const std::string& bundleName, int32_t userId,
+    int32_t appIndex, bool& forbidden)
+{
+    forbidden = false;
+    return ERR_OK;
+}
+
 ErrCode BundleMgrHelper::QueryExtensionAbilityInfosOnlyWithTypeName(const std::string& extensionTypeName,
     const uint32_t flag, const int32_t userId, std::vector<ExtensionAbilityInfo>& extensionInfos)
 {
