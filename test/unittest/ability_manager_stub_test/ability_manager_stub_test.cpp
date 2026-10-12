@@ -1073,6 +1073,44 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_TerminateAbilityInner_001, T
     EXPECT_EQ(res, NO_ERROR);
 }
 
+/**
+ * @tc.name: BackToCallerAppWithResult_NullWant
+ * @tc.desc: Reject a null result Want before forwarding the request.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, BackToCallerAppWithResult_NullWant, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    ASSERT_TRUE(data.WriteBool(false));
+    ASSERT_TRUE(data.WriteInt32(0));
+    ASSERT_TRUE(data.WriteParcelable(nullptr));
+    ASSERT_TRUE(data.WriteInt64(1));
+
+    EXPECT_EQ(stub_->BackToCallerAppWithResultInner(data, reply), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_EmptyWant
+ * @tc.desc: Accept a valid result Want with no parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, BackToCallerAppWithResult_EmptyWant, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    Want want;
+    ASSERT_TRUE(data.WriteBool(false));
+    ASSERT_TRUE(data.WriteInt32(0));
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    ASSERT_TRUE(data.WriteInt64(1));
+
+    EXPECT_EQ(stub_->BackToCallerAppWithResultInner(data, reply), NO_ERROR);
+    int32_t result = ERR_INVALID_VALUE;
+    ASSERT_TRUE(reply.ReadInt32(result));
+    EXPECT_EQ(result, ERR_OK);
+}
+
 /*
  * Feature: AbilityManagerService
  * Function: TerminateUIExtensionAbilityInner
