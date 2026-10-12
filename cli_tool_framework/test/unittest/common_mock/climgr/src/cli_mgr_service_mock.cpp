@@ -6,6 +6,7 @@
 #include "cli_mgr_service_mock.h"
 
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
@@ -265,9 +266,13 @@ std::string ToolUtil::GenerateCliSessionId(const std::string &name, std::shared_
 }
 
 bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &, Security::AccessToken::AccessTokenID,
+    const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
     std::string &sandboxConfig, std::string &bundleName)
 {
-    sandboxConfig = "{}";
+    nlohmann::json config;
+    config["sessionId"] = sessionId;
+    config["aliveSessionIds"] = aliveSessionIds;
+    sandboxConfig = config.dump();
     bundleName = "bundle.mock";
     return true;
 }

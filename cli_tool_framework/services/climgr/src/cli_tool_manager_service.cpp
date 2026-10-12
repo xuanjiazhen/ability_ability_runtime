@@ -1027,6 +1027,7 @@ int32_t CliToolManagerService::ValidateSessionPermissions()
 }
 
 int32_t CliToolManagerService::ValidateAndPrepareTool(const ExecToolParam &param, uint32_t tokenId,
+    const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
     ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName, std::string& detail)
 {
     if (CliToolDataManager::GetInstance().GetToolByName(param.toolName, toolInfo) != ERR_OK) {
@@ -1040,7 +1041,8 @@ int32_t CliToolManagerService::ValidateAndPrepareTool(const ExecToolParam &param
         return checkPramRet;
     }
 
-    if (!ToolUtil::GenerateSandboxConfig(param, tokenId, sandboxConfig, bundleName)) {
+    if (!ToolUtil::GenerateSandboxConfig(param, tokenId, sessionId, aliveSessionIds,
+        sandboxConfig, bundleName)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "caller is not hap");
         return ERR_NOT_HAP;
     }
@@ -1048,6 +1050,7 @@ int32_t CliToolManagerService::ValidateAndPrepareTool(const ExecToolParam &param
 }
 
 int32_t CliToolManagerService::ValidateAndPrepareCmd(const ExecCmdParam &param, uint32_t tokenId,
+    const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
     std::string &sandboxConfig, std::string &bundleName)
 {
     std::string detail;
@@ -1057,7 +1060,8 @@ int32_t CliToolManagerService::ValidateAndPrepareCmd(const ExecCmdParam &param, 
         return checkPramRet;
     }
 
-    if (!ToolUtil::GenerateCmdSandboxConfig(param, tokenId, sandboxConfig, bundleName)) {
+    if (!ToolUtil::GenerateCmdSandboxConfig(param, tokenId, sessionId, aliveSessionIds,
+        sandboxConfig, bundleName)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "caller is not hap");
         return ERR_NOT_HAP;
     }
@@ -1065,12 +1069,13 @@ int32_t CliToolManagerService::ValidateAndPrepareCmd(const ExecCmdParam &param, 
 }
 
 int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
-    const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName)
+    const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName,
+    const std::shared_ptr<SessionRecord> &record)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "Dispatch to CLI path, toolName=%{public}s eventId=%{public}s", param.toolName.c_str(), eventId.c_str());
+        "Dispatch to CLI path, toolName=%{public}s eventId=%{public}s sessionId=%{public}s",
+        param.toolName.c_str(), eventId.c_str(), record ? record->sessionId.c_str() : "");
 
-    std::shared_ptr<SessionRecord> record = CreateSessionRecord(param, eventId);
     if (record == nullptr) {
         return ERR_NO_INIT;
     }
@@ -1457,15 +1462,34 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
         return ret;
     }
 
+    // Create session record before sandboxConfig generation so sessionId is available
+    // (D2: sessionId generated before GenerateSandboxConfig, AC-2.1).
+    // If ValidateAndPrepareTool fails, record is not added to sessionRecords_ and
+    // shared_ptr auto-releases — no leak (E-3).
+    std::shared_ptr<SessionRecord> record = CreateSessionRecord(actualParam, eventId);
+    if (record == nullptr) {
+        ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ERR_NO_INIT));
+        return ERR_NO_INIT;
+    }
+
+    // Extract aliveSessionIds from current session records (D4).
+    // Current session is NOT yet in sessionRecords_ (AddSessionRecord is in SetupAndStartSession),
+    // so aliveSessionIds does not include the current session's sessionId.
+    std::vector<std::string> aliveSessionIds;
+    for (const auto &r : GetSessionRecords()) {
+        aliveSessionIds.push_back(r->sessionId);
+    }
+
     std::string sandboxConfig;
     std::string detail;
-    auto ret = ValidateAndPrepareTool(actualParam, tokenId, toolInfo, sandboxConfig, bundleName, detail);
+    auto ret = ValidateAndPrepareTool(actualParam, tokenId, record->sessionId, aliveSessionIds,
+        toolInfo, sandboxConfig, bundleName, detail);
     if (ret != ERR_OK) {
         ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ret), detail);
         return ret;
     }
 
-    ret = SetupAndStartSession(actualParam, eventId, toolInfo, sandboxConfig, bundleName);
+    ret = SetupAndStartSession(actualParam, eventId, toolInfo, sandboxConfig, bundleName, record);
     if (ret != ERR_OK) {
         ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ret));
     }
@@ -1532,12 +1556,9 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
         return ExecCmdToolMode(actualParam, std::move(context));
     }
 
-    // Shell path (original logic)
-    std::string sandboxConfig;
-    if (auto ret = ValidateAndPrepareCmd(actualParam, tokenId, sandboxConfig, bundleName); ret != ERR_OK) {
-        return ret;
-    }
-    // Create session record for shell command
+    // Shell path: create session record before sandboxConfig generation (D2, AC-2.2).
+    // If ValidateAndPrepareCmd fails, record is not added to sessionRecords_ and
+    // shared_ptr auto-releases — no leak (E-3).
     auto record = std::make_shared<SessionRecord>();
     record->callerPid = callerPid;
     record->callerUid = callerUid;
@@ -1552,6 +1573,18 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     record->SetState(SessionState::RUNNING);
     record->SetBackground(actualParam.execCmdOptions.background);
     record->eventId = eventId;
+
+    // Extract aliveSessionIds (D4): current session not yet in sessionRecords_.
+    std::vector<std::string> aliveSessionIds;
+    for (const auto &r : GetSessionRecords()) {
+        aliveSessionIds.push_back(r->sessionId);
+    }
+
+    std::string sandboxConfig;
+    if (auto ret = ValidateAndPrepareCmd(actualParam, tokenId, record->sessionId, aliveSessionIds,
+        sandboxConfig, bundleName); ret != ERR_OK) {
+        return ret;
+    }
     AddSessionRecord(record);
     EventDispatcher::GetInstance().RegisterTraceIds(
         record->sessionId, record->toolCallId, record->dmSessionId);
@@ -1633,25 +1666,38 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, CmdSes
     }
 
     std::string sandboxConfig;
-    if (!ToolUtil::GenerateSandboxConfig(toolParam, context.tokenId, sandboxConfig,
-        context.callerBundleName)) {
-        ReportCliExecuteFailed(context.callerBundleName, toolName, GetFailureReason(ERR_NOT_HAP), detail);
-        return ERR_NOT_HAP;
-    }
-
-    // Step 4: Subscribe before process creation (aligned with shell path).
-    return SetupCmdSession(toolParam, toolInfo, sandboxConfig, toolName, context);
-}
-
-int32_t CliToolManagerService::SetupCmdSession(const ExecToolParam &toolParam, const ToolInfo &toolInfo,
-    const std::string &sandboxConfig, const std::string &toolName, const CmdSessionContext &context)
-{
+    // Create session record before sandboxConfig so sessionId is available (D2, AC-1.4).
     auto record = CreateSessionRecord(toolParam, context.eventId);
     if (record == nullptr) {
         ReportCliExecuteFailed(context.callerBundleName, toolName, GetFailureReason(ERR_NO_INIT));
         return ERR_NO_INIT;
     }
     record->sessionType = SessionType::CLI_CMD;
+
+    // Extract aliveSessionIds (D4): current session not yet in sessionRecords_.
+    std::vector<std::string> aliveSessionIds;
+    for (const auto &r : GetSessionRecords()) {
+        aliveSessionIds.push_back(r->sessionId);
+    }
+
+    if (!ToolUtil::GenerateSandboxConfig(toolParam, context.tokenId, record->sessionId,
+        aliveSessionIds, sandboxConfig, context.callerBundleName)) {
+        ReportCliExecuteFailed(context.callerBundleName, toolName, GetFailureReason(ERR_NOT_HAP), detail);
+        return ERR_NOT_HAP;
+    }
+
+    // Step 4: Subscribe before process creation (aligned with shell path).
+    return SetupCmdSession(toolParam, toolInfo, sandboxConfig, toolName, context, record);
+}
+
+int32_t CliToolManagerService::SetupCmdSession(const ExecToolParam &toolParam, const ToolInfo &toolInfo,
+    const std::string &sandboxConfig, const std::string &toolName, const CmdSessionContext &context,
+    const std::shared_ptr<SessionRecord> &record)
+{
+    if (record == nullptr) {
+        ReportCliExecuteFailed(context.callerBundleName, toolName, GetFailureReason(ERR_NO_INIT));
+        return ERR_NO_INIT;
+    }
     AddSessionRecord(record);
 
     auto subscribeRet = SubscribeSessionInternal(record->sessionId, context.subscriptionId, context.scheduler);

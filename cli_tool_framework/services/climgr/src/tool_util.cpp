@@ -185,6 +185,7 @@ std::string ToolUtil::GenerateCliSessionId(const std::string &name, std::shared_
 }
 
 bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::AccessTokenID tokenId,
+    const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
     std::string &sandboxConfig, std::string &bundleName)
 {
     AppExecFwk::BundleInfo bundleInfo;
@@ -204,6 +205,8 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     config["cliName"] = param.toolName;
     config["subCliName"] = param.subcommand;
     config["type"] = "cli";
+    config["sessionId"] = sessionId;
+    config["aliveSessionIds"] = aliveSessionIds;
     nlohmann::json envConfig;
     // Capture app A's calling-identity string (cliMgr's caller IS app A) so the ForCli agentmgr
     // interface can propagate app A end-to-end. ResetCallingIdentity switches the thread to
@@ -222,12 +225,16 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
 
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d, cliName:%{public}s, subCliName:%{public}s",
-        bundleInfo.name.c_str(), bundleInfo.gid, param.toolName.c_str(), param.subcommand.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "bundleName:%{public}s, gid:%{public}d, cliName:%{public}s, subCliName:%{public}s, "
+        "sessionId:%{public}s, aliveSessionIdsCount:%{public}zu",
+        bundleInfo.name.c_str(), bundleInfo.gid, param.toolName.c_str(), param.subcommand.c_str(),
+        sessionId.c_str(), aliveSessionIds.size());
     return true;
 }
 
 bool ToolUtil::GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::AccessTokenID tokenId,
+    const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
     std::string &sandboxConfig, std::string &bundleName)
 {
     AppExecFwk::BundleInfo bundleInfo;
@@ -243,6 +250,8 @@ bool ToolUtil::GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::
     config["appIdentifier"] = bundleInfo.signatureInfo.appIdentifier;
     config["bundleName"] = bundleInfo.name;
     config["type"] = "shell";
+    config["sessionId"] = sessionId;
+    config["aliveSessionIds"] = aliveSessionIds;
     config["policy"] = param.execCmdOptions.policy;
     if (param.execCmdOptions.workDir != "") {
         config["workdir"] = param.execCmdOptions.workDir;
@@ -251,7 +260,9 @@ bool ToolUtil::GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::
     config["nsFlags"] = {"pid"};
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d", bundleInfo.name.c_str(), bundleInfo.gid);
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "bundleName:%{public}s, gid:%{public}d, sessionId:%{public}s, aliveSessionIdsCount:%{public}zu",
+        bundleInfo.name.c_str(), bundleInfo.gid, sessionId.c_str(), aliveSessionIds.size());
     return true;
 }
 
