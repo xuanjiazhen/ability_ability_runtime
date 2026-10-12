@@ -36,6 +36,7 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "init_reboot.h"
+#include "insight_intent_uri_utils.h"
 #include "int_wrapper.h"
 #include "multi_instance_utils.h"
 #include "modular_object_manager.h"
@@ -107,6 +108,10 @@ int AbilityConnectManager::StartAbility(const AbilityRequest &abilityRequest)
 #ifdef SUPPORT_UPMS
     // grant uri permission to service extension and ui extension, must call out of serialMutext_.
     UriUtils::GetInstance().GrantUriPermissionForUIOrServiceExtension(abilityRequest);
+    auto callerTokenId = abilityRequest.specifyTokenId > 0 ? abilityRequest.specifyTokenId :
+        static_cast<uint32_t>(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
+    GrantFileEntityUriPermission(abilityRequest.want, abilityRequest.abilityInfo.bundleName,
+        abilityRequest.abilityInfo.applicationInfo.appIndex, callerTokenId);
 #endif // SUPPORT_UPMS
     std::lock_guard guard(serialMutex_);
     return StartAbilityLocked(abilityRequest);

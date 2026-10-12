@@ -38,6 +38,8 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "image_source.h"
+#include "insight_intent_execute_param.h"
+#include "insight_intent_uri_utils.h"
 #include "json_utils.h"
 #include "last_exit_detail_info.h"
 #include "main_element_utils.h"
@@ -506,6 +508,7 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
             tokenId = options.realCallerTokenId;
         }
         GrantUriPermission(want_, targetBundleName, false, tokenId, isNotifyCollaborator);
+        ::OHOS::AAFwk::GrantFileEntityUriPermission(want_, targetBundleName, appIndex_, tokenId);
     }
 #endif // SUPPORT_UPMS
     if (!isReady_) {
@@ -3020,6 +3023,20 @@ void AbilityRecord::GrantUriPermission()
         std::lock_guard guard(wantLock_);
         GrantUriPermission(want_, abilityInfo_.applicationInfo.bundleName, false, 0, false);
     }
+}
+
+void AbilityRecord::GrantFileEntityUriPermission()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    Want want;
+    {
+        std::lock_guard guard(wantLock_);
+        want = want_;
+    }
+    auto callerTokenId = specifyTokenId_ > 0 ? specifyTokenId_ :
+        static_cast<uint32_t>(want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
+    ::OHOS::AAFwk::GrantFileEntityUriPermission(want,
+        abilityInfo_.applicationInfo.bundleName, appIndex_, callerTokenId);
 }
 #endif // SUPPORT_UPMS
 
