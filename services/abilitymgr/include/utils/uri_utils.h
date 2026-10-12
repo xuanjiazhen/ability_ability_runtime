@@ -158,6 +158,13 @@ private:
      */
     bool GrantUriPermissionInner(const std::vector<std::string> &uriVec, const GrantUriPermissionInfo &grantInfo,
         Want &want, bool isBrokerCall);
+
+    /**
+     * @brief Check the common parameters before granting URI permission.
+     * @param grantInfo The param for grant uri permission.
+     * @return true if parameters are valid, false otherwise.
+     */
+    bool CheckGrantUriPermissionParams(const GrantUriPermissionInfo &grantInfo);
 #endif // SUPPORT_UPMS
 
     /**

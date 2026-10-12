@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#include <string>
+#include <vector>
+
 #include "uri_utils.h"
 
 #include "ability_manager_client.h"
@@ -387,12 +390,8 @@ bool UriUtils::IsSandboxApp(uint32_t tokenId)
 }
 
 #ifdef SUPPORT_UPMS
-bool UriUtils::GrantUriPermission(Want &want, const GrantUriPermissionInfo &grantInfo)
+bool UriUtils::CheckGrantUriPermissionParams(const GrantUriPermissionInfo &grantInfo)
 {
-    if (!IsGrantUriPermissionFlag(grantInfo.flag)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "No grant uri flag: %{public}u.", grantInfo.flag);
-        return false;
-    }
     if (grantInfo.targetBundleName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "targetBundleName empty");
         return false;
@@ -410,7 +409,20 @@ bool UriUtils::GrantUriPermission(Want &want, const GrantUriPermissionInfo &gran
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
         return false;
     }
+    return true;
+}
+
+bool UriUtils::GrantUriPermission(Want &want, const GrantUriPermissionInfo &grantInfo)
+{
+    if (!CheckGrantUriPermissionParams(grantInfo)) {
+        return false;
+    }
     ProcessUDMFKey(want);
+
+    if (!IsGrantUriPermissionFlag(grantInfo.flag)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "No grant uri flag: %{public}u.", grantInfo.flag);
+        return false;
+    }
 
     if (IsDmsCall(grantInfo.callerTokenId)) {
         return GrantDmsUriPermission(want, grantInfo.callerTokenId, grantInfo.targetBundleName, grantInfo.appIndex);
