@@ -19,7 +19,9 @@
 #include "accesstoken_kit.h"
 #include "app_utils.h"
 #include "array_wrapper.h"
+#include "int_wrapper.h"
 #include "string_wrapper.h"
+#include "want_params_wrapper.h"
 
 #include "uri_utils.h"
 
@@ -1511,6 +1513,209 @@ HWTEST_F(UriUtilsTest, GrantUriPermissionInner_Notify_001, TestSize.Level1)
     auto ret = UriUtils::GetInstance().GrantUriPermissionInner(uriVec, grantInfo, want, false);
     // Should notify collaborator and return success
     EXPECT_FALSE(ret);
+}
+
+namespace {
+WantParams MakeFileEntity(const std::vector<std::string> &uris, int32_t flags)
+{
+    WantParams entity;
+    entity.SetParam("entityId", AAFwk::String::Box("OHOS_FILE_ENTITY"));
+    sptr<AAFwk::IArray> array = new (std::nothrow) AAFwk::Array(uris.size(), AAFwk::g_IID_IString);
+    if (array != nullptr) {
+        for (size_t i = 0; i < uris.size(); i++) {
+            array->Set(i, AAFwk::String::Box(uris[i]));
+        }
+    }
+    entity.SetParam("uris", array);
+    if (flags >= 0) {
+        entity.SetParam("flags", AAFwk::Integer::Box(flags));
+    }
+    return entity;
+}
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: Empty params has no file entity, nothing collected.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0100, TestSize.Level1)
+{
+    WantParams params;
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_FALSE(found);
+    EXPECT_TRUE(groups.empty());
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: Nested object without entityId is not treated as a file entity.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0200, TestSize.Level1)
+{
+    WantParams notEntity;
+    notEntity.SetParam("name", AAFwk::String::Box("abc"));
+    WantParams params;
+    params.SetParam("obj", WantParamWrapper::Box(notEntity));
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_FALSE(found);
+    EXPECT_TRUE(groups.empty());
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: entityId not equal to OHOS_FILE_ENTITY is ignored.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0300, TestSize.Level1)
+{
+    WantParams otherEntity;
+    otherEntity.SetParam("entityId", AAFwk::String::Box("OTHER_ENTITY"));
+    WantParams params;
+    params.SetParam("obj", WantParamWrapper::Box(otherEntity));
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_FALSE(found);
+    EXPECT_TRUE(groups.empty());
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: File entity without flags is grouped with default read flag.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0400, TestSize.Level1)
+{
+    WantParams fileEntity = MakeFileEntity({"file://a", "file://b"}, -1);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_TRUE(found);
+    int32_t readFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+    ASSERT_EQ(groups.count(readFlag), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readFlag].size(), static_cast<size_t>(2));
+    EXPECT_EQ(groups[readFlag][0], std::string("file://a"));
+    EXPECT_EQ(groups[readFlag][1], std::string("file://b"));
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: File entity with read/write flag keeps the granted flag.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0500, TestSize.Level1)
+{
+    int32_t readWrite = static_cast<int32_t>(
+        Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+    WantParams fileEntity = MakeFileEntity({"file://c"}, readWrite);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_TRUE(found);
+    ASSERT_EQ(groups.count(readWrite), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readWrite].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readWrite][0], std::string("file://c"));
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: Multiple file entities are grouped by their own flag, so a read-only URI
+ * is never escalated to write permission.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0600, TestSize.Level1)
+{
+    int32_t readFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+    int32_t readWrite = static_cast<int32_t>(
+        Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+    WantParams fileEntity1 = MakeFileEntity({"file://x"}, readFlag);
+    WantParams fileEntity2 = MakeFileEntity({"file://y"}, readWrite);
+    WantParams params;
+    params.SetParam("plain", AAFwk::String::Box("not an entity"));
+    params.SetParam("f1", WantParamWrapper::Box(fileEntity1));
+    params.SetParam("f2", WantParamWrapper::Box(fileEntity2));
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_TRUE(found);
+    // read-only URI must stay in the read-only group
+    ASSERT_EQ(groups.count(readFlag), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readFlag].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readFlag][0], std::string("file://x"));
+    // read/write URI goes to its own group
+    ASSERT_EQ(groups.count(readWrite), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readWrite].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readWrite][0], std::string("file://y"));
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: URIs with invalid scheme are dropped and never granted.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0700, TestSize.Level1)
+{
+    WantParams fileEntity = MakeFileEntity({"file://ok", "content://bad"}, -1);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_TRUE(found);
+    int32_t readFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+    ASSERT_EQ(groups.count(readFlag), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readFlag].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readFlag][0], std::string("file://ok"));
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: Unrelated flag bits are masked out, only read/write bits are kept.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0800, TestSize.Level1)
+{
+    int32_t junkFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION) |
+        static_cast<int32_t>(Want::FLAG_INSTALL_ON_DEMAND);
+    WantParams fileEntity = MakeFileEntity({"file://a"}, junkFlag);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_TRUE(found);
+    int32_t readFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+    ASSERT_EQ(groups.count(readFlag), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readFlag].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readFlag][0], std::string("file://a"));
+    EXPECT_EQ(groups.count(junkFlag), static_cast<size_t>(0));
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: A file entity whose URIs are all invalid is not counted.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0900, TestSize.Level1)
+{
+    WantParams fileEntity = MakeFileEntity({"content://a", "content://b"}, -1);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_FALSE(found);
+    EXPECT_TRUE(groups.empty());
 }
 
 }
