@@ -504,6 +504,19 @@ public:
         const bool clearPageStack = false, const std::string& reason = "KillApplicationByUserId");
 
     /**
+     * KillApplicationByUserIdSafely, kill the application by user ID.
+     *
+     * @param bundleName, bundle name in Application record.
+     * @param appCloneIndex the app clone id.
+     * @param userId, user ID.
+     * @param  reason, caller function name.
+     *
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t KillApplicationByUserIdSafely(const std::string &bundleName, int32_t appCloneIndex, int userId,
+        const bool clearPageStack = false, const std::string& reason = "KillApplicationByUserIdSafely");
+
+    /**
      * update process rss and pss value.
      *
      * @param procMemStates, the memory states of all apps.
