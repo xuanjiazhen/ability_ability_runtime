@@ -1678,5 +1678,45 @@ HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0700, TestSize.Level1)
     EXPECT_EQ(groups[readFlag][0], std::string("file://ok"));
 }
 
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: Unrelated flag bits are masked out, only read/write bits are kept.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0800, TestSize.Level1)
+{
+    int32_t junkFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION) |
+        static_cast<int32_t>(Want::FLAG_INSTALL_ON_DEMAND);
+    WantParams fileEntity = MakeFileEntity({"file://a"}, junkFlag);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_TRUE(found);
+    int32_t readFlag = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+    ASSERT_EQ(groups.count(readFlag), static_cast<size_t>(1));
+    ASSERT_EQ(groups[readFlag].size(), static_cast<size_t>(1));
+    EXPECT_EQ(groups[readFlag][0], std::string("file://a"));
+    EXPECT_EQ(groups.count(junkFlag), static_cast<size_t>(0));
+}
+
+/*
+ * Feature: UriUtils
+ * Function: CollectFileEntityUrisAndFlags
+ * SubFunction: NA
+ * FunctionPoints: A file entity whose URIs are all invalid is not counted.
+ */
+HWTEST_F(UriUtilsTest, CollectFileEntityUrisAndFlags_0900, TestSize.Level1)
+{
+    WantParams fileEntity = MakeFileEntity({"content://a", "content://b"}, -1);
+    WantParams params;
+    params.SetParam("file", WantParamWrapper::Box(fileEntity));
+    UriAuthGroup groups;
+    bool found = UriUtils::CollectFileEntityUrisAndFlags(params, groups);
+    EXPECT_FALSE(found);
+    EXPECT_TRUE(groups.empty());
+}
+
 }
 }

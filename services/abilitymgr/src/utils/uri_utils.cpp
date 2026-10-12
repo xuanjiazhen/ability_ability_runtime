@@ -334,14 +334,19 @@ bool UriUtils::CollectFileEntityUrisAndFlags(const WantParams &params, UriAuthGr
         FilterFileEntityUris(entityUris, validUris);
 
         int32_t entityFlags = entity.GetIntParam(INSIGHT_INTENT_FILE_ENTITY_FLAGS_KEY, 0);
+        // Only keep read/write permission bits to avoid leaking unrelated flags.
+        entityFlags &= static_cast<int32_t>(
+            Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
         if (entityFlags == 0) {
             entityFlags = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
         }
         // Group URIs by flag so each group is granted with its own flag (no privilege escalation).
-        groups[entityFlags].insert(groups[entityFlags].end(), validUris.begin(), validUris.end());
-        found = true;
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "collect file entity uris:%{public}zu, flags:%{public}d",
-            validUris.size(), entityFlags);
+        if (!validUris.empty()) {
+            groups[entityFlags].insert(groups[entityFlags].end(), validUris.begin(), validUris.end());
+            found = true;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "collect file entity uris:%{public}zu, flags:%{public}d",
+                validUris.size(), entityFlags);
+        }
     }
     return found;
 }
