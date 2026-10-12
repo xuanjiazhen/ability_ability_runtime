@@ -26,6 +26,7 @@
 #include "runtime.h"
 #include <dlfcn.h>
 #include <inttypes.h>
+#include <sys/types.h>
 
 namespace OHOS {
 namespace AppExecFwk {

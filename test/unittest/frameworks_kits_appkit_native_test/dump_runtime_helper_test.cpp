@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <cstdlib>
+#include <unistd.h>
 #include <gtest/gtest.h>
 #define private public
 #include "dump_runtime_helper.h"
