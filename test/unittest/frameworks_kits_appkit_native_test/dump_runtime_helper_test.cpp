@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <cstdlib>
+#include <unistd.h>
 #include <gtest/gtest.h>
 #define private public
 #include "dump_runtime_helper.h"
@@ -223,6 +224,188 @@ HWTEST_F(DumpRuntimeHelperTest, DumpMem_0500, Function | MediumTest | Level1)
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
     helper->DumpMem(info, nullptr);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0500 end";
+}
+
+/**
+ * @tc.number: DetectAndUnwindThreadStackLeak_0100
+ * @tc.name: DetectAndUnwindThreadStackLeak
+ * @tc.desc: Test DetectAndUnwindThreadStackLeak returns a string without crashing on a normal process.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DetectAndUnwindThreadStackLeak_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DetectAndUnwindThreadStackLeak_0100 start";
+    std::string result = DumpRuntimeHelper::DetectAndUnwindThreadStackLeak();
+    // On a normal test process no leaked thread stack is expected, so the result
+    // should be empty. This case mainly guards against crashes and verifies the
+    // happy path returns a well-formed (empty) string.
+    GTEST_LOG_(INFO) << "DetectAndUnwindThreadStackLeak result size:" << result.size();
+    EXPECT_TRUE(result.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DetectAndUnwindThreadStackLeak_0100 end";
+}
+
+/**
+ * @tc.number: ParseTidFromMapName_0100
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName with a valid map name containing a tid.
+ */
+HWTEST_F(DumpRuntimeHelperTest, ParseTidFromMapName_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0100 start";
+    pid_t tid = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:12345]");
+    EXPECT_EQ(tid, 12345);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0100 end";
+}
+
+/**
+ * @tc.number: ParseTidFromMapName_0200
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName with invalid inputs returns 0.
+ */
+HWTEST_F(DumpRuntimeHelperTest, ParseTidFromMapName_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0200 start";
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:]"), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:abc]"), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("not a stack map"), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName(""), 0);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0200 end";
+}
+
+/**
+ * @tc.number: ParseTidFromMapName_0300
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName with a large tid value.
+ */
+HWTEST_F(DumpRuntimeHelperTest, ParseTidFromMapName_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0300 start";
+    pid_t tid = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:99999]");
+    EXPECT_EQ(tid, 99999);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0300 end";
+}
+
+/**
+ * @tc.number: IsTidAlive_0100
+ * @tc.name: IsTidAlive
+ * @tc.desc: Test IsTidAlive returns true for the current process's main thread.
+ */
+HWTEST_F(DumpRuntimeHelperTest, IsTidAlive_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsTidAlive_0100 start";
+    pid_t currentTid = gettid();
+    EXPECT_TRUE(DumpRuntimeHelper::IsTidAlive(currentTid));
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsTidAlive_0100 end";
+}
+
+/**
+ * @tc.number: IsTidAlive_0200
+ * @tc.name: IsTidAlive
+ * @tc.desc: Test IsTidAlive returns false for non-existent tids.
+ */
+HWTEST_F(DumpRuntimeHelperTest, IsTidAlive_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsTidAlive_0200 start";
+    EXPECT_FALSE(DumpRuntimeHelper::IsTidAlive(0));
+    EXPECT_FALSE(DumpRuntimeHelper::IsTidAlive(-1));
+    EXPECT_FALSE(DumpRuntimeHelper::IsTidAlive(999999999));
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsTidAlive_0200 end";
+}
+
+/**
+ * @tc.number: CountTotalThreads_0100
+ * @tc.name: CountTotalThreads
+ * @tc.desc: Test CountTotalThreads returns a positive count for the running process.
+ */
+HWTEST_F(DumpRuntimeHelperTest, CountTotalThreads_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CountTotalThreads_0100 start";
+    size_t count = DumpRuntimeHelper::CountTotalThreads();
+    // At least the main thread should be present.
+    EXPECT_GE(count, static_cast<size_t>(1));
+    GTEST_LOG_(INFO) << "CountTotalThreads: " << count;
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CountTotalThreads_0100 end";
+}
+
+/**
+ * @tc.number: ParseLeakedThreadStackRegions_0100
+ * @tc.name: ParseLeakedThreadStackRegions
+ * @tc.desc: Test ParseLeakedThreadStackRegions returns empty on a normal process with no leaked stacks.
+ */
+HWTEST_F(DumpRuntimeHelperTest, ParseLeakedThreadStackRegions_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseLeakedThreadStackRegions_0100 start";
+    auto regions = DumpRuntimeHelper::ParseLeakedThreadStackRegions();
+    // On a normal test process, all thread stacks should have alive tids,
+    // so no leaked regions are expected.
+    EXPECT_TRUE(regions.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseLeakedThreadStackRegions_0100 end";
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0100
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack handles an invalid/zero range without crashing.
+ */
+HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0100 start";
+    // A zero-size range (begin == end) should produce no PCs and not crash.
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0, 0);
+    EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0100 end";
+}
+
+/**
+ * @tc.number: FormatLeakedStack_0100
+ * @tc.name: FormatLeakedStack
+ * @tc.desc: Test FormatLeakedStack returns empty string for empty pcs.
+ */
+HWTEST_F(DumpRuntimeHelperTest, FormatLeakedStack_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest FormatLeakedStack_0100 start";
+    std::vector<uintptr_t> emptyPcs;
+    std::string result = DumpRuntimeHelper::FormatLeakedStack(12345, emptyPcs);
+    EXPECT_TRUE(result.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest FormatLeakedStack_0100 end";
+}
+
+/**
+ * @tc.number: FormatLeakedStack_0200
+ * @tc.name: FormatLeakedStack
+ * @tc.desc: Test FormatLeakedStack returns empty string for a bogus PC that cannot be resolved.
+ */
+HWTEST_F(DumpRuntimeHelperTest, FormatLeakedStack_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest FormatLeakedStack_0200 start";
+    std::vector<uintptr_t> bogusPcs = {0xDEADBEEF};
+    std::string result = DumpRuntimeHelper::FormatLeakedStack(99999, bogusPcs);
+    // A bogus PC should not resolve to any frame, so the result should be empty.
+    EXPECT_TRUE(result.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest FormatLeakedStack_0200 end";
+}
+
+/**
+ * @tc.number: DumpNativeHeap_0100
+ * @tc.name: DumpNativeHeap
+ * @tc.desc: Test DumpNativeHeap with needLeakobj=true assigns thread stack leak result to dumpResult.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DumpNativeHeap_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpNativeHeap_0100 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    EXPECT_NE(application, nullptr);
+    OHOS::AppExecFwk::MemDumpInfo info;
+    info.pid = 1;
+    info.needLeakobj = true;
+    info.dumpType = MemDumpType::NATIVE;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    std::string dumpResult = "initial";
+    helper->DumpNativeHeap(info, dumpResult);
+    // With needLeakobj=true, DumpNativeHeap calls DetectAndUnwindThreadStackLeak
+    // and assigns the result to dumpResult. On a normal process the result is
+    // empty, so dumpResult should have been reset from "initial" to "".
+    EXPECT_EQ(dumpResult, "");
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpNativeHeap_0100 end";
 }
 
 /**

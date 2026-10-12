@@ -16,12 +16,21 @@
 #include "dump_runtime_helper.h"
 
 #include <cstdio>
+#include <cstdlib>
 #include <dfx_signal_handler.h>
+#include <fcntl.h>
 #include <malloc.h>
 #include <pthread.h>
 #include <sys/statvfs.h>
 #include <sys/stat.h>
 #include <sys/xattr.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <fstream>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
 #include "app_mgr_client.h"
 #include "faultloggerd_client.h"
 #include "hilog_tag_wrapper.h"
@@ -30,6 +39,9 @@
 #include "ets_runtime.h"
 #include "singleton.h"
 #include "dfx_jsnapi.h"
+#include "dfx_frame.h"
+#include "dfx_frame_formatter.h"
+#include "unwinder.h"
 #include "parameters.h"
 #include "ffrt.h"
 #include "directory_ex.h"
@@ -79,6 +91,12 @@ static constexpr int KB_PER_MB = 1024;
 static constexpr size_t MEM_LEAK_MAX_SIZE = 100;
 static constexpr int JSVM_SNAPSHOT = 0;
 static constexpr int JSVM_RAW = 1;
+static constexpr const char* const THREAD_STACK_MAP_PREFIX = "[anon:stack:";
+static constexpr const char* const SELF_SMAPS_PATH = "/proc/self/smaps";
+static constexpr const char* const SELF_TASK_PATH = "/proc/self/task";
+static constexpr size_t THREAD_STACK_LEAK_MAX_FRAMES = 64;
+static constexpr size_t THREAD_STACK_LEAK_MAX_STACKS = 10;
+static constexpr size_t THREAD_STACK_SCAN_UNIT = sizeof(uintptr_t);
 
 enum {
     INDEX_DELIVERY_TS = 0,
@@ -521,6 +539,184 @@ bool DumpRuntimeHelper::GetSnapshot(int fd)
         dlclose(handle);
     }
     return true;
+}
+
+// Extract tid from a thread stack map name like "[anon:stack:11111]".
+// Returns 0 if the tid cannot be parsed.
+pid_t DumpRuntimeHelper::ParseTidFromMapName(const std::string &mapName)
+{
+    auto pos = mapName.find(THREAD_STACK_MAP_PREFIX);
+    if (pos == std::string::npos) {
+        return 0;
+    }
+    pos += std::string(THREAD_STACK_MAP_PREFIX).size();
+    std::string tidStr;
+    for (; pos < mapName.size(); pos++) {
+        if (mapName[pos] >= '0' && mapName[pos] <= '9') {
+            tidStr.push_back(mapName[pos]);
+        } else {
+            break;
+        }
+    }
+    if (tidStr.empty()) {
+        return 0;
+    }
+    errno = 0;
+    char *end = nullptr;
+    long val = strtol(tidStr.c_str(), &end, DECIMAL_BASE);
+    if (errno != 0 || end == tidStr.c_str() || *end != '\0') {
+        return 0;
+    }
+    return static_cast<pid_t>(val);
+}
+ 
+// Check whether the given tid is still alive in current process by looking up
+// /proc/self/task/<tid>. Returns true if the tid directory exists.
+bool DumpRuntimeHelper::IsTidAlive(pid_t tid)
+{
+    if (tid <= 0) {
+        return false;
+    }
+    std::string taskPath = std::string(SELF_TASK_PATH) + "/" + std::to_string(tid);
+    struct stat st{};
+    if (stat(taskPath.c_str(), &st) != 0) {
+        return false;
+    }
+    return S_ISDIR(st.st_mode);
+}
+
+// Count total alive threads by listing /proc/self/task entries.
+size_t DumpRuntimeHelper::CountTotalThreads()
+{
+    DIR *dir = opendir(SELF_TASK_PATH);
+    if (dir == nullptr) {
+        return 0;
+    }
+    size_t count = 0;
+    struct dirent *entry = nullptr;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.') {
+            continue;
+        }
+        count++;
+    }
+    closedir(dir);
+    return count;
+}
+ 
+// Parse /proc/self/smaps and collect all thread stack map regions whose name
+// starts with THREAD_STACK_MAP_PREFIX. Each region's tid is extracted from the
+// map name and validated against /proc/self/task.
+std::vector<ThreadStackRegion> DumpRuntimeHelper::ParseLeakedThreadStackRegions()
+{
+    std::vector<ThreadStackRegion> regions;
+    std::ifstream smaps(SELF_SMAPS_PATH);
+    if (!smaps.is_open()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "open smaps failed");
+        return regions;
+    }
+    std::string line;
+    while (std::getline(smaps, line)) {
+        if (line.find(THREAD_STACK_MAP_PREFIX) == std::string::npos) {
+            continue;
+        }
+        auto headerEnd = line.find(' ');
+        auto dashPos = line.find('-');
+        if (headerEnd == std::string::npos || dashPos == std::string::npos || dashPos >= headerEnd) {
+            continue;
+        }
+        ThreadStackRegion region;
+        errno = 0;
+        char *end = nullptr;
+        region.begin = strtoull(line.substr(0, dashPos).c_str(), &end, 16);
+        if (errno != 0 || end == line.c_str()) { continue; }
+        errno = 0; end = nullptr;
+        region.end = strtoull(line.substr(dashPos + 1, headerEnd - dashPos - 1).c_str(), &end, 16);
+        if (errno != 0 || end == line.c_str()) { continue; }
+        auto namePos = line.find(THREAD_STACK_MAP_PREFIX);
+        region.mapName = line.substr(namePos);
+        region.tid = ParseTidFromMapName(region.mapName);
+        if (region.tid > 0 && region.begin < region.end && !IsTidAlive(region.tid)) {
+            regions.emplace_back(std::move(region));
+        }
+    }
+    return regions;
+}
+
+// Scan a leaked thread stack region for candidate PC values. The PC values are
+// read from the stack memory as uintptr_t values that fall inside executable
+// maps. Direct pointer dereference is used because /proc/self/mem is blocked
+// by SELinux for normal app processes.
+std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(uint64_t begin, uint64_t end)
+{
+    std::vector<uintptr_t> pcs;
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    if (maps == nullptr) { return pcs; }
+    for (uint64_t addr = end; addr > begin && pcs.size() < THREAD_STACK_LEAK_MAX_FRAMES;
+         addr -= THREAD_STACK_SCAN_UNIT) {
+        uintptr_t value = *reinterpret_cast<uintptr_t *>(addr - THREAD_STACK_SCAN_UNIT);
+        if (value == 0) { continue; }
+        std::shared_ptr<OHOS::HiviewDFX::DfxMap> map = nullptr;
+        if (maps->FindMapByAddr(static_cast<uintptr_t>(value), map) && map && map->IsMapExec()) {
+            pcs.push_back(value);
+        }
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "CollectPcsFromStack: pcs:%{public}zu", pcs.size());
+    return pcs;
+}
+ 
+// Build a standardized stack string for one leaked thread stack using
+// faultloggerd's Unwinder + DfxFrameFormatter, which produces the canonical
+// "#00 pc <pc> <mapName>(<funcName>+<offset>)" format.
+// Returns empty string if no frames could be resolved.
+std::string DumpRuntimeHelper::FormatLeakedStack(pid_t tid, const std::vector<uintptr_t> &pcs)
+{
+    if (pcs.empty()) {
+        return "";
+    }
+    std::vector<OHOS::HiviewDFX::DfxFrame> frames;
+    OHOS::HiviewDFX::Unwinder::GetLocalFramesByPcs(frames, pcs);
+    if (frames.empty()) {
+        return "";
+    }
+    std::ostringstream oss;
+    oss << "tid:" << tid << "\n";
+    oss << OHOS::HiviewDFX::DfxFrameFormatter::GetFramesStr(frames);
+    return oss.str();
+}
+
+std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
+{
+    std::string dumpResult;
+    size_t totalThreadCount = CountTotalThreads();
+    auto regions = ParseLeakedThreadStackRegions();
+    if (regions.empty()) {
+        TAG_LOGI(AAFwkTag::APPKIT, "no leaked thread stack found, total thread count:%{public}zu",
+            totalThreadCount);
+        return dumpResult;
+    }
+    size_t printedStacks = 0;
+    for (const auto &region : regions) {
+        if (printedStacks >= THREAD_STACK_LEAK_MAX_STACKS) {
+            TAG_LOGI(AAFwkTag::APPKIT, "max stack limit reached, printedStacks:%{public}zu totalOrphan:%{public}zu",
+                printedStacks, regions.size());
+            break;
+        }
+        TAG_LOGW(AAFwkTag::APPKIT, "leaked stack found, tid:%{public}d not alive", region.tid);
+        auto pcs = CollectPcsFromStack(region.begin, region.end);
+        std::string stackStr = FormatLeakedStack(region.tid, pcs);
+        if (stackStr.empty()) {
+            TAG_LOGW(AAFwkTag::APPKIT, "no frames resolved for tid:%{public}d, skipping", region.tid);
+            continue;
+        }
+        printedStacks++;
+        dumpResult.append(stackStr);
+    }
+    std::ostringstream header;
+    header << "total thread count: " << totalThreadCount
+           << ", orphan thread stack count: " << regions.size() << "\n";
+    dumpResult.insert(0, header.str());
+    return dumpResult;
 }
 
 void DumpRuntimeHelper::DumpKmpKotlinHeap(const OHOS::AppExecFwk::MemDumpInfo &info)
