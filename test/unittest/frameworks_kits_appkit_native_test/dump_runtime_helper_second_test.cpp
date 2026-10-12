@@ -638,5 +638,167 @@ HWTEST_F(DumpRuntimeHelperTestSecond, DumpFdGuard_0400, TestSize.Level1)
     EXPECT_EQ(fdsan_get_owner_tag(fd1), UNOWNED_TAG);
     EXPECT_EQ(fdsan_get_owner_tag(fd2), UNOWNED_TAG);
 }
+
+/**
+ * @tc.number: DetectAndUnwindThreadStackLeak_0100
+ * @tc.name: DetectAndUnwindThreadStackLeak
+ * @tc.desc: DetectAndUnwindThreadStackLeak returns a string (possibly empty) without crashing on a normal process.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, DetectAndUnwindThreadStackLeak_0100, TestSize.Level1)
+{
+    std::string result = DumpRuntimeHelper::DetectAndUnwindThreadStackLeak();
+    // On a normal test process there should be no leaked thread stack, so the
+    // result is expected to be empty. We mainly verify the function does not
+    // crash and returns a well-formed string.
+    GTEST_LOG_(INFO) << "DetectAndUnwindThreadStackLeak result size:" << result.size();
+    EXPECT_TRUE(result.empty());
 }
+
+/**
+ * @tc.number: ParseTidFromMapName_0100
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName extracts tid from valid map name.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0100, TestSize.Level1)
+{
+    pid_t tid1 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:67890]");
+    EXPECT_EQ(tid1, 67890);
+    pid_t tid2 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:1]");
+    EXPECT_EQ(tid2, 1);
+    pid_t tid3 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:0]");
+    EXPECT_EQ(tid3, 0);
+    pid_t tid4 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:99999]");
+    EXPECT_EQ(tid4, 99999);
 }
+
+/**
+ * @tc.number: ParseTidFromMapName_0200
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName returns 0 for invalid inputs.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0200, TestSize.Level1)
+{
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName(""), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:]"), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:xyz]"), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("invalid"), 0);
+}
+
+/**
+ * @tc.number: IsTidAlive_0100
+ * @tc.name: IsTidAlive
+ * @tc.desc: Test IsTidAlive returns true for current thread and false for invalid tids.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsTidAlive_0100, TestSize.Level1)
+{
+    EXPECT_TRUE(DumpRuntimeHelper::IsTidAlive(gettid()));
+    EXPECT_FALSE(DumpRuntimeHelper::IsTidAlive(0));
+    EXPECT_FALSE(DumpRuntimeHelper::IsTidAlive(-1));
+    EXPECT_FALSE(DumpRuntimeHelper::IsTidAlive(999999999));
+}
+
+/**
+ * @tc.number: CountTotalThreads_0100
+ * @tc.name: CountTotalThreads
+ * @tc.desc: Test CountTotalThreads returns at least 1 for a running process.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, CountTotalThreads_0100, TestSize.Level1)
+{
+    size_t count = DumpRuntimeHelper::CountTotalThreads();
+    EXPECT_GE(count, static_cast<size_t>(1));
+    GTEST_LOG_(INFO) << "CountTotalThreads: " << count;
+}
+
+/**
+ * @tc.number: ParseLeakedThreadStackRegions_0100
+ * @tc.name: ParseLeakedThreadStackRegions
+ * @tc.desc: Test ParseLeakedThreadStackRegions returns empty on normal process.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, ParseLeakedThreadStackRegions_0100, TestSize.Level1)
+{
+    auto regions = DumpRuntimeHelper::ParseLeakedThreadStackRegions();
+    EXPECT_TRUE(regions.empty());
+    GTEST_LOG_(INFO) << "ParseLeakedThreadStackRegions returned " << regions.size() << " regions";
+    for (const auto &region : regions) {
+        GTEST_LOG_(INFO) << "leaked region tid:" << region.tid
+                         << " begin:" << region.begin << " end:" << region.end;
+    }
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0100
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack handles invalid ranges without crashing.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, CollectPcsFromStack_0100, TestSize.Level1)
+{
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0, 0, nullptr);
+    EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "CollectPcsFromStack with zero range returned " << pcs.size() << " pcs";
+    pcs = DumpRuntimeHelper::CollectPcsFromStack(0x1000, 0x1000, nullptr);
+    EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "CollectPcsFromStack with equal begin/end returned " << pcs.size() << " pcs";
+}
+
+/**
+ * @tc.number: FormatLeakedStack_0100
+ * @tc.name: FormatLeakedStack
+ * @tc.desc: Test FormatLeakedStack returns empty for empty and bogus PCs.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, FormatLeakedStack_0100, TestSize.Level1)
+{
+    std::vector<uintptr_t> emptyPcs;
+    EXPECT_TRUE(DumpRuntimeHelper::FormatLeakedStack(12345, emptyPcs).empty());
+    std::vector<uintptr_t> bogusPcs = {0xDEADBEEF};
+    EXPECT_TRUE(DumpRuntimeHelper::FormatLeakedStack(99999, bogusPcs).empty());
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0200
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack with non-zero range but nullptr maps returns empty.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, CollectPcsFromStack_0200, TestSize.Level1)
+{
+    int stackVar = 0;
+    uint64_t begin = reinterpret_cast<uint64_t>(&stackVar);
+    uint64_t end = begin + sizeof(uintptr_t);
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(begin, end, nullptr);
+    EXPECT_TRUE(pcs.empty());
+}
+
+/**
+ * @tc.number: FormatLeakedStack_0200
+ * @tc.name: FormatLeakedStack
+ * @tc.desc: Test FormatLeakedStack with multiple bogus PCs returns empty.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, FormatLeakedStack_0200, TestSize.Level1)
+{
+    std::vector<uintptr_t> bogusPcs = {0x1000, 0x2000, 0x3000};
+    EXPECT_TRUE(DumpRuntimeHelper::FormatLeakedStack(99999, bogusPcs).empty());
+    std::string result = DumpRuntimeHelper::FormatLeakedStack(99999, bogusPcs);
+    EXPECT_TRUE(result.empty());
+    GTEST_LOG_(INFO) << "FormatLeakedStack with bogus PCs result size:" << result.size();
+    bogusPcs.push_back(0xDEADBEEF);
+    bogusPcs.push_back(0xCAFEF00D);
+    result = DumpRuntimeHelper::FormatLeakedStack(88888, bogusPcs);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.number: ParseTidFromMapName_0300
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName returns 0 for value exceeding INT32_MAX.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0300, TestSize.Level1)
+{
+    pid_t tid1 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483648]");
+    EXPECT_EQ(tid1, 0);
+    pid_t tid2 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:9999999999]");
+    EXPECT_EQ(tid2, 0);
+    GTEST_LOG_(INFO) << "overflow tid1:" << tid1 << " tid2:" << tid2;
+    pid_t tid3 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483647]");
+    EXPECT_EQ(tid3, 2147483647);
+}
+} // namespace AppExecFwk
+} // namespace OHOS
