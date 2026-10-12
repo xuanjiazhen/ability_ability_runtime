@@ -794,6 +794,9 @@ enum class AbilityManagerInterfaceCode {
 
     // notify that an insight intent execution has started
     NOTIFY_INSIGHT_INTENT_EXECUTE = 6182,
+
+    // Back to caller.
+    BACK_TO_CALLER_APP_WITH_RESULT = 6183,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -203,6 +203,18 @@ public:
         int32_t resultCode, const Want *resultWant, int64_t callerRequestCode) override;
 
     /**
+     * @brief Back to caller ability with result
+     *
+     * @param abilityRecord the ability to move
+     * @param resultCode result code
+     * @param resultWant result want
+     * @param callerRequestCode request code of caller
+     * @return int error code
+     */
+    int32_t BackToCallerAppWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+        int32_t resultCode, const Want *resultWant, int64_t callerRequestCode) override;
+
+    /**
      * @brief Terminate ability with the given abilityRecord
      *
      * @param abilityRecord the ability to terminate

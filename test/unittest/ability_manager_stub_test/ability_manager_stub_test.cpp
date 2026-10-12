@@ -1073,6 +1073,44 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_TerminateAbilityInner_001, T
     EXPECT_EQ(res, NO_ERROR);
 }
 
+/**
+ * @tc.name: BackToCallerAppWithResult_NullWant
+ * @tc.desc: Reject a null result Want before forwarding the request.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, BackToCallerAppWithResult_NullWant, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    ASSERT_TRUE(data.WriteBool(false));
+    ASSERT_TRUE(data.WriteInt32(0));
+    ASSERT_TRUE(data.WriteParcelable(nullptr));
+    ASSERT_TRUE(data.WriteInt64(1));
+
+    EXPECT_EQ(stub_->BackToCallerAppWithResultInner(data, reply), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_EmptyWant
+ * @tc.desc: Accept a valid result Want with no parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, BackToCallerAppWithResult_EmptyWant, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    Want want;
+    ASSERT_TRUE(data.WriteBool(false));
+    ASSERT_TRUE(data.WriteInt32(0));
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    ASSERT_TRUE(data.WriteInt64(1));
+
+    EXPECT_EQ(stub_->BackToCallerAppWithResultInner(data, reply), NO_ERROR);
+    int32_t result = ERR_INVALID_VALUE;
+    ASSERT_TRUE(reply.ReadInt32(result));
+    EXPECT_EQ(result, ERR_OK);
+}
+
 /*
  * Feature: AbilityManagerService
  * Function: TerminateUIExtensionAbilityInner
@@ -6369,5 +6407,40 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExecuteInAppSkillWithTokenId
     EXPECT_EQ(captured.skillArgs->GetStringParam("key0"), "value0");
     EXPECT_EQ(captured.skillArgs->GetStringParam("toolCallId"), "business-value");
 }
+
+/**
+ * @tc.name: BackToCallerAppWithResult_RemoteRequest
+ * @tc.desc: The new IPC code dispatches and preserves the request and service result.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, BackToCallerAppWithResult_RemoteRequest, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    Want want;
+    want.SetParam("result", std::string("test"));
+    sptr<IRemoteObject> token = new AppExecFwk::MockAbilityToken();
+    int64_t requestCode = 0x100000001;
+    WriteInterfaceToken(data);
+    ASSERT_TRUE(data.WriteBool(true));
+    ASSERT_TRUE(data.WriteRemoteObject(token));
+    ASSERT_TRUE(data.WriteInt32(100));
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    ASSERT_TRUE(data.WriteInt64(requestCode));
+    EXPECT_CALL(*stub_, BackToCallerAppWithResult(token, 100, _, requestCode))
+        .WillOnce(Invoke([](const sptr<IRemoteObject> &, int, const Want *resultWant, int64_t) {
+            EXPECT_NE(resultWant, nullptr);
+            if (resultWant != nullptr) {
+                EXPECT_EQ(resultWant->GetStringParam("result"), "test");
+            }
+            return ERR_CALLER_NOT_EXISTS;
+        }));
+    auto result = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::BACK_TO_CALLER_APP_WITH_RESULT), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_CALLER_NOT_EXISTS);
+}
+
 } // namespace AAFwk
 } // namespace OHOS

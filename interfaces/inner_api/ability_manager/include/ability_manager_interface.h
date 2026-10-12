@@ -676,6 +676,21 @@ public:
     };
 
     /**
+     * BackToCallerAppWithResult, return to the caller ability.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param resultCode, the resultCode of the ability to terminate.
+     * @param resultWant, the Want of the ability to return.
+     * @param callerRequestCode, the requestCode of caller ability.·
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int BackToCallerAppWithResult(const sptr<IRemoteObject> &token, int resultCode,
+        const Want *resultWant, int64_t callerRequestCode)
+    {
+        return 0;
+    };
+
+    /**
      * TerminateUIServiceExtensionAbility, terminate the UIServiceExtensionAbility.
      *
      * @param token, the token of the ability to terminate.

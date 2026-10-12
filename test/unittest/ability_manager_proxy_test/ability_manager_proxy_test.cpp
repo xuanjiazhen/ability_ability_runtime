@@ -4337,5 +4337,64 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSandboxCloneAbility_0
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_006 end");
 }
+
+/**
+ * @tc.name: AbilityManagerProxy_BackToCallerAppWithResult_0100
+ * @tc.desc: A null token is rejected before sending IPC.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_BackToCallerAppWithResult_0100, TestSize.Level1)
+{
+    Want want;
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _)).Times(0);
+    auto result = proxy_->BackToCallerAppWithResult(nullptr, 100, &want, 1);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AbilityManagerProxy_BackToCallerAppWithResult_0200
+ * @tc.desc: Verify the IPC code, serialized arguments and service reply.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_BackToCallerAppWithResult_0200, TestSize.Level1)
+{
+    Want want;
+    want.SetParam("result", std::string("test"));
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    int64_t requestCode = 0x100000001;
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .WillOnce(Invoke([&](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            EXPECT_EQ(code, static_cast<uint32_t>(AbilityManagerInterfaceCode::BACK_TO_CALLER_APP_WITH_RESULT));
+            EXPECT_EQ(data.ReadInterfaceToken(), AbilityManagerProxy::GetDescriptor());
+            EXPECT_TRUE(data.ReadBool());
+            EXPECT_EQ(data.ReadRemoteObject(), token);
+            EXPECT_EQ(data.ReadInt32(), 100);
+            std::unique_ptr<Want> resultWant(data.ReadParcelable<Want>());
+            EXPECT_NE(resultWant, nullptr);
+            if (resultWant != nullptr) {
+                EXPECT_EQ(resultWant->GetStringParam("result"), "test");
+            }
+            EXPECT_EQ(data.ReadInt64(), requestCode);
+            EXPECT_TRUE(reply.WriteInt32(ERR_CALLER_NOT_EXISTS));
+            return NO_ERROR;
+        }));
+    auto result = proxy_->BackToCallerAppWithResult(token, 100, &want, requestCode);
+    EXPECT_EQ(result, ERR_CALLER_NOT_EXISTS);
+}
+
+/**
+ * @tc.name: AbilityManagerProxy_BackToCallerAppWithResult_0300
+ * @tc.desc: IPC transport errors are returned to the caller.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_BackToCallerAppWithResult_0300, TestSize.Level1)
+{
+    Want want;
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _)).WillOnce(Return(UNKNOWN_ERROR));
+    auto result = proxy_->BackToCallerAppWithResult(token, 100, &want, 1);
+    EXPECT_EQ(result, UNKNOWN_ERROR);
+}
+
 } // namespace AAFwk
 } // namespace OHOS
