@@ -1809,6 +1809,11 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
     NotifyAbilityToken(uiAbilityRecord->GetToken(), abilityRequest);
     uiAbilityRecord->SetPrelaunchFlag(true);
 
+    if (abilityRequest.connect != nullptr) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch with connect, resolve ability for callback");
+        ResolveAbility(uiAbilityRecord, abilityRequest);
+    }
+
     auto sessionInfo = CreateSessionInfo(abilityRequest, RequestIdUtil::GetRequestId());
     CHECK_POINTER_AND_RETURN_LOG(sessionInfo, ERR_NO_MEMORY, "Failed to create SessionInfo.");
     sessionInfo->persistentId = persistentId;
