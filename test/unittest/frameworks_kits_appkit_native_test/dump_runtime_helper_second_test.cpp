@@ -639,6 +639,144 @@ HWTEST_F(DumpRuntimeHelperTestSecond, DumpFdGuard_0400, TestSize.Level1)
     EXPECT_EQ(fdsan_get_owner_tag(fd2), UNOWNED_TAG);
 }
 
- 
+/**
+ * @tc.number: DetectAndUnwindThreadStackLeak_0100
+ * @tc.name: DetectAndUnwindThreadStackLeak
+ * @tc.desc: DetectAndUnwindThreadStackLeak returns a string (possibly empty) without crashing on a normal process.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, DetectAndUnwindThreadStackLeak_0100, TestSize.Level1)
+{
+    std::string result = DumpRuntimeHelper::DetectAndUnwindThreadStackLeak();
+    // On a normal test process there should be no leaked thread stack, so the
+    // result is expected to be empty. We mainly verify the function does not
+    // crash and returns a well-formed string.
+    GTEST_LOG_(INFO) << "DetectAndUnwindThreadStackLeak result size:" << result.size();
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.number: ParseTidFromMapName_0100
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName extracts tid from valid map name.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0100, TestSize.Level1)
+{
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:67890]"), 67890);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:1]"), 1);
+}
+
+/**
+ * @tc.number: ParseTidFromMapName_0200
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName returns 0 for invalid inputs.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0200, TestSize.Level1)
+{
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName(""), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:]"), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:xyz]"), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("invalid"), 0);
+}
+
+/**
+ * @tc.number: IsTidAlive_0100
+ * @tc.name: IsTidAlive
+ * @tc.desc: Test IsTidAlive returns true for current thread and false for invalid tids.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsTidAlive_0100, TestSize.Level1)
+{
+    EXPECT_TRUE(DumpRuntimeHelper::IsTidAlive(gettid()));
+    EXPECT_FALSE(DumpRuntimeHelper::IsTidAlive(0));
+    EXPECT_FALSE(DumpRuntimeHelper::IsTidAlive(-1));
+    EXPECT_FALSE(DumpRuntimeHelper::IsTidAlive(999999999));
+}
+
+/**
+ * @tc.number: CountTotalThreads_0100
+ * @tc.name: CountTotalThreads
+ * @tc.desc: Test CountTotalThreads returns at least 1 for a running process.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, CountTotalThreads_0100, TestSize.Level1)
+{
+    size_t count = DumpRuntimeHelper::CountTotalThreads();
+    EXPECT_GE(count, static_cast<size_t>(1));
+    GTEST_LOG_(INFO) << "CountTotalThreads: " << count;
+}
+
+/**
+ * @tc.number: ParseLeakedThreadStackRegions_0100
+ * @tc.name: ParseLeakedThreadStackRegions
+ * @tc.desc: Test ParseLeakedThreadStackRegions returns empty on normal process.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, ParseLeakedThreadStackRegions_0100, TestSize.Level1)
+{
+    auto regions = DumpRuntimeHelper::ParseLeakedThreadStackRegions();
+    EXPECT_TRUE(regions.empty());
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0100
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack handles invalid ranges without crashing.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, CollectPcsFromStack_0100, TestSize.Level1)
+{
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0, 0);
+    EXPECT_TRUE(pcs.empty());
+}
+
+/**
+ * @tc.number: FormatLeakedStack_0100
+ * @tc.name: FormatLeakedStack
+ * @tc.desc: Test FormatLeakedStack returns empty for empty and bogus PCs.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, FormatLeakedStack_0100, TestSize.Level1)
+{
+    std::vector<uintptr_t> emptyPcs;
+    EXPECT_TRUE(DumpRuntimeHelper::FormatLeakedStack(12345, emptyPcs).empty());
+    std::vector<uintptr_t> bogusPcs = {0xDEADBEEF};
+    EXPECT_TRUE(DumpRuntimeHelper::FormatLeakedStack(99999, bogusPcs).empty());
+}
+
+/**
+ * @tc.number: DumpNativeHeap_1300
+ * @tc.name: DumpNativeHeap
+ * @tc.desc: DumpNativeHeap with needLeakobj=true assigns DetectAndUnwindThreadStackLeak result to dumpResult.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, DumpNativeHeap_1300, TestSize.Level1)
+{
+    std::shared_ptr<OHOSApplication> application = std::shared_ptr<OHOSApplication>(
+        ApplicationLoader::GetInstance().GetApplicationByName());
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    OHOS::AppExecFwk::MemDumpInfo info;
+    info.needLeakobj = true;
+    std::string dumpResult = "initial";
+    helper->DumpNativeHeap(info, dumpResult);
+    // With needLeakobj=true, DumpNativeHeap now calls DetectAndUnwindThreadStackLeak
+    // and assigns its return value to dumpResult. On a normal test process the
+    // result is empty, so dumpResult should have been reset from "initial" to "".
+    EXPECT_EQ(dumpResult, "");
+    EXPECT_NE(application, nullptr);
+}
+
+/**
+ * @tc.number: DumpNativeHeap_1400
+ * @tc.name: DumpNativeHeap
+ * @tc.desc: DumpNativeHeap with needLeakobj=false does not call thread stack leak detection.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, DumpNativeHeap_1400, TestSize.Level1)
+{
+    std::shared_ptr<OHOSApplication> application = std::shared_ptr<OHOSApplication>(
+        ApplicationLoader::GetInstance().GetApplicationByName());
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    OHOS::AppExecFwk::MemDumpInfo info;
+    info.needLeakobj = false;
+    std::string dumpResult = "untouched";
+    helper->DumpNativeHeap(info, dumpResult);
+    // With needLeakobj=false, DumpNativeHeap takes the snapshot path and must not
+    // touch dumpResult (the thread stack leak detection path is skipped).
+    EXPECT_EQ(dumpResult, "untouched");
+    EXPECT_NE(application, nullptr);
+}
 }
 }
