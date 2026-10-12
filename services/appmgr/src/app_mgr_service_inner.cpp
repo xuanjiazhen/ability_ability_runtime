@@ -3925,6 +3925,44 @@ int32_t AppMgrServiceInner::KillApplicationByUserId(
     return KillApplicationByUserIdLocked(bundleName, appCloneIndex, userId, config);
 }
 
+int32_t AppMgrServiceInner::KillApplicationByUserIdSafely(
+    const std::string &bundleName, int32_t appCloneIndex, const int userId,
+    const bool clearPageStack, const std::string& reason)
+{
+    CHECK_CALLER_IS_SYSTEM_APP;
+    if (VerifyAccountPermission(
+        AAFwk::PermissionConstants::PERMISSION_KILL_APP_PROCESSES, userId) == ERR_PERMISSION_DENIED &&
+        VerifyAccountPermission(
+            AAFwk::PermissionConstants::PERMISSION_CLEAN_BACKGROUND_PROCESSES, userId) == ERR_PERMISSION_DENIED) {
+        TAG_LOGE(AAFwkTag::APPMGR, "safe kill permission verify fail");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (appRunningManager_ == nullptr || remoteClientManager_ == nullptr) {
+        return ERR_NO_INIT;
+    }
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        return ERR_NO_INIT;
+    }
+    if (appCloneIndex == -1) {
+        bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appCloneIndex);
+    }
+    int32_t uid = IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(bundleName, userId, appCloneIndex));
+    for (const auto &item : appRunningManager_->GetAppRunningRecordMap()) {
+        const auto &appRecord = item.second;
+        if (appRecord == nullptr || appRecord->GetBundleName() != bundleName ||
+            appRecord->GetUid() != uid || appRecord->GetAppIndex() != appCloneIndex) {
+            continue;
+        }
+        if (appRecord->IsKeepAliveApp()) {
+            TAG_LOGW(AAFwkTag::APPMGR, "safe kill rejected for keepalive bundle=%{public}s", bundleName.c_str());
+            return AAFwk::KILL_PROCESS_KEEP_ALIVE;
+        }
+    }
+    KillProcessConfig config{clearPageStack, true, reason};
+    return KillApplicationByUserIdLocked(bundleName, appCloneIndex, userId, config);
+}
+
 int32_t AppMgrServiceInner::KillApplicationByUserIdLocked(
     const std::string &bundleName, int32_t appCloneIndex, const int userId, const KillProcessConfig &config)
 {
