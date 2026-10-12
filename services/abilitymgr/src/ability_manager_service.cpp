@@ -157,6 +157,7 @@
 #include "wm_common.h"
 #endif
 #include "query_erms_manager.h"
+#include "all_users_window_manager.h"
 #include "window_visibility_changed_listener.h"
 #ifdef SUPPORT_SCREEN
 #include "utils/dms_util.h"
@@ -17154,7 +17155,7 @@ void AbilityManagerService::InitWindowVisibilityChangedListener()
         return;
     }
 
-    Rosen::WindowManager::GetInstance().RegisterVisibilityChangedListener(windowVisibilityChangedListener_);
+    Rosen::AllUsersWindowManager::GetInstance().RegisterVisibilityChangedListener(windowVisibilityChangedListener_);
 }
 
 void AbilityManagerService::FreeWindowVisibilityChangedListener()
@@ -17164,7 +17165,7 @@ void AbilityManagerService::FreeWindowVisibilityChangedListener()
         TAG_LOGW(AAFwkTag::ABILITYMGR, "visibility listener already free");
         return;
     }
-    Rosen::WindowManager::GetInstance().UnregisterVisibilityChangedListener(windowVisibilityChangedListener_);
+    Rosen::AllUsersWindowManager::GetInstance().UnregisterVisibilityChangedListener(windowVisibilityChangedListener_);
     windowVisibilityChangedListener_ = nullptr;
 }
 
@@ -17186,14 +17187,22 @@ void AbilityManagerService::HandleWindowVisibilityChanged(
         std::string bundleName;
         if (info->windowType_ == Rosen::WindowType::WINDOW_TYPE_DESKTOP &&
             info->visibilityState_ == Rosen::WINDOW_VISIBILITY_STATE_NO_OCCLUSION) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "desktop is visible clear windowVisibleList_");
-            windowVisibleList_.clear();
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "desktop is visible clear windowVisibleList_ by user");
+            int32_t desktopUserId = info->uid_ / BASE_USER_RANGE;
+            for (auto it = windowVisibleList_.begin(); it != windowVisibleList_.end();) {
+                if (it->second == desktopUserId) {
+                    it = windowVisibleList_.erase(it);
+                } else {
+                    ++it;
+                }
+            }
             continue;
         }
         DelayedSingleton<AppScheduler>::GetInstance()->GetBundleNameByPid(info->pid_, bundleName, uid);
         if (info->visibilityState_ == Rosen::WINDOW_VISIBILITY_STATE_NO_OCCLUSION &&
             bundleName != SCENEBOARD_BUNDLE_NAME) {
-            windowVisibleList_.insert(info->pid_);
+            windowVisibleList_[info->pid_] = info->uid_ / BASE_USER_RANGE;
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "insert pid:%{public}d uid:%{public}d", info->pid_, info->uid_);
         }
     }
 }
