@@ -495,6 +495,26 @@ export function killProcessWithAccount(bundleName: string, accountId: int,
   return p;
 }
 
+export native function nativeKillProcessWithAccountSafely(callback: AsyncCallbackWrapper<void>,
+  bundleName: string, accountId: int, clearPageStack: boolean, appIndex?: int) : void;
+export function killProcessWithAccountSafely(bundleName: string, accountId: int,
+  clearPageStack: boolean, appIndex?: int): Promise<void>
+{
+  let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
+    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+      if (err == null || err.code == 0) {
+        resolve(undefined);
+      } else {
+        reject(err);
+      }
+    });
+    taskpool.execute((): void => {
+      appManager.nativeKillProcessWithAccountSafely(myCall, bundleName, accountId, clearPageStack, appIndex);
+    });
+  });
+  return p;
+}
+
 export native function nativeGetProcessMemoryByPid(pid: int, callback: AsyncCallbackWrapper<int>) : void;
 export function getProcessMemoryByPid(pid: int, callback: AsyncCallback<int>): void {
   let myCall = new AsyncCallbackWrapper<int>(callback);
