@@ -22,6 +22,7 @@
 #include "ability_config.h"
 #include "ability_util.h"
 #include "ability_manager_errors.h"
+#include "array_wrapper.h"
 #include "distributed_ability_runtime/distributed_client.h"
 #include "extract_insight_intent_profile.h"
 #include "ffrt.h"
@@ -29,7 +30,11 @@
 #include "insight_intent_execute_callback_interface.h"
 #include "insight_intent_db_cache.h"
 #include "insight_intent_utils.h"
+#include "in_process_call_wrapper.h"
 #include "permission_verification.h"
+#include "string_wrapper.h"
+#include "uri.h"
+#include "uri_permission_manager_client.h"
 #include "want_params_wrapper.h"
 #include "time_util.h"
 #include "res_sched_util.h"
@@ -48,6 +53,11 @@ constexpr const char *KEY_INTERACTION_INFO = "interactionInfo";
 constexpr int32_t OPERATION_DURATION = 10000;
 constexpr int32_t DYING_CALLBACK_DELAY_MS = 100;
 constexpr int64_t MICROSECONDS_PER_MILLISECOND = 1000;
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_ID = "OHOS_FILE_ENTITY";
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_ID_KEY = "entityId";
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_URIS_KEY = "uris";
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_FLAGS_KEY = "flags";
+const std::string FILE_SCHEME = "file";
 
 ParamType StringToParamType(const std::string &typeStr)
 {
@@ -140,6 +150,105 @@ void InsightIntentExecuteRecipient::OnRemoteDied(const wptr<OHOS::IRemoteObject>
 InsightIntentExecuteManager::InsightIntentExecuteManager() = default;
 
 InsightIntentExecuteManager::~InsightIntentExecuteManager() = default;
+
+namespace {
+void GetFileEntityUris(const WantParams &entity, std::vector<std::string> &uris)
+{
+    sptr<IInterface> uriValue = entity.GetParam(INSIGHT_INTENT_FILE_ENTITY_URIS_KEY);
+    IArray *arrayObj = IArray::Query(uriValue);
+    if (arrayObj == nullptr) {
+        return;
+    }
+    long size = 0;
+    if (arrayObj->GetLength(size) != ERR_OK) {
+        return;
+    }
+    for (long i = 0; i < size; i++) {
+        sptr<IInterface> iface = nullptr;
+        if (arrayObj->Get(i, iface) != ERR_OK) {
+            continue;
+        }
+        IString *strValue = IString::Query(iface);
+        if (strValue == nullptr) {
+            continue;
+        }
+        uris.push_back(String::Unbox(strValue));
+    }
+}
+
+void FilterFileEntityUris(const std::vector<std::string> &input, std::vector<std::string> &output)
+{
+    for (const auto &uriStr : input) {
+        Uri uri(uriStr);
+        if (uri.GetScheme() != FILE_SCHEME) {
+            TAG_LOGW(AAFwkTag::INTENT, "invalid file entity uri scheme: %{public}s", uriStr.c_str());
+            continue;
+        }
+        output.push_back(uriStr);
+    }
+}
+}  // namespace
+
+void InsightIntentExecuteManager::CollectFileEntityUrisAndFlags(const WantParams &params, UriAuthGroup &groups)
+{
+    auto paramMap = params.GetParams();
+    for (auto it = paramMap.begin(); it != paramMap.end(); it++) {
+        IWantParams *wantParamsObj = IWantParams::Query(it->second);
+        if (wantParamsObj == nullptr) {
+            continue;
+        }
+        WantParams entity = WantParamWrapper::Unbox(wantParamsObj);
+        if (!entity.HasParam(INSIGHT_INTENT_FILE_ENTITY_ID_KEY) ||
+            entity.GetStringParam(INSIGHT_INTENT_FILE_ENTITY_ID_KEY) != INSIGHT_INTENT_FILE_ENTITY_ID) {
+            continue;
+        }
+
+        std::vector<std::string> entityUris;
+        GetFileEntityUris(entity, entityUris);
+
+        std::vector<std::string> validUris;
+        FilterFileEntityUris(entityUris, validUris);
+
+        int32_t entityFlags = entity.GetIntParam(INSIGHT_INTENT_FILE_ENTITY_FLAGS_KEY, 0);
+        // Only keep read/write permission bits to avoid leaking unrelated flags.
+        entityFlags &= static_cast<int32_t>(
+            Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+        if (entityFlags == 0) {
+            entityFlags = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+        }
+        if (!validUris.empty()) {
+            groups[entityFlags].insert(groups[entityFlags].end(), validUris.begin(), validUris.end());
+            TAG_LOGI(AAFwkTag::INTENT, "collect file entity uris:%{public}zu, flags:%{public}d",
+                validUris.size(), entityFlags);
+        }
+    }
+}
+
+void InsightIntentExecuteManager::GrantFileEntityUriPermission(const Want &want, uint32_t callerTokenId,
+    const std::string &targetBundleName, int32_t appIndex)
+{
+    if (!want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME)) {
+        return;
+    }
+    WantParams params = want.GetParams().GetWantParams(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM);
+    UriAuthGroup groups;
+    CollectFileEntityUrisAndFlags(params, groups);
+    // Grant each group with its own flag so that a read-only URI is never escalated to write permission.
+    for (const auto &group : groups) {
+        std::vector<Uri> permissionUris;
+        for (const auto &uriStr : group.second) {
+            permissionUris.emplace_back(Uri(uriStr));
+        }
+        if (permissionUris.empty()) {
+            continue;
+        }
+        auto ret = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().GrantUriPermission(
+            permissionUris, group.first, targetBundleName, appIndex, callerTokenId));
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "grant file entity uri permission failed, err:%{public}d", ret);
+        }
+    }
+}
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, std::string callerBundleName,

@@ -38,6 +38,7 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "image_source.h"
+#include "insight_intent_execute_manager.h"
 #include "json_utils.h"
 #include "last_exit_detail_info.h"
 #include "main_element_utils.h"
@@ -3002,6 +3003,8 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
         grantInfo.targetAbilityName = abilityInfo_.name;
     }
     UriUtils::GetInstance().GrantUriPermission(want, grantInfo);
+    InsightIntentExecuteManager::GrantFileEntityUriPermission(want, grantInfo.callerTokenId,
+        grantInfo.targetBundleName, grantInfo.appIndex);
 }
 
 void AbilityRecord::GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
