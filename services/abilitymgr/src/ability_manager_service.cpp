@@ -157,6 +157,7 @@
 #include "wm_common.h"
 #endif
 #include "query_erms_manager.h"
+#include "all_users_window_manager.h"
 #include "window_visibility_changed_listener.h"
 #ifdef SUPPORT_SCREEN
 #include "utils/dms_util.h"
@@ -17154,7 +17155,7 @@ void AbilityManagerService::InitWindowVisibilityChangedListener()
         return;
     }
 
-    Rosen::WindowManager::GetInstance().RegisterVisibilityChangedListener(windowVisibilityChangedListener_);
+    Rosen::AllUsersWindowManager::GetInstance().RegisterVisibilityChangedListener(windowVisibilityChangedListener_);
 }
 
 void AbilityManagerService::FreeWindowVisibilityChangedListener()
@@ -17164,7 +17165,7 @@ void AbilityManagerService::FreeWindowVisibilityChangedListener()
         TAG_LOGW(AAFwkTag::ABILITYMGR, "visibility listener already free");
         return;
     }
-    Rosen::WindowManager::GetInstance().UnregisterVisibilityChangedListener(windowVisibilityChangedListener_);
+    Rosen::AllUsersWindowManager::GetInstance().UnregisterVisibilityChangedListener(windowVisibilityChangedListener_);
     windowVisibilityChangedListener_ = nullptr;
 }
 
