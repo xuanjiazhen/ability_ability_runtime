@@ -236,6 +236,12 @@ public:
         return 0;
     }
 
+    virtual int KillProcessWithUserId(const std::string& bundleName, bool clearPageStack = false,
+        int32_t appIndex = 0, const std::string& reason = "KillProcess", int32_t userId = -1)
+    {
+        return 0;
+    }
+
     virtual int UninstallApp(const std::string& bundleName, int32_t uid)
     {
         return 0;

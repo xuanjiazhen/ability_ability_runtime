@@ -154,6 +154,12 @@ public:
         return 0;
     }
 
+    int KillProcessWithUserId(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
+        const std::string &reason, int32_t userId) override
+    {
+        return 0;
+    }
+
     int32_t UninstallApp(const std::string &bundleName, int32_t uid, int32_t appIndex) override
     {
         return 0;

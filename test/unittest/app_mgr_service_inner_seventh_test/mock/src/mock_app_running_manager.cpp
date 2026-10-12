@@ -161,6 +161,12 @@ bool AppRunningManager::ProcessExitByBundleNameAndAppIndex(const std::string &bu
     return false;
 }
 
+bool AppRunningManager::ProcessExitByBundleNameAndAppIndexAndUserId(const std::string &bundleName, int32_t appIndex,
+    std::list<pid_t> &pids, bool clearPageStack, int32_t userId)
+{
+    return false;
+}
+
 bool AppRunningManager::ProcessExitByTokenIdAndInstance(uint32_t accessTokenId, const std::string &instanceKey,
     std::list<pid_t> &pids, bool clearPageStack)
 {

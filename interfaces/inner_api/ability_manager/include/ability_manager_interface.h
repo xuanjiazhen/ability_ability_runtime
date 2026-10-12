@@ -1009,6 +1009,23 @@ public:
     virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
         const std::string& reason = "Abilityms::KillProcess") = 0;
 
+    /**
+     * Kill the process immediately with an explicit user id.
+     *
+     * @param bundleName Bundle name of the application to kill.
+     * @param clearPageStack true to also clear mission/page-stack records of the app.
+     * @param appIndex Clone application index; 0 means the base application.
+     * @param reason Kill reason string recorded in exit statistics.
+     * @param userId Target user id; -1 means fall back to the caller's user id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false,
+        int32_t appIndex = -1, const std::string& reason = "Abilityms::KillProcess",
+        int32_t userId = -1)
+    {
+        return 0;
+    }
+
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
      * force timeout ability.

@@ -161,6 +161,12 @@ public:
     {
         return 0;
     }
+
+    int KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false,
+        int32_t appIndex = 0, const std::string &reason = "KillProcess", int32_t userId = -1) override
+    {
+        return 0;
+    }
     #ifdef ABILITY_COMMAND_FOR_TEST
     int ForceTimeoutForTest(const std::string &abilityName, const std::string &state) override
     {

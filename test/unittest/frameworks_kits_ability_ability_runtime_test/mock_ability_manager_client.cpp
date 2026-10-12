@@ -362,6 +362,12 @@ ErrCode AbilityManagerClient::KillProcess(const std::string &bundleName, bool cl
     return ERR_OK;
 }
 
+ErrCode AbilityManagerClient::KillProcessWithUserId(const std::string &bundleName, bool clearPageStack,
+    int32_t appIndex, const std::string& reason, int32_t userId)
+{
+    return ERR_OK;
+}
+
 #ifdef ABILITY_COMMAND_FOR_TEST
 ErrCode AbilityManagerClient::ForceTimeoutForTest(const std::string &abilityName, const std::string &state)
 {

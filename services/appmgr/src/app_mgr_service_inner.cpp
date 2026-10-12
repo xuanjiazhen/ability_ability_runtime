@@ -3438,7 +3438,7 @@ int32_t AppMgrServiceInner::UpdateApplicationInfoInstalled(
 }
 
 int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
-    const std::string &reason)
+    const std::string &reason, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "KillApplication");
     if (!appRunningManager_) {
@@ -3454,11 +3454,13 @@ int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool 
 
     if (appIndex == -1) {
         auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-        int  userId = -1;
         userId = GetValidUserId(userId);
         bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appIndex);
     }
-    return KillApplicationByBundleName(bundleName, appIndex, clearPageStack, reason);
+    if (userId == -1) {
+        return KillApplicationByBundleName(bundleName, appIndex, clearPageStack, reason);
+    }
+    return KillApplicationByBundleNameWithUserId(bundleName, appIndex, clearPageStack, reason, userId);
 }
 
 int32_t AppMgrServiceInner::ForceKillApplication(const std::string &bundleName,
@@ -3897,6 +3899,23 @@ int32_t AppMgrServiceInner::KillApplicationByBundleName(
     std::list<pid_t> pids;
 
     if (!appRunningManager_->ProcessExitByBundleNameAndAppIndex(bundleName, appIndex, pids, clearPageStack)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "process corresponding to the package name did not start");
+        return result;
+    }
+    result = WaitProcessesExitAndKill(pids, startTime, reason);
+    NotifyAppStatus(bundleName, appIndex, EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
+    return result;
+}
+
+int32_t AppMgrServiceInner::KillApplicationByBundleNameWithUserId(
+    const std::string &bundleName, int32_t appIndex, bool clearPageStack, const std::string& reason, int32_t userId)
+{
+    int result = ERR_OK;
+    int64_t startTime = SystemTimeMillisecond();
+    std::list<pid_t> pids;
+
+    if (!appRunningManager_->ProcessExitByBundleNameAndAppIndexAndUserId(
+            bundleName, appIndex, pids, clearPageStack, userId)) {
         TAG_LOGE(AAFwkTag::APPMGR, "process corresponding to the package name did not start");
         return result;
     }

@@ -157,6 +157,12 @@ int MockAbilityManagerService::KillProcess(const std::string& bundleName, bool c
     return 0;
 }
 
+int MockAbilityManagerService::KillProcessWithUserId(const std::string& bundleName, bool clearPageStack,
+    int32_t appIndex, const std::string& reason, int32_t userId)
+{
+    return 0;
+}
+
 int MockAbilityManagerService::UninstallApp(const std::string& bundleName, int32_t uid)
 {
     return 0;

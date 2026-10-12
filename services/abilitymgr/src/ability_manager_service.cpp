@@ -9542,7 +9542,6 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, bool clear
         TAG_LOGE(AAFwkTag::ABILITYMGR, "KillProcess permission verification fail");
         return ERR_PERMISSION_DENIED;
     }
-
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, KILL_PROCESS_FAILED);
     int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
@@ -9565,7 +9564,6 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, bool clear
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundle info when kill process failed");
         return GET_BUNDLE_INFO_FAILED;
     }
-
     int32_t collaboratorType = GetCollaboratorType(bundleInfo.applicationInfo.codePath);
     if (CheckCollaboratorType(collaboratorType)) {
         if (!isAllowKillProcessForCollaborator) {
@@ -9574,15 +9572,70 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, bool clear
         }
         return KillProcessForCollaborator(collaboratorType, bundleName, userId);
     }
-
     KeepAliveType type;
     if (KeepAliveUtils::IsKeepAliveBundle(bundleInfo, userId, type)
         && DelayedSingleton<AppScheduler>::GetInstance()->IsMemorySizeSufficient()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no kill alive process");
         return KILL_PROCESS_KEEP_ALIVE;
     }
-
     int ret = DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(bundleName, clearPageStack, appIndex, reason);
+    return ret == ERR_OK ? ERR_OK : KILL_PROCESS_FAILED;
+}
+
+int AbilityManagerService::KillProcessWithUserId(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
+    const std::string& reason, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Kill process, bundleName: %{public}s, clearPageStack: %{public}d"
+        "callingUid: %{public}d, callingPid: %{public}d", bundleName.c_str(), clearPageStack,
+        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+    // check permission first
+    auto isAllowKillProcessForCollaborator = CheckPermissionForKillCollaborator();
+    if (!isAllowKillProcessForCollaborator &&
+        DelayedSingleton<AppScheduler>::GetInstance()->VerifyKillProcessPermission(bundleName) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "KillProcess permission verification fail");
+        return ERR_PERMISSION_DENIED;
+    }
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, KILL_PROCESS_FAILED);
+    int originUserId = userId;
+    if (userId == -1) {
+        userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    if (appIndex == 0) {
+        auto res = bms->GetBundleInfoV9(bundleName,
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION), bundleInfo, userId);
+        if (res == ERR_OK && bundleInfo.applicationInfo.enabled) {
+            appIndex = bundleInfo.applicationInfo.appIndex;
+        }
+    }
+#endif
+    if (appIndex == -1) {
+        bms->GetDualModeBundleInfo(bundleName, userId, appIndex);
+    }
+    if (IN_PROCESS_CALL(bms->GetCloneBundleInfoExt(bundleName,
+        static_cast<uint32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+        appIndex, userId, bundleInfo)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundle info when kill process failed");
+        return GET_BUNDLE_INFO_FAILED;
+    }
+    int32_t collaboratorType = GetCollaboratorType(bundleInfo.applicationInfo.codePath);
+    if (CheckCollaboratorType(collaboratorType)) {
+        if (!isAllowKillProcessForCollaborator) {
+            TAG_LOGE(AAFwkTag::APPMGR, "KillProcess permission verification fail");
+            return ERR_PERMISSION_DENIED;
+        }
+        return KillProcessForCollaborator(collaboratorType, bundleName, userId);
+    }
+    KeepAliveType type;
+    if (KeepAliveUtils::IsKeepAliveBundle(bundleInfo, userId, type)
+        && DelayedSingleton<AppScheduler>::GetInstance()->IsMemorySizeSufficient()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no kill alive process");
+        return KILL_PROCESS_KEEP_ALIVE;
+    }
+    int ret = DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(
+        bundleName, clearPageStack, appIndex, reason, originUserId);
     return ret == ERR_OK ? ERR_OK : KILL_PROCESS_FAILED;
 }
 

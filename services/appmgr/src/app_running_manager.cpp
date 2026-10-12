@@ -658,6 +658,43 @@ bool AppRunningManager::ProcessExitByBundleNameAndAppIndex(const std::string &bu
     return !pids.empty();
 }
 
+bool AppRunningManager::ProcessExitByBundleNameAndAppIndexAndUserId(const std::string &bundleName, int32_t appIndex,
+    std::list<pid_t> &pids, bool clearPageStack, int32_t userId)
+{
+    auto appRunningMap = GetAppRunningRecordMap();
+    for (const auto &item : appRunningMap) {
+        const auto &appRecord = item.second;
+        if (appRecord == nullptr) {
+            continue;
+        }
+        if (appRecord->IsKeepAliveApp() && ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) {
+            continue;
+        }
+        auto appInfo = appRecord->GetApplicationInfo();
+        if (appInfo == nullptr) {
+            continue;
+        }
+        if (appRecord->GetPriorityObject() == nullptr) {
+            continue;
+        }
+
+        if (appInfo->bundleName == bundleName && appRecord->GetAppIndex() == appIndex
+            && appRecord->GetUserId() == userId) {
+            pid_t pid = appRecord->GetPid();
+            if (pid <= 0) {
+                continue;
+            }
+            pids.push_back(pid);
+            if (clearPageStack) {
+                appRecord->ScheduleClearPageStack();
+            }
+            appRecord->SetKilling();
+            appRecord->ScheduleProcessSecurityExit();
+        }
+    }
+    return !pids.empty();
+}
+
 bool AppRunningManager::ProcessExitByTokenIdAndInstance(uint32_t accessTokenId, const std::string &instanceKey,
     std::list<pid_t> &pids, bool clearPageStack)
 {

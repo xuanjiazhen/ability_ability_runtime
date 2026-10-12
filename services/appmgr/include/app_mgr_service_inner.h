@@ -418,7 +418,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
-        const std::string &reason = "KillApplication");
+        const std::string &reason = "KillApplication", int32_t userId = -1);
 
     /**
      * ForceKillApplication, force kill the application.
@@ -2274,6 +2274,10 @@ private:
      */
     int32_t KillApplicationByBundleName(const std::string &bundleName, int32_t appIndex, bool clearPageStack = false,
         const std::string& reason = "KillApplicationByBundleName");
+
+    int32_t KillApplicationByBundleNameWithUserId(const std::string &bundleName, int32_t appIndex,
+        bool clearPageStack = false, const std::string& reason = "KillApplicationByBundleName",
+        int32_t userId = -1);
 
     bool SendProcessStartEvent(const std::shared_ptr<AppRunningRecord> &appRecord, bool isPreload,
         AppExecFwk::PreloadMode preloadMode);
