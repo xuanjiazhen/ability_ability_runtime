@@ -602,11 +602,22 @@ ErrCode AbilityManagerService::ExecuteBlockAllAppStartInterceptor(AbilityRequest
      auto context = new (std::nothrow) std::weak_ptr<AbilityManagerService>(shared_from_this());
      if (context == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "context null");
+        fdsan_close_with_tag(rFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
+        fdsan_close_with_tag(wFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
+        rFd_ = -1;
+        wFd_ = -1;
+        *ptrRFd_ = -1;
         return;
      }
      int32_t ret = WatchParameter(APPSPAWN_STARTED, ExitReasonUtil::AppSpawnStartCallback, context);
      if (ret != 0) {
          TAG_LOGE(AAFwkTag::ABILITYMGR, "watch parameter ret: %{public}d", ret);
+         delete context;
+         fdsan_close_with_tag(rFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
+         fdsan_close_with_tag(wFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
+         rFd_ = -1;
+         wFd_ = -1;
+         *ptrRFd_ = -1;
          return;
      }
      ffrt_qos_t taskQos = 0;
@@ -614,7 +625,16 @@ ErrCode AbilityManagerService::ExecuteBlockAllAppStartInterceptor(AbilityRequest
         ExitReasonUtil::ProcessSignalData);
      if (ret != 0) {
          TAG_LOGE(AAFwkTag::ABILITYMGR, "ffrt_epoll_ctl failed, ret: %{public}d", ret);
+         int32_t unwatchRet = RemoveParameterWatcher(APPSPAWN_STARTED, ExitReasonUtil::AppSpawnStartCallback, context);
+         if (unwatchRet != 0) {
+             TAG_LOGW(AAFwkTag::ABILITYMGR, "remove parameter watcher failed, ret: %{public}d", unwatchRet);
+         }
+         delete context;
          fdsan_close_with_tag(rFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
+         fdsan_close_with_tag(wFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
+         rFd_ = -1;
+         wFd_ = -1;
+         *ptrRFd_ = -1;
          return;
      }
      TAG_LOGI(AAFwkTag::ABILITYMGR, "Listen signal msg ...");
