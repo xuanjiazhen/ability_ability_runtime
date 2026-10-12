@@ -33,8 +33,12 @@
 #include "tokenid_kit.h"
 #include "ui_extension_wrapper.h"
 #ifdef SUPPORT_UPMS
+#include "array_wrapper.h"
 #include "fud_constants.h"
+#include "insight_intent_execute_param.h"
+#include "string_wrapper.h"
 #include "uri_permission_manager_client.h"
+#include "want_params_wrapper.h"
 #endif // SUPPORT_UPMS
 
 namespace OHOS {
@@ -53,6 +57,12 @@ const int32_t MAX_URI_COUNT = 500;
 constexpr int32_t API20 = 20;
 constexpr int32_t API_VERSION_MOD = 100;
 constexpr uint32_t TOKEN_ID_BIT_SIZE = 32;
+#ifdef SUPPORT_UPMS
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_ID = "OHOS_FILE_ENTITY";
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_ID_KEY = "entityId";
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_URIS_KEY = "uris";
+constexpr const char *INSIGHT_INTENT_FILE_ENTITY_FLAGS_KEY = "flags";
+#endif // SUPPORT_UPMS
 }
 
 UriUtils::UriUtils() {}
@@ -263,6 +273,68 @@ bool UriUtils::IsGrantUriPermissionFlag(uint32_t flag)
 {
     return ((flag & (Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION)) != 0);
 }
+
+bool UriUtils::CollectFileEntityUrisAndFlags(const WantParams &params, UriAuthGroup &groups)
+{
+    bool found = false;
+    auto paramMap = params.GetParams();
+    for (auto it = paramMap.begin(); it != paramMap.end(); it++) {
+        IWantParams *wantParamsObj = IWantParams::Query(it->second);
+        if (wantParamsObj == nullptr) {
+            continue;
+        }
+        WantParams entity = WantParamWrapper::Unbox(wantParamsObj);
+        if (!entity.HasParam(INSIGHT_INTENT_FILE_ENTITY_ID_KEY)) {
+            continue;
+        }
+        if (entity.GetStringParam(INSIGHT_INTENT_FILE_ENTITY_ID_KEY) != INSIGHT_INTENT_FILE_ENTITY_ID) {
+            continue;
+        }
+
+        std::vector<std::string> entityUris;
+        sptr<IInterface> uriValue = entity.GetParam(INSIGHT_INTENT_FILE_ENTITY_URIS_KEY);
+        IArray *arrayObj = IArray::Query(uriValue);
+        if (arrayObj != nullptr) {
+            long size = 0;
+            if (arrayObj->GetLength(size) == ERR_OK) {
+                for (long i = 0; i < size; i++) {
+                    sptr<IInterface> iface = nullptr;
+                    if (arrayObj->Get(i, iface) == ERR_OK) {
+                        IString *strValue = IString::Query(iface);
+                        if (strValue != nullptr) {
+                            entityUris.push_back(String::Unbox(strValue));
+                        }
+                    }
+                }
+            }
+        }
+
+        int32_t entityFlags = entity.GetIntParam(INSIGHT_INTENT_FILE_ENTITY_FLAGS_KEY, 0);
+        if (entityFlags == 0) {
+            entityFlags = static_cast<int32_t>(Want::FLAG_AUTH_READ_URI_PERMISSION);
+        }
+
+        // Drop URIs with an invalid scheme so that they are never granted.
+        // Only file:// is accepted; the UPMS batch grant path (BatchUri) only handles file:// (and anco://
+        // for broker content URIs), so anything else would be silently skipped by UPMS anyway.
+        std::vector<std::string> validUris;
+        for (const auto &uriStr : entityUris) {
+            Uri uri(uriStr);
+            if (uri.GetScheme() != FILE_SCHEME) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid file entity uri scheme: %{public}s", uriStr.c_str());
+                continue;
+            }
+            validUris.push_back(uriStr);
+        }
+
+        // Group URIs by flag so each group is granted with its own flag (no privilege escalation).
+        groups[entityFlags].insert(groups[entityFlags].end(), validUris.begin(), validUris.end());
+        found = true;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "collect file entity uris:%{public}zu, flags:%{public}d",
+            validUris.size(), entityFlags);
+    }
+    return found;
+}
 #endif // SUPPORT_UPMS
 
 bool UriUtils::IsServiceExtensionType(AppExecFwk::ExtensionAbilityType extensionAbilityType)
@@ -389,10 +461,6 @@ bool UriUtils::IsSandboxApp(uint32_t tokenId)
 #ifdef SUPPORT_UPMS
 bool UriUtils::GrantUriPermission(Want &want, const GrantUriPermissionInfo &grantInfo)
 {
-    if (!IsGrantUriPermissionFlag(grantInfo.flag)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "No grant uri flag: %{public}u.", grantInfo.flag);
-        return false;
-    }
     if (grantInfo.targetBundleName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "targetBundleName empty");
         return false;
@@ -411,6 +479,23 @@ bool UriUtils::GrantUriPermission(Want &want, const GrantUriPermissionInfo &gran
         return false;
     }
     ProcessUDMFKey(want);
+
+    // Grant FileEntity URIs grouped by their own flag, independent of the common flag,
+    // so that a read-only URI is never escalated to write permission.
+    if (AppExecFwk::InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
+        WantParams params = want.GetParams().GetWantParams(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM);
+        UriAuthGroup groups;
+        CollectFileEntityUrisAndFlags(params, groups);
+        for (const auto &group : groups) {
+            GrantUriPermission(group.second, group.first, grantInfo.targetBundleName,
+                grantInfo.appIndex, grantInfo.callerTokenId);
+        }
+    }
+
+    if (!IsGrantUriPermissionFlag(grantInfo.flag)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "No grant uri flag: %{public}u.", grantInfo.flag);
+        return false;
+    }
 
     if (IsDmsCall(grantInfo.callerTokenId)) {
         return GrantDmsUriPermission(want, grantInfo.callerTokenId, grantInfo.targetBundleName, grantInfo.appIndex);
