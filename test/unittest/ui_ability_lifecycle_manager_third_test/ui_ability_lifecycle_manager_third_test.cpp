@@ -1934,5 +1934,77 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, SubmitSpecifiedFailTask_002, TestSi
     usleep(TIMEOUT_VALUE);
     EXPECT_EQ(mgr->hookSpecifiedMap_.size(), 0);
 }
+
+/*
+ * @tc.name: PrelaunchAbilityLocked_WithConnect_001
+ * @tc.desc: PrelaunchAbilityLocked with connect != nullptr creates CallRecord
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, PrelaunchAbilityLocked_WithConnect_001, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.bundleName = "com.test.bundle";
+    abilityRequest.abilityInfo.moduleName = "entry";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityRequest.abilityInfo.isStageBasedModel = true;
+    abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
+    abilityRequest.connect = sptr<IAbilityConnection>(new UIAbilityLifecycleManagerThirdTestStub());
+
+    auto result = mgr->PrelaunchAbilityLocked(abilityRequest, 0);
+    auto record = mgr->FindRecordFromTmpMap(abilityRequest);
+    ASSERT_NE(record, nullptr);
+    EXPECT_NE(record->callContainer_, nullptr);
+}
+
+/*
+ * @tc.name: PrelaunchAbilityLocked_WithConnect_002
+ * @tc.desc: PrelaunchAbilityLocked with connect == nullptr does NOT create CallRecord
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, PrelaunchAbilityLocked_WithConnect_002, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.bundleName = "com.test.bundle";
+    abilityRequest.abilityInfo.moduleName = "entry";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityRequest.abilityInfo.isStageBasedModel = true;
+    abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
+
+    auto result = mgr->PrelaunchAbilityLocked(abilityRequest, 0);
+    auto record = mgr->FindRecordFromTmpMap(abilityRequest);
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(record->callContainer_, nullptr);
+}
+
+/*
+ * @tc.name: PrelaunchAbilityLocked_WithConnect_ExistingAbility_001
+ * @tc.desc: PrelaunchAbilityLocked with connect for existing ability processes connect (LOG-01)
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, PrelaunchAbilityLocked_WithConnect_ExistingAbility_001, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.bundleName = "com.test.bundle";
+    abilityRequest.abilityInfo.moduleName = "entry";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityRequest.abilityInfo.isStageBasedModel = true;
+    abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
+
+    auto existingRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(existingRecord, nullptr);
+    int32_t persistentId = 100;
+    mgr->sessionAbilityMap_[persistentId] = existingRecord;
+
+    abilityRequest.connect = sptr<IAbilityConnection>(new UIAbilityLifecycleManagerThirdTestStub());
+    auto result = mgr->PrelaunchAbilityLocked(abilityRequest, 0);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_NE(existingRecord->callContainer_, nullptr);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

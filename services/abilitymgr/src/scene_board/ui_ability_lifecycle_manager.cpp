@@ -1796,6 +1796,12 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
     } else {
         uiAbilityRecord = sessionAbilityMap_.at(persistentId);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "already has abilityrecord");
+        if (abilityRequest.connect != nullptr) {
+            uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken,
+                abilityRequest.requestCode, abilityRequest.want);
+            uiAbilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_CALL);
+            ResolveAbility(uiAbilityRecord, abilityRequest);
+        }
         return ERR_INVALID_VALUE;
     }
     uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
@@ -4988,6 +4994,9 @@ int32_t UIAbilityLifecycleManager::NotifyStartupExceptionBySCB(int32_t requestId
                     abilityRecord->GetInfoBundleName().c_str(),
                     abilityRecord->GetInfoAbilityName().c_str());
                 SendAbilityEvent(abilityRecord->GetAbilityInfo(), reason);
+                if (abilityRecord->GetPrelaunchFlag()) {
+                    abilityRecord->NotifyCallersOnPrelaunchTimeout();
+                }
             }
             tmpAbilityMap_.erase(it);
             callRequestCache_.erase(abilityRecord);

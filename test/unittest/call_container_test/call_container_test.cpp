@@ -506,5 +506,73 @@ HWTEST_F(CallContainerTest, Call_Container_Notify_All_Call_Disconnect_003, TestS
     // Verify records are cleared even if not in REQUESTED state
     EXPECT_EQ(callContainer->GetCallRecord(connect), nullptr);
 }
+
+/*
+ * Feature: CallContainer
+ * Function: NotifyAllCallDisconnectAll
+ * SubFunction: NA
+ * FunctionPoints: REQUESTING state CallRecord is notified (unlike NotifyAllCallDisconnect)
+ * EnvConditions: NA
+ * CaseDescription: Verify NotifyAllCallDisconnectAll notifies REQUESTING state records
+ */
+HWTEST_F(CallContainerTest, Call_Container_Notify_All_Call_Disconnect_All_Requesting_001, TestSize.Level1)
+{
+    std::shared_ptr<CallContainer> callContainer = get();
+    AbilityRequest abilityRequest;
+    abilityRequest.callerUid = 1;
+    abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
+    auto connect = sptr<AbilityConnectCallback>::MakeSptr();
+    std::shared_ptr<CallRecord> callRecord = CallRecord::CreateCallRecord(
+        abilityRequest.callerUid, abilityRecord_->shared_from_this(),
+        connect, abilityRequest.callerToken);
+    callRecord->SetCallState(CallState::REQUESTING);
+    callContainer->AddCallRecord(connect, callRecord);
+
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = "com.test.callee";
+    abilityInfo.name = "CalleeAbility";
+    abilityInfo.moduleName = "entry";
+    AppExecFwk::ElementName element("deviceId", abilityInfo.bundleName,
+        abilityInfo.name, abilityInfo.moduleName);
+
+    AbilityConnectCallback::onAbilityDisconnectDoneCount = 0;
+    callContainer->NotifyAllCallDisconnectAll(element);
+    EXPECT_EQ(AbilityConnectCallback::onAbilityDisconnectDoneCount, 1);
+    EXPECT_EQ(callContainer->GetCallRecord(connect), nullptr);
+}
+
+/*
+ * Feature: CallContainer
+ * Function: NotifyAllCallDisconnect
+ * SubFunction: NA
+ * FunctionPoints: REQUESTING state CallRecord is NOT notified (contrast with NotifyAllCallDisconnectAll)
+ * EnvConditions: NA
+ * CaseDescription: Verify NotifyAllCallDisconnect skips REQUESTING state records
+ */
+HWTEST_F(CallContainerTest, Call_Container_Notify_All_Call_Disconnect_Skips_Requesting_001, TestSize.Level1)
+{
+    std::shared_ptr<CallContainer> callContainer = get();
+    AbilityRequest abilityRequest;
+    abilityRequest.callerUid = 1;
+    abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
+    auto connect = sptr<AbilityConnectCallback>::MakeSptr();
+    std::shared_ptr<CallRecord> callRecord = CallRecord::CreateCallRecord(
+        abilityRequest.callerUid, abilityRecord_->shared_from_this(),
+        connect, abilityRequest.callerToken);
+    callRecord->SetCallState(CallState::REQUESTING);
+    callContainer->AddCallRecord(connect, callRecord);
+
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = "com.test.callee";
+    abilityInfo.name = "CalleeAbility";
+    abilityInfo.moduleName = "entry";
+    AppExecFwk::ElementName element("deviceId", abilityInfo.bundleName,
+        abilityInfo.name, abilityInfo.moduleName);
+
+    AbilityConnectCallback::onAbilityDisconnectDoneCount = 0;
+    callContainer->NotifyAllCallDisconnect(element);
+    EXPECT_EQ(AbilityConnectCallback::onAbilityDisconnectDoneCount, 0);
+    EXPECT_EQ(callContainer->GetCallRecord(connect), nullptr);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

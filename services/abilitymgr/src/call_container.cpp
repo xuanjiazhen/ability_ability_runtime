@@ -251,5 +251,28 @@ void CallContainer::NotifyAllCallDisconnect(const AppExecFwk::ElementName &eleme
     // Clear all call records after notification
     callRecordMap_.clear();
 }
+
+void CallContainer::NotifyAllCallDisconnectAll(const AppExecFwk::ElementName &element)
+{
+    std::lock_guard lock(callRecordMapLock_);
+    if (callRecordMap_.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "No call records to notify");
+        return;
+    }
+
+    for (const auto &[_, callRecord] : callRecordMap_) {
+        if (callRecord == nullptr) {
+            continue;
+        }
+        auto callback = callRecord->GetConCallBack();
+        if (callback) {
+            ffrt::submit([callback, element]() {
+                callback->OnAbilityDisconnectDone(element, REASON_CALLEE_TERMINATE);
+            });
+        }
+    }
+
+    callRecordMap_.clear();
+}
 }  // namespace AAFwk
 }  // namesspace OHOS

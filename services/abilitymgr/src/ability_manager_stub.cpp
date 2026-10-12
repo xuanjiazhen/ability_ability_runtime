@@ -2817,6 +2817,8 @@ int AbilityManagerStub::StartAbilityForPrelaunchInner(MessageParcel &data, Messa
         auto remoteObj = data.ReadRemoteObject();
         if (remoteObj != nullptr) {
             connect = iface_cast<IAbilityConnection>(remoteObj);
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "hasConnect=true but ReadRemoteObject returned null");
         }
     }
     int32_t result = StartAbilityForPrelaunch(*want, frameNum, connect);
