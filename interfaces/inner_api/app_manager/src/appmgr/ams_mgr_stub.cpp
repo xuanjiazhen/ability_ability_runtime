@@ -105,6 +105,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data
             return HandleKillProcessesByUserId(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESS_WITH_ACCOUNT):
             return HandleKillProcessWithAccount(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESS_WITH_ACCOUNT_SAFELY):
+            return HandleKillProcessWithAccountSafely(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_APPLICATION):
             return HandleKillApplication(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::ABILITY_ATTACH_TIMEOUT):
@@ -424,6 +426,29 @@ ErrCode AmsMgrStub::HandleKillProcessWithAccount(MessageParcel &data, MessagePar
         bundleName.c_str(), accountId, clearPageStack);
 
     int32_t result = KillProcessWithAccount(bundleName, accountId, clearPageStack, appIndex);
+    reply.WriteInt32(result);
+
+    TAG_LOGI(AAFwkTag::APPMGR, "end");
+
+    return NO_ERROR;
+}
+
+ErrCode AmsMgrStub::HandleKillProcessWithAccountSafely(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "enter");
+
+    HITRACE_METER(HITRACE_TAG_APP);
+
+    std::string bundleName = data.ReadString();
+    int accountId = data.ReadInt32();
+    bool clearPageStack = data.ReadBool();
+    auto appIndex = data.ReadInt32();
+
+    TAG_LOGI(AAFwkTag::APPMGR,
+        "bundleName = %{public}s, accountId = %{public}d, clearPageStack = %{public}d",
+        bundleName.c_str(), accountId, clearPageStack);
+
+    int32_t result = KillProcessWithAccountSafely(bundleName, accountId, clearPageStack, appIndex);
     reply.WriteInt32(result);
 
     TAG_LOGI(AAFwkTag::APPMGR, "end");
