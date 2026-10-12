@@ -23,6 +23,8 @@
 namespace OHOS {
 namespace AbilityRuntime {
 const int32_t BUNDLE_NAME = 1;
+const int32_t SEGMENT_INDEX_TWO = 2;
+const int32_t SEGMENT_INDEX_THREE = 3;
 const int32_t VERSION = 4;
 const int32_t INTENT_KEY_LENGTH = 5;
 InsightRdbStorageMgr::InsightRdbStorageMgr()
@@ -377,13 +379,13 @@ int32_t InsightRdbStorageMgr::DeleteIntentByAppIndex(const std::string &bundleNa
         if (segments.size() == INTENT_KEY_LENGTH) {
             shouldDelete = (appIndex == 0);
         } else if (segments.size() == INTENT_KEY_LENGTH + 1) {
-            shouldDelete = (segments[2] == std::to_string(appIndex));
+            shouldDelete = (segments[SEGMENT_INDEX_TWO] == std::to_string(appIndex));
         }
         if (!shouldDelete) {
             continue;
         }
         if (!moduleName.empty()) {
-            size_t moduleNameIdx = (segments.size() == INTENT_KEY_LENGTH) ? 2 : 3;
+            size_t moduleNameIdx = (segments.size() == INTENT_KEY_LENGTH) ? SEGMENT_INDEX_TWO : SEGMENT_INDEX_THREE;
             if (segments[moduleNameIdx] != moduleName) {
                 continue;
             }
