@@ -23,6 +23,8 @@
 namespace OHOS {
 namespace AbilityRuntime {
 const int32_t BUNDLE_NAME = 1;
+const int32_t SEGMENT_INDEX_TWO = 2;
+const int32_t SEGMENT_INDEX_THREE = 3;
 const int32_t VERSION = 4;
 const int32_t INTENT_KEY_LENGTH = 5;
 InsightRdbStorageMgr::InsightRdbStorageMgr()
@@ -50,11 +52,11 @@ std::string InsightRdbStorageMgr::BuildIntentKey(const std::string &bundleName,
     const std::string &moduleName, const std::string &intentName, int32_t userId,
     uint32_t versionCode, int32_t appIndex, bool isDualMode)
 {
-    std::string key = std::to_string(userId).append("/").append(bundleName).append("/").append(moduleName)
-        .append("/").append(intentName).append("/").append(std::to_string(versionCode));
+    std::string key = std::to_string(userId).append("/").append(bundleName).append("/");
     if (isDualMode) {
-        key.append("/").append(std::to_string(appIndex));
+        key.append(std::to_string(appIndex)).append("/");
     }
+    key.append(moduleName).append("/").append(intentName).append("/").append(std::to_string(versionCode));
     return key;
 }
 
@@ -85,7 +87,7 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentBundleInfos(const int32_t userId,
             TAG_LOGW(AAFwkTag::INTENT, "invalid intent key");
             continue;
         }
-        bundleVersionMap[res[BUNDLE_NAME]] = res[VERSION];
+        bundleVersionMap[res[BUNDLE_NAME]] = res.back();
     }
     return ERR_OK;
 }
@@ -108,7 +110,7 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfos(const int32_t userId,
         if (res.size() < INTENT_KEY_LENGTH) {
             continue;
         }
-        bundleVersionMap[res[BUNDLE_NAME]] = res[VERSION];
+        bundleVersionMap[res[BUNDLE_NAME]] = res.back();
     }
     return ERR_OK;
 }
@@ -377,13 +379,13 @@ int32_t InsightRdbStorageMgr::DeleteIntentByAppIndex(const std::string &bundleNa
         if (segments.size() == INTENT_KEY_LENGTH) {
             shouldDelete = (appIndex == 0);
         } else if (segments.size() == INTENT_KEY_LENGTH + 1) {
-            shouldDelete = (segments[2] == std::to_string(appIndex));
+            shouldDelete = (segments[SEGMENT_INDEX_TWO] == std::to_string(appIndex));
         }
         if (!shouldDelete) {
             continue;
         }
         if (!moduleName.empty()) {
-            size_t moduleNameIdx = (segments.size() == INTENT_KEY_LENGTH) ? 2 : 3;
+            size_t moduleNameIdx = (segments.size() == INTENT_KEY_LENGTH) ? SEGMENT_INDEX_TWO : SEGMENT_INDEX_THREE;
             if (segments[moduleNameIdx] != moduleName) {
                 continue;
             }
