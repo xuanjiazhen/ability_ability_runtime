@@ -10981,13 +10981,20 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want, const int3
     }
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
     CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), oriValidUserId),
-        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed.");
 #else
-    // Non-car prelaunch does not support starting a clone instance; force any specified
-    // appIndex to the base instance (0).
-    if (want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
-        const_cast<Want &>(want).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilityForPrelaunch force specified appIndex to 0");
+    StartAbilityUtils::ResolveTargetAppCloneIndex(want, nullptr, oriValidUserId);
+    int32_t appIndex = 0;
+    if (!StartAbilityUtils::GetAppIndex(want, nullptr, oriValidUserId, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityForPrelaunch GetAppIndex failed");
+        return ERR_APP_CLONE_INDEX_INVALID;
+    }
+    auto checkRet = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(
+        const_cast<Want &>(want), oriValidUserId, appIndex, nullptr, false);
+    if (checkRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityForPrelaunch CheckMultiInstanceAndAppClone failed: %{public}d",
+            checkRet);
+        return checkRet;
     }
 #endif
     AbilityRequest abilityRequest;
