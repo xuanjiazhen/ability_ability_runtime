@@ -646,16 +646,26 @@ std::vector<ThreadStackRegion> DumpRuntimeHelper::ParseLeakedThreadStackRegions(
 // Scan a leaked thread stack region for candidate PC values. The PC values are
 // read from the stack memory as uintptr_t values that fall inside executable
 // maps. Direct pointer dereference is used because /proc/self/mem is blocked
-// by SELinux for normal app processes.
-std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(uint64_t begin, uint64_t end)
+// by SELinux for normal app processes. Each address is validated against
+// DfxMaps for read permission before dereference to avoid SIGSEGV on
+// unmapped or non-readable pages.
+std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
+    uint64_t begin, uint64_t end, const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps)
 {
     std::vector<uintptr_t> pcs;
-    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
-    if (maps == nullptr) { return pcs; }
+    if (maps == nullptr) {
+        return pcs;
+    }
     for (uint64_t addr = end; addr > begin && pcs.size() < THREAD_STACK_LEAK_MAX_FRAMES;
          addr -= THREAD_STACK_SCAN_UNIT) {
-        uintptr_t value = *reinterpret_cast<uintptr_t *>(addr - THREAD_STACK_SCAN_UNIT);
-        if (value == 0) { continue; }
+        uint64_t readAddr = addr - THREAD_STACK_SCAN_UNIT;
+        if (!IsAddressReadable(readAddr, maps)) {
+            continue;
+        }
+        uintptr_t value = *reinterpret_cast<uintptr_t *>(readAddr);
+        if (value == 0) {
+            continue;
+        }
         std::shared_ptr<OHOS::HiviewDFX::DfxMap> map = nullptr;
         if (maps->FindMapByAddr(static_cast<uintptr_t>(value), map) && map && map->IsMapExec()) {
             pcs.push_back(value);
