@@ -69,6 +69,8 @@ public:
     bool HasBundleCache(const std::string &bundleName, int32_t userId,
         int32_t appIndex = 0, bool isDualMode = false);
     void BackupRdb();
+    void RemoveBundleVersionCacheEntry(const std::string &bundleName, int32_t userId,
+        int32_t appIndex, bool isDualMode, const std::string &moduleName);
 private:
     int32_t userId_ = -1;
     bool cacheLoadFailed_ = false;

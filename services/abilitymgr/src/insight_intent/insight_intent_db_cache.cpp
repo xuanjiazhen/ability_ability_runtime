@@ -387,5 +387,24 @@ void InsightIntentDbCache::BackupRdb()
 {
     DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->BackupRdb();
 }
+
+void InsightIntentDbCache::RemoveBundleVersionCacheEntry(const std::string &bundleName,
+    int32_t userId, int32_t appIndex, bool isDualMode, const std::string &moduleName)
+{
+    std::string mapKey = isDualMode
+        ? (bundleName + "/" + std::to_string(appIndex)) : bundleName;
+    if (moduleName.empty()) {
+        std::lock_guard<std::mutex> lock(genericInfosMutex_);
+        bundleVersionMap_.erase(mapKey);
+        return;
+    }
+    std::vector<ExtractInsightIntentInfo> remainingInfos;
+    DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->
+        LoadInsightIntentInfoByName(bundleName, userId, remainingInfos, appIndex, isDualMode);
+    if (remainingInfos.empty()) {
+        std::lock_guard<std::mutex> lock(genericInfosMutex_);
+        bundleVersionMap_.erase(mapKey);
+    }
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
