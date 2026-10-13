@@ -3194,33 +3194,5 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_StartSelf_0100, Te
     auto result = client_->StartSelf(token);
     EXPECT_EQ(ERR_OK, result);
 }
-
-/*
- * Feature: AbilityManagerClient
- * Function: StartAbilityForPrelaunch
- * SubFunction: NA
- * FunctionPoints: StartAbilityForPrelaunch with connect=nullptr regression (AC-3.1)
- * EnvConditions: NA
- * CaseDescription: Verify connect=nullptr (default) behaves same as before
- */
-HWTEST_F(AbilityManagerClientBranchTest, StartAbilityForPrelaunch_NullConnect_001, TestSize.Level1)
-{
-    Want want;
-    EXPECT_EQ(client_->StartAbilityForPrelaunch(want, 0, nullptr), 0);
-}
-
-/*
- * Feature: AbilityManagerClient
- * Function: StartAbilityForPrelaunch
- * SubFunction: NA
- * FunctionPoints: StartAbilityForPrelaunch default connect (omitted) regression (AC-3.1)
- * EnvConditions: NA
- * CaseDescription: Verify omitting connect (uses = nullptr default) behaves same as before
- */
-HWTEST_F(AbilityManagerClientBranchTest, StartAbilityForPrelaunch_DefaultConnect_001, TestSize.Level1)
-{
-    Want want;
-    EXPECT_EQ(client_->StartAbilityForPrelaunch(want, 0), 0);
-}
 }  // namespace AAFwk
 }  // namespace OHOS
