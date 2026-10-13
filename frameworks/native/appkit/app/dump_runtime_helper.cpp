@@ -87,8 +87,8 @@ static constexpr uint64_t OOM_DUMP_SPACE_LIMIT = 30uLL * 1024 * 1024 * 1024;
 static constexpr uint32_t EVENT_RESOURCE_OVERLIMIT_MASK = 6;
 static constexpr uint64_t BIT_MASK = 1;
 static constexpr uint32_t BUF_SIZE_256 = 256;
-static constexpr int DECIMAL_BASE = 10;
-static constexpr int HEX_BASE = 16;
+static constexpr int32_t DECIMAL_BASE = 10;
+static constexpr int32_t HEX_BASE = 16;
 static constexpr int KB_PER_MB = 1024;
 static constexpr size_t MEM_LEAK_MAX_SIZE = 100;
 static constexpr int JSVM_SNAPSHOT = 0;
@@ -565,7 +565,7 @@ pid_t DumpRuntimeHelper::ParseTidFromMapName(const std::string &mapName)
     }
     errno = 0;
     char *end = nullptr;
-    long val = strtol(tidStr.c_str(), &end, DECIMAL_BASE);
+    int64_t val = strtoll(tidStr.c_str(), &end, DECIMAL_BASE);
     if (errno != 0 || end == tidStr.c_str() || *end != '\0') {
         return 0;
     }
@@ -677,11 +677,22 @@ bool DumpRuntimeHelper::IsAddressReadable(uint64_t addr,
 // by SELinux for normal app processes. Each address is validated against
 // DfxMaps for read permission before dereference to avoid SIGSEGV on
 // unmapped or non-readable pages.
+// NOTE: DfxMaps is a snapshot created once in DetectAndUnwindThreadStackLeak.
+// Between snapshot creation and dereference, the process's virtual memory
+// layout may change (munmap, page reclaim). The PROT_READ check is a best
+// effort; in extreme OOM scenarios the region could be unmapped after the
+// check but before dereference. This is an accepted trade-off — the Dump
+// function runs in a signal-safe context where SIGSEGV would be fatal, but
+// the probability is low because thread stacks are rarely unmapped while the
+// process is alive.
 std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
     uint64_t begin, uint64_t end, const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps)
 {
     std::vector<uintptr_t> pcs;
     if (maps == nullptr) {
+        return pcs;
+    }
+    if (end < begin || end - begin < THREAD_STACK_SCAN_UNIT) {
         return pcs;
     }
     for (uint64_t addr = end; addr > begin && pcs.size() < THREAD_STACK_LEAK_MAX_FRAMES;
@@ -749,6 +760,10 @@ std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
             break;
         }
         TAG_LOGW(AAFwkTag::APPKIT, "leaked stack found, tid:%{public}d not alive", region.tid);
+        if (IsTidAlive(region.tid)) {
+            TAG_LOGI(AAFwkTag::APPKIT, "tid:%{public}d became alive before scan, skipping", region.tid);
+            continue;
+        }
         auto pcs = CollectPcsFromStack(region.begin, region.end, maps);
         std::string stackStr = FormatLeakedStack(region.tid, pcs);
         if (stackStr.empty()) {
