@@ -3686,7 +3686,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
                     "doProcess failed or replaceWant absent", true);
                 return result;
             }
-            return DialogSessionManager::GetInstance().HandleErmsResultBySCB(abilityRequest, newWant);
+            return DialogSessionManager::GetInstance().HandleErmsResultBySCB(abilityRequest, newWant, currentUserId);
         }
     }
 
@@ -5247,9 +5247,15 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         return ERR_INVALID_CALLER;
     }
     StartAbilityInfoWrap threadLocalInfo;
+    int32_t targetUserId = DEFAULT_INVAL_VALUE;
+    int32_t callerUser = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    if (callerUser == U0_USER_ID) {
+        targetUserId = extensionSessionInfo->want.GetIntParam(UI_EXTENSION_TARGET_USER_ID, DEFAULT_INVAL_VALUE);
+    }
+    int32_t resolvedUserId = (targetUserId != DEFAULT_INVAL_VALUE) ? targetUserId : userId;
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
     CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(extensionSessionInfo->want,
-        GetValidUserId(userId), true), RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+        GetValidUserId(resolvedUserId), true), RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
 #endif
 
     auto blockResult = ExecuteBlockAllAppStartInterceptor();
@@ -5261,7 +5267,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         return blockResult;
     }
 
-    int32_t validUserId = GetValidUserId(userId);
+    int32_t validUserId = GetValidUserId(resolvedUserId);
     if (!JudgeMultiUserConcurrency(validUserId)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "multi-user non-concurrent unsatisfied");
         eventInfo->errReason = "multi-user non-concurrent unsatisfied";

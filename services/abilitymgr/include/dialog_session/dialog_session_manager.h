@@ -18,6 +18,7 @@
 #include <list>
 #include <unordered_map>
 #include <string>
+#include "ability_manager_interface.h"
 #include "ability_record.h"
 #include "cpp/mutex.h"
 #include "dialog_session_info.h"
@@ -135,7 +136,8 @@ public:
 
     int HandleErmsResult(AbilityRequest &abilityRequest, int32_t userId, const Want &replaceWant);
 
-    int32_t HandleErmsResultBySCB(AbilityRequest &abilityRequest, const Want &replaceWant);
+    int32_t HandleErmsResultBySCB(AbilityRequest &abilityRequest, const Want &replaceWant,
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     bool IsCreateCloneSelectorDialog(const std::string &bundleName, int32_t userId);
 
@@ -178,7 +180,7 @@ private:
         bool needGrantUriPermission = false);
 
     int CreateModalDialogCommon(const Want &replaceWant, sptr<IRemoteObject> callerToken,
-        const std::string &dialogSessionId);
+        const std::string &dialogSessionId, int32_t userId = DEFAULT_INVAL_VALUE);
 
     void SetQueryERMSInfo(const std::string &dialogSessionId, const AbilityRequest &abilityRequest);
 
