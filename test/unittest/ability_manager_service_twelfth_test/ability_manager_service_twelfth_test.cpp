@@ -41,6 +41,8 @@
 #include "mock_parameters.h"
 #include "mock_scene_board_judgement.h"
 #include "mock_test_object.h"
+#include "global_constant.h"
+#include "server_constant.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2664,9 +2666,15 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_Implicit_001
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_Implicit_001 end");
 }
 
-HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_CloneForceZero_001, TestSize.Level1)
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch app clone index handling (non-car branch)
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_CloneIndexPreserved_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_CloneForceZero_001 start");
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_CloneIndexPreserved_001 start");
     IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
     EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
         .WillRepeatedly(Return(true));
@@ -2676,9 +2684,328 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_CloneForceZe
     want.SetElementName("com.test.bundle", "MainAbility");
     want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 2);
     abilityMs_->StartAbilityForPrelaunch(want, 5);
-    // non-car (#else): a specified appIndex is forced to the base instance (0)
+    // non-car (#else): a specified valid appIndex is preserved for app clone prelaunch
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), 2);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_CloneIndexPreserved_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch rejects an invalid app clone index (non-car branch)
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_InvalidCloneIndex_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_InvalidCloneIndex_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    // -5 is neither a valid clone index (1..1000 / PC tablet range) nor 0 / PC_TABLET_INDEX
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, -5);
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5), ERR_APP_CLONE_INDEX_INVALID);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_InvalidCloneIndex_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch does not force an app clone index when none is set (non-car branch)
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_NoCloneIndex_Default_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_NoCloneIndex_Default_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    abilityMs_->StartAbilityForPrelaunch(want, 5);
+    // non-car (#else): no index param is set, prelaunch must not force an index onto the want.
+    // When the device reports an app-clone preference for the bundle, ResolveTargetAppCloneIndex
+    // legitimately writes the preferred instance index by design, so the environment-independent
+    // invariant is: any index present must be a legitimate instance index (main instance 0 /
+    // PC tablet index / valid clone range), never a forced invalid value.
+    if (want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        int32_t resolvedIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
+        EXPECT_TRUE(resolvedIndex == 0 ||
+            resolvedIndex == OHOS::AbilityRuntime::GlobalConstant::PC_TABLET_INDEX ||
+            OHOS::AbilityRuntime::GlobalConstant::IsAppCloneIndex(resolvedIndex))
+            << "prelaunch forced an illegitimate clone index: " << resolvedIndex;
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_NoCloneIndex_Default_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch rejects callers other than RSS
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_PermissionDenied_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_PermissionDenied_001 start");
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    // only RSS (uid 1096) is allowed to trigger prelaunch
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5), RESOLVE_CALL_NO_PERMISSIONS);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_PermissionDenied_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch rejects prelaunch when SceneBoard is disabled
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_SceneBoardDisabled_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_SceneBoardDisabled_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(false));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5), ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_SceneBoardDisabled_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch does not support implicit start with empty bundle
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_EmptyBundle_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_EmptyBundle_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    // abilityName is set but bundle is empty, still treated as implicit start
+    want.SetElementName("", "MainAbility");
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5), ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_EmptyBundle_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch propagates CheckMultiInstanceAndAppClone rejection (instance key)
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_InstanceKeyRejected_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_InstanceKeyRejected_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    want.SetParam(Want::APP_INSTANCE_KEY, std::string("prelaunch_instance"));
+    // multi-instance support is disabled on UT products, the instance key is rejected
+    // and the rejection is propagated by the prelaunch entry
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5), ERR_MULTI_INSTANCE_NOT_SUPPORTED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_InstanceKeyRejected_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch propagates CheckMultiInstanceAndAppClone rejection (create instance)
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_CreateInstanceRejected_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_CreateInstanceRejected_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    want.SetParam(Want::CREATE_APP_INSTANCE_KEY, true);
+    // creating a new app instance is rejected with multi-instance support disabled
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5), ERR_MULTI_INSTANCE_NOT_SUPPORTED);
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_CreateInstanceRejected_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch keeps an explicit main-instance index (0)
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_MainInstanceIndexPreserved_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_MainInstanceIndexPreserved_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    // explicit main-instance index is a valid selector and must be preserved
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+    abilityMs_->StartAbilityForPrelaunch(want, 5);
     EXPECT_EQ(want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), 0);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_CloneForceZero_001 end");
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_MainInstanceIndexPreserved_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch keeps an explicit PC tablet index (10000)
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_PcTabletIndexPreserved_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_PcTabletIndexPreserved_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    // PC tablet mode index is a valid selector and must be preserved
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY,
+        OHOS::AbilityRuntime::GlobalConstant::PC_TABLET_INDEX);
+    abilityMs_->StartAbilityForPrelaunch(want, 5);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
+        OHOS::AbilityRuntime::GlobalConstant::PC_TABLET_INDEX);
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_PcTabletIndexPreserved_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch keeps a valid PC tablet clone index (10001)
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_PcCloneIndexPreserved_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_PcCloneIndexPreserved_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    // 10001 is the first valid PC tablet clone index (10001..11000)
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY,
+        OHOS::AbilityRuntime::GlobalConstant::MIN_PC_TABLET_CLONE_INDEX);
+    abilityMs_->StartAbilityForPrelaunch(want, 5);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
+        OHOS::AbilityRuntime::GlobalConstant::MIN_PC_TABLET_CLONE_INDEX);
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_PcCloneIndexPreserved_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch rejects clone indexes outside the valid ranges
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_InvalidCloneIndex_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_InvalidCloneIndex_002 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    // 1001 is just above the max phone clone index (1..1000)
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1001);
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5), ERR_APP_CLONE_INDEX_INVALID);
+    // 11001 is just above the max PC tablet clone index (10001..11000)
+    Want wantTwo;
+    wantTwo.SetElementName("com.test.bundle", "MainAbility");
+    wantTwo.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 11001);
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(wantTwo, 5), ERR_APP_CLONE_INDEX_INVALID);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_InvalidCloneIndex_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch rejects an invalid DLP index selector
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_InvalidDlpIndex_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_InvalidDlpIndex_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    // a negative DLP index is not a valid DLP selector, GetAppIndex must reject it
+    want.SetParam(OHOS::AbilityRuntime::ServerConstant::DLP_INDEX, -1);
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5), ERR_APP_CLONE_INDEX_INVALID);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_InvalidDlpIndex_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch accepts a valid DLP index selector and keeps it
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_ValidDlpIndexAccepted_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_ValidDlpIndexAccepted_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    // 11001 is a valid PC tablet DLP index, it passes the index checks and is preserved
+    want.SetParam(OHOS::AbilityRuntime::ServerConstant::DLP_INDEX,
+        OHOS::AbilityRuntime::GlobalConstant::MIN_PC_TABLET_DLP_INDEX);
+    auto ret = abilityMs_->StartAbilityForPrelaunch(want, 5);
+    EXPECT_NE(ret, ERR_APP_CLONE_INDEX_INVALID);
+    EXPECT_EQ(want.GetIntParam(OHOS::AbilityRuntime::ServerConstant::DLP_INDEX, -1),
+        OHOS::AbilityRuntime::GlobalConstant::MIN_PC_TABLET_DLP_INDEX);
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_ValidDlpIndexAccepted_001 end");
 }
 
 namespace {
