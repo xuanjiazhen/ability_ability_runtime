@@ -125,7 +125,7 @@ void AbilityScreenUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEv
 {
     const AAFwk::Want &want = data.GetWant();
     const auto &action = want.GetActionRef();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "testAutoStartup: screen event action:%{public}s", action.c_str());
     if (action != EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED) {
         return;
     }
@@ -146,7 +146,10 @@ void AbilityScreenUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEv
         // Record the passed user for the auto startup trigger, consumed after the
         // trigger is done no matter whether the launches succeed.
         AbilityEventMapManager::GetInstance().AddPendingUserId(userId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "testAutoStartup: screen unlocked user:%{public}d allReady:1", userId);
         screenUnlockCallback_(userId);
+    } else {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "testAutoStartup: screen unlocked user:%{public}d allReady:0", userId);
     }
 }
 
@@ -161,7 +164,7 @@ void AbilityUserUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEven
 {
     const AAFwk::Want &want = data.GetWant();
     const auto &action = want.GetActionRef();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "testAutoStartup: user event action:%{public}s", action.c_str());
     if (action != EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
         return;
     }
@@ -175,9 +178,11 @@ void AbilityUserUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEven
     if (AbilityEventMapManager::GetInstance().CheckAllUnlocked(userId)) {
         AbilityEventMapManager::GetInstance().RemoveUser(userId);
         AbilityEventMapManager::GetInstance().AddPendingUserId(userId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "testAutoStartup: user unlocked user:%{public}d allReady:1", userId);
         screenUnlockCallback_(userId);
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "testAutoStartup: user unlocked user:%{public}d allReady:0", userId);
     userScreenUnlockCallback_(userId);
 }
 } // namespace AbilityRuntime
