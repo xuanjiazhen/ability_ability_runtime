@@ -600,12 +600,6 @@ HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_0100, TestSize.Level1)
     result = extRecordMgr->UpdateProcessName(abilityRequest, extRecord);
     EXPECT_EQ(abilityRecord->GetProcessName(), process);
     EXPECT_EQ(result, ERR_OK);
-
-    abilityRequest.appInfo.process = "testProcess";
-    process = abilityRequest.appInfo.process;
-    result = extRecordMgr->UpdateProcessName(abilityRequest, extRecord);
-    EXPECT_EQ(abilityRecord->GetProcessName(), process);
-    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
@@ -2003,7 +1997,7 @@ HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_AgentUI_0100, TestSize.Le
 
 /**
  * @tc.name: UpdateProcessName_RunWithMainProcess_0200
- * @tc.desc: Test UpdateProcessName PROCESS_MODE_RUN_WITH_MAIN_PROCESS with appIndex > 0, no appInfo.process.
+ * @tc.desc: Test UpdateProcessName PROCESS_MODE_RUN_WITH_MAIN_PROCESS with appIndex > 0, no moduleProcess.
  * @tc.type: FUNC
  * @tc.require: issue
  */
@@ -2032,7 +2026,7 @@ HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_RunWithMainProcess_0200, 
 
 /**
  * @tc.name: UpdateProcessName_RunWithMainProcess_0300
- * @tc.desc: Test UpdateProcessName PROCESS_MODE_RUN_WITH_MAIN_PROCESS with appInfo.process and appIndex > 0.
+ * @tc.desc: Test UpdateProcessName PROCESS_MODE_RUN_WITH_MAIN_PROCESS with appIndex > 0.
  * @tc.type: FUNC
  * @tc.require: issue
  */
@@ -2045,14 +2039,13 @@ HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_RunWithMainProcess_0300, 
     AAFwk::AbilityRequest abilityRequest;
     abilityRequest.abilityInfo.bundleName = "com.test.mainprocess";
     abilityRequest.abilityInfo.name = "MainProcessAbility";
-    abilityRequest.appInfo.process = "custom_process";
     auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     abilityRecord->SetAppIndex(3);
     std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     extRecord->processMode_ = PROCESS_MODE_RUN_WITH_MAIN_PROCESS;
 
-    std::string expectedProcess = std::string("custom_process") + ":" + "3";
+    std::string expectedProcess = std::string("com.test.mainprocess") + ":" + "3";
     int32_t result = extRecordMgr->UpdateProcessName(abilityRequest, extRecord);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(abilityRecord->GetProcessName(), expectedProcess);
