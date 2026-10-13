@@ -182,8 +182,10 @@ void DataObsMgrInnerPref::RemoveObsDeathRecipient(sptr<IRemoteObject> dataObserv
 
     auto it = obsRecipient_.find(dataObserver);
     if (it != obsRecipient_.end()) {
-        it->first->RemoveDeathRecipient(it->second);
+        auto obj = it->first;
+        auto recipient = it->second;
         obsRecipient_.erase(it);
+        obj->RemoveDeathRecipient(recipient);
         return;
     }
 }

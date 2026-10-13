@@ -195,10 +195,12 @@ void DataObsMgrInnerExt::RemoveObsDeathRecipient(const sptr<IRemoteObject> &data
     }
 
     if (isForce || it->second->ref <= 1) {
+        auto obj = it->first;
+        auto recipientRef = it->second;
         TAG_LOGD(AAFwkTag::DBOBSMGR, "remove deathRecipient, sum:%{public}ud",
-            it->second->ref.load(std::memory_order_relaxed));
-        dataObserver->RemoveDeathRecipient(it->second->deathRecipient);
+            recipientRef->ref.load(std::memory_order_relaxed));
         obsRecipientRefs.erase(it);
+        obj->RemoveDeathRecipient(recipientRef->deathRecipient);
         return;
     }
 }

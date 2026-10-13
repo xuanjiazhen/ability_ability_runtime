@@ -194,8 +194,10 @@ void DataObsMgrInner::RemoveObsDeathRecipient(sptr<IRemoteObject> dataObserver)
 
     auto it = obsRecipient_.find(dataObserver);
     if (it != obsRecipient_.end()) {
-        it->first->RemoveDeathRecipient(it->second);
+        auto obj = it->first;
+        auto recipient = it->second;
         obsRecipient_.erase(it);
+        obj->RemoveDeathRecipient(recipient);
         return;
     }
 }
@@ -207,12 +209,6 @@ void DataObsMgrInner::OnCallBackDied(const wptr<IRemoteObject> &remote)
         return;
     }
     std::lock_guard<ffrt::mutex> lock(innerMutex_);
-
-    if (dataObserver == nullptr) {
-        TAG_LOGE(AAFwkTag::DBOBSMGR, "null dataObserver");
-        return;
-    }
-
     RemoveObs(dataObserver);
 }
 

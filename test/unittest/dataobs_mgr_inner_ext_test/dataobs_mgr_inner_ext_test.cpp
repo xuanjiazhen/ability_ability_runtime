@@ -15,6 +15,8 @@
 #include <functional>
 #include <gtest/gtest.h>
 #include <memory>
+#include <thread>
+#include <atomic>
 
 #include "dataobs_mgr_inner_common.h"
 #include "uri.h"
@@ -955,6 +957,92 @@ HWTEST_F(DataObsMgrInnerExtTest, DataObsMgrInnerExt_HandleNotifyChange_0100, Tes
     EXPECT_EQ(dataObsMgrInnerExt->HandleNotifyChange({ ChangeInfo::ChangeType::INSERT, { uri } },
         USER_TEST, infos), SUCCESS);
     EXPECT_EQ(observer2->onChangeCall_, 1);
+}
+
+/*
+ * Feature: DataObsMgrInnerExt
+ * Function: DeathRecipient test
+ * SubFunction: 0300
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription:DeathRecipient ref is kept until all observers are unregistered
+ */
+HWTEST_F(DataObsMgrInnerExtTest, DataObsMgrInnerExt_DeathRecipient_0300, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInnerExt> dataObsMgrInnerExt = std::make_shared<DataObsMgrInnerExt>();
+    std::string uriBase = "datashare://Authority1/com.domainname.dataability.persondata";
+    Uri uri1(uriBase + "/Person1");
+    Uri uri2(uriBase + "/Person2");
+    sptr<MockDataAbilityObserverStub> observer1(new (std::nothrow) MockDataAbilityObserverStub());
+
+    ObserverInfo info(0, 0, 0, USER_TEST, false);
+    EXPECT_EQ(dataObsMgrInnerExt->HandleRegisterObserver(uri1, observer1, info, false), SUCCESS);
+    EXPECT_EQ(dataObsMgrInnerExt->HandleRegisterObserver(uri2, observer1, info, false), SUCCESS);
+    auto refIt = dataObsMgrInnerExt->obsRecipientRefs.find(observer1->AsObject());
+    ASSERT_TRUE(refIt != dataObsMgrInnerExt->obsRecipientRefs.end());
+    EXPECT_EQ(refIt->second->ref.load(), 3u);
+
+    EXPECT_EQ(dataObsMgrInnerExt->HandleUnregisterObserver(uri1, observer1), SUCCESS);
+    auto it = dataObsMgrInnerExt->obsRecipientRefs.find(observer1->AsObject());
+    EXPECT_TRUE(it != dataObsMgrInnerExt->obsRecipientRefs.end());
+
+    EXPECT_EQ(dataObsMgrInnerExt->HandleUnregisterObserver(uri2, observer1), SUCCESS);
+    it = dataObsMgrInnerExt->obsRecipientRefs.find(observer1->AsObject());
+    EXPECT_FALSE(it != dataObsMgrInnerExt->obsRecipientRefs.end());
+}
+
+/*
+ * Feature: DataObsMgrInnerExt
+ * Function: DeathRecipient test
+ * SubFunction: 0400
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription:Concurrent unregister and death callback for the same observer
+ */
+HWTEST_F(DataObsMgrInnerExtTest, DataObsMgrInnerExt_DeathRecipient_0400, TestSize.Level1)
+{
+    std::string uriBase = "datashare://Authority1/com.domainname.dataability.persondata";
+    const int32_t loopCount = 50;
+    for (int32_t i = 0; i < loopCount; i++) {
+        std::shared_ptr<DataObsMgrInnerExt> dataObsMgrInnerExt = std::make_shared<DataObsMgrInnerExt>();
+        Uri uri(uriBase + "/Person1");
+        sptr<MockDataAbilityObserverStub> observer(new (std::nothrow) MockDataAbilityObserverStub());
+        ObserverInfo info(0, 0, 0, USER_TEST, false);
+        ASSERT_EQ(dataObsMgrInnerExt->HandleRegisterObserver(uri, observer, info, false), SUCCESS);
+
+        auto it = dataObsMgrInnerExt->obsRecipientRefs.find(observer->AsObject());
+        ASSERT_TRUE(it != dataObsMgrInnerExt->obsRecipientRefs.end());
+        sptr<IRemoteObject::DeathRecipient> recipient = it->second->deathRecipient;
+
+        std::atomic<bool> go(false);
+        auto diedFunc = [&go, &recipient, &observer]() {
+            while (!go.load()) {
+            }
+            recipient->OnRemoteDied(observer->AsObject());
+        };
+        auto unregisterFunc = [&go, &dataObsMgrInnerExt, &observer]() {
+            while (!go.load()) {
+            }
+            dataObsMgrInnerExt->HandleUnregisterObserver(observer);
+        };
+        std::thread diedThread(diedFunc);
+        std::thread unregisterThread(unregisterFunc);
+        go.store(true);
+        diedThread.join();
+        unregisterThread.join();
+
+        EXPECT_TRUE(dataObsMgrInnerExt->obsRecipientRefs.empty());
+    }
+
+    std::shared_ptr<DataObsMgrInnerExt> dataObsMgrInnerExt = std::make_shared<DataObsMgrInnerExt>();
+    Uri uri(uriBase + "/Person1");
+    sptr<MockDataAbilityObserverStub> observer(new (std::nothrow) MockDataAbilityObserverStub());
+    ObserverInfo info(0, 0, 0, USER_TEST, false);
+    EXPECT_EQ(dataObsMgrInnerExt->HandleRegisterObserver(uri, observer, info, false), SUCCESS);
+    std::vector<NotifyInfo> infos1 = MakeDefaultNotifyInfo(1);
+    EXPECT_EQ(dataObsMgrInnerExt->HandleNotifyChange({ ChangeInfo::ChangeType::INSERT, { uri } },
+        USER_TEST, infos1), SUCCESS);
+    EXPECT_EQ(observer->onChangeCall_, 1);
 }
 
 } // namespace DataObsMgrInnerExtTest

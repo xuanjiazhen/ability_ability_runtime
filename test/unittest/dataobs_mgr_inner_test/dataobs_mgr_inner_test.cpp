@@ -16,6 +16,8 @@
 #include <memory>
 #include <algorithm>
 #include <functional>
+#include <thread>
+#include <atomic>
 #include "uri.h"
 #define private public
 #include "data_ability_observer_proxy.h"
@@ -497,6 +499,174 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_ReadPermission_
     dataObsMgrInner_->HandleRegisterObserver(uri, node);
     // Test with custom readPermission (ignored for singleton URI)
     dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, "custom.permission", false, 0);
+}
+
+/*
+ * Feature: DataObsMgrInner
+ * Function: AddObsDeathRecipient/RemoveObsDeathRecipient function test
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Death recipient is kept until observer is unregistered from all uris
+ */
+HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_AddRemove_ObsDeathRecipient_0200, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInner> dataObsMgrInner = std::make_shared<DataObsMgrInner>();
+    Uri uri1("dataability://device_id/com.domainname.dataability.persondata/person/10");
+    Uri uri2("dataability://device_id/com.domainname.dataability.persondata/person/11");
+    sptr<MockDataAbilityObserverStub> observer(new (std::nothrow) MockDataAbilityObserverStub());
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(observer));
+
+    EXPECT_EQ(dataObsMgrInner->HandleRegisterObserver(uri1, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+    EXPECT_EQ(dataObsMgrInner->HandleRegisterObserver(uri2, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+    auto it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    EXPECT_TRUE(it != dataObsMgrInner->obsRecipient_.end());
+
+    EXPECT_EQ(dataObsMgrInner->HandleUnregisterObserver(uri1, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+    EXPECT_TRUE(dataObsMgrInner->HaveRegistered(callback));
+    it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    EXPECT_TRUE(it != dataObsMgrInner->obsRecipient_.end());
+
+    EXPECT_EQ(dataObsMgrInner->HandleUnregisterObserver(uri2, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+    EXPECT_FALSE(dataObsMgrInner->HaveRegistered(callback));
+    it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    EXPECT_FALSE(it != dataObsMgrInner->obsRecipient_.end());
+}
+
+/*
+ * Feature: DataObsMgrInner
+ * Function: AddObsDeathRecipient/RemoveObsDeathRecipient function test
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: RemoveObsDeathRecipient twice successively
+ */
+HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_AddRemove_ObsDeathRecipient_0300, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInner> dataObsMgrInner = std::make_shared<DataObsMgrInner>();
+    sptr<MockDataAbilityObserverStub> observer(new (std::nothrow) MockDataAbilityObserverStub());
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(observer));
+    dataObsMgrInner->AddObsDeathRecipient(callback);
+    auto it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    EXPECT_TRUE(it != dataObsMgrInner->obsRecipient_.end());
+
+    dataObsMgrInner->RemoveObsDeathRecipient(callback->AsObject());
+    dataObsMgrInner->RemoveObsDeathRecipient(callback->AsObject());
+    it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    EXPECT_FALSE(it != dataObsMgrInner->obsRecipient_.end());
+}
+
+/*
+ * Feature: DataObsMgrInner
+ * Function: OnCallBackDied function test
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Observer is cleaned up after died callback and can be registered again
+ */
+HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_OnCallBackDied_0100, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInner> dataObsMgrInner = std::make_shared<DataObsMgrInner>();
+    Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
+    sptr<MockDataAbilityObserverStub> observer(new (std::nothrow) MockDataAbilityObserverStub());
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(observer));
+    EXPECT_EQ(dataObsMgrInner->HandleRegisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+    EXPECT_TRUE(dataObsMgrInner->HaveRegistered(callback));
+
+    dataObsMgrInner->OnCallBackDied(callback->AsObject());
+    EXPECT_FALSE(dataObsMgrInner->HaveRegistered(callback));
+    EXPECT_TRUE(dataObsMgrInner->observers_.find(uri.ToString()) == dataObsMgrInner->observers_.end());
+    auto it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    EXPECT_FALSE(it != dataObsMgrInner->obsRecipient_.end());
+
+    EXPECT_EQ(dataObsMgrInner->HandleRegisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+    it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    EXPECT_TRUE(it != dataObsMgrInner->obsRecipient_.end());
+    EXPECT_EQ(dataObsMgrInner->HandleUnregisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+}
+
+/*
+ * Feature: DataObsMgrInner
+ * Function: OnCallBackDied function test
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: In-flight death notice arrives after the observer is unregistered
+ */
+HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_OnCallBackDied_0200, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInner> dataObsMgrInner = std::make_shared<DataObsMgrInner>();
+    Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
+    sptr<MockDataAbilityObserverStub> observer(new (std::nothrow) MockDataAbilityObserverStub());
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(observer));
+    EXPECT_EQ(dataObsMgrInner->HandleRegisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+
+    auto it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    ASSERT_TRUE(it != dataObsMgrInner->obsRecipient_.end());
+    sptr<IRemoteObject::DeathRecipient> recipient = it->second;
+
+    EXPECT_EQ(dataObsMgrInner->HandleUnregisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+    it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    EXPECT_FALSE(it != dataObsMgrInner->obsRecipient_.end());
+
+    recipient->OnRemoteDied(callback->AsObject());
+    EXPECT_FALSE(dataObsMgrInner->HaveRegistered(callback));
+    it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    EXPECT_FALSE(it != dataObsMgrInner->obsRecipient_.end());
+}
+
+/*
+ * Feature: DataObsMgrInner
+ * Function: DeathRecipient race test
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Concurrent unregister and death callback for the same observer
+ */
+HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_DeathRecipient_Race_0100, TestSize.Level1)
+{
+    const int32_t loopCount = 50;
+    for (int32_t i = 0; i < loopCount; i++) {
+        std::shared_ptr<DataObsMgrInner> dataObsMgrInner = std::make_shared<DataObsMgrInner>();
+        Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
+        sptr<MockDataAbilityObserverStub> observer(new (std::nothrow) MockDataAbilityObserverStub());
+        const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(observer));
+        ASSERT_EQ(dataObsMgrInner->HandleRegisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+
+        auto it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+        ASSERT_TRUE(it != dataObsMgrInner->obsRecipient_.end());
+        sptr<IRemoteObject::DeathRecipient> recipient = it->second;
+
+        std::atomic<bool> go(false);
+        auto diedFunc = [&go, &recipient, &callback]() {
+            while (!go.load()) {
+            }
+            recipient->OnRemoteDied(callback->AsObject());
+        };
+        auto unregisterFunc = [&go, &dataObsMgrInner, &uri, &callback]() {
+            while (!go.load()) {
+            }
+            dataObsMgrInner->HandleUnregisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0));
+        };
+        std::thread diedThread(diedFunc);
+        std::thread unregisterThread(unregisterFunc);
+        go.store(true);
+        diedThread.join();
+        unregisterThread.join();
+
+        EXPECT_FALSE(dataObsMgrInner->HaveRegistered(callback));
+        it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+        EXPECT_FALSE(it != dataObsMgrInner->obsRecipient_.end());
+    }
+
+    std::shared_ptr<DataObsMgrInner> dataObsMgrInner = std::make_shared<DataObsMgrInner>();
+    Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
+    sptr<MockDataAbilityObserverStub> observer(new (std::nothrow) MockDataAbilityObserverStub());
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(observer));
+    EXPECT_EQ(dataObsMgrInner->HandleRegisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
+    auto it = dataObsMgrInner->obsRecipient_.find(callback->AsObject());
+    EXPECT_TRUE(it != dataObsMgrInner->obsRecipient_.end());
+    EXPECT_EQ(dataObsMgrInner->HandleUnregisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0)), NO_ERROR);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
