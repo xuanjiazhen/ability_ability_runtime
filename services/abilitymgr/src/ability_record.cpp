@@ -2899,7 +2899,7 @@ void AbilityRecord::NotifyCallersOnPrelaunchTimeout()
     AppExecFwk::ElementName element(abilityInfo_.deviceId, abilityInfo_.bundleName,
         abilityInfo_.name, abilityInfo_.moduleName);
 
-    callContainer_->NotifyAllCallDisconnectAll(element);
+    callContainer_->NotifyDisconnectOnTimeout(element);
 }
 
 void AbilityRecord::ContinueAbility(const std::string& deviceId, uint32_t versionCode)

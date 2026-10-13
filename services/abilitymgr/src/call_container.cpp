@@ -22,6 +22,7 @@
 namespace OHOS {
 namespace AAFwk {
 constexpr int32_t REASON_CALLEE_TERMINATE = 1;
+constexpr int32_t REASON_PRELAUNCH_TIMEOUT = 2;
 CallContainer::CallContainer()
 {}
 
@@ -252,7 +253,7 @@ void CallContainer::NotifyAllCallDisconnect(const AppExecFwk::ElementName &eleme
     callRecordMap_.clear();
 }
 
-void CallContainer::NotifyAllCallDisconnectAll(const AppExecFwk::ElementName &element)
+void CallContainer::NotifyDisconnectOnTimeout(const AppExecFwk::ElementName &element)
 {
     std::lock_guard lock(callRecordMapLock_);
     if (callRecordMap_.empty()) {
@@ -267,7 +268,7 @@ void CallContainer::NotifyAllCallDisconnectAll(const AppExecFwk::ElementName &el
         auto callback = callRecord->GetConCallBack();
         if (callback) {
             ffrt::submit([callback, element]() {
-                callback->OnAbilityDisconnectDone(element, REASON_CALLEE_TERMINATE);
+                callback->OnAbilityDisconnectDone(element, REASON_PRELAUNCH_TIMEOUT);
             });
         }
     }

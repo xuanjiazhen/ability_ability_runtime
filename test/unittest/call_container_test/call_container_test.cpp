@@ -509,13 +509,13 @@ HWTEST_F(CallContainerTest, Call_Container_Notify_All_Call_Disconnect_003, TestS
 
 /*
  * Feature: CallContainer
- * Function: NotifyAllCallDisconnectAll
+ * Function: NotifyDisconnectOnTimeout
  * SubFunction: NA
  * FunctionPoints: REQUESTING state CallRecord is notified (unlike NotifyAllCallDisconnect)
  * EnvConditions: NA
- * CaseDescription: Verify NotifyAllCallDisconnectAll notifies REQUESTING state records
+ * CaseDescription: Verify NotifyDisconnectOnTimeout notifies REQUESTING state records
  */
-HWTEST_F(CallContainerTest, Call_Container_Notify_All_Call_Disconnect_All_Requesting_001, TestSize.Level1)
+HWTEST_F(CallContainerTest, Call_Container_Notify_All_Call_Disconnect_On_Prelaunch_Timeout_Requesting_001, TestSize.Level1)
 {
     std::shared_ptr<CallContainer> callContainer = get();
     AbilityRequest abilityRequest;
@@ -536,7 +536,7 @@ HWTEST_F(CallContainerTest, Call_Container_Notify_All_Call_Disconnect_All_Reques
         abilityInfo.name, abilityInfo.moduleName);
 
     AbilityConnectCallback::onAbilityDisconnectDoneCount = 0;
-    callContainer->NotifyAllCallDisconnectAll(element);
+    callContainer->NotifyDisconnectOnTimeout(element);
     EXPECT_EQ(AbilityConnectCallback::onAbilityDisconnectDoneCount, 1);
     EXPECT_EQ(callContainer->GetCallRecord(connect), nullptr);
 }
@@ -545,7 +545,7 @@ HWTEST_F(CallContainerTest, Call_Container_Notify_All_Call_Disconnect_All_Reques
  * Feature: CallContainer
  * Function: NotifyAllCallDisconnect
  * SubFunction: NA
- * FunctionPoints: REQUESTING state CallRecord is NOT notified (contrast with NotifyAllCallDisconnectAll)
+ * FunctionPoints: REQUESTING state CallRecord is NOT notified (contrast with NotifyDisconnectOnTimeout)
  * EnvConditions: NA
  * CaseDescription: Verify NotifyAllCallDisconnect skips REQUESTING state records
  */

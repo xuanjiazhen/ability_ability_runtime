@@ -1799,7 +1799,6 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
         if (abilityRequest.connect != nullptr) {
             uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken,
                 abilityRequest.requestCode, abilityRequest.want);
-            uiAbilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_CALL);
             ResolveAbility(uiAbilityRecord, abilityRequest);
         }
         return ERR_INVALID_VALUE;
