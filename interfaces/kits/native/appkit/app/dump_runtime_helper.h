@@ -26,9 +26,14 @@
 #include "runtime.h"
 #include <dlfcn.h>
 #include <inttypes.h>
+#include <memory>
 #include <sys/types.h>
 
 namespace OHOS {
+namespace HiviewDFX {
+class DfxMaps;
+} // namespace HiviewDFX
+
 namespace AppExecFwk {
 using GetMemLeakStringFunc = bool (*)(int, char **, size_t, int *);
 
@@ -101,10 +106,19 @@ private:
     // Parse /proc/self/smaps and collect all thread stack map regions whose
     // name starts with "[anon:stack:" and whose tid is no longer alive.
     static std::vector<ThreadStackRegion> ParseLeakedThreadStackRegions();
+    // Check whether the address falls inside a readable mapping by looking
+    // up DfxMaps and verifying PROT_READ. Returns false if not mapped or
+    // lacks read permission.
+    static bool IsAddressReadable(uint64_t addr,
+        const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps);
     // Scan a leaked thread stack region [begin, end) for candidate PC values
-    // that fall inside executable maps. Uses direct pointer dereference with a
-    // SIGSEGV guard since /proc/self/mem is blocked by SELinux for apps.
-    static std::vector<uintptr_t> CollectPcsFromStack(uint64_t begin, uint64_t end);
+    // that fall inside executable maps. Uses direct pointer dereference since
+    // /proc/self/mem is blocked by SELinux for apps. Each address is validated
+    // against DfxMaps for read permission before dereference to avoid SIGSEGV
+    // on unmapped or non-readable pages.
+    // The maps parameter should be created once by the caller and reused.
+    static std::vector<uintptr_t> CollectPcsFromStack(
+        uint64_t begin, uint64_t end, const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps);
     // Format a leaked thread stack into a standardized string using
     // faultloggerd's Unwinder + DfxFrameFormatter. Returns empty string if
     // no frames could be resolved.

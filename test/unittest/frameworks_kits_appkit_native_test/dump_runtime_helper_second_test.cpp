@@ -721,7 +721,7 @@ HWTEST_F(DumpRuntimeHelperTestSecond, ParseLeakedThreadStackRegions_0100, TestSi
  */
 HWTEST_F(DumpRuntimeHelperTestSecond, CollectPcsFromStack_0100, TestSize.Level1)
 {
-    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0, 0);
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0, 0, nullptr);
     EXPECT_TRUE(pcs.empty());
 }
 

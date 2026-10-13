@@ -15,6 +15,7 @@
 
 #include "dump_runtime_helper.h"
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <dfx_signal_handler.h>
@@ -567,7 +568,10 @@ pid_t DumpRuntimeHelper::ParseTidFromMapName(const std::string &mapName)
     if (errno != 0 || end == tidStr.c_str() || *end != '\0') {
         return 0;
     }
-    return static_cast<pid_t>(val);
+    if (val > INT32_MAX || val < INT32_MIN) {
+        return 0;
+    }
+    return static_cast<int32_t>(val);
 }
  
 // Check whether the given tid is still alive in current process by looking up
@@ -628,11 +632,18 @@ std::vector<ThreadStackRegion> DumpRuntimeHelper::ParseLeakedThreadStackRegions(
         ThreadStackRegion region;
         errno = 0;
         char *end = nullptr;
-        region.begin = strtoull(line.substr(0, dashPos).c_str(), &end, 16);
-        if (errno != 0 || end == line.c_str()) { continue; }
-        errno = 0; end = nullptr;
-        region.end = strtoull(line.substr(dashPos + 1, headerEnd - dashPos - 1).c_str(), &end, 16);
-        if (errno != 0 || end == line.c_str()) { continue; }
+        std::string beginStr = line.substr(0, dashPos);
+        region.begin = strtoull(beginStr.c_str(), &end, HEX_BASE);
+        if (errno != 0 || end == beginStr.c_str()) {
+            continue;
+        }
+        errno = 0;
+        end = nullptr;
+        std::string endStr = line.substr(dashPos + 1, headerEnd - dashPos - 1);
+        region.end = strtoull(endStr.c_str(), &end, HEX_BASE);
+        if (errno != 0 || end == endStr.c_str()) {
+            continue;
+        }
         auto namePos = line.find(THREAD_STACK_MAP_PREFIX);
         region.mapName = line.substr(namePos);
         region.tid = ParseTidFromMapName(region.mapName);
@@ -641,6 +652,22 @@ std::vector<ThreadStackRegion> DumpRuntimeHelper::ParseLeakedThreadStackRegions(
         }
     }
     return regions;
+}
+
+// Check whether the address falls inside a readable mapping by looking up
+// DfxMaps and verifying the PROT_READ flag. Returns false if the address is
+// not mapped or the mapping lacks read permission.
+bool DumpRuntimeHelper::IsAddressReadable(uint64_t addr,
+    const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps)
+{
+    if (maps == nullptr) {
+        return false;
+    }
+    std::shared_ptr<OHOS::HiviewDFX::DfxMap> map = nullptr;
+    if (!maps->FindMapByAddr(static_cast<uintptr_t>(addr), map) || map == nullptr) {
+        return false;
+    }
+    return (map->prots & PROT_READ) != 0;
 }
 
 // Scan a leaked thread stack region for candidate PC values. The PC values are
@@ -705,6 +732,7 @@ std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
             totalThreadCount);
         return dumpResult;
     }
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
     size_t printedStacks = 0;
     for (const auto &region : regions) {
         if (printedStacks >= THREAD_STACK_LEAK_MAX_STACKS) {
@@ -713,7 +741,7 @@ std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
             break;
         }
         TAG_LOGW(AAFwkTag::APPKIT, "leaked stack found, tid:%{public}d not alive", region.tid);
-        auto pcs = CollectPcsFromStack(region.begin, region.end);
+        auto pcs = CollectPcsFromStack(region.begin, region.end, maps);
         std::string stackStr = FormatLeakedStack(region.tid, pcs);
         if (stackStr.empty()) {
             TAG_LOGW(AAFwkTag::APPKIT, "no frames resolved for tid:%{public}d, skipping", region.tid);
