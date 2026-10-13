@@ -46,6 +46,11 @@ public:
     MOCK_METHOD(void, ScheduleCollaborate, (Want), ());
 };
 
+class CallContainer {
+public:
+    MOCK_METHOD(void, NotifyDisconnectOnTimeout, (const AppExecFwk::ElementName&), ());
+};
+
 class AbilityRecord : public std::enable_shared_from_this<AbilityRecord> {
 public:
     AbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
@@ -89,6 +94,7 @@ protected:
     std::atomic_bool isLastWantBackgroundDriven_ = false;
     std::mutex collaborateWantLock_;
     std::shared_ptr<LifecycleDeal> lifecycleDeal_;
+    std::shared_ptr<CallContainer> callContainer_ = nullptr;
 
     AppExecFwk::AbilityInfo abilityInfo_;
 
