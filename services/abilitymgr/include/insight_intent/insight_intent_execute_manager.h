@@ -136,6 +136,9 @@ private:
     static void SetQueryEntityWantExtras(Want &want,
         const AppExecFwk::InsightIntentQueryParam &param,
         const AbilityRuntime::ExtractInsightIntentInfo &intentInfo);
+    static int32_t ResolveSrcEntry(Want &want,
+        const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
+        const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo);
     mutable ffrt::mutex mutex_;
     mutable ffrt::mutex intentExemptionLock_;
     uint64_t intentIdCount_ = 0;
@@ -144,7 +147,8 @@ private:
 
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
         uint64_t &intentId, const std::string &callerBundleName, bool isDistributed = false,
-        const std::string &deviceId = "", uint64_t requestCode = 0);
+        const std::string &deviceId = "", uint64_t requestCode = 0,
+        int32_t appIndex = 0, bool isDualMode = false);
 
     static int32_t IsValidCall(const Want &want);
 

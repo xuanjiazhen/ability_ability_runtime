@@ -73,6 +73,8 @@ public:
         int32_t appIndex = 0, bool isDualMode = false);
     void BackupRdb();
 private:
+    void ResolveDualModeIfNeeded(const std::string &bundleName, int32_t userId,
+        int32_t &appIndex, bool &isDualMode);
     int32_t userId_ = -1;
     bool cacheLoadFailed_ = false;
     mutable std::mutex genericInfosMutex_;

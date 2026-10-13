@@ -28,7 +28,6 @@
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_callback_interface.h"
 #include "insight_intent_db_cache.h"
-#include "insight_intent_event_mgr.h"
 #include "insight_intent_utils.h"
 #include "permission_verification.h"
 #include "want_params_wrapper.h"
@@ -168,17 +167,13 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     }
     uint64_t intentId = 0;
     result = AddRecord(key, callerToken, param->bundleName_,
-        intentId, callerBundleName, isDistributed, srcDeviceId, requestCode);
+        intentId, callerBundleName, isDistributed, srcDeviceId, requestCode,
+        appIndex, isDualMode);
     if (result != ERR_OK) {
         return result;
     }
 
     param->insightIntentId_ = intentId;
-    auto recordIter = records_.find(intentId);
-    if (recordIter != records_.end() && recordIter->second != nullptr) {
-        recordIter->second->appIndex = appIndex;
-        recordIter->second->isDualMode = isDualMode;
-    }
     return ERR_OK;
 }
 
@@ -236,11 +231,8 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
     if (userId == DEFAULT_INVAL_VALUE) {
         userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
-    auto ctx = AbilityRuntime::InsightIntentEventMgr::ResolveDualModeContext(
-        want.GetBundleNameRef(), userId, 0);
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        want.GetBundleNameRef(), want.GetModuleNameRef(), intentName, userId, info,
-        ctx.appIndex, ctx.isDualMode);
+        want.GetBundleNameRef(), want.GetModuleNameRef(), intentName, userId, info);
     if (info.genericInfo.decoratorType != AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY) {
         TAG_LOGW(AAFwkTag::INTENT, "decorator %{public}s misMatch", info.genericInfo.decoratorType.c_str());
         return ERR_INVALID_VALUE;
@@ -265,7 +257,8 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
 
 int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const std::string &bundleName, uint64_t &intentId, const std::string &callerBundleName,
-    bool isDistributed, const std::string &deviceId, uint64_t requestCode)
+    bool isDistributed, const std::string &deviceId, uint64_t requestCode,
+    int32_t appIndex, bool isDualMode)
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
     intentId = ++intentIdCount_;
@@ -278,6 +271,8 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->isDistributed = isDistributed;
     record->deviceId = deviceId;
     record->requestCode = requestCode;
+    record->appIndex = appIndex;
+    record->isDualMode = isDualMode;
     if (callerToken != nullptr) {
         record->deathRecipient = sptr<InsightIntentExecuteRecipient>::MakeSptr(intentId);
         callerToken->AddDeathRecipient(record->deathRecipient);
@@ -603,11 +598,8 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
     if (userId == DEFAULT_INVAL_VALUE) {
         userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
-    auto ctx = AbilityRuntime::InsightIntentEventMgr::ResolveDualModeContext(
-        param->bundleName_, userId, 0);
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        param->bundleName_, param->moduleName_, param->insightIntentName_, userId, info,
-        ctx.appIndex, ctx.isDualMode);
+        param->bundleName_, param->moduleName_, param->insightIntentName_, userId, info);
 
     InsightIntentType type = InsightIntentType::DECOR_NONE;
     std::string decoratorType = info.genericInfo.decoratorType;
@@ -676,31 +668,9 @@ int32_t InsightIntentExecuteManager::GenerateWant(
         }
     }
 
-    std::string srcEntry;
-    std::string arkTSMode;
-    std::string decoratorClass;
-    auto ret = AbilityRuntime::InsightIntentUtils::GetSrcEntry(want.GetElement(), param->insightIntentName_,
-        static_cast<AppExecFwk::ExecuteMode>(param->executeMode_), srcEntry, &arkTSMode, param->userId_,
-        &decoratorClass);
-    if (!arkTSMode.empty()) {
-        want.SetParam(INSIGHT_INTENT_ARKTS_MODE, arkTSMode);
-    }
-    if (!decoratorClass.empty()) {
-        want.SetParam(INSIGHT_INTENT_DECORATOR_CLASS, decoratorClass);
-    }
-    if (!srcEntry.empty()) {
-        want.SetParam(INSIGHT_INTENT_SRC_ENTRY, srcEntry);
-    } else if (decoratorInfo.decoratorType == "" && ret == ERR_INSIGHT_INTENT_GET_PROFILE_FAILED &&
-        param->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND) {
-        TAG_LOGI(AAFwkTag::INTENT, "insight intent srcEntry invalid, try free install ondemand");
-        std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count());
-        want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
-        want.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
-    } else if (decoratorInfo.decoratorType == "" && param->deviceId_.empty()) {
-        // decoratorType is empty indicate no decorator
-        TAG_LOGE(AAFwkTag::INTENT, "insight intent srcEntry invalid");
-        return ERR_INVALID_VALUE;
+    auto srcRet = ResolveSrcEntry(want, param, decoratorInfo);
+    if (srcRet != ERR_OK) {
+        return srcRet;
     }
 
     want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME, param->insightIntentName_);
@@ -726,10 +696,46 @@ int32_t InsightIntentExecuteManager::GenerateWant(
 
     intRet = CheckAndUpdateDecoratorParams(param, decoratorInfo, want);
     if (intRet != ERR_OK) {
-        // log has print in sub method
         return intRet;
     }
 
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::ResolveSrcEntry(Want &want,
+    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
+    const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo)
+{
+    std::string srcEntry;
+    std::string arkTSMode;
+    std::string decoratorClass;
+    auto ret = AbilityRuntime::InsightIntentUtils::GetSrcEntry(want.GetElement(), param->insightIntentName_,
+        static_cast<AppExecFwk::ExecuteMode>(param->executeMode_), srcEntry, &arkTSMode, param->userId_,
+        &decoratorClass);
+    if (!arkTSMode.empty()) {
+        want.SetParam(INSIGHT_INTENT_ARKTS_MODE, arkTSMode);
+    }
+    if (!decoratorClass.empty()) {
+        want.SetParam(INSIGHT_INTENT_DECORATOR_CLASS, decoratorClass);
+    }
+    if (!srcEntry.empty()) {
+        want.SetParam(INSIGHT_INTENT_SRC_ENTRY, srcEntry);
+    } else if (!decoratorClass.empty()) {
+        srcEntry = want.GetStringParam(INSIGHT_INTENT_SRC_ENTRANCE);
+        if (!srcEntry.empty()) {
+            want.SetParam(INSIGHT_INTENT_SRC_ENTRY, srcEntry);
+        }
+    } else if (decoratorInfo.decoratorType != "" && ret == ERR_INSIGHT_INTENT_GET_PROFILE_FAILED &&
+        param->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND) {
+        TAG_LOGI(AAFwkTag::INTENT, "insight intent srcEntry invalid, try free install ondemand");
+        std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count());
+        want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
+        want.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
+    } else if (decoratorInfo.decoratorType == "" && param->deviceId_.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "insight intent srcEntry invalid");
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -1029,11 +1035,8 @@ int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
     }
 
     ExtractInsightIntentInfo intentInfo;
-    auto ctx = AbilityRuntime::InsightIntentEventMgr::ResolveDualModeContext(
-        param->bundleName_, param->userId_, 0);
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        param->bundleName_, param->moduleName_, param->intentName_, param->userId_, intentInfo,
-        ctx.appIndex, ctx.isDualMode);
+        param->bundleName_, param->moduleName_, param->intentName_, param->userId_, intentInfo);
 
     auto entity = CheckEntityQueryable(intentInfo, param->className_, param->queryEntityParam_);
     if (entity == nullptr) {
