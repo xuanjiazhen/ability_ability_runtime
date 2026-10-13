@@ -2947,7 +2947,7 @@ private:
      * @param eventInfo fault attribution context (may be null).
      * @return ERR_OK to proceed, otherwise the interceptor error to abort the prelaunch.
      */
-    int32_t ExecutePrelaunchInterceptors(AbilityRequest &abilityRequest, int32_t userId,
+    int32_t ExecutePrelaunchInterceptors(AbilityRequest &abilityRequest, int32_t userId, int32_t appIndex,
         const std::shared_ptr<EventInfo> &eventInfo);
 
     /**
