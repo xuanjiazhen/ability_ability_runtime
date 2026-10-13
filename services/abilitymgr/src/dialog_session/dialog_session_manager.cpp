@@ -43,6 +43,7 @@ constexpr const char* SUPPORT_CLOSE_ON_BLUR = "supportCloseOnBlur";
 constexpr const char* DIALOG_SESSION_ID = "dialogSessionId";
 constexpr const char* PICKER_ERMS_POLICY = "ability.params.picker.erms.policy";
 constexpr const char* ATOMIC_SERVICE_SHORT_LINK = "atomicServiceShortLink";
+constexpr const char* UI_EXTENSION_TARGET_USER_ID = "ohos.ability.params.uiExtensionTargetUserId";
 }
 
 DialogSessionManager &DialogSessionManager::GetInstance()
@@ -422,7 +423,7 @@ int DialogSessionManager::CreateJumpModalDialog(AbilityRequest &abilityRequest, 
         return ERR_INVALID_VALUE;
     }
 
-    return CreateModalDialogCommon(replaceWant, abilityRequest.callerToken, dialogSessionId);
+    return CreateModalDialogCommon(replaceWant, abilityRequest.callerToken, dialogSessionId, userId);
 }
 
 int DialogSessionManager::CreateImplicitSelectorModalDialog(AbilityRequest &abilityRequest, const Want &want,
@@ -468,7 +469,7 @@ int DialogSessionManager::CreateImplicitSelectorModalDialog(AbilityRequest &abil
         return ERR_INVALID_VALUE;
     }
 
-    return CreateModalDialogCommon(want, abilityRequest.callerToken, dialogSessionId);
+    return CreateModalDialogCommon(want, abilityRequest.callerToken, dialogSessionId, userId);
 }
 
 int DialogSessionManager::CreateCloneSelectorModalDialog(AbilityRequest &abilityRequest, const Want &want,
@@ -493,14 +494,17 @@ int DialogSessionManager::CreateCloneSelectorModalDialog(AbilityRequest &ability
         return ERR_INVALID_VALUE;
     }
 
-    return CreateModalDialogCommon(want, abilityRequest.callerToken, dialogSessionId);
+    return CreateModalDialogCommon(want, abilityRequest.callerToken, dialogSessionId, userId);
 }
 
 int DialogSessionManager::CreateModalDialogCommon(const Want &replaceWant, sptr<IRemoteObject> callerToken,
-    const std::string &dialogSessionId)
+    const std::string &dialogSessionId, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     (const_cast<Want &>(replaceWant)).SetParam(DIALOG_SESSION_ID, dialogSessionId);
+    if (userId != DEFAULT_INVAL_VALUE) {
+        (const_cast<Want &>(replaceWant)).SetParam(UI_EXTENSION_TARGET_USER_ID, userId);
+    }
     auto connection = std::make_shared<OHOS::Rosen::ModalSystemUiExtension>();
     if (callerToken == nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "create modal ui extension for system");
@@ -568,7 +572,8 @@ int DialogSessionManager::HandleErmsResult(AbilityRequest &abilityRequest, int32
     return abilityMgr->CreateCloneSelectorDialog(abilityRequest, userId, replaceWant.ToString());
 }
 
-int32_t DialogSessionManager::HandleErmsResultBySCB(AbilityRequest &abilityRequest, const Want &replaceWant)
+int32_t DialogSessionManager::HandleErmsResultBySCB(AbilityRequest &abilityRequest, const Want &replaceWant,
+    int32_t userId)
 {
     auto systemUIExtension = std::make_shared<OHOS::Rosen::ModalSystemUiExtension>();
     (const_cast<Want &>(replaceWant)).SetParam(UIEXTENSION_MODAL_TYPE, 1);
@@ -580,6 +585,9 @@ int32_t DialogSessionManager::HandleErmsResultBySCB(AbilityRequest &abilityReque
     }
     SetStartupSessionInfo(dialogSessionId, abilityRequest);
     (const_cast<Want &>(replaceWant)).SetParam(DIALOG_SESSION_ID, dialogSessionId);
+    if (userId != DEFAULT_INVAL_VALUE) {
+        (const_cast<Want &>(replaceWant)).SetParam(UI_EXTENSION_TARGET_USER_ID, userId);
+    }
     return IN_PROCESS_CALL(systemUIExtension->CreateModalUIExtension(replaceWant)) ?
         ERR_ECOLOGICAL_CONTROL_STATUS : INNER_ERR;
 }
