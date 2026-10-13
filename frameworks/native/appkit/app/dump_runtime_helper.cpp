@@ -88,6 +88,7 @@ static constexpr uint32_t EVENT_RESOURCE_OVERLIMIT_MASK = 6;
 static constexpr uint64_t BIT_MASK = 1;
 static constexpr uint32_t BUF_SIZE_256 = 256;
 static constexpr int DECIMAL_BASE = 10;
+static constexpr int HEX_BASE = 16;
 static constexpr int KB_PER_MB = 1024;
 static constexpr size_t MEM_LEAK_MAX_SIZE = 100;
 static constexpr int JSVM_SNAPSHOT = 0;
