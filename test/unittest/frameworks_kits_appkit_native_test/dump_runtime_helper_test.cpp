@@ -350,9 +350,52 @@ HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0100, Function | MediumTest 
 {
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0100 start";
     // A zero-size range (begin == end) should produce no PCs and not crash.
-    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0, 0);
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0, 0, nullptr);
     EXPECT_TRUE(pcs.empty());
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0100 end";
+}
+
+/**
+ * @tc.number: IsAddressReadable_0100
+ * @tc.name: IsAddressReadable
+ * @tc.desc: Test IsAddressReadable returns true for a valid stack address.
+ */
+HWTEST_F(DumpRuntimeHelperTest, IsAddressReadable_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0100 start";
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    int stackVar = 0;
+    uint64_t addr = reinterpret_cast<uint64_t>(&stackVar);
+    EXPECT_TRUE(DumpRuntimeHelper::IsAddressReadable(addr, maps));
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0100 end";
+}
+ 
+/**
+ * @tc.number: IsAddressReadable_0200
+ * @tc.name: IsAddressReadable
+ * @tc.desc: Test IsAddressReadable returns false for an unmapped address.
+ */
+HWTEST_F(DumpRuntimeHelperTest, IsAddressReadable_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0200 start";
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    // Use an address in the low canonical hole that is guaranteed unmapped.
+    EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0x1, maps));
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0200 end";
+}
+ 
+/**
+ * @tc.number: IsAddressReadable_0300
+ * @tc.name: IsAddressReadable
+ * @tc.desc: Test IsAddressReadable returns false when maps is nullptr.
+ */
+HWTEST_F(DumpRuntimeHelperTest, IsAddressReadable_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0300 start";
+    EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0x1, nullptr));
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0300 end";
 }
 
 /**
