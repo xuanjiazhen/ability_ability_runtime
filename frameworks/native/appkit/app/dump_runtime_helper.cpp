@@ -687,6 +687,9 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
     for (uint64_t addr = end; addr > begin && pcs.size() < THREAD_STACK_LEAK_MAX_FRAMES;
          addr -= THREAD_STACK_SCAN_UNIT) {
         uint64_t readAddr = addr - THREAD_STACK_SCAN_UNIT;
+        if (readAddr < begin) {
+            continue;
+        }
         if (!IsAddressReadable(readAddr, maps)) {
             continue;
         }
@@ -734,6 +737,10 @@ std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
         return dumpResult;
     }
     auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    if (maps == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to create DfxMaps, skip stack unwinding");
+        return dumpResult;
+    }
     size_t printedStacks = 0;
     for (const auto &region : regions) {
         if (printedStacks >= THREAD_STACK_LEAK_MAX_STACKS) {
