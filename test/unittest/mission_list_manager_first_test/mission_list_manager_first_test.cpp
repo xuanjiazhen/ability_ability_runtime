@@ -1148,7 +1148,7 @@ HWTEST_F(MissionListManagerFirstTest, StartAbility_002, TestSize.Level1)
     abilityRequest.abilityInfo.type = AbilityType::PAGE;
 
     int ret = missionListManager->StartAbility(abilityRequest);
-    EXPECT_EQ(ret, START_ABILITY_WAITING);
+    EXPECT_EQ(ret, ERR_OK);
     missionListManager.reset();
     GTEST_LOG_(INFO) << "StartAbility_002 end";
 }

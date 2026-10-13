@@ -278,7 +278,7 @@ ErrCode AbilityContextImpl::StartAbilityForResult(const AAFwk::Want& want, int r
     TAG_LOGI(AAFwkTag::CONTEXT, "AMC, ForResult code:%{public}d", requestCode);
     resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode, -1);
-    if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
+    if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) { //
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
         OnAbilityResultInner(requestCode, err, want);
     }
@@ -1410,7 +1410,7 @@ ErrCode AbilityContextImpl::OpenAtomicService(AAFwk::Want& want, const AAFwk::St
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     resultCallbacks_.insert(make_pair(requestCode, std::move(task)));
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->OpenAtomicService(want, options, token_, requestCode, -1);
-    if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
+    if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) { //
         TAG_LOGE(AAFwkTag::CONTEXT, "failed, ret=%{public}d", err);
         OnAbilityResultInner(requestCode, err, want);
         if (!options.requestId_.empty()) {

@@ -183,11 +183,11 @@ int MissionListManager::StartAbility(AbilityRequest &abilityRequest)
             currentTopAbility->GetAbilityName().c_str(),
             AbilityRecord::ConvertAbilityState(state).c_str());
         if (state == FOREGROUNDING) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "top ability:%{public}s/%{public}s foregrounding",
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "top ability:%{public}s/%{public}s foregrounding, enqueue waiting ability",
                 currentTopAbility->GetBundleName().c_str(),
                 currentTopAbility->GetAbilityName().c_str());
             EnqueueWaitingAbility(abilityRequest);
-            return START_ABILITY_WAITING;
+            return ERR_OK;
         }
     }
 
