@@ -661,8 +661,14 @@ HWTEST_F(DumpRuntimeHelperTestSecond, DetectAndUnwindThreadStackLeak_0100, TestS
  */
 HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0100, TestSize.Level1)
 {
-    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:67890]"), 67890);
-    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:1]"), 1);
+    pid_t tid1 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:67890]");
+    EXPECT_EQ(tid1, 67890);
+    pid_t tid2 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:1]");
+    EXPECT_EQ(tid2, 1);
+    pid_t tid3 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:0]");
+    EXPECT_EQ(tid3, 0);
+    pid_t tid4 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:99999]");
+    EXPECT_EQ(tid4, 99999);
 }
 
 /**
@@ -712,6 +718,11 @@ HWTEST_F(DumpRuntimeHelperTestSecond, ParseLeakedThreadStackRegions_0100, TestSi
 {
     auto regions = DumpRuntimeHelper::ParseLeakedThreadStackRegions();
     EXPECT_TRUE(regions.empty());
+    GTEST_LOG_(INFO) << "ParseLeakedThreadStackRegions returned " << regions.size() << " regions";
+    for (const auto &region : regions) {
+        GTEST_LOG_(INFO) << "leaked region tid:" << region.tid
+                         << " begin:" << region.begin << " end:" << region.end;
+    }
 }
 
 /**
@@ -723,6 +734,10 @@ HWTEST_F(DumpRuntimeHelperTestSecond, CollectPcsFromStack_0100, TestSize.Level1)
 {
     auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0, 0, nullptr);
     EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "CollectPcsFromStack with zero range returned " << pcs.size() << " pcs";
+    pcs = DumpRuntimeHelper::CollectPcsFromStack(0x1000, 0x1000, nullptr);
+    EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "CollectPcsFromStack with equal begin/end returned " << pcs.size() << " pcs";
 }
 
 /**
@@ -761,6 +776,13 @@ HWTEST_F(DumpRuntimeHelperTestSecond, FormatLeakedStack_0200, TestSize.Level1)
 {
     std::vector<uintptr_t> bogusPcs = {0x1000, 0x2000, 0x3000};
     EXPECT_TRUE(DumpRuntimeHelper::FormatLeakedStack(99999, bogusPcs).empty());
+    std::string result = DumpRuntimeHelper::FormatLeakedStack(99999, bogusPcs);
+    EXPECT_TRUE(result.empty());
+    GTEST_LOG_(INFO) << "FormatLeakedStack with bogus PCs result size:" << result.size();
+    bogusPcs.push_back(0xDEADBEEF);
+    bogusPcs.push_back(0xCAFEF00D);
+    result = DumpRuntimeHelper::FormatLeakedStack(88888, bogusPcs);
+    EXPECT_TRUE(result.empty());
 }
 
 /**
@@ -770,8 +792,13 @@ HWTEST_F(DumpRuntimeHelperTestSecond, FormatLeakedStack_0200, TestSize.Level1)
  */
 HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0300, TestSize.Level1)
 {
-    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483648]"), 0);
-    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:9999999999]"), 0);
+    pid_t tid1 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483648]");
+    EXPECT_EQ(tid1, 0);
+    pid_t tid2 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:9999999999]");
+    EXPECT_EQ(tid2, 0);
+    GTEST_LOG_(INFO) << "overflow tid1:" << tid1 << " tid2:" << tid2;
+    pid_t tid3 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483647]");
+    EXPECT_EQ(tid3, 2147483647);
 }
-}
-}
+} // namespace AppExecFwk
+} // namespace OHOS
