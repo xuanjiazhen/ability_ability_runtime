@@ -379,6 +379,64 @@ HWTEST_F(NapiUncaughtExceptionCallbackTest, GetFuncNameAndBuildIdTest_0100, Test
     GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0100 end" << stackinfo.c_str();
 }
 
+/**
+ * @tc.name: GetFuncNameAndBuildIdTest_0200
+ * @tc.type: FUNC
+ * @tc.desc: Test GetFuncNameAndBuildId with only Backtrace header (release mode, no SourceMap prefix).
+ *           Previously the code unconditionally skipped two header lines, which caused the first
+ *           frame to be lost when only one header line was present.
+ */
+HWTEST_F(NapiUncaughtExceptionCallbackTest, GetFuncNameAndBuildIdTest_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0200 start";
+    // Simulate release mode: stack has only the Backtrace header, no "Cannot get SourceMap info" prefix
+    std::ostringstream stack;
+    Backtrace(stack);
+    std::string stackinfo = NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(stack.str());
+    ASSERT_EQ(stackinfo.find("GetFuncNameAndBuildIdTest") != std::string::npos, true);
+    GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0200 end" << stackinfo.c_str();
+}
+
+/**
+ * @tc.name: GetFuncNameAndBuildIdTest_0300
+ * @tc.type: FUNC
+ * @tc.desc: Test GetFuncNameAndBuildId with only Backtrace header produces the same first frame
+ *           as two-header mode. Both modes must preserve the first actual stack frame.
+ */
+HWTEST_F(NapiUncaughtExceptionCallbackTest, GetFuncNameAndBuildIdTest_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0300 start";
+    // Build stacks with the same Backtrace content but different headers
+    std::ostringstream backtraceOnly;
+    Backtrace(backtraceOnly);
+    std::ostringstream withPrefix;
+    withPrefix << "Cannot get SourceMap info, dump raw stack:\n";
+    Backtrace(withPrefix);
+
+    std::string resultOneHeader = NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(backtraceOnly.str());
+    std::string resultTwoHeader = NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(withPrefix.str());
+
+    // Both should contain the test function name (first frame preserved)
+    ASSERT_EQ(resultOneHeader.find("GetFuncNameAndBuildIdTest") != std::string::npos, true);
+    ASSERT_EQ(resultTwoHeader.find("GetFuncNameAndBuildIdTest") != std::string::npos, true);
+
+    // The first frame line should be the same in both results
+    auto GetFirstFrameLine = [](const std::string& s) -> std::string {
+        size_t pos = s.find("#00");
+        if (pos == std::string::npos) {
+            return "";
+        }
+        size_t end = s.find('\n', pos);
+        return s.substr(pos, end == std::string::npos ? std::string::npos : end - pos);
+    };
+    std::string firstFrameOne = GetFirstFrameLine(resultOneHeader);
+    std::string firstFrameTwo = GetFirstFrameLine(resultTwoHeader);
+    ASSERT_FALSE(firstFrameOne.empty()) << "First frame not found in one-header result";
+    ASSERT_EQ(firstFrameOne, firstFrameTwo)
+        << "First frame differs: one-header=\"" << firstFrameOne << "\", two-header=\"" << firstFrameTwo << "\"";
+    GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0300 end";
+}
+
 std::string submitterStack;
 int g_result = -1;
 static bool g_done = false;
