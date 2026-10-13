@@ -344,9 +344,26 @@ std::string NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(std::string nat
     std::stringstream ss(nativeStack);
     std::string tempStr;
     std::string appendInfo;
-    // Filter two lines
-    std::getline(ss, tempStr); // Cannot get SourceMap info, dump raw stack:
-    std::getline(ss, tempStr); // =====================Backtrace========================
+    // Skip header lines until the Backtrace marker is found.
+    // In NO_SOURCEMAP mode the stack has two header lines:
+    //   "Cannot get SourceMap info, dump raw stack:" and "====...Backtrace...===="
+    // In EXECUTED_SUCCESSFULLY mode TranslateBySourceMap may return only one header line:
+    //   "====...Backtrace...===="
+    // Unconditionally skipping two lines loses the first frame in the latter case.
+    bool foundBacktrace = false;
+    while (std::getline(ss, tempStr)) {
+        if (tempStr.find(BACKTRACE) != std::string::npos) {
+            foundBacktrace = true;
+            break;
+        }
+    }
+    if (!foundBacktrace) {
+        // The Backtrace marker is absent. Do not silently consume the whole
+        // stream (which would drop every frame); rewind and parse all lines
+        // as raw stack frames instead.
+        ss.clear();
+        ss.str(nativeStack);
+    }
     HiviewDFX::UnwinderConfig::SetEnableMiniDebugInfo(true);
     HiviewDFX::UnwinderConfig::SetEnableLoadSymbolLazily(true);
     while (std::getline(ss, tempStr)) {
