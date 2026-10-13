@@ -260,12 +260,14 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
 
-    // 卸载场景不能依赖 GetBundleInfoV9（应用已卸载），也不能依赖 HasBundleCache（缓存 key 格式不匹配）
-    // 使用 DeleteIntentByAppIndex 按 Key 段数精确删除：只删目标模式，不影响其他模式
+    // 卸载场景不能依赖 GetBundleInfoV9（应用已卸载），使用 DeleteIntentByAppIndex 按 Key 段数
+    // 精确删除 RDB：只删目标模式，不影响其他模式；随后同步清理 bundleVersionMap_ 内存缓存
     ffrt::submit([bundleName, moduleName, userId, appIndex]() {
         auto storage = DelayedSingleton<AbilityRuntime::InsightRdbStorageMgr>::GetInstance();
         storage->DeleteIntentByAppIndex(bundleName, moduleName, userId, appIndex);
+        bool isDualMode = (appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX);
         auto dbCache = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance();
+        dbCache->RemoveBundleVersionCacheEntry(bundleName, userId, appIndex, isDualMode, moduleName);
         dbCache->BackupRdb();
         bool unregistered = CliTool::UnregisterInsightIntentFunctions(bundleName, userId);
         TAG_LOGI(AAFwkTag::INTENT, "delete done, bundleName: %{public}s, moduleName: %{public}s, "
