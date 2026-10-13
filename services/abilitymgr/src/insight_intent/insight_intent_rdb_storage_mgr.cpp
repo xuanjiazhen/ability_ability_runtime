@@ -368,12 +368,12 @@ int32_t InsightRdbStorageMgr::DeleteIntentByAppIndex(const std::string &bundleNa
 {
     std::string prefix = std::to_string(userId).append("/").append(bundleName).append("/");
     std::unordered_map<std::string, std::string> value;
+    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(prefix, value);
     if (!result) {
         TAG_LOGE(AAFwkTag::INTENT, "query for delete by appIndex error");
         return ERR_INVALID_VALUE;
     }
-    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     for (const auto &item : value) {
         auto segments = SplitStringBySlash(item.first);
         if (segments.size() < INTENT_KEY_LENGTH) {

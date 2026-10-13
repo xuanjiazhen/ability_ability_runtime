@@ -1,0 +1,629 @@
+10-13 12:33:36.323   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [GetDevItem:35] GetDevItem false key:persist.hdc.root
+10-13 12:33:36.323   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [ThreadFork:188] Popen pipe fds[pipeRead]:31 fds[pipeWrite]:34, mode 0
+10-13 12:33:36.333   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [ExecuteCommand:248] ExecuteCommand cmd:hil****** -r(L:8) fd:31 pid:47659
+10-13 12:33:36.334   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [CommandDispatch:507] Unity CommandDispatch command:1001 finish cid:2113976104 sid:841******131(L:8)
+10-13 12:33:36.425   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [DispUvStreamInfo:1081] before uv handle close, the uv handle type is 13
+10-13 12:33:36.442   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [FetchCommand:1274] FetchCommand channelId:2113976104 command:2
+10-13 12:33:36.586   1149-2075     C015B5/netmanager/NetMgrEnhanced: QOE               I     DumpData# DNS:0,0,0 UID:1051 UID:0 UID:20020201 Mov:0
+10-13 12:33:36.613   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:36.614   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:36.615   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:36.615   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/charge_data/chargerType is invalid
+10-13 12:33:36.616   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:36.616   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:36.617   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:36.617   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/charge_data/chargerType is invalid
+10-13 12:33:36.618   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/adapter/adapter_code is invalid
+10-13 12:33:36.618   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/adapter/prot_type is invalid
+10-13 12:33:36.620   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:36.621   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:36.621   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:36.624   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:36.624   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:36.625   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:36.626   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_typec/typec/succ_value is invalid
+10-13 12:33:36.626   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/adapter/third_party_id is invalid
+10-13 12:33:36.628   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/charge_data/charge_done_status is invalid
+10-13 12:33:36.631   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:36.632   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:36.632   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:36.632   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/charge_data/Ibus is invalid
+10-13 12:33:36.633   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:36.633   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:36.633   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:36.634   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/charge_data/Vbus is invalid
+10-13 12:33:36.636   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/leds/lcd_backlight0/brightness is invalid
+10-13 12:33:36.637   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/leds/lcd_backlight0/brightness is invalid
+10-13 12:33:36.637   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/bat_heating/heat_up is invalid
+10-13 12:33:36.639   46307-46308   C02925/bms_behavior/bms_behavior                    E     [GetTemp]: tz usb_port not exist
+10-13 12:33:36.640   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/adapter/adapter_code is invalid
+10-13 12:33:36.769   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:36.769   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:36.769   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:37.006   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [OpenUartDevice:149] Set SetSerial 
+10-13 12:33:37.006   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [SetSerial:183] tcgetattr failed with I/O error
+10-13 12:33:37.006   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [OpenUartDevice:157] OpenUartdevice SerialHandle:20 fail.
+10-13 12:33:37.006   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [WatcherTimerCallBack:102] OpenUartdevice fail ! 
+10-13 12:33:37.006   2298-2298     C02D13/hdcd/HDC_LOG                                 F     [WatcherTimerCallBack:121] WatcherTimerCallBack found some issue
+10-13 12:33:37.117   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:37.118   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:37.118   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:37.328   668-40685     C02D66/hiview/XPerf                                 E     [InquiryOhImpl::ExtractStringValue] Canonical FilePath: /sys/class/ithermal/lpm/lpm_freq failed.
+10-13 12:33:37.378   1480-2753     C02503/aptouch_daemon/TsaFrame                      W     [0]idle out.
+10-13 12:33:37.390   1480-2753     C02503/aptouch_daemon/TsaFrame                      W     [0]touch:1, down:1(+0)
+10-13 12:33:37.394   952-3420      A02700/multimodalinput/osfingersense                E     osf: phone fold is, 1
+10-13 12:33:37.394   952-3420      A02700/multimodalinput/osfingersense                I     fingersense_classify_touch: entrance status_1
+10-13 12:33:37.394   952-3420      A02700/multimodalinput/osfingersense                I     touch down-id: 0
+10-13 12:33:37.397   952-3469      A02700/multimodalinput/osfingersense                I     Acc read ok
+10-13 12:33:37.397   952-3469      A02700/multimodalinput/osfingersense                I     osf: wait tp event in
+10-13 12:33:37.397   1483-1504     C01708/perfgenius_host/PF_                          I     [a92ab5b4a16060e 0 0]qosId not exist, qosId = 129!
+10-13 12:33:37.398   1483-1504     C01708/perfgenius_host/PF_                          W     [a92ab5b4a16060e 0 0]ConvertValueToNew failed, qosId = 129!
+10-13 12:33:37.399   952-3420      A02700/multimodalinput/osfingersense                I     Acc read ok
+10-13 12:33:37.399   952-3420      A02700/multimodalinput/osfingersense                E     osf: acc2 5163
+10-13 12:33:37.399   952-3420      A02700/multimodalinput/osfingersense                E     osf: acc2 5163
+10-13 12:33:37.399   952-3420      A02700/multimodalinput/osfingersense                E     Acc pack start-4068 -4040 -4028 -4048 -4060 -4028 -4040 -4012 -4032 -4024 -4020 -4024 -4032 -4016 -4012 -3996 -4020 -4000 -4028 -4012 -4024 -4008 -3996 -4012 -4000 -4012 -4012 -4028 -4040 -4032 -3988 -4012 -4008 -3992 -4008 -3988 -4004 -4012 -4008 -3984 -4056 -4004 -3992 -4012 -4008 -4004 -4020 -4016 -4016 -4040 -4020 -4028 -4012 -4032 -4024 -4008 -4016 -4044 -4008 -4052 -4052 -4036 -4056 -4032 -4036 -4056 -4036 -4064 -4036 -4064 -4048 -4056 -4052 -4036 -4056 -4048 -4076 -4060 -4052 -4020 -3836 -4060 -3984 -3984 -4116 -4156 -4108 -4080 -4072 -4028 -3956 -3932 -3972 -4024 -4028 -4108 -4104 -4104 -4024 -4032 -4012 -3972 -3952 -3956 -4008 -4016 -4024 -4064 -4092 -4052 -4024 -4056 -4032 -4016 -4008 -4020 -4032 -4052 -4044 -4040 -4044 -4068 -4052 -4048 -4072 -4060 -4048 -4048Acc pack end
+10-13 12:33:37.400   952-3420      A02700/multimodalinput/osfingersense                E     fingersense_classify_touch: P = 4.750000, H = 0.589871, N A = 0.237500, N S = 0.065506, M U = 127.000000, A = 320.000000, G = 224.000000, Z = 6, P M F = 342.739777, M F = 333.168884
+10-13 12:33:37.400   952-3420      A02700/multimodalinput/osfingersense                I     fingersense_classify_touch: B--M--U
+10-13 12:33:37.400   952-3420      A02700/multimodalinput/osfingersense                I     varAccRemoveBase : 0.075315 ret : -1
+10-13 12:33:37.400   952-3420      A02700/multimodalinput/osfingersense                I     fingersense_classify_touch: B--N--S
+10-13 12:33:37.400   952-3420      A02700/multimodalinput/osfingersense                I     kr: ppvAcc is 0.078125,ppvAccThr is 0.400000,idy is 1,idx is 0.
+10-13 12:33:37.400   952-3420      A02700/multimodalinput/osfingersense                I     fingersense_classify_touch acc model off
+10-13 12:33:37.400   952-3420      A02700/multimodalinput/osfingersense                I     fingersense_classify_touch: Part IV
+10-13 12:33:37.400   952-3420      A02700/multimodalinput/osfingersense                I     Part IV B
+10-13 12:33:37.400   952-3420      A02700/multimodalinput/osfingersense                I     fingersense_classify_touch: inference = 0
+10-13 12:33:37.401   952-3420      C02805/multimodalinput/InputKeyFlow                 I     [P:D:1276|6711]43240|225|225|3120|2080|0|225|102.000000
+10-13 12:33:37.401   952-3420      C02805/multimodalinput/InputKeyFlow                 I     [P:D:1276|341]input_mt_wrapper, TW: 225: 1276
+10-13 12:33:37.401   952-3420      C02805/multimodalinput/InputKeyFlow                 I     [P:D:1276|390]0|225|0|0|0|7|2800396891
+10-13 12:33:37.401   952-3420      C02802/multimodalinput/TouchGestureAdapter          I     [P:D:1276|517]GestureType:2,No:1276,PA:down,PI:0,Touches:(0)
+10-13 12:33:37.402   952-3420      C02802/multimodalinput/TouchGestureAdapter          I     [P:D:1276|517]GestureType:1,No:1276,PA:down,PI:0,Touches:(0)
+10-13 12:33:37.402   952-3420      C02802/multimodalinput/TouchGestureDetector         I     [P:D:1276|117]The gestureType:1, touches:(0), isFingerReady:0, pointerId:0
+10-13 12:33:37.402   952-3420      C02805/multimodalinput/InputKeyFlow                 I     [P:D:1276|602]SendMsg:43240, pointerAc:2, PI:0
+10-13 12:33:37.403   1682-47590    C01407/render_service/hgm                           I     LTPO-DEFAULT 0 2 PACKAGES 120 ONTOUCH 0.
+10-13 12:33:37.403   43240-43240   C02805/com.ohos.getinsightintent/InputKeyFlow       I     [P:D:1276|252]ac: down: 1276
+10-13 12:33:37.403   43240-43240   C02805/com.ohos.getinsightintent/InputKeyFlow       I     [P:D:1276|732]recv
+10-13 12:33:37.403   43240-43240   C04213/com.ohos.getinsightintent/InputKeyFlow       I     HandleInputEvent: eid:4,InputId:1276,wid:225,ac:2
+10-13 12:33:37.403   15834-23822   C04207/com.ohos.sceneboard/WMSFocus                 I     reply
+10-13 12:33:37.403   15834-46494   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.403   15834-47591   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.404   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.404   43240-43240   C03951/com.ohos.getinsightintent/InputKeyFlow       I     [(100000:100000:scope)] ITK Id:1276, fId:0, T:0, I=0, M=0
+10-13 12:33:37.404   15834-46494   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.404   15834-15834   A01B01/com.ohos.sceneboard/HOME                     I     [ModeSwitch]FourFingerTouchFSM --> press finger id: 0, pressTime: 2800396891
+10-13 12:33:37.404   15834-15834   A01B01/com.ohos.sceneboard/HOME                     I     [ModeSwitch]FourFingerTouchFSM --> finger number curr: 1
+10-13 12:33:37.405   43240-43240   C03951/com.ohos.getinsightintent/InputKeyFlow       I     [(100000:100000:scope)] ITK Id:1276, TTHNI:fId: 0{ T: page, D: 6 };{ T: Button, D: 10 };
+10-13 12:33:37.405   43240-43240   C03951/com.ohos.getinsightintent/InputKeyFlow       I     [(100000:100000:scope)] ITK Id:1276, TTHRTI: T ClickRecognizer info: { T: Button };
+10-13 12:33:37.405   43240-43240   C03945/com.ohos.getinsightintent/AceStateStyle      I     [(100000:100000:scope)] Handle TouchDown event node: Button
+10-13 12:33:37.405   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.405   1067-47561    C01727/resource_schedule_service/SceneRecognizeExt  I     [a92ab7b4a162c97 0 0][HandleExitCommonScene]HandleExitCommonScene scene finalDelayTime: 2000000 lastExitTime_: 2797322 currentTime: 2800410
+10-13 12:33:37.406   1483-1504     C01708/perfgenius_host/PF_                          I     [a92ab7b4a162c97 0 0]qosId not exist, qosId = 129!
+10-13 12:33:37.406   1483-1504     C01708/perfgenius_host/PF_                          W     [a92ab7b4a162c97 0 0]ConvertValueToNew failed, qosId = 129!
+10-13 12:33:37.406   43240-43240   C02805/com.ohos.getinsightintent/InputKeyFlow       I     [P:M:1277|252]ac: move: 1277
+10-13 12:33:37.406   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.406   15834-47591   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.406   1067-47553    C01704/resource_schedule_service/TagSched           I     [a92ab6b4a16268f 0 0][SetQosRealtimeTask]ThreadModifyQos,setQos 1682 tid[47640],  qos[7]
+10-13 12:33:37.407   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.407   15834-15834   A04215/com.ohos.sceneboard/WMSHierarchy             I     request top id: 225, 5
+10-13 12:33:37.407   15834-15834   A04215/com.ohos.sceneboard/WMSHierarchy             I     onRaiseSceneToTop with persistentId:225
+10-13 12:33:37.407   15834-15834   A04200/com.ohos.sceneboard/WINDOW                   I     SCBSPVM: getSceneContainerSessionWithPersistentId from containerSessionList id: 225
+10-13 12:33:37.407   15834-15834   A01B09/com.ohos.sceneboard/RECENT                   I     RecentDockRefreshAlarm --> start alarm recent dock: EntryAbility/com.ohos.getinsightintent/entry/0(persistentId: 225)(containerId: 4)
+10-13 12:33:37.408   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.408   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.408   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.408   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.408   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_loop_handler.cpp23]triggered
+10-13 12:33:37.408   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_loop_handler.cpp35]triggered
+10-13 12:33:37.408   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp78]called
+10-13 12:33:37.411   15834-46494   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.411   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.411   1067-47563    C01704/resource_schedule_service/TagSched           I     [a92ab8b4a16409f 0 0][SetQosRealtimeTask]ThreadModifyQos,setQos 1682 tid[47640],  qos[7]
+10-13 12:33:37.411   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.415   15834-47591   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.415   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.416   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.423   15834-46494   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.423   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.424   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.424   1682-2995     C01406/render_service/OHOS::RS                      I     RSSurfaceRenderNodeDrawable::OnDraw name:getinsightintent0, the number of total processedNodes: 33
+10-13 12:33:37.426   15834-47591   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.427   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.427   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.431   1596-42383    C00102/bluetooth_service...ver_ble_central_manager  I     [13]OnScanCallback: pid:1614 uid:1024 address:C0:DA:**:**:**:09 passed filter.
+10-13 12:33:37.432   15834-46494   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.432   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.432   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.437   15834-47591   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.437   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.437   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.442   15834-46494   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.442   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.442   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.447   15834-47591   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.448   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.448   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.453   15834-46494   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.453   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.453   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.457   1480-2753     C02503/aptouch_daemon/TsaFrame                      W     [0]touch:0, down:0
+10-13 12:33:37.457   952-3420      A02700/multimodalinput/osfingersense                I     fingersense_touch_up: touch up
+10-13 12:33:37.457   952-3420      C02805/multimodalinput/InputKeyFlow                 I     [P:U:1289|6711]43240|225|225|3120|2080|0|225|102.000000
+10-13 12:33:37.457   952-3420      C02805/multimodalinput/InputKeyFlow                 I     [P:U:1289|390]0|225|0|0|0|7|2800396891
+10-13 12:33:37.457   952-3420      C02802/multimodalinput/TouchGestureAdapter          I     [P:U:1289|517]GestureType:2,No:1289,PA:up,PI:0,Touches:(0)
+10-13 12:33:37.457   952-3420      C02802/multimodalinput/TouchGestureAdapter          I     [P:U:1289|517]GestureType:1,No:1289,PA:up,PI:0,Touches:(0)
+10-13 12:33:37.457   952-3420      C02802/multimodalinput/TouchGestureDetector         I     [P:U:1289|228]The gestureType:1, touches:, isFingerReady:0, pointerId:0
+10-13 12:33:37.458   952-3420      C02805/multimodalinput/InputKeyFlow                 I     [P:U:1289|602]SendMsg:43240, pointerAc:4, PI:0
+10-13 12:33:37.458   15834-47591   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.458   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.458   43240-43240   C02805/com.ohos.getinsightintent/InputKeyFlow       I     [P:U:1289|252]ac: move, first: 1278-(2026-10-13 12:33:37.406ms), 1288, count: 11, last: ac: up: 1289
+10-13 12:33:37.458   43240-43240   C02805/com.ohos.getinsightintent/InputKeyFlow       I     [P:U:1289|732]recv
+10-13 12:33:37.458   43240-43240   C04213/com.ohos.getinsightintent/InputKeyFlow       I     HandleInputEvent: eid:5,InputId:1289,wid:225,ac:4
+10-13 12:33:37.458   15834-15834   A01B01/com.ohos.sceneboard/HOME                     I     [ModeSwitch]FourFingerTouchFSM --> handleFingerUp: 0
+10-13 12:33:37.458   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.458   1687-2508     C02D06/foundation/XCollie                           I     Send kick,foundation ok, cnt:4
+10-13 12:33:37.459   43240-43240   C03951/com.ohos.getinsightintent/InputKeyFlow       I     [(100000:100000:scope)] ITK Id:1289, fId:0, T:1, I=0, M=0
+10-13 12:33:37.459   43240-43240   C03945/com.ohos.getinsightintent/AceStateStyle      I     [(100000:100000:scope)] Handle TouchUp or Cancel event node: Button
+10-13 12:33:37.459   43240-43240   C0391E/com.ohos.getinsightintent/AceGesture         I     [(100000:100000:scope)] Click try accept Button
+10-13 12:33:37.459   43240-43240   C03951/com.ohos.getinsightintent/InputKeyFlow       I     [(100000:100000:scope)] CLK RACC, T: Button
+10-13 12:33:37.459   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abab4a170140 0 0]qosId not exist, qosId = 129!
+10-13 12:33:37.459   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abab4a170140 0 0]ConvertValueToNew failed, qosId = 129!
+10-13 12:33:37.459   43240-43240   C01323/com.ohos.getinsightintent/Intent             I     [js_insight_intent_driver.cpp351]OnGetInsightIntentInfoByBundleName
+10-13 12:33:37.459   43240-43430   C01323/com.ohos.getinsightintent/Intent             D     [AMC2559]call GetInsightIntentInfoByBundleName
+10-13 12:33:37.460   1687-3236     C01336/foundation/AMS                               D     [ability_manager_stub.cpp1224]Received code : 6141
+10-13 12:33:37.460   1687-3236     C01323/foundation/Intent                            I     [ABMS19093]GetInsightIntentInfoByBundleName
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             D     [permission_verification.cpp413]callerToken: 537090475
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             D     [permission_verification.cpp86]called
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             D     [permission_verification.cpp95]Not SA called
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             D     [permission_verification.cpp413]callerToken: 537090475
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             D     [permission_verification.cpp107]called
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             D     [permission_verification.cpp116]Not shell called
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             D     [permission_verification.cpp66]permission ohos.permission.GET_BUNDLE_INFO_PRIVILEGED, specifyTokenId: 0
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             D     [permission_verification.cpp413]callerToken: 537090475
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             D     [permission_verification.cpp68]Token: 537090475
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 108!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 108!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 116!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 116!
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             D     [permission_verification.cpp74]verify Token success
+10-13 12:33:37.460   1687-3236     C01300/foundation/AAFwk                             I     [permission_verification.cpp267]Permission ohos.permission.GET_BUNDLE_INFO_PRIVILEGED granted
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 107!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 107!
+10-13 12:33:37.460   1687-3236     C01336/foundation/AMS                               D     [ABMS12126]userId = -1.
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 118!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 118!
+10-13 12:33:37.460   1687-3236     C01336/foundation/AMS                               D     [user_controller.cpp128]callerUser = 100, CallingUid = 20020201.
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 115!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 115!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 110!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 110!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 112!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 112!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 113!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 113!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 120!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 120!
+10-13 12:33:37.460   1687-3236     C01316/foundation/BMSHelper                         D     [bundle_mgr_helper.cpp641]called
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 121!
+10-13 12:33:37.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 121!
+10-13 12:33:37.460   1687-3236     C01316/foundation/BMSHelper                         D     [bundle_mgr_helper.cpp266]called
+10-13 12:33:37.460   1687-3236     C01120/foundation/BMS                               W     com.ohos.pcpad not find
+10-13 12:33:37.460   1687-3236     C01120/foundation/BMS                               I     EXT GetBundleInfo
+10-13 12:33:37.460   3084-3169     C011FB/bms_broker/BMSBroker                         W     [GetBundleInfo:1141]bundle com.ohos.pcpad not exist, userId=100
+10-13 12:33:37.460   1687-3236     C011FB/foundation/BMSBroker                         W     [GetParcelInfo:1066]host reply code:10004 ErrCode:8585601
+10-13 12:33:37.460   1687-3236     C011FC/foundation/BMSExt                            E     [GetBundleInfo:90]query container ability infos failed due to error code 8585601
+10-13 12:33:37.460   1687-3236     C01121/foundation/BMSQuery                          E     query bundle_ext code 8585601
+10-13 12:33:37.460   1687-3236     C01323/foundation/Intent                            D     [insight_intent_rdb_storage_mgr.cpp151]load intent total infos by bundleName, com.ohos.pcpad
+10-13 12:33:37.460   1687-3236     C01323/foundation/Intent                            D     [insight_intent_rdb_data_mgr.cpp274]QueryDataBeginWithKey start
+10-13 12:33:37.460   1687-3236     C01650/foundation/RdbStoreManager                   W     IsConfigInvalidChanged:no bundleName
+10-13 12:33:37.460   1687-3236     C01650/foundation/SilentProxy                       E     IsSupportSilentFromService:GetRdbService failed, err is 27394049.
+10-13 12:33:37.461   1067-47559    C01720/resource_schedule_service/SmartGC            E     [a92abbb4a1703b2 0 0][GetTidFromPayload]GetTidFromEvent not contains tid
+10-13 12:33:37.461   1067-47559    C01311/resource_schedule_service/AppMS              D     [a92abbb4a1703b2 0 0][app_mgr_client.cpp1283]tid is 0
+10-13 12:33:37.461   1067-47559    C01311/resource_schedule_service/AppMS              D     [a92abbb4a1703b2 0 0][app_mgr_proxy.cpp1975]called
+10-13 12:33:37.461   1687-46334    C01311/foundation/AppMS                             D     [a92abbb4a1703b2 0 0][app_mgr_stub.cpp57]AppMgrStub::OnReceived, code = 45, flags= 1.
+10-13 12:33:37.461   1687-3236     C01336/foundation/AMS                               D     [hmsf_utils.cpp50]Delete Control flag is already set
+10-13 12:33:37.461   1687-46334    C01311/foundation/AppMS                             D     [a92abbb4a1703b2 0 0][app_mgr_service.cpp1734]called
+10-13 12:33:37.461   1687-46334    C01311/foundation/AppMS                             D     [a92abbb4a1703b2 0 0][AMSI10585]called, pid:43240, state:1, uid:1096.
+10-13 12:33:37.461   1687-46334    C01300/foundation/AAFwk                             D     [a92abbb4a1703b2 0 0][permission_verification.cpp123]called
+10-13 12:33:37.461   1687-46334    C01300/foundation/AAFwk                             D     [a92abbb4a1703b2 0 0][permission_verification.cpp413]callerToken: 671783907
+10-13 12:33:37.461   1687-46334    C01300/foundation/AAFwk                             D     [a92abbb4a1703b2 0 0][permission_verification.cpp86]called
+10-13 12:33:37.461   1687-46334    C01300/foundation/AAFwk                             D     [a92abbb4a1703b2 0 0][permission_verification.cpp92]verify success
+10-13 12:33:37.461   1687-46334    C01300/foundation/AAFwk                             D     [a92abbb4a1703b2 0 0][permission_verification.cpp413]callerToken: 671783907
+10-13 12:33:37.461   1687-46334    C01300/foundation/AAFwk                             E     [a92abbb4a1703b2 0 0][permission_verification.cpp132]check process fail
+10-13 12:33:37.461   1687-46334    C01311/foundation/AppMS                             D     [a92abbb4a1703b2 0 0][ARR2518]called
+10-13 12:33:37.461   1687-46334    C01311/foundation/AppMS                             D     [a92abbb4a1703b2 0 0][app_lifecycle_deal.cpp418]called
+10-13 12:33:37.461   43240-43418   C01311/com.ohos.getinsightintent/AppMS              D     [a92abbb4a1703b2 0 0][app_scheduler_host.cpp43]AppSchedulerHost::OnReceived, code = 20, flags= 1.
+10-13 12:33:37.461   43240-43418   C01317/com.ohos.getinsightintent/AppKit             D     [a92abbb4a1703b2 0 0][MTHRD4237]called, state is 1
+10-13 12:33:37.461   43240-43418   C01317/com.ohos.getinsightintent/AppKit             D     [a92abbb4a1703b2 0 0][MTHRD4268]called
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp664]transform profileStr: {"extractInsightIntents":[{"abilityName":"EntryAbility","arkTSMode":"","bundleName":"com.ohos.pcpad","decoratorClass":"PlayMusicImplA","decoratorFile":"@normalized:N&&&entry/src/main/ets/insightintents/PlayMusicImplA&","decoratorType":"@InsightIntentEntry","displayDescription":"播放音乐意图","displayName":"播放歌曲","domain":"MusicDomain","entities":[],"example":"","executeMode":["foreground"],"formName":"","functionName":"","functionParamList":[],"functionReturnType":"","icon":"$r('app.media.startIcon')","intentName":"PlayMusicA","intentVersion":"1.0.1","keywords":["音乐播放","播放歌曲","PlayMusic"],"llmDescription":"支持传递歌曲名称，播放音乐","moduleName":"entry","navDestinationName":"","navigationId":"","pagePath":"","paramMappings":[],"parameters":{"description":"A schema for describing songs and their artists","properties":{"singer":{"description":"The name of the singer","minLength":1,"type":"string"},"songName":{"description":"The name of the song","minLength":1,"type":"string"}},"required":["songName"],"type":"object"},"schema":"","uiAbility":"","uri":""}]}
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp192]ExtractInsightIntentProfileInfo from json
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp690]transform success, size: 1
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp729]entities size: 0
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp740]bundleName: com.ohos.pcpad
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp742]moduleName: entry
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp744]intentName: PlayMusicA
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp746]displayName: 播放歌曲
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp748]decoratorType: @InsightIntentEntry
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            I     [extract_insight_intent_profile.cpp630]mode: foreground
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp633]entry parameters: {"description":"A schema for describing songs and their artists","properties":{"singer":{"description":"The name of the singer","minLength":1,"type":"string"},"songName":{"description":"The name of the song","minLength":1,"type":"string"}},"required":["songName"],"type":"object"}
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp664]transform profileStr: {"insightIntents":[{"arkTSMode":"","bundleName":"com.ohos.pcpad","displayDescription":"","displayName":"","domain":"AudioDomain","form":{"ability":"","formName":""},"icon":"","inputParams":[],"intentName":"SearchAudioLocal","intentVersion":"1.0.2","keywords":[],"moduleName":"entry","outputParams":[],"serviceExtension":{"ability":""},"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"ability":"EntryAbility","executeMode":["foreground"]},"uiExtension":{"ability":""}}]}
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp690]transform success, size: 0
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp664]transform profileStr: {"extractInsightIntents":[{"abilityName":"EntryAbility","arkTSMode":"","bundleName":"com.ohos.pcpad","decoratorClass":"PlayMusicImplC","decoratorFile":"@normalized:N&&&entry/src/main/ets/insightintents/PlayMusicImplC&","decoratorType":"@InsightIntentEntry","displayDescription":"播放音乐意图","displayName":"播放歌曲","domain":"MusicDomain","entities":[],"example":"","executeMode":["foreground"],"formName":"","functionName":"","functionParamList":[],"functionReturnType":"","icon":"$r('app.media.startIcon')","intentName":"PlayMusicC","intentVersion":"1.0.1","keywords":["音乐播放","播放歌曲","PlayMusic"],"llmDescription":"支持传递歌曲名称，播放音乐","moduleName":"entry","navDestinationName":"","navigationId":"","pagePath":"","paramMappings":[],"parameters":{"description":"A schema for describing songs and their artists","properties":{"singer":{"description":"The name of the singer","minLength":1,"type":"string"},"songName":{"description":"The name of the song","minLength":1,"type":"string"}},"required":["songName"],"type":"object"},"schema":"","uiAbility":"","uri":""}]}
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp192]ExtractInsightIntentProfileInfo from json
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp690]transform success, size: 1
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp729]entities size: 0
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp740]bundleName: com.ohos.pcpad
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp742]moduleName: entry
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp744]intentName: PlayMusicC
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp746]displayName: 播放歌曲
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp748]decoratorType: @InsightIntentEntry
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            I     [extract_insight_intent_profile.cpp630]mode: foreground
+10-13 12:33:37.462   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp633]entry parameters: {"description":"A schema for describing songs and their artists","properties":{"singer":{"description":"The name of the singer","minLength":1,"type":"string"},"songName":{"description":"The name of the song","minLength":1,"type":"string"}},"required":["songName"],"type":"object"}
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp664]transform profileStr: {"insightIntents":[{"arkTSMode":"","bundleName":"com.ohos.pcpad","displayDescription":"","displayName":"","domain":"AudioDomain","form":{"ability":"","formName":""},"icon":"","inputParams":[],"intentName":"PlayAudio","intentVersion":"1.0.2","keywords":[],"moduleName":"entry","outputParams":[],"serviceExtension":{"ability":""},"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"ability":"EntryAbility","executeMode":["background","foreground"]},"uiExtension":{"ability":""}}]}
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp690]transform success, size: 0
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp664]transform profileStr: {"insightIntents":[{"arkTSMode":"","bundleName":"com.ohos.pcpad","displayDescription":"","displayName":"","domain":"AudioDomain","form":{"ability":"","formName":""},"icon":"","inputParams":[],"intentName":"ViewSubscribedAudioUpdate","intentVersion":"1.0.2","keywords":[],"moduleName":"entry","outputParams":[],"serviceExtension":{"ability":""},"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"ability":"EntryAbility","executeMode":["foreground"]},"uiExtension":{"ability":""}}]}
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [extract_insight_intent_profile.cpp690]transform success, size: 0
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp411]called
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp417]jsonObject : {"extractInsightIntents":[{"abilityName":"EntryAbility","arkTSMode":"","bundleName":"com.ohos.pcpad","decoratorClass":"PlayMusicImplA","decoratorFile":"@normalized:N&&&entry/src/main/ets/insightintents/PlayMusicImplA&","decoratorType":"@InsightIntentEntry","displayDescription":"播放音乐意图","displayName":"播放歌曲","domain":"MusicDomain","entities":[],"example":"","executeMode":["foreground"],"formName":"","functionName":"","functionParamList":[],"functionReturnType":"","icon":"$r('app.media.startIcon')","intentName":"PlayMusicA","intentVersion":"1.0.1","keywords":["音乐播放","播放歌曲","PlayMusic"],"llmDescription":"支持传递歌曲名称，播放音乐","moduleName":"entry","navDestinationName":"","navigationId":"","pagePath":"","paramMappings":[],"parameters":{"description":"A schema for describing songs and their artists","properties":{"singer":{"description":"The name of the singer","minLength":1,"type":"string"},"songName":{"description":"The name of the song...
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp397]called
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp411]called
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp417]jsonObject : {"insightIntents":[{"arkTSMode":"","bundleName":"com.ohos.pcpad","displayDescription":"","displayName":"","domain":"AudioDomain","form":{"ability":"","formName":""},"icon":"","inputParams":[],"intentName":"SearchAudioLocal","intentVersion":"1.0.2","keywords":[],"moduleName":"entry","outputParams":[],"serviceExtension":{"ability":""},"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"ability":"EntryAbility","executeMode":["foreground"]},"uiExtension":{"ability":""}}]}
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp397]called
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp411]called
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp417]jsonObject : {"extractInsightIntents":[{"abilityName":"EntryAbility","arkTSMode":"","bundleName":"com.ohos.pcpad","decoratorClass":"PlayMusicImplC","decoratorFile":"@normalized:N&&&entry/src/main/ets/insightintents/PlayMusicImplC&","decoratorType":"@InsightIntentEntry","displayDescription":"播放音乐意图","displayName":"播放歌曲","domain":"MusicDomain","entities":[],"example":"","executeMode":["foreground"],"formName":"","functionName":"","functionParamList":[],"functionReturnType":"","icon":"$r('app.media.startIcon')","intentName":"PlayMusicC","intentVersion":"1.0.1","keywords":["音乐播放","播放歌曲","PlayMusic"],"llmDescription":"支持传递歌曲名称，播放音乐","moduleName":"entry","navDestinationName":"","navigationId":"","pagePath":"","paramMappings":[],"parameters":{"description":"A schema for describing songs and their artists","properties":{"singer":{"description":"The name of the singer","minLength":1,"type":"string"},"songName":{"description":"The name of the song...
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp397]called
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp411]called
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp417]jsonObject : {"insightIntents":[{"arkTSMode":"","bundleName":"com.ohos.pcpad","displayDescription":"","displayName":"","domain":"AudioDomain","form":{"ability":"","formName":""},"icon":"","inputParams":[],"intentName":"PlayAudio","intentVersion":"1.0.2","keywords":[],"moduleName":"entry","outputParams":[],"serviceExtension":{"ability":""},"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"ability":"EntryAbility","executeMode":["background","foreground"]},"uiExtension":{"ability":""}}]}
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp397]called
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp411]called
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp417]jsonObject : {"insightIntents":[{"arkTSMode":"","bundleName":"com.ohos.pcpad","displayDescription":"","displayName":"","domain":"AudioDomain","form":{"ability":"","formName":""},"icon":"","inputParams":[],"intentName":"ViewSubscribedAudioUpdate","intentVersion":"1.0.2","keywords":[],"moduleName":"entry","outputParams":[],"serviceExtension":{"ability":""},"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"ability":"EntryAbility","executeMode":["foreground"]},"uiExtension":{"ability":""}}]}
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp397]called
+10-13 12:33:37.463   1687-3236     C01336/foundation/AMS                               D     [ABMS12126]userId = -1.
+10-13 12:33:37.463   1687-3236     C01336/foundation/AMS                               D     [user_controller.cpp128]callerUser = 100, CallingUid = 20020201.
+10-13 12:33:37.463   1687-3236     C01316/foundation/BMSHelper                         D     [bundle_mgr_helper.cpp641]called
+10-13 12:33:37.463   1687-3236     C01316/foundation/BMSHelper                         D     [bundle_mgr_helper.cpp266]called
+10-13 12:33:37.463   1687-3236     C01120/foundation/BMS                               W     com.ohos.pcpad not find
+10-13 12:33:37.463   1687-3236     C01120/foundation/BMS                               I     EXT GetBundleInfo
+10-13 12:33:37.463   3084-3169     C011FB/bms_broker/BMSBroker                         W     [GetBundleInfo:1141]bundle com.ohos.pcpad not exist, userId=100
+10-13 12:33:37.463   1687-3236     C011FB/foundation/BMSBroker                         W     [GetParcelInfo:1066]host reply code:10004 ErrCode:8585601
+10-13 12:33:37.463   1687-3236     C011FC/foundation/BMSExt                            E     [GetBundleInfo:90]query container ability infos failed due to error code 8585601
+10-13 12:33:37.463   1687-3236     C01121/foundation/BMSQuery                          E     query bundle_ext code 8585601
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_rdb_storage_mgr.cpp136]load intent total infos by bundleName, com.ohos.pcpad
+10-13 12:33:37.463   1687-3236     C01323/foundation/Intent                            D     [insight_intent_rdb_data_mgr.cpp274]QueryDataBeginWithKey start
+10-13 12:33:37.463   1687-3236     C01650/foundation/RdbStoreManager                   W     IsConfigInvalidChanged:no bundleName
+10-13 12:33:37.463   1687-3236     C01650/foundation/SilentProxy                       E     IsSupportSilentFromService:GetRdbService failed, err is 27394049.
+10-13 12:33:37.464   1687-3236     C01336/foundation/AMS                               D     [hmsf_utils.cpp50]Delete Control flag is already set
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp411]called
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp417]jsonObject : {"extractInsightIntents":[{"abilityName":"EntryAbility","arkTSMode":"","bundleName":"com.ohos.pcpad","decoratorClass":"PlayMusicImplA","decoratorFile":"@normalized:N&&&entry/src/main/ets/insightintents/PlayMusicImplA&","decoratorType":"@InsightIntentEntry","displayDescription":"播放音乐意图","displayName":"播放歌曲","domain":"MusicDomain","entities":[],"example":"","executeMode":["foreground"],"formName":"","functionName":"","functionParamList":[],"functionReturnType":"","icon":"$r('app.media.startIcon')","intentName":"PlayMusicA","intentVersion":"1.0.1","keywords":["音乐播放","播放歌曲","PlayMusic"],"llmDescription":"支持传递歌曲名称，播放音乐","moduleName":"entry","navDestinationName":"","navigationId":"","pagePath":"","paramMappings":[],"parameters":{"description":"A schema for describing songs and their artists","properties":{"singer":{"description":"The name of the singer","minLength":1,"type":"string"},"songName":{"description":"The name of the song...
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp397]called
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp411]called
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp417]jsonObject : {"insightIntents":[{"arkTSMode":"","bundleName":"com.ohos.pcpad","displayDescription":"","displayName":"","domain":"AudioDomain","form":{"ability":"","formName":""},"icon":"","inputParams":[],"intentName":"SearchAudioLocal","intentVersion":"1.0.2","keywords":[],"moduleName":"entry","outputParams":[],"serviceExtension":{"ability":""},"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"ability":"EntryAbility","executeMode":["foreground"]},"uiExtension":{"ability":""}}]}
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp397]called
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp411]called
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp417]jsonObject : {"extractInsightIntents":[{"abilityName":"EntryAbility","arkTSMode":"","bundleName":"com.ohos.pcpad","decoratorClass":"PlayMusicImplC","decoratorFile":"@normalized:N&&&entry/src/main/ets/insightintents/PlayMusicImplC&","decoratorType":"@InsightIntentEntry","displayDescription":"播放音乐意图","displayName":"播放歌曲","domain":"MusicDomain","entities":[],"example":"","executeMode":["foreground"],"formName":"","functionName":"","functionParamList":[],"functionReturnType":"","icon":"$r('app.media.startIcon')","intentName":"PlayMusicC","intentVersion":"1.0.1","keywords":["音乐播放","播放歌曲","PlayMusic"],"llmDescription":"支持传递歌曲名称，播放音乐","moduleName":"entry","navDestinationName":"","navigationId":"","pagePath":"","paramMappings":[],"parameters":{"description":"A schema for describing songs and their artists","properties":{"singer":{"description":"The name of the singer","minLength":1,"type":"string"},"songName":{"description":"The name of the song...
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp397]called
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp411]called
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp417]jsonObject : {"insightIntents":[{"arkTSMode":"","bundleName":"com.ohos.pcpad","displayDescription":"","displayName":"","domain":"AudioDomain","form":{"ability":"","formName":""},"icon":"","inputParams":[],"intentName":"PlayAudio","intentVersion":"1.0.2","keywords":[],"moduleName":"entry","outputParams":[],"serviceExtension":{"ability":""},"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"ability":"EntryAbility","executeMode":["background","foreground"]},"uiExtension":{"ability":""}}]}
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp397]called
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp411]called
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp417]jsonObject : {"insightIntents":[{"arkTSMode":"","bundleName":"com.ohos.pcpad","displayDescription":"","displayName":"","domain":"AudioDomain","form":{"ability":"","formName":""},"icon":"","inputParams":[],"intentName":"ViewSubscribedAudioUpdate","intentVersion":"1.0.2","keywords":[],"moduleName":"entry","outputParams":[],"serviceExtension":{"ability":""},"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"ability":"EntryAbility","executeMode":["foreground"]},"uiExtension":{"ability":""}}]}
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_profile.cpp397]called
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [ABMS19122]intentInfos size: 2
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp638]InsightIntentInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp65]LinkInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp103]PageInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp154]EntryInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp190]FormInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp611]toJsonArray to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp638]InsightIntentInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp65]LinkInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp103]PageInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp154]EntryInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp190]FormInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp611]toJsonArray to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp638]InsightIntentInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp65]LinkInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp103]PageInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp154]EntryInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp190]FormInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp611]toJsonArray to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp638]InsightIntentInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp65]LinkInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp103]PageInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp154]EntryInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp190]FormInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp611]toJsonArray to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp638]InsightIntentInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp65]LinkInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp103]PageInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp154]EntryInfoForQuery to json
+10-13 12:33:37.465   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp190]FormInfoForQuery to json
+10-13 12:33:37.466   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp611]toJsonArray to json
+10-13 12:33:37.466   1687-3236     C01323/foundation/Intent                            D     [insight_intent_info_for_query.cpp783]MarshallingVector size: 4833
+10-13 12:33:37.466   43240-43430   C01323/com.ohos.getinsightintent/Intent             D     [insight_intent_info_for_query.cpp412]InsightIntentInfoForQuery from json
+10-13 12:33:37.466   43240-43430   C01323/com.ohos.getinsightintent/Intent             D     [insight_intent_info_for_query.cpp412]InsightIntentInfoForQuery from json
+10-13 12:33:37.466   43240-43430   C01323/com.ohos.getinsightintent/Intent             D     [insight_intent_info_for_query.cpp412]InsightIntentInfoForQuery from json
+10-13 12:33:37.466   43240-43430   C01323/com.ohos.getinsightintent/Intent             D     [insight_intent_info_for_query.cpp412]InsightIntentInfoForQuery from json
+10-13 12:33:37.466   43240-43430   C01323/com.ohos.getinsightintent/Intent             D     [insight_intent_info_for_query.cpp133]EntryInfoForQuery from json
+10-13 12:33:37.466   43240-43430   C01323/com.ohos.getinsightintent/Intent             D     [insight_intent_info_for_query.cpp412]InsightIntentInfoForQuery from json
+10-13 12:33:37.466   43240-43430   C01323/com.ohos.getinsightintent/Intent             D     [insight_intent_info_for_query.cpp133]EntryInfoForQuery from json
+10-13 12:33:37.466   43240-43430   C01321/com.ohos.getinsightintent/JsRuntime          D     [ohos_js_environment_impl.cpp34]called
+10-13 12:33:37.466   43240-43240   C01321/com.ohos.getinsightintent/JsRuntime          D     [ohos_js_environment_impl.cpp41]Do uv work
+10-13 12:33:37.466   43240-43240   C01321/com.ohos.getinsightintent/JsRuntime          D     [js_runtime_utils.cpp369]called
+10-13 12:33:37.466   43240-43240   C01323/com.ohos.getinsightintent/Intent             D     [js_insight_intent_driver_utils.cpp282]paramStr empty
+10-13 12:33:37.466   43240-43240   C01323/com.ohos.getinsightintent/Intent             D     [js_insight_intent_driver_utils.cpp318]resultStr empty
+10-13 12:33:37.466   43240-43240   C01323/com.ohos.getinsightintent/Intent             D     [js_insight_intent_driver_utils.cpp282]paramStr empty
+10-13 12:33:37.466   43240-43240   C01323/com.ohos.getinsightintent/Intent             D     [js_insight_intent_driver_utils.cpp318]resultStr empty
+10-13 12:33:37.466   43240-43240   C01323/com.ohos.getinsightintent/Intent             D     [js_insight_intent_driver_utils.cpp282]paramStr empty
+10-13 12:33:37.466   43240-43240   C01323/com.ohos.getinsightintent/Intent             D     [js_insight_intent_driver_utils.cpp318]resultStr empty
+10-13 12:33:37.466   43240-43240   C01323/com.ohos.getinsightintent/Intent             D     [js_insight_intent_driver_utils.cpp318]resultStr empty
+10-13 12:33:37.466   43240-43240   C01323/com.ohos.getinsightintent/Intent             D     [js_insight_intent_driver_utils.cpp318]resultStr empty
+10-13 12:33:37.466   43240-43240   C01321/com.ohos.getinsightintent/JsRuntime          D     [js_runtime_utils.cpp277]called
+10-13 12:33:37.466   43240-43240   A03D00/com.ohos.getinsightintent/JSAPP              I     liuzongze getInsightIntentInfoByBundleName intent size = 5
+10-13 12:33:37.467   43240-43240   A03D00/com.ohos.getinsightintent/JSAPP              I     liuzongze {"bundleName":"com.ohos.pcpad","moduleName":"entry","intentName":"SearchAudioLocal","domain":"AudioDomain","intentVersion":"1.0.2","displayName":"","displayDescription":"","schema":"","icon":"","llmDescription":"","intentType":"@InsightIntentEntry","keywords":[],"developType":"configuration","entities":[],"subIntentInfo":{"abilityName":"","executeMode":[]},"subIntentInfoForConfiguration":{"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"abilityName":"EntryAbility","executeMode":[0]}}}
+10-13 12:33:37.467   43240-43240   A03D00/com.ohos.getinsightintent/JSAPP              I     liuzongze {"bundleName":"com.ohos.pcpad","moduleName":"entry","intentName":"PlayAudio","domain":"AudioDomain","intentVersion":"1.0.2","displayName":"","displayDescription":"","schema":"","icon":"","llmDescription":"","intentType":"@InsightIntentEntry","keywords":[],"developType":"configuration","entities":[],"subIntentInfo":{"abilityName":"","executeMode":[]},"subIntentInfoForConfiguration":{"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"abilityName":"EntryAbility","executeMode":[1,0]}}}
+10-13 12:33:37.467   43240-43240   A03D00/com.ohos.getinsightintent/JSAPP              I     liuzongze {"bundleName":"com.ohos.pcpad","moduleName":"entry","intentName":"ViewSubscribedAudioUpdate","domain":"AudioDomain","intentVersion":"1.0.2","displayName":"","displayDescription":"","schema":"","icon":"","llmDescription":"","intentType":"@InsightIntentEntry","keywords":[],"developType":"configuration","entities":[],"subIntentInfo":{"abilityName":"","executeMode":[]},"subIntentInfoForConfiguration":{"srcEntry":"./ets/insightintents/IntentExecutorImpl.ets","uiAbility":{"abilityName":"EntryAbility","executeMode":[0]}}}
+10-13 12:33:37.467   43240-43240   A03D00/com.ohos.getinsightintent/JSAPP              I     liuzongze {"bundleName":"com.ohos.pcpad","moduleName":"entry","intentName":"PlayMusicA","domain":"MusicDomain","intentVersion":"1.0.1","displayName":"播放歌曲","displayDescription":"播放音乐意图","schema":"","icon":"$r('app.media.startIcon')","llmDescription":"支持传递歌曲名称，播放音乐","intentType":"@InsightIntentEntry","parameters":{"description":"A schema for describing songs and their artists","properties":{"singer":{"description":"The name of the singer","minLength":1,"type":"string"},"songName":{"description":"The name of the song","minLength":1,"type":"string"}},"required":["songName"],"type":"object"},"keywords":["音乐播放","播放歌曲","PlayMusic"],"developType":"decorator","entities":[],"subIntentInfo":{"abilityName":"EntryAbility","executeMode":[0]}}
+10-13 12:33:37.467   43240-43240   A03D00/com.ohos.getinsightintent/JSAPP              I     liuzongze {"bundleName":"com.ohos.pcpad","moduleName":"entry","intentName":"PlayMusicC","domain":"MusicDomain","intentVersion":"1.0.1","displayName":"播放歌曲","displayDescription":"播放音乐意图","schema":"","icon":"$r('app.media.startIcon')","llmDescription":"支持传递歌曲名称，播放音乐","intentType":"@InsightIntentEntry","parameters":{"description":"A schema for describing songs and their artists","properties":{"singer":{"description":"The name of the singer","minLength":1,"type":"string"},"songName":{"description":"The name of the song","minLength":1,"type":"string"}},"required":["songName"],"type":"object"},"keywords":["音乐播放","播放歌曲","PlayMusic"],"developType":"decorator","entities":[],"subIntentInfo":{"abilityName":"EntryAbility","executeMode":[0]}}
+10-13 12:33:37.467   43240-43240   C01321/com.ohos.getinsightintent/JsRuntime          D     [ohos_js_environment_impl.cpp43]Do uv work end
+10-13 12:33:37.467   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:37.467   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:37.467   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:37.507   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_loop_handler.cpp35]triggered
+10-13 12:33:37.507   15834-15834   C01321/com.ohos.sceneboard/JsRuntime                D     [ohos_js_environment_impl.cpp78]called
+10-13 12:33:37.508   15834-15834   A01B01/com.ohos.sceneboard/HOME                     I     RecentDockModel: app is already first in recent dock
+10-13 12:33:37.508   15834-15834   A01B09/com.ohos.sceneboard/RECENT                   I     RecentDockRefreshAlarm --> refresh recent dock: EntryAbility/com.ohos.getinsightintent/entry/0(persistentId: 225)(containerId: 4)
+10-13 12:33:37.559   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abab4a170140 0 0]qosId not exist, qosId = 129!
+10-13 12:33:37.559   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abab4a170140 0 0]ConvertValueToNew failed, qosId = 129!
+10-13 12:33:37.625   1149-2075     C015B5/netmanager/NetMgrEnhanced: QOE               I     DumpData# DNS:0,0,0 UID:1051 UID:0 UID:20020201 Mov:0
+10-13 12:33:37.817   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:37.817   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:37.817   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:38.167   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:38.167   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:38.167   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:38.191   1682-47590    C01407/render_service/hgm                           I     LTPO-DEFAULT 0 2 PACKAGES 120  0.
+10-13 12:33:38.458   952-3420      C02805/multimodalinput/InputKeyFlow                 I     [|341]input_mt_wrapper, TW: 225, first: 1289-(2026-10-13 12:33:37.457ms), count: 1
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 108!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 108!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 116!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 116!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 107!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 107!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 118!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 118!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 115!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 115!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 110!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 110!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 112!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 112!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 113!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 113!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 120!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 120!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          I     [a92abbb4a1703b2 0 0]qosId not exist, qosId = 121!
+10-13 12:33:38.460   1483-1504     C01708/perfgenius_host/PF_                          W     [a92abbb4a1703b2 0 0]ConvertValueToNew failed, qosId = 121!
+10-13 12:33:38.515   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [OpenUartDevice:149] Set SetSerial 
+10-13 12:33:38.516   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [SetSerial:183] tcgetattr failed with I/O error
+10-13 12:33:38.516   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [OpenUartDevice:157] OpenUartdevice SerialHandle:20 fail.
+10-13 12:33:38.516   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [WatcherTimerCallBack:102] OpenUartdevice fail ! 
+10-13 12:33:38.516   2298-2298     C02D13/hdcd/HDC_LOG                                 F     [WatcherTimerCallBack:121] WatcherTimerCallBack found some issue
+10-13 12:33:38.518   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:38.518   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:38.518   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:38.666   1149-2075     C015B5/netmanager/NetMgrEnhanced: QOE               I     DumpData# DNS:0,0,0 UID:1051 UID:0 UID:20020201 Mov:0
+10-13 12:33:38.868   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:38.868   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:38.868   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:38.906   1586-1586     C05B01/tlogcat/teeos                                I     index: 10923: cpu1/00656:   10/13 12:33:38.227 [apm_service] [INFO] 427:>>>apm_measure: begin, uuid=3ec8f65f-830c-4ad9-98dc-604e3b7156c3, mspc_level=0x0
+10-13 12:33:38.906   1586-1586     C05BFE/tlogcat/teeos-platdrv_64                     E     index: 10924: cpu1/00656:   10/13 12:33:38.229 [platdrv_64-43] [ERROR] 456:crypto_core:Invalid ACK!
+10-13 12:33:38.906   1586-1586     C05B01/tlogcat/teeos                                I     index: 10925: cpu1/00656:   10/13 12:33:38.229 [apm_service] [INFO] 450:>>>apm_measure: end, uuid=3ec8f65f-830c-4ad9-98dc-604e3b7156c3, mspc_level=0x0
+10-13 12:33:38.961   1067-47553    C01720/resource_schedule_service/SmartGC            I     [a92abbb4a1703b2 0 0][ExitGCPauseSceneInner]ExitGCPauseSceneInner 2800465 2801966
+10-13 12:33:38.961   1067-47553    C01311/resource_schedule_service/AppMS              D     [a92abbb4a1703b2 0 0][app_mgr_client.cpp1283]tid is 0
+10-13 12:33:38.962   1067-47553    C01311/resource_schedule_service/AppMS              D     [a92abbb4a1703b2 0 0][app_mgr_proxy.cpp1975]called
+10-13 12:33:38.962   1687-3236     C01311/foundation/AppMS                             D     [a92abbb4a1703b2 0 0][app_mgr_stub.cpp57]AppMgrStub::OnReceived, code = 45, flags= 1.
+10-13 12:33:38.962   1687-3236     C01311/foundation/AppMS                             D     [a92abbb4a1703b2 0 0][app_mgr_service.cpp1734]called
+10-13 12:33:38.962   1687-3236     C01311/foundation/AppMS                             D     [a92abbb4a1703b2 0 0][AMSI10585]called, pid:43240, state:2, uid:1096.
+10-13 12:33:38.962   1687-3236     C01300/foundation/AAFwk                             D     [a92abbb4a1703b2 0 0][permission_verification.cpp123]called
+10-13 12:33:38.962   1687-3236     C01300/foundation/AAFwk                             D     [a92abbb4a1703b2 0 0][permission_verification.cpp413]callerToken: 671783907
+10-13 12:33:38.962   1687-3236     C01300/foundation/AAFwk                             D     [a92abbb4a1703b2 0 0][permission_verification.cpp86]called
+10-13 12:33:38.962   1687-3236     C01300/foundation/AAFwk                             D     [a92abbb4a1703b2 0 0][permission_verification.cpp92]verify success
+10-13 12:33:38.963   1687-3236     C01300/foundation/AAFwk                             D     [a92abbb4a1703b2 0 0][permission_verification.cpp413]callerToken: 671783907
+10-13 12:33:38.963   1687-3236     C01300/foundation/AAFwk                             E     [a92abbb4a1703b2 0 0][permission_verification.cpp132]check process fail
+10-13 12:33:38.963   1687-3236     C01311/foundation/AppMS                             D     [a92abbb4a1703b2 0 0][ARR2518]called
+10-13 12:33:38.963   1687-3236     C01311/foundation/AppMS                             D     [a92abbb4a1703b2 0 0][app_lifecycle_deal.cpp418]called
+10-13 12:33:38.963   43240-43418   C01311/com.ohos.getinsightintent/AppMS              D     [a92abbb4a1703b2 0 0][app_scheduler_host.cpp43]AppSchedulerHost::OnReceived, code = 20, flags= 1.
+10-13 12:33:38.964   43240-43418   C01317/com.ohos.getinsightintent/AppKit             D     [a92abbb4a1703b2 0 0][MTHRD4237]called, state is 2
+10-13 12:33:38.964   43240-43418   C01317/com.ohos.getinsightintent/AppKit             D     [a92abbb4a1703b2 0 0][MTHRD4268]called
+10-13 12:33:39.007   1681-3191     C04707/hianalytics/HaService                        I     MaintLogger PSL : [com:0,ads:0,int:1,fus:1,int:1,bas:1,asd:1,loc:1] | DSL : [ m:0,am:2,s:1,n:0,o:0,g:0,c:1,p:602,ml:0] | SEL : [2, 1, 0, 0, 1, 0, 0, 5] | CSL : [86 , 124] | RDL : [0, 0, 0, 4, 0, 9, 0] | 
+10-13 12:33:39.007   1681-3191     C04707/hianalytics/HaAsset                          I     not execute update asset config task because silent
+10-13 12:33:39.007   1681-3191     C04707/hianalytics/HaAsset                          I     not execute update subscribe asset config task because silent
+10-13 12:33:39.007   1681-46224    C04707/hianalytics/HaScene                          I     NFA AdvanceTime from outside
+10-13 12:33:39.217   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:39.217   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:39.217   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:39.569   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:39.569   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:39.569   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:39.676   1436-1459     C01C42/time_service/SA                              W     tg:5523 17052 0
+10-13 12:33:39.676   1436-1459     C01C42/time_service/SA                              W     t3 323
+10-13 12:33:39.678   1436-3304     C01C42/time_service/SA                              I     start:1705258752 typ:1 int:0 trig:1791866049677 pid:1687
+10-13 12:33:39.678   1436-3304     C01C42/time_service/SA                              W     we:17052 2832681
+10-13 12:33:39.681   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [FetchCommand:1274] FetchCommand channelId:1437605945 command:1001
+10-13 12:33:39.681   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [DispatchTaskData:1698] New HTaskInfo cid:1437605945 sid:841******131(L:8) command:1001
+10-13 12:33:39.681   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [AdminTask:923] AdminTask add task type:0 cid:1437605945 sid:841******131(L:8) mapsize:4
+10-13 12:33:39.681   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [HdcTaskBase:34] HdcTaskBase type:0 cid:1437605945 sid:841******131(L:8)
+10-13 12:33:39.681   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [CommandDispatch:435] Unity CommandDispatch command:1001 cid:1437605945 sid:841******131(L:8)
+10-13 12:33:39.681   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [GetDevItem:35] GetDevItem false key:persist.hdc.root
+10-13 12:33:39.681   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [ThreadFork:188] Popen pipe fds[pipeRead]:31 fds[pipeWrite]:34, mode 0
+10-13 12:33:39.685   1551-31258    C02511/power_host/HDF_LOG_TAG                       I     [a92abab4a3a68c9 0 0]BL active,T=65
+10-13 12:33:39.685   1646-2462     C02900/powermgr/PowerLock                           I     [a92abab4a3a68c9 0 0]P=1360U=7023T=65N=push_manager_service_pushAgentEventThread_42258B=TA=AD
+10-13 12:33:39.686   1646-2462     C02909/powermgr/PowerRunningLock                    I     [a92abab4a3a68c9 0 0]Timerid=193,Ms=5000
+10-13 12:33:39.692   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [ExecuteCommand:248] ExecuteCommand cmd:hid******Ms"(L:53) fd:31 pid:47671
+10-13 12:33:39.693   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [CommandDispatch:507] Unity CommandDispatch command:1001 finish cid:1437605945 sid:841******131(L:8)
+10-13 12:33:39.694   1646-2462     C02909/powermgr/PowerRunningLock                    I     [a92abab4a3a68c9 0 0]timer exist,unregistId=193
+10-13 12:33:39.695   1360-47672    C04707/push_manager_service/HaClientLite            I     [a92abab4a3a68c9 0 0]OnEvents(push_service1, 2)
+10-13 12:33:39.695   1360-47672    C04707/push_manager_service/HaEcc                   I     [a92abab4a3a68c9 0 0]consumeQueue_ = 2 0 8 6 0 
+10-13 12:33:39.695   1551-31258    C02511/power_host/HDF_LOG_TAG                       I     [a92abab4a3a68c9 0 0]BL inactive,T=65
+10-13 12:33:39.697   1646-2462     C02900/powermgr/PowerLock                           I     [a92abab4a3a68c9 0 0]P=1360U=7023T=65N=push_manager_service_pushAgentEventThread_42258B=TA=RE
+10-13 12:33:39.698   47671-47671   C02D13/hdcd/HDC_LOG                                 W     [SetSelinuxLabel:159] SetSelinuxLabel con:u:r:su:s0 isRoot:0
+10-13 12:33:39.701   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [FetchCommand:1274] FetchCommand channelId:122815142 command:1001
+10-13 12:33:39.701   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [DispatchTaskData:1698] New HTaskInfo cid:122815142 sid:841******131(L:8) command:1001
+10-13 12:33:39.701   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [AdminTask:923] AdminTask add task type:0 cid:122815142 sid:841******131(L:8) mapsize:5
+10-13 12:33:39.701   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [HdcTaskBase:34] HdcTaskBase type:0 cid:122815142 sid:841******131(L:8)
+10-13 12:33:39.701   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [CommandDispatch:435] Unity CommandDispatch command:1001 cid:122815142 sid:841******131(L:8)
+10-13 12:33:39.701   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [GetDevItem:35] GetDevItem false key:persist.hdc.root
+10-13 12:33:39.704   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [ThreadFork:188] Popen pipe fds[pipeRead]:35 fds[pipeWrite]:37, mode 0
+10-13 12:33:39.706   1149-2075     C015B5/netmanager/NetMgrEnhanced: QOE               I     DumpData# DNS:0,0,0 UID:1051 UID:0 UID:20020201 Mov:0
+10-13 12:33:39.713   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [ExecuteCommand:248] ExecuteCommand cmd:p******f fd:35 pid:47674
+10-13 12:33:39.714   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [CommandDispatch:507] Unity CommandDispatch command:1001 finish cid:122815142 sid:841******131(L:8)
+10-13 12:33:39.717   47674-47674   C02D13/hdcd/HDC_LOG                                 W     [SetSelinuxLabel:159] SetSelinuxLabel con:u:r:su:s0 isRoot:0
+10-13 12:33:39.720   47671-47671   C03F07/MUSL-LDSO                                    W     load libfdleak_tracker.so failed, namespace=ndk no inherits, errno=2
+10-13 12:33:39.720   47671-47671   C03F07/MUSL-LDSO                                    W     load libfdleak_tracker.so failed, namespace=default, errno=2
+10-13 12:33:39.720   47671-47671   C03F07/MUSL-LDSO                                    W     dlopen_impl load library header failed for libfdleak_tracker.so caller namespace : default
+10-13 12:33:39.729   47674-47674   C03F07/MUSL-LDSO                                    W     load libfdleak_tracker.so failed, namespace=ndk no inherits, errno=2
+10-13 12:33:39.729   47674-47674   C03F07/MUSL-LDSO                                    W     load libfdleak_tracker.so failed, namespace=default, errno=2
+10-13 12:33:39.729   47674-47674   C03F07/MUSL-LDSO                                    W     dlopen_impl load library header failed for libfdleak_tracker.so caller namespace : default
+10-13 12:33:39.757   47674-47674   C03F07/MUSL-LDSO                                    W     load libfdleak_tracker.so failed, namespace=ndk no inherits, errno=2
+10-13 12:33:39.758   47674-47674   C03F07/MUSL-LDSO                                    W     load libfdleak_tracker.so failed, namespace=default, errno=2
+10-13 12:33:39.758   47674-47674   C03F07/MUSL-LDSO                                    W     dlopen_impl load library header failed for libfdleak_tracker.so caller namespace : default
+10-13 12:33:39.761   47676-47676   C03F07/MUSL-LDSO                                    W     load libfdleak_tracker.so failed, namespace=ndk no inherits, errno=2
+10-13 12:33:39.761   47676-47676   C03F07/MUSL-LDSO                                    W     load libfdleak_tracker.so failed, namespace=default, errno=2
+10-13 12:33:39.761   47676-47676   C03F07/MUSL-LDSO                                    W     dlopen_impl load library header failed for libfdleak_tracker.so caller namespace : default
+10-13 12:33:39.769   47676-47676   C01719/hidumper/ffrt                                E     1:AccInit:141 acc init dev failed, accPassthrough not exist
+10-13 12:33:39.769   47676-47676   C01719/hidumper/ffrt                                W     2:ffrt_init:263 Acc init fail
+10-13 12:33:39.771   47676-47676   C02D20/hidumper/DumperService                       I     SetCmdArgs# hidumper cmd:hidumper -s 1201 -a -p Faultlogger -LogSuffixWithMs , calllingUid=0, calllingPid=47676, ppid:47671.
+10-13 12:33:39.771   47676-47677   C057C1/hidumper/IPCWorkThread                       W     ThreadHandler: proto:0 policy:1 name:OS_IPC_0_47677 invoker:950036352
+10-13 12:33:39.772   47676-47678   C057C1/hidumper/IPCWorkThread                       W     ThreadHandler: proto:0 policy:0 name:OS_IPC_1_47678 invoker:910798208
+10-13 12:33:39.773   3360-3524     C02D20/hidumper_service/DumperService               I     DelayUnloadTask# recieve new request, delay unload task begin, calllingPid=47676
+10-13 12:33:39.774   668-8204      C02D11/hiview/Faultlogger                           I     DumpByCommands: DumpRequest: detail:0, list:0, file:, name:, time:-1
+10-13 12:33:39.775   3360-3524     C02D20/hidumper_service/DumperService               I     GetData# SA name:1201 dump success, cmd:-p Faultlogger -LogSuffixWithMs , calllingPid=47676!
+10-13 12:33:39.781   2298-47673    C02D13/hdcd/HDC_LOG                                 I     [FinishShellProc:131] FinishShellProc finish pipeRead fd:31 pid:47671 count:1
+10-13 12:33:39.781   2298-47673    C02D13/hdcd/HDC_LOG                                 I     [TaskFinish:55] HdcTaskBase::TaskFinish notify begin type:0 cid:1437605945 sid:841******131(L:8)
+10-13 12:33:39.781   2298-47673    C02D13/hdcd/HDC_LOG                                 I     [TaskFinish:58] HdcTaskBase::TaskFinish notify end type:0 cid:1437605945 sid:841******131(L:8)
+10-13 12:33:39.784   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [FetchCommand:1274] FetchCommand channelId:1437605945 command:2
+10-13 12:33:39.784   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [BeginRemoveTask:167] BeginRemoveTask taskType:0 channelId:1437605945
+10-13 12:33:39.784   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [ClearOwnTasks:200] ClearOwnTasks OP_CLEAR finish, sessionId:841******131(L:8) channelIDInput:1437605945
+10-13 12:33:39.784   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [TaskClassDeleteRetry:124] taskClassDeleteRetry start clear task, taskType:0 cid:1437605945 sid:841******131(L:8)
+10-13 12:33:39.784   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [DoRelease:111] DoRelease rc:-3 pid:47671
+10-13 12:33:39.784   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [TaskClassDeleteRetry:135] TaskDelay task remove retry count 0/30, taskType:0 channelId:1437605945, sessionId:841******131(L:8)
+10-13 12:33:39.784   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [~HdcDaemonUnity:35] ~HdcDaemonUnity cid:1437605945 sid:841******131(L:8)
+10-13 12:33:39.784   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [~HdcTaskBase:40] ~HdcTaskBase type:0 cid:1437605945 sid:841******131(L:8)
+10-13 12:33:39.784   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [TaskClassDeleteRetry:143] TaskDelay task remove finish, channelId:1437605945
+10-13 12:33:39.784   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [DispUvStreamInfo:1081] before uv handle close, the uv handle type is 13
+10-13 12:33:39.793   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [FetchCommand:1274] FetchCommand channelId:1437605945 command:2
+10-13 12:33:39.795   2298-47675    C02D13/hdcd/HDC_LOG                                 I     [FinishShellProc:131] FinishShellProc finish pipeRead fd:35 pid:47674 count:1
+10-13 12:33:39.795   2298-47675    C02D13/hdcd/HDC_LOG                                 I     [TaskFinish:55] HdcTaskBase::TaskFinish notify begin type:0 cid:122815142 sid:841******131(L:8)
+10-13 12:33:39.795   2298-47675    C02D13/hdcd/HDC_LOG                                 I     [TaskFinish:58] HdcTaskBase::TaskFinish notify end type:0 cid:122815142 sid:841******131(L:8)
+10-13 12:33:39.804   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [FetchCommand:1274] FetchCommand channelId:122815142 command:2
+10-13 12:33:39.804   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [BeginRemoveTask:167] BeginRemoveTask taskType:0 channelId:122815142
+10-13 12:33:39.804   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [ClearOwnTasks:200] ClearOwnTasks OP_CLEAR finish, sessionId:841******131(L:8) channelIDInput:122815142
+10-13 12:33:39.804   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [TaskClassDeleteRetry:124] taskClassDeleteRetry start clear task, taskType:0 cid:122815142 sid:841******131(L:8)
+10-13 12:33:39.804   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [DoRelease:111] DoRelease rc:-3 pid:47674
+10-13 12:33:39.804   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [TaskClassDeleteRetry:135] TaskDelay task remove retry count 0/30, taskType:0 channelId:122815142, sessionId:841******131(L:8)
+10-13 12:33:39.804   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [~HdcDaemonUnity:35] ~HdcDaemonUnity cid:122815142 sid:841******131(L:8)
+10-13 12:33:39.804   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [~HdcTaskBase:40] ~HdcTaskBase type:0 cid:122815142 sid:841******131(L:8)
+10-13 12:33:39.804   2298-13593    C02D13/hdcd/HDC_LOG                                 W     [TaskClassDeleteRetry:143] TaskDelay task remove finish, channelId:122815142
+10-13 12:33:39.804   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [DispUvStreamInfo:1081] before uv handle close, the uv handle type is 13
+10-13 12:33:39.830   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [FetchCommand:1274] FetchCommand channelId:122815142 command:2
+10-13 12:33:39.870   1480-2753     C02503/aptouch_daemon/TsaFrame                      W     [0]idle in. 400
+10-13 12:33:39.917   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:39.917   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:39.917   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:40.001   1436-1459     C01C42/time_service/SA                              W     tg:1096 97569 0
+10-13 12:33:40.001   1436-1459     C01C42/time_service/SA                              W     we:97569 2808004
+10-13 12:33:40.002   1436-1459     C01C42/time_service/SA                              W     t3 4998
+10-13 12:33:40.005   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [OpenUartDevice:149] Set SetSerial 
+10-13 12:33:40.005   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [SetSerial:183] tcgetattr failed with I/O error
+10-13 12:33:40.006   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [OpenUartDevice:157] OpenUartdevice SerialHandle:20 fail.
+10-13 12:33:40.006   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [WatcherTimerCallBack:102] OpenUartdevice fail ! 
+10-13 12:33:40.006   2298-2298     C02D13/hdcd/HDC_LOG                                 F     [WatcherTimerCallBack:121] WatcherTimerCallBack found some issue
+10-13 12:33:40.233   1626-13175    C02F18/security_guard/SECURITY_AUDIT_Service        E     Get HasDefaultNet ret:0 Net Status: 0
+10-13 12:33:40.255   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [SendHeartbeatMsg:1567] send heartbeat count is 14 and messages count is 501 for session 841******131(L:8)
+10-13 12:33:40.267   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:40.267   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:40.267   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:40.272   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [FetchCommand:1274] FetchCommand channelId:0 command:5000
+10-13 12:33:40.272   2298-13593    C02D13/hdcd/HDC_LOG                                 I     [FetchCommand:1295] recv heartbeat count is 14 for session 841******131(L:8)
+10-13 12:33:40.617   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:40.617   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:40.617   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:40.746   1149-2075     C015B5/netmanager/NetMgrEnhanced: QOE               I     DumpData# DNS:0,0,0 UID:1051 UID:0 UID:20020201 Mov:0
+10-13 12:33:40.967   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:40.968   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:40.968   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:40.979   668-43579     C02D15/hiview/XPower                                W     [task_102]#record top temp [chargeCurrent] failed, chargeCurrent is [-1]
+10-13 12:33:40.980   668-43579     C02D15/hiview/XPower                                W     [task_102]#record top temp [modemSignalLevel] failed, modemSignalLevel is [-1]
+10-13 12:33:40.980   668-43579     C02D15/hiview/XPower                                W     [task_102]#record top temp [wifiSignalLevel] failed, wifiSignalLevel is [-1]
+10-13 12:33:40.980   668-43579     C02D15/hiview/XPower                                E     [task_102]#ThermalHandler-agent [QuerySceneRequiredInfo] Failed
+10-13 12:33:41.014   1721-4216     C02930/batterycare_service/BCS/Base/Arbitrator      I     [1201][GetMaxImmediateValue:183]: GetMaxImmediateValue: paramName=soc_control, maxImmediateValue=0
+10-13 12:33:41.014   1721-4216     C02930/batterycare_service/BCS/Base/Arb_HdiParam    I     [1202][Apply:72]: Apply.[moduleName:AswEc, param:soc_control, detailsWithValue:source=trigger;event=heartbeat;chargestatus=start;value=2 65 70 1 1;,maxImmediateValue:0, globalMaxImmediateValue:0]
+10-13 12:33:41.015   1721-4216     C02930/batterycare_service/BCS/Base/Arb_HdiParam    I     [1203][SFCSisStartSOCControl:108]: SFCS highSoc = 70, cutOffSoc=70
+10-13 12:33:41.021   1486-36858    C02925/battery_extra_host/power_hidl                E     [PowerHidlWriteStr]: file /sys/class/hw_power/charger/charge_data/sfcs_state is invalid
+10-13 12:33:41.022   1486-36858    C02925/battery_extra_host/power_hidl                E     [PowerHidlSetHpcd]: Hpcd: PowerHidlWriteStr failed, type = hpcd sfcs_state, hpcdPath = /sys/class/hw_power/charger/charge_data/sfcs_state
+10-13 12:33:41.022   1721-4216     C057C2/batterycare_service/IPCObjectProxy           E     PrintErrorDetailedInfo: failed, handle:8 error:1 desc:*.IBatteryExtraInterface proxy:134678784 time:2804027097968
+10-13 12:33:41.022   1721-4216     C02510/batterycare_servi...y_extra_interface_proxy  E     SetBatteryExtraState_ failed, error code is 1
+10-13 12:33:41.022   1721-4216     C02930/batterycare_service/BCS/Base/Data            E     [1204][SetValue:133]:SetHdiValue SetValue:scene:hpcd sfcs_state, value 0 failed, ret=1
+10-13 12:33:41.030   1721-4216     C02930/batterycare_service/BCS/Base/Arb_HdiParam    I     [1205][SetHdiValue:241]: SetHdiValue Success:[module:AswEc, scene:soc_control, value:2 65 70 1 1]
+10-13 12:33:41.317   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:41.317   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:41.317   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:41.472   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = brightness
+10-13 12:33:41.496   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = 
+10-13 12:33:41.497   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = 
+10-13 12:33:41.497   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = 
+10-13 12:33:41.499   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = lid_status
+10-13 12:33:41.505   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [OpenUartDevice:149] Set SetSerial 
+10-13 12:33:41.505   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [SetSerial:183] tcgetattr failed with I/O error
+10-13 12:33:41.505   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [OpenUartDevice:157] OpenUartdevice SerialHandle:20 fail.
+10-13 12:33:41.505   2298-2298     C02D13/hdcd/HDC_LOG                                 I     [WatcherTimerCallBack:102] OpenUartdevice fail ! 
+10-13 12:33:41.505   2298-2298     C02D13/hdcd/HDC_LOG                                 F     [WatcherTimerCallBack:121] WatcherTimerCallBack found some issue
+10-13 12:33:41.507   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu16_max_freq
+10-13 12:33:41.507   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu16_min_freq
+10-13 12:33:41.507   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu16_cur_freq
+10-13 12:33:41.507   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu17_min_freq
+10-13 12:33:41.508   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu17_cur_freq
+10-13 12:33:41.508   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu17_max_freq
+10-13 12:33:41.508   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu18_min_freq
+10-13 12:33:41.508   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu18_cur_freq
+10-13 12:33:41.508   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu18_max_freq
+10-13 12:33:41.508   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu19_min_freq
+10-13 12:33:41.508   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu19_cur_freq
+10-13 12:33:41.509   1551-2571     C02943/power_host/ThermalHdi                        W     Read node failed, title = cpu19_max_freq
+10-13 12:33:41.669   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:41.669   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null
+10-13 12:33:41.669   1623-1623     C02700/sensors/HdiConnection                        E     in OnDataEventAsync, CHKPR(reportDataCb_) is null, return value is 19
+10-13 12:33:41.672   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:41.673   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:41.673   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:41.673   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/charge_data/chargerType is invalid
+10-13 12:33:41.674   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:41.675   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:41.675   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:41.676   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/charge_data/chargerType is invalid
+10-13 12:33:41.676   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/adapter/adapter_code is invalid
+10-13 12:33:41.677   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/adapter/prot_type is invalid
+10-13 12:33:41.678   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:41.678   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:41.679   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:41.682   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:41.683   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:41.684   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:41.686   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_typec/typec/succ_value is invalid
+10-13 12:33:41.687   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/adapter/third_party_id is invalid
+10-13 12:33:41.688   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/charge_data/charge_done_status is invalid
+10-13 12:33:41.692   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:41.692   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:41.692   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:41.693   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/charge_data/Ibus is invalid
+10-13 12:33:41.693   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc4/direct_charge_succ is invalid
+10-13 12:33:41.694   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger_sc/direct_charge_succ is invalid
+10-13 12:33:41.694   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/direct_charger/direct_charge_succ is invalid
+10-13 12:33:41.694   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/charger/charge_data/Vbus is invalid
+10-13 12:33:41.697   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/leds/lcd_backlight0/brightness is invalid
+10-13 12:33:41.698   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/leds/lcd_backlight0/brightness is invalid
+10-13 12:33:41.698   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/bat_heating/heat_up is invalid
+10-13 12:33:41.700   46307-46308   C02925/bms_behavior/bms_behavior                    E     [GetTemp]: tz usb_port not exist
+10-13 12:33:41.700   46307-46308   C02925/bms_behavior/bms_file                        E     [BmsFileReadBuffer]: file /sys/class/hw_power/adapter/adapter_code is invalid
+10-13 12:33:41.786   1149-2075     C015B5/netmanager/NetMgrEnhanced: QOE               I     DumpData# DNS:0,0,0 UID:1051 UID:0 UID:20020201 Mov:0
+10-13 12:33:41.863   1596-42383    C00102/bluetooth_service...ver_ble_central_manager  I     [13]OnScanCallback: pid:1614 uid:1024 address:54:55:**:**:**:16 passed filter.
+10-13 12:33:42.017   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCb, reportDataCb_ cannot be null
+10-13 12:33:42.017   1623-1623     C02700/sensors/HdiConnection                        E     in GetReportDataCallback, reportDataCallback_ cannot be null

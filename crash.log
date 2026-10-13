@@ -1,0 +1,143 @@
+Device info:HUAWEI MatePad Edge
+Build info:QXS 7.1.0.18DEV(SP22log)cust preload version format error
+DeviceDebuggable:Yes
+Fingerprint:51a18452e84975a6664999dd9859443ac92114fdf18af6a51c4b7581664c735e
+Timestamp:2026-10-13 10:34:54.483
+Module name:com.ohos.getinsightintent
+ReleaseType:debug
+CpuAbi:arm64-v8a
+Version:1.0.0
+VersionCode:1000000
+IsSystemApp:Yes
+PreInstalled:No
+Foreground:Yes
+Pid:7791
+Uid:20020201
+Process name:com.ohos.getinsightintent
+App running unique id:8638991627415165909
+Process life time:147s
+Process Memory(kB): 173940(Rss)
+Device Memory(kB): Total 24429432, Free 3369752, Available 13384704
+Page switch history:
+  10:33:07.407 :enters foreground
+Reason:TypeError
+Error name:TypeError
+Error message:Cannot read property code of undefined
+Stacktrace:
+    at anonymous entry (entry/src/main/ets/pages/Index.ets:44:85)
+HybridStack:
+#00 pc 00000000003dcbf8 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+#01 pc 0000000000207f28 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+#02 pc 0000000000207608 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+#03 pc 00000000002c2c10 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+#04 pc 00000000007d9af4 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+#05 pc 00000000007d54b8 /system/lib64/platformsdk/libark_jsruntime.so(panda::ecmascript::ObjectFactory::GetJSError(panda::ecmascript::base::ErrorType const&, char const*, panda::ecmascript::StackCheck)+148)(99f2a0106f415ef6f1abeb2950a31d51)
+#06 pc 00000000005903c4 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+#07 pc 00000000008af5f4 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+#08 pc 0000000000e8ed1c /system/lib64/module/arkcompiler/stub.an(RTStub_CallRuntime+44)
+#09 pc 0000000000cee228 /system/lib64/module/arkcompiler/stub.an(BCStub_HandleLdobjbynameImm8Id16StwCopy+5540)
+#10 at anonymous entry (entry/src/main/ets/pages/Index.ets:44:85)
+#11 pc 00000000004898ec /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+#12 pc 000000000079c824 /system/lib64/platformsdk/libark_jsruntime.so(panda::FunctionRef::CallForNapi(panda::ecmascript::EcmaVM const*, panda::JSValueRef*, panda::JSValueRef* const*, int)+1832)(99f2a0106f415ef6f1abeb2950a31d51)
+#13 pc 0000000000079ccc /system/lib64/platformsdk/libace_napi.z.so(napi_call_function+332)(d8e704335843251ad4a7dd8a0878a80e)
+#14 pc 0000000000080e08 /system/lib64/platformsdk/libruntime.z.so(OHOS::AbilityRuntime::NapiAsyncTask::Reject(napi_env__*, napi_value__*)+164)(9979d223b5c4803a91aa0f88af6b0c83)
+#15 pc 000000000000ccdc /system/lib64/module/app/ability/libinsightintentdriver_napi.z.so(16afc371cf30e067ae5d55b8af060afd)
+#16 pc 00000000000807d8 /system/lib64/platformsdk/libruntime.z.so(OHOS::AbilityRuntime::NapiAsyncTask::Complete(napi_env__*, napi_status, void*)+168)(9979d223b5c4803a91aa0f88af6b0c83)
+#17 pc 0000000000094488 /system/lib64/platformsdk/libace_napi.z.so(d8e704335843251ad4a7dd8a0878a80e)
+#18 pc 000000000001c1c8 /system/lib64/chipset-sdk-sp/libeventhandler.z.so(OHOS::AppExecFwk::EventHandler::DistributeEvent(std::__h::unique_ptr<OHOS::AppExecFwk::InnerEvent, void (*)(OHOS::AppExecFwk::InnerEvent*)> const&)+1044)(1eda91ae658c29a0d6c4fb044fca2636)
+#19 pc 00000000000316c0 /system/lib64/chipset-sdk-sp/libeventhandler.z.so(1eda91ae658c29a0d6c4fb044fca2636)
+#20 pc 0000000000030ea8 /system/lib64/chipset-sdk-sp/libeventhandler.z.so(1eda91ae658c29a0d6c4fb044fca2636)
+#21 pc 000000000002ec6c /system/lib64/chipset-sdk-sp/libeventhandler.z.so(OHOS::AppExecFwk::EventRunner::Run()+544)(1eda91ae658c29a0d6c4fb044fca2636)
+#22 pc 00000000000df0fc /system/lib64/platformsdk/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+308)(32b6416496f266f7aff991bc9b415aff)
+#23 pc 0000000000006484 /system/lib64/appspawn/appspawn/libappspawn_ace.z.so(d82d8498d6b29076365845bd8c6f8e16)
+#24 pc 000000000000e2b4 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+#25 pc 000000000001c7c4 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+#26 pc 000000000001b7a4 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+#27 pc 00000000000187f8 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+#28 pc 0000000000018270 /system/lib64/chipset-sdk-sp/libbegetutil.z.so(e19b25b184d4795a883690a1bac55b80)
+#29 pc 0000000000017cd8 /system/lib64/chipset-sdk-sp/libbegetutil.z.so(e19b25b184d4795a883690a1bac55b80)
+#30 pc 00000000000150a8 /system/lib64/chipset-sdk-sp/libbegetutil.z.so(e19b25b184d4795a883690a1bac55b80)
+#31 pc 0000000000014c60 /system/lib64/chipset-sdk-sp/libbegetutil.z.so(e19b25b184d4795a883690a1bac55b80)
+#32 pc 00000000000156a4 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+#33 pc 0000000000012778 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+#34 pc 00000000000b7ab8 /system/lib/ld-musl-aarch64.so.1(a0cdbbb8b22e78ff47a4f3fd0c853567)
+#35 pc 000000000000e074 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+
+HiLog:
+10-13 10:34:49.711  7791  8639 I C01323/com.ohos.getinsightintent/Intent: [insight_intent_execute_callback_stub.cpp56]called
+10-13 10:34:49.711  7791  8639 D C01323/com.ohos.getinsightintent/Intent: [insight_intent_host_client.cpp57]called
+10-13 10:34:49.711  7791  8639 I C01323/com.ohos.getinsightintent/Intent: [js_insight_intent_driver.cpp97]complete
+10-13 10:34:49.711  7791  7791 D C01321/com.ohos.getinsightintent/JsRuntime: [js_runtime_utils.cpp369]called
+10-13 10:34:49.711  7791  7791 I A03D00/com.ohos.getinsightintent/JSAPP: liuzongze testTag execute insight intent failed with %{public}s {"code":16000050}
+10-13 10:34:49.712  7791  7791 W C03F00/com.ohos.getinsightintent/ArkCompiler: [default] [CallForNapi] occur exception need return
+10-13 10:34:49.712  7791  7791 W C03F01/com.ohos.getinsightintent/NAPI: [napi_call_function] pending exception when js function called, print exception info: 
+10-13 10:34:49.712  7791  7791 E C03F00/com.ohos.getinsightintent/ArkCompiler: TypeError: Cannot read property code of undefined
+10-13 10:34:49.712  7791  7791 E C03F00/com.ohos.getinsightintent/ArkCompiler:     at anonymous entry (entry/src/main/ets/pages/Index.ets:44:85)
+10-13 10:34:50.679  7791  8639 D C01311/com.ohos.getinsightintent/AppMS: [a92ab498c92b668 0 0][app_scheduler_host.cpp43]AppSchedulerHost::OnReceived, code = 20, flags= 1.
+10-13 10:34:50.679  7791  8639 D C01317/com.ohos.getinsightintent/AppKit: [a92ab498c92b668 0 0][MTHRD4237]called, state is 2
+10-13 10:34:50.679  7791  8639 D C01317/com.ohos.getinsightintent/AppKit: [a92ab498c92b668 0 0][MTHRD4268]called
+10-13 10:34:54.459  7791  7791 I C02805/com.ohos.getinsightintent/InputKeyFlow: [P:D:4862|252]ac: down: 4862
+10-13 10:34:54.460  7791  7791 I C02805/com.ohos.getinsightintent/InputKeyFlow: [P:D:4862|732]recv
+10-13 10:34:54.460  7791  7791 I C04213/com.ohos.getinsightintent/InputKeyFlow: HandleInputEvent: eid:10,InputId:4862,wid:205,ac:2
+10-13 10:34:54.460  7791  7791 I C03951/com.ohos.getinsightintent/InputKeyFlow: [(100000:100000:scope)] ITK Id:4862, fId:0, T:0, I=0, M=0
+10-13 10:34:54.461  7791  7791 I C03951/com.ohos.getinsightintent/InputKeyFlow: [(100000:100000:scope)] ITK Id:4862, TTHNI:fId: 0{ T: page, D: 6 };{ T: Button, D: 10 };
+10-13 10:34:54.461  7791  7791 I C03951/com.ohos.getinsightintent/InputKeyFlow: [(100000:100000:scope)] ITK Id:4862, TTHRTI: T ClickRecognizer info: { T: Button };
+10-13 10:34:54.461  7791  7791 I C03945/com.ohos.getinsightintent/AceStateStyle: [(100000:100000:scope)] Handle TouchDown event node: Button
+10-13 10:34:54.462  7791  7791 E C03F00/com.ohos.getinsightintent/ArkCompiler: [ecmascript] Pending exception before Call called in line:4192, exception details as follows:
+10-13 10:34:54.462  7791  7791 E C03F00/com.ohos.getinsightintent/ArkCompiler: TypeError: Cannot read property code of undefined
+10-13 10:34:54.462  7791  7791 E C03F00/com.ohos.getinsightintent/ArkCompiler:     at anonymous entry (entry/src/main/ets/pages/Index.ets:44:85)
+10-13 10:34:54.462  7791  7791 D C01320/com.ohos.getinsightintent/JsEnv: [uncaught_exception_callback.cpp314]obj is JS Error
+10-13 10:34:54.462  7791  7791 D C01320/com.ohos.getinsightintent/JsEnv: [uncaught_exception_callback.cpp59]GetNativeStrFromJsTaggedObj Success as string
+10-13 10:34:54.462  7791  7791 D C01320/com.ohos.getinsightintent/JsEnv: [uncaught_exception_callback.cpp59]GetNativeStrFromJsTaggedObj Success as string
+10-13 10:34:54.462  7791  7791 D C01320/com.ohos.getinsightintent/JsEnv: [uncaught_exception_callback.cpp59]GetNativeStrFromJsTaggedObj Success as string
+10-13 10:34:54.479  7791  7791 I C03F00/com.ohos.getinsightintent/ArkCompiler: [ecmascript] Add reference, count: 1
+10-13 10:34:54.482  7791  7791 D C01320/com.ohos.getinsightintent/JsEnv: [uncaught_exception_callback.cpp68]Failed to convert value from key
+10-13 10:34:54.482  7791  7791 D C01320/com.ohos.getinsightintent/JsEnv: [uncaught_exception_callback.cpp254]Module Import stack is empty
+10-13 10:34:54.482  7791  7791 D C01320/com.ohos.getinsightintent/JsEnv: [uncaught_exception_callback.cpp68]Failed to convert value from key
+10-13 10:34:54.482  7791  7791 D C01320/com.ohos.getinsightintent/JsEnv: [uncaught_exception_callback.cpp272]So Load Failure info is empty
+10-13 10:34:54.483  7791  7791 W C01317/com.ohos.getinsightintent/AppKit: [MTHRD2304]hisysevent write result=0, send event [FRAMEWORK,JS_ERROR], packageName=com.ohos.getinsightintent, pid=7791, appRunningId=8638991627415165909, threadName=etinsightintent, isUncatchable=0, foreground=1
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: [MTHRD2353]
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: com.ohos.getinsightintent is about to exit due to RuntimeError
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: Error type:TypeError
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: Error name:TypeError
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: Error message:Cannot read property code of undefined
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: Stacktrace:
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit:     at anonymous entry (entry/src/main/ets/pages/Index.ets:44:85)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: HybridStack:
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #00 pc 00000000003dcbf8 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #01 pc 0000000000207f28 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #02 pc 0000000000207608 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #03 pc 00000000002c2c10 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #04 pc 00000000007d9af4 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #05 pc 00000000007d54b8 /system/lib64/platformsdk/libark_jsruntime.so(panda::ecmascript::ObjectFactory::GetJSError(panda::ecmascript::base::ErrorType const&, char const*, panda::ecmascript::StackCheck)+148)(99f2a0106f415ef6f1abeb2950a31d51)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #06 pc 00000000005903c4 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #07 pc 00000000008af5f4 /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #08 pc 0000000000e8ed1c /system/lib64/module/arkcompiler/stub.an(RTStub_CallRuntime+44)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #09 pc 0000000000cee228 /system/lib64/module/arkcompiler/stub.an(BCStub_HandleLdobjbynameImm8Id16StwCopy+5540)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #10 at anonymous entry (entry/src/main/ets/pages/Index.ets:44:85)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #11 pc 00000000004898ec /system/lib64/platformsdk/libark_jsruntime.so(99f2a0106f415ef6f1abeb2950a31d51)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #12 pc 000000000079c824 /system/lib64/platformsdk/libark_jsruntime.so(panda::FunctionRef::CallForNapi(panda::ecmascript::EcmaVM const*, panda::JSValueRef*, panda::JSValueRef* const*, int)+1832)(99f2a0106f415ef6f1abeb2950a31d51)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #13 pc 0000000000079ccc /system/lib64/platformsdk/libace_napi.z.so(napi_call_function+332)(d8e704335843251ad4a7dd8a0878a80e)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #14 pc 0000000000080e08 /system/lib64/platformsdk/libruntime.z.so(OHOS::AbilityRuntime::NapiAsyncTask::Reject(napi_env__*, napi_value__*)+164)(9979d223b5c4803a91aa0f88af6b0c83)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #15 pc 000000000000ccdc /system/lib64/module/app/ability/libinsightintentdriver_napi.z.so(16afc371cf30e067ae5d55b8af060afd)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #16 pc 00000000000807d8 /system/lib64/platformsdk/libruntime.z.so(OHOS::AbilityRuntime::NapiAsyncTask::Complete(napi_env__*, napi_status, void*)+168)(9979d223b5c4803a91aa0f88af6b0c83)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #17 pc 0000000000094488 /system/lib64/platformsdk/libace_napi.z.so(d8e704335843251ad4a7dd8a0878a80e)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #18 pc 000000000001c1c8 /system/lib64/chipset-sdk-sp/libeventhandler.z.so(OHOS::AppExecFwk::EventHandler::DistributeEvent(std::__h::unique_ptr<OHOS::AppExecFwk::InnerEvent, void (*)(OHOS::AppExecFwk::InnerEvent*)> const&)+1044)(1eda91ae658c29a0d6c4fb044fca2636)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #19 pc 00000000000316c0 /system/lib64/chipset-sdk-sp/libeventhandler.z.so(1eda91ae658c29a0d6c4fb044fca2636)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #20 pc 0000000000030ea8 /system/lib64/chipset-sdk-sp/libeventhandler.z.so(1eda91ae658c29a0d6c4fb044fca2636)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #21 pc 000000000002ec6c /system/lib64/chipset-sdk-sp/libeventhandler.z.so(OHOS::AppExecFwk::EventRunner::Run()+544)(1eda91ae658c29a0d6c4fb044fca2636)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #22 pc 00000000000df0fc /system/lib64/platformsdk/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+308)(32b6416496f266f7aff991bc9b415aff)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #23 pc 0000000000006484 /system/lib64/appspawn/appspawn/libappspawn_ace.z.so(d82d8498d6b29076365845bd8c6f8e16)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #24 pc 000000000000e2b4 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #25 pc 000000000001c7c4 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #26 pc 000000000001b7a4 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #27 pc 00000000000187f8 /system/bin/appspawn(08dfd808986f7d83746fe6b5e37cf144)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #28 pc 0000000000018270 /system/lib64/chipset-sdk-sp/libbegetutil.z.so(e19b25b184d4795a883690a1bac55b80)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #29 pc 0000000000017cd8 /system/lib64/chipset-sdk-sp/libbegetutil.z.so(e19b25b184d4795a883690a1bac55b80)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #30 pc 00000000000150a8 /system/lib64/chipset-sdk-sp/libbegetutil.z.so(e19b25b184d4795a883690a1bac55b80)
+10-13 10:34:54.483  7791  7791 E C01317/com.ohos.getinsightintent/AppKit: #31 pc 0000000000014c60 /system/lib64/
+10-13 10:34:54.483  7791  7791 I C01336/com.ohos.getinsightintent/AMS: [AMC1929]RecordAppWithReason pid:7791, uid:20020201, killId:2003
+10-13 10:34:54.483  7791  7791 D C01336/com.ohos.getinsightintent/AMS: [ability_manager_proxy.cpp5071]end.
+10-13 10:34:54.483  7791  7791 W C01317/com.ohos.getinsightintent/AppKit: [MTHRD2360]Record result=0, send event [FRAMEWORK,PROCESS_KILL,JS_ERROR], pid=7791, processName=com.ohos.getinsightintent, msg=Kill Reason:Js Error, foreground=1, isUncatchable=0
+10-13 10:34:54.483  7791  7791 I C01317/com.ohos.getinsightintent/AppKit: [application_data_manager.cpp212]main thread
+10-13 10:34:54.483  7791  7791 I C01356/com.ohos.getinsightintent/Recovery: [app_recovery.cpp282]scheduleRecoverApp  begin
