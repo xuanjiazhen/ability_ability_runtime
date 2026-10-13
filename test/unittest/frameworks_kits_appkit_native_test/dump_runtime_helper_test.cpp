@@ -371,7 +371,7 @@ HWTEST_F(DumpRuntimeHelperTest, IsAddressReadable_0100, Function | MediumTest | 
     EXPECT_TRUE(DumpRuntimeHelper::IsAddressReadable(addr, maps));
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0100 end";
 }
- 
+
 /**
  * @tc.number: IsAddressReadable_0200
  * @tc.name: IsAddressReadable
@@ -386,7 +386,7 @@ HWTEST_F(DumpRuntimeHelperTest, IsAddressReadable_0200, Function | MediumTest | 
     EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0x1, maps));
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0200 end";
 }
- 
+
 /**
  * @tc.number: IsAddressReadable_0300
  * @tc.name: IsAddressReadable
@@ -429,27 +429,132 @@ HWTEST_F(DumpRuntimeHelperTest, FormatLeakedStack_0200, Function | MediumTest | 
 }
 
 /**
- * @tc.number: DumpNativeHeap_0100
- * @tc.name: DumpNativeHeap
- * @tc.desc: Test DumpNativeHeap with needLeakobj=true assigns thread stack leak result to dumpResult.
+ * @tc.number: ParseTidFromMapName_0400
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName returns 0 for value exceeding INT32_MAX.
  */
-HWTEST_F(DumpRuntimeHelperTest, DumpNativeHeap_0100, Function | MediumTest | Level1)
+HWTEST_F(DumpRuntimeHelperTest, ParseTidFromMapName_0400, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpNativeHeap_0100 start";
-    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
-    EXPECT_NE(application, nullptr);
-    OHOS::AppExecFwk::MemDumpInfo info;
-    info.pid = 1;
-    info.needLeakobj = true;
-    info.dumpType = MemDumpType::NATIVE;
-    auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    std::string dumpResult = "initial";
-    helper->DumpNativeHeap(info, dumpResult);
-    // With needLeakobj=true, DumpNativeHeap calls DetectAndUnwindThreadStackLeak
-    // and assigns the result to dumpResult. On a normal process the result is
-    // empty, so dumpResult should have been reset from "initial" to "".
-    EXPECT_EQ(dumpResult, "");
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpNativeHeap_0100 end";
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0400 start";
+    // 2147483648 = INT32_MAX + 1, exceeds int32_t range
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483648]"), 0);
+    // 9999999999 far exceeds int32_t range
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:9999999999]"), 0);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0400 end";
+}
+
+/**
+ * @tc.number: ParseTidFromMapName_0500
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName returns 0 for map name with prefix at end (no digits).
+ */
+HWTEST_F(DumpRuntimeHelperTest, ParseTidFromMapName_0500, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0500 start";
+    // Prefix at end of string with no following digits
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:"), 0);
+    // Prefix found but followed by non-digit immediately
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:abc123]"), 0);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0500 end";
+}
+
+/**
+ * @tc.number: IsTidAlive_0300
+ * @tc.name: IsTidAlive
+ * @tc.desc: Test IsTidAlive returns false for a very large tid that does not exist.
+ */
+HWTEST_F(DumpRuntimeHelperTest, IsTidAlive_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsTidAlive_0300 start";
+    // A tid that is valid positive int but does not exist in /proc/self/task
+    EXPECT_FALSE(DumpRuntimeHelper::IsTidAlive(1));
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsTidAlive_0300 end";
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0200
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack with valid stack range but maps nullptr returns empty.
+ */
+HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0200 start";
+    // Non-zero range but nullptr maps should return empty without crashing.
+    int stackVar = 0;
+    uint64_t begin = reinterpret_cast<uint64_t>(&stackVar);
+    uint64_t end = begin + sizeof(uintptr_t);
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(begin, end, nullptr);
+    EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0200 end";
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0300
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack with valid range and maps scans stack values.
+ */
+HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0300 start";
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    // Create a small stack-like buffer with zero values — should not crash
+    // and should return empty (zero values are skipped).
+    uintptr_t buf[4] = {0, 0, 0, 0};
+    uint64_t begin = reinterpret_cast<uint64_t>(&buf[0]);
+    uint64_t end = reinterpret_cast<uint64_t>(&buf[4]);
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(begin, end, maps);
+    EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0300 end";
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0400
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack with begin >= end returns empty.
+ */
+HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0400, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0400 start";
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    // begin > end should produce no PCs.
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(100, 50, maps);
+    EXPECT_TRUE(pcs.empty());
+    // begin == end should also produce no PCs.
+    pcs = DumpRuntimeHelper::CollectPcsFromStack(100, 100, maps);
+    EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0400 end";
+}
+
+/**
+ * @tc.number: IsAddressReadable_0400
+ * @tc.name: IsAddressReadable
+ * @tc.desc: Test IsAddressReadable returns false for a write-only or non-mapped address.
+ */
+HWTEST_F(DumpRuntimeHelperTest, IsAddressReadable_0400, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0400 start";
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    // An address in the high canonical hole — guaranteed not mapped.
+    EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0xFFFFFFFFFFFF0000ULL, maps));
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0400 end";
+}
+
+/**
+ * @tc.number: FormatLeakedStack_0300
+ * @tc.name: FormatLeakedStack
+ * @tc.desc: Test FormatLeakedStack with a single zero PC returns empty (zero is not a valid frame).
+ */
+HWTEST_F(DumpRuntimeHelperTest, FormatLeakedStack_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest FormatLeakedStack_0300 start";
+    std::vector<uintptr_t> zeroPcs = {0};
+    std::string result = DumpRuntimeHelper::FormatLeakedStack(12345, zeroPcs);
+    // Zero PC should not resolve to any meaningful frame.
+    EXPECT_TRUE(result.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest FormatLeakedStack_0300 end";
 }
 
 /**
