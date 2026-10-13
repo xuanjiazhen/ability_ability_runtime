@@ -528,6 +528,23 @@ HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0400, Function | MediumTest 
 }
 
 /**
+ * @tc.number: CollectPcsFromStack_0500
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack with range smaller than scan unit does not read out of bounds.
+ */
+HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0500, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0500 start";
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    // end - begin < sizeof(uintptr_t), so readAddr < begin always; should return empty
+    // without reading outside the target range.
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0x1000, 0x1004, maps);
+    EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0500 end";
+}
+
+/**
  * @tc.number: IsAddressReadable_0400
  * @tc.name: IsAddressReadable
  * @tc.desc: Test IsAddressReadable returns false for a write-only or non-mapped address.
