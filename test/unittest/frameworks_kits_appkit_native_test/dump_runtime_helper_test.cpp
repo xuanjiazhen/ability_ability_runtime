@@ -18,6 +18,7 @@
 #define private public
 #include "dump_runtime_helper.h"
 #undef private
+#include "dfx_maps.h"
 #include "parameters.h"
 
 using namespace testing::ext;
