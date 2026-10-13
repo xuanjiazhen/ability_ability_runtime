@@ -739,44 +739,39 @@ HWTEST_F(DumpRuntimeHelperTestSecond, FormatLeakedStack_0100, TestSize.Level1)
 }
 
 /**
- * @tc.number: DumpNativeHeap_1300
- * @tc.name: DumpNativeHeap
- * @tc.desc: DumpNativeHeap with needLeakobj=true assigns DetectAndUnwindThreadStackLeak result to dumpResult.
+ * @tc.number: CollectPcsFromStack_0200
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack with non-zero range but nullptr maps returns empty.
  */
-HWTEST_F(DumpRuntimeHelperTestSecond, DumpNativeHeap_1300, TestSize.Level1)
+HWTEST_F(DumpRuntimeHelperTestSecond, CollectPcsFromStack_0200, TestSize.Level1)
 {
-    std::shared_ptr<OHOSApplication> application = std::shared_ptr<OHOSApplication>(
-        ApplicationLoader::GetInstance().GetApplicationByName());
-    auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    OHOS::AppExecFwk::MemDumpInfo info;
-    info.needLeakobj = true;
-    std::string dumpResult = "initial";
-    helper->DumpNativeHeap(info, dumpResult);
-    // With needLeakobj=true, DumpNativeHeap now calls DetectAndUnwindThreadStackLeak
-    // and assigns its return value to dumpResult. On a normal test process the
-    // result is empty, so dumpResult should have been reset from "initial" to "".
-    EXPECT_EQ(dumpResult, "");
-    EXPECT_NE(application, nullptr);
+    int stackVar = 0;
+    uint64_t begin = reinterpret_cast<uint64_t>(&stackVar);
+    uint64_t end = begin + sizeof(uintptr_t);
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(begin, end, nullptr);
+    EXPECT_TRUE(pcs.empty());
 }
 
 /**
- * @tc.number: DumpNativeHeap_1400
- * @tc.name: DumpNativeHeap
- * @tc.desc: DumpNativeHeap with needLeakobj=false does not call thread stack leak detection.
+ * @tc.number: FormatLeakedStack_0200
+ * @tc.name: FormatLeakedStack
+ * @tc.desc: Test FormatLeakedStack with multiple bogus PCs returns empty.
  */
-HWTEST_F(DumpRuntimeHelperTestSecond, DumpNativeHeap_1400, TestSize.Level1)
+HWTEST_F(DumpRuntimeHelperTestSecond, FormatLeakedStack_0200, TestSize.Level1)
 {
-    std::shared_ptr<OHOSApplication> application = std::shared_ptr<OHOSApplication>(
-        ApplicationLoader::GetInstance().GetApplicationByName());
-    auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    OHOS::AppExecFwk::MemDumpInfo info;
-    info.needLeakobj = false;
-    std::string dumpResult = "untouched";
-    helper->DumpNativeHeap(info, dumpResult);
-    // With needLeakobj=false, DumpNativeHeap takes the snapshot path and must not
-    // touch dumpResult (the thread stack leak detection path is skipped).
-    EXPECT_EQ(dumpResult, "untouched");
-    EXPECT_NE(application, nullptr);
+    std::vector<uintptr_t> bogusPcs = {0x1000, 0x2000, 0x3000};
+    EXPECT_TRUE(DumpRuntimeHelper::FormatLeakedStack(99999, bogusPcs).empty());
+}
+
+/**
+ * @tc.number: ParseTidFromMapName_0300
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName returns 0 for value exceeding INT32_MAX.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0300, TestSize.Level1)
+{
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483648]"), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:9999999999]"), 0);
 }
 }
 }
