@@ -1581,8 +1581,11 @@ HWTEST_F(AbilityManagerServiceElevenTest, SetResidentProcessEnabled_001, TestSiz
     EXPECT_NE(abilityMs, nullptr);
     std::string bundleName = "";
     bool enable = false;
+    int oldFlag = MyFlag::flag_;
+    MyFlag::flag_ = MyFlag::FLAG::IS_SA_CALL;
     int result = abilityMs->SetResidentProcessEnabled(bundleName, enable);
-    EXPECT_EQ(result, INNER_ERR);
+    EXPECT_EQ(result, INVALID_PARAMETERS_ERR);
+    MyFlag::flag_ = oldFlag;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceElevenTest SetResidentProcessEnabled_001 end");
 }
 
