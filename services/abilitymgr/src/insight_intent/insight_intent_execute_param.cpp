@@ -19,11 +19,14 @@
 #include <limits>
 #include <sstream>
 
+#include "array_wrapper.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "insight_intent_constant.h"
 #include "int_wrapper.h"
 #include "string_wrapper.h"
+#include "uri.h"
+#include "want_params_wrapper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -231,6 +234,87 @@ bool InsightIntentExecuteParam::IsInsightIntentPage(const AAFwk::Want &want)
     }
 
     return false;
+}
+
+namespace {
+constexpr const char *FILE_ENTITY_ID = "OHOS_FILE_ENTITY";
+constexpr const char *FILE_ENTITY_ID_KEY = "entityId";
+constexpr const char *FILE_ENTITY_URIS_KEY = "uris";
+constexpr const char *FILE_ENTITY_FLAGS_KEY = "flags";
+const std::string FILE_SCHEME = "file";
+
+void GetEntityUris(const WantParams &entity, std::vector<std::string> &uris)
+{
+    sptr<AAFwk::IInterface> uriValue = entity.GetParam(FILE_ENTITY_URIS_KEY);
+    AAFwk::IArray *arrayObj = AAFwk::IArray::Query(uriValue);
+    if (arrayObj == nullptr) {
+        return;
+    }
+    long size = 0;
+    if (arrayObj->GetLength(size) != ERR_OK) {
+        return;
+    }
+    for (long i = 0; i < size; i++) {
+        sptr<AAFwk::IInterface> iface = nullptr;
+        if (arrayObj->Get(i, iface) != ERR_OK) {
+            continue;
+        }
+        AAFwk::IString *strValue = AAFwk::IString::Query(iface);
+        if (strValue == nullptr) {
+            continue;
+        }
+        uris.push_back(AAFwk::String::Unbox(strValue));
+    }
+}
+
+void FilterFileUris(const std::vector<std::string> &input, std::vector<std::string> &output)
+{
+    for (const auto &uriStr : input) {
+        Uri uri(uriStr);
+        if (uri.GetScheme() != FILE_SCHEME) {
+            TAG_LOGW(AAFwkTag::INTENT, "invalid file entity uri scheme: %{public}s", uriStr.c_str());
+            continue;
+        }
+        output.push_back(uriStr);
+    }
+}
+}  // namespace
+
+void InsightIntentExecuteParam::GetFileEntityUrisAndFlags(const AAFwk::Want &want,
+    std::vector<std::vector<std::string>> &uriGroups, std::vector<int32_t> &flags)
+{
+    const WantParams &wantParams = want.GetParams();
+    WantParams params = wantParams.GetWantParams(INSIGHT_INTENT_EXECUTE_PARAM_PARAM);
+    auto paramMap = params.GetParams();
+    for (auto it = paramMap.begin(); it != paramMap.end(); it++) {
+        AAFwk::IWantParams *wantParamsObj = AAFwk::IWantParams::Query(it->second);
+        if (wantParamsObj == nullptr) {
+            continue;
+        }
+        WantParams entity = AAFwk::WantParamWrapper::Unbox(wantParamsObj);
+        if (!entity.HasParam(FILE_ENTITY_ID_KEY) ||
+            entity.GetStringParam(FILE_ENTITY_ID_KEY) != FILE_ENTITY_ID) {
+            continue;
+        }
+
+        std::vector<std::string> entityUris;
+        GetEntityUris(entity, entityUris);
+
+        std::vector<std::string> validUris;
+        FilterFileUris(entityUris, validUris);
+
+        int32_t entityFlags = entity.GetIntParam(FILE_ENTITY_FLAGS_KEY, 0);
+        // Only keep read/write permission bits to avoid leaking unrelated flags.
+        entityFlags &= static_cast<int32_t>(
+            AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION | AAFwk::Want::FLAG_AUTH_WRITE_URI_PERMISSION);
+        if (entityFlags == 0) {
+            entityFlags = static_cast<int32_t>(AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION);
+        }
+        if (!validUris.empty()) {
+            uriGroups.push_back(validUris);
+            flags.push_back(entityFlags);
+        }
+    }
 }
 
 bool InsightIntentExecuteParam::GenerateFromWant(const AAFwk::Want &want,
