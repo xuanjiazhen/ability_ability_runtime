@@ -161,7 +161,13 @@ bool AbilityRuntimeErrorUtil::Throw(napi_env env, int32_t errCode, const std::st
 {
     std::string eMes = errMessage;
     if (eMes.empty()) {
-        eMes = ERROR_MSG_MAP.at(errCode);
+        auto iter = ERROR_MSG_MAP.find(errCode);
+        if (iter != ERROR_MSG_MAP.end()) {
+            eMes = iter->second;
+        } else {
+            TAG_LOGE(AAFwkTag::DEFAULT, "Invalid errCode:%{public}d", errCode);
+            eMes = "Unknown error.";
+        }
     }
     napi_value error = nullptr;
     napi_create_error(env, CreateJsValue(env, errCode), CreateJsValue(env, eMes), &error);

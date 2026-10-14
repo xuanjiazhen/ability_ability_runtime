@@ -9155,6 +9155,7 @@ void AppMgrServiceInner::AddWatchParameter()
     int ret = WatchParameter(AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE, PointerDeviceEventCallback,
         context);
     if (ret != 0) {
+        delete context;
         TAG_LOGE(AAFwkTag::APPMGR, "watch parameter %{public}s fail with %{public}d",
             AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE, ret);
     }

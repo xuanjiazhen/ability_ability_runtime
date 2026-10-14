@@ -437,6 +437,9 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByPid(co
 {
     std::lock_guard guard(runningRecordMapMutex_);
     auto iter = std::find_if(appRunningRecordMap_.begin(), appRunningRecordMap_.end(), [&pid](const auto &pair) {
+        if (pair.second == nullptr) {
+            return false;
+        }
         return pair.second->GetPid() == pid;
     });
     return ((iter == appRunningRecordMap_.end()) ? nullptr : iter->second);
@@ -1425,6 +1428,9 @@ int32_t AppRunningManager::DumpHeapMemory(const int32_t pid, OHOS::AppExecFwk::M
         std::lock_guard guard(runningRecordMapMutex_);
         TAG_LOGI(AAFwkTag::APPMGR, "app size %{public}zu", appRunningRecordMap_.size());
         auto iter = std::find_if(appRunningRecordMap_.begin(), appRunningRecordMap_.end(), [&pid](const auto &pair) {
+            if (pair.second == nullptr) {
+                return false;
+            }
             auto priorityObject = pair.second->GetPriorityObject();
             return priorityObject && priorityObject->GetPid() == pid;
         });
@@ -1492,6 +1498,9 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByRender
 {
     std::lock_guard guard(runningRecordMapMutex_);
     auto iter = std::find_if(appRunningRecordMap_.begin(), appRunningRecordMap_.end(), [&pid](const auto &pair) {
+        if (pair.second == nullptr) {
+            return false;
+        }
         auto renderRecordMap = pair.second->GetRenderRecordMap();
         if (renderRecordMap.empty()) {
             return false;
@@ -1826,6 +1835,9 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByChildP
 {
     std::lock_guard guard(runningRecordMapMutex_);
     auto iter = std::find_if(appRunningRecordMap_.begin(), appRunningRecordMap_.end(), [&pid](const auto &pair) {
+        if (pair.second == nullptr) {
+            return false;
+        }
         auto childProcessRecordMap = pair.second->GetChildProcessRecordMap();
         return childProcessRecordMap.find(pid) != childProcessRecordMap.end();
     });
@@ -1942,6 +1954,9 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByChildR
 {
     std::lock_guard guard(runningRecordMapMutex_);
     auto iter = std::find_if(appRunningRecordMap_.begin(), appRunningRecordMap_.end(), [&pid](const auto &pair) {
+        if (pair.second == nullptr) {
+            return false;
+        }
         auto childAppRecordMap = pair.second->GetChildAppRecordMap();
         return childAppRecordMap.find(pid) != childAppRecordMap.end();
     });

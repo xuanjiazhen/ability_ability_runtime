@@ -140,9 +140,9 @@ HWTEST_F(AbilityRuntimeErrorUtilTest, GetErrMessage_0200, TestSize.Level2)
 HWTEST_F(AbilityRuntimeErrorUtilTest, Throw_0100, TestSize.Level2)
 {
     ASSERT_NE(env_, nullptr);
-    std::string errMessage = nullptr;
+    std::string errMessage;
     bool result = AbilityRuntimeErrorUtil::Throw(env_, 1, errMessage);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
