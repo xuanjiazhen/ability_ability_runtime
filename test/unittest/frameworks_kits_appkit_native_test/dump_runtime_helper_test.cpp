@@ -780,8 +780,8 @@ protected:
     void RemoveTestDir(const std::string& path)
     {
         if (DumpRuntimeHelper::IsFileExists(path)) {
-            if (rmdir(path.c_str()) != 0) {
-                perror("rmdir failed");
+            if (remove(path.c_str()) != 0) {
+                perror("remove failed");
             }
         }
     }
