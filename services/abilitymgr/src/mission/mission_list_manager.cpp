@@ -187,7 +187,7 @@ int MissionListManager::StartAbility(AbilityRequest &abilityRequest)
                 currentTopAbility->GetBundleName().c_str(),
                 currentTopAbility->GetAbilityName().c_str());
             EnqueueWaitingAbility(abilityRequest);
-            return START_ABILITY_WAITING;
+            return START_ABILITY_WAITING; //
         }
     }
 
