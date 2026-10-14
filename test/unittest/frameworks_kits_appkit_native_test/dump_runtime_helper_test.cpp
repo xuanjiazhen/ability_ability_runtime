@@ -252,7 +252,7 @@ HWTEST_F(DumpRuntimeHelperTest, DetectAndUnwindThreadStackLeak_0100, Function | 
 HWTEST_F(DumpRuntimeHelperTest, ParseTidFromMapName_0100, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0100 start";
-    pid_t tid = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:12345]");
+    int32_t tid = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:12345]");
     EXPECT_EQ(tid, 12345);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0100 end";
 }
@@ -280,7 +280,7 @@ HWTEST_F(DumpRuntimeHelperTest, ParseTidFromMapName_0200, Function | MediumTest 
 HWTEST_F(DumpRuntimeHelperTest, ParseTidFromMapName_0300, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0300 start";
-    pid_t tid = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:99999]");
+    int32_t tid = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:99999]");
     EXPECT_EQ(tid, 99999);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0300 end";
 }
