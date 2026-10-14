@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace AAFwk {
 struct AbilityRequest;
-class BlockAllAppStartInterceptor {
+class BlockAllAppStartInterceptor : public IAbilityInterceptor {
 public:
     BlockAllAppStartInterceptor() = default;
     ~BlockAllAppStartInterceptor() = default;
@@ -33,8 +33,7 @@ public:
     using IsAbilityStartedFunc = std::function<bool(AbilityRequest&, int32_t)>;
     void SetIsAbilityStartedFunc(const IsAbilityStartedFunc& func);
 
-    ErrCode Execute();
-    ErrCode Execute(AbilityRequest& abilityRequest, int32_t validUserId);
+    ErrCode DoProcess(AbilityInterceptorParam& param) override;
 
 private:
     std::function<bool()> shouldBlockFunc_;
