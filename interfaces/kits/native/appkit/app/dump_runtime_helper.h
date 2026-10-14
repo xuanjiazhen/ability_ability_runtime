@@ -44,7 +44,7 @@ struct ThreadStackRegion {
     std::string mapName;   // full map name, e.g. "[anon:stack:12345]"
     uint64_t begin = 0;    // start address of the mapping
     uint64_t end = 0;      // end address of the mapping
-    pid_t tid = 0;         // tid parsed from the map name
+    int32_t tid = 0;       // tid parsed from the map name
 };
 
 class DumpRuntimeHelper : public std::enable_shared_from_this<DumpRuntimeHelper> {
@@ -97,10 +97,10 @@ private:
     static std::string DetectAndUnwindThreadStackLeak();
     // Extract tid from a thread stack map name like "[anon:stack:11111]".
     // Returns 0 if the tid cannot be parsed.
-    static pid_t ParseTidFromMapName(const std::string &mapName);
+    static int32_t ParseTidFromMapName(const std::string &mapName);
     // Check whether the given tid is still alive in current process by looking
     // up /proc/self/task/<tid>. Returns true if the tid directory exists.
-    static bool IsTidAlive(pid_t tid);
+    static bool IsTidAlive(int32_t tid);
     // Count total alive threads by listing /proc/self/task entries.
     static size_t CountTotalThreads();
     // Parse /proc/self/smaps and collect all thread stack map regions whose
@@ -122,7 +122,7 @@ private:
     // Format a leaked thread stack into a standardized string using
     // faultloggerd's Unwinder + DfxFrameFormatter. Returns empty string if
     // no frames could be resolved.
-    static std::string FormatLeakedStack(pid_t tid, const std::vector<uintptr_t> &pcs);
+    static std::string FormatLeakedStack(int32_t tid, const std::vector<uintptr_t> &pcs);
     static int GetCompressQuota (const std::vector<int64_t> &quotas);
     static bool SplitPropertyByComma(const std::string &property, std::string &runningId, std::string &value);
     static std::string GetEventConfig(const std::string &key);
