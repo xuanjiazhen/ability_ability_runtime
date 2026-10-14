@@ -681,29 +681,13 @@ std::vector<ThreadStackRegion> DumpRuntimeHelper::ParseLeakedThreadStackRegions(
     return regions;
 }
 
-// Check whether the address falls inside a readable mapping by looking up
-// DfxMaps and verifying the PROT_READ flag. Returns false if the address is
-// not mapped or the mapping lacks read permission.
-bool DumpRuntimeHelper::IsAddressReadable(uint64_t addr,
-    const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps)
-{
-    if (maps == nullptr) {
-        return false;
-    }
-    std::shared_ptr<OHOS::HiviewDFX::DfxMap> map = nullptr;
-    if (!maps->FindMapByAddr(static_cast<uintptr_t>(addr), map) || map == nullptr) {
-        return false;
-    }
-    return (map->prots & PROT_READ) != 0;
-}
-
 // Scan a leaked thread stack region for candidate PC values. The PC values are
 // read from the stack memory as uintptr_t values that fall inside executable
 // maps. Memory is read in 4KB chunks via process_vm_readv to minimize system
 // call overhead, then each uintptr_t in the buffer is checked against DfxMaps
 // for executable mapping. process_vm_readv returns an error instead of
-// triggering SIGSEGV on unmapped pages, so no prior IsAddressReadable check
-// is needed — the readv itself is the safety boundary.
+// triggering SIGSEGV on unmapped pages, so the readv itself is the safety
+// boundary — no prior address readability check is needed.
 // NOTE: DfxMaps is a snapshot created once in DetectAndUnwindThreadStackLeak.
 // Between snapshot creation and the readv call, the process's virtual memory
 // layout may change (munmap, page reclaim). process_vm_readv handles this
@@ -733,8 +717,7 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
         struct iovec remoteiov = {reinterpret_cast<void *>(chunkBegin), chunkSize};
         ssize_t nread = process_vm_readv(getpid(), &localiov, 1, &remoteiov, 1, 0);
         if (nread <= 0) {
-            TAG_LOGW(AAFwkTag::APPKIT, "process_vm_readv failed, range:[0x%{public}016" PRIx64
-                "-0x%{public}016" PRIx64 "] errno:%{public}d", chunkBegin, chunkEnd, errno);
+            TAG_LOGW(AAFwkTag::APPKIT, "process_vm_readv failed, errno:%{public}d", errno);
             chunkEnd = chunkBegin;
             continue;
         }
