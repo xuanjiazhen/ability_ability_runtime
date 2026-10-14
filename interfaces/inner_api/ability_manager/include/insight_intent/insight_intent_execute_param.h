@@ -90,6 +90,7 @@ constexpr char INSIGHT_INTENT_PARAM_USER_ID[] = "ohos.insightIntent.param.userId
 constexpr char INSIGHT_INTENT_DISTRIBUTED_CALLBACK_KEY[] = "ohos.insightIntent.distributed.callbackKey";
 constexpr char INSIGHT_INTENT_DISTRIBUTED_SRC_DEVICE_ID[] = "ohos.insightIntent.distributed.srcDeviceId";
 constexpr char INSIGHT_INTENT_DISTRIBUTED_REQUEST_CODE[] = "ohos.insightIntent.distributed.requestCode";
+constexpr char INSIGHT_INTENT_TOOL_CALL_ID[] = "ohos.insightIntent.toolCallId";
 
 constexpr int32_t INVALID_DISPLAY_ID = -1;
 constexpr char METHOD_PARAM_SEPARATOR = '\x1f';
@@ -112,6 +113,15 @@ public:
     static bool GenerateFromWant(const AAFwk::Want &want, InsightIntentExecuteParam &executeParam);
     static bool RemoveInsightIntent(AAFwk::Want &want);
     static void UpdateInsightIntentCallerInfo(const WantParams &wantParams, WantParams &insightIntentParam);
+
+    /**
+     * @brief Collect FileEntity URIs from intent custom parameters, grouped by grant flag.
+     * @param want The Want object containing intent custom parameters.
+     * @param uriGroups Output URI groups, each corresponds to one entry in flags.
+     * @param flags Output grant flags, each corresponds to one URI group.
+     */
+    static void GetFileEntityUrisAndFlags(const AAFwk::Want &want,
+        std::vector<std::vector<std::string>> &uriGroups, std::vector<int32_t> &flags);
 
     int32_t executeMode_ = -1;
     int32_t displayId_ = INVALID_DISPLAY_ID;
@@ -146,6 +156,9 @@ public:
      
     // distributed intent params
     std::string deviceId_;
+
+    // Shared by Driver and FunctionManager; empty means no tool call identifier.
+    std::string toolCallId_;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

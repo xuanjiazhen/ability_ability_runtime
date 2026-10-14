@@ -114,6 +114,7 @@
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
 #include "param.h"
+#include "all_users_window_manager.h"
 #include "window_focus_changed_listener.h"
 #include "window_visibility_changed_listener.h"
 #include "window_pid_visibility_changed_listener.h"
@@ -2097,14 +2098,14 @@ int32_t AppMgrServiceInner::ProcessKia(bool isKia, std::shared_ptr<AppRunningRec
     }
 #ifdef SUPPORT_SCREEN
     TAG_LOGI(AAFwkTag::APPMGR, "Openning KIA file, start setting watermark");
-    int32_t resultCode = static_cast<int32_t>(WindowManager::GetInstance().SetProcessWatermark(
+    int32_t resultCode = static_cast<int32_t>(WindowManager::GetInstance(appRecord->GetUserId()).SetProcessWatermark(
         appRecord->GetPid(), watermarkBusinessName, isWatermarkEnabled));
     if (resultCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "setting watermark fails with result code:%{public}d", resultCode);
         return resultCode;
     }
     TAG_LOGI(AAFwkTag::APPMGR, "setting watermark succeeds, start setting snapshot skip");
-    resultCode = static_cast<int32_t>(WindowManager::GetInstance().SkipSnapshotForAppProcess(
+    resultCode = static_cast<int32_t>(WindowManager::GetInstance(appRecord->GetUserId()).SkipSnapshotForAppProcess(
         appRecord->GetPid(), isWatermarkEnabled));
     if (resultCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "setting snapshot skip fails with result code:%{public}d", resultCode);
@@ -2188,20 +2189,6 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     bool isProcCache = false;
     HapModuleInfo hapModuleInfo;
     int32_t appIndex = appInfo->appIndex;
-    if (loadParam->selfPid > 0) {
-        if (!GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
-            return;
-        }
-        std::shared_ptr<AppRunningRecord> appRecord = GetAppRunningRecordByPid(loadParam->selfPid);
-        if (appRecord == nullptr) {
-            TAG_LOGW(AAFwkTag::APPMGR, "appRecord not found by pid %{public}d", loadParam->selfPid);
-            return;
-        }
-        isProcCache = DelayedSingleton<CacheProcessManager>::GetInstance()->ReuseCachedProcess(appRecord);
-        HandleExistingAppRecordAfterFound(appRecord, abilityInfo, hapModuleInfo, want, isProcCache, loadParam);
-        return;
-    }
     LoadAbilityCallbackGuard guard(loadParam->loadAbilityCallbackId, loadParam->callingPid, weak_from_this());
     if (!CheckLoadAbilityConditions(loadParam->token, abilityInfo, appInfo)) {
         TAG_LOGE(AAFwkTag::APPMGR, "checkLoadAbilityConditions fail");
@@ -2219,6 +2206,24 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
 
     if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->uid))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
+        return;
+    }
+
+    if (loadParam->selfPid > 0) {
+        if (!GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
+            NotifyStartProcessFailed(loadParam->token);
+            return;
+        }
+        std::shared_ptr<AppRunningRecord> appRecord =
+            appRunningManager_->GetValidAppRunningRecordByPid(loadParam->selfPid);
+        if (appRecord == nullptr) {
+            TAG_LOGW(AAFwkTag::APPMGR, "appRecord not found by pid %{public}d", loadParam->selfPid);
+            NotifyStartProcessFailed(loadParam->token);
+            return;
+        }
+        isProcCache = DelayedSingleton<CacheProcessManager>::GetInstance()->ReuseCachedProcess(appRecord);
+        HandleExistingAppRecordAfterFound(appRecord, abilityInfo, hapModuleInfo, want, isProcCache, loadParam);
         return;
     }
 
@@ -2268,6 +2273,8 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             }
             isProcCache = DelayedSingleton<CacheProcessManager>::GetInstance()->ReuseCachedProcess(appRecord);
         } else {
+            abilityInfo = std::make_shared<AbilityInfo>(*abilityInfo);
+            appInfo = std::make_shared<ApplicationInfo>(*appInfo);
             MakeProcessName(abilityInfo, appInfo, hapModuleInfo, appIndex, specifiedProcessFlag,
                 processName);
             auto element = want->GetElement();
@@ -2703,7 +2710,11 @@ void AppMgrServiceInner::MakeProcessName(const std::shared_ptr<AbilityInfo> &abi
     }
 
     if (!specifiedProcessFlag.empty()) {
-        processName = (processName + ":" + specifiedProcessFlag).substr(0, MAX_SPECIFIED_PROCESS_NAME_LENGTH);
+        if (static_cast<int32_t>(specifiedProcessFlag.size()) > MAX_SPECIFIED_PROCESS_NAME_LENGTH) {
+            TAG_LOGW(AAFwkTag::APPMGR, "specifiedProcessFlag truncated to %{public}d chars: %{public}s",
+                MAX_SPECIFIED_PROCESS_NAME_LENGTH, specifiedProcessFlag.c_str());
+        }
+        processName += ":" + specifiedProcessFlag.substr(0, MAX_SPECIFIED_PROCESS_NAME_LENGTH);
         TAG_LOGI(AAFwkTag::APPMGR, "specifiedProcessFlag: %{public}s, processName: %{public}s",
             specifiedProcessFlag.c_str(), processName.c_str());
     }
@@ -3989,6 +4000,12 @@ int32_t AppMgrServiceInner::ClearUpApplicationData(const std::string &bundleName
     int32_t callerUid, pid_t callerPid, int32_t appCloneIndex, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    int32_t callerUserId = GetUserIdByUid(callerUid);
+    if (callerUserId > U1_USER_ID && userId >= 0 && callerUserId != userId) {
+        TAG_LOGE(AAFwkTag::APPMGR, "clear data across users is not allowed, callerUserId: %{public}d, userId: %{public}d",
+            callerUserId, userId);
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
     int32_t newUserId = userId;
     if (userId == DEFAULT_INVAL_VALUE) {
         newUserId = GetUserIdByUid(callerUid);
@@ -8757,6 +8774,7 @@ int AppMgrServiceInner::PreStartNWebSpawnProcess(const pid_t hostPid)
 int AppMgrServiceInner::StartRenderProcess(const pid_t hostPid, const std::string &renderParam,
     FdGuard &&ipcFd, FdGuard &&sharedFd, FdGuard &&crashFd, pid_t &renderPid, bool isGPU)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "hostPid:%{public}d", hostPid);
     if (hostPid <= 0 || renderParam.empty() || ipcFd.Get() <= 0 || sharedFd.Get() <= 0 || crashFd.Get() <= 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid param: hostPid:%{public}d renderParam:%{private}s "
@@ -8914,6 +8932,7 @@ bool AppMgrServiceInner::GenerateUid(std::unordered_set<int32_t> &assignedUids,
 int AppMgrServiceInner::StartRenderProcessImpl(const std::shared_ptr<RenderRecord> &renderRecord,
     const std::shared_ptr<AppRunningRecord> appRecord, pid_t &renderPid, bool isGPU)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!renderRecord || !appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "renderRecord or appRecord null");
         return ERR_INVALID_VALUE;
@@ -9183,7 +9202,7 @@ void AppMgrServiceInner::RegisterFocusListener()
         TAG_LOGE(AAFwkTag::APPMGR, "no focusListener_");
         return;
     }
-    WindowManager::GetInstance().RegisterFocusChangedListener(focusListener_);
+    AllUsersWindowManager::GetInstance().RegisterFocusChangedListener(focusListener_);
 #endif // SUPPORT_SCREEN
     TAG_LOGI(AAFwkTag::APPMGR, "registerFocusListener end");
 }
@@ -9196,7 +9215,7 @@ void AppMgrServiceInner::FreeFocusListener()
         TAG_LOGE(AAFwkTag::APPMGR, "no focusListener_");
         return;
     }
-    WindowManager::GetInstance().UnregisterFocusChangedListener(focusListener_);
+    AllUsersWindowManager::GetInstance().UnregisterFocusChangedListener(focusListener_);
     focusListener_ = nullptr;
 #endif // SUPPORT_SCREEN
     TAG_LOGI(AAFwkTag::APPMGR, "freeFocusListener end");
@@ -9333,11 +9352,11 @@ void AppMgrServiceInner::InitWindowVisibilityChangedListener()
         TAG_LOGE(AAFwkTag::APPMGR, "window visibility changed listener null");
         return;
     }
-    WindowManager::GetInstance().RegisterVisibilityChangedListener(windowVisibilityChangedListener_);
+    AllUsersWindowManager::GetInstance().RegisterVisibilityChangedListener(windowVisibilityChangedListener_);
 
     std::vector<sptr<WindowVisibilityInfo>> windowVisibilityInfos;
     windowVisibilityInfos.clear();
-    WindowManager::GetInstance().GetVisibilityWindowInfo(windowVisibilityInfos);
+    AllUsersWindowManager::GetInstance().GetVisibilityWindowInfo(windowVisibilityInfos);
 
     if (windowVisibilityInfos.empty()) {
         TAG_LOGW(AAFwkTag::APPMGR, "window visibility info is empty");
@@ -9367,7 +9386,7 @@ void AppMgrServiceInner::FreeWindowVisibilityChangedListener()
         TAG_LOGW(AAFwkTag::APPMGR, "visibility listener already free");
         return;
     }
-    WindowManager::GetInstance().UnregisterVisibilityChangedListener(windowVisibilityChangedListener_);
+    AllUsersWindowManager::GetInstance().UnregisterVisibilityChangedListener(windowVisibilityChangedListener_);
     windowVisibilityChangedListener_  = nullptr;
 }
 
@@ -9406,7 +9425,7 @@ void AppMgrServiceInner::InitWindowPidVisibilityChangedListener()
             TAG_LOGE(AAFwkTag::APPMGR, "Window pid visibility changed listener is nullptr.");
             return;
         }
-        WMError ret = WindowManager::GetInstance().RegisterWindowPidVisibilityChangedListener(
+        WMError ret = AllUsersWindowManager::GetInstance().RegisterWindowPidVisibilityChangedListener(
             inner->windowPidVisibilityChangedListener_);
         if (ret != WMError::WM_OK) {
             TAG_LOGE(AAFwkTag::APPMGR, "RegisterWindowPidVisibilityChangedListener failed.");
@@ -9428,7 +9447,7 @@ void AppMgrServiceInner::FreeWindowPidVisibilityChangedListener()
         TAG_LOGW(AAFwkTag::APPMGR, "pid visibility changed listener has been freed.");
         return;
     }
-    WindowManager::GetInstance().UnregisterWindowPidVisibilityChangedListener(windowPidVisibilityChangedListener_);
+    AllUsersWindowManager::GetInstance().UnregisterWindowPidVisibilityChangedListener(windowPidVisibilityChangedListener_);
     windowPidVisibilityChangedListener_ = nullptr;
 }
 
@@ -11164,6 +11183,7 @@ int32_t AppMgrServiceInner::UnregisterAppRunningStatusListener(const sptr<IRemot
 int32_t AppMgrServiceInner::StartChildProcess(const pid_t callingPid, pid_t &childPid,
     const ChildProcessRequest &request)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "callingPid:%{public}d", callingPid);
     auto errCode = StartChildProcessPreCheck(callingPid, request.childProcessType);
     if (errCode != ERR_OK) {
@@ -11278,6 +11298,7 @@ int32_t AppMgrServiceInner::StartChildProcessImpl(const std::shared_ptr<ChildPro
     const std::shared_ptr<AppRunningRecord> appRecord, pid_t &childPid, const ChildProcessArgs &args,
     const ChildProcessOptions &options)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "no appRecord, childPid:%{public}d", childPid);

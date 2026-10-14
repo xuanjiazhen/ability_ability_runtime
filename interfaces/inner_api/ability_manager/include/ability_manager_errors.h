@@ -849,6 +849,8 @@ enum {
 
     ERR_UPMS_SERVICE_NOT_START = 2097349,
 
+    ERR_UPMS_INVALID_USER_ID = 2097350,
+
     /**
      * Result (2097351) target not in whitelist.
      */
@@ -1197,6 +1199,16 @@ enum {
      * Result(2099423) for the UIAbility is not a native ability.
      */
     ERR_NOT_NATIVE_UI_ABILITY = 2099423,
+
+    /**
+     * Result(2099501) for task manager: the task already exists.
+     */
+    ERR_TASK_ALREADY_EXISTS = 2099501,
+
+    /**
+     * Result(2099502) for task manager: the task does not exist.
+     */
+    ERR_TASK_NOT_FOUND = 2099502,
 
     /**
      * Native error(3000000) for target bundle not exist.

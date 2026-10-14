@@ -1292,11 +1292,10 @@ void MainThread::OnStartAbility(const std::string &bundleName,
     std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
     const AppExecFwk::HapModuleInfo &entryHapModuleInfo, const bool isDebugApp)
 {
-    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleName);
     std::string loadPath =
         (!entryHapModuleInfo.hapPath.empty()) ? entryHapModuleInfo.hapPath : entryHapModuleInfo.resourcePath;
     if (!loadPath.empty()) {
-        loadPath = std::regex_replace(loadPath, pattern, std::string(LOCAL_CODE_PATH));
+        loadPath = ExtractorUtil::GetLoadFilePath(loadPath);
         TAG_LOGD(AAFwkTag::APPKIT, "ModuleResPath: %{public}s", loadPath.c_str());
         // getOverlayPath
         if (overlayModuleInfos_.empty()) {
@@ -1313,7 +1312,7 @@ void MainThread::OnStartAbility(const std::string &bundleName,
         }
         std::string hqfPath = entryHapModuleInfo.hqfInfo.hqfFilePath;
         if (!hqfPath.empty() && isDebugApp) {
-            hqfPath = std::regex_replace(hqfPath, pattern, std::string(LOCAL_CODE_PATH));
+            hqfPath = ExtractorUtil::GetLoadFilePath(hqfPath);
             TAG_LOGI(AAFwkTag::APPKIT, "AddPatchResource hapPath:%{public}s, patchPath:%{public}s",
                 loadPath.c_str(), hqfPath.c_str());
             if (!resourceManager->AddPatchResource(loadPath.c_str(), hqfPath.c_str())) {
@@ -2154,7 +2153,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         return;
     }
     contextImpl->SetResourceManager(resourceManager);
-    AbilityBase::ExtractResourceManager::GetExtractResourceManager().SetGlobalObject(resourceManager);
+    AbilityRuntime::ExtractResourceManager::GetExtractResourceManager().SetGlobalObject(resourceManager);
 
     contextDeal->initResourceManager(resourceManager);
     contextDeal->SetApplicationContext(application_);
@@ -2346,6 +2345,7 @@ void MainThread::HandleNWebPreload()
             return;
         }
         auto initArgs = std::make_shared<NWeb::NWebEngineInitArgsImpl>();
+        initArgs->SetIsPreloadNWeb(true);
         preloadNWeb_ = NWeb::NWebAdapterHelper::Instance().CreateNWeb(surface, initArgs,
             NWEB_SURFACE_SIZE, NWEB_SURFACE_SIZE, false);
         if (!preloadNWeb_) {
@@ -2542,8 +2542,6 @@ void MainThread::LoadNativeLibrary(const BundleInfo &bundleInfo, std::string &na
 void MainThread::ChangeToLocalPath(const std::string &bundleName,
     const std::vector<std::string> &sourceDirs, std::vector<std::string> &localPath)
 {
-    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleName
-        + std::string(FILE_SEPARATOR));
     for (auto item : sourceDirs) {
         if (item.empty()) {
             continue;
@@ -2555,7 +2553,6 @@ void MainThread::ChangeToLocalPath(const std::string &bundleName,
 void MainThread::ChangeToLocalPath(const std::string &bundleName,
     const std::string &sourceDir, std::string &localPath)
 {
-    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleName);
     if (sourceDir.empty()) {
         return;
     }

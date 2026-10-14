@@ -91,7 +91,6 @@ private:
         int32_t appIndex, AppExecFwk::AbilityInfo &abilityInfo);
 
     std::string MatchTypeAndUri(const AAFwk::Want &want);
-    std::shared_ptr<AppExecFwk::BundleMgrHelper> GetBundleManagerHelper();
     std::vector<std::string> SplitStr(const std::string& str, char delimiter);
     int QueryBmsAppInfos(AbilityRequest &request, int32_t userId, std::vector<DialogAppInfo> &dialogAppInfos);
 
@@ -113,18 +112,16 @@ private:
 
     void AddAbilityInfoToDialogInfos(const AddInfoParam &param, std::vector<DialogAppInfo> &dialogAppInfos);
 
-    bool IsExistDefaultApp(int32_t userId, const std::string &typeName,
-        std::string &defaultBundleName, int32_t &defaultAppIndex);
-
-    void FilterCloneByDefaultApp(std::vector<DialogAppInfo> &dialogAppInfos,
-        const std::string &defaultBundleName, int32_t defaultAppIndex);
+    bool IsExistDefaultApp(int32_t userId, const std::string &typeName);
 
     void FilterClonesByPreferredIndex(std::vector<DialogAppInfo> &dialogAppInfos, int32_t userId);
 
     bool IsPreferredCloneExist(const std::vector<DialogAppInfo> &dialogAppInfos,
         const std::string &bundleName, int32_t preferredAppIndex);
 
-    static void ProcessLinkType(std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
+    static void ProcessLinkType(std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
+        const AbilityRequest &request);
+    static bool ShouldPreferDefaultBrowser(const AbilityRequest &request, bool defaultAppExist);
 
     void SetTargetLinkInfo(const std::vector<AppExecFwk::SkillUriForAbilityAndExtension> &skillUri, Want &want);
 
@@ -148,7 +145,6 @@ private:
     bool IsExtensionInWhiteList(AppExecFwk::ExtensionAbilityType type);
     ffrt::mutex identityListLock_;
     std::list<IdentityNode> identityList_;
-    std::shared_ptr<AppExecFwk::BundleMgrHelper> iBundleManagerHelper_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -41,6 +41,7 @@
 #include "session_info.h"
 #include "start_ability_utils.h"
 #include "scene_board/status_bar_delegate_manager.h"
+#include "utils/update_caller_info_util.h"
 #include "server_constant.h"
 #include "utils/oe_extension_utils.h"
 #include "session_manager_lite.h"
@@ -752,8 +753,11 @@ void UIAbilityLifecycleManager::StoreAbilitySessionInfo(int32_t requestId, const
     std::lock_guard<ffrt::mutex> guard(abilitySessionInfoMapLock_);
     abilitySessionInfoMap_[requestId] = info;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "StoreAbilitySessionInfo requestId=%{public}d, bundle=%{public}s, "
-        "tokenId=%{public}u, isWebSandBoxClone=%{public}d, specifyTokenId=%{public}u", requestId,
-        info.callerBundleName.c_str(), info.callerTokenId, info.isWebSandBoxClone, info.specifyTokenId);
+        "tokenId=%{public}u, isWebSandBoxClone=%{public}d, specifyTokenId=%{public}u, "
+        "callerUid=%{public}d, callerPid=%{public}d, "
+        "callerNativeName=%{public}s", requestId, info.callerBundleName.c_str(), info.callerTokenId,
+        info.isWebSandBoxClone, info.specifyTokenId, info.callerUid, info.callerPid,
+        info.callerNativeName.c_str());
 }
 
 bool UIAbilityLifecycleManager::GetAbilitySessionInfo(int32_t requestId, AbilitySessionInfo &info) const
@@ -766,8 +770,10 @@ bool UIAbilityLifecycleManager::GetAbilitySessionInfo(int32_t requestId, Ability
     }
     info = it->second;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "GetAbilitySessionInfo requestId=%{public}d, bundle=%{public}s, tokenId=%{public}u, "
-        "isWebSandBoxClone=%{public}d, specifyTokenId=%{public}u", requestId, info.callerBundleName.c_str(),
-        info.callerTokenId, info.isWebSandBoxClone, info.specifyTokenId);
+        "isWebSandBoxClone=%{public}d, specifyTokenId=%{public}u, callerUid=%{public}d, callerPid=%{public}d, "
+        "callerNativeName=%{public}s", requestId, info.callerBundleName.c_str(),
+        info.callerTokenId, info.isWebSandBoxClone, info.specifyTokenId, info.callerUid,
+        info.callerPid, info.callerNativeName.c_str());
     return true;
 }
 
@@ -789,6 +795,7 @@ void UIAbilityLifecycleManager::CacheAbilitySessionInfo(sptr<SessionInfo> &sessi
     }
     AbilitySessionInfo info;
     info.specifyTokenId = abilityRequest.specifyTokenId;
+    UpdateCallerInfoUtil::GetInstance().CacheCallerInfoFromWant(abilityRequest.want, info);
     if (abilityRequest.isWebSandBoxClone) {
         sessionInfo->want.SetParam(AbilityRuntime::ServerConstant::DLP_INDEX,
             abilityRequest.abilityInfo.applicationInfo.appIndex);
@@ -799,13 +806,17 @@ void UIAbilityLifecycleManager::CacheAbilitySessionInfo(sptr<SessionInfo> &sessi
             info.callerTokenId = abilityRequest.sandboxCloneParams->callerTokenId;
             info.creatorBundleName = abilityRequest.sandboxCloneParams->creatorBundleName;
         }
+    } else {
+        info.callerBundleName = abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+        info.callerTokenId = static_cast<uint32_t>(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
     }
     StoreAbilitySessionInfo(sessionInfo->requestId, info);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilitySessionInfo cached: bundle = %{public}s, tokenId = %{public}u, "
         "isWebSandBoxClone = %{public}d, sandBoxCloneIndex = %{public}d, creatorBundleName = %{public}s, "
-        "specifyTokenId = %{public}u, requestId = %{public}d", info.callerBundleName.c_str(), info.callerTokenId,
+        "specifyTokenId = %{public}u, callerUid = %{public}d, callerPid = %{public}d, "
+        "callerNativeName = %{public}s, requestId = %{public}d", info.callerBundleName.c_str(), info.callerTokenId,
         info.isWebSandBoxClone, info.sandBoxCloneIndex, info.creatorBundleName.c_str(), info.specifyTokenId,
-        sessionInfo->requestId);
+        info.callerUid, info.callerPid, info.callerNativeName.c_str(), sessionInfo->requestId);
 }
 
 void UIAbilityLifecycleManager::SetSandboxCloneParamsForSession(sptr<SessionInfo> &sessionInfo,
@@ -818,7 +829,9 @@ void UIAbilityLifecycleManager::SetSandboxCloneParamsForSession(sptr<SessionInfo
     if (!AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
         return;
     }
+    auto callerWant = abilityRecord->GetWant();
     AbilitySessionInfo info;
+    UpdateCallerInfoUtil::GetInstance().CacheCallerInfoFromWant(callerWant, info);
     info.isWebSandBoxClone = true;
     info.sandBoxCloneIndex = appIndex;
     auto sandboxCloneParams = abilityRecord->GetSandboxCloneParams();
@@ -826,13 +839,17 @@ void UIAbilityLifecycleManager::SetSandboxCloneParamsForSession(sptr<SessionInfo
         info.callerBundleName = sandboxCloneParams->callerBundleName;
         info.callerTokenId = sandboxCloneParams->callerTokenId;
         info.creatorBundleName = sandboxCloneParams->creatorBundleName;
+    } else {
+        info.callerBundleName = callerWant.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+        info.callerTokenId = static_cast<uint32_t>(callerWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
     }
     StoreAbilitySessionInfo(sessionInfo->requestId, info);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "SandboxClone params stored for warm path: bundle = %{public}s, "
         "tokenId = %{public}u, isWebSandBoxClone = %{public}d, sandBoxCloneIndex = %{public}d, "
-        "creatorBundleName = %{public}s, requestId = %{public}d", info.callerBundleName.c_str(),
-        info.callerTokenId, info.isWebSandBoxClone, info.sandBoxCloneIndex,
-        info.creatorBundleName.c_str(), sessionInfo->requestId);
+        "creatorBundleName = %{public}s, callerUid = %{public}d, callerPid = %{public}d, "
+        "callerNativeName = %{public}s, requestId = %{public}d", info.callerBundleName.c_str(),
+        info.callerTokenId, info.isWebSandBoxClone, info.sandBoxCloneIndex, info.creatorBundleName.c_str(),
+        info.callerUid, info.callerPid, info.callerNativeName.c_str(), sessionInfo->requestId);
 }
 
 bool UIAbilityLifecycleManager::HandleHookModule(AbilityRequest &abilityRequest, int32_t &ret)
@@ -1659,7 +1676,7 @@ int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const sptr<IRemo
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "notifySCBToMinimizeUIAbility");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(userId_).GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN(sceneSessionManager, ERR_NULL_OBJECT);
     Rosen::WSError ret = sceneSessionManager->PendingSessionToBackgroundForDelegator(token, shouldBackToCaller,
         notifyScbBackgroundReason);
@@ -1893,6 +1910,7 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
 #ifdef SUPPORT_UPMS
     if (InsightIntentExecuteParam::IsInsightIntentExecute(abilityRequest.want)) {
         uiAbilityRecord->GrantUriPermission();
+        uiAbilityRecord->GrantFileEntityUriPermission();
     }
 #endif // SUPPORT_UPMS
 
@@ -1933,6 +1951,9 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
             }
             uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
             ForegroundOptions options;
+            options.callerUid = abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
+            options.callerBundleName =
+                abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
             options.sceneFlag = SCENE_FLAG_BYCALL;
             uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, options,
                 abilityRequest.want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, false));
@@ -3191,7 +3212,7 @@ int32_t UIAbilityLifecycleManager::StartSpecifiedProcessRequest(const AbilityReq
 {
     auto isCreating = abilityRequest.want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);
     const auto &abilityInfo = abilityRequest.abilityInfo;
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(userId_).GetSceneSessionManagerLiteProxy();
     if (AppUtils::GetInstance().InOnNewProcessEnableList(abilityRequest.abilityInfo.bundleName) &&
         abilityInfo.applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE &&
         isCreating && sceneSessionManager != nullptr) {
@@ -4682,8 +4703,9 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
                 return;
             }
         } else {
+            AbilitySessionInfo info;
+            UpdateCallerInfoUtil::GetInstance().CacheCallerInfoFromWant(request.want, info);
             if (request.isWebSandBoxClone) {
-                AbilitySessionInfo info;
                 info.isWebSandBoxClone = request.isWebSandBoxClone;
                 info.sandBoxCloneIndex = request.abilityInfo.applicationInfo.appIndex;
                 if (request.sandboxCloneParams != nullptr) {
@@ -4691,8 +4713,11 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
                     info.callerTokenId = request.sandboxCloneParams->callerTokenId;
                     info.creatorBundleName = request.sandboxCloneParams->creatorBundleName;
                 }
-                StoreAbilitySessionInfo(specifiedRequest.requestId, info);
+            } else {
+                info.callerBundleName = request.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+                info.callerTokenId = static_cast<uint32_t>(request.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
             }
+            StoreAbilitySessionInfo(specifiedRequest.requestId, info);
             AbilityRuntime::StartSpecifiedParam specifiedParam;
             BuildStartSpecifiedParam(request, specifiedRequest.requestId, specifiedParam);
             DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(request.want,
@@ -4728,7 +4753,7 @@ void UIAbilityLifecycleManager::RemoveInstanceKey(const AbilityRequest &abilityR
     if (!abilityRequest.want.HasParameter(Want::APP_INSTANCE_KEY)) {
         return;
     }
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(userId_).GetSceneSessionManagerLiteProxy();
     if (sceneSessionManager != nullptr) {
         Rosen::WMError ret = sceneSessionManager->RemoveInstanceKey(abilityRequest.want.GetBundleNameRef(),
             abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY));

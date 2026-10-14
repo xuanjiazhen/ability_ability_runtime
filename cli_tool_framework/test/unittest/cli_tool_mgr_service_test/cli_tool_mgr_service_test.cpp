@@ -59,7 +59,6 @@
 #include "skill/skill_execute_result.h"
 #include "string_wrapper.h"
 #include "token_setproc.h"
-#include "tokenid_kit.h"
 #include "accesstoken_kit.h"
 #include "tool_info.h"
 #include "tool_util.h"
@@ -70,14 +69,6 @@ using namespace testing::ext;
 using namespace OHOS::CliTool;
 
 namespace OHOS {
-namespace Security {
-namespace AccessToken {
-bool TokenIdKit::IsSystemAppByFullTokenID(uint64_t fullTokenId)
-{
-    return fullTokenId == 0;
-}
-} // namespace AccessToken
-} // namespace Security
 namespace CliTool {
 namespace {
 const char *CLI_TOOL_PERMS[] = {
@@ -106,23 +97,27 @@ bool IsCapabilityGateResult(int32_t result)
 // was prone to.
 class PermissionScope {
 public:
-    PermissionScope(bool execCliTool, bool execPublicCliTool)
+    PermissionScope(bool execCliTool, bool execPublicCliTool, bool registerAgentHook = true)
         : prevExecCliTool_(PermissionUtilMock::execCliToolPermitted),
-          prevExecPublicCliTool_(PermissionUtilMock::execPublicCliToolPermitted)
+          prevExecPublicCliTool_(PermissionUtilMock::execPublicCliToolPermitted),
+          prevRegisterAgentHook_(PermissionUtilMock::registerAgentHookPermitted)
     {
         PermissionUtilMock::execCliToolPermitted = execCliTool;
         PermissionUtilMock::execPublicCliToolPermitted = execPublicCliTool;
+        PermissionUtilMock::registerAgentHookPermitted = registerAgentHook;
     }
     ~PermissionScope()
     {
         PermissionUtilMock::execCliToolPermitted = prevExecCliTool_;
         PermissionUtilMock::execPublicCliToolPermitted = prevExecPublicCliTool_;
+        PermissionUtilMock::registerAgentHookPermitted = prevRegisterAgentHook_;
     }
     PermissionScope(const PermissionScope &) = delete;
     PermissionScope &operator=(const PermissionScope &) = delete;
 private:
     bool prevExecCliTool_;
     bool prevExecPublicCliTool_;
+    bool prevRegisterAgentHook_;
 };
 } // namespace {
 
@@ -185,6 +180,15 @@ void CliToolManagerServiceTest::SetUp()
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
     service_->bundleObservers_.clear();
+    {
+        std::lock_guard<ffrt::mutex> hookGuard(service_->hookMutex_);
+        service_->cliHook_ = nullptr;
+        service_->functionHook_ = nullptr;
+        service_->cliHookDeathRecipient_ = nullptr;
+        service_->functionHookDeathRecipient_ = nullptr;
+        service_->cliHookActiveMethods_ = 0;
+        service_->functionHookActiveMethods_ = 0;
+    }
     auto &ccmUtil = CcmUtil::GetInstance();
     ccmUtil.isSupportExecCmd_.isLoaded = false;
     ccmUtil.isSupportExecCmd_.value = false;
@@ -210,6 +214,15 @@ void CliToolManagerServiceTest::TearDown()
         std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
         service_->sessionRecords_.clear();
         service_->bundleObservers_.clear();
+    }
+    {
+        std::lock_guard<ffrt::mutex> hookGuard(service_->hookMutex_);
+        service_->cliHook_ = nullptr;
+        service_->functionHook_ = nullptr;
+        service_->cliHookDeathRecipient_ = nullptr;
+        service_->functionHookDeathRecipient_ = nullptr;
+        service_->cliHookActiveMethods_ = 0;
+        service_->functionHookActiveMethods_ = 0;
     }
     // Safety net (outside sessionsMutex_: StopReaper joins the reaper, whose WaitPid takes sessionsMutex_):
     // stop the reaper if a test started it and did not stop it. No-op if never started.
@@ -2321,6 +2334,126 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0900, TestSize.Level1)
     GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0900 end";
 }
 
+// ==================== ExecTool Trace Id Validation Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_1000
+ * @tc.desc: Test ExecTool rejects toolCallId containing illegal characters with ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_1000, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1000 start");
+
+    ExecToolParam param;
+    param.toolName = "non_existent_tool";
+    param.options.toolCallId = "call@id;rm -rf";
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecTool(param, "event_exec_invalid_call_id", scheduler);
+
+    // Entry validation runs before the permission gate, so the result is exactly ERR_INVALID_VALUE
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1000 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_1100
+ * @tc.desc: Test ExecTool rejects toolCallId longer than 256 characters with ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_1100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1100 start");
+
+    ExecToolParam param;
+    param.toolName = "non_existent_tool";
+    param.options.toolCallId = std::string(257, 'a'); // 257 chars, all in the legal character set
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecTool(param, "event_exec_call_id_too_long", scheduler);
+
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_1200
+ * @tc.desc: Test ExecTool rejects dmSessionId containing illegal characters with ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_1200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1200 start");
+
+    ExecToolParam param;
+    param.toolName = "non_existent_tool";
+    param.options.toolCallId = "valid_call_id";
+    param.options.dmSessionId = "dm session/id";
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecTool(param, "event_exec_invalid_dm_session_id", scheduler);
+
+    // toolCallId is valid, only dmSessionId is invalid
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_1300
+ * @tc.desc: Test ExecTool accepts trace ids whose length equals 256 (boundary value)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_1300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1300 start");
+
+    ExecToolParam param;
+    param.toolName = "non_existent_tool";
+    param.options.toolCallId = std::string(256, 'a');   // exactly 256 chars, legal
+    param.options.dmSessionId = std::string(256, '0'); // exactly 256 chars, legal
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecTool(param, "event_exec_max_length_trace_ids", scheduler);
+
+    // Trace ids pass entry validation; the request proceeds to the tool lookup / permission gate
+    EXPECT_NE(result, ERR_INVALID_VALUE);
+    EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_1400
+ * @tc.desc: Test ExecTool accepts explicitly empty trace ids (an empty string is a valid value)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_1400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1400 start");
+
+    ExecToolParam param;
+    param.toolName = "non_existent_tool";
+    param.options.toolCallId = "";   // explicitly empty: valid, same as not provided
+    param.options.dmSessionId = "";  // explicitly empty: valid, same as not provided
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecTool(param, "event_exec_empty_trace_ids", scheduler);
+
+    // Empty trace ids pass entry validation; the request proceeds exactly like the
+    // no-identifier case (tool lookup / permission gate), never ERR_INVALID_VALUE.
+    EXPECT_NE(result, ERR_INVALID_VALUE);
+    EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1400 end");
+}
+
 // ==================== ValidateAndPrepareCmd Tests ====================
 
 /**
@@ -2817,6 +2950,7 @@ HWTEST_F(CliToolManagerServiceTest, RegisterFunction_0100, TestSize.Level1)
     function.functionName = "test_function";
     function.functionNamespace = "test_ns";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 0;
 
     // Mock returns ERR_OK by default
     int32_t ret = service_->RegisterFunction(function);
@@ -2892,6 +3026,7 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0100, TestSize.Level1
         function.functionName = "batch_test_func_" + std::to_string(i);
         function.functionNamespace = "batch_test_ns";
         function.functionType = FunctionType::INTENT_FUNCTION;
+        function.userId = 0;
         functions.push_back(function);
     }
     FunctionsRawData rawData;
@@ -3045,6 +3180,7 @@ HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_0100, TestSize.Level1)
     function.functionName = "get_test_function";
     function.functionNamespace = "get_test_ns";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 0;
     service_->RegisterFunction(function);
 
     // Then get it
@@ -3090,10 +3226,11 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterFunction_0100, TestSize.Level1)
     function.functionName = "unreg_test_function";
     function.functionNamespace = "unreg_test_ns";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 0;
     service_->RegisterFunction(function);
 
     // Then unregister it
-    int32_t ret = service_->UnregisterFunction("unreg_test_ns", "unreg_test_function");
+    int32_t ret = service_->UnregisterFunction(0, "unreg_test_ns", "unreg_test_function");
 
     // Mock returns ERR_OK by default
     EXPECT_EQ(ret, ERR_OK);
@@ -3110,7 +3247,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterFunction_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterFunction_0200 start");
 
-    int32_t ret = service_->UnregisterFunction("non_existent_ns", "non_existent_function");
+    int32_t ret = service_->UnregisterFunction(0, "non_existent_ns", "non_existent_function");
 
     // Mock returns ERR_OK by default
     EXPECT_EQ(ret, ERR_OK);
@@ -3127,7 +3264,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespace_0100, T
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespace_0100 start");
 
-    int32_t ret = service_->UnregisterIntentFunctionsByNamespace("test_intent_ns");
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespace(0, "test_intent_ns");
 
     // Mock returns ERR_OK by default
     EXPECT_EQ(ret, ERR_OK);
@@ -3147,7 +3284,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterFunction_0300, TestSize.Level1)
     // Set callingUid to non-FOUNDATION_UID
     IPCSkeleton::callingUid = 9999;
 
-    int32_t ret = service_->UnregisterFunction("test_ns", "test_function");
+    int32_t ret = service_->UnregisterFunction(0, "test_ns", "test_function");
 
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 
@@ -3169,7 +3306,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespace_0200, T
     // Set callingUid to non-FOUNDATION_UID
     IPCSkeleton::callingUid = 9999;
 
-    int32_t ret = service_->UnregisterIntentFunctionsByNamespace("test_ns");
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespace(0, "test_ns");
 
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 
@@ -3177,6 +3314,21 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespace_0200, T
     IPCSkeleton::Reset();
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespace_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespace_0300
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespace with empty namespace
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespace_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespace_0300 start");
+
+    // An empty namespace would degrade the prefix query to the whole user scope
+    EXPECT_EQ(service_->UnregisterIntentFunctionsByNamespace(0, ""), ERR_INVALID_PARAM);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespace_0300 end");
 }
 
 /**
@@ -3193,12 +3345,14 @@ HWTEST_F(CliToolManagerServiceTest, GetAllFunctions_0100, TestSize.Level1)
     function1.functionName = "all_test_function1";
     function1.functionNamespace = "all_test_ns";
     function1.functionType = FunctionType::INTENT_FUNCTION;
+    function1.userId = 0;
     service_->RegisterFunction(function1);
 
     FunctionInfo function2;
     function2.functionName = "all_test_function2";
     function2.functionNamespace = "all_test_ns";
     function2.functionType = FunctionType::INTENT_FUNCTION;
+    function2.userId = 0;
     service_->RegisterFunction(function2);
 
     // Then get all functions
@@ -3232,15 +3386,16 @@ HWTEST_F(CliToolManagerServiceTest, FunctionInterfaces_0100, TestSize.Level1)
     function.functionName = "null_kv_function";
     function.functionNamespace = "null_kv_ns";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 0;
 
     EXPECT_EQ(service_->RegisterFunction(function), ERR_NO_INIT);
 
     FunctionInfo retrievedFunction;
     EXPECT_EQ(service_->GetFunctionInfo("null_kv_ns", "null_kv_function", retrievedFunction), ERR_NO_INIT);
 
-    EXPECT_EQ(service_->UnregisterFunction("null_kv_ns", "null_kv_function"), ERR_NO_INIT);
+    EXPECT_EQ(service_->UnregisterFunction(0, "null_kv_ns", "null_kv_function"), ERR_NO_INIT);
 
-    EXPECT_EQ(service_->UnregisterIntentFunctionsByNamespace("null_kv_ns"), ERR_NO_INIT);
+    EXPECT_EQ(service_->UnregisterIntentFunctionsByNamespace(0, "null_kv_ns"), ERR_NO_INIT);
 
     FunctionsRawData rawData;
     EXPECT_EQ(service_->GetAllFunctions(rawData), ERR_NO_INIT);
@@ -3422,6 +3577,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0100, TestSize.Level
     func1.functionName = "func1";
     func1.functionNamespace = "test_ns";
     func1.functionType = FunctionType::INTENT_FUNCTION;
+    func1.userId = 0;
     func1.version = "1.0";
     func1.description = "Test function 1";
     functionList.push_back(func1);
@@ -3430,6 +3586,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0100, TestSize.Level
     func2.functionName = "func2";
     func2.functionNamespace = "test_ns";
     func2.functionType = FunctionType::INTENT_FUNCTION;
+    func2.userId = 0;
     func2.version = "1.0";
     func2.description = "Test function 2";
     functionList.push_back(func2);
@@ -3438,7 +3595,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0100, TestSize.Level
     FunctionsRawData::FromFunctionInfoVec(functionList, functions);
     int32_t successCount = 0;
 
-    int32_t result = service_->ResetNamespaceFunctions("test_ns", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "test_ns", functions, successCount);
 
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(successCount, 3);
@@ -3459,7 +3616,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0200, TestSize.Level
     FunctionsRawData functions;
     int32_t successCount = 0;
 
-    int32_t result = service_->ResetNamespaceFunctions("", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "", functions, successCount);
 
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
@@ -3468,20 +3625,17 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0200, TestSize.Level
 
 /**
  * @tc.name: CliToolManagerService_ResetNamespaceFunctions_0300
- * @tc.desc: Test ResetNamespaceFunctions with empty function list
+ * @tc.desc: Test ResetNamespaceFunctions with empty function list (degrades to delete all)
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0300, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctions_0300 start");
 
-    CliFunctionDataManagerMock::resetNamespaceFunctionsResult = ERR_OK;
-    CliFunctionDataManagerMock::resetNamespaceFunctionsSuccessCount = 0;
-
     FunctionsRawData functions;  // Empty
     int32_t successCount = -1;  // Initialize to non-zero
 
-    int32_t result = service_->ResetNamespaceFunctions("empty_ns", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "empty_ns", functions, successCount);
 
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(successCount, 0);
@@ -3503,6 +3657,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0400, TestSize.Level
     func.functionName = "func1";
     func.functionNamespace = "wrong_ns";  // Different from parameter
     func.functionType = FunctionType::INTENT_FUNCTION;
+    func.userId = 0;
     func.version = "1.0";
     func.description = "Test function";
     functionList.push_back(func);
@@ -3511,7 +3666,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0400, TestSize.Level
     FunctionsRawData::FromFunctionInfoVec(functionList, functions);
     int32_t successCount = 0;
 
-    int32_t result = service_->ResetNamespaceFunctions("test_ns", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "test_ns", functions, successCount);
 
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
@@ -3536,6 +3691,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0500, TestSize.Level
     func1.functionName = "valid_func1";
     func1.functionNamespace = "test_ns";
     func1.functionType = FunctionType::INTENT_FUNCTION;
+    func1.userId = 0;
     func1.version = "1.0";
     func1.description = "Valid function 1";
     functionList.push_back(func1);
@@ -3545,6 +3701,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0500, TestSize.Level
     func2.functionName = "valid_func2";
     func2.functionNamespace = "test_ns";
     func2.functionType = FunctionType::INTENT_FUNCTION;
+    func2.userId = 0;
     func2.version = "1.0";
     func2.description = "Valid function 2";
     functionList.push_back(func2);
@@ -3553,7 +3710,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0500, TestSize.Level
     FunctionsRawData::FromFunctionInfoVec(functionList, functions);
     int32_t successCount = 0;
 
-    int32_t result = service_->ResetNamespaceFunctions("test_ns", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "test_ns", functions, successCount);
 
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(successCount, 2);
@@ -3586,7 +3743,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0600, TestSize.Level
     FunctionsRawData::FromFunctionInfoVec(functionList, functions);
     int32_t successCount = 0;
 
-    int32_t result = service_->ResetNamespaceFunctions("test_ns", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "test_ns", functions, successCount);
 
     EXPECT_EQ(result, ERR_PERMISSION_DENIED);
 
@@ -3594,6 +3751,35 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0600, TestSize.Level
     IPCSkeleton::Reset();
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctions_0600 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResetNamespaceFunctions_0700
+ * @tc.desc: Test ResetNamespaceFunctions with userId mismatch between function and argument
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctions_0700 start");
+
+    std::vector<FunctionInfo> functionList;
+    FunctionInfo func;
+    func.functionName = "func1";
+    func.functionNamespace = "test_ns";
+    func.functionType = FunctionType::INTENT_FUNCTION;
+    func.userId = 100;  // Targets another user than the userId argument
+    functionList.push_back(func);
+
+    FunctionsRawData functions;
+    FunctionsRawData::FromFunctionInfoVec(functionList, functions);
+    int32_t successCount = -1;
+
+    int32_t result = service_->ResetNamespaceFunctions(0, "test_ns", functions, successCount);
+
+    EXPECT_EQ(result, ERR_INVALID_PARAM);
+    EXPECT_EQ(successCount, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctions_0700 end");
 }
 
 // ==================== Async Function Interfaces Tests ====================
@@ -3672,7 +3858,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_01
     IPCSkeleton::SetCallingUid(FOUNDATION_UID);
     CliFunctionDataManagerMock::unregisterByNamespaceResult = ERR_OK;
 
-    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync("async_test_ns");
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync(0, "async_test_ns");
 
     EXPECT_EQ(ret, ERR_OK);
 
@@ -3692,7 +3878,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_02
 
     IPCSkeleton::callingUid = 9999;
 
-    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync("async_test_ns");
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync(0, "async_test_ns");
 
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 
@@ -3720,6 +3906,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0100, TestSize.
     func1.functionName = "async_func1";
     func1.functionNamespace = "async_test_ns";
     func1.functionType = FunctionType::INTENT_FUNCTION;
+    func1.userId = 0;
     func1.version = "1.0";
     func1.description = "Test function 1";
     functionList.push_back(func1);
@@ -3728,6 +3915,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0100, TestSize.
     func2.functionName = "async_func2";
     func2.functionNamespace = "async_test_ns";
     func2.functionType = FunctionType::INTENT_FUNCTION;
+    func2.userId = 0;
     func2.version = "1.0";
     func2.description = "Test function 2";
     functionList.push_back(func2);
@@ -3735,7 +3923,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0100, TestSize.
     FunctionsRawData functions;
     FunctionsRawData::FromFunctionInfoVec(functionList, functions);
 
-    int32_t result = service_->ResetNamespaceFunctionsAsync("async_test_ns", functions);
+    int32_t result = service_->ResetNamespaceFunctionsAsync(0, "async_test_ns", functions);
 
     EXPECT_EQ(result, ERR_OK);
 
@@ -3765,7 +3953,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0200, TestSize.
     FunctionsRawData functions;
     FunctionsRawData::FromFunctionInfoVec(functionList, functions);
 
-    int32_t result = service_->ResetNamespaceFunctionsAsync("async_test_ns", functions);
+    int32_t result = service_->ResetNamespaceFunctionsAsync(0, "async_test_ns", functions);
 
     EXPECT_EQ(result, ERR_PERMISSION_DENIED);
 
@@ -3961,6 +4149,108 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_CmdMaxLength_0300, TestSize.Level2)
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_CmdMaxLength_0300 end");
 }
 
+// ==================== ExecCmd Trace Id Validation Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_1200
+ * @tc.desc: Test ExecCmd rejects execCmdOptions.toolCallId containing illegal characters with ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_1200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1200 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    param.execCmdOptions.toolCallId = "call id with space";
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_invalid_call_id", scheduler, "sub_invalid_call_id");
+
+    // Entry validation runs before the permission gate, so the result is exactly ERR_INVALID_VALUE
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_1300
+ * @tc.desc: Test ExecCmd rejects execCmdOptions.dmSessionId longer than 256 characters with ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_1300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1300 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    param.execCmdOptions.toolCallId = "valid_call_id";
+    param.execCmdOptions.dmSessionId = std::string(257, 'd'); // 257 chars, all in the legal character set
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_dm_session_too_long", scheduler, "sub_dm_too_long");
+
+    // toolCallId is valid, only dmSessionId is oversized
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_1400
+ * @tc.desc: Test ExecCmd accepts trace ids whose length equals 256 (boundary value)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_1400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1400 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    param.execCmdOptions.toolCallId = std::string(256, 'a');   // exactly 256 chars, legal
+    param.execCmdOptions.dmSessionId = std::string(256, '0'); // exactly 256 chars, legal
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_max_length_trace_ids", scheduler,
+        "sub_max_length_trace_ids");
+
+    // Trace ids pass entry validation; the request proceeds to later validation / permission gates
+    EXPECT_NE(result, ERR_INVALID_VALUE);
+    EXPECT_TRUE(result == ERR_NO_INIT || result == ERR_NOT_HAP ||
+        result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1400 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_1500
+ * @tc.desc: Test ExecCmd accepts explicitly empty trace ids (an empty string is a valid value)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_1500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1500 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    param.execCmdOptions.toolCallId = "";   // explicitly empty: valid, same as not provided
+    param.execCmdOptions.dmSessionId = "";  // explicitly empty: valid, same as not provided
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_empty_trace_ids", scheduler,
+        "sub_empty_trace_ids");
+
+    // Empty trace ids pass entry validation; the request proceeds exactly like the
+    // no-identifier case (later validation / permission gates), never ERR_INVALID_VALUE.
+    EXPECT_NE(result, ERR_INVALID_VALUE);
+    EXPECT_TRUE(result == ERR_NO_INIT || result == ERR_NOT_HAP ||
+        result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1500 end");
+}
+
 // ---------------------------------------------------------------------------
 // Hook tests — covers T-P0-1 through T-P0-7, T-P1-1 through T-P1-3, API-01
 // ---------------------------------------------------------------------------
@@ -3970,6 +4260,8 @@ public:
     ErrCode BeforeCallTool(ExecToolParam& param) override
     {
         beforeCallToolCount++;
+        lastBeforeToolCallId = param.options.toolCallId;
+        lastBeforeDmSessionId = param.options.dmSessionId;
         if (modifyParam) {
             param.toolName = "modified_tool";
         }
@@ -3979,6 +4271,8 @@ public:
     ErrCode AfterCallTool(ExecResultWrap& execResultWrap) override
     {
         afterCallToolCount++;
+        lastWrapToolCallId = execResultWrap.toolCallId;
+        lastWrapDmSessionId = execResultWrap.dmSessionId;
         if (modifyResult) {
             execResultWrap.execResult.exitCode = 1;
             execResultWrap.execResult.outputText = "modified_output";
@@ -3989,6 +4283,14 @@ public:
     ErrCode BeforeCallCmd(ExecCmdParam& param) override
     {
         beforeCallCmdCount++;
+        lastBeforeCmdToolCallId = param.execCmdOptions.toolCallId;
+        lastBeforeCmdDmSessionId = param.execCmdOptions.dmSessionId;
+        if (modifyCmdIsShell) {
+            param.execCmdOptions.isShellCommand = targetIsShell;
+        }
+        if (modifyCmdString) {
+            param.cmd = targetCmd;
+        }
         return ERR_OK;
     }
 
@@ -4006,8 +4308,18 @@ public:
     int afterCallToolCount = 0;
     int beforeCallCmdCount = 0;
     int afterCallCmdCount = 0;
+    std::string lastBeforeToolCallId;
+    std::string lastBeforeDmSessionId;
+    std::string lastBeforeCmdToolCallId;
+    std::string lastBeforeCmdDmSessionId;
+    std::string lastWrapToolCallId;
+    std::string lastWrapDmSessionId;
     bool modifyParam = false;
     bool modifyResult = false;
+    bool modifyCmdIsShell = false;
+    bool targetIsShell = false;
+    bool modifyCmdString = false;
+    std::string targetCmd;
 };
 
 class MockFunctionHook : public FunctionHookInterfaceStub {
@@ -4015,6 +4327,8 @@ public:
     ErrCode BeforeInvokeFunction(InvokeFunctionParam& param) override
     {
         beforeInvokeCount++;
+        lastBeforeInvokeToolCallId = param.invokeOptions.toolCallId;
+        lastBeforeInvokeDmSessionId = param.invokeOptions.dmSessionId;
         return ERR_OK;
     }
 
@@ -4030,6 +4344,8 @@ public:
 
     int beforeInvokeCount = 0;
     int afterInvokeCount = 0;
+    std::string lastBeforeInvokeToolCallId;
+    std::string lastBeforeInvokeDmSessionId;
     bool modifyResult = false;
 };
 
@@ -4075,6 +4391,15 @@ static CliSessionInfo MakeSessionWithResult(int32_t exitCode, const std::string&
     session.result->exitCode = exitCode;
     session.result->outputText = output;
     return session;
+}
+
+// The after-hook Wrap identifiers are stamped from the SessionRecord, not a CliSessionInfo echo.
+static void PrepareHookRecord(SessionRecord& record, SessionType sessionType,
+    const std::string& toolCallId = "", const std::string& dmSessionId = "")
+{
+    record.sessionType = sessionType;
+    record.toolCallId = toolCallId;
+    record.dmSessionId = dmSessionId;
 }
 
 /**
@@ -4176,6 +4501,90 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterCliHook_NotRegistered_0100, TestSi
 }
 
 /**
+ * @tc.name: InvokeBeforeCallTool_ParamIds_0100
+ * @tc.desc: T-R3/AC-2.2: Before-callback param carries caller-provided trace ids via execOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, InvokeBeforeCallTool_ParamIds_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InvokeBeforeCallTool_ParamIds_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook, 0x0F);
+
+    ExecToolParam param;
+    param.toolName = "demo_tool";
+    param.subcommand = "run";
+    param.options.toolCallId = "tcid-before-tool-0100";
+    param.options.dmSessionId = "dmsid-before-tool-0100";
+    service_->InvokeBeforeCallTool(param);
+
+    EXPECT_EQ(hook->beforeCallToolCount, 1);
+    // Before-hook observes the caller-provided ids through the param options.
+    EXPECT_EQ(hook->lastBeforeToolCallId, "tcid-before-tool-0100");
+    EXPECT_EQ(hook->lastBeforeDmSessionId, "dmsid-before-tool-0100");
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "InvokeBeforeCallTool_ParamIds_0100 end");
+}
+
+/**
+ * @tc.name: InvokeBeforeCallCmd_ParamIds_0100
+ * @tc.desc: T-R3/AC-2.2: Before-callback param carries caller-provided trace ids via execCmdOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, InvokeBeforeCallCmd_ParamIds_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InvokeBeforeCallCmd_ParamIds_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook, 0x0F);
+
+    ExecCmdParam param;
+    param.cmd = "echo hi";
+    param.execCmdOptions.toolCallId = "tcid-before-cmd-0100";
+    param.execCmdOptions.dmSessionId = "dmsid-before-cmd-0100";
+    service_->InvokeBeforeCallCmd(param);
+
+    EXPECT_EQ(hook->beforeCallCmdCount, 1);
+    EXPECT_EQ(hook->lastBeforeCmdToolCallId, "tcid-before-cmd-0100");
+    EXPECT_EQ(hook->lastBeforeCmdDmSessionId, "dmsid-before-cmd-0100");
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "InvokeBeforeCallCmd_ParamIds_0100 end");
+}
+
+/**
+ * @tc.name: BeforeInvokeFunction_ParamIds_0100
+ * @tc.desc: T-R3/AC-2.2: Before-callback param carries caller-provided trace ids via invokeOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BeforeInvokeFunction_ParamIds_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "BeforeInvokeFunction_ParamIds_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    service_->RegisterFunctionHook(hook, 0x03);
+
+    InvokeFunctionParam param;
+    param.functionNamespace = "ns";
+    param.functionName = "fn";
+    param.invokeOptions.toolCallId = "tcid-before-invoke-0100";
+    param.invokeOptions.dmSessionId = "dmsid-before-invoke-0100";
+    service_->BeforeInvokeFunction(param);
+
+    EXPECT_EQ(hook->beforeInvokeCount, 1);
+    EXPECT_EQ(hook->lastBeforeInvokeToolCallId, "tcid-before-invoke-0100");
+    EXPECT_EQ(hook->lastBeforeInvokeDmSessionId, "dmsid-before-invoke-0100");
+
+    service_->UnregisterFunctionHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "BeforeInvokeFunction_ParamIds_0100 end");
+}
+
+/**
  * @tc.name: InvokeAfterCallTool_WriteBack_0100
  * @tc.desc: T-P0-6/API-01: Hook modifies ExecResult, session.result carries modified value
  * @tc.type: FUNC
@@ -4190,12 +4599,17 @@ HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_WriteBack_0100, TestSize
     service_->RegisterCliHook(hook, 0x0F);
 
     CliSessionInfo session = MakeSessionWithResult(0, "original_output");
-    service_->InvokeAfterCallTool(session, SessionType::CLI);
+    SessionRecord record;
+    PrepareHookRecord(record, SessionType::CLI, "tcid-record-0100", "dmsid-record-0100");
+    service_->InvokeAfterCallTool(session, record);
 
     EXPECT_EQ(hook->afterCallToolCount, 1);
     ASSERT_NE(session.result, nullptr);
     EXPECT_EQ(session.result->exitCode, 1);
     EXPECT_EQ(session.result->outputText, "modified_output");
+    // Wrap identifiers come from the record, not a CliSessionInfo echo.
+    EXPECT_EQ(hook->lastWrapToolCallId, "tcid-record-0100");
+    EXPECT_EQ(hook->lastWrapDmSessionId, "dmsid-record-0100");
 
     service_->UnregisterCliHook(hook);
     TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_WriteBack_0100 end");
@@ -4212,7 +4626,9 @@ HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_NoHook_0100, TestSize.Le
     SetDeveloperMode(true);
 
     CliSessionInfo session = MakeSessionWithResult(0, "original_output");
-    service_->InvokeAfterCallTool(session, SessionType::CLI);
+    SessionRecord record;
+    PrepareHookRecord(record, SessionType::CLI);
+    service_->InvokeAfterCallTool(session, record);
 
     ASSERT_NE(session.result, nullptr);
     EXPECT_EQ(session.result->exitCode, 0);
@@ -4238,7 +4654,9 @@ HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_DeveloperModeOff_0100, T
     SetDeveloperMode(false);
 
     CliSessionInfo session = MakeSessionWithResult(0, "original_output");
-    service_->InvokeAfterCallTool(session, SessionType::CLI);
+    SessionRecord record;
+    PrepareHookRecord(record, SessionType::CLI);
+    service_->InvokeAfterCallTool(session, record);
 
     EXPECT_EQ(hook->afterCallToolCount, 0);
     ASSERT_NE(session.result, nullptr);
@@ -4290,7 +4708,9 @@ HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallCmd_WriteBack_0100, TestSize.
     service_->RegisterCliHook(hook, 0x0F);
 
     CliSessionInfo session = MakeSessionWithResult(0, "cmd_original");
-    service_->InvokeAfterCallTool(session, SessionType::CLI_CMD);
+    SessionRecord record;
+    PrepareHookRecord(record, SessionType::CLI_CMD);
+    service_->InvokeAfterCallTool(session, record);
 
     EXPECT_EQ(hook->afterCallCmdCount, 1);
     ASSERT_NE(session.result, nullptr);
@@ -4318,7 +4738,9 @@ HWTEST_F(CliToolManagerServiceTest, RegisterCliHook_ActiveMethodsZero_0100, Test
     EXPECT_EQ(service_->cliHookActiveMethods_, 0u);
 
     CliSessionInfo session = MakeSessionWithResult(0, "original");
-    service_->InvokeAfterCallTool(session, SessionType::CLI);
+    SessionRecord record;
+    PrepareHookRecord(record, SessionType::CLI);
+    service_->InvokeAfterCallTool(session, record);
 
     EXPECT_EQ(hook->afterCallToolCount, 1);
 
@@ -4346,7 +4768,9 @@ HWTEST_F(CliToolManagerServiceTest, RegisterCliHook_ActiveMethodsPartial_0100, T
     EXPECT_EQ(hook->beforeCallToolCount, 0);
 
     CliSessionInfo session = MakeSessionWithResult(0, "output");
-    service_->InvokeAfterCallTool(session, SessionType::CLI);
+    SessionRecord record;
+    PrepareHookRecord(record, SessionType::CLI);
+    service_->InvokeAfterCallTool(session, record);
     EXPECT_EQ(hook->afterCallToolCount, 1);
 
     service_->UnregisterCliHook(hook);
@@ -4479,7 +4903,9 @@ HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_NullResult_0100, TestSiz
 
     CliSessionInfo session;
     session.result = nullptr;
-    EXPECT_NO_FATAL_FAILURE(service_->InvokeAfterCallTool(session, SessionType::CLI));
+    SessionRecord record;
+    PrepareHookRecord(record, SessionType::CLI);
+    EXPECT_NO_FATAL_FAILURE(service_->InvokeAfterCallTool(session, record));
     EXPECT_EQ(hook->afterCallToolCount, 0);
 
     service_->UnregisterCliHook(hook);
@@ -4627,6 +5053,133 @@ HWTEST_F(CliToolManagerServiceTest, BeforeCallCmd_ModifyParam_0100, TestSize.Lev
 }
 
 /**
+ * @tc.name: ExecCmd_ToolMode_InvokesBeforeCallCmd_0100
+ * @tc.desc: ExecCmd tool command mode (isShellCommand=false) invokes BeforeCallCmd hook
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_InvokesBeforeCallCmd_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecCmd_ToolMode_InvokesBeforeCallCmd_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook, 0x0F);
+
+    ExecCmdParam param;
+    param.cmd = "nonexistent-tool subcommand";
+    param.execCmdOptions.isShellCommand = false;
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    service_->ExecCmd(param, "event_hook", scheduler, "sub_hook");
+
+    EXPECT_EQ(hook->beforeCallCmdCount, 1);
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "ExecCmd_ToolMode_InvokesBeforeCallCmd_0100 end");
+}
+
+/**
+ * @tc.name: ExecCmd_ToolMode_CliCmdType_DispatchesAfterCallCmd_0100
+ * @tc.desc: CLI_CMD sessionType (set by SetupCmdSession) dispatches AfterCallCmd not AfterCallTool
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_CliCmdType_DispatchesAfterCallCmd_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecCmd_ToolMode_CliCmdType_DispatchesAfterCallCmd_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook, 0x0F);
+
+    // CLI_CMD sessionType (set by SetupCmdSession for ExecCmd tool-mode) → AfterCallCmd fires
+    CliSessionInfo cmdSession = MakeSessionWithResult(0, "cmd_result");
+    SessionRecord cmdRecord;
+    PrepareHookRecord(cmdRecord, SessionType::CLI_CMD);
+    service_->InvokeAfterCallTool(cmdSession, cmdRecord);
+    EXPECT_EQ(hook->afterCallCmdCount, 1);
+    EXPECT_EQ(hook->afterCallToolCount, 0);
+
+    // CLI sessionType (default, used by direct ExecTool API) → AfterCallTool fires
+    CliSessionInfo toolSession = MakeSessionWithResult(0, "tool_result");
+    SessionRecord toolRecord;
+    PrepareHookRecord(toolRecord, SessionType::CLI);
+    service_->InvokeAfterCallTool(toolSession, toolRecord);
+    EXPECT_EQ(hook->afterCallToolCount, 1);
+    EXPECT_EQ(hook->afterCallCmdCount, 1);
+
+    service_->UnregisterCliHook(hook);
+    SetDeveloperMode(false);
+    TAG_LOGI(AAFwkTag::TEST, "ExecCmd_ToolMode_CliCmdType_DispatchesAfterCallCmd_0100 end");
+}
+
+/**
+ * @tc.name: ExecCmd_ToolMode_HookFlipsIsShellCommand_0100
+ * @tc.desc: BeforeCallCmd hook flips isShellCommand false→true; shell path is taken instead of tool path
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_HookFlipsIsShellCommand_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecCmd_ToolMode_HookFlipsIsShellCommand_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    hook->modifyCmdIsShell = true;
+    hook->targetIsShell = true;
+    service_->RegisterCliHook(hook, 0x0F);
+
+    // getToolByNameResult stays ERR_TOOL_NOT_EXIST (default): tool mode would return ERR_TOOL_NOT_EXIST.
+    // With the hook flipping isShellCommand to true, the shell path is taken instead.
+    // Shell path calls ValidateAndPrepareCmd → GenerateCmdSandboxConfig → ERR_NOT_HAP (not a HAP in test).
+    ExecCmdParam param;
+    param.cmd = "some-tool arg";
+    param.execCmdOptions.isShellCommand = false;
+    param.execCmdOptions.timeout = 30;
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_flip_shell", scheduler, "sub_flip_shell");
+
+    EXPECT_EQ(hook->beforeCallCmdCount, 1);
+    EXPECT_EQ(result, ERR_NOT_HAP);
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "ExecCmd_ToolMode_HookFlipsIsShellCommand_0100 end");
+}
+
+/**
+ * @tc.name: ExecCmd_ToolMode_HookModifiesCmd_0100
+ * @tc.desc: BeforeCallCmd hook modifies param.cmd; the modified cmd propagates to ExecCmdToolMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_HookModifiesCmd_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecCmd_ToolMode_HookModifiesCmd_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    hook->modifyCmdString = true;
+    hook->targetCmd = "mocktool";
+    service_->RegisterCliHook(hook, 0x0F);
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+
+    // Original cmd is empty → ExtractToolName("") = "" → ERR_INVALID_PARAM if unmodified.
+    // Hook rewrites cmd to "mocktool" → ExtractToolName returns "mocktool"
+    // → GetToolByName succeeds (mock OK) → ParseToolCommand passes (single token, no subcommand)
+    // → GenerateSandboxConfig → ERR_NOT_HAP (not a HAP in test).
+    // Result ERR_NOT_HAP proves the hook-modified actualParam.cmd reached ExecCmdToolMode.
+    ExecCmdParam param;
+    param.cmd = "";
+    param.execCmdOptions.isShellCommand = false;
+    param.execCmdOptions.timeout = 30;
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_modify_cmd", scheduler, "sub_modify_cmd");
+
+    EXPECT_EQ(hook->beforeCallCmdCount, 1);
+    EXPECT_EQ(result, ERR_NOT_HAP);
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "ExecCmd_ToolMode_HookModifiesCmd_0100 end");
+}
+
+/**
  * @tc.name: AfterCallTool_DeveloperModeOff_NoHook_0100
  * @tc.desc: AfterCallTool/AfterCallCmd both skip when dev mode off
  * @tc.type: FUNC
@@ -4643,11 +5196,15 @@ HWTEST_F(CliToolManagerServiceTest, AfterCallTool_DeveloperModeOff_NoHook_0100, 
     SetDeveloperMode(false);
 
     CliSessionInfo session1 = MakeSessionWithResult(0, "original");
-    service_->InvokeAfterCallTool(session1, SessionType::CLI);
+    SessionRecord record1;
+    PrepareHookRecord(record1, SessionType::CLI);
+    service_->InvokeAfterCallTool(session1, record1);
     EXPECT_EQ(hook->afterCallToolCount, 0);
 
     CliSessionInfo session2 = MakeSessionWithResult(0, "cmd_original");
-    service_->InvokeAfterCallTool(session2, SessionType::CLI_CMD);
+    SessionRecord record2;
+    PrepareHookRecord(record2, SessionType::CLI_CMD);
+    service_->InvokeAfterCallTool(session2, record2);
     EXPECT_EQ(hook->afterCallCmdCount, 0);
 
     SetDeveloperMode(true);
@@ -5098,9 +5655,11 @@ HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_Timeout_0100, TestSize.L
     service_->RegisterCliHook(hook, 0x0F);
 
     CliSessionInfo session = MakeSessionWithResult(0, "original_output");
+    SessionRecord record;
+    PrepareHookRecord(record, SessionType::CLI);
 
     auto start = std::chrono::steady_clock::now();
-    service_->InvokeAfterCallTool(session, SessionType::CLI);
+    service_->InvokeAfterCallTool(session, record);
     auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::steady_clock::now() - start);
 
@@ -5111,6 +5670,218 @@ HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_Timeout_0100, TestSize.L
 
     service_->UnregisterCliHook(hook);
     TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_Timeout_0100 end");
+}
+
+/**
+ * @tc.name: RegisterCliHook_SARejected_0100
+ * @tc.desc: RegisterCliHook rejects SA (native token) caller — agenthook not open to SA
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterCliHook_SARejected_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_SARejected_0100 start");
+    SetDeveloperMode(true);
+
+    IPCSkeleton::callingFullTokenId = 1;
+    IPCSkeleton::callingTokenId = TOKEN_NATIVE;
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    int32_t result = service_->RegisterCliHook(hook, 0x0F);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+    EXPECT_EQ(service_->cliHook_, nullptr);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_SARejected_0100 end");
+}
+
+/**
+ * @tc.name: UnregisterCliHook_SARejected_0100
+ * @tc.desc: UnregisterCliHook rejects SA (native token) caller — agenthook not open to SA
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterCliHook_SARejected_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_SARejected_0100 start");
+    SetDeveloperMode(true);
+
+    IPCSkeleton::callingFullTokenId = 1;
+    IPCSkeleton::callingTokenId = TOKEN_NATIVE;
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    int32_t result = service_->UnregisterCliHook(hook);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_SARejected_0100 end");
+}
+
+/**
+ * @tc.name: RegisterFunctionHook_SARejected_0100
+ * @tc.desc: RegisterFunctionHook rejects SA (native token) caller — agenthook not open to SA
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterFunctionHook_SARejected_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterFunctionHook_SARejected_0100 start");
+    SetDeveloperMode(true);
+
+    IPCSkeleton::callingFullTokenId = 1;
+    IPCSkeleton::callingTokenId = TOKEN_NATIVE;
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    int32_t result = service_->RegisterFunctionHook(hook, 0x03);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+    EXPECT_EQ(service_->functionHook_, nullptr);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "RegisterFunctionHook_SARejected_0100 end");
+}
+
+/**
+ * @tc.name: UnregisterFunctionHook_SARejected_0100
+ * @tc.desc: UnregisterFunctionHook rejects SA (native token) caller — agenthook not open to SA
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterFunctionHook_SARejected_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_SARejected_0100 start");
+    SetDeveloperMode(true);
+
+    IPCSkeleton::callingFullTokenId = 1;
+    IPCSkeleton::callingTokenId = TOKEN_NATIVE;
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    int32_t result = service_->UnregisterFunctionHook(hook);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_SARejected_0100 end");
+}
+
+/**
+ * @tc.name: OnIdle_BlocksUnload_WhenCliHookRegistered_0100
+ * @tc.desc: OnIdle returns -1 (cancel idle) when a cliHook is registered — don't auto-unload with hooks
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnIdle_BlocksUnload_WhenCliHookRegistered_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnIdle_BlocksUnload_WhenCliHookRegistered_0100 start");
+    SetDeveloperMode(true);
+
+    SystemAbilityOnDemandReason idleReason;
+    EXPECT_EQ(service_->OnIdle(idleReason), 0);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook, 0x0F);
+    EXPECT_EQ(service_->OnIdle(idleReason), -1);
+
+    service_->UnregisterCliHook(hook);
+    EXPECT_EQ(service_->OnIdle(idleReason), 0);
+    TAG_LOGI(AAFwkTag::TEST, "OnIdle_BlocksUnload_WhenCliHookRegistered_0100 end");
+}
+
+/**
+ * @tc.name: OnIdle_BlocksUnload_WhenFunctionHookRegistered_0100
+ * @tc.desc: OnIdle returns -1 (cancel idle) when a functionHook is registered — don't auto-unload with hooks
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnIdle_BlocksUnload_WhenFunctionHookRegistered_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnIdle_BlocksUnload_WhenFunctionHookRegistered_0100 start");
+    SetDeveloperMode(true);
+
+    SystemAbilityOnDemandReason idleReason;
+    EXPECT_EQ(service_->OnIdle(idleReason), 0);
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    service_->RegisterFunctionHook(hook, 0x03);
+    EXPECT_EQ(service_->OnIdle(idleReason), -1);
+
+    service_->UnregisterFunctionHook(hook);
+    EXPECT_EQ(service_->OnIdle(idleReason), 0);
+    TAG_LOGI(AAFwkTag::TEST, "OnIdle_BlocksUnload_WhenFunctionHookRegistered_0100 end");
+}
+
+/**
+ * @tc.name: RegisterCliHook_PermissionDenied_0100
+ * @tc.desc: RegisterCliHook with system app but REGISTER_AGENT_HOOK denied returns ERR_PERMISSION_DENIED
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterCliHook_PermissionDenied_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_PermissionDenied_0100 start");
+    SetDeveloperMode(true);
+    IPCSkeleton::callingFullTokenId = 0; // non-zero would hit ERR_NOT_SYSTEM_APP first
+    PermissionScope permScope(true, true, false); // system app ok, REGISTER_AGENT_HOOK denied
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    int32_t result = service_->RegisterCliHook(hook, 0x0F);
+    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(service_->cliHook_, nullptr);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_PermissionDenied_0100 end");
+}
+
+/**
+ * @tc.name: UnregisterCliHook_PermissionDenied_0100
+ * @tc.desc: UnregisterCliHook with system app but REGISTER_AGENT_HOOK denied returns ERR_PERMISSION_DENIED
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterCliHook_PermissionDenied_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_PermissionDenied_0100 start");
+    SetDeveloperMode(true);
+    IPCSkeleton::callingFullTokenId = 0;
+    PermissionScope permScope(true, true, false);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    int32_t result = service_->UnregisterCliHook(hook);
+    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_PermissionDenied_0100 end");
+}
+
+/**
+ * @tc.name: RegisterFunctionHook_PermissionDenied_0100
+ * @tc.desc: RegisterFunctionHook with system app but REGISTER_AGENT_HOOK denied returns ERR_PERMISSION_DENIED
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterFunctionHook_PermissionDenied_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterFunctionHook_PermissionDenied_0100 start");
+    SetDeveloperMode(true);
+    IPCSkeleton::callingFullTokenId = 0;
+    PermissionScope permScope(true, true, false);
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    int32_t result = service_->RegisterFunctionHook(hook, 0x03);
+    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(service_->functionHook_, nullptr);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "RegisterFunctionHook_PermissionDenied_0100 end");
+}
+
+/**
+ * @tc.name: UnregisterFunctionHook_PermissionDenied_0100
+ * @tc.desc: UnregisterFunctionHook with system app but REGISTER_AGENT_HOOK denied returns ERR_PERMISSION_DENIED
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterFunctionHook_PermissionDenied_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_PermissionDenied_0100 start");
+    SetDeveloperMode(true);
+    IPCSkeleton::callingFullTokenId = 0;
+    PermissionScope permScope(true, true, false);
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    int32_t result = service_->UnregisterFunctionHook(hook);
+    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_PermissionDenied_0100 end");
 }
 } // namespace CliTool
 } // namespace OHOS

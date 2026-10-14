@@ -19,6 +19,7 @@
 #include "datetime_ex.h"
 #include "exit_reason.h"
 #include "iremote_object.h"
+#include "task_mgr/task_manager_service.h"
 
 #include "appexecfwk_errors.h"
 #include "app_utils.h"
@@ -115,6 +116,17 @@ bool AppRunningManager::CheckAppProcessNameIsSame(const std::shared_ptr<AppRunni
         || appRecord->GetPreloadMode() == PreloadMode::PRELOAD_MODULE || !(appRecord->GetExtensionSandBoxFlag()));
 }
 
+bool AppRunningManager::IsAppInfoMatch(const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &appName,
+    int uid, const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (appInfo == nullptr) {
+        return false;
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "appInfo->name: %{public}s", appInfo->name.c_str());
+    return (appInfo->name == appName && appInfo->uid == uid) ||
+        (appInfo->bundleType == BundleType::APP_PLUGIN && appRecord->GetUid() == uid);
+}
+
 std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExist(const std::string &appName,
     const std::string &processName, const int uid, const BundleInfo &bundleInfo,
     const std::string &specifiedProcessFlag, bool *isProCache, const std::string &instanceKey,
@@ -143,9 +155,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
                 appInfoList.size(), appRecord->GetProcessName().c_str(), specifiedProcessFlag.c_str(),
                 customProcessFlag.c_str());
             auto isExist = [&appName, &uid, &appRecord](const std::shared_ptr<ApplicationInfo> &appInfo) {
-                TAG_LOGD(AAFwkTag::APPMGR, "appInfo->name: %{public}s", appInfo->name.c_str());
-                return (appInfo->name == appName && appInfo->uid == uid) ||
-                    (appInfo->bundleType == BundleType::APP_PLUGIN && appRecord->GetUid() == uid);
+                return IsAppInfoMatch(appInfo, appName, uid, appRecord);
             };
             auto appInfoIter = std::find_if(appInfoList.begin(), appInfoList.end(), isExist);
             if (appInfoIter == appInfoList.end()) {
@@ -753,6 +763,9 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::OnRemoteDied(const wptr<IRe
         appRunningRecordMap_.erase(iter);
     }
     if (appRecord != nullptr) {
+        TaskManagerService::GetInstance().OnProcessDied(appRecord->GetPid(), appRecord->GetUid());
+    }
+    if (appRecord != nullptr) {
         {
             std::lock_guard guard(updateConfigurationDelayedLock_);
             updateConfigurationDelayedMap_.erase(appRecord->GetRecordId());
@@ -796,6 +809,10 @@ void AppRunningManager::RemoveAppRunningRecordById(const int32_t recordId)
     {
         std::lock_guard guard(updateConfigurationDelayedLock_);
         updateConfigurationDelayedMap_.erase(recordId);
+    }
+
+    if (appRecord != nullptr) {
+        TaskManagerService::GetInstance().OnProcessDied(appRecord->GetPid(), appRecord->GetUid());
     }
 
     if (appRecord != nullptr && appRecord->GetPriorityObject() != nullptr) {

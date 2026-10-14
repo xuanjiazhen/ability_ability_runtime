@@ -1441,7 +1441,7 @@ public:
      * @param param The start ability wrap parameters containing want, caller token, user id, etc.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t StartAbilityForAppCloneSelector(const StartAbilityWrapParam &param);
+    int32_t StartAbilityForAppCloneSelector(StartAbilityWrapParam &param);
 
     int32_t StartExtensionAbilityInner(
         const Want &want,
@@ -2272,6 +2272,8 @@ public:
     int32_t NotifySkillFunctionInvoked(const sptr<IRemoteObject> &token,
         const std::string &requestCode) override;
 
+    int32_t NotifyInsightIntentExecute(uint64_t intentId) override;
+
     int32_t QuerySkillType(const std::string &bundleName, const std::string &moduleName,
         const std::string &skillName, int32_t &skillType) override;
 
@@ -3073,12 +3075,16 @@ private:
         AbilityRequest &abilityRequest);
     int32_t ExecuteInterceptors(const StartAbilityWrapParam &param, const AbilityRequest &abilityRequest,
        const AppExecFwk::AbilityInfo &abilityInfo, int32_t appCloneIndex, const std::shared_ptr<EventInfo> eventInfo);
-    void PreprocessRequestParams(const StartAbilityWrapParam &param, AbilityRequest &abilityRequest);
+    void PreprocessRequestParams(const StartAbilityWrapParam &param,
+        const std::shared_ptr<AAFwk::AbilityRecord> &callerRecord, AbilityRequest &abilityRequest);
     int32_t ExecuteAbilityStart(const AppExecFwk::AbilityInfo &abilityInfo, int32_t validUserId, bool isGamePrelaunch,
         const std::shared_ptr<EventInfo> eventInfo, AbilityRequest &abilityRequest);
+    void ProcessCollaboratorCallerIfNeed(const StartAbilityWrapParam &param, const std::string &callerBundleName,
+        const sptr<IAbilityManagerCollaborator> &collaborator, AbilityRequest &abilityRequest);
     void InitWindowVisibilityChangedListener();
     void FreeWindowVisibilityChangedListener();
     bool CheckProcessIsBackground(int32_t pid, AbilityState currentState);
+    void RemoveVisiblePidByUser(int32_t userId);
     void GetAndSetRootHostToken(
         const sptr<IRemoteObject> &callerToken, const int32_t userId, AbilityRequest &abilityRequest);
     bool CheckIfOperateRemote(const Want &want);
@@ -3642,7 +3648,7 @@ private:
     bool shouldBlockAllAppStart_ = false;
 
     int32_t uniqueId_ = 0;
-    std::unordered_set<int32_t> windowVisibleList_;
+    std::unordered_map<int32_t, int32_t> windowVisibleList_;
 
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;

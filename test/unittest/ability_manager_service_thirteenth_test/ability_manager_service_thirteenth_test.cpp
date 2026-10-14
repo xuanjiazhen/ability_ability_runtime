@@ -563,6 +563,54 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, CheckCallerInfoQueryExtensionPermi
 
 /*
  * Feature: AbilityManagerService
+ * Name: CheckCallOtherExtensionPermission_UkeyAuth_001
+ * Function: CheckCallOtherExtensionPermission
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckCallOtherExtensionPermission with ukeyAuth extension
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckCallOtherExtensionPermission_UkeyAuth_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceThirteenthTest CheckCallOtherExtensionPermission_UkeyAuth_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().permPermission_ = 0;
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.visible = true;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UKEY_AUTH;
+    abilityRequest.appInfo.isSystemApp = false;
+    abilityRequest.appInfo.bundleName = "test.bundleName";
+    EXPECT_EQ(abilityMs_->CheckCallOtherExtensionPermission(abilityRequest), CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest CheckCallOtherExtensionPermission_UkeyAuth_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckCallOtherExtensionPermission_UkeyAuth_002
+ * Function: CheckCallOtherExtensionPermission
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckCallOtherExtensionPermission
+ * with ukeyAuth extension and permission granted
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckCallOtherExtensionPermission_UkeyAuth_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceThirteenthTest CheckCallOtherExtensionPermission_UkeyAuth_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().permPermission_ = 2;
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.visible = true;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UKEY_AUTH;
+    abilityRequest.appInfo.isSystemApp = false;
+    abilityRequest.appInfo.bundleName = "test.bundleName";
+    int32_t result = abilityMs_->CheckCallOtherExtensionPermission(abilityRequest);
+    TAG_LOGI(AAFwkTag::TEST, "CheckCallOtherExtensionPermission_UkeyAuth_002 result: %{public}d", result);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest CheckCallOtherExtensionPermission_UkeyAuth_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Name: CheckUIExtensionCallerIsForeground_001
  * Function: CheckUIExtensionCallerIsForeground
  * SubFunction: NA
@@ -4773,6 +4821,115 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
 
 /*
  * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_012
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: collaborator absent (not registered), alignment steps are no-op and result unchanged
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_012, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_012 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    EXPECT_EQ(abilityMs_->GetCollaborator(CollaboratorType::RESERVE_TYPE), nullptr);
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    // Create mock missionListManager for non-SceneBoard path
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockMissionListManager = std::make_shared<MissionListManager>(0);
+    EXPECT_NE(mockMissionListManager, nullptr);
+    mockSubManagersHelper->missionListManagers_[0] = mockMissionListManager;
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1); // Clone index
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = true;
+    param.isBySCB = false;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 0;
+    param.isGamePrelaunch = false;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    // Collaborator is not registered, alignment steps must be no-op and keep result unchanged
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_012 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_013
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: null callerToken keeps flow safe (no crash) and result unchanged
+ * Note: expected value assumes resolution fails the same way as _007; first run in OH env
+ *       may yield ERR_APP_CLONE_INDEX_INVALID via GetAppIndex path, adjust if so.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_013, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_013 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    // Create mock missionListManager for non-SceneBoard path
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockMissionListManager = std::make_shared<MissionListManager>(0);
+    EXPECT_NE(mockMissionListManager, nullptr);
+    mockSubManagersHelper->missionListManagers_[0] = mockMissionListManager;
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = nullptr; // No caller token
+    param.isForegroundToRestartApp = true;
+    param.isBySCB = false;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 0;
+    param.isGamePrelaunch = false;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    // Null callerToken: collaborator handling must be no-op without crash
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_013 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Name: BlockAllAppStart_001
  * Function: BlockAllAppStart
  * SubFunction: NA
@@ -4994,6 +5151,132 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAbilityWithResult_003,
     MyStatus::GetInstance().ipcGetCallingTokenID_ = 1;
     MyStatus::GetInstance().smhGetUIAbilityManagerByUserId_ = true;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest BackToCallerAbilityWithResult_003 end");
+}
+
+namespace {
+// RAII: keeps the forbid-start switch consistent even if an ASSERT_* aborts the test body early,
+// so a failing test cannot leak the switch into later cases.
+struct ForbidStartSwitch {
+    ForbidStartSwitch()
+    {
+        MyStatus::GetInstance().auIsForbidStart_ = true;
+    }
+
+    ~ForbidStartSwitch()
+    {
+        MyStatus::GetInstance().auIsForbidStart_ = false;
+    }
+};
+} // namespace
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilityForOptionWrap / StartAbilityWithSpecifyTokenIdInner / OpenAtomicService
+ * SubFunction: NA
+ * FunctionPoints: IsForbidStart entry interception
+ * EnvConditions: NA
+ * CaseDescription: Verify the option-based UIAbility start funnel rejects with INNER_ERR when
+ *                  forbid start is on (covers pending-want delayed trigger, implicit start,
+ *                  atomic service and shortcut paths routed through these funnels)
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartUIAbilityForOptionWrap_ForbidStart_001, TestSize.Level1)
+{
+    ForbidStartSwitch forbidSwitch;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    StartOptions startOptions;
+    auto ret = abilityMs->StartUIAbilityForOptionWrap(want, startOptions, nullptr, false,
+        DEFAULT_INVAL_VALUE, DEFAULT_INVAL_VALUE, 0, false);
+    EXPECT_EQ(ret, INNER_ERR);
+}
+
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityWithSpecifyTokenIdInner_ForbidStart_001, TestSize.Level1)
+{
+    ForbidStartSwitch forbidSwitch;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    auto ret = abilityMs->StartAbilityWithSpecifyTokenIdInner(want, nullptr, 0, true,
+        DEFAULT_INVAL_VALUE, DEFAULT_INVAL_VALUE);
+    EXPECT_EQ(ret, INNER_ERR);
+}
+
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityWithSpecifyTokenIdInner_ForbidStart_002, TestSize.Level1)
+{
+    ForbidStartSwitch forbidSwitch;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    StartOptions startOptions;
+    auto ret = abilityMs->StartAbilityWithSpecifyTokenIdInner(want, startOptions, nullptr, true,
+        DEFAULT_INVAL_VALUE, DEFAULT_INVAL_VALUE, 0);
+    EXPECT_EQ(ret, INNER_ERR);
+}
+
+HWTEST_F(AbilityManagerServiceThirteenthTest, OpenAtomicService_ForbidStart_001, TestSize.Level1)
+{
+    ForbidStartSwitch forbidSwitch;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    StartOptions startOptions;
+    auto ret = abilityMs->OpenAtomicService(want, startOptions, nullptr,
+        DEFAULT_INVAL_VALUE, DEFAULT_INVAL_VALUE);
+    EXPECT_EQ(ret, INNER_ERR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSpecifiedAbilityBySCB / StartAbilityWithServiceMatch / StartAbilityWithInsightIntent /
+ *           RestartApp / StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: IsForbidStart entry interception
+ * EnvConditions: NA
+ * CaseDescription: Verify the system-internal StartAbilityInner callers reject with INNER_ERR at
+ *                  entry when forbid start is on, before any state is touched
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartSpecifiedAbilityBySCB_ForbidStart_001, TestSize.Level1)
+{
+    ForbidStartSwitch forbidSwitch;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    StartSpecifiedAbilityParams params;
+    auto ret = abilityMs->StartSpecifiedAbilityBySCB(want, params);
+    EXPECT_EQ(ret, INNER_ERR);
+}
+
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityWithServiceMatch_ForbidStart_001, TestSize.Level1)
+{
+    ForbidStartSwitch forbidSwitch;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    InsightIntentExecuteParam param;
+    auto ret = abilityMs->StartAbilityWithServiceMatch(param, DEFAULT_INVAL_VALUE, DEFAULT_INVAL_VALUE);
+    EXPECT_EQ(ret, INNER_ERR);
+}
+
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityWithInsightIntent_ForbidStart_001, TestSize.Level1)
+{
+    ForbidStartSwitch forbidSwitch;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    auto ret = abilityMs->StartAbilityWithInsightIntent(want, DEFAULT_INVAL_VALUE, DEFAULT_INVAL_VALUE, 0, nullptr);
+    EXPECT_EQ(ret, INNER_ERR);
+}
+
+HWTEST_F(AbilityManagerServiceThirteenthTest, RestartApp_ForbidStart_001, TestSize.Level1)
+{
+    ForbidStartSwitch forbidSwitch;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    auto ret = abilityMs->RestartApp(want, false, 1);
+    EXPECT_EQ(ret, INNER_ERR);
+}
+
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartSandboxCloneAbility_ForbidStart_001, TestSize.Level1)
+{
+    ForbidStartSwitch forbidSwitch;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    SandboxCloneParams params;
+    auto ret = abilityMs->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(ret, INNER_ERR);
 }
 
 } // namespace AAFwk

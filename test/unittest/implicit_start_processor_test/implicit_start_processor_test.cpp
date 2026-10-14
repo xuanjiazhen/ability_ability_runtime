@@ -27,6 +27,8 @@
 #include "mock_parameters.h"
 #include "mock_bundle_mgr_helper_status.h"
 #include "mock_multi_app_utils_status.h"
+#include "permission_constants.h"
+#include "permission_verification.h"
 #include "utils/start_ability_utils.h"
 
 using namespace OHOS;
@@ -1495,217 +1497,6 @@ HWTEST_F(ImplicitStartProcessorTest, RemoveIdentity_002, TestSize.Level1)
 
 /*
  * Feature: ImplicitStartProcessor
- * Function: FilterCloneByDefaultApp
- * SubFunction: NA
- * FunctionPoints: ImplicitStartProcessor FilterCloneByDefaultApp
- * EnvConditions: NA
- * CaseDescription: Verify FilterCloneByDefaultApp filters to the matching default clone.
- */
-HWTEST_F(ImplicitStartProcessorTest, FilterCloneByDefaultApp_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_001 start");
-    auto processor = std::make_shared<ImplicitStartProcessor>();
-    std::vector<DialogAppInfo> dialogAppInfos;
-    DialogAppInfo info1;
-    info1.bundleName = BUNDLE_NAME;
-    info1.abilityName = NAME;
-    info1.appIndex = 1;
-    DialogAppInfo info2;
-    info2.bundleName = BUNDLE_NAME;
-    info2.abilityName = NAME;
-    info2.appIndex = 2;
-    DialogAppInfo info3;
-    info3.bundleName = BUNDLE_NAME;
-    info3.abilityName = NAME;
-    info3.appIndex = 3;
-    dialogAppInfos.emplace_back(info1);
-    dialogAppInfos.emplace_back(info2);
-    dialogAppInfos.emplace_back(info3);
-
-    processor->FilterCloneByDefaultApp(dialogAppInfos, BUNDLE_NAME, 2);
-    EXPECT_EQ(dialogAppInfos.size(), 1);
-    EXPECT_EQ(dialogAppInfos.front().appIndex, 2);
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_001 end");
-}
-
-/*
- * Feature: ImplicitStartProcessor
- * Function: FilterCloneByDefaultApp
- * SubFunction: NA
- * FunctionPoints: ImplicitStartProcessor FilterCloneByDefaultApp
- * EnvConditions: NA
- * CaseDescription: Verify FilterCloneByDefaultApp does not filter when no appIndex match.
- */
-HWTEST_F(ImplicitStartProcessorTest, FilterCloneByDefaultApp_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_002 start");
-    auto processor = std::make_shared<ImplicitStartProcessor>();
-    std::vector<DialogAppInfo> dialogAppInfos;
-    DialogAppInfo info1;
-    info1.bundleName = BUNDLE_NAME;
-    info1.abilityName = NAME;
-    info1.appIndex = 1;
-    DialogAppInfo info2;
-    info2.bundleName = BUNDLE_NAME;
-    info2.abilityName = NAME;
-    info2.appIndex = 2;
-    dialogAppInfos.emplace_back(info1);
-    dialogAppInfos.emplace_back(info2);
-
-    processor->FilterCloneByDefaultApp(dialogAppInfos, BUNDLE_NAME, 99);
-    EXPECT_EQ(dialogAppInfos.size(), 2);
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_002 end");
-}
-
-/*
- * Feature: ImplicitStartProcessor
- * Function: FilterCloneByDefaultApp
- * SubFunction: NA
- * FunctionPoints: ImplicitStartProcessor FilterCloneByDefaultApp
- * EnvConditions: NA
- * CaseDescription: Verify FilterCloneByDefaultApp does not filter when bundleName mismatches.
- */
-HWTEST_F(ImplicitStartProcessorTest, FilterCloneByDefaultApp_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_003 start");
-    auto processor = std::make_shared<ImplicitStartProcessor>();
-    std::vector<DialogAppInfo> dialogAppInfos;
-    DialogAppInfo info1;
-    info1.bundleName = BUNDLE_NAME;
-    info1.abilityName = NAME;
-    info1.appIndex = 1;
-    dialogAppInfos.emplace_back(info1);
-
-    processor->FilterCloneByDefaultApp(dialogAppInfos, "other_bundle", 1);
-    EXPECT_EQ(dialogAppInfos.size(), 1);
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_003 end");
-}
-
-/*
- * Feature: ImplicitStartProcessor
- * Function: FilterCloneByDefaultApp
- * SubFunction: NA
- * FunctionPoints: ImplicitStartProcessor FilterCloneByDefaultApp
- * EnvConditions: NA
- * CaseDescription: Verify FilterCloneByDefaultApp with empty dialogAppInfos.
- */
-HWTEST_F(ImplicitStartProcessorTest, FilterCloneByDefaultApp_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_004 start");
-    auto processor = std::make_shared<ImplicitStartProcessor>();
-    std::vector<DialogAppInfo> dialogAppInfos;
-
-    processor->FilterCloneByDefaultApp(dialogAppInfos, BUNDLE_NAME, 1);
-    EXPECT_EQ(dialogAppInfos.size(), 0);
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_004 end");
-}
-
-/*
- * Feature: ImplicitStartProcessor
- * Function: FilterCloneByDefaultApp
- * SubFunction: NA
- * FunctionPoints: ImplicitStartProcessor FilterCloneByDefaultApp
- * EnvConditions: NA
- * CaseDescription: default clone matches one bundle; entries of OTHER bundles are also removed,
- *                 only the matched default clone survives.
- */
-HWTEST_F(ImplicitStartProcessorTest, FilterCloneByDefaultApp_005, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_005 start");
-    auto processor = std::make_shared<ImplicitStartProcessor>();
-    std::vector<DialogAppInfo> dialogAppInfos;
-    DialogAppInfo info1;
-    info1.bundleName = BUNDLE_NAME;
-    info1.abilityName = NAME;
-    info1.appIndex = 1;
-    DialogAppInfo info2;
-    info2.bundleName = BUNDLE_NAME;
-    info2.abilityName = NAME;
-    info2.appIndex = 2;
-    DialogAppInfo info3;
-    info3.bundleName = "other_bundle";
-    info3.abilityName = NAME;
-    info3.appIndex = 1;
-    dialogAppInfos.emplace_back(info1);
-    dialogAppInfos.emplace_back(info2);
-    dialogAppInfos.emplace_back(info3);
-
-    processor->FilterCloneByDefaultApp(dialogAppInfos, BUNDLE_NAME, 2);
-    ASSERT_EQ(dialogAppInfos.size(), 1);
-    EXPECT_EQ(dialogAppInfos.front().bundleName, BUNDLE_NAME);
-    EXPECT_EQ(dialogAppInfos.front().appIndex, 2);
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_005 end");
-}
-
-/*
- * Feature: ImplicitStartProcessor
- * Function: FilterCloneByDefaultApp
- * SubFunction: NA
- * FunctionPoints: ImplicitStartProcessor FilterCloneByDefaultApp
- * EnvConditions: NA
- * CaseDescription: default appIndex is 0 (main app); match against an entry whose appIndex is the
- *                 default-initialized value 0.
- */
-HWTEST_F(ImplicitStartProcessorTest, FilterCloneByDefaultApp_006, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_006 start");
-    auto processor = std::make_shared<ImplicitStartProcessor>();
-    std::vector<DialogAppInfo> dialogAppInfos;
-    DialogAppInfo info1;
-    info1.bundleName = BUNDLE_NAME;
-    info1.abilityName = NAME;
-    info1.appIndex = 0;
-    DialogAppInfo info2;
-    info2.bundleName = BUNDLE_NAME;
-    info2.abilityName = NAME;
-    info2.appIndex = 1;
-    dialogAppInfos.emplace_back(info1);
-    dialogAppInfos.emplace_back(info2);
-
-    processor->FilterCloneByDefaultApp(dialogAppInfos, BUNDLE_NAME, 0);
-    ASSERT_EQ(dialogAppInfos.size(), 1);
-    EXPECT_EQ(dialogAppInfos.front().bundleName, BUNDLE_NAME);
-    EXPECT_EQ(dialogAppInfos.front().appIndex, 0);
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_006 end");
-}
-
-/*
- * Feature: ImplicitStartProcessor
- * Function: FilterCloneByDefaultApp
- * SubFunction: NA
- * FunctionPoints: ImplicitStartProcessor FilterCloneByDefaultApp
- * EnvConditions: NA
- * CaseDescription: duplicate (bundleName, appIndex) entries exist; only the first match is kept.
- */
-HWTEST_F(ImplicitStartProcessorTest, FilterCloneByDefaultApp_007, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_007 start");
-    auto processor = std::make_shared<ImplicitStartProcessor>();
-    std::vector<DialogAppInfo> dialogAppInfos;
-    DialogAppInfo info1;
-    info1.bundleName = BUNDLE_NAME;
-    info1.abilityName = NAME;
-    info1.appIndex = 2;
-    DialogAppInfo info2;
-    info2.bundleName = BUNDLE_NAME;
-    info2.abilityName = NAME;
-    info2.appIndex = 2;
-    DialogAppInfo info3;
-    info3.bundleName = BUNDLE_NAME;
-    info3.abilityName = NAME;
-    info3.appIndex = 1;
-    dialogAppInfos.emplace_back(info1);
-    dialogAppInfos.emplace_back(info2);
-    dialogAppInfos.emplace_back(info3);
-
-    processor->FilterCloneByDefaultApp(dialogAppInfos, BUNDLE_NAME, 2);
-    ASSERT_EQ(dialogAppInfos.size(), 1);
-    EXPECT_EQ(dialogAppInfos.front().appIndex, 2);
-    TAG_LOGI(AAFwkTag::TEST, "FilterCloneByDefaultApp_007 end");
-}
-
-/*
- * Feature: ImplicitStartProcessor
  * Function: IsExistDefaultApp
  * SubFunction: NA
  * FunctionPoints: ImplicitStartProcessor IsExistDefaultApp
@@ -1716,12 +1507,8 @@ HWTEST_F(ImplicitStartProcessorTest, IsExistDefaultApp_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsExistDefaultApp_001 start");
     auto processor = std::make_shared<ImplicitStartProcessor>();
-    std::string defaultBundleName;
-    int32_t defaultAppIndex = 0;
-    bool result = processor->IsExistDefaultApp(0, ".pdf", defaultBundleName, defaultAppIndex);
+    bool result = processor->IsExistDefaultApp(0, ".pdf");
     EXPECT_FALSE(result);
-    EXPECT_TRUE(defaultBundleName.empty());
-    EXPECT_EQ(defaultAppIndex, 0);
     TAG_LOGI(AAFwkTag::TEST, "IsExistDefaultApp_001 end");
 }
 
@@ -1784,8 +1571,8 @@ HWTEST_F(ImplicitStartProcessorTest, FilterClonesByPreferredIndex_003, TestSize.
  * SubFunction: NA
  * FunctionPoints: ImplicitStartProcessor FilterClonesByPreferredIndex
  * EnvConditions: NA
- * CaseDescription: preferred index configured & present in candidates; non-preferred clones of
- *                 that bundle are removed; bundles without preferred config are kept intact.
+ * CaseDescription: Multiple apps matched → preferred clone filter is skipped entirely;
+ *                 all candidates are retained regardless of preferred index config.
  */
 HWTEST_F(ImplicitStartProcessorTest, FilterClonesByPreferredIndex_004, TestSize.Level1)
 {
@@ -1816,23 +1603,7 @@ HWTEST_F(ImplicitStartProcessorTest, FilterClonesByPreferredIndex_004, TestSize.
     MockMultiAppUtilsStatus::preferredIndexMap_["bundleA"] = 2;
     processor->FilterClonesByPreferredIndex(dialogAppInfos, 0);
 
-    ASSERT_EQ(dialogAppInfos.size(), 3);
-    int32_t bundleACount = 0;
-    int32_t bundleBCount = 0;
-    int32_t bundleAPreferredCount = 0;
-    for (const auto &info : dialogAppInfos) {
-        if (info.bundleName == "bundleA") {
-            bundleACount++;
-            if (info.appIndex == 2) {
-                bundleAPreferredCount++;
-            }
-        } else if (info.bundleName == "bundleB") {
-            bundleBCount++;
-        }
-    }
-    EXPECT_EQ(bundleACount, 1);
-    EXPECT_EQ(bundleAPreferredCount, 1);
-    EXPECT_EQ(bundleBCount, 2);
+    EXPECT_EQ(dialogAppInfos.size(), 5);
     TAG_LOGI(AAFwkTag::TEST, "FilterClonesByPreferredIndex_004 end");
 }
 
@@ -1872,8 +1643,8 @@ HWTEST_F(ImplicitStartProcessorTest, FilterClonesByPreferredIndex_005, TestSize.
  * SubFunction: NA
  * FunctionPoints: ImplicitStartProcessor FilterClonesByPreferredIndex
  * EnvConditions: NA
- * CaseDescription: bundles with a single candidate (count<=1) are skipped even when a preferred
- *                 index is configured; multi-clone bundles with preferred index are filtered.
+ * CaseDescription: Multiple apps matched → preferred clone filter is skipped entirely;
+ *                 all candidates are retained regardless of preferred index config.
  */
 HWTEST_F(ImplicitStartProcessorTest, FilterClonesByPreferredIndex_006, TestSize.Level1)
 {
@@ -1897,19 +1668,7 @@ HWTEST_F(ImplicitStartProcessorTest, FilterClonesByPreferredIndex_006, TestSize.
     MockMultiAppUtilsStatus::preferredIndexMap_["bundleB"] = 1;
     processor->FilterClonesByPreferredIndex(dialogAppInfos, 0);
 
-    ASSERT_EQ(dialogAppInfos.size(), 2);
-    bool preferredKept = false;
-    bool singleBundleKept = false;
-    for (const auto &info : dialogAppInfos) {
-        if (info.bundleName == "bundleA" && info.appIndex == 2) {
-            preferredKept = true;
-        }
-        if (info.bundleName == "bundleB" && info.appIndex == 1) {
-            singleBundleKept = true;
-        }
-    }
-    EXPECT_TRUE(preferredKept);
-    EXPECT_TRUE(singleBundleKept);
+    EXPECT_EQ(dialogAppInfos.size(), 3);
     TAG_LOGI(AAFwkTag::TEST, "FilterClonesByPreferredIndex_006 end");
 }
 
@@ -1929,12 +1688,8 @@ HWTEST_F(ImplicitStartProcessorTest, IsExistDefaultApp_002, TestSize.Level1)
     abilityInfo.appIndex = 2;
     MockBundleMgrHelperStatus::defaultBundleInfo_.abilityInfos.push_back(abilityInfo);
 
-    std::string defaultBundleName;
-    int32_t defaultAppIndex = 0;
-    bool result = processor->IsExistDefaultApp(0, ".pdf", defaultBundleName, defaultAppIndex);
+    bool result = processor->IsExistDefaultApp(0, ".pdf");
     EXPECT_TRUE(result);
-    EXPECT_EQ(defaultBundleName, BUNDLE_NAME);
-    EXPECT_EQ(defaultAppIndex, 2);
     TAG_LOGI(AAFwkTag::TEST, "IsExistDefaultApp_002 end");
 }
 
@@ -1954,19 +1709,15 @@ HWTEST_F(ImplicitStartProcessorTest, IsExistDefaultApp_003, TestSize.Level1)
     extensionInfo.appIndex = 3;
     MockBundleMgrHelperStatus::defaultBundleInfo_.extensionInfos.push_back(extensionInfo);
 
-    std::string defaultBundleName;
-    int32_t defaultAppIndex = 0;
-    bool result = processor->IsExistDefaultApp(0, ".pdf", defaultBundleName, defaultAppIndex);
+    bool result = processor->IsExistDefaultApp(0, ".pdf");
     EXPECT_TRUE(result);
-    EXPECT_EQ(defaultBundleName, BUNDLE_NAME);
-    EXPECT_EQ(defaultAppIndex, 3);
     TAG_LOGI(AAFwkTag::TEST, "IsExistDefaultApp_003 end");
 }
 
 /*
  * Feature: ImplicitStartProcessor
- * Function: FilterCloneByDefaultApp + FilterClonesByPreferredIndex
- * CaseDescription: Default app hits → size=1 → FilterClonesByPreferredIndex skipped.
+ * Function: FilterClonesByPreferredIndex
+ * CaseDescription: Single app with multiple clones, preferred index present → reduces to preferred clone.
  */
 HWTEST_F(ImplicitStartProcessorTest, FilterSequence_001, TestSize.Level1)
 {
@@ -1979,20 +1730,18 @@ HWTEST_F(ImplicitStartProcessorTest, FilterSequence_001, TestSize.Level1)
         info.appIndex = i;
         dialogAppInfos.emplace_back(info);
     }
-    processor->FilterCloneByDefaultApp(dialogAppInfos, BUNDLE_NAME, 2);
-    ASSERT_EQ(dialogAppInfos.size(), 1);
-    EXPECT_EQ(dialogAppInfos.front().appIndex, 2);
 
     MockMultiAppUtilsStatus::preferredIndexMap_[BUNDLE_NAME] = 1;
     processor->FilterClonesByPreferredIndex(dialogAppInfos, 0);
-    EXPECT_EQ(dialogAppInfos.size(), 1);
+    ASSERT_EQ(dialogAppInfos.size(), 1);
+    EXPECT_EQ(dialogAppInfos.front().appIndex, 1);
     TAG_LOGI(AAFwkTag::TEST, "FilterSequence_001 end");
 }
 
 /*
  * Feature: ImplicitStartProcessor
- * Function: FilterCloneByDefaultApp + FilterClonesByPreferredIndex
- * CaseDescription: Default app misses → size unchanged → FilterClonesByPreferredIndex executes.
+ * Function: FilterClonesByPreferredIndex
+ * CaseDescription: Single app with multiple clones, preferred index present → reduces to preferred clone.
  */
 HWTEST_F(ImplicitStartProcessorTest, FilterSequence_002, TestSize.Level1)
 {
@@ -2005,8 +1754,6 @@ HWTEST_F(ImplicitStartProcessorTest, FilterSequence_002, TestSize.Level1)
         info.appIndex = i;
         dialogAppInfos.emplace_back(info);
     }
-    processor->FilterCloneByDefaultApp(dialogAppInfos, "other_bundle", 1);
-    EXPECT_EQ(dialogAppInfos.size(), 3);
 
     MockMultiAppUtilsStatus::preferredIndexMap_[BUNDLE_NAME] = 2;
     processor->FilterClonesByPreferredIndex(dialogAppInfos, 0);
@@ -2018,7 +1765,7 @@ HWTEST_F(ImplicitStartProcessorTest, FilterSequence_002, TestSize.Level1)
 /*
  * Feature: ImplicitStartProcessor
  * Function: FilterClonesByPreferredIndex
- * CaseDescription: No default app → only FilterClonesByPreferredIndex executes.
+ * CaseDescription: Single app with multiple clones, preferred index present → reduces to preferred clone.
  */
 HWTEST_F(ImplicitStartProcessorTest, FilterSequence_003, TestSize.Level1)
 {
@@ -2031,11 +1778,6 @@ HWTEST_F(ImplicitStartProcessorTest, FilterSequence_003, TestSize.Level1)
         info.appIndex = i;
         dialogAppInfos.emplace_back(info);
     }
-    std::string emptyBundle;
-    if (!emptyBundle.empty()) {
-        processor->FilterCloneByDefaultApp(dialogAppInfos, emptyBundle, 0);
-    }
-    EXPECT_EQ(dialogAppInfos.size(), 3);
 
     MockMultiAppUtilsStatus::preferredIndexMap_[BUNDLE_NAME] = 3;
     processor->FilterClonesByPreferredIndex(dialogAppInfos, 0);
@@ -2095,7 +1837,8 @@ HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_001, TestSize.Level1)
     abilityInfos.push_back(info1);
     abilityInfos.push_back(info2);
 
-    ImplicitStartProcessor::ProcessLinkType(abilityInfos);
+    AbilityRequest request;
+    ImplicitStartProcessor::ProcessLinkType(abilityInfos, request);
     ASSERT_EQ(abilityInfos.size(), 1);
     EXPECT_EQ(abilityInfos.front().linkType, AppExecFwk::LinkType::APP_LINK);
     TAG_LOGI(AAFwkTag::TEST, "ProcessLinkType_001 end");
@@ -2119,7 +1862,8 @@ HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_002, TestSize.Level1)
     abilityInfos.push_back(info1);
     abilityInfos.push_back(info2);
 
-    ImplicitStartProcessor::ProcessLinkType(abilityInfos);
+    AbilityRequest request;
+    ImplicitStartProcessor::ProcessLinkType(abilityInfos, request);
     ASSERT_EQ(abilityInfos.size(), 1);
     EXPECT_EQ(abilityInfos.front().linkType, AppExecFwk::LinkType::APP_LINK);
     TAG_LOGI(AAFwkTag::TEST, "ProcessLinkType_002 end");
@@ -2143,7 +1887,8 @@ HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_003, TestSize.Level1)
     abilityInfos.push_back(info1);
     abilityInfos.push_back(info2);
 
-    ImplicitStartProcessor::ProcessLinkType(abilityInfos);
+    AbilityRequest request;
+    ImplicitStartProcessor::ProcessLinkType(abilityInfos, request);
     ASSERT_EQ(abilityInfos.size(), 1);
     EXPECT_EQ(abilityInfos.front().linkType, AppExecFwk::LinkType::DEFAULT_APP);
     TAG_LOGI(AAFwkTag::TEST, "ProcessLinkType_003 end");
@@ -2158,20 +1903,169 @@ HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_004, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "ProcessLinkType_004 start");
     std::vector<AbilityInfo> abilityInfos;
-    ImplicitStartProcessor::ProcessLinkType(abilityInfos);
+    AbilityRequest request;
+    ImplicitStartProcessor::ProcessLinkType(abilityInfos, request);
     EXPECT_EQ(abilityInfos.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "ProcessLinkType_004 end");
 }
 
 /*
  * Feature: ImplicitStartProcessor
+ * Function: ProcessLinkType
+ * CaseDescription: preferDefaultBrowser=true + https scheme + APP_LINK present → only
+ *                  DEFAULT_APP kept, APP_LINK/DEEP_LINK removed.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProcessLinkType_005 start");
+    std::vector<AbilityInfo> abilityInfos;
+    AbilityInfo info1;
+    info1.name = "default_app_ability";
+    info1.linkType = AppExecFwk::LinkType::DEFAULT_APP;
+    AbilityInfo info2;
+    info2.name = "app_link_ability";
+    info2.linkType = AppExecFwk::LinkType::APP_LINK;
+    AbilityInfo info3;
+    info3.name = "deep_link_ability";
+    info3.linkType = AppExecFwk::LinkType::DEEP_LINK;
+    abilityInfos.push_back(info1);
+    abilityInfos.push_back(info2);
+    abilityInfos.push_back(info3);
+
+    AbilityRequest request;
+    request.want.SetUri("https://www.example.com");
+    request.startOptions.SetPreferDefaultBrowser(true);
+    ImplicitStartProcessor::ProcessLinkType(abilityInfos, request);
+    ASSERT_EQ(abilityInfos.size(), 1);
+    EXPECT_EQ(abilityInfos.front().linkType, AppExecFwk::LinkType::DEFAULT_APP);
+    TAG_LOGI(AAFwkTag::TEST, "ProcessLinkType_005 end");
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: ProcessLinkType
+ * CaseDescription: preferDefaultBrowser=true but scheme is NOT http/https → fast-path
+ *                  must NOT fire; normal filter keeps APP_LINK, drops DEFAULT_APP.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ProcessLinkType_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProcessLinkType_006 start");
+    std::vector<AbilityInfo> abilityInfos;
+    AbilityInfo info1;
+    info1.name = "default_app_ability";
+    info1.linkType = AppExecFwk::LinkType::DEFAULT_APP;
+    AbilityInfo info2;
+    info2.name = "app_link_ability";
+    info2.linkType = AppExecFwk::LinkType::APP_LINK;
+    abilityInfos.push_back(info1);
+    abilityInfos.push_back(info2);
+
+    AbilityRequest request;
+    request.want.SetUri("mailto:test@example.com");
+    request.startOptions.SetPreferDefaultBrowser(true);
+    // scheme is mailto (non-web) → guarantee: fast-path skipped, normal flow
+    ImplicitStartProcessor::ProcessLinkType(abilityInfos, request);
+    ASSERT_EQ(abilityInfos.size(), 1);
+    EXPECT_EQ(abilityInfos.front().linkType, AppExecFwk::LinkType::APP_LINK);
+    TAG_LOGI(AAFwkTag::TEST, "ProcessLinkType_006 end");
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: ShouldPreferDefaultBrowser
+ * CaseDescription: preferDefaultBrowser=true + defaultAppExist=true + http scheme → true.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ShouldPreferDefaultBrowser_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_001 start");
+    AbilityRequest request;
+    request.want.SetUri("http://www.example.com");
+    request.startOptions.SetPreferDefaultBrowser(true);
+    EXPECT_TRUE(ImplicitStartProcessor::ShouldPreferDefaultBrowser(request, true));
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_001 end");
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: ShouldPreferDefaultBrowser
+ * CaseDescription: preferDefaultBrowser=true + defaultAppExist=true + https scheme → true.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ShouldPreferDefaultBrowser_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_002 start");
+    AbilityRequest request;
+    request.want.SetUri("https://www.example.com");
+    request.startOptions.SetPreferDefaultBrowser(true);
+    EXPECT_TRUE(ImplicitStartProcessor::ShouldPreferDefaultBrowser(request, true));
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_002 end");
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: ShouldPreferDefaultBrowser
+ * CaseDescription: preferDefaultBrowser=false → false even with default app and https scheme.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ShouldPreferDefaultBrowser_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_003 start");
+    AbilityRequest request;
+    request.want.SetUri("https://www.example.com");
+    request.startOptions.SetPreferDefaultBrowser(false);
+    EXPECT_FALSE(ImplicitStartProcessor::ShouldPreferDefaultBrowser(request, true));
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_003 end");
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: ShouldPreferDefaultBrowser
+ * CaseDescription: defaultAppExist=false → false even with preferDefaultBrowser=true and https scheme.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ShouldPreferDefaultBrowser_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_004 start");
+    AbilityRequest request;
+    request.want.SetUri("https://www.example.com");
+    request.startOptions.SetPreferDefaultBrowser(true);
+    EXPECT_FALSE(ImplicitStartProcessor::ShouldPreferDefaultBrowser(request, false));
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_004 end");
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: ShouldPreferDefaultBrowser
+ * CaseDescription: non-web scheme (ftp) → false even with preferDefaultBrowser=true and default app.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ShouldPreferDefaultBrowser_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_005 start");
+    AbilityRequest request;
+    request.want.SetUri("ftp://www.example.com");
+    request.startOptions.SetPreferDefaultBrowser(true);
+    EXPECT_FALSE(ImplicitStartProcessor::ShouldPreferDefaultBrowser(request, true));
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_005 end");
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: ShouldPreferDefaultBrowser
+ * CaseDescription: empty URI (no scheme) → false even with preferDefaultBrowser=true and default app.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ShouldPreferDefaultBrowser_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_006 start");
+    AbilityRequest request;
+    request.startOptions.SetPreferDefaultBrowser(true);
+    EXPECT_FALSE(ImplicitStartProcessor::ShouldPreferDefaultBrowser(request, true));
+    TAG_LOGI(AAFwkTag::TEST, "ShouldPreferDefaultBrowser_006 end");
+}
+
+/*
+ * Feature: ImplicitStartProcessor
  * Function: GenerateAbilityRequestByAction
- * SubFunction: FilterCloneByDefaultApp
- * FunctionPoints: showDefaultPicker=true ("open with other") must skip collapse
+ * FunctionPoints: showDefaultPicker=true retains all candidates for the selector
  * EnvConditions: default app exists; two candidates (one is the default)
- * CaseDescription: When the caller sets showDefaultPicker=true, FilterCloneByDefaultApp
- *                  must not collapse the candidate list to the default app only;
- *                  all candidates should be retained for the selector.
+ * CaseDescription: When the caller sets showDefaultPicker=true, all candidates should be
+ *                  retained for the selector.
  */
 HWTEST_F(ImplicitStartProcessorTest, GenerateAbilityRequestByAction_ShowDefaultPickerTrue_001, TestSize.Level1)
 {
@@ -2214,12 +2108,10 @@ HWTEST_F(ImplicitStartProcessorTest, GenerateAbilityRequestByAction_ShowDefaultP
 /*
  * Feature: ImplicitStartProcessor
  * Function: GenerateAbilityRequestByAction
- * SubFunction: FilterCloneByDefaultApp
- * FunctionPoints: default open (no showDefaultPicker) collapses to default app
+ * FunctionPoints: default open (no showDefaultPicker) retains all candidates
  * EnvConditions: default app exists; two candidates (one is the default)
- * CaseDescription: Without showDefaultPicker (default open semantics), the candidate
- *                  list must collapse to the default app only, so the default app is
- *                  auto-launched instead of showing a selector.
+ * CaseDescription: Without showDefaultPicker, all candidates are retained for the selector;
+ *                  multiple apps matched → no preferred clone filtering.
  */
 HWTEST_F(ImplicitStartProcessorTest, GenerateAbilityRequestByAction_DefaultOpen_001, TestSize.Level1)
 {
@@ -2252,9 +2144,115 @@ HWTEST_F(ImplicitStartProcessorTest, GenerateAbilityRequestByAction_DefaultOpen_
     GenerateRequestParam genReqParam;
     auto ret = processor->GenerateAbilityRequestByAction(userId, request, dialogAppInfos, genReqParam);
     EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(dialogAppInfos.size(), 1);
-    EXPECT_EQ(dialogAppInfos.front().bundleName, DEFAULT_BUNDLE);
+    EXPECT_EQ(dialogAppInfos.size(), 2);
     TAG_LOGI(AAFwkTag::TEST, "GenerateAbilityRequestByAction_DefaultOpen_001 end");
+}
+namespace {
+int32_t RunImplicitStartWithCandidates(const std::vector<AppExecFwk::AbilityInfo> &candidates,
+    uint32_t specifyTokenId)
+{
+    MockBundleMgrHelperStatus::implicitQueryInfosRet_ = true;
+    MockBundleMgrHelperStatus::queryAbilityInfos_ = candidates;
+    PermissionVerification::verifyBackgroundCallPermissionRet_ = true;
+    PermissionVerification::verifyCallingPermissionCount_ = 0;
+    auto processor = std::make_shared<ImplicitStartProcessor>();
+    AbilityRequest request;
+    request.want.SetAction("ohos.want.action.sendData");
+    request.specifyTokenId = specifyTokenId;
+    return processor->ImplicitStartAbility(request, 100,
+        AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED, "", false);
+}
+
+void ExpectGateCalledWith(uint32_t specifyTokenId)
+{
+    EXPECT_EQ(PermissionVerification::verifyCallingPermissionCount_, 1);
+    EXPECT_EQ(PermissionVerification::lastPermissionName_,
+        PermissionConstants::PERMISSION_START_INVISIBLE_ABILITY);
+    EXPECT_EQ(PermissionVerification::lastSpecifyTokenId_, specifyTokenId);
+}
+
+AppExecFwk::AbilityInfo MakeCandidateInfo(const std::string &bundleName, bool visible)
+{
+    AppExecFwk::AbilityInfo info;
+    info.bundleName = bundleName;
+    info.name = "MainAbility";
+    info.visible = visible;
+    return info;
+}
+}
+
+/**
+ * @tc.name: ImplicitStartAbility_Permission_001
+ * @tc.desc: single invisible candidate without permission is rejected
+ */
+HWTEST_F(ImplicitStartProcessorTest, ImplicitStartAbility_Permission_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ImplicitStartAbility_Permission_001 start");
+    PermissionVerification::verifyCallingPermissionRet_ = false;
+    auto ret = RunImplicitStartWithCandidates({ MakeCandidateInfo("com.test.implicit", false) }, 1);
+    EXPECT_EQ(ret, CHECK_PERMISSION_FAILED);
+    ExpectGateCalledWith(1);
+    TAG_LOGI(AAFwkTag::TEST, "ImplicitStartAbility_Permission_001 end");
+}
+
+/**
+ * @tc.name: ImplicitStartAbility_Permission_002
+ * @tc.desc: single invisible candidate with permission is allowed
+ */
+HWTEST_F(ImplicitStartProcessorTest, ImplicitStartAbility_Permission_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ImplicitStartAbility_Permission_002 start");
+    PermissionVerification::verifyCallingPermissionRet_ = true;
+    auto ret = RunImplicitStartWithCandidates({ MakeCandidateInfo("com.test.implicit", false) }, 1);
+    ExpectGateCalledWith(1);
+    EXPECT_NE(ret, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "ImplicitStartAbility_Permission_002 end");
+}
+
+/**
+ * @tc.name: ImplicitStartAbility_Permission_003
+ * @tc.desc: single visible candidate without permission is allowed (check only guards invisible)
+ */
+HWTEST_F(ImplicitStartProcessorTest, ImplicitStartAbility_Permission_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ImplicitStartAbility_Permission_003 start");
+    PermissionVerification::verifyCallingPermissionRet_ = false;
+    auto ret = RunImplicitStartWithCandidates({ MakeCandidateInfo("com.test.implicit", true) }, 1);
+    // Visible candidate short-circuits the gate before the permission call.
+    EXPECT_EQ(PermissionVerification::verifyCallingPermissionCount_, 0);
+    EXPECT_NE(ret, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "ImplicitStartAbility_Permission_003 end");
+}
+
+/**
+ * @tc.name: ImplicitStartAbility_Permission_004
+ * @tc.desc: no specifyTokenId skips the invisible-ability permission check
+ */
+HWTEST_F(ImplicitStartProcessorTest, ImplicitStartAbility_Permission_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ImplicitStartAbility_Permission_004 start");
+    PermissionVerification::verifyCallingPermissionRet_ = false;
+    auto ret = RunImplicitStartWithCandidates({ MakeCandidateInfo("com.test.implicit", false) }, 0);
+    // No specifyTokenId short-circuits the gate before the permission call.
+    EXPECT_EQ(PermissionVerification::verifyCallingPermissionCount_, 0);
+    EXPECT_NE(ret, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "ImplicitStartAbility_Permission_004 end");
+}
+
+/**
+ * @tc.name: ImplicitStartAbility_Permission_005
+ * @tc.desc: multiple candidates skip the invisible-ability permission check (selector dialog)
+ */
+HWTEST_F(ImplicitStartProcessorTest, ImplicitStartAbility_Permission_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ImplicitStartAbility_Permission_005 start");
+    PermissionVerification::verifyCallingPermissionRet_ = false;
+    auto ret = RunImplicitStartWithCandidates(
+        { MakeCandidateInfo("com.test.implicit", false), MakeCandidateInfo("com.test.other", false) }, 1);
+    // Multiple candidates short-circuit the gate before the permission call.
+    EXPECT_EQ(PermissionVerification::verifyCallingPermissionCount_, 0);
+    EXPECT_NE(ret, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "ImplicitStartAbility_Permission_005 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
