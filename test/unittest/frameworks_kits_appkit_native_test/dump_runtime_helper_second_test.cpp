@@ -661,13 +661,13 @@ HWTEST_F(DumpRuntimeHelperTestSecond, DetectAndUnwindThreadStackLeak_0100, TestS
  */
 HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0100, TestSize.Level1)
 {
-    pid_t tid1 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:67890]");
+    int32_t tid1 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:67890]");
     EXPECT_EQ(tid1, 67890);
-    pid_t tid2 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:1]");
+    int32_t tid2 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:1]");
     EXPECT_EQ(tid2, 1);
-    pid_t tid3 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:0]");
+    int32_t tid3 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:0]");
     EXPECT_EQ(tid3, 0);
-    pid_t tid4 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:99999]");
+    int32_t tid4 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:99999]");
     EXPECT_EQ(tid4, 99999);
 }
 
@@ -792,12 +792,12 @@ HWTEST_F(DumpRuntimeHelperTestSecond, FormatLeakedStack_0200, TestSize.Level1)
  */
 HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0300, TestSize.Level1)
 {
-    pid_t tid1 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483648]");
+    int32_t tid1 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483648]");
     EXPECT_EQ(tid1, 0);
-    pid_t tid2 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:9999999999]");
+    int32_t tid2 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:9999999999]");
     EXPECT_EQ(tid2, 0);
     GTEST_LOG_(INFO) << "overflow tid1:" << tid1 << " tid2:" << tid2;
-    pid_t tid3 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483647]");
+    int32_t tid3 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483647]");
     EXPECT_EQ(tid3, 2147483647);
 }
 } // namespace AppExecFwk
