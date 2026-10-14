@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <malloc.h>
 #include <pthread.h>
+#include <securec.h>
 #include <sys/statvfs.h>
 #include <sys/stat.h>
 #include <sys/uio.h>
@@ -700,8 +701,7 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
     std::vector<uint8_t> buffer;
     buffer.reserve(THREAD_STACK_READ_CHUNK);
     for (uint64_t chunkEnd = end; chunkEnd > begin && pcs.size() < THREAD_STACK_LEAK_MAX_FRAMES;) {
-        uint64_t chunkBegin = chunkEnd - std::min(static_cast<uint64_t>(THREAD_STACK_READ_CHUNK),
-                                                   chunkEnd - begin);
+        uint64_t chunkBegin = chunkEnd - std::min(static_cast<uint64_t>(THREAD_STACK_READ_CHUNK), chunkEnd - begin);
         // Align chunkBegin up to pointer width.
         chunkBegin = (chunkBegin + sizeof(uintptr_t) - 1) & ~static_cast<uint64_t>(sizeof(uintptr_t) - 1);
         if (chunkBegin >= chunkEnd) {
@@ -713,6 +713,8 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
         struct iovec remoteiov = {reinterpret_cast<void *>(chunkBegin), chunkSize};
         ssize_t nread = process_vm_readv(getpid(), &localiov, 1, &remoteiov, 1, 0);
         if (nread <= 0) {
+            TAG_LOGW(AAFwkTag::APPKIT, "process_vm_readv failed, range:[0x%{public}x-0x%{public}x] errno:%{public}d",
+                static_cast<uint32_t>(chunkBegin), static_cast<uint32_t>(chunkEnd), errno);
             chunkEnd = chunkBegin;
             continue;
         }
@@ -726,7 +728,9 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
                 continue;
             }
             uintptr_t value = 0;
-            memcpy(&value, buffer.data() + offset - sizeof(uintptr_t), sizeof(value));
+            if (memcpy_s(&value, sizeof(value), buffer.data() + offset - sizeof(uintptr_t), sizeof(value)) != EOK) {
+                continue;
+            }
             if (value == 0) {
                 continue;
             }
