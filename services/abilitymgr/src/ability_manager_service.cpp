@@ -10997,6 +10997,7 @@ int AbilityManagerService::GeneratePrelaunchAbilityRequest(const Want &want,
     abilityRequest.startSetting = nullptr;
     abilityRequest.want = want;
     abilityRequest.connect = connect;
+    abilityRequest.isPrelaunch = true;
     int result = GenerateAbilityRequest(want, -1, abilityRequest, nullptr, oriValidUserId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request error");

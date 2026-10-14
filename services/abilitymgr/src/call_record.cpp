@@ -228,6 +228,16 @@ void CallRecord::SetCallState(const CallState &state)
     state_ = state;
 }
 
+void CallRecord::SetPrelaunchFlag(bool isPrelaunch)
+{
+    isPrelaunch_ = isPrelaunch;
+}
+
+bool CallRecord::IsPrelaunch() const
+{
+    return isPrelaunch_;
+}
+
 int CallRecord::GetCallRecordId() const
 {
     return recordId_;

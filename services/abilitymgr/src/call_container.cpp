@@ -261,8 +261,10 @@ void CallContainer::NotifyDisconnectOnTimeout(const AppExecFwk::ElementName &ele
         return;
     }
 
-    for (const auto &[_, callRecord] : callRecordMap_) {
-        if (callRecord == nullptr) {
+    for (auto it = callRecordMap_.begin(); it != callRecordMap_.end();) {
+        auto &callRecord = it->second;
+        if (callRecord == nullptr || !callRecord->IsPrelaunch()) {
+            ++it;
             continue;
         }
         auto callback = callRecord->GetConCallBack();
@@ -271,9 +273,8 @@ void CallContainer::NotifyDisconnectOnTimeout(const AppExecFwk::ElementName &ele
                 callback->OnAbilityDisconnectDone(element, REASON_PRELAUNCH_TIMEOUT);
             });
         }
+        it = callRecordMap_.erase(it);
     }
-
-    callRecordMap_.clear();
 }
 }  // namespace AAFwk
 }  // namesspace OHOS
