@@ -96,7 +96,9 @@ WantAgentInfo::WantAgentInfo(const std::shared_ptr<WantAgentInfo> &paramInfo)
         flags_.insert(flags_.end(), tempFlags.begin(), tempFlags.end());
         if (!paramInfo->GetWants().empty()) {
             for (auto want : paramInfo->GetWants()) {
-                wants_.push_back(std::make_shared<Want>(*want));
+                if (want != nullptr) {
+                    wants_.push_back(std::make_shared<Want>(*want));
+                }
             }
         }
         if (paramInfo->GetExtraInfo() != nullptr) {

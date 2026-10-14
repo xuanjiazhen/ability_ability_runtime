@@ -302,6 +302,11 @@ ErrCode AmsMgrStub::HandleUpdateAbilityState(MessageParcel &data, MessageParcel 
     HITRACE_METER(HITRACE_TAG_APP);
     sptr<IRemoteObject> token = data.ReadRemoteObject();
     int32_t state = data.ReadInt32();
+    if (state < static_cast<int32_t>(AbilityState::ABILITY_STATE_CREATE) ||
+        state > static_cast<int32_t>(AbilityState::ABILITY_STATE_DISCONNECTED)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid ability state:%{public}d", state);
+        return ERR_INVALID_VALUE;
+    }
     bool isFromScreenOffBackground = data.ReadBool();
     UiAbilityLastCallerInfo callerInfo;
     callerInfo.callerUid = data.ReadInt32();
@@ -314,6 +319,11 @@ ErrCode AmsMgrStub::HandleUpdateExtensionState(MessageParcel &data, MessageParce
 {
     sptr<IRemoteObject> token = data.ReadRemoteObject();
     int32_t state = data.ReadInt32();
+    if (state < static_cast<int32_t>(ExtensionState::EXTENSION_STATE_CREATE) ||
+        state > static_cast<int32_t>(ExtensionState::EXTENSION_STATE_BACKGROUND)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid extension state:%{public}d", state);
+        return ERR_INVALID_VALUE;
+    }
     UpdateExtensionState(token, static_cast<ExtensionState>(state));
     return NO_ERROR;
 }
@@ -1075,6 +1085,11 @@ int32_t AmsMgrStub::HandlePreloadApplicationByPhase(MessageParcel &data, Message
     auto userId = data.ReadInt32();
     auto appIndex = data.ReadInt32();
     auto preloadPhase = data.ReadInt32();
+    if (preloadPhase < static_cast<int32_t>(AppExecFwk::PreloadPhase::UNSPECIFIED) ||
+        preloadPhase > static_cast<int32_t>(AppExecFwk::PreloadPhase::WINDOW_STAGE_CREATED)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid preloadPhase:%{public}d", preloadPhase);
+        return ERR_INVALID_VALUE;
+    }
     auto ret = PreloadApplicationByPhase(bundleName, userId, appIndex,
         static_cast<AppExecFwk::PreloadPhase>(preloadPhase));
     if (!reply.WriteInt32(ret)) {

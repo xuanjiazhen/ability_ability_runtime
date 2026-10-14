@@ -491,7 +491,7 @@ void CacheProcessManager::ShrinkAndKillCache()
     {
         std::lock_guard<ffrt::recursive_mutex> queueLock(cacheQueueMtx);
         while (GetCurrentCachedProcNum() > allowedCacheNum_) {
-            const auto& tmpAppRecord = cachedAppRecordQueue_.front();
+            auto tmpAppRecord = cachedAppRecordQueue_.front();
             cachedAppRecordQueue_.pop_front();
             RemoveFromApplicationSet(tmpAppRecord);
             if (tmpAppRecord == nullptr) {

@@ -113,8 +113,11 @@ void JsQueryERMSObserver::AddJsObserverObject(const std::string &appId, const st
     JsQueryERMSObserverObject object;
     object.appId = appId;
     object.startTime = startTime;
-    napi_deferred deferred;
-    napi_create_promise(env_, &deferred, result);
+    napi_deferred deferred = nullptr;
+    if (napi_create_promise(env_, &deferred, result) != napi_ok) {
+        TAG_LOGE(AAFwkTag::QUERY_ERMS, "create promise failed");
+        return;
+    }
     object.deferred = deferred;
 
     std::unique_lock<std::mutex> lock(jsObserverObjectListLock_);

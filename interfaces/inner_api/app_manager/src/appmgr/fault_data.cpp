@@ -62,23 +62,26 @@ bool FaultData::ReadFromParcel(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "TimeoutMarkers read string failed.");
     timeoutMarkers = strValue;
 
-    waitSaveState = parcel.ReadBool();
-    notifyApp = parcel.ReadBool();
-    forceExit = parcel.ReadBool();
-    needKillProcess = parcel.ReadBool();
-    state = parcel.ReadUint32();
-    eventId = parcel.ReadInt32();
-    schedTime = parcel.ReadUint64();
-    detectTime = parcel.ReadUint64();
-    appStatus = parcel.ReadInt32();
-    samplerStartTime = parcel.ReadUint64();
-    samplerFinishTime = parcel.ReadUint64();
-    samplerCount = parcel.ReadInt32();
-    pid = parcel.ReadInt32();
-    tid = parcel.ReadInt32();
-    stuckTimeout = parcel.ReadUint32();
-    if (parcel.ReadBool()) {
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(waitSaveState), "WaitSaveState read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(notifyApp), "NotifyApp read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(forceExit), "ForceExit read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(needKillProcess), "needKillProcess read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint32(state), "State read uint32 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(eventId), "EventId read int32 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(schedTime), "SchedTime read uint64 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(detectTime), "DetectTime read uint64 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(appStatus), "AppStatus read int32 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(samplerStartTime), "SamplerStartTime read uint64 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(samplerFinishTime), "SamplerFinishTime read uint64 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(samplerCount), "SamplerCount read int32 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(pid), "Pid read int32 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(tid), "Tid read int32 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint32(stuckTimeout), "StuckTimeout read uint32 failed.");
+    bool hasToken = false;
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(hasToken), "Token flag read bool failed.");
+    if (hasToken) {
         token = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
+        RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(token == nullptr, "Token read remote object failed.");
     }
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "AppfreezeInfo read string failed.");
@@ -106,10 +109,16 @@ bool FaultData::ReadContent(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ProcStatm read string failed.");
     procStatm = strValue;
 
-    isInForeground = parcel.ReadBool();
-    isEnableMainThreadSample = parcel.ReadBool();
-    reportLifecycleToFreeze = parcel.ReadBool();
-    abilityPendingBackground = parcel.ReadBool();
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isInForeground), "InForeground read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isEnableMainThreadSample),
+        "isEnableMainThreadSample read bool failed."
+    );
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(reportLifecycleToFreeze),
+        "reportLifecycleToFreeze read bool failed."
+    );
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(abilityPendingBackground),
+        "abilityPendingBackground read bool failed."
+    );
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationHeapInfo read string failed.");
     applicationHeapInfo = strValue;
@@ -120,14 +129,14 @@ bool FaultData::ReadContent(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationIOInfo read string failed.");
     applicationIOInfo = strValue;
 
-    isBlockInGc = parcel.ReadBool();
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isBlockInGc), "isBlockInGc read bool failed.");
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ProcessLifeTime read string failed.");
     processLifeTime = strValue;
 
-    markedId = parcel.ReadInt32();
-    processedId = parcel.ReadInt32();
-    dispatchedEventId = parcel.ReadInt32();
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(markedId), "MarkedId read int32 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(processedId), "ProcessedId read int32 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(dispatchedEventId), "DispatchedEventId read int32 failed.");
     return ReadLeakContent(parcel);
 }
 
@@ -440,17 +449,20 @@ bool AppFaultDataBySA::ReadFromParcel(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "TimeoutMarkers read string failed.");
     timeoutMarkers = strValue;
 
-    waitSaveState = parcel.ReadBool();
-    notifyApp = parcel.ReadBool();
-    forceExit = parcel.ReadBool();
-    needKillProcess = parcel.ReadBool();
-    state = parcel.ReadUint32();
-    eventId = parcel.ReadInt32();
-    schedTime = parcel.ReadUint64();
-    detectTime = parcel.ReadUint64();
-    appStatus = parcel.ReadInt32();
-    if (parcel.ReadBool()) {
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(waitSaveState), "WaitSaveState read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(notifyApp), "NotifyApp read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(forceExit), "ForceExit read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(needKillProcess), "needKillProcess read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint32(state), "State read uint32 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(eventId), "EventId read int32 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(schedTime), "SchedTime read uint64 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(detectTime), "DetectTime read uint64 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(appStatus), "AppStatus read int32 failed.");
+    bool hasToken = false;
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(hasToken), "Token flag read bool failed.");
+    if (hasToken) {
         token = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
+        RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(token == nullptr, "Token read remote object failed.");
     }
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "AppfreezeInfo read string failed.");
@@ -466,10 +478,16 @@ bool AppFaultDataBySA::ReadContent(Parcel &parcel)
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ProcStatm read string failed.");
     procStatm = strValue;
-    isInForeground = parcel.ReadBool();
-    isEnableMainThreadSample = parcel.ReadBool();
-    reportLifecycleToFreeze = parcel.ReadBool();
-    abilityPendingBackground = parcel.ReadBool();
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isInForeground), "InForeground read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isEnableMainThreadSample),
+        "isEnableMainThreadSample read bool failed."
+    );
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(reportLifecycleToFreeze),
+        "reportLifecycleToFreeze read bool failed."
+    );
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(abilityPendingBackground),
+        "abilityPendingBackground read bool failed."
+    );
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationHeapInfo read string failed.");
     applicationHeapInfo = strValue;
@@ -480,7 +498,7 @@ bool AppFaultDataBySA::ReadContent(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationIOInfo read string failed.");
     applicationIOInfo = strValue;
 
-    isBlockInGc = parcel.ReadBool();
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isBlockInGc), "isBlockInGc read bool failed.");
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ProcessLifeTime read string failed.");
     processLifeTime = strValue;

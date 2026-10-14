@@ -85,6 +85,19 @@ NativeChildProcess_Args NativeArgsChildProcess::ParseToNativeArgs(const std::str
         TAG_LOGE(AAFwkTag::APPKIT, "strcpy_s failed");
         return args;
     }
+    auto FreeArgs = [](NativeChildProcess_Args &args) {
+        NativeChildProcess_Fd *head = args.fdList.head;
+        while (head != nullptr) {
+            NativeChildProcess_Fd *next = head->next;
+            delete[] head->fdName;
+            head->fdName = nullptr;
+            delete head;
+            head = next;
+        }
+        args.fdList.head = nullptr;
+        delete[] args.entryParams;
+        args.entryParams = nullptr;
+    };
     NativeChildProcess_Fd *tail = nullptr;
     for (const auto &fd : fds) {
         auto &fdName = fd.first;
@@ -93,16 +106,22 @@ NativeChildProcess_Args NativeArgsChildProcess::ParseToNativeArgs(const std::str
         NativeChildProcess_Fd *node = new(std::nothrow) NativeChildProcess_Fd;
         if (!node) {
             TAG_LOGE(AAFwkTag::PROCESSMGR, "null node");
+            FreeArgs(args);
             return args;
         }
         node->next = nullptr;
-        node->fdName = new char[fdName.size() + 1];
-        if (strcpy_s(node->fdName, fdName.size() + 1, fdName.c_str()) != ERR_OK) {
-            delete[] node->fdName;
-            node->fdName = nullptr;
+        node->fdName = new(std::nothrow) char[fdName.size() + 1];
+        if (!node->fdName) {
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "null fdName");
             delete node;
-            node = nullptr;
+            FreeArgs(args);
+            return args;
+        }
+        if (strcpy_s(node->fdName, fdName.size() + 1, fdName.c_str()) != ERR_OK) {
             TAG_LOGE(AAFwkTag::APPKIT, "strcpy_s failed");
+            delete[] node->fdName;
+            delete node;
+            FreeArgs(args);
             return args;
         }
         node->fd = fdValue;
