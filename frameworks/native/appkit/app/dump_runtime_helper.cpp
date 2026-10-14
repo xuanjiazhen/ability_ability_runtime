@@ -24,6 +24,7 @@
 #include <pthread.h>
 #include <sys/statvfs.h>
 #include <sys/stat.h>
+#include <sys/uio.h>
 #include <sys/xattr.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -545,7 +546,7 @@ bool DumpRuntimeHelper::GetSnapshot(int fd)
 
 // Extract tid from a thread stack map name like "[anon:stack:11111]".
 // Returns 0 if the tid cannot be parsed.
-pid_t DumpRuntimeHelper::ParseTidFromMapName(const std::string &mapName)
+int32_t DumpRuntimeHelper::ParseTidFromMapName(const std::string &mapName)
 {
     auto pos = mapName.find(THREAD_STACK_MAP_PREFIX);
     if (pos == std::string::npos) {
@@ -577,7 +578,7 @@ pid_t DumpRuntimeHelper::ParseTidFromMapName(const std::string &mapName)
  
 // Check whether the given tid is still alive in current process by looking up
 // /proc/self/task/<tid>. Returns true if the tid directory exists.
-bool DumpRuntimeHelper::IsTidAlive(pid_t tid)
+bool DumpRuntimeHelper::IsTidAlive(int32_t tid)
 {
     if (tid <= 0) {
         return false;
@@ -673,18 +674,13 @@ bool DumpRuntimeHelper::IsAddressReadable(uint64_t addr,
 
 // Scan a leaked thread stack region for candidate PC values. The PC values are
 // read from the stack memory as uintptr_t values that fall inside executable
-// maps. Direct pointer dereference is used because /proc/self/mem is blocked
-// by SELinux for normal app processes. Each address is validated against
-// DfxMaps for read permission before dereference to avoid SIGSEGV on
-// unmapped or non-readable pages.
+// maps. process_vm_readv is used instead of direct pointer dereference to
+// avoid SIGSEGV on unmapped or non-readable pages — if the address is invalid,
+// process_vm_readv returns an error instead of crashing.
 // NOTE: DfxMaps is a snapshot created once in DetectAndUnwindThreadStackLeak.
-// Between snapshot creation and dereference, the process's virtual memory
-// layout may change (munmap, page reclaim). The PROT_READ check is a best
-// effort; in extreme OOM scenarios the region could be unmapped after the
-// check but before dereference. This is an accepted trade-off — the Dump
-// function runs in a signal-safe context where SIGSEGV would be fatal, but
-// the probability is low because thread stacks are rarely unmapped while the
-// process is alive.
+// Between snapshot creation and the readv call, the process's virtual memory
+// layout may change (munmap, page reclaim). process_vm_readv handles this
+// safely by returning an error rather than triggering SIGSEGV.
 std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
     uint64_t begin, uint64_t end, const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps)
 {
@@ -695,6 +691,8 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
     if (end < begin || end - begin < THREAD_STACK_SCAN_UNIT) {
         return pcs;
     }
+    // Align end down to pointer width to avoid unaligned access.
+    end &= ~static_cast<uint64_t>(sizeof(uintptr_t) - 1);
     for (uint64_t addr = end; addr > begin && pcs.size() < THREAD_STACK_LEAK_MAX_FRAMES;
          addr -= THREAD_STACK_SCAN_UNIT) {
         uint64_t readAddr = addr - THREAD_STACK_SCAN_UNIT;
@@ -704,7 +702,15 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
         if (!IsAddressReadable(readAddr, maps)) {
             continue;
         }
-        uintptr_t value = *reinterpret_cast<uintptr_t *>(readAddr);
+        // Use process_vm_readv to safely read memory — returns error instead
+        // of SIGSEGV if the page is unmapped between the check and the read.
+        uintptr_t value = 0;
+        struct iovec localiov = {&value, sizeof(value)};
+        struct iovec remoteiov = {reinterpret_cast<void *>(readAddr), sizeof(value)};
+        ssize_t nread = process_vm_readv(getpid(), &localiov, 1, &remoteiov, 1, 0);
+        if (nread != static_cast<ssize_t>(sizeof(value))) {
+            continue;
+        }
         if (value == 0) {
             continue;
         }
@@ -721,7 +727,7 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
 // faultloggerd's Unwinder + DfxFrameFormatter, which produces the canonical
 // "#00 pc <pc> <mapName>(<funcName>+<offset>)" format.
 // Returns empty string if no frames could be resolved.
-std::string DumpRuntimeHelper::FormatLeakedStack(pid_t tid, const std::vector<uintptr_t> &pcs)
+std::string DumpRuntimeHelper::FormatLeakedStack(int32_t tid, const std::vector<uintptr_t> &pcs)
 {
     if (pcs.empty()) {
         return "";
