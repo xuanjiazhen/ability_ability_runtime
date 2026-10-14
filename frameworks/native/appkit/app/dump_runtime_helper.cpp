@@ -107,7 +107,7 @@ static constexpr size_t THREAD_STACK_READ_CHUNK = 4096; // 4KB batch read size
 
 // Scan a buffer of stack memory for candidate PC values that fall inside
 // executable maps. Called by CollectPcsFromStack after a chunk is read.
-static void ScanChunkForPcs(const uint8_t *buf, uint64_t chunkBegin, uint64_t bytesValid,
+static void ScanChunkForPcs(const uint8_t *buf, uint64_t bytesValid,
     const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps, std::vector<uintptr_t> &pcs)
 {
     for (uint64_t offset = bytesValid; offset >= sizeof(uintptr_t) &&
@@ -713,8 +713,9 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
         }
         uint64_t chunkSize = chunkEnd - chunkBegin;
         buffer.resize(chunkSize);
-        struct iovec localiov = {buffer.data(), chunkSize};
-        struct iovec remoteiov = {reinterpret_cast<void *>(chunkBegin), chunkSize};
+        size_t readLen = static_cast<size_t>(chunkSize);
+        struct iovec localiov = {buffer.data(), readLen};
+        struct iovec remoteiov = {reinterpret_cast<void *>(chunkBegin), readLen};
         ssize_t nread = process_vm_readv(getpid(), &localiov, 1, &remoteiov, 1, 0);
         if (nread <= 0) {
             TAG_LOGW(AAFwkTag::APPKIT, "process_vm_readv failed, errno:%{public}d", errno);
@@ -723,7 +724,7 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
         }
         uint64_t bytesValid = static_cast<uint64_t>(nread) &
             ~static_cast<uint64_t>(sizeof(uintptr_t) - 1);
-        ScanChunkForPcs(buffer.data(), chunkBegin, bytesValid, maps, pcs);
+        ScanChunkForPcs(buffer.data(), bytesValid, maps, pcs);
         chunkEnd = chunkBegin;
     }
     TAG_LOGI(AAFwkTag::APPKIT, "CollectPcsFromStack: pcs:%{public}zu", pcs.size());
