@@ -25,6 +25,7 @@
 #undef private
 
 #include "app_loader.h"
+#include "dfx_maps.h"
 #include "dump_fd_guard.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
@@ -434,7 +435,7 @@ HWTEST_F(DumpRuntimeHelperTestSecond, DumpNativeHeap_1100, TestSize.Level1)
     OHOS::AppExecFwk::MemDumpInfo info;
     info.needLeakobj = true;
     std::string dumpResult = "";
-    
+
     helper->DumpNativeHeap(info, dumpResult);
     EXPECT_NE(application, nullptr);
 }
@@ -452,7 +453,7 @@ HWTEST_F(DumpRuntimeHelperTestSecond, DumpNativeHeap_1200, TestSize.Level1)
     OHOS::AppExecFwk::MemDumpInfo info;
     info.needLeakobj = false;
     std::string dumpResult = "";
-    
+
     helper->DumpNativeHeap(info, dumpResult);
     EXPECT_NE(application, nullptr);
 }
@@ -799,6 +800,79 @@ HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0300, TestSize.Level1)
     GTEST_LOG_(INFO) << "overflow tid1:" << tid1 << " tid2:" << tid2;
     int32_t tid3 = DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:2147483647]");
     EXPECT_EQ(tid3, 2147483647);
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0300
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack finds executable PCs from a real stack buffer.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, CollectPcsFromStack_0300, TestSize.Level1)
+{
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    uintptr_t funcAddr = reinterpret_cast<uintptr_t>(&DumpRuntimeHelper::ParseTidFromMapName);
+    uintptr_t buf[4] = {0, funcAddr, 0, 0};
+    uint64_t begin = reinterpret_cast<uint64_t>(&buf[0]);
+    uint64_t end = reinterpret_cast<uint64_t>(&buf[4]);
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(begin, end, maps);
+    EXPECT_GE(pcs.size(), static_cast<size_t>(1));
+    GTEST_LOG_(INFO) << "CollectPcsFromStack_0300 found " << pcs.size() << " PCs";
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0400
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack with unmapped range triggers process_vm_readv failure.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, CollectPcsFromStack_0400, TestSize.Level1)
+{
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0x10000000, 0x10001000, maps);
+    EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "CollectPcsFromStack_0400 returned " << pcs.size() << " PCs";
+}
+
+/**
+ * @tc.number: FormatLeakedStack_0300
+ * @tc.name: FormatLeakedStack
+ * @tc.desc: Test FormatLeakedStack with a real function address does not crash.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, FormatLeakedStack_0300, TestSize.Level1)
+{
+    uintptr_t pc = reinterpret_cast<uintptr_t>(&DumpRuntimeHelper::ParseTidFromMapName);
+    std::vector<uintptr_t> pcs = {pc};
+    std::string result = DumpRuntimeHelper::FormatLeakedStack(gettid(), pcs);
+    GTEST_LOG_(INFO) << "FormatLeakedStack_0300 result size:" << result.size();
+}
+
+/**
+ * @tc.number: IsAddressReadable_0100
+ * @tc.name: IsAddressReadable
+ * @tc.desc: Test IsAddressReadable returns true for a valid stack address and false for unmapped.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsAddressReadable_0100, TestSize.Level1)
+{
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    int stackVar = 0;
+    uint64_t addr = reinterpret_cast<uint64_t>(&stackVar);
+    EXPECT_TRUE(DumpRuntimeHelper::IsAddressReadable(addr, maps));
+    EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0x1, maps));
+    EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0x1, nullptr));
+}
+
+/**
+ * @tc.number: ParseTidFromMapName_0400
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName returns 0 for negative sign (non-digit stops parsing).
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0400, TestSize.Level1)
+{
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:-2147483649]"), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:-1]"), 0);
+    GTEST_LOG_(INFO) << "negative sign correctly returns 0";
 }
 } // namespace AppExecFwk
 } // namespace OHOS
