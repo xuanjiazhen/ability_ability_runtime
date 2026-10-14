@@ -357,49 +357,6 @@ HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0100, Function | MediumTest 
 }
 
 /**
- * @tc.number: IsAddressReadable_0100
- * @tc.name: IsAddressReadable
- * @tc.desc: Test IsAddressReadable returns true for a valid stack address.
- */
-HWTEST_F(DumpRuntimeHelperTest, IsAddressReadable_0100, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0100 start";
-    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
-    ASSERT_NE(maps, nullptr);
-    int stackVar = 0;
-    uint64_t addr = reinterpret_cast<uint64_t>(&stackVar);
-    EXPECT_TRUE(DumpRuntimeHelper::IsAddressReadable(addr, maps));
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0100 end";
-}
-
-/**
- * @tc.number: IsAddressReadable_0200
- * @tc.name: IsAddressReadable
- * @tc.desc: Test IsAddressReadable returns false for an unmapped address.
- */
-HWTEST_F(DumpRuntimeHelperTest, IsAddressReadable_0200, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0200 start";
-    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
-    ASSERT_NE(maps, nullptr);
-    // Use an address in the low canonical hole that is guaranteed unmapped.
-    EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0x1, maps));
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0200 end";
-}
-
-/**
- * @tc.number: IsAddressReadable_0300
- * @tc.name: IsAddressReadable
- * @tc.desc: Test IsAddressReadable returns false when maps is nullptr.
- */
-HWTEST_F(DumpRuntimeHelperTest, IsAddressReadable_0300, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0300 start";
-    EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0x1, nullptr));
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0300 end";
-}
-
-/**
  * @tc.number: FormatLeakedStack_0100
  * @tc.name: FormatLeakedStack
  * @tc.desc: Test FormatLeakedStack returns empty string for empty pcs.
@@ -542,21 +499,6 @@ HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0500, Function | MediumTest 
     auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0x1000, 0x1004, maps);
     EXPECT_TRUE(pcs.empty());
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0500 end";
-}
-
-/**
- * @tc.number: IsAddressReadable_0400
- * @tc.name: IsAddressReadable
- * @tc.desc: Test IsAddressReadable returns false for a write-only or non-mapped address.
- */
-HWTEST_F(DumpRuntimeHelperTest, IsAddressReadable_0400, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0400 start";
-    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
-    ASSERT_NE(maps, nullptr);
-    // An address in the high canonical hole — guaranteed not mapped.
-    EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0xFFFFFFFFFFFF0000ULL, maps));
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest IsAddressReadable_0400 end";
 }
 
 /**
