@@ -24,8 +24,10 @@ ohos_shared_library("embeddableuiability_napi") {
 
   if (is_mingw) {
     defines = [ "WINDOWS_PLATFORM" ]
-  } else {
+  } else if (is_mac) {
     defines = [ "MAC_PLATFORM" ]
+  } else if (is_linux) {
+    defines = [ "LINUX_PLATFORM" ]
   }
 
   sources = [ "${ability_runtime_napi_path}/embeddable_ui_ability/embeddable_ui_ability_module.cpp" ]
