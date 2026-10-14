@@ -106,11 +106,6 @@ private:
     // Parse /proc/self/smaps and collect all thread stack map regions whose
     // name starts with "[anon:stack:" and whose tid is no longer alive.
     static std::vector<ThreadStackRegion> ParseLeakedThreadStackRegions();
-    // Check whether the address falls inside a readable mapping by looking
-    // up DfxMaps and verifying PROT_READ. Returns false if not mapped or
-    // lacks read permission.
-    static bool IsAddressReadable(uint64_t addr,
-        const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps);
     // Scan a leaked thread stack region [begin, end) for candidate PC values
     // that fall inside executable maps. Memory is read in chunks via
     // process_vm_readv, which returns an error instead of SIGSEGV on
