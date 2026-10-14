@@ -112,10 +112,10 @@ private:
     static bool IsAddressReadable(uint64_t addr,
         const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps);
     // Scan a leaked thread stack region [begin, end) for candidate PC values
-    // that fall inside executable maps. Uses direct pointer dereference since
-    // /proc/self/mem is blocked by SELinux for apps. Each address is validated
-    // against DfxMaps for read permission before dereference to avoid SIGSEGV
-    // on unmapped or non-readable pages.
+    // that fall inside executable maps. Memory is read in chunks via
+    // process_vm_readv, which returns an error instead of SIGSEGV on
+    // unmapped pages. The maps parameter is used to check whether each
+    // candidate value falls in an executable mapping.
     // The maps parameter should be created once by the caller and reused.
     static std::vector<uintptr_t> CollectPcsFromStack(
         uint64_t begin, uint64_t end, const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps);
