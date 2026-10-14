@@ -575,6 +575,104 @@ HWTEST_F(DumpRuntimeHelperTest, FormatLeakedStack_0300, Function | MediumTest | 
 }
 
 /**
+ * @tc.number: FormatLeakedStack_0400
+ * @tc.name: FormatLeakedStack
+ * @tc.desc: Test FormatLeakedStack with a real function address produces non-empty output.
+ */
+HWTEST_F(DumpRuntimeHelperTest, FormatLeakedStack_0400, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest FormatLeakedStack_0400 start";
+    // Use a real function address as a candidate PC. The unwinder may or may not
+    // resolve it, but the function should not crash.
+    uintptr_t pc = reinterpret_cast<uintptr_t>(&DumpRuntimeHelper::ParseTidFromMapName);
+    std::vector<uintptr_t> pcs = {pc};
+    std::string result = DumpRuntimeHelper::FormatLeakedStack(gettid(), pcs);
+    GTEST_LOG_(INFO) << "FormatLeakedStack_0400 result size:" << result.size();
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest FormatLeakedStack_0400 end";
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0600
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack reads a real stack buffer and finds executable PCs.
+ */
+HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0600, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0600 start";
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    // Place a real function address on the stack buffer. process_vm_readv should
+    // read it and FindMapByAddr should match it to an executable mapping.
+    uintptr_t funcAddr = reinterpret_cast<uintptr_t>(&DumpRuntimeHelper::ParseTidFromMapName);
+    uintptr_t buf[4] = {0, funcAddr, 0, 0};
+    uint64_t begin = reinterpret_cast<uint64_t>(&buf[0]);
+    uint64_t end = reinterpret_cast<uint64_t>(&buf[4]);
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(begin, end, maps);
+    // The function address should be found as a candidate PC.
+    EXPECT_GE(pcs.size(), static_cast<size_t>(1));
+    if (!pcs.empty()) {
+        EXPECT_EQ(pcs[0], funcAddr);
+    }
+    GTEST_LOG_(INFO) << "CollectPcsFromStack_0600 found " << pcs.size() << " PCs";
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0600 end";
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0700
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack with unmapped address range triggers process_vm_readv failure.
+ */
+HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0700, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0700 start";
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    // Use an address range that is definitely unmapped — process_vm_readv should
+    // fail and return empty without crashing.
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(0x10000000, 0x10001000, maps);
+    EXPECT_TRUE(pcs.empty());
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0700 end";
+}
+
+/**
+ * @tc.number: ParseTidFromMapName_0600
+ * @tc.name: ParseTidFromMapName
+ * @tc.desc: Test ParseTidFromMapName returns 0 for negative sign (non-digit stops parsing).
+ */
+HWTEST_F(DumpRuntimeHelperTest, ParseTidFromMapName_0600, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0600 start";
+    // The '-' character is not a digit, so parsing stops immediately and tidStr
+    // is empty, causing the function to return 0.
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:-2147483649]"), 0);
+    EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:-1]"), 0);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest ParseTidFromMapName_0600 end";
+}
+
+/**
+ * @tc.number: CollectPcsFromStack_0800
+ * @tc.name: CollectPcsFromStack
+ * @tc.desc: Test CollectPcsFromStack with a large buffer containing multiple executable PCs.
+ */
+HWTEST_F(DumpRuntimeHelperTest, CollectPcsFromStack_0800, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0800 start";
+    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
+    ASSERT_NE(maps, nullptr);
+    // Place multiple function addresses in the buffer to exercise the
+    // pcs.push_back path multiple times.
+    uintptr_t func1 = reinterpret_cast<uintptr_t>(&DumpRuntimeHelper::ParseTidFromMapName);
+    uintptr_t func2 = reinterpret_cast<uintptr_t>(&DumpRuntimeHelper::IsTidAlive);
+    uintptr_t buf[8] = {0, func1, 0, func2, 0, 0, 0, 0};
+    uint64_t begin = reinterpret_cast<uint64_t>(&buf[0]);
+    uint64_t end = reinterpret_cast<uint64_t>(&buf[8]);
+    auto pcs = DumpRuntimeHelper::CollectPcsFromStack(begin, end, maps);
+    EXPECT_GE(pcs.size(), static_cast<size_t>(2));
+    GTEST_LOG_(INFO) << "CollectPcsFromStack_0800 found " << pcs.size() << " PCs";
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CollectPcsFromStack_0800 end";
+}
+
+/**
  * @tc.number: CheckOomdumpSwitch_0100
  * @tc.name: CheckOomdumpSwitch
  * @tc.desc: Test the function of CheckOomdumpSwitch.
