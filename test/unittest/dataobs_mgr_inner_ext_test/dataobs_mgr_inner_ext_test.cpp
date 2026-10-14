@@ -985,10 +985,14 @@ HWTEST_F(DataObsMgrInnerExtTest, DataObsMgrInnerExt_DeathRecipient_0300, TestSiz
     EXPECT_EQ(dataObsMgrInnerExt->HandleUnregisterObserver(uri1, observer1), SUCCESS);
     auto it = dataObsMgrInnerExt->obsRecipientRefs.find(observer1->AsObject());
     EXPECT_TRUE(it != dataObsMgrInnerExt->obsRecipientRefs.end());
+    EXPECT_EQ(it->second->ref.load(), 2u);
 
     EXPECT_EQ(dataObsMgrInnerExt->HandleUnregisterObserver(uri2, observer1), SUCCESS);
     it = dataObsMgrInnerExt->obsRecipientRefs.find(observer1->AsObject());
     EXPECT_FALSE(it != dataObsMgrInnerExt->obsRecipientRefs.end());
+
+    EXPECT_EQ(dataObsMgrInnerExt->AddObsDeathRecipient(nullptr), nullptr);
+    dataObsMgrInnerExt->RemoveObsDeathRecipient(nullptr);
 }
 
 /*
@@ -1017,11 +1021,13 @@ HWTEST_F(DataObsMgrInnerExtTest, DataObsMgrInnerExt_DeathRecipient_0400, TestSiz
         std::atomic<bool> go(false);
         auto diedFunc = [&go, &recipient, &observer]() {
             while (!go.load()) {
+                std::this_thread::yield();
             }
             recipient->OnRemoteDied(observer->AsObject());
         };
         auto unregisterFunc = [&go, &dataObsMgrInnerExt, &observer]() {
             while (!go.load()) {
+                std::this_thread::yield();
             }
             dataObsMgrInnerExt->HandleUnregisterObserver(observer);
         };

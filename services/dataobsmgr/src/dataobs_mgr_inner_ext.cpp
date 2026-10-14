@@ -32,7 +32,7 @@ DataObsMgrInnerExt::~DataObsMgrInnerExt() {}
 Status DataObsMgrInnerExt::HandleRegisterObserver(Uri &uri, sptr<IDataAbilityObserver> dataObserver,
     ObserverInfo &info, bool isDescendants)
 {
-    if (dataObserver->AsObject() == nullptr) {
+    if (dataObserver == nullptr || dataObserver->AsObject() == nullptr) {
         return DATA_OBSERVER_IS_NULL;
     }
     std::lock_guard<ffrt::mutex> lock(nodeMutex_);
@@ -64,7 +64,7 @@ Status DataObsMgrInnerExt::HandleRegisterObserver(Uri &uri, sptr<IDataAbilityObs
 
 Status DataObsMgrInnerExt::HandleUnregisterObserver(Uri &uri, sptr<IDataAbilityObserver> dataObserver)
 {
-    if (dataObserver->AsObject() == nullptr) {
+    if (dataObserver == nullptr || dataObserver->AsObject() == nullptr) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "null dataObserver, uri:%{public}s num maxed",
             CommonUtils::Anonymous(uri.ToString()).c_str());
         return DATA_OBSERVER_IS_NULL;
@@ -85,7 +85,7 @@ Status DataObsMgrInnerExt::HandleUnregisterObserver(Uri &uri, sptr<IDataAbilityO
 
 Status DataObsMgrInnerExt::HandleUnregisterObserver(sptr<IDataAbilityObserver> dataObserver)
 {
-    if (dataObserver->AsObject() == nullptr) {
+    if (dataObserver == nullptr || dataObserver->AsObject() == nullptr) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "null dataObserver");
         return DATA_OBSERVER_IS_NULL;
     }
@@ -164,6 +164,9 @@ Status DataObsMgrInnerExt::HandleNotifyChange(const ChangeInfo &changeInfo, int3
 std::shared_ptr<DataObsMgrInnerExt::DeathRecipientRef> DataObsMgrInnerExt::AddObsDeathRecipient(
     const sptr<IRemoteObject> &dataObserver)
 {
+    if (dataObserver == nullptr) {
+        return nullptr;
+    }
     auto it = obsRecipientRefs.find(dataObserver);
     if (it != obsRecipientRefs.end()) {
         if (std::numeric_limits<uint32_t>::max() - 1 < it->second->ref) {
@@ -189,6 +192,9 @@ std::shared_ptr<DataObsMgrInnerExt::DeathRecipientRef> DataObsMgrInnerExt::AddOb
 
 void DataObsMgrInnerExt::RemoveObsDeathRecipient(const sptr<IRemoteObject> &dataObserver, bool isForce)
 {
+    if (dataObserver == nullptr) {
+        return;
+    }
     auto it = obsRecipientRefs.find(dataObserver);
     if (it == obsRecipientRefs.end()) {
         return;

@@ -31,6 +31,9 @@ DataObsMgrInner::~DataObsMgrInner() {}
 
 int DataObsMgrInner::HandleRegisterObserver(const Uri &uri, struct ObserverNode observerNode)
 {
+    if (observerNode.observer_ == nullptr || observerNode.observer_->AsObject() == nullptr) {
+        return DATA_OBSERVER_IS_NULL;
+    }
     std::lock_guard<ffrt::mutex> lock(innerMutex_);
 
     auto [obsPair, flag] = observers_.try_emplace(uri.ToString(), std::list<struct ObserverNode>());
@@ -43,6 +46,9 @@ int DataObsMgrInner::HandleRegisterObserver(const Uri &uri, struct ObserverNode 
 
     uint32_t tokenCount = 0;
     for (auto obs = obsPair->second.begin(); obs != obsPair->second.end(); obs++) {
+        if ((*obs).observer_ == nullptr) {
+            continue;
+        }
         if ((*obs).observer_->AsObject() == observerNode.observer_->AsObject()) {
             TAG_LOGE(AAFwkTag::DBOBSMGR, "obs registered:%{public}s",
                 CommonUtils::Anonymous(uri.ToString()).c_str());
@@ -69,6 +75,9 @@ int DataObsMgrInner::HandleRegisterObserver(const Uri &uri, struct ObserverNode 
 
 int DataObsMgrInner::HandleUnregisterObserver(const Uri &uri, struct ObserverNode observerNode)
 {
+    if (observerNode.observer_ == nullptr || observerNode.observer_->AsObject() == nullptr) {
+        return DATA_OBSERVER_IS_NULL;
+    }
     std::lock_guard<ffrt::mutex> lock(innerMutex_);
 
     auto obsPair = observers_.find(uri.ToString());
@@ -82,7 +91,8 @@ int DataObsMgrInner::HandleUnregisterObserver(const Uri &uri, struct ObserverNod
         CommonUtils::Anonymous(uri.ToString()).c_str());
     auto obs = obsPair->second.begin();
     for (; obs != obsPair->second.end(); obs++) {
-        if ((*obs).observer_->AsObject() == observerNode.observer_->AsObject()) {
+        if ((*obs).observer_ != nullptr &&
+            (*obs).observer_->AsObject() == observerNode.observer_->AsObject()) {
             break;
         }
     }
@@ -218,7 +228,7 @@ void DataObsMgrInner::RemoveObs(sptr<IRemoteObject> dataObserver)
     for (auto iter = observers_.begin(); iter != observers_.end();) {
         auto &obsList = iter->second;
         for (auto it = obsList.begin(); it != obsList.end(); it++) {
-            if ((*it).observer_->AsObject() == dataObserver) {
+            if ((*it).observer_ != nullptr && (*it).observer_->AsObject() == dataObserver) {
                 TAG_LOGI(AAFwkTag::DBOBSMGR, "rm p:%{public}d", (*it).pid_);
                 obsList.erase(it);
                 break;
@@ -235,9 +245,12 @@ void DataObsMgrInner::RemoveObs(sptr<IRemoteObject> dataObserver)
 
 bool DataObsMgrInner::HaveRegistered(sptr<IDataAbilityObserver> dataObserver)
 {
+    if (dataObserver == nullptr) {
+        return false;
+    }
     for (auto &[key, value] : observers_) {
         for (struct ObserverNode& node: value) {
-            if (node.observer_ == dataObserver) {
+            if (node.observer_ != nullptr && node.observer_->AsObject() == dataObserver->AsObject()) {
                 return true;
             }
         }

@@ -558,6 +558,38 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_AddRemove_ObsDeathRecipient_0300, 
 
 /*
  * Feature: DataObsMgrInner
+ * Function: AddObsDeathRecipient/RemoveObsDeathRecipient function test
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Death recipient is kept when another proxy of the same observer is still registered
+ */
+HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_AddRemove_ObsDeathRecipient_0400, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInner> dataObsMgrInner = std::make_shared<DataObsMgrInner>();
+    Uri uri1("dataability://device_id/com.domainname.dataability.persondata/person/10");
+    Uri uri2("dataability://device_id/com.domainname.dataability.persondata/person/11");
+    sptr<MockDataAbilityObserverStub> observer(new (std::nothrow) MockDataAbilityObserverStub());
+    const sptr<IDataAbilityObserver> callback1(new (std::nothrow) DataAbilityObserverProxy(observer));
+    const sptr<IDataAbilityObserver> callback2(new (std::nothrow) DataAbilityObserverProxy(observer));
+    const sptr<IDataAbilityObserver> callback3(new (std::nothrow) DataAbilityObserverProxy(observer));
+
+    EXPECT_EQ(dataObsMgrInner->HandleRegisterObserver(uri1, ObserverNode(callback1, USER_TEST, 0, 0)), NO_ERROR);
+    EXPECT_EQ(dataObsMgrInner->HandleRegisterObserver(uri2, ObserverNode(callback2, USER_TEST, 0, 0)), NO_ERROR);
+
+    EXPECT_EQ(dataObsMgrInner->HandleUnregisterObserver(uri1, ObserverNode(callback3, USER_TEST, 0, 0)), NO_ERROR);
+    EXPECT_TRUE(dataObsMgrInner->HaveRegistered(callback3));
+    auto it = dataObsMgrInner->obsRecipient_.find(callback3->AsObject());
+    EXPECT_TRUE(it != dataObsMgrInner->obsRecipient_.end());
+
+    EXPECT_EQ(dataObsMgrInner->HandleUnregisterObserver(uri2, ObserverNode(callback3, USER_TEST, 0, 0)), NO_ERROR);
+    EXPECT_FALSE(dataObsMgrInner->HaveRegistered(callback3));
+    it = dataObsMgrInner->obsRecipient_.find(callback3->AsObject());
+    EXPECT_FALSE(it != dataObsMgrInner->obsRecipient_.end());
+}
+
+/*
+ * Feature: DataObsMgrInner
  * Function: OnCallBackDied function test
  * SubFunction: NA
  * FunctionPoints: NA
@@ -640,11 +672,13 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_DeathRecipient_Race_0100, TestSize
         std::atomic<bool> go(false);
         auto diedFunc = [&go, &recipient, &callback]() {
             while (!go.load()) {
+                std::this_thread::yield();
             }
             recipient->OnRemoteDied(callback->AsObject());
         };
         auto unregisterFunc = [&go, &dataObsMgrInner, &uri, &callback]() {
             while (!go.load()) {
+                std::this_thread::yield();
             }
             dataObsMgrInner->HandleUnregisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0));
         };
