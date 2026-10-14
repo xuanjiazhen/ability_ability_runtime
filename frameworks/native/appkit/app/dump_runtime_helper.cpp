@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cerrno>
+#include <cinttypes>
 #include <dfx_signal_handler.h>
 #include <fcntl.h>
 #include <malloc.h>
@@ -103,6 +104,27 @@ static constexpr size_t THREAD_STACK_LEAK_MAX_FRAMES = 64;
 static constexpr size_t THREAD_STACK_LEAK_MAX_STACKS = 10;
 static constexpr size_t THREAD_STACK_SCAN_UNIT = sizeof(uintptr_t);
 static constexpr size_t THREAD_STACK_READ_CHUNK = 4096; // 4KB batch read size
+
+// Scan a buffer of stack memory for candidate PC values that fall inside
+// executable maps. Called by CollectPcsFromStack after a chunk is read.
+static void ScanChunkForPcs(const uint8_t *buf, uint64_t chunkBegin, uint64_t bytesValid,
+    const std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps, std::vector<uintptr_t> &pcs)
+{
+    for (uint64_t offset = bytesValid; offset >= sizeof(uintptr_t) &&
+        pcs.size() < THREAD_STACK_LEAK_MAX_FRAMES; offset -= THREAD_STACK_SCAN_UNIT) {
+        uintptr_t value = 0;
+        if (memcpy_s(&value, sizeof(value), buf + offset - sizeof(uintptr_t), sizeof(value)) != EOK) {
+            continue;
+        }
+        if (value == 0) {
+            continue;
+        }
+        std::shared_ptr<OHOS::HiviewDFX::DfxMap> map = nullptr;
+        if (maps->FindMapByAddr(static_cast<uintptr_t>(value), map) && map && map->IsMapExec()) {
+            pcs.push_back(value);
+        }
+    }
+}
 
 enum {
     INDEX_DELIVERY_TS = 0,
@@ -680,7 +702,8 @@ bool DumpRuntimeHelper::IsAddressReadable(uint64_t addr,
 // maps. Memory is read in 4KB chunks via process_vm_readv to minimize system
 // call overhead, then each uintptr_t in the buffer is checked against DfxMaps
 // for executable mapping. process_vm_readv returns an error instead of
-// triggering SIGSEGV on unmapped pages.
+// triggering SIGSEGV on unmapped pages, so no prior IsAddressReadable check
+// is needed — the readv itself is the safety boundary.
 // NOTE: DfxMaps is a snapshot created once in DetectAndUnwindThreadStackLeak.
 // Between snapshot creation and the readv call, the process's virtual memory
 // layout may change (munmap, page reclaim). process_vm_readv handles this
@@ -695,14 +718,11 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
     if (end < begin || end - begin < THREAD_STACK_SCAN_UNIT) {
         return pcs;
     }
-    // Align end down to pointer width to avoid unaligned access.
     end &= ~static_cast<uint64_t>(sizeof(uintptr_t) - 1);
-    // Read stack memory in chunks to reduce system call count.
     std::vector<uint8_t> buffer;
     buffer.reserve(THREAD_STACK_READ_CHUNK);
     for (uint64_t chunkEnd = end; chunkEnd > begin && pcs.size() < THREAD_STACK_LEAK_MAX_FRAMES;) {
         uint64_t chunkBegin = chunkEnd - std::min(static_cast<uint64_t>(THREAD_STACK_READ_CHUNK), chunkEnd - begin);
-        // Align chunkBegin up to pointer width.
         chunkBegin = (chunkBegin + sizeof(uintptr_t) - 1) & ~static_cast<uint64_t>(sizeof(uintptr_t) - 1);
         if (chunkBegin >= chunkEnd) {
             break;
@@ -713,32 +733,14 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
         struct iovec remoteiov = {reinterpret_cast<void *>(chunkBegin), chunkSize};
         ssize_t nread = process_vm_readv(getpid(), &localiov, 1, &remoteiov, 1, 0);
         if (nread <= 0) {
-            TAG_LOGW(AAFwkTag::APPKIT, "process_vm_readv failed, range:[0x%{public}x-0x%{public}x] errno:%{public}d",
-                static_cast<uint32_t>(chunkBegin), static_cast<uint32_t>(chunkEnd), errno);
+            TAG_LOGW(AAFwkTag::APPKIT, "process_vm_readv failed, range:[0x%{public}016" PRIx64
+                "-0x%{public}016" PRIx64 "] errno:%{public}d", chunkBegin, chunkEnd, errno);
             chunkEnd = chunkBegin;
             continue;
         }
-        // Scan the chunk for candidate PC values from high to low address.
-        uint64_t bytesValid = static_cast<uint64_t>(nread);
-        bytesValid &= ~static_cast<uint64_t>(sizeof(uintptr_t) - 1);
-        for (uint64_t offset = bytesValid; offset >= sizeof(uintptr_t) && pcs.size() < THREAD_STACK_LEAK_MAX_FRAMES;
-             offset -= THREAD_STACK_SCAN_UNIT) {
-            uint64_t readAddr = chunkBegin + offset - sizeof(uintptr_t);
-            if (!IsAddressReadable(readAddr, maps)) {
-                continue;
-            }
-            uintptr_t value = 0;
-            if (memcpy_s(&value, sizeof(value), buffer.data() + offset - sizeof(uintptr_t), sizeof(value)) != EOK) {
-                continue;
-            }
-            if (value == 0) {
-                continue;
-            }
-            std::shared_ptr<OHOS::HiviewDFX::DfxMap> map = nullptr;
-            if (maps->FindMapByAddr(static_cast<uintptr_t>(value), map) && map && map->IsMapExec()) {
-                pcs.push_back(value);
-            }
-        }
+        uint64_t bytesValid = static_cast<uint64_t>(nread) &
+            ~static_cast<uint64_t>(sizeof(uintptr_t) - 1);
+        ScanChunkForPcs(buffer.data(), chunkBegin, bytesValid, maps, pcs);
         chunkEnd = chunkBegin;
     }
     TAG_LOGI(AAFwkTag::APPKIT, "CollectPcsFromStack: pcs:%{public}zu", pcs.size());
