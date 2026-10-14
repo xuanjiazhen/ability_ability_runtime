@@ -794,6 +794,9 @@ enum class AbilityManagerInterfaceCode {
 
     // notify that an insight intent execution has started
     NOTIFY_INSIGHT_INTENT_EXECUTE = 6182,
+
+    // extend game prelaunch timeout
+    EXTEND_GAME_PRELAUNCH_TIMEOUT = 6183,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
