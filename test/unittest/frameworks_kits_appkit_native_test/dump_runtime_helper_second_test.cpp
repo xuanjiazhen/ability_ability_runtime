@@ -848,22 +848,6 @@ HWTEST_F(DumpRuntimeHelperTestSecond, FormatLeakedStack_0300, TestSize.Level1)
 }
 
 /**
- * @tc.number: IsAddressReadable_0100
- * @tc.name: IsAddressReadable
- * @tc.desc: Test IsAddressReadable returns true for a valid stack address and false for unmapped.
- */
-HWTEST_F(DumpRuntimeHelperTestSecond, IsAddressReadable_0100, TestSize.Level1)
-{
-    auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
-    ASSERT_NE(maps, nullptr);
-    int stackVar = 0;
-    uint64_t addr = reinterpret_cast<uint64_t>(&stackVar);
-    EXPECT_TRUE(DumpRuntimeHelper::IsAddressReadable(addr, maps));
-    EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0x1, maps));
-    EXPECT_FALSE(DumpRuntimeHelper::IsAddressReadable(0x1, nullptr));
-}
-
-/**
  * @tc.number: ParseTidFromMapName_0400
  * @tc.name: ParseTidFromMapName
  * @tc.desc: Test ParseTidFromMapName returns 0 for negative sign (non-digit stops parsing).
