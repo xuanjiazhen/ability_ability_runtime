@@ -124,6 +124,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS) {
         return KillProcessInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_USER_ID) {
+        return KillProcessWithUserIdInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::UNINSTALL_APP) {
         return UninstallAppInner(data, reply);
     }
@@ -1563,8 +1566,22 @@ int AbilityManagerStub::KillProcessInner(MessageParcel &data, MessageParcel &rep
     bool clearPageStack = data.ReadBool();
     auto appIndex = data.ReadInt32();
     std::string reason = Str16ToStr8(data.ReadString16());
+    int result = KillProcess(bundleName, clearPageStack, appIndex, reason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "remove stack error");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::KillProcessWithUserIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName = Str16ToStr8(data.ReadString16());
+    bool clearPageStack = data.ReadBool();
+    auto appIndex = data.ReadInt32();
+    std::string reason = Str16ToStr8(data.ReadString16());
     auto userId = data.ReadInt32();
-    int result = KillProcess(bundleName, clearPageStack, appIndex, reason, userId);
+    int result = KillProcessWithUserId(bundleName, clearPageStack, appIndex, reason, userId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "remove stack error");
         return ERR_INVALID_VALUE;
