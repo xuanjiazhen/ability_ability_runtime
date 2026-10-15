@@ -14,7 +14,6 @@
  */
 
 #include "interceptor/block_all_app_start_interceptor.h"
-
 #include "ability_manager_service.h"
 #include "ability_record.h"
 #include "hilog_tag_wrapper.h"
@@ -33,8 +32,14 @@ void BlockAllAppStartInterceptor::SetIsAbilityStartedFunc(const IsAbilityStarted
     isAbilityStartedFunc_ = func;
 }
 
-ErrCode BlockAllAppStartInterceptor::Execute()
+ErrCode BlockAllAppStartInterceptor::DoProcess(AbilityInterceptorParam& param)
 {
+    // Remote dispatch: defer to the remote device's own enforcement. A locally-resolved
+    // target is unavailable here, and remote starts must not be blocked by local
+    // low-memory policy (mirrors the post-check trio's RemoteDispatchCtx no-op).
+    if (param.GetContext<AbilityInterceptorParam::RemoteDispatchCtx>() != nullptr) {
+        return ERR_OK;
+    }
     if (!shouldBlockFunc_) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "shouldBlockFunc_ is nullptr");
         return ERR_INVALID_VALUE;
@@ -43,29 +48,17 @@ ErrCode BlockAllAppStartInterceptor::Execute()
         return ERR_OK;
     }
 
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking app start due to low memory");
-    return ERR_ALL_APP_START_BLOCKED;
-}
-
-ErrCode BlockAllAppStartInterceptor::Execute(AbilityRequest& abilityRequest, int32_t validUserId)
-{
-    if (!shouldBlockFunc_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "shouldBlockFunc_ is nullptr");
-        return ERR_INVALID_VALUE;
-    }
-    if (!isAbilityStartedFunc_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "isAbilityStartedFunc_ is nullptr");
-        return ERR_INVALID_VALUE;
-    }
-    if (!shouldBlockFunc_()) {
+    // Escape hatch: a PAGE UIAbility that is already started may be re-launched/foregrounded
+    // even in low-memory block mode. The AbilityRequest is threaded in via BlockAllAppStartCtx
+    // at post-resolution chain sites; absence of either the request or the started-func means
+    // the exemption cannot be established, so fail-closed (block).
+    auto ctx = param.GetContext<AbilityInterceptorParam::BlockAllAppStartCtx>();
+    if (param.abilityInfo != nullptr
+        && param.abilityInfo->type == AppExecFwk::AbilityType::PAGE
+        && ctx != nullptr && ctx->abilityRequest != nullptr && isAbilityStartedFunc_
+        && isAbilityStartedFunc_(*ctx->abilityRequest, param.userId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "UIAbility already started, allowing start despite block mode");
         return ERR_OK;
-    }
-
-    if (abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
-        if (isAbilityStartedFunc_(abilityRequest, validUserId)) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "UIAbility already started, allowing start despite block mode");
-            return ERR_OK;
-        }
     }
 
     TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking app start due to low memory");
