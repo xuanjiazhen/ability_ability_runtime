@@ -827,5 +827,48 @@ HWTEST_F(AbilityManagerServiceMockTest, InsightIntentExecuteLiteParam_0400, Test
     EXPECT_EQ(param2->insightIntentHostClient, nullptr);
     delete param2;
 }
+
+/**
+ * @tc.name: CheckIntentPermissions_0100
+ * @tc.desc: Empty permissions should skip the permission check and return ERR_OK.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, CheckIntentPermissions_0100, TestSize.Level1)
+{
+    AbilityRuntime::ExtractInsightIntentInfo extractInfo;
+    AbilityRuntime::InsightIntentInfo configInfo;
+    auto ret = AbilityManagerService::CheckIntentPermissions(extractInfo, configInfo, 0);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0100
+ * @tc.desc: Want without intentId returns false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0100, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want));
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0200
+ * @tc.desc: Want with invalid intentId string returns false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0200, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("invalid"));
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want));
+}
 }
 }
