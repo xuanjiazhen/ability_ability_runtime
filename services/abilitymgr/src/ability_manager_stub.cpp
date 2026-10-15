@@ -1094,6 +1094,15 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::NOTIFY_INSIGHT_INTENT_EXECUTE) {
         return NotifyInsightIntentExecuteInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::ON_WILL_INSIGHT_INTENT_EXECUTE) {
+        return OnWillInsightIntentExecuteInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::OFF_WILL_INSIGHT_INTENT_EXECUTE) {
+        return OffWillInsightIntentExecuteInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_INSIGHT_INTENT_EXECUTION_INFO) {
+        return GetInsightIntentExecutionInfoInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::QUERY_SKILL_TYPE) {
         return QuerySkillTypeInner(data, reply);
     }
@@ -6196,6 +6205,41 @@ int32_t AbilityManagerStub::NotifyInsightIntentExecuteInner(MessageParcel &data,
     uint64_t intentId = data.ReadUint64();
     int32_t ret = NotifyInsightIntentExecute(intentId);
     reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::OnWillInsightIntentExecuteInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "on will insight intent execute stub");
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    int32_t ret = OnWillInsightIntentExecute(callback);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::OffWillInsightIntentExecuteInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "off will insight intent execute stub");
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    int32_t ret = OffWillInsightIntentExecute(callback);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetInsightIntentExecutionInfoInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "get insight intent execution info stub");
+    uint64_t instanceId = data.ReadUint64();
+    AppExecFwk::InsightIntentExecutionInfo info;
+    int32_t ret = GetInsightIntentExecutionInfo(instanceId, info);
+    reply.WriteInt32(ret);
+    if (ret != ERR_OK) {
+        return NO_ERROR;
+    }
+    if (!reply.WriteParcelable(&info)) {
+        TAG_LOGE(AAFwkTag::INTENT, "write execution info failed");
+        return ERR_INVALID_VALUE;
+    }
     return NO_ERROR;
 }
 
