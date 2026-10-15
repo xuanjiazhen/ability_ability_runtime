@@ -266,8 +266,6 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->isDistributed = execParam.isDistributed;
     record->deviceId = execParam.srcDeviceId;
     record->requestCode = execParam.requestCode;
-    record->appIndex = execParam.appIndex;
-    record->isDualMode = execParam.isDualMode;
     if (callerToken != nullptr) {
         record->deathRecipient = sptr<InsightIntentExecuteRecipient>::MakeSptr(intentId);
         callerToken->AddDeathRecipient(record->deathRecipient);
@@ -720,7 +718,7 @@ int32_t InsightIntentExecuteManager::ResolveSrcEntry(Want &want,
         if (!srcEntry.empty()) {
             want.SetParam(INSIGHT_INTENT_SRC_ENTRY, srcEntry);
         }
-    } else if (decoratorInfo.decoratorType != "" && ret == ERR_INSIGHT_INTENT_GET_PROFILE_FAILED &&
+    } else if (decoratorInfo.decoratorType == "" && ret == ERR_INSIGHT_INTENT_GET_PROFILE_FAILED &&
         param->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND) {
         TAG_LOGI(AAFwkTag::INTENT, "insight intent srcEntry invalid, try free install ondemand");
         std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
