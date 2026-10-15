@@ -15890,6 +15890,20 @@ int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &w
     if (IsAbilityStarted(abilityRequest, targetRecord, oriValidUserId)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability has already started");
         UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
+#ifdef SUPPORT_UPMS
+        if (InsightIntentExecuteParam::IsInsightIntentExecute(abilityRequest.want)) {
+            std::vector<std::vector<std::string>> uriGroups;
+            std::vector<int32_t> flags;
+            InsightIntentExecuteParam::GetFileEntityUrisAndFlags(abilityRequest.want, uriGroups, flags);
+            auto callerTokenId = abilityRequest.specifyTokenId > 0 ? abilityRequest.specifyTokenId :
+                static_cast<uint32_t>(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
+            for (size_t i = 0; i < uriGroups.size() && i < flags.size(); i++) {
+                UriUtils::GetInstance().GrantUriPermission(uriGroups[i], flags[i],
+                    abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.applicationInfo.appIndex,
+                    callerTokenId);
+            }
+        }
+#endif // SUPPORT_UPMS
         result = OnExecuteIntent(abilityRequest, targetRecord);
     }  else {
         result = StartAbilityByCall(want, connect, callerToken, oriValidUserId,
