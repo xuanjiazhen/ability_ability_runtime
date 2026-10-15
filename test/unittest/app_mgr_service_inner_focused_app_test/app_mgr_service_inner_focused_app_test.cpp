@@ -31,7 +31,9 @@
 #undef private
 #undef protected
 
+#ifdef SUPPORT_SCREEN
 #include "focus_change_info.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -121,6 +123,7 @@ void AppMgrServiceInnerFocusedAppTest::TearDown()
     MyFlag::flag_ = 1;
 }
 
+#ifdef SUPPORT_SCREEN
 /**
  * @tc.number: NotifyFocusedApplicationChanged_0100
  * @tc.desc: AC-4 cross-app focus switch on main display, verify no crash. Also covers AC-16.
@@ -268,6 +271,7 @@ HWTEST_F(AppMgrServiceInnerFocusedAppTest, HandleFocused_0100, TestSize.Level1)
 
     inner_->UnregisterFocusedApplicationObserver(observer);
 }
+#endif // SUPPORT_SCREEN
 
 } // namespace AppExecFwk
 } // namespace OHOS
