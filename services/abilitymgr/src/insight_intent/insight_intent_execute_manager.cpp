@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <unordered_map>
 
+#include "ability_business_error.h"
 #include "ability_config.h"
 #include "ability_util.h"
 #include "ability_manager_errors.h"
@@ -165,7 +166,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
         return ERR_INVALID_VALUE;
     }
     uint64_t intentId = 0;
-    result = AddRecord(key, callerToken, param->bundleName_, intentId, execParam);
+    result = AddRecord(key, callerToken, param->bundleName_, param->insightIntentName_, intentId, execParam);
     if (result != ERR_OK) {
         return result;
     }
@@ -193,7 +194,8 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
     ElementName elementName = want.GetElement();
     ExecuteParam execParam;
     execParam.callerBundleName = callerBundleName;
-    result = AddRecord(0, nullptr, want.GetBundleNameRef(), intentId, execParam);
+    result = AddRecord(0, nullptr, want.GetBundleNameRef(),
+        want.GetStringParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME), intentId, execParam);
     if (result != ERR_OK) {
         return result;
     }
@@ -255,7 +257,8 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
 }
 
 int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, uint64_t &intentId, const ExecuteParam &execParam)
+    const std::string &bundleName, const std::string &intentName, uint64_t &intentId,
+    const ExecuteParam &execParam)
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
     intentId = ++intentIdCount_;
@@ -264,7 +267,11 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->state = InsightIntentExecuteState::EXECUTING;
     record->callerToken = callerToken;
     record->bundleName = bundleName;
+    record->intentName = intentName;
     record->callerBundleName = execParam.callerBundleName;
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->callerTokenId = execParam.specifiedFullTokenId != 0 ?
+        static_cast<uint32_t>(execParam.specifiedFullTokenId) : IPCSkeleton::GetCallingTokenID();
     record->isDistributed = execParam.isDistributed;
     record->deviceId = execParam.srcDeviceId;
     record->requestCode = execParam.requestCode;
@@ -427,6 +434,23 @@ int32_t InsightIntentExecuteManager::GetCallerBundleName(uint64_t intentId, std:
     return ERR_OK;
 }
 
+int32_t InsightIntentExecuteManager::GetInsightIntentExecutionInfo(uint64_t intentId,
+    AppExecFwk::InsightIntentExecutionInfo &info) const
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto result = records_.find(intentId);
+    if (result == records_.end() || result->second == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
+        return static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_ID);
+    }
+    auto &record = result->second;
+    info.intentName = record->intentName;
+    info.callerBundleName = record->callerBundleName;
+    info.callerTokenId = std::to_string(record->callerTokenId);
+    info.callerUid = record->callerUid;
+    return ERR_OK;
+}
+
 int32_t InsightIntentExecuteManager::AddWantUirsAndFlagsFromParam(
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, Want &want)
 {
@@ -584,20 +608,11 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
-    const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+    AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
     Want &want)
 {
-    // ExtractInsightIntentGenericInfo don't satisfy for now
-    ExtractInsightIntentInfo info;
-    int32_t userId = param->userId_;
-    if (userId == DEFAULT_INVAL_VALUE) {
-        userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
-    }
-    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        AbilityRuntime::IntentKey{param->bundleName_, param->moduleName_, param->insightIntentName_, userId}, info);
-
     InsightIntentType type = InsightIntentType::DECOR_NONE;
-    std::string decoratorType = info.genericInfo.decoratorType;
+    std::string decoratorType = extractInfo.genericInfo.decoratorType;
     TAG_LOGD(AAFwkTag::INTENT, "intentName %{public}s, decoratorType %{public}s", param->insightIntentName_.c_str(),
         decoratorType.c_str());
     static const std::unordered_map<std::string, InsightIntentType> mapping = {
@@ -617,13 +632,13 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
         static_cast<int8_t>(type));
     switch (type) {
         case InsightIntentType::DECOR_FUNC: {
-            return UpdateFuncDecoratorParams(param, info, want);
+            return UpdateFuncDecoratorParams(param, extractInfo, want);
         }
         case InsightIntentType::DECOR_PAGE: {
-            return UpdatePageDecoratorParams(param, info, want);
+            return UpdatePageDecoratorParams(param, extractInfo, want);
         }
         case InsightIntentType::DECOR_ENTRY: {
-            return UpdateEntryDecoratorParams(param, info, want);
+            return UpdateEntryDecoratorParams(param, extractInfo, want);
         }
         case InsightIntentType::DECOR_NONE:
         case InsightIntentType::DECOR_LINK:
@@ -637,6 +652,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
 int32_t InsightIntentExecuteManager::GenerateWant(
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
     const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+    AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
     Want &want)
 {
     if (param == nullptr) {
@@ -689,7 +705,7 @@ int32_t InsightIntentExecuteManager::GenerateWant(
         return intRet;
     }
 
-    intRet = CheckAndUpdateDecoratorParams(param, decoratorInfo, want);
+    intRet = CheckAndUpdateDecoratorParams(param, extractInfo, want);
     if (intRet != ERR_OK) {
         return intRet;
     }
@@ -963,7 +979,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateQueryEntityParam(uint64_t key
     uint64_t intentId = 0;
     ExecuteParam execParam;
     execParam.callerBundleName = callerBundleName;
-    result = AddRecord(key, callerToken, param->bundleName_, intentId, execParam);
+    result = AddRecord(key, callerToken, param->bundleName_, param->intentName_, intentId, execParam);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "add record failed, result:%{public}d", result);
         return result;
