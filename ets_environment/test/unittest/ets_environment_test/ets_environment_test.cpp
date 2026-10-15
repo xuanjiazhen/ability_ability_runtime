@@ -258,9 +258,19 @@ HWTEST_F(EtsEnvironmentTest, Initialize_0100, TestSize.Level0)
 }
 
 namespace {
-const std::string TEST_BOOT_PATH = "/system/framework/etsstdlib_bootabc.abc:system/framework/resource.abc"
-    ":/system/framework/arkoala.abc";
+const std::string TEST_BOOT_PATH = "/system/framework/etsstdlib_bootabc.abc:/system/framework/base_sdk.abc"
+    ":system/framework/resource.abc:/system/framework/arkoala.abc";
 } // namespace
+
+HWTEST_F(EtsEnvironmentTest, SelectCoreBootPandaFilesSelectsStdlib, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    auto result = etsEnv->SelectCoreBootPandaFiles(TEST_BOOT_PATH);
+    ASSERT_EQ(result.size(), 1U);
+    EXPECT_EQ(result[0], "/system/framework/etsstdlib_bootabc.abc");
+}
+
+
 
 /**
  * @tc.name: ValidateCoreBootPandaFiles_0100
@@ -277,13 +287,17 @@ HWTEST_F(EtsEnvironmentTest, ValidateCoreBootPandaFiles_0100, TestSize.Level0)
     // and must still match the core entry written with the leading '/'.
     std::vector<std::string> coreFiles = {
         "/system/framework/arkoala.abc",
+        "/system/framework/resource.abc",
         "/system/framework/etsstdlib_bootabc.abc",
+        "/system/framework/base_sdk.abc",
     };
     auto result = etsEnv->ValidateCoreBootPandaFiles(TEST_BOOT_PATH, coreFiles);
-    ASSERT_EQ(result.size(), 2U);
+    ASSERT_EQ(result.size(), 4U);
     // Boot path order is preserved.
     EXPECT_EQ(result[0], "/system/framework/etsstdlib_bootabc.abc");
-    EXPECT_EQ(result[1], "/system/framework/arkoala.abc");
+    EXPECT_EQ(result[1], "/system/framework/base_sdk.abc");
+    EXPECT_EQ(result[2], "system/framework/resource.abc");
+    EXPECT_EQ(result[3], "/system/framework/arkoala.abc");
 }
 
 /**

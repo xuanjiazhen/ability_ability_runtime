@@ -1360,5 +1360,15 @@ HWTEST_F(EtsRuntimeTest, ApplyCachedColdReload_0200, TestSize.Level2)
     etsRuntime->ApplyCachedColdReload();
     SUCCEED();
 }
+HWTEST_F(EtsRuntimeTest, BootFileFixesControlPreloadFailurePropagation, TestSize.Level1)
+{
+    ETSRuntime runtime;
+    runtime.preloadSucceeded_ = false;
+    runtime.bootFileFixes_ = false;
+    EXPECT_TRUE(runtime.IsPreloadSucceeded());
+    runtime.bootFileFixes_ = true;
+    EXPECT_FALSE(runtime.IsPreloadSucceeded());
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS

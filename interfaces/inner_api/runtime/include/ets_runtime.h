@@ -125,8 +125,7 @@ private:
     std::string moduleName_;
     std::unique_ptr<AbilityRuntime::Runtime> jsRuntime_ = nullptr;
     bool debugMode_ = false;
-    // Set by FinishPreload; read by IsPreloadSucceeded so that
-    // Runtime::SavePreloaded can drop a partially preloaded instance.
+    bool bootFileFixes_ = false;
     bool preloadSucceeded_ = true;
     std::unordered_map<std::string, std::unique_ptr<AppExecFwk::ETSNativeReference>> preloadList_;
     std::mutex quickFixMutex_;
