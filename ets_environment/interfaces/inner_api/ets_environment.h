@@ -55,7 +55,7 @@ public:
 
     bool Initialize(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isDebug,
         const std::string &bundleName = "", const std::vector<std::string> &preloadClasses = {},
-        const std::vector<std::string> &coreBootPandaFiles = {});
+        const std::vector<std::string> &coreBootPandaFiles = {}, bool finalizeBootOnMainThread = false);
     void RegisterUncaughtExceptionHandler(const ETSUncaughtExceptionInfo &handle);
     ani_env *GetAniEnv();
     bool HandleUncaughtError();
@@ -102,6 +102,7 @@ public:
     };
 
 private:
+    bool finalizeBootOnMainThread_ = false;
     struct ProfilePathInfo {
         std::string abcPath;
         std::string curProfilePath;
@@ -134,6 +135,8 @@ private:
      */
     std::vector<std::string> ValidateCoreBootPandaFiles(const std::string &bootfiles,
         const std::vector<std::string> &coreBootPandaFiles) const;
+    std::vector<std::string> SelectCoreBootPandaFiles(const std::string &bootfiles,
+        const std::vector<std::string> &coreBootPandaFiles, bool finalizeOnMain) const;
     static std::string NormalizeBootFilePath(const std::string &path);
     std::string GetBuildId(std::string stack);
     EtsEnv::ETSErrorObject GetETSErrorObject();

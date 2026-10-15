@@ -128,6 +128,7 @@ private:
     // Set by FinishPreload; read by IsPreloadSucceeded so that
     // Runtime::SavePreloaded can drop a partially preloaded instance.
     bool preloadSucceeded_ = true;
+    bool finalizeBootOnMainThread_ = false;
     std::unordered_map<std::string, std::unique_ptr<AppExecFwk::ETSNativeReference>> preloadList_;
     std::mutex quickFixMutex_;
     std::vector<std::string> cachedPatches_;

@@ -46,7 +46,7 @@ struct ETSEnvFuncs {
 
     bool (*Initialize)(const std::shared_ptr<OHOS::AppExecFwk::EventRunner> eventRunner, bool isDebug,
         const std::string &bundleName, const std::vector<std::string> &preloadClasses,
-        const std::vector<std::string> &coreBootPandaFiles) = nullptr;
+        const std::vector<std::string> &coreBootPandaFiles, bool finalizeBootOnMainThread) = nullptr;
     void (*RegisterUncaughtExceptionHandler)(
         const OHOS::EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo) = nullptr;
     ani_env *(*GetAniEnv)() = nullptr;
