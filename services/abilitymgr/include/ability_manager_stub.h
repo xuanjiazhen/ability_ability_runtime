@@ -464,6 +464,8 @@ private:
     int32_t ExecuteSkillDoneWithTokenInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifySkillFunctionInvokedInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyInsightIntentExecuteInner(MessageParcel &data, MessageParcel &reply);
+    int32_t OnWillInsightIntentExecuteInner(MessageParcel &data, MessageParcel &reply);
+    int32_t OffWillInsightIntentExecuteInner(MessageParcel &data, MessageParcel &reply);
     int32_t QuerySkillTypeInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSelfUIAbilityByAppContextInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSandboxCloneAbilityInner(MessageParcel &data, MessageParcel &reply);

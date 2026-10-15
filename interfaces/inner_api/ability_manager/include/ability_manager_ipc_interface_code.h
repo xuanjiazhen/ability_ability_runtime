@@ -794,6 +794,12 @@ enum class AbilityManagerInterfaceCode {
 
     // notify that an insight intent execution has started
     NOTIFY_INSIGHT_INTENT_EXECUTE = 6182,
+
+    // register listener that an insight intent is about to be executed
+    ON_WILL_INSIGHT_INTENT_EXECUTE = 6183,
+
+    // unregister listener that an insight intent is about to be executed
+    OFF_WILL_INSIGHT_INTENT_EXECUTE = 6184,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
