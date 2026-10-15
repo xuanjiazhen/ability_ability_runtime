@@ -48,7 +48,7 @@ struct InsightIntentInfo {
     std::vector<std::string> inputParams;
     std::vector<std::string> outputParams;
     std::vector<std::string> keywords;
-    std::vector<std::string> permission;
+    std::vector<std::string> permissions;
     UIAbilityIntentInfo uiAbilityIntentInfo;
     UIExtensionIntentInfo uiExtensionIntentInfo;
     ServiceExtensionIntentInfo serviceExtensionIntentInfo;

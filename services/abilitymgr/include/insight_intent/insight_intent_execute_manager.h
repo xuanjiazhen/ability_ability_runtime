@@ -113,6 +113,7 @@ public:
 
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+        AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
         Want &want);
 
     std::map<int32_t, int64_t> GetAllIntentExemptionInfo() const;
@@ -163,7 +164,7 @@ private:
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, Want &want);
     static int32_t CheckAndUpdateDecoratorParams(
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
-        const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+        AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
         Want &want);
     static int32_t UpdateFuncDecoratorParams(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         AbilityRuntime::ExtractInsightIntentInfo &info, Want &want);
