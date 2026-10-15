@@ -586,14 +586,14 @@ void CJApplicationContext::OnOffApplicationStateChange(int32_t callbackId, int32
     }
 }
 
-void CJApplicationContext::OnSetFont(std::string font)
+void CJApplicationContext::OnSetFont(std::string font, bool enableAnimation)
 {
     auto context = applicationContext_.lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "applicationContext is already released");
         return;
     }
-    context->SetFont(font);
+    context->SetFont(font, enableAnimation);
 }
 
 void CJApplicationContext::OnSetLanguage(std::string language)

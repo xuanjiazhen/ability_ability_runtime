@@ -1382,11 +1382,19 @@ void ApplicationContext::SetLanguage(const std::string &language)
 
 void ApplicationContext::SetFont(const std::string &font)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "font:%{public}s", font.c_str());
+    SetFont(font, true);
+}
+
+void ApplicationContext::SetFont(const std::string &font, bool enableAnimation)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "font:%{public}s, enableAnimation:%{public}d", font.c_str(), enableAnimation);
     #ifdef SUPPORT_GRAPHICS
     // Notify Window
     AppExecFwk::Configuration config;
     config.AddItem(AppExecFwk::ConfigurationInner::APPLICATION_FONT, font);
+    if (!enableAnimation) {
+        config.AddItem(AppExecFwk::ConfigurationInner::APPLICATION_FONT_ANIMATION, "false");
+    }
     if (appFontCallback_ != nullptr) {
         appFontCallback_(config);
     }
