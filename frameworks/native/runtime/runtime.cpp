@@ -52,8 +52,15 @@ std::unique_ptr<Runtime> Runtime::Create(Runtime::Options &options)
 
 void Runtime::SavePreloaded(std::unique_ptr<Runtime> &&instance)
 {
-    if (instance) {
+    if (instance != nullptr) {
         instance->FinishPreload();
+        if (!instance->IsPreloadSucceeded()) {
+            // The pre-fork finalization failed (e.g. background boot file
+            // loading); drop the instance instead of forking a partially
+            // preloaded runtime. The error is logged by the runtime
+            // implementation.
+            instance.reset();
+        }
     }
     g_preloadedInstance = std::move(instance);
 }

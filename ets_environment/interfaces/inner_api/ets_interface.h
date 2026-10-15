@@ -45,7 +45,8 @@ struct ETSEnvFuncs {
     void (*InitETSSysNS)(const std::string &path) = nullptr;
 
     bool (*Initialize)(const std::shared_ptr<OHOS::AppExecFwk::EventRunner> eventRunner, bool isDebug,
-        const std::string &bundleName) = nullptr;
+        const std::string &bundleName, const std::vector<std::string> &preloadClasses,
+        const std::vector<std::string> &coreBootPandaFiles) = nullptr;
     void (*RegisterUncaughtExceptionHandler)(
         const OHOS::EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo) = nullptr;
     ani_env *(*GetAniEnv)() = nullptr;
@@ -55,7 +56,10 @@ struct ETSEnvFuncs {
         void *&obj, void *&ref) = nullptr;
     void (*SetAppLibPath)(const std::map<std::string, std::string> &abcPathsToBundleModuleNameMap,
         std::function<bool(const std::string &bundleModuleName, std::string &namespaceName)> &cb) = nullptr;
-    void (*FinishPreload)(napi_env jsEnv) = nullptr;
+    // Must return false when the pre-fork finalization (boot file loading
+    // barrier, class preloading) fails, so that the caller does not keep a
+    // partially preloaded runtime.
+    bool (*FinishPreload)(napi_env jsEnv) = nullptr;
     void (*PostFork)(void *napiEnv, const std::string &aotPath,
         const std::vector<std::string> &appInnerHspPathList,
         const std::vector<std::string> &staticHapModuleNameList,

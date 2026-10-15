@@ -70,6 +70,7 @@ public:
     void PreloadModule(
         const std::string &moduleName, const std::string &hapPath, bool isEsMode, bool useCommonTrunk) override;
     void FinishPreload() override;
+    bool IsPreloadSucceeded() const override;
     bool LoadRepairPatch(const std::string &patchFile, const std::string &baseFile) override;
     bool NotifyHotReloadPage() override;
     bool UnLoadRepairPatch(const std::string &patchFile) override { return true; }
@@ -124,6 +125,9 @@ private:
     std::string moduleName_;
     std::unique_ptr<AbilityRuntime::Runtime> jsRuntime_ = nullptr;
     bool debugMode_ = false;
+    // Set by FinishPreload; read by IsPreloadSucceeded so that
+    // Runtime::SavePreloaded can drop a partially preloaded instance.
+    bool preloadSucceeded_ = true;
     std::unordered_map<std::string, std::unique_ptr<AppExecFwk::ETSNativeReference>> preloadList_;
     std::mutex quickFixMutex_;
     std::vector<std::string> cachedPatches_;
