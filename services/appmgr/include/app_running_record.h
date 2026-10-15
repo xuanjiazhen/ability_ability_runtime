@@ -1076,6 +1076,8 @@ public:
     void SetKillMsg(const std::string &killMsg);
     std::string GetKillMsg() const;
 
+    bool SetKillReasonIfAbsent(int32_t killId, const std::string &killMsg);
+
     void SetInnerMsg(const std::string &innerMsg);
     std::string GetInnerMsg() const;
 
@@ -1574,7 +1576,7 @@ private:
     bool isNeedPreloadModule_ = false;
     bool delayedProcessExitEnabled_ = false;
     bool isPrepareExit_ = false;
-    bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
+    std::atomic_bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isSingleton_ = false;
     bool isStageBasedModel_ = false;
     std::atomic_bool isStrictMode_ = false;
@@ -1598,7 +1600,7 @@ private:
     mutable ffrt::mutex killReasonLock_;
     mutable ffrt::mutex exitReasonLock_;
     mutable ffrt::mutex exitMsgLock_;
-    mutable ffrt::mutex killMsgLock_;
+    mutable ffrt::mutex killInfoLock_; // protects killId_ and killMsg_
     mutable ffrt::mutex innerMsgLock_;
     mutable ffrt::mutex killCallerLock_;
     mutable ffrt::mutex supportMultiProcessDeviceFeatureLock_;

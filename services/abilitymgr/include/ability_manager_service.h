@@ -997,6 +997,8 @@ public:
     {
         return wFd_;
     }
+    void GetAppSpawnFdsWithLock(int32_t &rFd, int32_t &wFd);
+    void CloseAppSpawnMsgPipe();
 
     /**
      * GetEventHandler, get the ability manager service's handler.
@@ -1042,6 +1044,16 @@ public:
      */
     virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
         const std::string& reason = "Abilityms::KillProcess") override;
+
+    /**
+     * Kill the process immediately with a specified userId.
+     *
+     * @param bundleName.
+     * @param userId The user id to kill process for, -1 means use caller's userId.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false,
+        int32_t appIndex = -1, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1) override;
 
     /**
      * Uninstall app
@@ -3802,6 +3814,8 @@ private:
     int32_t rFd_ = -1;
     int32_t wFd_ = -1;
     std::shared_ptr<int32_t> ptrRFd_ = std::make_shared<int32_t>(-1);
+    std::weak_ptr<AbilityManagerService> appSpawnContext_;
+    ffrt::mutex appSpawnPipeMutex_;
     ffrt::mutex globalLock_;
     ffrt::mutex bgtaskObserverMutex_;
     ffrt::mutex abilityTokenLock_;
