@@ -661,14 +661,14 @@ std::vector<ThreadStackRegion> DumpRuntimeHelper::ParseLeakedThreadStackRegions(
         char *end = nullptr;
         std::string beginStr = line.substr(0, dashPos);
         region.begin = strtoull(beginStr.c_str(), &end, HEX_BASE);
-        if (errno != 0 || end == beginStr.c_str()) {
+        if (errno != 0 || end == beginStr.c_str() || *end != '\0') {
             continue;
         }
         errno = 0;
         end = nullptr;
         std::string endStr = line.substr(dashPos + 1, headerEnd - dashPos - 1);
         region.end = strtoull(endStr.c_str(), &end, HEX_BASE);
-        if (errno != 0 || end == endStr.c_str()) {
+        if (errno != 0 || end == endStr.c_str() || *end != '\0') {
             continue;
         }
         auto namePos = line.find(THREAD_STACK_MAP_PREFIX);
@@ -764,6 +764,10 @@ std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
     auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
     if (maps == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "failed to create DfxMaps, skip stack unwinding");
+        std::ostringstream errHeader;
+        errHeader << "total thread count: " << totalThreadCount
+                  << ", orphan thread stack count: " << regions.size() << " (unwind failed)\n";
+        dumpResult.append(errHeader.str());
         return dumpResult;
     }
     size_t printedStacks = 0;
