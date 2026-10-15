@@ -35,15 +35,13 @@
 namespace OHOS {
 namespace AbilityRuntime {
 
-InsightIntentEventMgr::DualModeInfo InsightIntentEventMgr::ResolveDualModeInfo(
+int32_t InsightIntentEventMgr::ResolveDualModeInfo(
     const std::string &bundleName, int32_t userId, int32_t appIndexFromEvent)
 {
-    InsightIntentEventMgr::DualModeInfo dualInfo;
-    dualInfo.appIndex = appIndexFromEvent;
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGW(AAFwkTag::INTENT, "bundleMgrHelper null, fallback same-name-same-package");
-        return dualInfo;
+        return -1;
     }
     AppExecFwk::BundleInfo bundleInfo;
     auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
@@ -56,36 +54,32 @@ InsightIntentEventMgr::DualModeInfo InsightIntentEventMgr::ResolveDualModeInfo(
              policy == AppExecFwk::DeviceModeDistributionPolicy::PARTIAL_COMPATIBLE_DIFFERENT_PACKAGE ||
              policy == AppExecFwk::DeviceModeDistributionPolicy::FULL_COMPATIBLE_DIFFERENT_PACKAGE);
         if (isDifferentPackage) {
-            dualInfo.isDualMode = true;
             int32_t preferredAppIndex = 0;
             auto dualRet = IN_PROCESS_CALL(bundleMgrHelper->GetDualModeBundleInfo(
                 bundleName, userId, preferredAppIndex));
-            if (dualRet == ERR_OK) {
-                dualInfo.appIndex = preferredAppIndex;
-            } else {
-                dualInfo.appIndex = -1;
-            }
+            int32_t result = (dualRet == ERR_OK) ? preferredAppIndex : -1;
             TAG_LOGI(AAFwkTag::INTENT, "same-name-different-package app, bundle:%{public}s, "
                 "policy:%{public}d, preferredAppIndex:%{public}d",
-                bundleName.c_str(), static_cast<int32_t>(policy), dualInfo.appIndex);
+                bundleName.c_str(), static_cast<int32_t>(policy), result);
+            return result;
         } else {
-            dualInfo.isDualMode = false;
-            dualInfo.appIndex = 0;
             TAG_LOGI(AAFwkTag::INTENT, "same-name-same-package app, bundle:%{public}s, policy:%{public}d",
                 bundleName.c_str(), static_cast<int32_t>(policy));
+            return -1;
         }
     } else {
         TAG_LOGI(AAFwkTag::INTENT, "GetBundleInfoV9 failed, bundle:%{public}s, fallback by appIndex",
             bundleName.c_str());
+        return appIndexFromEvent;
     }
-    return dualInfo;
 }
 
 void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName,
-    int32_t userId, const DualModeInfo &dualInfo)
+    int32_t userId, int32_t appIndex)
 {
+    IntentKey key{bundleName, "", "", userId, appIndex};
     if (!DelayedSingleton<InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
-        bundleName, moduleName, userId, dualInfo.appIndex, dualInfo.isDualMode)) {
+        key, moduleName)) {
         return;
     }
     TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent", bundleName.c_str());
@@ -109,45 +103,55 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
         TAG_LOGI(AAFwkTag::INTENT, "BOPD or rescue mode, skip package update: %{public}s", bundleName.c_str());
         return;
     }
-    auto dualInfo = ResolveDualModeInfo(bundleName, userId, appIndex);
-    // 更新场景使用事件 appIndex（正在更新的模式），而非偏好 appIndex（查询用的当前模式）
-    dualInfo.appIndex = appIndex;
-    ffrt::submit([moduleName, bundleName, userId, dualInfo, versionCode = 0] () mutable {
-        auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
-        if (bundleMgrHelper == nullptr) {
-            TAG_LOGE(AAFwkTag::INTENT, "get bundleMgrHelper instance failed");
-            return;
-        }
-        AppExecFwk::BundleInfo bundleInfo;
-        if (IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
-            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
-            bundleInfo, userId)) != ERR_OK) {
-            TAG_LOGE(AAFwkTag::INTENT, "get bundle info failed");
-            return;
-        }
-        versionCode = bundleInfo.versionCode;
-        ModuleCollectResult result;
-        CollectModuleSaveParams(bundleName, moduleName, userId, dualInfo, result);
-        if (result.allInfos.insightIntents.empty() && result.allConfigInfos.empty()) {
-            ClearStaleIntentFunctions(bundleName, userId);
-            return;
-        }
-        for (auto &sp : result.saveParams) {
-            sp.bundleName = bundleName;
-            sp.userId = userId;
-            sp.versionCode = versionCode;
-            sp.appIndex = dualInfo.appIndex;
-            sp.isDualMode = dualInfo.isDualMode;
-        }
-        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveBatchInsightIntentTotalInfo(
-            result.saveParams);
-        FilterAndRegisterIntentFunctions(bundleName, userId, versionCode,
-            result.allInfos, result.allConfigInfos);
+    int32_t preferredAppIndex = ResolveDualModeInfo(bundleName, userId, appIndex);
+    if (preferredAppIndex != -1 && preferredAppIndex != appIndex) {
+        TAG_LOGI(AAFwkTag::INTENT, "non-current mode update, skip, bundle:%{public}s, "
+            "event appIndex:%{public}d, preferred appIndex:%{public}d",
+            bundleName.c_str(), appIndex, preferredAppIndex);
+        return;
+    }
+    int32_t resolvedAppIndex = preferredAppIndex;
+    ffrt::submit([moduleName, bundleName, userId, resolvedAppIndex] () {
+        ProcessIntentUpdate(bundleName, moduleName, userId, resolvedAppIndex);
     });
 }
 
+void InsightIntentEventMgr::ProcessIntentUpdate(const std::string &bundleName,
+    const std::string &moduleName, int32_t userId, int32_t appIndex)
+{
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "get bundleMgrHelper instance failed");
+        return;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
+        bundleInfo, userId)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "get bundle info failed");
+        return;
+    }
+    uint32_t versionCode = bundleInfo.versionCode;
+    ModuleCollectResult result;
+    CollectModuleSaveParams(bundleName, moduleName, userId, appIndex, result);
+    if (result.allInfos.insightIntents.empty() && result.allConfigInfos.empty()) {
+        ClearStaleIntentFunctions(bundleName, userId);
+        return;
+    }
+    for (auto &sp : result.saveParams) {
+        sp.bundleName = bundleName;
+        sp.userId = userId;
+        sp.versionCode = versionCode;
+        sp.appIndex = appIndex;
+    }
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveBatchInsightIntentTotalInfo(
+        result.saveParams);
+    FilterAndRegisterIntentFunctions(bundleName, userId, versionCode,
+        result.allInfos, result.allConfigInfos);
+}
+
 void InsightIntentEventMgr::CollectModuleSaveParams(const std::string &bundleName,
-    const std::string &moduleName, int32_t userId, const DualModeInfo &dualInfo,
+    const std::string &moduleName, int32_t userId, int32_t appIndex,
     ModuleCollectResult &result)
 {
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
@@ -163,7 +167,7 @@ void InsightIntentEventMgr::CollectModuleSaveParams(const std::string &bundleNam
             bundleName, moduleNameLocal, profile, userId));
         if (ret != ERR_OK) {
             TAG_LOGI(AAFwkTag::INTENT, "get json failed code: %{public}d", ret);
-            DeleteInsightIntent(bundleName, moduleNameLocal, userId, dualInfo);
+            DeleteInsightIntent(bundleName, moduleNameLocal, userId, appIndex);
             continue;
         }
         ExtractInsightIntentProfileInfoVec infos = {};
@@ -174,7 +178,7 @@ void InsightIntentEventMgr::CollectModuleSaveParams(const std::string &bundleNam
             profile, configIntentInfos) || configIntentInfos.size() == 0);
         if (isTransformExtractIntent && isTransformConfigIntent) {
             TAG_LOGW(AAFwkTag::INTENT, "transform profile failed, profile:%{public}s", profile.c_str());
-            DeleteInsightIntent(bundleName, moduleNameLocal, userId, dualInfo);
+            DeleteInsightIntent(bundleName, moduleNameLocal, userId, appIndex);
             continue;
         }
         for (auto &item : configIntentInfos) {
@@ -264,14 +268,17 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
 
-    // 卸载场景不能依赖 GetBundleInfoV9（应用已卸载），使用 DeleteIntentByAppIndex 按 Key 段数
-    // 精确删除 RDB：只删目标模式，不影响其他模式；随后同步清理 bundleVersionMap_ 内存缓存
     ffrt::submit([bundleName, moduleName, userId, appIndex]() {
-        auto storage = DelayedSingleton<AbilityRuntime::InsightRdbStorageMgr>::GetInstance();
-        storage->DeleteIntentByAppIndex(bundleName, moduleName, userId, appIndex);
-        bool isDualMode = (appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX);
         auto dbCache = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance();
-        dbCache->RemoveBundleVersionCacheEntry(bundleName, userId, appIndex, isDualMode, moduleName);
+        if (appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
+            dbCache->DeleteInsightIntentTotalInfo(
+                IntentKey{bundleName, "", "", userId, appIndex}, moduleName);
+        } else {
+            dbCache->DeleteInsightIntentTotalInfo(
+                IntentKey{bundleName, "", "", userId, -1}, moduleName);
+            dbCache->DeleteInsightIntentTotalInfo(
+                IntentKey{bundleName, "", "", userId, 0}, moduleName);
+        }
         dbCache->BackupRdb();
         bool unregistered = CliTool::UnregisterInsightIntentFunctions(bundleName, userId);
         TAG_LOGI(AAFwkTag::INTENT, "delete done, bundleName: %{public}s, moduleName: %{public}s, "
