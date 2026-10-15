@@ -81,7 +81,7 @@ void CjApplicationContextTest::TearDownTestCase() {}
 void CjApplicationContextTest::SetUp()
 {
     // Create an CJApplicationContext object
-    CJApplicationContext::GetInstance()->OnSetFont("");
+    CJApplicationContext::GetInstance()->OnSetFont("", true);
     CJApplicationContext::GetInstance()->OnSetLanguage("ZH-CN");
     CJApplicationContext::GetInstance()->OnSetColorMode(0);
 }

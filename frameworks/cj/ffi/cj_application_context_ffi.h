@@ -52,7 +52,7 @@ CJ_EXPORT int32_t FfiCJApplicationContextOnOnAbilityLifecycle(int64_t id, CArrI6
 CJ_EXPORT int32_t FfiCJApplicationContextOnOnApplicationStateChange(int64_t id, void (*foregroundCallback)(void),
                                                                     void (*backgroundCallback)(void), int32_t *errCode);
 CJ_EXPORT void FfiCJApplicationContextOnOff(int64_t id, const char *type, int32_t callbackId, int32_t *errCode);
-CJ_EXPORT void FfiCJApplicationContextSetFont(int64_t id, const char *font, int32_t *errCode);
+CJ_EXPORT void FfiCJApplicationContextSetFont(int64_t id, const char *font, bool enableAnimation, int32_t *errCode);
 CJ_EXPORT void FfiCJApplicationContextSetLanguage(int64_t id, const char *language, int32_t *errCode);
 CJ_EXPORT void FfiCJApplicationContextSetColorMode(int64_t id, int32_t colorMode, int32_t *errCode);
 CJ_EXPORT CArrProcessInformation FfiCJApplicationContextGetRunningProcessInformation(int64_t id, int32_t *errCode);
