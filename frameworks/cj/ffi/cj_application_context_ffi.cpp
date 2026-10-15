@@ -135,7 +135,7 @@ void FfiCJApplicationContextOnOff(int64_t id, const char *type, int32_t callback
     return;
 }
 
-void FfiCJApplicationContextSetFont(int64_t id, const char *font, int32_t *errCode)
+void FfiCJApplicationContextSetFont(int64_t id, const char *font, bool enableAnimation, int32_t *errCode)
 {
     auto context = FFI::FFIData::GetData<CJApplicationContext>(id);
     if (context == nullptr) {
@@ -144,7 +144,7 @@ void FfiCJApplicationContextSetFont(int64_t id, const char *font, int32_t *errCo
         return;
     }
     auto fontString = std::string(font);
-    context->OnSetFont(fontString);
+    context->OnSetFont(fontString, enableAnimation);
 }
 
 void FfiCJApplicationContextSetLanguage(int64_t id, const char *language, int32_t *errCode)

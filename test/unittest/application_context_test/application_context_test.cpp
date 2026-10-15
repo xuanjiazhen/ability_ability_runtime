@@ -1591,6 +1591,44 @@ HWTEST_F(ApplicationContextTest, SetFont_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.number:SetFont_0200
+ * @tc.name: SetFont
+ * @tc.desc: SetFont with enableAnimation, verify the dispatched configuration
+ */
+HWTEST_F(ApplicationContextTest, SetFont_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetFont_0200 start";
+#ifdef SUPPORT_GRAPHICS
+    std::string capturedFont;
+    std::string capturedAnimation;
+    context_->appFontCallback_ = [&capturedFont, &capturedAnimation](const AppExecFwk::Configuration &config) {
+        capturedFont = config.GetItem(AppExecFwk::ConfigurationInner::APPLICATION_FONT);
+        capturedAnimation = config.GetItem(AppExecFwk::ConfigurationInner::APPLICATION_FONT_ANIMATION);
+    };
+
+    capturedFont.clear();
+    capturedAnimation.clear();
+    context_->SetFont("awk", false);
+    EXPECT_EQ(capturedFont, "awk");
+    EXPECT_EQ(capturedAnimation, "false");
+
+    capturedFont.clear();
+    capturedAnimation.clear();
+    context_->SetFont("awk", true);
+    EXPECT_EQ(capturedFont, "awk");
+    EXPECT_EQ(capturedAnimation, "");
+
+    capturedFont.clear();
+    capturedAnimation.clear();
+    context_->SetFont("awk");
+    EXPECT_EQ(capturedFont, "awk");
+    EXPECT_EQ(capturedAnimation, "");
+#endif
+    EXPECT_TRUE(context_ != nullptr);
+    GTEST_LOG_(INFO) << "SetFont_0200 end";
+}
+
+/**
  * @tc.number:SetMcc_0100
  * @tc.name: SetMcc
  * @tc.desc: SetMcc fail with no permission
