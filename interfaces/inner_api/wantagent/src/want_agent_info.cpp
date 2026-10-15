@@ -89,21 +89,20 @@ WantAgentInfo::WantAgentInfo(int requestCode, const WantAgentConstant::Operation
 
 WantAgentInfo::WantAgentInfo(const std::shared_ptr<WantAgentInfo> &paramInfo)
 {
-    if (paramInfo != nullptr) {
-        requestCode_ = paramInfo->GetRequestCode();
-        operationType_ = paramInfo->GetOperationType();
-        std::vector<WantAgentConstant::Flags> tempFlags = paramInfo->GetFlags();
-        flags_.insert(flags_.end(), tempFlags.begin(), tempFlags.end());
-        if (!paramInfo->GetWants().empty()) {
-            for (auto want : paramInfo->GetWants()) {
-                if (want != nullptr) {
-                    wants_.push_back(std::make_shared<Want>(*want));
-                }
-            }
+    if (paramInfo == nullptr) {
+        return;
+    }
+    requestCode_ = paramInfo->GetRequestCode();
+    operationType_ = paramInfo->GetOperationType();
+    std::vector<WantAgentConstant::Flags> tempFlags = paramInfo->GetFlags();
+    flags_.insert(flags_.end(), tempFlags.begin(), tempFlags.end());
+    for (auto want : paramInfo->GetWants()) {
+        if (want != nullptr) {
+            wants_.push_back(std::make_shared<Want>(*want));
         }
-        if (paramInfo->GetExtraInfo() != nullptr) {
-            extraInfo_ = std::make_shared<WantParams>(*paramInfo->GetExtraInfo());
-        }
+    }
+    if (paramInfo->GetExtraInfo() != nullptr) {
+        extraInfo_ = std::make_shared<WantParams>(*paramInfo->GetExtraInfo());
     }
 }
 

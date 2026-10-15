@@ -23,6 +23,23 @@
 namespace OHOS {
 namespace AbilityRuntime {
 
+namespace {
+void FreeArgs(NativeChildProcess_Args &args)
+{
+    NativeChildProcess_Fd *head = args.fdList.head;
+    while (head != nullptr) {
+        NativeChildProcess_Fd *next = head->next;
+        delete[] head->fdName;
+        head->fdName = nullptr;
+        delete head;
+        head = next;
+    }
+    args.fdList.head = nullptr;
+    delete[] args.entryParams;
+    args.entryParams = nullptr;
+}
+}
+
 std::shared_ptr<ChildProcess> NativeArgsChildProcess::Create()
 {
     return std::make_shared<NativeArgsChildProcess>();
@@ -85,19 +102,6 @@ NativeChildProcess_Args NativeArgsChildProcess::ParseToNativeArgs(const std::str
         TAG_LOGE(AAFwkTag::APPKIT, "strcpy_s failed");
         return args;
     }
-    auto FreeArgs = [](NativeChildProcess_Args &args) {
-        NativeChildProcess_Fd *head = args.fdList.head;
-        while (head != nullptr) {
-            NativeChildProcess_Fd *next = head->next;
-            delete[] head->fdName;
-            head->fdName = nullptr;
-            delete head;
-            head = next;
-        }
-        args.fdList.head = nullptr;
-        delete[] args.entryParams;
-        args.entryParams = nullptr;
-    };
     NativeChildProcess_Fd *tail = nullptr;
     for (const auto &fd : fds) {
         auto &fdName = fd.first;
