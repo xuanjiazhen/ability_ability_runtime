@@ -104,4 +104,35 @@ export default namespace insightIntentProvider {
       });
     });
   }
+
+  export interface InsightIntentExecutionInfo {
+    readonly intentName: string;
+    readonly instanceId: int;
+    readonly callerBundleName: string;
+    readonly callerTokenId: string;
+    readonly callerUid: int;
+  }
+
+  export class InsightIntentExecutionInfoInner implements InsightIntentExecutionInfo {
+    intentName: string = '';
+    instanceId: int = 0;
+    callerBundleName: string = '';
+    callerTokenId: string = '';
+    callerUid: int = 0;
+  }
+
+  export interface InsightIntentExecutionCallBack {
+    onWillInsightIntentExecuteCallBack?: (executionInfo: InsightIntentExecutionInfo) => void;
+  }
+
+  export native function nativeOnWillInsightIntentExecute(callback: InsightIntentExecutionCallBack): void;
+  export native function nativeOffWillInsightIntentExecute(): void;
+
+  export function onWillInsightIntentExecute(callback: InsightIntentExecutionCallBack): void {
+    insightIntentProvider.nativeOnWillInsightIntentExecute(callback);
+  }
+
+  export function offWillInsightIntentExecute(callback?: InsightIntentExecutionCallBack): void {
+    insightIntentProvider.nativeOffWillInsightIntentExecute();
+  }
 }
