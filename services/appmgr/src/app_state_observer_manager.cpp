@@ -38,7 +38,7 @@ constexpr int OBSERVER_SINGLE_STEP_LOG = 10;
 constexpr int OBSERVER_UID_COUNT_LOG = 3;
 constexpr int OBSERVER_AMOUNT_COUNT_LOG = 70;
 constexpr int32_t RESOURCE_MANAGER_UID = 1096;
-constexpr int32_t ERR_OBSERVER_NOT_EXIST = 16300004;
+constexpr int32_t ERR_OBSERVER_NOT_FOUND = 16300004;
 constexpr int32_t ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT = 16000165;
 constexpr int32_t FOCUSED_APPLICATION_OBSERVER_LIMIT = 10;
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
@@ -293,7 +293,7 @@ int32_t AppStateObserverManager::UnregisterFocusedApplicationObserver(const sptr
             return ERR_OK;
         }
     }
-    return ERR_OBSERVER_NOT_EXIST;
+    return ERR_OBSERVER_NOT_FOUND;
 }
 
 int32_t AppStateObserverManager::RegisterAbilityForegroundStateObserver(

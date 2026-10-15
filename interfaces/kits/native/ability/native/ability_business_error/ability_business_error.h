@@ -340,9 +340,6 @@ enum class AbilityErrorCode {
     // Failed to parse configuration file.
     ERROR_CODE_EVICT_CONFIG_PARSE_ERROR = 16000164,
 
-    // The observer does not exist.
-    ERROR_CODE_OBSERVER_NOT_EXIST = 16300004,
-
     // The number of registered focused application observers for the current application has reached the upper limit.
     ERROR_CODE_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT = 16000165,
 

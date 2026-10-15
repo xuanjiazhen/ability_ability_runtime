@@ -100,8 +100,8 @@ constexpr const char* ERROR_MSG_MULTI_INSTANCE_NOT_SUPPORTED = "Multi-instance i
 constexpr const char* ERROR_MSG_INVALID_APP_INSTANCE_KEY = "The app instance key does not exist.";
 constexpr const char* ERROR_MSG_UPPER_LIMIT = "The number of app instances reaches the limit.";
 constexpr const char* ERROR_MSG_APP_INSTANCE_KEY_NOT_SUPPORT = "The APP_INSTANCE_KEY cannot be specified.";
-constexpr int32_t ERR_OBSERVER_NOT_EXIST =
-    static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_EXIST);
+constexpr int32_t ERR_OBSERVER_NOT_FOUND =
+    static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND);
 constexpr int32_t ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT =
     static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT);
 constexpr const char* ERROR_MSG_CREATE_NEW_INSTANCE_NOT_SUPPORT = "Creating a new instance is not supported.";
@@ -280,7 +280,7 @@ constexpr const char* ERROR_MSG_RELOAD_IN_MODAL_RESULT_NULL =
     "Internal error. Failed to create reload result. Try again later.";
 constexpr const char* ERROR_MSG_OBSERVER_CREATE_FAILED =
     "Internal error. Failed to create the observer.";
-constexpr const char* ERROR_MSG_OBSERVER_NOT_EXIST =
+constexpr const char* ERROR_MSG_OBSERVER_NOT_FOUND =
     "Internal error. The observer does not exist. Register the observer first.";
 constexpr const char* ERROR_MSG_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT =
     "The number of registered observers for the current application has reached the upper limit.";
@@ -478,7 +478,7 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_NOT_PENDING, ERROR_MSG_DELAYED_PROCESS_EXIT_NOT_PENDING },
     { AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY,
         ERROR_MSG_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY },
-    { AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_EXIST, ERROR_MSG_OBSERVER_NOT_EXIST },
+    { AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND, ERROR_MSG_OBSERVER_NOT_FOUND },
     { AbilityErrorCode::ERROR_CODE_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT,
         ERROR_MSG_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT },
 };
@@ -613,7 +613,7 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY,
         AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY},
     {ERR_INVALID_EXTENSION_TYPE, AbilityErrorCode::ERROR_CODE_INNER},
-    {ERR_OBSERVER_NOT_EXIST, AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_EXIST},
+    {ERR_OBSERVER_NOT_FOUND, AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND},
     {ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT,
         AbilityErrorCode::ERROR_CODE_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT},
 };
@@ -683,7 +683,7 @@ static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_
     {AbilityInnerErrorMsg::UI_WINDOW_NULL, ERROR_MSG_UI_WINDOW_NULL},
     {AbilityInnerErrorMsg::RELOAD_IN_MODAL_RESULT_NULL, ERROR_MSG_RELOAD_IN_MODAL_RESULT_NULL},
     {AbilityInnerErrorMsg::OBSERVER_CREATE_FAILED, ERROR_MSG_OBSERVER_CREATE_FAILED},
-    {AbilityInnerErrorMsg::OBSERVER_NOT_EXIST, ERROR_MSG_OBSERVER_NOT_EXIST},
+    {AbilityInnerErrorMsg::OBSERVER_NOT_EXIST, ERROR_MSG_OBSERVER_NOT_FOUND},
     {AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED, ERROR_MSG_REGISTER_OBSERVER_FAILED},
     {AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED, ERROR_MSG_UNREGISTER_OBSERVER_FAILED},
     {AbilityInnerErrorMsg::RESTART_APP_FAILED, ERROR_MSG_RESTART_APP_FAILED},

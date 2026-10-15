@@ -289,7 +289,6 @@ private:
 #ifdef SUPPORT_SCREEN
     sptr<JSFocusedApplicationObserver> observerFocusedApp_ = nullptr;
 #endif
-    int32_t serialNumber_ = 0;
     std::atomic<uint32_t> serialNumber_ = 0;
     std::shared_ptr<std::mutex> observerMtx_ = std::make_shared<std::mutex>();
 
@@ -483,7 +482,7 @@ private:
     void ThrowObserverNotExist(napi_env env)
     {
         napi_throw(env, CreateJsErrorByNativeErr(env,
-            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_EXIST), "",
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND), "",
             GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
     }
 
