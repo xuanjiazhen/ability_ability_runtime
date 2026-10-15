@@ -18,6 +18,7 @@
 #include <charconv>
 #include <chrono>
 #include <dlfcn.h>
+#include <filesystem>
 #include <fstream>
 #include <map>
 #include <nlohmann/json.hpp>
@@ -167,11 +168,12 @@ bool ETSEnvironment::LoadRuntimeApis()
 
 std::string ETSEnvironment::NormalizeBootFilePath(const std::string &path)
 {
+    std::filesystem::path normalized(path);
     // Some boot path entries miss the leading '/'; normalize before comparing.
-    if (path.empty() || path.front() == '/') {
-        return path;
+    if (normalized.is_relative()) {
+        normalized = std::filesystem::path("/") / normalized;
     }
-    return "/" + path;
+    return normalized.lexically_normal().string();
 }
 
 std::vector<std::string> ETSEnvironment::ValidateCoreBootPandaFiles(const std::string &bootfiles,
@@ -184,6 +186,14 @@ std::vector<std::string> ETSEnvironment::ValidateCoreBootPandaFiles(const std::s
     // Split the boot path and index the original entries by their normalized
     // form, so the validated result can keep the exact original spelling
     // (the runtime partitions --boot-panda-files by exact string match).
+    auto hasParentPathComponent = [](const std::string &path) {
+        for (const auto &component : std::filesystem::path(path)) {
+            if (component == "..") {
+                return true;
+            }
+        }
+        return false;
+    };
     std::vector<std::string> bootEntries;
     std::map<std::string, std::string> normalizedToOriginal;
     std::string rest = bootfiles;
@@ -194,13 +204,16 @@ std::vector<std::string> ETSEnvironment::ValidateCoreBootPandaFiles(const std::s
         if (entry.empty()) {
             continue;
         }
-        std::string normalized = NormalizeBootFilePath(entry);
-        if (normalized.find("..") != std::string::npos) {
+        if (hasParentPathComponent(entry)) {
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "invalid boot path entry: %{public}s", entry.c_str());
             return {};
         }
+        std::string normalized = NormalizeBootFilePath(entry);
+        if (!normalizedToOriginal.emplace(normalized, entry).second) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "duplicate boot path entry: %{public}s", entry.c_str());
+            return {};
+        }
         bootEntries.push_back(entry);
-        normalizedToOriginal.emplace(normalized, entry);
     }
 
     std::set<std::string> coreOriginals;
@@ -210,11 +223,11 @@ std::vector<std::string> ETSEnvironment::ValidateCoreBootPandaFiles(const std::s
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "empty core boot panda file entry");
             return {};
         }
-        std::string normalized = NormalizeBootFilePath(coreFile);
-        if (normalized.find("..") != std::string::npos) {
+        if (hasParentPathComponent(coreFile)) {
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "invalid core boot panda file entry: %{public}s", coreFile.c_str());
             return {};
         }
+        std::string normalized = NormalizeBootFilePath(coreFile);
         auto it = normalizedToOriginal.find(normalized);
         if (it == normalizedToOriginal.end()) {
             TAG_LOGE(AAFwkTag::ETSRUNTIME,
