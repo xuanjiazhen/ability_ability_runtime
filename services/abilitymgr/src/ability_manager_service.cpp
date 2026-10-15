@@ -14626,6 +14626,9 @@ void AbilityManagerService::SetRootSceneSession(const sptr<IRemoteObject> &rootS
         std::lock_guard<std::mutex> lock(bootStartupMutex_);
         bootStartupStates_.try_emplace(userId);
     }
+    // RM.028 / SR20260725609934: keep trigger at SetRootSceneSession (customer SE).
+    // Known race: first queued direct-boot app may start before lockscreen detection is ready;
+    // later apps are OK. Pending window alignment - do not rehang to SCB lockscreen-ready.
     TAG_LOGI(AAFwkTag::ABILITYMGR, "SCB root session ready, boot startup user:%{public}d", userId);
     taskHandler_->SubmitTask([weak = weak_from_this(), userId]() {
         auto service = weak.lock();

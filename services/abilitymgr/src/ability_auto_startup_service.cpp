@@ -739,6 +739,9 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartupByEDM(const AutoStar
     fullInfo.canUserModify = !flag;
     fullInfo.setterType = AutoStartupSetterType::SYSTEM;
     fullInfo.isHiddenStart = isHiddenStart;
+    if (fullInfo.isDirectBoot && CheckBootAppPermission(fullInfo) != ERR_OK) {
+        return ERR_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT;
+    }
     return InnerApplicationAutoStartupByEDM(fullInfo, true, flag);
 }
 
