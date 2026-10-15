@@ -44,6 +44,22 @@ void AbilityBusinessErrorTest::TearDown()
 {}
 
 /**
+ * @tc.name: DirectBootPermissionError
+ * @tc.desc: Target permission failure uses 16000206; caller permission failure keeps 201.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityBusinessErrorTest, DirectBootPermissionError, TestSize.Level1)
+{
+    EXPECT_EQ(static_cast<int32_t>(GetJsErrorCodeByNativeError(AAFwk::ERR_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT)),
+        16000206);
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT),
+        "The specified application is not authorized to start before the user unlocks the device.");
+    EXPECT_EQ(GetJsErrorCodeByNativeError(AAFwk::CHECK_PERMISSION_FAILED),
+        AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED);
+    EXPECT_EQ(GetJsErrorCodeByNativeError(AAFwk::ERR_NOT_SYSTEM_APP), AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+}
+
+/**
  * @tc.name: GetErrorMsg_0100
  * @tc.desc: GetErrorMsg_0100 Test
  * @tc.type: FUNC
