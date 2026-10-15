@@ -1793,12 +1793,13 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
         SetReceiverInfo(abilityRequest, uiAbilityRecord);
     } else {
         uiAbilityRecord = sessionAbilityMap_.at(persistentId);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "already has abilityrecord");
-        if (abilityRequest.connect != nullptr) {
-            uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken,
-                abilityRequest.requestCode, abilityRequest.want);
-            ResolveAbility(uiAbilityRecord, abilityRequest);
-        }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "already has abilityrecord");
+    if (abilityRequest.connect != nullptr) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "existing record, resolve connect for prelaunch");
+        uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken,
+            abilityRequest.requestCode, abilityRequest.want);
+        ResolveAbility(uiAbilityRecord, abilityRequest);
+    }
         return ERR_INVALID_VALUE;
     }
     uiAbilityRecord->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
@@ -1812,6 +1813,7 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
     NotifyAbilityToken(uiAbilityRecord->GetToken(), abilityRequest);
     uiAbilityRecord->SetPrelaunchFlag(true);
     if (abilityRequest.connect != nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "new record, resolve connect for prelaunch");
         ResolveAbility(uiAbilityRecord, abilityRequest);
     }
     return PrepareAndNotifyPrelaunchSession(abilityRequest, uiAbilityRecord, persistentId, reuse, frameNum);
