@@ -27,6 +27,7 @@
 #include "dms_util.h"
 #include "display_util.h"
 #include "ffrt.h"
+#include "ffrt_inner.h"
 #include "foreground_app_connection_manager.h"
 #include "global_constant.h"
 #include "hidden_start_observer_manager.h"
@@ -1361,6 +1362,7 @@ int32_t UIAbilityLifecycleManager::NotifyCancelGamePreLaunch(const sptr<IRemoteO
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Ability is not a game SA prelaunch");
         return ERR_NOT_GAME_PRELOAD_STATE;
     }
+    CleanupExtendTask(abilityRecord->GetRecordId());
     // Kill the process
     auto pid = abilityRecord->GetPid();
     std::vector<pid_t> pids = { pid };
@@ -1395,6 +1397,8 @@ int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemot
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Ability is not a game SA prelaunch");
         return ERR_NOT_GAME_PRELOAD_STATE;
     }
+
+    CleanupExtendTask(abilityRecord->GetRecordId());
 
     // Clear the game SA prelaunch flag in AbilityRecord and AppRecord
     abilityRecord->SetGameSAPreLaunch(false);
@@ -1445,7 +1449,10 @@ void UIAbilityLifecycleManager::CompleteForegroundSuccess(const UIAbilityRecordP
                 selfObj->NotifyCompleteGamePreLaunch(abilityRecordObj->GetToken());
             }
         };
-        ffrt::submit(task, ffrt::task_attr().delay(gamePreLaunchCompleteTime_));
+        auto handle = ffrt::submit_h(std::move(task), {}, {},
+            ffrt::task_attr().delay(gamePreLaunchCompleteTime_));
+        std::lock_guard<ffrt::mutex> lock(extendTaskMutex_);
+        extendTaskMap_[abilityRecord->GetRecordId()] = handle;
     }
 
     abilityRecord->SetShouldUpdateWant(true);
@@ -1585,6 +1592,62 @@ int32_t UIAbilityLifecycleManager::SetGamePreLaunchCompleteTime(int64_t complete
 {
     gamePreLaunchCompleteTime_ = completeTime;
     return ERR_OK;
+}
+
+int32_t UIAbilityLifecycleManager::ExtendGamePreLaunchTimeout(int64_t extendTime)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ExtendGamePreLaunchTimeout called, extendTime: %{public}" PRId64, extendTime);
+    std::shared_ptr<UIAbilityRecord> targetAbilityRecord;
+    {
+        std::lock_guard<ffrt::mutex> guard(sessionLock_);
+        for (auto &item : sessionAbilityMap_) {
+            if (item.second != nullptr && item.second->IsGameSAPreLaunch()) {
+                targetAbilityRecord = item.second;
+                break;
+            }
+        }
+    }
+    if (targetAbilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no game SA prelaunch ability found");
+        return ERR_NOT_GAME_PRELOAD_STATE;
+    }
+
+    auto abilityRecordId = targetAbilityRecord->GetRecordId();
+    std::weak_ptr<UIAbilityRecord> weakAbilityRecord(targetAbilityRecord);
+    auto task = [self = weak_from_this(), weakAbilityRecord]() {
+        auto selfObj = self.lock();
+        auto abilityRecordObj = weakAbilityRecord.lock();
+        if (selfObj == nullptr || abilityRecordObj == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "UIAbilityLifecycleManager or abilityRecord invalid");
+            return;
+        }
+        if (abilityRecordObj->IsGameSAPreLaunch()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Execute NotifyCompleteGamePreLaunch for game SA prelaunch (extend)");
+            selfObj->NotifyCompleteGamePreLaunch(abilityRecordObj->GetToken());
+        }
+    };
+    {
+        std::lock_guard<ffrt::mutex> lock(extendTaskMutex_);
+        auto it = extendTaskMap_.find(abilityRecordId);
+        if (it != extendTaskMap_.end()) {
+            ffrt::skip(it->second);
+            extendTaskMap_.erase(it);
+        }
+        auto handle = ffrt::submit_h(std::move(task), {}, {}, ffrt::task_attr().delay(extendTime));
+        extendTaskMap_[abilityRecordId] = handle;
+    }
+    return ERR_OK;
+}
+
+void UIAbilityLifecycleManager::CleanupExtendTask(int32_t abilityRecordId)
+{
+    std::lock_guard<ffrt::mutex> lock(extendTaskMutex_);
+    auto it = extendTaskMap_.find(abilityRecordId);
+    if (it != extendTaskMap_.end()) {
+        ffrt::skip(it->second);
+        extendTaskMap_.erase(it);
+    }
 }
 
 void UIAbilityLifecycleManager::EraseAbilityRecord(const UIAbilityRecordPtr &abilityRecord)
@@ -2960,6 +3023,7 @@ void UIAbilityLifecycleManager::OnAbilityDied(UIAbilityRecordPtr abilityRecord)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
         return;
     }
+    CleanupExtendTask(abilityRecord->GetRecordId());
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
     CHECK_POINTER_LOG(handler, "Fail to get AbilityEventHandler.");
     if (abilityRecord->GetAbilityState() == AbilityState::INITIAL) {
