@@ -685,6 +685,9 @@ void SetInsightIntentInfo(ani_env *env, ani_object objValue, const InsightIntent
     ani_object stringArray = nullptr;
     AppExecFwk::WrapArrayString(env, stringArray, info.keywords);
     env->Object_SetPropertyByName_Ref(objValue, "keywords", stringArray);
+    ani_object permissionArray = nullptr;
+    AppExecFwk::WrapArrayString(env, permissionArray, info.permissions);
+    env->Object_SetPropertyByName_Ref(objValue, "permissions", permissionArray);
     if (!info.develoType.empty()) {
         env->Object_SetPropertyByName_Ref(objValue, "developType", AppExecFwk::GetAniString(env, info.develoType));
     }

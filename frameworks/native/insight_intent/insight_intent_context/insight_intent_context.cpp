@@ -15,6 +15,7 @@
 
 #include "insight_intent_context.h"
 
+#include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -26,6 +27,24 @@ ErrCode InsightIntentContext::StartAbilityByInsightIntent(const AAFwk::Want &wan
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::INTENT, "called");
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbilityByInsightIntent(want, token_, intentId_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "ret=%{public}d", err);
+    }
+    TAG_LOGD(AAFwkTag::INTENT, "end");
+    return err;
+}
+
+ErrCode InsightIntentContext::GetInsightIntentExecutionInfo(uint64_t instanceId,
+    AppExecFwk::InsightIntentExecutionInfo &info)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    if (instanceId != intentId_) {
+        TAG_LOGE(AAFwkTag::INTENT, "instance id mismatch, expected: %{public}" PRIu64 ", actual: %{public}" PRIu64,
+            intentId_, instanceId);
+        return static_cast<ErrCode>(AbilityErrorCode::ERROR_CODE_INVALID_ID);
+    }
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->GetInsightIntentExecutionInfo(instanceId, info);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "ret=%{public}d", err);
     }
