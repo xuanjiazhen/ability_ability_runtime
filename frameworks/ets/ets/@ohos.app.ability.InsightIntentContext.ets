@@ -51,6 +51,7 @@ export default class InsightIntentContext {
   public native nativeStartAbilitySyncCheck(): void;
   public native setReturnModeForUIAbilityForeground(returnMode: insightIntent.ReturnMode): void;
   public native setReturnModeForUIExtensionAbility(returnMode: insightIntent.ReturnMode): void;
+  public native nativeGetInsightIntentExecutionInfo(instanceId: int): insightIntent.InsightIntentExecutionInfo;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     this.nativeStartAbilitySyncCheck();
@@ -83,5 +84,16 @@ export default class InsightIntentContext {
       });
     });
     return p;
+  }
+
+  getInsightIntentExecutionInfo(instanceId: int): Promise<insightIntent.InsightIntentExecutionInfo> {
+    return new Promise<insightIntent.InsightIntentExecutionInfo>((resolve, reject) => {
+      try {
+        let info = this.nativeGetInsightIntentExecutionInfo(instanceId);
+        resolve(info);
+      } catch (err) {
+        reject(err as BusinessError);
+      }
+    });
   }
 }

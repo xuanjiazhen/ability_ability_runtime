@@ -18,6 +18,7 @@
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_CONTEXT_H
 
 #include "insight_intent_constant.h"
+#include "insight_intent_execution_info.h"
 #include "iremote_object.h"
 #include "want.h"
 
@@ -42,6 +43,16 @@ public:
      * @return result of StartAbility.
      */
     ErrCode StartAbilityByInsightIntent(const AAFwk::Want &want);
+
+    /**
+     * Gets the insight intent execution info by the intent instance id. Only the instance id held by this context
+     * can be queried.
+     *
+     * @param instanceId Indicates the insight intent instance id.
+     * @param info Indicates the insight intent execution info.
+     * @return result of GetInsightIntentExecutionInfo.
+     */
+    ErrCode GetInsightIntentExecutionInfo(uint64_t instanceId, AppExecFwk::InsightIntentExecutionInfo &info);
 
     std::string GetBundleName() const
     {

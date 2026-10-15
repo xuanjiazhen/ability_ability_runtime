@@ -53,6 +53,12 @@ napi_value JsInsightIntentContext::SetReturnModeForUiExtensionAbility(napi_env e
     GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentContext, OnSetReturnModeForUiExtensionAbility);
 }
 
+napi_value JsInsightIntentContext::GetInsightIntentExecutionInfo(napi_env env, napi_callback_info info)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentContext, OnGetInsightIntentExecutionInfo);
+}
+
 napi_value JsInsightIntentContext::OnStartAbility(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
@@ -183,6 +189,63 @@ napi_value JsInsightIntentContext::OnSetReturnModeForUiExtensionAbility(napi_env
     return CreateJsUndefined(env);
 }
 
+napi_value JsInsightIntentContext::OnGetInsightIntentExecutionInfo(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    HandleEscape handleEscape(env);
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+    int32_t instanceId;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], instanceId)) {
+        TAG_LOGE(AAFwkTag::INTENT, "convert instanceId failed");
+        ThrowInvalidParamError(env, "Parse param instanceId failed, must be an integer.");
+        return CreateJsUndefined(env);
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null context");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return CreateJsUndefined(env);
+    }
+
+    auto executeInfo = std::make_shared<AppExecFwk::InsightIntentExecutionInfo>();
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, instanceId, executeInfo, innerErrCode]() {
+        auto ctx = weak.lock();
+        if (ctx == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null context");
+            *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+            return;
+        }
+        *innerErrCode = ctx->GetInsightIntentExecutionInfo(static_cast<uint64_t>(instanceId), *executeInfo);
+    };
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, executeInfo](napi_env env, NapiAsyncTask& task,
+        int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+        napi_value obj = nullptr;
+        napi_create_object(env, &obj);
+        napi_set_named_property(env, obj, "intentName", CreateJsValue(env, executeInfo->intentName));
+        napi_set_named_property(env, obj, "instanceId", CreateJsValue(env, static_cast<int64_t>(executeInfo->instanceId)));
+        napi_set_named_property(env, obj, "callerBundleName", CreateJsValue(env, executeInfo->callerBundleName));
+        napi_set_named_property(env, obj, "callerTokenId", CreateJsValue(env, executeInfo->callerTokenId));
+        napi_set_named_property(env, obj, "callerUid", CreateJsValue(env, executeInfo->callerUid));
+        task.Resolve(env, obj);
+    };
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsInsightIntentContext::OnGetInsightIntentExecutionInfo", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    TAG_LOGD(AAFwkTag::INTENT, "end");
+    return handleEscape.Escape(result);
+}
+
 napi_value CreateJsInsightIntentContext(napi_env env, const std::shared_ptr<InsightIntentContext>& context)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
@@ -200,6 +263,8 @@ napi_value CreateJsInsightIntentContext(napi_env env, const std::shared_ptr<Insi
         JsInsightIntentContext::SetReturnModeForUiAbilityForeground);
     BindNativeFunction(env, contextObj, "setReturnModeForUIExtensionAbility", CONTEXT_MODULE_NAME,
         JsInsightIntentContext::SetReturnModeForUiExtensionAbility);
+    BindNativeFunction(env, contextObj, "getInsightIntentExecutionInfo", CONTEXT_MODULE_NAME,
+        JsInsightIntentContext::GetInsightIntentExecutionInfo);
     TAG_LOGD(AAFwkTag::INTENT, "end");
     return handleEscape.Escape(contextObj);
 }

@@ -18,6 +18,7 @@
 #include "ability_window_configuration.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "ani_common_util.h"
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
 #include "ets_error_utils.h"
@@ -27,6 +28,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char *CONTEXT_CLASS_NAME = "@ohos.app.ability.InsightIntentContext.InsightIntentContext";
+constexpr const char *EXECUTION_INFO_CLASS_NAME =
+    "@ohos.app.ability.insightIntent.insightIntent.InsightIntentExecutionInfoInner";
 }
 void EtsInsightIntentContext::Finalizer(ani_env *env, void *data, void *hint)
 {
@@ -126,6 +129,49 @@ void EtsInsightIntentContext::SetReturnModeForUIExtensionAbility(ani_env *env, a
     nativeContext->SetDelayReturnMode(static_cast<InsightIntentReturnMode>(returnMode));
 }
 
+ani_object EtsInsightIntentContext::GetInsightIntentExecutionInfo(ani_env *env, ani_object aniObj, ani_long instanceId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto context = GetContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "get context failed.");
+        return EtsErrorUtil::CreateInvalidParamError(env, "context null");
+    }
+    auto nativeContext = context->GetNativeContext();
+    if (nativeContext == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null native context");
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    AppExecFwk::InsightIntentExecutionInfo info;
+    auto errCode = nativeContext->GetInsightIntentExecutionInfo(static_cast<uint64_t>(instanceId), info);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "get execution info failed, err: %{public}d", errCode);
+        return EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
+    }
+    ani_class cls = nullptr;
+    if (env->FindClass(EXECUTION_INFO_CLASS_NAME, &cls) != ANI_OK || cls == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "find execution info class failed");
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    ani_method ctor = nullptr;
+    if (env->Class_FindMethod(cls, "<ctor>", ":", &ctor) != ANI_OK || ctor == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "find execution info ctor failed");
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    ani_object obj = nullptr;
+    if (env->Object_New(cls, ctor, &obj) != ANI_OK || obj == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "new execution info failed");
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    env->Object_SetPropertyByName_Ref(obj, "intentName", AppExecFwk::GetAniString(env, info.intentName));
+    env->Object_SetPropertyByName_Ref(obj, "instanceId", AppExecFwk::CreateLong(env, info.instanceId));
+    env->Object_SetPropertyByName_Ref(obj, "callerBundleName",
+        AppExecFwk::GetAniString(env, info.callerBundleName));
+    env->Object_SetPropertyByName_Ref(obj, "callerTokenId", AppExecFwk::GetAniString(env, info.callerTokenId));
+    env->Object_SetPropertyByName_Ref(obj, "callerUid", AppExecFwk::CreateInt(env, info.callerUid));
+    return obj;
+}
+
 EtsInsightIntentContext *EtsInsightIntentContext::GetContext(ani_env *env, ani_object aniObj)
 {
     ani_long nativeContextLong;
@@ -219,6 +265,8 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> CreateEtsInsightIntentContext(an
             reinterpret_cast<void *>(EtsInsightIntentContext::SetReturnModeForUIAbilityForeground) },
         ani_native_function { "setReturnModeForUIExtensionAbility", nullptr,
             reinterpret_cast<void *>(EtsInsightIntentContext::SetReturnModeForUIExtensionAbility) },
+        ani_native_function { "nativeGetInsightIntentExecutionInfo", nullptr,
+            reinterpret_cast<void *>(EtsInsightIntentContext::GetInsightIntentExecutionInfo) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
         if (status != ANI_ALREADY_BINDED) {
