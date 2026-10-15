@@ -101,6 +101,7 @@ public:
         // runtime; the remaining boot abc files are loaded by a background
         // thread and finalized before Prefork.
         std::vector<std::string> coreBootPandaFiles;
+        bool finalizeBootOnMainThread = false;
     };
 
     struct DebugOption {

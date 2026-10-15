@@ -55,7 +55,7 @@ public:
 
     bool Initialize(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isDebug,
         const std::string &bundleName = "", const std::vector<std::string> &preloadClasses = {},
-        const std::vector<std::string> &coreBootPandaFiles = {});
+        const std::vector<std::string> &coreBootPandaFiles = {}, bool finalizeBootOnMainThread = false);
     void RegisterUncaughtExceptionHandler(const ETSUncaughtExceptionInfo &handle);
     ani_env *GetAniEnv();
     bool HandleUncaughtError();

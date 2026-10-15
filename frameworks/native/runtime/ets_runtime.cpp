@@ -645,7 +645,7 @@ bool ETSRuntime::CreateEtsEnv(const Options &options)
     }
 
     if (!g_etsEnvFuncs->Initialize(options.eventRunner, options.isStartWithDebug, options.bundleName,
-        options.preloadClasses, options.coreBootPandaFiles)) {
+        options.preloadClasses, options.coreBootPandaFiles, options.finalizeBootOnMainThread)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Initialize failed");
         return false;
     }
