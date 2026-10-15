@@ -60,6 +60,7 @@
 #include "insight_intent_event_mgr.h"
 #include "insight_intent_param_parser.h"
 #include "insight_intent_profile.h"
+#include "insight_intent_will_execute_callback_interface.h"
 #include "intent_exemption_info.h"
 #include "iremote_object.h"
 #include "kiosk_manager.h"
@@ -2244,7 +2245,8 @@ public:
         const Want &want, const InsightIntentExecuteLiteParam &param);
     int32_t PrepareAndGenerateForegroundIntent(
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
-        const AbilityRuntime::ExtractInsightIntentGenericInfo &infos, const std::string &callerBundlename,
+        const AbilityRuntime::ExtractInsightIntentGenericInfo &infos,
+        AbilityRuntime::ExtractInsightIntentInfo &extractInfo, const std::string &callerBundlename,
         uint64_t key, const sptr<IRemoteObject> &hostClient, bool ignoreAbilityName,
         uint64_t specifiedFullTokenId, Want &localWant);
     void RemoveIntentTimeout(uint64_t insightIntentId);
@@ -2285,6 +2287,12 @@ public:
         const std::string &requestCode) override;
 
     int32_t NotifyInsightIntentExecute(uint64_t intentId) override;
+
+    int32_t OnWillInsightIntentExecute(const sptr<IRemoteObject> &callback) override;
+
+    int32_t OffWillInsightIntentExecute(const sptr<IRemoteObject> &callback) override;
+
+    void RemoveInsightIntentWillExecuteCallback(const std::string &bundleName);
 
     int32_t QuerySkillType(const std::string &bundleName, const std::string &moduleName,
         const std::string &skillName, int32_t &skillType) override;
@@ -3736,7 +3744,16 @@ private:
     ErrCode IntentOpenLinkInner(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         AbilityRuntime::ExtractInsightIntentGenericInfo &linkInfo, const int32_t userId);
  
-    AbilityRuntime::ExtractInsightIntentGenericInfo GetInsightIntentGenericInfo(const InsightIntentExecuteParam &param);
+    AbilityRuntime::ExtractInsightIntentGenericInfo GetInsightIntentExecuteInfo(const InsightIntentExecuteParam &param,
+        AbilityRuntime::ExtractInsightIntentInfo &extractInfo, AbilityRuntime::InsightIntentInfo &configInfo);
+
+    static int32_t CheckIntentPermissions(const AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
+        const AbilityRuntime::InsightIntentInfo &configInfo, uint64_t specifiedFullTokenId);
+
+    bool IsInsightIntentCall(const Want &want);
+
+    void NotifyInsightIntentWillExecute(const std::string &bundleName,
+        const AppExecFwk::InsightIntentExecutionInfo &info);
 
     int32_t RecordAppWithReasonByAccessTokenId(uint32_t accessTokenId,
         const ExitReasonCompability &exitReasonCompability);
@@ -3772,7 +3789,7 @@ private:
     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag) override;
     int32_t ExecuteIntentCommon(const sptr<IRemoteObject> &callerToken,
         const std::shared_ptr<InsightIntentExecuteParam> &param, const std::string &callerBundleName,
-        const AbilityRuntime::ExecuteIntentCommonOptions &infos);
+        AbilityRuntime::ExecuteIntentCommonOptions &options);
     void SetRemoteIntentTimeout(uint64_t insightIntentId);
     // 清理 wantParam 残留意图参数 + 意图候选匹配 + parser.Build 组装执行参数。
     int32_t PrepareFunctionCallParam(const std::string &bundleName, const std::string &intentName,
@@ -3837,6 +3854,9 @@ private:
 
     ffrt::mutex remoteTaskHandlesMutex_;
     std::map<uint32_t, std::shared_ptr<ffrt::task_handle>> remoteTaskHandles_;
+
+    std::mutex insightIntentWillExecuteMutex_;
+    std::map<std::string, sptr<IInsightIntentWillExecuteCallback>> insightIntentWillExecuteCallbacks_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

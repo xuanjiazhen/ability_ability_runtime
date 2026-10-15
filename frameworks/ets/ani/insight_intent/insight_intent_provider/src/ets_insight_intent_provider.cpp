@@ -22,6 +22,7 @@
 #include "ani_common_util.h"
 #include "ets_error_utils.h"
 #include "insight_intent_delay_result_callback_mgr.h"
+#include "insight_intent_will_execute_callback_mgr.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -68,6 +69,108 @@ private:
     }
 };
 
+namespace {
+constexpr const char *EXECUTION_INFO_CLASS =
+    "@ohos.app.ability.insightIntentProvider.insightIntentProvider.InsightIntentExecutionInfoInner";
+constexpr const char *WILL_EXECUTE_METHOD = "onWillInsightIntentExecuteCallBack";
+}
+
+class EtsInsightIntentWillExecuteCallbackClient {
+public:
+    EtsInsightIntentWillExecuteCallbackClient(ani_vm *vm, ani_ref callbackRef)
+        : vm_(vm), callbackRef_(callbackRef) {}
+
+    virtual ~EtsInsightIntentWillExecuteCallbackClient()
+    {
+        bool isAttachThread = false;
+        ani_env *env = AppExecFwk::AttachAniEnv(vm_, isAttachThread);
+        if (env != nullptr && callbackRef_ != nullptr) {
+            env->GlobalReference_Delete(callbackRef_);
+            callbackRef_ = nullptr;
+        }
+        if (isAttachThread) {
+            AppExecFwk::DetachAniEnv(vm_, isAttachThread);
+        }
+    }
+
+    void Process(const AppExecFwk::InsightIntentExecutionInfo &info)
+    {
+        bool isAttachThread = false;
+        ani_env *env = AppExecFwk::AttachAniEnv(vm_, isAttachThread);
+        if (env == nullptr) {
+            return;
+        }
+        ani_object executionInfo = CreateExecutionInfo(env, info);
+        if (executionInfo != nullptr && callbackRef_ != nullptr) {
+            ani_status status = env->Object_CallMethodByName_Void(reinterpret_cast<ani_object>(callbackRef_),
+                WILL_EXECUTE_METHOD, "C{insightIntentProvider.InsightIntentExecutionInfoInner}:", executionInfo);
+            if (status != ANI_OK) {
+                TAG_LOGE(AAFwkTag::INTENT, "call will execute callback failed, status:%{public}d", status);
+            }
+        }
+        if (isAttachThread) {
+            AppExecFwk::DetachAniEnv(vm_, isAttachThread);
+        }
+    }
+
+private:
+    ani_object CreateExecutionInfo(ani_env *env, const AppExecFwk::InsightIntentExecutionInfo &info)
+    {
+        ani_class cls = nullptr;
+        if (env->FindClass(EXECUTION_INFO_CLASS, &cls) != ANI_OK || cls == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "find execution info class failed");
+            return nullptr;
+        }
+        ani_method ctor = nullptr;
+        if (env->Class_FindMethod(cls, "<ctor>", ":", &ctor) != ANI_OK || ctor == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "find execution info ctor failed");
+            return nullptr;
+        }
+        ani_object obj = nullptr;
+        if (env->Object_New(cls, ctor, &obj) != ANI_OK || obj == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "new execution info failed");
+            return nullptr;
+        }
+        env->Object_SetPropertyByName_Ref(obj, "intentName", AppExecFwk::GetAniString(env, info.intentName));
+        env->Object_SetPropertyByName_Ref(obj, "instanceId", AppExecFwk::CreateLong(env, info.instanceId));
+        env->Object_SetPropertyByName_Ref(obj, "callerBundleName",
+            AppExecFwk::GetAniString(env, info.callerBundleName));
+        env->Object_SetPropertyByName_Ref(obj, "callerTokenId", AppExecFwk::GetAniString(env, info.callerTokenId));
+        env->Object_SetPropertyByName_Ref(obj, "callerUid", AppExecFwk::CreateInt(env, info.callerUid));
+        return obj;
+    }
+
+    ani_vm *vm_ = nullptr;
+    ani_ref callbackRef_ = nullptr;
+};
+
+class EtsInsightIntentWillExecuteCallback {
+public:
+    static void OnWillInsightIntentExecute(ani_env *env, ani_object callback)
+    {
+        ani_vm *vm = nullptr;
+        if (env->GetVM(&vm) != ANI_OK || vm == nullptr || callback == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "get vm failed or null callback");
+            return;
+        }
+        ani_ref callbackRef = nullptr;
+        if (env->GlobalReference_Create(callback, &callbackRef) != ANI_OK || callbackRef == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "create global ref failed");
+            return;
+        }
+        auto client = std::make_shared<EtsInsightIntentWillExecuteCallbackClient>(vm, callbackRef);
+        AbilityRuntime::InsightIntentWillExecuteCallbackMgr::GetInstance()->Register(
+            [client](const AppExecFwk::InsightIntentExecutionInfo &info) {
+                client->Process(info);
+            });
+    }
+
+    static void OffWillInsightIntentExecute(ani_env *env)
+    {
+        AbilityRuntime::InsightIntentWillExecuteCallbackMgr::GetInstance()->Unregister();
+    }
+};
+
 void EtsInsightIntentProviderInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::INTENT, "EtsInsightIntentProviderInit called");
@@ -88,6 +191,10 @@ void EtsInsightIntentProviderInit(ani_env *env)
             reinterpret_cast<void *>(EtsInsightIntentProvider::OnSendExecuteResult) },
         ani_native_function {
             "nativeSendIntentResult", nullptr, reinterpret_cast<void *>(EtsInsightIntentProvider::OnSendIntentResult) },
+        ani_native_function { "nativeOnWillInsightIntentExecute", nullptr,
+            reinterpret_cast<void *>(EtsInsightIntentWillExecuteCallback::OnWillInsightIntentExecute) },
+        ani_native_function { "nativeOffWillInsightIntentExecute", nullptr,
+            reinterpret_cast<void *>(EtsInsightIntentWillExecuteCallback::OffWillInsightIntentExecute) },
     };
 
     status = env->Namespace_BindNativeFunctions(ns, nativeFunctions.data(), nativeFunctions.size());
