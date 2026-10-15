@@ -1,0 +1,66 @@
+diff a/services/abilitymgr/src/ability_manager_service.cpp b/services/abilitymgr/src/ability_manager_service.cpp	(rejected hunks)
+@@ -540,53 +540,36 @@ void AbilityManagerService::InitDeepLinkReserve()
+ void AbilityManagerService::InitInterceptor()
+ {
+     interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
++    if (AppUtils::GetInstance().IsSupportBlockAllAppStart()) {
++        TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
++        auto blockAllAppStartInterceptor = std::make_shared<BlockAllAppStartInterceptor>();
++        InitBlockAllAppStartInterceptorCallbacks(blockAllAppStartInterceptor);
++        interceptorExecuter_->AddInterceptor("BlockAllAppStart", blockAllAppStartInterceptor);
++    }
+     interceptorExecuter_->AddInterceptor("ScreenUnlock", std::make_shared<ScreenUnlockInterceptor>());
+     interceptorExecuter_->AddInterceptor("CrowdTest", std::make_shared<CrowdTestInterceptor>());
+     interceptorExecuter_->AddInterceptor("Control", std::make_shared<ControlInterceptor>());
+     interceptorExecuter_->AddInterceptor("ExtensionControl", std::make_shared<ExtensionControlInterceptor>());
+     interceptorExecuter_->AddInterceptor("DisposedRule", std::make_shared<DisposedRuleInterceptor>(taskHandler_));
+     interceptorExecuter_->AddInterceptor("EcologicalRule", std::make_shared<EcologicalRuleInterceptor>());
+-    if (AppUtils::GetInstance().IsSupportBlockAllAppStart()) {
+-        TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
+-        blockAllAppStartInterceptor_ = std::make_shared<BlockAllAppStartInterceptor>();
+-        InitBlockAllAppStartInterceptorCallbacks();
+-    }
+ }
+ 
+-void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
++void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks(
++    const std::shared_ptr<BlockAllAppStartInterceptor>& interceptor)
+ {
+-    if (blockAllAppStartInterceptor_ == nullptr) {
++    if (interceptor == nullptr) {
+         return;
+     }
+     auto aams = shared_from_this();
+-    blockAllAppStartInterceptor_->SetShouldBlockFunc([aams]() {
++    interceptor->SetShouldBlockFunc([aams]() {
+         return aams->ShouldBlockAllAppStart();
+     });
+-    blockAllAppStartInterceptor_->SetIsAbilityStartedFunc([aams](AbilityRequest& req, int32_t userId) {
++    interceptor->SetIsAbilityStartedFunc([aams](AbilityRequest& req, int32_t userId) {
+         std::shared_ptr<AbilityRecord> targetRecord;
+         return aams->IsAbilityStarted(req, targetRecord, userId);
+     });
+ }
+ 
+-ErrCode AbilityManagerService::ExecuteBlockAllAppStartInterceptor()
+-{
+-    if (blockAllAppStartInterceptor_ == nullptr) {
+-        TAG_LOGD(AAFwkTag::ABILITYMGR, "blockAllAppStartInterceptor_ nullptr");
+-        return ERR_OK;
+-    }
+-    return blockAllAppStartInterceptor_->Execute();
+-}
+-
+-ErrCode AbilityManagerService::ExecuteBlockAllAppStartInterceptor(AbilityRequest& abilityRequest,
+-    int32_t validUserId)
+-{
+-    if (blockAllAppStartInterceptor_ == nullptr) {
+-        TAG_LOGD(AAFwkTag::ABILITYMGR, "blockAllAppStartInterceptor_ nullptr");
+-        return ERR_OK;
+-    }
+-    return blockAllAppStartInterceptor_->Execute(abilityRequest, validUserId);
+-}
+-
+  void AbilityManagerService::InitAppSpawnMsgPipe()
+  {
+      int32_t pipeFd[2];
