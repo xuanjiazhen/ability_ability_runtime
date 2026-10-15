@@ -2959,6 +2959,16 @@ public:
     {
         return ERR_OK;
     }
+
+    virtual int32_t OnWillInsightIntentExecute(const sptr<IRemoteObject> &callback)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t OffWillInsightIntentExecute(const sptr<IRemoteObject> &callback)
+    {
+        return ERR_OK;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS

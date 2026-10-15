@@ -3170,6 +3170,10 @@ public:
      */
     ErrCode NotifyInsightIntentExecute(uint64_t intentId);
 
+    ErrCode OnWillInsightIntentExecute(const sptr<IRemoteObject> &callback);
+
+    ErrCode OffWillInsightIntentExecute(const sptr<IRemoteObject> &callback);
+
     /**
      * @brief Query the type of a configured skill (e.g. UI ability vs service
      * extension). No special permission; queried for the caller's user.
