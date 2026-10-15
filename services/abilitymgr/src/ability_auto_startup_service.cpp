@@ -169,11 +169,7 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartup(const AutoStartupIn
     if (fullInfo.isDirectBoot && CheckBootAppPermission(fullInfo) != ERR_OK) {
         return ERR_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT;
     }
-    code = InnerSetApplicationAutoStartup(fullInfo);
-    TAG_LOGI(AAFwkTag::AUTO_STARTUP, "set auto startup bundle:%{public}s user:%{public}d "
-        "boot:%{public}d ret:%{public}d",
-        fullInfo.bundleName.c_str(), fullInfo.userId, fullInfo.isDirectBoot, code);
-    return code;
+    return InnerSetApplicationAutoStartup(fullInfo);
 }
 
 int32_t AbilityAutoStartupService::InnerSetApplicationAutoStartup(const AutoStartupInfo &info)
