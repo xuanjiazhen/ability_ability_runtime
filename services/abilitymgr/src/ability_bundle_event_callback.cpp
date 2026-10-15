@@ -111,7 +111,7 @@ void AbilityBundleEventCallback::OnReceiveEvent(const EventFwk::CommonEventData 
         }
         abilityAutoStartupService_->CheckAutoStartupData(bundleName, uid);
         AbilityRuntime::InsightIntentEventMgr::UpdateInsightIntentEvent(want.GetElement(), userId, appIndex);
-    }
+    } 
 }
 
 void AbilityBundleEventCallback::HandleRemoveUriPermission(uint32_t tokenId)
