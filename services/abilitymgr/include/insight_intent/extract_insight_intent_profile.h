@@ -168,6 +168,7 @@ struct InsightIntentEntityInfo {
 struct ExtractInsightIntentInfo {
     std::vector<InsightIntentEntityInfo> entities {};
     std::vector<std::string> keywords;
+    std::vector<std::string> permissions;
     ExtractInsightIntentGenericInfo genericInfo;
     std::string decoratorFile;
     std::string decoratorClass;
@@ -195,6 +196,7 @@ struct ExtractInsightIntentProfileInfo {
     std::vector<std::string> executeMode {};
     std::vector<std::string> functionParams;
     std::vector<std::string> keywords;
+    std::vector<std::string> permissions;
     std::vector<LinkIntentParamProfileMapping> paramMapping {};
 
     std::string decoratorFile;
