@@ -25,6 +25,7 @@
 #include "extract_insight_intent_profile.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_result.h"
+#include "insight_intent_execution_info.h"
 #include "insight_intent_query_param.h"
 #include "iremote_object.h"
 #include "singleton.h"
@@ -43,7 +44,10 @@ struct InsightIntentExecuteRecord {
     sptr<IRemoteObject::DeathRecipient> deathRecipient = nullptr;
     uint64_t key = 0;
     std::string bundleName;
+    std::string intentName;
     std::string callerBundleName;
+    uint32_t callerTokenId = 0;
+    int32_t callerUid = 0;
     pid_t targetPid = 0;
     InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
     bool isDistributed = false;
@@ -111,8 +115,11 @@ public:
 
     int32_t GetCallerBundleName(uint64_t intentId, std::string &callerBundleName) const;
 
+    int32_t GetInsightIntentExecutionInfo(uint64_t intentId, AppExecFwk::InsightIntentExecutionInfo &info) const;
+
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+        AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
         Want &want);
 
     std::map<int32_t, int64_t> GetAllIntentExemptionInfo() const;
@@ -155,7 +162,7 @@ private:
     std::map<int32_t, int64_t> intentExemptionDeadlineTime_;
 
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
-        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{});
+        const std::string &intentName, uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{});
 
     static int32_t IsValidCall(const Want &want);
 
@@ -163,7 +170,7 @@ private:
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, Want &want);
     static int32_t CheckAndUpdateDecoratorParams(
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
-        const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+        AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
         Want &want);
     static int32_t UpdateFuncDecoratorParams(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         AbilityRuntime::ExtractInsightIntentInfo &info, Want &want);

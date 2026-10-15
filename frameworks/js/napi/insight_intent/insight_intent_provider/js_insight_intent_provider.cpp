@@ -15,11 +15,14 @@
 
 #include "js_insight_intent_provider.h"
 
+#include <mutex>
+#include <vector>
+
 #include "hilog_tag_wrapper.h"
 #include "js_runtime_utils.h"
 #include "js_error_utils.h"
 
-
+#include "insight_intent_will_execute_callback_mgr.h"
 #include "napi_common_execute_result.h"
 #include "insight_intent_delay_result_callback_mgr.h"
 
@@ -28,7 +31,143 @@ namespace AbilityRuntime {
 namespace {
 const char *JS_INSIGHT_INTENT_PROVIDER_NAME = "JsInsightIntentProvider";
 constexpr size_t ARGC_TWO = 2;
+constexpr size_t ARGC_ONE = 1;
+const char *WILL_EXECUTE_METHOD = "onWillInsightIntentExecuteCallBack";
 } // namespace
+
+class JsInsightIntentWillExecuteCallbackClient {
+public:
+    JsInsightIntentWillExecuteCallbackClient(napi_env env, napi_ref callbackRef)
+        : env_(env), callbackRef_(callbackRef) {}
+
+    ~JsInsightIntentWillExecuteCallbackClient()
+    {
+        if (env_ != nullptr && callbackRef_ != nullptr) {
+            napi_delete_reference(env_, callbackRef_);
+            callbackRef_ = nullptr;
+        }
+    }
+
+    void Process(const AppExecFwk::InsightIntentExecutionInfo &info)
+    {
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(env_, &scope);
+        napi_value callback = nullptr;
+        napi_get_reference_value(env_, callbackRef_, &callback);
+        napi_value executionInfo = CreateExecutionInfo(info);
+        napi_value method = nullptr;
+        napi_get_named_property(env_, callback, WILL_EXECUTE_METHOD, &method);
+        napi_value result = nullptr;
+        napi_call_function(env_, callback, method, 1, &executionInfo, &result);
+        napi_close_handle_scope(env_, scope);
+    }
+
+    bool IsStrictEquals(napi_env env, napi_value callback)
+    {
+        bool isEquals = false;
+        napi_value refValue = nullptr;
+        napi_get_reference_value(env_, callbackRef_, &refValue);
+        napi_strict_equals(env, refValue, callback, &isEquals);
+        return isEquals;
+    }
+
+private:
+    napi_value CreateExecutionInfo(const AppExecFwk::InsightIntentExecutionInfo &info)
+    {
+        napi_value obj = nullptr;
+        napi_create_object(env_, &obj);
+        napi_set_named_property(env_, obj, "intentName", CreateJsValue(env_, info.intentName));
+        napi_set_named_property(env_, obj, "callerBundleName", CreateJsValue(env_, info.callerBundleName));
+        napi_set_named_property(env_, obj, "callerTokenId", CreateJsValue(env_, info.callerTokenId));
+        napi_set_named_property(env_, obj, "callerUid", CreateJsValue(env_, info.callerUid));
+        return obj;
+    }
+
+    napi_env env_ = nullptr;
+    napi_ref callbackRef_ = nullptr;
+};
+
+class JsInsightIntentWillExecuteCallback {
+public:
+    struct CallbackEntry {
+        int32_t callbackId = 0;
+        std::shared_ptr<JsInsightIntentWillExecuteCallbackClient> client = nullptr;
+    };
+
+    static napi_value OnWillInsightIntentExecute(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentWillExecuteCallback, OnWillInsightIntentExecute);
+    }
+
+    static napi_value OffWillInsightIntentExecute(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentWillExecuteCallback, OffWillInsightIntentExecute);
+    }
+
+private:
+    static napi_value OnWillInsightIntentExecute(napi_env env, NapiCallbackInfo &info)
+    {
+        TAG_LOGD(AAFwkTag::INTENT, "on will insight intent execute napi called");
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        napi_ref callbackRef = nullptr;
+        napi_create_reference(env, info.argv[0], 1, &callbackRef);
+        auto client = std::make_shared<JsInsightIntentWillExecuteCallbackClient>(env, callbackRef);
+        int32_t callbackId = 0;
+        auto ret = InsightIntentWillExecuteCallbackMgr::GetInstance()->Register(
+            [client](const AppExecFwk::InsightIntentExecutionInfo &executionInfo) {
+                client->Process(executionInfo);
+            },
+            callbackId);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "register will execute callback failed, ret:%{public}d", ret);
+            napi_delete_reference(env, callbackRef);
+            return CreateJsUndefined(env);
+        }
+        std::lock_guard<std::mutex> lock(entriesMutex_);
+        entries_.push_back({callbackId, client});
+        return CreateJsUndefined(env);
+    }
+
+    static napi_value OffWillInsightIntentExecute(napi_env env, NapiCallbackInfo &info)
+    {
+        TAG_LOGD(AAFwkTag::INTENT, "off will insight intent execute napi called");
+        if (info.argc < ARGC_ONE) {
+            {
+                std::lock_guard<std::mutex> lock(entriesMutex_);
+                entries_.clear();
+            }
+            InsightIntentWillExecuteCallbackMgr::GetInstance()->UnregisterAll();
+            return CreateJsUndefined(env);
+        }
+        int32_t callbackId = 0;
+        bool found = false;
+        {
+            std::lock_guard<std::mutex> lock(entriesMutex_);
+            for (auto it = entries_.begin(); it != entries_.end(); ++it) {
+                if (it->client != nullptr && it->client->IsStrictEquals(env, info.argv[0])) {
+                    callbackId = it->callbackId;
+                    entries_.erase(it);
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (found) {
+            InsightIntentWillExecuteCallbackMgr::GetInstance()->Unregister(callbackId);
+        }
+        return CreateJsUndefined(env);
+    }
+
+    static std::vector<CallbackEntry> entries_;
+    static std::mutex entriesMutex_;
+};
+
+std::vector<JsInsightIntentWillExecuteCallback::CallbackEntry> JsInsightIntentWillExecuteCallback::entries_;
+std::mutex JsInsightIntentWillExecuteCallback::entriesMutex_;
 
 class JsInsightIntentProvider {
 public:
@@ -125,6 +264,10 @@ napi_value CreateJsInsightIntentProvider(napi_env env, napi_value exportObj)
         JsInsightIntentProvider::SendExecuteResult);
     BindNativeFunction(env, exportObj, "sendIntentResult", JS_INSIGHT_INTENT_PROVIDER_NAME,
         JsInsightIntentProvider::SendIntentResult);
+    BindNativeFunction(env, exportObj, "onWillInsightIntentExecute", JS_INSIGHT_INTENT_PROVIDER_NAME,
+        JsInsightIntentWillExecuteCallback::OnWillInsightIntentExecute);
+    BindNativeFunction(env, exportObj, "offWillInsightIntentExecute", JS_INSIGHT_INTENT_PROVIDER_NAME,
+        JsInsightIntentWillExecuteCallback::OffWillInsightIntentExecute);
 
     return CreateJsUndefined(env);
 }
