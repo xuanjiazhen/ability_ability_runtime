@@ -689,6 +689,28 @@ void EtsApplicationContextUtils::OnSetFont(ani_env *env, ani_object aniObj, ani_
     applicationContext->SetFont(stdFont);
 }
 
+void EtsApplicationContextUtils::OnSetFontWithoutAnimation(ani_env *env, ani_object aniObj, ani_string font,
+    ani_boolean enableAnimation)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        return;
+    }
+    std::string stdFont = "";
+    if (!AppExecFwk::GetStdString(env, font, stdFont) || stdFont.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse font failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param font failed, font must be string.");
+        return;
+    }
+    TAG_LOGD(AAFwkTag::APPKIT, "SetFont font %{public}s, enableAnimation %{public}d", stdFont.c_str(), enableAnimation);
+    applicationContext->SetFont(stdFont, enableAnimation);
+}
+
 void EtsApplicationContextUtils::OnSetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode)
 {
     if (env == nullptr) {
@@ -973,6 +995,18 @@ void EtsApplicationContextUtils::SetFont(ani_env *env, ani_object aniObj, ani_st
         return;
     }
     etsContext->OnSetFont(env, aniObj, font);
+}
+
+void EtsApplicationContextUtils::SetFontWithoutAnimation(ani_env *env, ani_object aniObj, ani_string font,
+    ani_boolean enableAnimation)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "SetFontWithoutAnimation Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetFontWithoutAnimation(env, aniObj, font, enableAnimation);
 }
 
 void EtsApplicationContextUtils::SetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode)
@@ -1471,6 +1505,8 @@ void EtsApplicationContextUtils::BindApplicationContextFunc(ani_env *aniEnv)
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetColorMode)},
             ani_native_function {"nativesetFont", "C{std.core.String}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetFont)},
+            ani_native_function {"nativesetFontWithoutAnimation", "C{std.core.String}z:",
+                reinterpret_cast<void *>(EtsApplicationContextUtils::SetFontWithoutAnimation)},
             ani_native_function {"nativerestartApp", "C{@ohos.app.ability.Want.Want}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::RestartApp)},
             ani_native_function {"nativeEnableDelayedProcessExitSync",

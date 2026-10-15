@@ -322,7 +322,10 @@ class ApplicationContext {
     return this.__context_impl__.setLanguage(language);
   }
 
-  setFont(font) {
+  setFont(font, enableAnimation) {
+    if (enableAnimation === false) {
+      return this.__context_impl__.setFontWithoutAnimation(font, false);
+    }
     return this.__context_impl__.setFont(font);
   }
 

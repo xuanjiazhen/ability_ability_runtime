@@ -919,6 +919,41 @@ napi_value JsApplicationContextUtils::OnSetFont(napi_env env, NapiCallbackInfo& 
     return CreateJsUndefined(env);
 }
 
+napi_value JsApplicationContextUtils::SetFontWithoutAnimation(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnSetFontWithoutAnimation, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnSetFontWithoutAnimation(napi_env env, NapiCallbackInfo& info)
+{
+    // only support two params
+    if (info.argc != ARGC_TWO) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (!applicationContext) {
+        TAG_LOGW(AAFwkTag::APPKIT, "null applicationContext");
+        return CreateJsUndefined(env);
+    }
+    std::string font;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], font)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse font failed");
+        ThrowInvalidParamError(env, "Parse param font failed, font must be string.");
+        return CreateJsUndefined(env);
+    }
+    bool enableAnimation = true;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], enableAnimation)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse enableAnimation failed");
+        ThrowInvalidParamError(env, "Parse param enableAnimation failed, enableAnimation must be boolean.");
+        return CreateJsUndefined(env);
+    }
+    applicationContext->SetFont(font, enableAnimation);
+    return CreateJsUndefined(env);
+}
+
 napi_value JsApplicationContextUtils::PreloadUIExtensionAbility(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_WITH_NAME_AND_CALL(
@@ -2324,6 +2359,8 @@ void JsApplicationContextUtils::BindNativeApplicationContextOne(napi_env env, na
         JsApplicationContextUtils::UnRegisterSystemConfigurationUpdated);
     BindNativeFunction(env, object, "setLanguage", MD_NAME, JsApplicationContextUtils::SetLanguage);
     BindNativeFunction(env, object, "setFont", MD_NAME, JsApplicationContextUtils::SetFont);
+    BindNativeFunction(env, object, "setFontWithoutAnimation", MD_NAME,
+        JsApplicationContextUtils::SetFontWithoutAnimation);
     BindNativeFunction(env, object, "clearUpApplicationData", MD_NAME,
         JsApplicationContextUtils::ClearUpApplicationData);
     BindNativeFunction(env, object, "createAreaModeContext", MD_NAME, JsApplicationContextUtils::CreateAreaModeContext);

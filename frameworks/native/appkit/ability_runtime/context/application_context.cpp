@@ -1393,6 +1393,23 @@ void ApplicationContext::SetFont(const std::string &font)
     #endif
 }
 
+void ApplicationContext::SetFont(const std::string &font, bool enableAnimation)
+{
+    if (enableAnimation) {
+        SetFont(font);
+        return;
+    }
+    TAG_LOGD(AAFwkTag::APPKIT, "font:%{public}s, enableAnimation:false", font.c_str());
+    #ifdef SUPPORT_GRAPHICS
+    AppExecFwk::Configuration config;
+    config.AddItem(AppExecFwk::ConfigurationInner::APPLICATION_FONT, font);
+    config.AddItem(AppExecFwk::ConfigurationInner::APPLICATION_FONT_ANIMATION, "false");
+    if (appFontCallback_ != nullptr) {
+        appFontCallback_(config);
+    }
+    #endif
+}
+
 bool ApplicationContext::SetFontSizeScale(double fontSizeScale)
 {
     if (contextImpl_ == nullptr) {

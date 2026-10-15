@@ -104,6 +104,7 @@ public:
     void DispatchOnAbilitySaveState(const int64_t &ability);
 
     void OnSetFont(std::string font);
+    void OnSetFont(std::string font, bool enableAnimation);
     void OnSetLanguage(std::string font);
     void OnSetColorMode(int32_t colorMode);
     std::shared_ptr<AppExecFwk::RunningProcessInfo> OnGetRunningProcessInformation(int32_t &errCode);

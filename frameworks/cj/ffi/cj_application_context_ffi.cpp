@@ -147,6 +147,18 @@ void FfiCJApplicationContextSetFont(int64_t id, const char *font, int32_t *errCo
     context->OnSetFont(fontString);
 }
 
+void FfiCJApplicationContextSetFontWithoutAnimation(int64_t id, const char *font, bool enableAnimation, int32_t *errCode)
+{
+    auto context = FFI::FFIData::GetData<CJApplicationContext>(id);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        *errCode = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+        return;
+    }
+    auto fontString = std::string(font);
+    context->OnSetFont(fontString, enableAnimation);
+}
+
 void FfiCJApplicationContextSetLanguage(int64_t id, const char *language, int32_t *errCode)
 {
     auto context = FFI::FFIData::GetData<CJApplicationContext>(id);
