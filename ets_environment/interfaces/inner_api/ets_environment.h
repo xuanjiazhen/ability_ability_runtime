@@ -54,7 +54,8 @@ public:
     static ETSEnvFuncs *RegisterFuncs();
 
     bool Initialize(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isDebug,
-        const std::string &bundleName = "");
+        const std::string &bundleName = "", const std::vector<std::string> &preloadClasses = {},
+        const std::vector<std::string> &coreBootPandaFiles = {});
     void RegisterUncaughtExceptionHandler(const ETSUncaughtExceptionInfo &handle);
     ani_env *GetAniEnv();
     bool HandleUncaughtError();
@@ -120,6 +121,20 @@ private:
     bool LoadSymbolCreateVM(void *handle, ETSRuntimeAPI &apis);
     bool LoadSymbolANIGetCreatedVMs(void *handle, ETSRuntimeAPI &apis);
     bool LoadBootPathFile(std::string &bootfiles);
+    /**
+     * Validates the core boot panda file list against the boot path:
+     * - every entry must be a boot path entry (compared after normalization
+     *   of the leading '/');
+     * - no duplicates;
+     * - the result preserves the boot path order;
+     * - the ETS stdlib boot abc must be included.
+     * Returns the validated entries (in boot path order) or an empty vector
+     * on any violation, in which case the caller must fall back to fully
+     * synchronous boot file loading.
+     */
+    std::vector<std::string> ValidateCoreBootPandaFiles(const std::string &bootfiles,
+        const std::vector<std::string> &coreBootPandaFiles) const;
+    static std::string NormalizeBootFilePath(const std::string &path);
     std::string GetBuildId(std::string stack);
     EtsEnv::ETSErrorObject GetETSErrorObject();
     std::string GetErrorProperty(ani_error aniError, const char *property);

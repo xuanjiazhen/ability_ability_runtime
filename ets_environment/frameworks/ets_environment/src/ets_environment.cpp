@@ -19,8 +19,10 @@
 #include <chrono>
 #include <dlfcn.h>
 #include <fstream>
+#include <map>
 #include <nlohmann/json.hpp>
 #include <regex>
+#include <set>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -66,6 +68,8 @@ constexpr char SANDBOX_ARK_PROFILE_PATH[] = "/data/storage/ark-profile/";
 constexpr char ARK_PROFILE_SUFFIX[] = ".ap";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
 constexpr char ABS_DATA_CODE_PATH[] = "/data/app/el1/bundle/public/";
+// Must be kept in sync with ark::ets::ETSAni::ETSSTDLIB_ABC in runtime_core.
+constexpr char ETS_STDLIB_BOOT_ABC[] = "/system/framework/etsstdlib_bootabc.abc";
 
 
 using CreateVMETSRuntimeType = ani_status (*)(const ani_options *options, uint32_t version, ani_vm **result);
@@ -159,6 +163,85 @@ bool ETSEnvironment::LoadRuntimeApis()
 
     isRuntimeApiLoaded = true;
     return true;
+}
+
+std::string ETSEnvironment::NormalizeBootFilePath(const std::string &path)
+{
+    // Some boot path entries miss the leading '/'; normalize before comparing.
+    if (path.empty() || path.front() == '/') {
+        return path;
+    }
+    return "/" + path;
+}
+
+std::vector<std::string> ETSEnvironment::ValidateCoreBootPandaFiles(const std::string &bootfiles,
+    const std::vector<std::string> &coreBootPandaFiles) const
+{
+    if (coreBootPandaFiles.empty()) {
+        return {};
+    }
+
+    // Split the boot path and index the original entries by their normalized
+    // form, so the validated result can keep the exact original spelling
+    // (the runtime partitions --boot-panda-files by exact string match).
+    std::vector<std::string> bootEntries;
+    std::map<std::string, std::string> normalizedToOriginal;
+    std::string rest = bootfiles;
+    while (!rest.empty()) {
+        auto pos = rest.find(':');
+        std::string entry = (pos == std::string::npos) ? rest : rest.substr(0, pos);
+        rest = (pos == std::string::npos) ? "" : rest.substr(pos + 1);
+        if (entry.empty()) {
+            continue;
+        }
+        std::string normalized = NormalizeBootFilePath(entry);
+        if (normalized.find("..") != std::string::npos) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "invalid boot path entry: %{public}s", entry.c_str());
+            return {};
+        }
+        bootEntries.push_back(entry);
+        normalizedToOriginal.emplace(normalized, entry);
+    }
+
+    std::set<std::string> coreOriginals;
+    bool hasEtsStdlib = false;
+    for (const auto &coreFile : coreBootPandaFiles) {
+        if (coreFile.empty()) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "empty core boot panda file entry");
+            return {};
+        }
+        std::string normalized = NormalizeBootFilePath(coreFile);
+        if (normalized.find("..") != std::string::npos) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "invalid core boot panda file entry: %{public}s", coreFile.c_str());
+            return {};
+        }
+        auto it = normalizedToOriginal.find(normalized);
+        if (it == normalizedToOriginal.end()) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME,
+                "core boot panda file is not in bootpath.json: %{public}s", coreFile.c_str());
+            return {};
+        }
+        if (!coreOriginals.insert(it->second).second) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "duplicate core boot panda file: %{public}s", coreFile.c_str());
+            return {};
+        }
+        if (normalized == ETS_STDLIB_BOOT_ABC) {
+            hasEtsStdlib = true;
+        }
+    }
+    if (!hasEtsStdlib) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "core boot panda files must contain %{public}s", ETS_STDLIB_BOOT_ABC);
+        return {};
+    }
+
+    // Preserve the boot path order.
+    std::vector<std::string> validated;
+    for (const auto &entry : bootEntries) {
+        if (coreOriginals.count(entry) != 0) {
+            validated.push_back(entry);
+        }
+    }
+    return validated;
 }
 
 std::string ETSEnvironment::GetBuildId(std::string stack)
@@ -257,7 +340,8 @@ void ETSEnvironment::InitETSSysNS(const std::string &path)
 }
 
 bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isStartWithDebug,
-    const std::string &bundleName)
+    const std::string &bundleName, const std::vector<std::string> &preloadClasses,
+    const std::vector<std::string> &coreBootPandaFiles)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize called, bundleName: %{public}s", bundleName.c_str());
     if (!LoadRuntimeApis()) {
@@ -277,6 +361,37 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
     std::string bootString = "--ext:--boot-panda-files=" + bootfiles;
     std::string processPackageNameOption = "";
     options.push_back(ani_option { bootString.data(), nullptr });
+    // Core boot panda files enable asynchronous loading of the remaining boot
+    // files. The option strings must outlive the ANI_CreateVM call, so they
+    // are kept in named locals.
+    std::string coreBootString;
+    std::vector<std::string> validatedCoreBootFiles = ValidateCoreBootPandaFiles(bootfiles, coreBootPandaFiles);
+    if (!validatedCoreBootFiles.empty()) {
+        std::string coreList;
+        for (const auto &file : validatedCoreBootFiles) {
+            if (!coreList.empty()) {
+                coreList += ":";
+            }
+            coreList += file;
+        }
+        coreBootString = "--ext:--boot-core-panda-files=" + coreList;
+        options.push_back(ani_option { coreBootString.data(), nullptr });
+    } else if (!coreBootPandaFiles.empty()) {
+        TAG_LOGW(AAFwkTag::ETSRUNTIME,
+            "invalid core boot panda files config, fall back to synchronous boot file loading");
+    }
+    std::string preloadClassesString;
+    if (!preloadClasses.empty()) {
+        std::string classList;
+        for (const auto &className : preloadClasses) {
+            if (!classList.empty()) {
+                classList += ":";
+            }
+            classList += className;
+        }
+        preloadClassesString = "--ext:--preload-classes=" + classList;
+        options.push_back(ani_option { preloadClassesString.data(), nullptr });
+    }
     options.push_back(ani_option { "--ext:--compiler-enable-jit=false", nullptr });
     options.push_back(ani_option { "--ext:--verification-mode=ahead-of-time", nullptr });
     options.push_back(ani_option { "--ext:--log-level=info", nullptr });
@@ -647,6 +762,20 @@ bool ETSEnvironment::FinishPreload(napi_env jsEnv) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed: ANI env nullptr");
         return false;
     }
+    // Barrier before ETSAni::Prefork: wait for the background non-core boot
+    // file loading, join its thread and register the files into the class
+    // linker. This keeps the original preload order
+    // (Runtime::Create -> PreloadSystemModule -> class preload -> Prefork):
+    // FinishPreload is called by Runtime::SavePreloaded after the system
+    // module preloading, and the class preloading below runs after the
+    // barrier on this (main) thread.
+    if (!ark::ets::ETSAni::FinalizeBootFileLoading(env)) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FinalizeBootFileLoading failed: non-core boot file loading failed");
+        return false;
+    }
+    // Preload the classes configured by appspawn (--preload-classes) after
+    // the system modules are preloaded and the boot files are complete.
+    ark::ets::ETSAni::PreloadClasses(env);
     ark::ets::ETSAni::Prefork(env, reinterpret_cast<void *>(jsEnv));
     return true;
 }
@@ -841,8 +970,10 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             ETSEnvironment::InitETSSysNS(path);
         },
         .Initialize = [](const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isStartWithDebug,
-            const std::string &bundleName) {
-            return ETSEnvironment::GetInstance()->Initialize(eventRunner, isStartWithDebug, bundleName);
+            const std::string &bundleName, const std::vector<std::string> &preloadClasses,
+            const std::vector<std::string> &coreBootPandaFiles) {
+            return ETSEnvironment::GetInstance()->Initialize(eventRunner, isStartWithDebug, bundleName,
+                preloadClasses, coreBootPandaFiles);
         },
         .RegisterUncaughtExceptionHandler = [](const ETSUncaughtExceptionInfo &exceptionInfo) {
             ETSEnvironment::GetInstance()->RegisterUncaughtExceptionHandler(exceptionInfo);
@@ -865,7 +996,7 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             ark::ets::EtsNamespaceManager::SetAppLibPaths(abcPathsToBundleModuleNameMap, cb);
         },
         .FinishPreload = [](napi_env jsEnv) {
-            ETSEnvironment::GetInstance()->FinishPreload(jsEnv);
+            return ETSEnvironment::GetInstance()->FinishPreload(jsEnv);
         },
         .PostFork = [](void *napiEnv, const std::string &aotPath, const std::vector<std::string> &appInnerHspPathList,
             const std::vector<std::string> &staticHapModuleNameList,

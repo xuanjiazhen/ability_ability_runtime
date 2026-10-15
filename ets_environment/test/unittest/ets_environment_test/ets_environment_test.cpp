@@ -251,8 +251,114 @@ HWTEST_F(EtsEnvironmentTest, Initialize_0100, TestSize.Level0)
 {
     auto etsEnv = std::make_shared<ETSEnvironment>();
     ASSERT_NE(etsEnv, nullptr);
-    bool result = etsEnv->Initialize(nullptr, false, "");
+    std::vector<std::string> preloadClasses;
+    std::vector<std::string> coreBootPandaFiles;
+    bool result = etsEnv->Initialize(nullptr, false, "", preloadClasses, coreBootPandaFiles);
     EXPECT_FALSE(result);
+}
+
+namespace {
+const std::string TEST_BOOT_PATH = "/system/framework/etsstdlib_bootabc.abc:system/framework/resource.abc"
+    ":/system/framework/arkoala.abc";
+} // namespace
+
+/**
+ * @tc.name: ValidateCoreBootPandaFiles_0100
+ * @tc.desc: Valid core list: subset of the boot path, no duplicates,
+ *           contains the ETS stdlib; result keeps the boot path order and
+ *           the original (non-normalized) spelling.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, ValidateCoreBootPandaFiles_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    // "system/framework/resource.abc" misses the leading '/' in the boot path
+    // and must still match the core entry written with the leading '/'.
+    std::vector<std::string> coreFiles = {
+        "/system/framework/arkoala.abc",
+        "/system/framework/etsstdlib_bootabc.abc",
+    };
+    auto result = etsEnv->ValidateCoreBootPandaFiles(TEST_BOOT_PATH, coreFiles);
+    ASSERT_EQ(result.size(), 2U);
+    // Boot path order is preserved.
+    EXPECT_EQ(result[0], "/system/framework/etsstdlib_bootabc.abc");
+    EXPECT_EQ(result[1], "/system/framework/arkoala.abc");
+}
+
+/**
+ * @tc.name: ValidateCoreBootPandaFiles_0200
+ * @tc.desc: Empty core list results in an empty (synchronous) configuration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, ValidateCoreBootPandaFiles_0200, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    auto result = etsEnv->ValidateCoreBootPandaFiles(TEST_BOOT_PATH, {});
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: ValidateCoreBootPandaFiles_0300
+ * @tc.desc: A core file that is not in the boot path is rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, ValidateCoreBootPandaFiles_0300, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    std::vector<std::string> coreFiles = {
+        "/system/framework/etsstdlib_bootabc.abc",
+        "/system/framework/not_in_bootpath.abc",
+    };
+    auto result = etsEnv->ValidateCoreBootPandaFiles(TEST_BOOT_PATH, coreFiles);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: ValidateCoreBootPandaFiles_0400
+ * @tc.desc: Duplicate core entries are rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, ValidateCoreBootPandaFiles_0400, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    std::vector<std::string> coreFiles = {
+        "/system/framework/etsstdlib_bootabc.abc",
+        "system/framework/etsstdlib_bootabc.abc",
+    };
+    auto result = etsEnv->ValidateCoreBootPandaFiles(TEST_BOOT_PATH, coreFiles);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: ValidateCoreBootPandaFiles_0500
+ * @tc.desc: A core list without the ETS stdlib boot abc is rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, ValidateCoreBootPandaFiles_0500, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    std::vector<std::string> coreFiles = {"/system/framework/arkoala.abc"};
+    auto result = etsEnv->ValidateCoreBootPandaFiles(TEST_BOOT_PATH, coreFiles);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: ValidateCoreBootPandaFiles_0600
+ * @tc.desc: Entries containing relative path components are rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, ValidateCoreBootPandaFiles_0600, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    std::vector<std::string> coreFiles = {"/system/framework/../framework/etsstdlib_bootabc.abc"};
+    auto result = etsEnv->ValidateCoreBootPandaFiles(TEST_BOOT_PATH, coreFiles);
+    EXPECT_TRUE(result.empty());
 }
 
 /**

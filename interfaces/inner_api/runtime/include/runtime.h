@@ -93,6 +93,14 @@ public:
         std::string arkTSMode;
         bool isMainProcess = true;
         std::vector<std::string> staticPluginHspPathList;
+        // Only used by appspawn's ETS preloading path.  The values must be
+        // forwarded to the Ark runtime before the VM is created.
+        std::vector<std::string> preloadClasses;
+        // Only used by appspawn's ETS preloading path.  Subset of
+        // bootpath.json entries that must be loaded synchronously by the Ark
+        // runtime; the remaining boot abc files are loaded by a background
+        // thread and finalized before Prefork.
+        std::vector<std::string> coreBootPandaFiles;
     };
 
     struct DebugOption {
@@ -148,7 +156,15 @@ public:
         const std::string& hapPath, bool isEsMode, bool useCommonTrunk) = 0;
     virtual void PreloadModule(const std::string &moduleName, const std::string &hapPath,
         bool isEsMode, bool useCommonTrunk) {}
+    // Called by Runtime::SavePreloaded after the system module preloading.
     virtual void FinishPreload() = 0;
+    // Returns false when the pre-fork finalization done by FinishPreload
+    // failed (e.g. asynchronous boot file loading); Runtime::SavePreloaded
+    // must not keep such an instance as the preloaded runtime.
+    virtual bool IsPreloadSucceeded() const
+    {
+        return true;
+    }
     virtual bool LoadRepairPatch(const std::string& patchFile, const std::string& baseFile) = 0;
     virtual bool NotifyHotReloadPage() = 0;
     virtual bool UnLoadRepairPatch(const std::string& patchFile) = 0;

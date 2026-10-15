@@ -461,7 +461,10 @@ bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<Runtime> &js
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or FinishPreload");
             return false;
         }
-        g_etsEnvFuncs->FinishPreload(napiEnv);
+        if (!g_etsEnvFuncs->FinishPreload(napiEnv)) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "FinishPreload failed");
+            return false;
+        }
     }
     return true;
 }
@@ -583,6 +586,7 @@ void ETSRuntime::XGC()
 
 void ETSRuntime::FinishPreload()
 {
+    preloadSucceeded_ = true;
     if (jsRuntime_ != nullptr) {
         jsRuntime_->FinishPreload();
     }
@@ -595,9 +599,18 @@ void ETSRuntime::FinishPreload()
     if (g_etsEnvFuncs == nullptr ||
         g_etsEnvFuncs->FinishPreload == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or FinishPreload");
+        preloadSucceeded_ = false;
         return;
     }
-    g_etsEnvFuncs->FinishPreload(napiEnv);
+    if (!g_etsEnvFuncs->FinishPreload(napiEnv)) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FinishPreload failed");
+        preloadSucceeded_ = false;
+    }
+}
+
+bool ETSRuntime::IsPreloadSucceeded() const
+{
+    return preloadSucceeded_;
 }
 
 void ETSRuntime::RegisterUncaughtExceptionHandler(const EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo)
@@ -631,7 +644,8 @@ bool ETSRuntime::CreateEtsEnv(const Options &options)
         return false;
     }
 
-    if (!g_etsEnvFuncs->Initialize(options.eventRunner, options.isStartWithDebug, options.bundleName)) {
+    if (!g_etsEnvFuncs->Initialize(options.eventRunner, options.isStartWithDebug, options.bundleName,
+        options.preloadClasses, options.coreBootPandaFiles)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Initialize failed");
         return false;
     }
