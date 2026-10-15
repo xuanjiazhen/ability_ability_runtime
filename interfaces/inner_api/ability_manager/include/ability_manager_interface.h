@@ -32,6 +32,7 @@
 #include "app_debug_listener_interface.h"
 #include "auto_startup_info.h"
 #include "caller_info.h"
+#include "daemon_service_errors.h"
 #include "dms_continueInfo.h"
 #include "exit_reason.h"
 #include "extension_running_info.h"
@@ -2956,6 +2957,32 @@ public:
     }
 
     virtual int32_t NotifyInsightIntentExecute(uint64_t intentId)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t RegisterDaemon(const std::string &bundleName, const std::string &daemonName)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t UnregisterDaemon(const std::string &bundleName, const std::string &daemonName)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t StartDaemon(const std::string &bundleName, const std::string &daemonName)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t StopDaemon(const std::string &bundleName, const std::string &daemonName)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t GetDaemonInformation(const std::string &bundleName, const std::string &daemonName,
+        DaemonInformation &information)
     {
         return ERR_OK;
     }

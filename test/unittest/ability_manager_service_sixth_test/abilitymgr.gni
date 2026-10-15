@@ -21,6 +21,7 @@ abilityms_files = [
   "${ability_runtime_services_path}/abilitymgr/src/ability_event_handler.cpp",
   "${ability_runtime_services_path}/abilitymgr/src/disposed_observer.cpp",
   "${ability_runtime_services_path}/abilitymgr/src/ability_manager_stub.cpp",
+  "${ability_runtime_services_path}/abilitymgr/src/daemon/daemon_registry.cpp",
   "${ability_runtime_services_path}/abilitymgr/src/ability_record.cpp",
   "${ability_runtime_services_path}/abilitymgr/src/ability_manager_collaborator_proxy.cpp",
   "${ability_runtime_services_path}/abilitymgr/src/ability_scheduler_proxy.cpp",

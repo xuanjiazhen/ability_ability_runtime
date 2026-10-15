@@ -797,6 +797,21 @@ enum class AbilityManagerInterfaceCode {
 
     // kill process with user id
     KILL_PROCESS_WITH_USER_ID = 6183,
+
+    // register daemon (FEAT-DAEMON-01)
+    REGISTER_DAEMON = 6184,
+
+    // unregister daemon (FEAT-DAEMON-01)
+    UNREGISTER_DAEMON = 6185,
+
+    // start daemon process (FEAT-DAEMON-03)
+    START_DAEMON = 6186,
+
+    // stop daemon process (FEAT-DAEMON-03)
+    STOP_DAEMON = 6187,
+
+    // query daemon registration state and pid
+    GET_DAEMON_INFORMATION = 6188,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

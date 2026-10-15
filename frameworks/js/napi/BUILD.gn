@@ -63,6 +63,7 @@ group("napi_packages") {
     "${ability_runtime_napi_path}/configuration_constant:configurationconstant",
     "${ability_runtime_napi_path}/configuration_constant:configurationconstant_napi",
     "${ability_runtime_napi_path}/dataUriUtils:datauriutils_napi",
+    "${ability_runtime_napi_path}/daemon_service_manager:launchservicemanager",
     "${ability_runtime_napi_path}/embeddable_ui_ability:embeddableuiability_napi",
     "${ability_runtime_napi_path}/embeddable_ui_ability_context:embeddableuiabilitycontext_napi",
     "${ability_runtime_napi_path}/embedded_ui_extension_ability:embeddeduiextensionability_napi",

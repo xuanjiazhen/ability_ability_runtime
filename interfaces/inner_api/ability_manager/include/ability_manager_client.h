@@ -3129,6 +3129,37 @@ public:
     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag);
 
     /**
+     * Register a daemon declared in module.json5 daemonServices.
+     * Public API, triggers IAM administrator approval before persistence.
+     */
+    ErrCode RegisterDaemon(const std::string &bundleName, const std::string &daemonName);
+
+    /**
+     * Unregister a previously registered daemon. Stops a running daemon process.
+     * Public API.
+     */
+    ErrCode UnregisterDaemon(const std::string &bundleName, const std::string &daemonName);
+
+    /**
+     * Start a registered and enabled daemon process via appspawn.
+     * Public API.
+     */
+    ErrCode StartDaemon(const std::string &bundleName, const std::string &daemonName);
+
+    /**
+     * Stop a running daemon process.
+     * Public API.
+     */
+    ErrCode StopDaemon(const std::string &bundleName, const std::string &daemonName);
+
+    /**
+     * Query the registration state and running pid of a daemon.
+     * Observable surface behind launchServiceManager.getInformation.
+     */
+    ErrCode GetDaemonInformation(const std::string &bundleName, const std::string &daemonName,
+        DaemonInformation &information);
+
+    /**
      * @brief Execute an in-app skill on behalf of an explicit caller token id
      * (used by broker/framework scenarios). The request.callerTokenId must
      * resolve to a valid HAP token; permission is checked with that identity.

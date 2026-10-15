@@ -2105,6 +2105,22 @@ generate_static_abc("ability_runtime_kiosk_manager_abc") {
   device_dst_file = "/system/framework/ability_runtime_kiosk_manager_abc.abc"
 }
 
+generate_static_abc("ability_runtime_daemon_service_manager_abc") {
+  base_url = "./"
+  files = [ "./@ohos.launchServiceManager.ets" ]
+  is_boot_abc = "True"
+  device_dst_file =
+      "/system/framework/ability_runtime_daemon_service_manager_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_daemon_service_manager_abc_etc") {
+  source = "$target_out_dir/ability_runtime_daemon_service_manager_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_daemon_service_manager_abc" ]
+}
+
 ohos_prebuilt_etc("ability_runtime_kiosk_manager_abc_etc") {
   source = "$target_out_dir/ability_runtime_kiosk_manager_abc.abc"
   module_install_dir = "framework"
@@ -2239,6 +2255,7 @@ group("ets_packages") {
     ":ability_runtime_custom_data_abc_etc",
     ":ability_runtime_data_ability_helper_abc_etc",
     ":ability_runtime_data_uri_utils_abc_etc",
+    ":ability_runtime_daemon_service_manager_abc_etc",
     ":ability_runtime_dialog_session_abc_etc",
     ":ability_runtime_embedded_uiextension_ability_abc_etc",
     ":ability_runtime_environment_callback_abc_etc",
