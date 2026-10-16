@@ -796,6 +796,29 @@ bool InsightIntentInfoForQuery::MarshallingVector(
     return true;
 }
 
+namespace {
+/**
+ * Parse one item of the intent info array. g_parseResult is written by the from_json family and is a
+ * shared (file-local) cursor, so it must be reset before every item; otherwise the failure state of a
+ * previous item would leak into the current one.
+ */
+bool ParseInsightIntentInfoListItem(const nlohmann::json &item, size_t index,
+    InsightIntentInfoForQuery &info)
+{
+    g_parseResult = ERR_OK;
+    if (!SafeJsonGet(item, info, "InsightIntentInfoForQueryListItem")) {
+        TAG_LOGW(AAFwkTag::INTENT, "skip corrupt item, index: %{public}zu: json exception", index);
+        return false;
+    }
+    if (g_parseResult != ERR_OK) {
+        TAG_LOGW(AAFwkTag::INTENT, "skip corrupt item, index: %{public}zu: parse result: %{public}d",
+            index, g_parseResult);
+        return false;
+    }
+    return true;
+}
+} // namespace
+
 bool InsightIntentInfoForQuery::UnmarshallingVector(
     Parcel &parcel, std::vector<InsightIntentInfoForQuery> &infos)
 {
@@ -819,27 +842,44 @@ bool InsightIntentInfoForQuery::UnmarshallingVector(
         return false;
     }
     nlohmann::json jsonArray;
-    if (!SafeParse(data, jsonArray) || !jsonArray.is_array() || jsonArray.size() >= MAX_INTENT_SIZE) {
+    if (!SafeParse(data, jsonArray) || !jsonArray.is_array()) {
         TAG_LOGE(AAFwkTag::INTENT, "Failed to parse JSON array");
         return false;
     }
-    std::lock_guard<std::mutex> lock(g_extraMutex);
-    g_parseResult = ERR_OK;
-    infos.clear();
-    for (const auto &item : jsonArray) {
-        InsightIntentInfoForQuery info;
-        if (!SafeJsonGet(item, info, "InsightIntentInfoForQueryListItem")) {
-            TAG_LOGW(AAFwkTag::INTENT, "skip corrupt list item");
-            g_parseResult = ERR_OK;
-            continue;
+    if (jsonArray.size() >= MAX_INTENT_SIZE) {
+        TAG_LOGE(AAFwkTag::INTENT, "The number of intents exceeds the limit");
+        return false;
+    }
+
+    // Best-effort parse: a corrupt item only drops itself, it no longer fails the whole batch.
+    // Results are accumulated into a local vector and committed in one shot, so infos never ends up
+    // holding a partial (half-parsed) list.
+    std::vector<InsightIntentInfoForQuery> parsedInfos;
+    parsedInfos.reserve(jsonArray.size());
+    size_t skippedCount = 0;
+    {
+        std::lock_guard<std::mutex> lock(g_extraMutex);
+        for (size_t index = 0; index < jsonArray.size(); ++index) {
+            InsightIntentInfoForQuery info;
+            if (!ParseInsightIntentInfoListItem(jsonArray[index], index, info)) {
+                ++skippedCount;
+                continue;
+            }
+            parsedInfos.emplace_back(std::move(info));
         }
-        if (g_parseResult != ERR_OK) {
-            TAG_LOGE(AAFwkTag::INTENT, "parse result: %{public}d", g_parseResult);
-            g_parseResult = ERR_OK;
+        g_parseResult = ERR_OK;
+    }
+
+    if (skippedCount != 0) {
+        TAG_LOGW(AAFwkTag::INTENT, "skip %{public}zu corrupt item(s), kept %{public}zu valid item(s)",
+            skippedCount, parsedInfos.size());
+        if (parsedInfos.empty()) {
+            // Nothing usable at all: report failure instead of pretending the array was empty.
+            TAG_LOGE(AAFwkTag::INTENT, "all %{public}zu items are corrupt", skippedCount);
             return false;
         }
-        infos.emplace_back(std::move(info));
     }
+    infos = std::move(parsedInfos);
     return true;
 }
 } // namespace AbilityRuntime
