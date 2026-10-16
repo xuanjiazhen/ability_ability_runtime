@@ -1714,6 +1714,10 @@ generate_static_abc("focused_application_observer_abc") {
 
   is_boot_abc = "True"
   device_dst_file = "/system/framework/focused_application_observer_abc.abc"
+
+  dependencies = [ ":focused_application_info_abc" ]
+  paths_keys = [ "application.FocusedApplicationInfo" ]
+  paths_values = [ "./application/FocusedApplicationInfo.ets" ]
 }
 
 ohos_prebuilt_etc("focused_application_observer_abc_etc") {
