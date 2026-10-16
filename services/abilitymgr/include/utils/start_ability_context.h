@@ -63,6 +63,8 @@ struct StartAbilityContext {
     {
         ermsResultCode = other.ermsResultCode;
         ermsSupportBackToCallerFlag = other.ermsSupportBackToCallerFlag;
+        skipCrowTest = other.skipCrowTest;
+        skipErms = other.skipErms;
     }
 };
 } // namespace AAFwk
