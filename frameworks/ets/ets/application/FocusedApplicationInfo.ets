@@ -13,6 +13,6 @@
  * limitations under the License.
  */
 export default class FocusedApplicationInfo {
-    focusedUid: int;
-    focusedBundleName: string = '';
+    public focusedUid: int;
+    public focusedBundleName: string = '';
 }
