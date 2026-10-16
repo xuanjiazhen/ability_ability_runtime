@@ -768,4 +768,15 @@ export function isApplicationRunning(bundleName: string, callback: AsyncCallback
     appManager.nativeIsApplicationRunning(bundleName, myCall);
   });
 }
+
+export native function nativeOnFocusedApplicationChanged(
+    observer: FocusedApplicationObserver): int;
+export function onFocusedApplicationChanged(observer: FocusedApplicationObserver): int {
+  return appManager.nativeOnFocusedApplicationChanged(observer);
+}
+
+export native function nativeOffFocusedApplicationChanged(observerId: int): void;
+export function offFocusedApplicationChanged(observerId: int): void {
+  appManager.nativeOffFocusedApplicationChanged(observerId);
+}
 } // namespace appManager
