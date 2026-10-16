@@ -16,8 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_ETS_FOCUSED_APPLICATION_OBSERVER_H
 #define OHOS_ABILITY_RUNTIME_ETS_FOCUSED_APPLICATION_OBSERVER_H
 
+#include <map>
 #include <mutex>
-#include <vector>
 
 #include "ani.h"
 #include "ani_common_util.h"

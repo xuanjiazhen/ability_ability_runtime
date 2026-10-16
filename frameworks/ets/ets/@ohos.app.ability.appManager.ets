@@ -24,6 +24,7 @@ import bundleManager from '@ohos.bundle.bundleManager';
 import _AppForegroundStateObserver from 'application.AppForegroundStateObserver';
 import { AbilityFirstFrameStateObserver as _AbilityFirstFrameStateObserver } from 'application.AbilityFirstFrameStateObserver';
 import { AbilityFirstFrameStateData as _AbilityFirstFrameStateData } from 'application.AbilityFirstFrameStateData';
+import { FocusedApplicationObserver as _FocusedApplicationObserver } from 'application.FocusedApplicationObserver';
 import { AbilityUtils } from './utils/AbilityUtils';
 
 const ERROR_CODE_INVALID_PARAM: int = 401;
@@ -40,6 +41,7 @@ export type ApplicationStateObserver = _ApplicationStateObserver;
 export type AppForegroundStateObserver = _AppForegroundStateObserver;
 export type AbilityFirstFrameStateObserver = _AbilityFirstFrameStateObserver;
 export type AbilityFirstFrameStateData = _AbilityFirstFrameStateData;
+export type FocusedApplicationObserver = _FocusedApplicationObserver;
 
 export enum PreloadMode {
   PRESS_DOWN
