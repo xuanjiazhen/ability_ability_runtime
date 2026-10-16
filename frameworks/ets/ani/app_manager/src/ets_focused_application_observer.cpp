@@ -27,6 +27,11 @@ ETSFocusedApplicationObserver::ETSFocusedApplicationObserver(ani_vm *etsVm) : et
 ETSFocusedApplicationObserver::~ETSFocusedApplicationObserver()
 {
     std::lock_guard<std::mutex> lock(etsObserverMapLock_);
+    for (auto &entry : etsObserverMap_) {
+        if (entry.second != nullptr && etsVm_ != nullptr) {
+            AppManagerEts::ReleaseObjectReference(etsVm_, entry.second);
+        }
+    }
     etsObserverMap_.clear();
 }
 
@@ -70,12 +75,10 @@ void ETSFocusedApplicationObserver::HandleOnFocusedApplicationChanged(
     ani_object infoObj = AppManagerEts::WrapFocusedApplicationInfo(env, focusedApplicationInfo);
     if (infoObj == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "WrapFocusedApplicationInfo failed");
-        if (isAttachThread) {
-            DetachAniEnv(etsVm_);
-        }
+        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
     }
-    ani_value argv[] = {{.o = infoObj}};
+    ani_value argv[] = {{.r = infoObj}};
     std::vector<ani_ref> observers;
     {
         std::lock_guard<std::mutex> lock(etsObserverMapLock_);
@@ -87,16 +90,15 @@ void ETSFocusedApplicationObserver::HandleOnFocusedApplicationChanged(
     }
     for (const auto &observerRef : observers) {
         ani_object observerObj = reinterpret_cast<ani_object>(observerRef);
-        ani_status status = env->Object_CallMethodByName_V(
+        env->ResetError();
+        ani_status status = env->Object_CallMethodByName_Void_A(
             observerObj, "onFocusedApplicationChanged",
-            "C{application.FocusedApplicationInfo.FocusedApplicationInfo}:V", argv);
+            "C{application.FocusedApplicationInfo.FocusedApplicationInfo}:", argv);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::APPMGR, "Call onFocusedApplicationChanged failed: %{public}d", status);
         }
     }
-    if (isAttachThread) {
-        DetachAniEnv(etsVm_);
-    }
+    AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
     TAG_LOGD(AAFwkTag::APPMGR, "HandleOnFocusedApplicationChanged end");
 }
 
@@ -108,9 +110,9 @@ void ETSFocusedApplicationObserver::AddEtsObserverObject(
         return;
     }
     ani_ref observerRef = nullptr;
-    ani_status status = env->CreateLocalReference(observerObj, &observerRef);
+    ani_status status = env->GlobalReference_Create(observerObj, &observerRef);
     if (status != ANI_OK || observerRef == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "CreateLocalReference failed: %{public}d", status);
+        TAG_LOGE(AAFwkTag::APPMGR, "GlobalReference_Create failed: %{public}d", status);
         return;
     }
     std::lock_guard<std::mutex> lock(etsObserverMapLock_);
@@ -120,7 +122,13 @@ void ETSFocusedApplicationObserver::AddEtsObserverObject(
 void ETSFocusedApplicationObserver::RemoveEtsObserverObjectById(int32_t observerId)
 {
     std::lock_guard<std::mutex> lock(etsObserverMapLock_);
-    etsObserverMap_.erase(observerId);
+    auto it = etsObserverMap_.find(observerId);
+    if (it != etsObserverMap_.end()) {
+        if (it->second != nullptr && etsVm_ != nullptr) {
+            AppManagerEts::ReleaseObjectReference(etsVm_, it->second);
+        }
+        etsObserverMap_.erase(it);
+    }
 }
 
 bool ETSFocusedApplicationObserver::IsEmpty()
