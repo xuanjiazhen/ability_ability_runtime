@@ -1203,6 +1203,21 @@ public:
     ErrCode KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
         const std::string& reason = "Abilityms::KillProcess");
 
+    /**
+     * Kill the process immediately with a specified userId.
+     *
+     * @param bundleName Bundle name of the application to kill.
+     * @param clearPageStack true to also clear mission/page-stack records of the app.
+     * @param appIndex Clone application index; 0 means the base application.
+     * @param reason Kill reason string recorded in exit statistics.
+     * @param userId The user id to kill process for, -1 means use caller's userId.
+     * @return ERR_OK on success; ERR_PERMISSION_DENIED without permission;
+     *         GET_BUNDLE_INFO_FAILED when the bundle cannot be resolved;
+     *         KILL_PROCESS_KEEP_ALIVE for persistent apps; KILL_PROCESS_FAILED on failure.
+     */
+    ErrCode KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+        const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1);
+
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
      * Force a lifecycle timeout for the named ability for testing (simulates ANR/timeout paths).
@@ -1591,11 +1606,14 @@ public:
      *
      * @param want The want of the ability to prelaunch (explicit element required).
      * @param frameNum Frame number used to remove the start window; 0 means not specified.
+     * @param connect Optional IAbilityConnection callback; when non-null, OnAbilityConnectDone
+     *        is called after prelaunch completes to return the caller object.
      * @return ERR_OK on success; RESOLVE_CALL_NO_PERMISSIONS for non-RSS callers;
      *         ERR_INVALID_VALUE for implicit want / SCB disabled; RESOLVE_CALL_ABILITY_TYPE_ERR /
      *         RESOLVE_CALL_ABILITY_VERSION_ERR for unsupported targets; interceptor errors.
      */
-    ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum = 0);
+    ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum = 0,
+        const sptr<IAbilityConnection> &connect = nullptr);
 
     /**
      * Start a sandbox-clone instance of an application (CLI-tool driven sandbox scenario).

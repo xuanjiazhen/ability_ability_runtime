@@ -997,6 +997,8 @@ public:
     {
         return wFd_;
     }
+    void GetAppSpawnFdsWithLock(int32_t &rFd, int32_t &wFd);
+    void CloseAppSpawnMsgPipe();
 
     /**
      * GetEventHandler, get the ability manager service's handler.
@@ -1042,6 +1044,16 @@ public:
      */
     virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
         const std::string& reason = "Abilityms::KillProcess") override;
+
+    /**
+     * Kill the process immediately with a specified userId.
+     *
+     * @param bundleName.
+     * @param userId The user id to kill process for, -1 means use caller's userId.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false,
+        int32_t appIndex = -1, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1) override;
 
     /**
      * Uninstall app
@@ -1398,7 +1410,11 @@ public:
      * @param frameNum, Special frameNum for remove start window num.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override;
+    virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
+        const sptr<IAbilityConnection> &connect) override;
+
+    int GeneratePrelaunchAbilityRequest(const Want &want, const sptr<IAbilityConnection> &connect,
+        int32_t oriValidUserId, AbilityRequest &abilityRequest);
 
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
@@ -3084,6 +3100,7 @@ private:
     void InitWindowVisibilityChangedListener();
     void FreeWindowVisibilityChangedListener();
     bool CheckProcessIsBackground(int32_t pid, AbilityState currentState);
+    void RemoveVisiblePidByUser(int32_t userId);
     void GetAndSetRootHostToken(
         const sptr<IRemoteObject> &callerToken, const int32_t userId, AbilityRequest &abilityRequest);
     bool CheckIfOperateRemote(const Want &want);
@@ -3647,7 +3664,7 @@ private:
     bool shouldBlockAllAppStart_ = false;
 
     int32_t uniqueId_ = 0;
-    std::unordered_set<int32_t> windowVisibleList_;
+    std::unordered_map<int32_t, int32_t> windowVisibleList_;
 
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
@@ -3801,6 +3818,8 @@ private:
     int32_t rFd_ = -1;
     int32_t wFd_ = -1;
     std::shared_ptr<int32_t> ptrRFd_ = std::make_shared<int32_t>(-1);
+    std::weak_ptr<AbilityManagerService> appSpawnContext_;
+    ffrt::mutex appSpawnPipeMutex_;
     ffrt::mutex globalLock_;
     ffrt::mutex bgtaskObserverMutex_;
     ffrt::mutex abilityTokenLock_;

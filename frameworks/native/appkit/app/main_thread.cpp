@@ -273,7 +273,7 @@ void MainThread::GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &h
             "moduleName: %{public}s, isLibIsolated: %{public}d, compressNativeLibs: %{public}d.",
             hapInfo.moduleName.c_str(), hapInfo.isLibIsolated, hapInfo.compressNativeLibs);
         GetPatchNativeLibPath(hapInfo, patchNativeLibraryPath, appLibPaths);
-        GetHapSoPath(hapInfo, appLibPaths, hapInfo.hapPath.find(ABS_CODE_PATH));
+        GetHapSoPath(hapInfo, appLibPaths, hapInfo.hapPath.find(ABS_CODE_PATH) != 0u);
     }
 
     for (auto &hspInfo : hspList) {
@@ -2345,6 +2345,7 @@ void MainThread::HandleNWebPreload()
             return;
         }
         auto initArgs = std::make_shared<NWeb::NWebEngineInitArgsImpl>();
+        initArgs->SetIsPreloadNWeb(true);
         preloadNWeb_ = NWeb::NWebAdapterHelper::Instance().CreateNWeb(surface, initArgs,
             NWEB_SURFACE_SIZE, NWEB_SURFACE_SIZE, false);
         if (!preloadNWeb_) {

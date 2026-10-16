@@ -48,6 +48,10 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t MAX_KILL_PROCESS_PID_COUNT = 100;
 constexpr int32_t MAX_UPDATE_CONFIG_SIZE = 100;
 constexpr int32_t MAX_WANT_LIST_SIZE = 4;
+constexpr const char* WINDOW_PARAMS_SUGGESTION_SOURCE = "ohos.multiwindow.suggestionSource";
+constexpr const char* WINDOW_PARAMS_APP_LABEL = "ohos.multiwindow.appLabel";
+constexpr const char* WINDOW_PARAMS_SOURCE_BUNDLENAME = "ohos.multiwindow.sourceBundleName";
+constexpr const char* WINDOW_PARAMS_SOURCE_ABILITYNAME = "ohos.multiwindow.sourceAbilityName";
 } // namespace
 AbilityManagerStub::AbilityManagerStub()
 {}
@@ -71,6 +75,14 @@ void AbilityManagerStub::SanitizeWantParams(Want &want)
             want.SetUri(want.GetUriString());
             TAG_LOGI(AAFwkTag::ABILITYMGR, "third-party want uri pass-through blocked");
         }
+    }
+
+    if (!PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "third-party want remove multiwindow params");
+        want.RemoveParam(WINDOW_PARAMS_SUGGESTION_SOURCE);
+        want.RemoveParam(WINDOW_PARAMS_APP_LABEL);
+        want.RemoveParam(WINDOW_PARAMS_SOURCE_BUNDLENAME);
+        want.RemoveParam(WINDOW_PARAMS_SOURCE_ABILITYNAME);
     }
 }
 
@@ -123,6 +135,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel 
     AbilityManagerInterfaceCode interfaceCode = static_cast<AbilityManagerInterfaceCode>(code);
     if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS) {
         return KillProcessInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_USER_ID) {
+        return KillProcessWithUserIdInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::UNINSTALL_APP) {
         return UninstallAppInner(data, reply);
@@ -1571,6 +1586,43 @@ int AbilityManagerStub::KillProcessInner(MessageParcel &data, MessageParcel &rep
     return NO_ERROR;
 }
 
+int AbilityManagerStub::KillProcessWithUserIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::u16string bundleNameU16;
+    if (!data.ReadString16(bundleNameU16)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read bundleName failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::string bundleName = Str16ToStr8(bundleNameU16);
+    bool clearPageStack = false;
+    if (!data.ReadBool(clearPageStack)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read clearPageStack failed");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t appIndex = 0;
+    if (!data.ReadInt32(appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read appIndex failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::u16string reasonU16;
+    if (!data.ReadString16(reasonU16)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read reason failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::string reason = Str16ToStr8(reasonU16);
+    int32_t userId = -1;
+    if (!data.ReadInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read userId failed");
+        return ERR_INVALID_VALUE;
+    }
+    int result = KillProcessWithUserId(bundleName, clearPageStack, appIndex, reason, userId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "remove stack error");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int AbilityManagerStub::UninstallAppInner(MessageParcel &data, MessageParcel &reply)
 {
     std::string bundleName = Str16ToStr8(data.ReadString16());
@@ -2865,7 +2917,18 @@ int AbilityManagerStub::StartAbilityForPrelaunchInner(MessageParcel &data, Messa
     SanitizeWantParams(*want);
     want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     int32_t frameNum = data.ReadInt32();
-    int32_t result = StartAbilityForPrelaunch(*want, frameNum);
+    sptr<IAbilityConnection> connect = nullptr;
+    bool hasConnect = data.ReadBool();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilityForPrelaunchInner hasConnect:%{public}d", hasConnect ? 1 : 0);
+    if (hasConnect) {
+        auto remoteObj = data.ReadRemoteObject();
+        if (remoteObj != nullptr) {
+            connect = iface_cast<IAbilityConnection>(remoteObj);
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "hasConnect=true but ReadRemoteObject returned null");
+        }
+    }
+    int32_t result = StartAbilityForPrelaunch(*want, frameNum, connect);
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "resolve call ability ret = %{public}d", result);
     reply.WriteInt32(result);
@@ -5806,7 +5869,7 @@ int32_t AbilityManagerStub::GetKioskStatusInner(MessageParcel &data, MessageParc
         return ERR_WRITE_KIOSK_STATUS_FAILED;
     }
 
-    if (kioskStatus.kioskToken_ != nullptr && !reply.WriteRemoteObject(kioskStatus.kioskToken_)) {
+    if (!reply.WriteRemoteObject(kioskStatus.kioskToken_)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
         return ERR_WRITE_CALLER_TOKEN_FAILED;
     }

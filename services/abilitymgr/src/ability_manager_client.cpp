@@ -873,6 +873,15 @@ ErrCode AbilityManagerClient::KillProcess(const std::string &bundleName, bool cl
     return abms->KillProcess(bundleName, clearPageStack, appIndex, reason);
 }
 
+ErrCode AbilityManagerClient::KillProcessWithUserId(const std::string &bundleName, bool clearPageStack,
+    int32_t appIndex, const std::string& reason, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "enter");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->KillProcessWithUserId(bundleName, clearPageStack, appIndex, reason, userId);
+}
+
 #ifdef ABILITY_COMMAND_FOR_TEST
 ErrCode AbilityManagerClient::ForceTimeoutForTest(const std::string &abilityName, const std::string &state)
 {
@@ -1291,14 +1300,15 @@ ErrCode AbilityManagerClient::StartAbilityByCallWithErrMsg(const Want &want, spt
         isVisible);
 }
 
-ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
+ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
+    const sptr<IAbilityConnection> &connect)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s/%{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s/%{public}s, hasConnect:%{public}d",
         want.GetBundle().c_str(),
-        want.GetElement().GetAbilityName().c_str());
-    return abms->StartAbilityForPrelaunch(want, frameNum);
+        want.GetElement().GetAbilityName().c_str(), connect != nullptr ? 1 : 0);
+    return abms->StartAbilityForPrelaunch(want, frameNum, connect);
 }
 
 ErrCode AbilityManagerClient::StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params)
