@@ -3212,9 +3212,13 @@ private:
 
     void StartKeepAliveApps(int32_t userId);
 
-    void StartAutoStartupApps(int32_t userId, bool isEDMStart = false);
-    void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList, int32_t userId);
-    bool IsAutoStartupAllowed(int32_t userId, bool isEDMStart);
+    void StartAutoStartupApps(int32_t userId, bool isEDMStart = false, bool isDirectBoot = false);
+    void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList, int32_t userId,
+        bool isDirectBoot = false);
+    bool IsBootStartupTaskActive(int32_t userId);
+    void ClearBootStartupUser(int32_t userId);
+    int32_t StartAutoStartupApp(const AutoStartupInfo &info, int32_t userId);
+    bool IsAutoStartupAllowed(int32_t userId, bool isEDMStart, bool isDirectBoot = false);
     void SubscribeUserUnlockedEvent();
     void SubscribeScreenUnlockedEvent();
     std::function<void(int32_t)> GetScreenUnlockCallback();
@@ -3678,6 +3682,8 @@ private:
     std::mutex subscribedMutex_;
 
     std::shared_ptr<AbilityAutoStartupService> abilityAutoStartupService_;
+    std::mutex bootStartupMutex_;
+    std::map<int32_t, AbilityRuntime::BootStartupState> bootStartupStates_;
 
     std::map<std::string, std::list<std::string>> whiteListMap_;
 

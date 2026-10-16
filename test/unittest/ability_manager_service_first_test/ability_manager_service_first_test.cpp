@@ -56,6 +56,7 @@
 #include "mock_app_mgr_service.h"
 #include "pending_want_record.h"
 #include "want_sender_interface.h"
+#include "user_controller/user_controller.h"
 
 #define private public
 #include "utils/app_mgr_util.h"
@@ -4142,6 +4143,47 @@ HWTEST_F(AbilityManagerServiceFirstTest, ResolvePickerByTargetType_0200, TestSiz
     EXPECT_EQ(ret, ABILITY_SERVICE_NOT_CONNECTED);
     pickerMap.erase(targetType);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolvePickerByTargetType_0200 end");
+}
+
+/**
+ * Feature: AbilityManagerService
+ * Function: ClearBootStartupUser
+ * FunctionPoints: Stopping one user invalidates its old tasks without invalidating another user's cycle.
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, BootStartupUserCycle, TestSize.Level1)
+{
+    using UserController = AbilityRuntime::UserController;
+    auto &controller = UserController::GetInstance();
+    const auto originalStatus = controller.GetUserLockStatus(100);
+    const auto otherStatus = controller.GetUserLockStatus(101);
+    controller.DeleteUserLockStatus(100);
+    controller.DeleteUserLockStatus(101);
+    controller.SetUserLockStatus(100, UserController::UserLockStatus::USER_LOCKED);
+    controller.SetUserLockStatus(101, UserController::UserLockStatus::USER_LOCKED);
+
+    auto service = std::make_shared<AbilityManagerService>();
+    service->bootStartupStates_[100] = {true};
+    service->bootStartupStates_[101] = {true};
+    EXPECT_TRUE(service->IsBootStartupTaskActive(100));
+    EXPECT_FALSE(service->IsBootStartupTaskActive(102));
+    EXPECT_EQ(service->bootStartupStates_.size(), 2);
+    service->ClearBootStartupUser(100);
+    service->ClearBootStartupUser(102);
+    EXPECT_FALSE(service->IsBootStartupTaskActive(100));
+    EXPECT_TRUE(service->IsBootStartupTaskActive(101));
+    EXPECT_EQ(service->bootStartupStates_.count(100), 0);
+    EXPECT_EQ(service->bootStartupStates_.size(), 1);
+    controller.SetUserLockStatus(101, UserController::UserLockStatus::USER_UNLOCKED);
+    EXPECT_FALSE(service->IsBootStartupTaskActive(101));
+
+    controller.DeleteUserLockStatus(100);
+    controller.DeleteUserLockStatus(101);
+    if (originalStatus != UserController::UserLockStatus::USER_LOCK_STATUS_BUTT) {
+        controller.SetUserLockStatus(100, originalStatus);
+    }
+    if (otherStatus != UserController::UserLockStatus::USER_LOCK_STATUS_BUTT) {
+        controller.SetUserLockStatus(101, otherStatus);
+    }
 }
 } // namespace AAFwk
 } // namespace OHOS
