@@ -2380,6 +2380,24 @@ private:
         sptr<IRemoteObject> token = nullptr, const std::string &customProcessFlag = "",
         bool isStartupHide = false);
 
+    /**
+     * @brief Consumes the task-attribution key of the LoadAbility request: when the
+     *        reserved key ohos.task.id is present, extracts it together with the stamped
+     *        caller identity (PARAM_RESV_CALLER_*) and removes the key from this Want copy.
+     *        All LoadAbility branches pass here before any process resolution.
+     */
+    void ConsumeTaskAttributionParam(const std::shared_ptr<AAFwk::Want> &want, std::string &taskId,
+        int32_t &callerUid, pid_t &callerPid);
+
+    /**
+     * @brief Attributes the hosting process into the task carried by the startAbility call:
+     *        liveness plus dual-condition ownership is validated inside the task manager
+     *        (spoof/replay dropped with a security log) and the load result is never
+     *        affected. No-op when no taskId was carried or the record has no pid yet.
+     */
+    void TryAttributeTaskProcess(const std::string &taskId, int32_t callerUid, pid_t callerPid,
+        const std::shared_ptr<AppRunningRecord> &appRecord);
+
     int32_t CreatNewStartMsg(const Want &want, const AbilityInfo &abilityInfo,
         const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName,
         AppSpawnStartMsg &startMsg);

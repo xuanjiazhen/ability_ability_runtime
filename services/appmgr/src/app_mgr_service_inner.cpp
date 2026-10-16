@@ -119,6 +119,8 @@
 #include "window_pid_visibility_changed_listener.h"
 #include "cache_process_manager.h"
 #include "res_sched_util.h"
+#include "task_mgr/common.h"
+#include "task_mgr/task_manager_service.h"
 #include "session_manager_lite.h"
 #include "user_controller/user_controller.h"
 #ifdef APP_NO_RESPONSE_DIALOG
@@ -2208,6 +2210,12 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         return;
     }
 
+    // Consume the task-attribution key before any branch so every load variant is covered.
+    std::string taskAttrTaskId;
+    int32_t taskAttrCallerUid = -1;
+    pid_t taskAttrCallerPid = -1;
+    ConsumeTaskAttributionParam(want, taskAttrTaskId, taskAttrCallerUid, taskAttrCallerPid);
+
     if (loadParam->selfPid > 0) {
         if (!GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
             TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
@@ -2223,6 +2231,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         }
         isProcCache = DelayedSingleton<CacheProcessManager>::GetInstance()->ReuseCachedProcess(appRecord);
         HandleExistingAppRecordAfterFound(appRecord, abilityInfo, hapModuleInfo, want, isProcCache, loadParam);
+        TryAttributeTaskProcess(taskAttrTaskId, taskAttrCallerUid, taskAttrCallerPid, appRecord);
         return;
     }
 
@@ -2418,6 +2427,8 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             AppExecFwk::PreloadMode::PRESS_DOWN, loadParam->token, customProcessFlag, loadParam->isStartupHide);
         if (ProcessKia(isKia, appRecord, watermarkBusinessName, isWatermarkEnabled) != ERR_OK) {
             TAG_LOGE(AAFwkTag::APPMGR, "ProcessKia failed");
+            // The process is already alive: attribute before the early return.
+            TryAttributeTaskProcess(taskAttrTaskId, taskAttrCallerUid, taskAttrCallerPid, appRecord);
             return;
         }
     } else {
@@ -2441,8 +2452,39 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         }
         want->RemoveParam(UIEXTENSION_BIND_ABILITY_ID);
     }
+    // Attribution failures are dropped inside the task manager and never affect the load result.
+    TryAttributeTaskProcess(taskAttrTaskId, taskAttrCallerUid, taskAttrCallerPid, appRecord);
     guard.appRecord_ = appRecord;
     AfterLoadAbility(appRecord, abilityInfo, loadParam, isProcessReuse);
+}
+
+void AppMgrServiceInner::ConsumeTaskAttributionParam(const std::shared_ptr<AAFwk::Want> &want,
+    std::string &taskId, int32_t &callerUid, pid_t &callerPid)
+{
+    if (want == nullptr || !want->HasParameter(TASK_ID_CALLER_KEY)) {
+        return; // zero-cost short circuit for the common no-key path
+    }
+    taskId = want->GetStringParam(TASK_ID_CALLER_KEY);
+    // Consume the key so it does not ride appmgr's own delivery path onward.
+    want->RemoveParam(TASK_ID_CALLER_KEY);
+    // Invalid value (bad length or control characters): drop it, no attribution this call.
+    if (!IsTaskIdValidForAttribution(taskId)) {
+        taskId.clear();
+        return;
+    }
+    // Identity was stamped (remove-then-set) by the AMS Update* entries from the IPC context.
+    callerUid = want->GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
+    callerPid = want->GetIntParam(Want::PARAM_RESV_CALLER_PID, -1);
+}
+
+void AppMgrServiceInner::TryAttributeTaskProcess(const std::string &taskId, int32_t callerUid, pid_t callerPid,
+    const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (taskId.empty() || appRecord == nullptr || appRecord->GetPid() <= 0) {
+        return;
+    }
+    TaskManagerService::GetInstance().AttributeProcessForAbility(taskId, callerUid, callerPid,
+        appRecord->GetPid(), appRecord->GetUid());
 }
 
 void AppMgrServiceInner::ReportUIExtensionProcColdStartToRss(const std::shared_ptr<AbilityInfo>& abilityInfo,

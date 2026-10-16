@@ -291,6 +291,14 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
         }
         AttributionRecord stored = attribution;
         stored.attributedTimeMillis = NowMillis();
+        // Cap the per-task attribution set; refreshing an already managed pid is exempt.
+        if (it->second.attributions.find(stored.pid) == it->second.attributions.end() &&
+            it->second.attributions.size() >= TASK_MAX_ATTRIBUTIONS) {
+            TAG_LOGW(AAFwkTag::APPMGR, "attribution quota exceeded, taskId: %{public}s, "
+                "attributions: %{public}zu, pid: %{public}d",
+                taskId.c_str(), it->second.attributions.size(), stored.pid);
+            return INVALID_PARAMETERS_ERR;
+        }
         it->second.attributions[stored.pid] = stored;
         TAG_LOGI(AAFwkTag::APPMGR, "process registered, taskId: %{public}s, pid: %{public}d, tool: %{public}s",
             taskId.c_str(), stored.pid, AttributionToolToString(stored.tool));
@@ -311,6 +319,61 @@ int32_t TaskManagerService::UnregisterManagedProcessInner(const std::string &tas
     it->second.attributions.erase(pid);
     TAG_LOGI(AAFwkTag::APPMGR, "process unregistered, taskId: %{public}s, pid: %{public}d",
         taskId.c_str(), pid);
+    return ERR_OK;
+}
+
+int32_t TaskManagerService::AttributeProcessForAbility(const std::string &taskId, int32_t callerUid,
+    pid_t callerPid, pid_t targetPid, int32_t targetUid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (!IsTaskIdValidForAttribution(taskId) || targetPid <= 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, targetPid: %{public}d",
+            taskId.size(), targetPid);
+        return INVALID_PARAMETERS_ERR;
+    }
+    std::unique_ptr<TimeoutContext> replacedCtx;
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        auto it = tasks_.find(taskId);
+        if (it == tasks_.end()) {
+            TAG_LOGW(AAFwkTag::APPMGR, "security: task not alive, ability attribution dropped, taskId: "
+                "%{public}s, caller uid: %{public}d, pid: %{public}d, target pid: %{public}d",
+                taskId.c_str(), callerUid, callerPid, targetPid);
+            return ERR_TASK_NOT_FOUND;
+        }
+        TaskRecord &record = it->second;
+        bool isCreator = callerUid >= 0 && record.creatorUid == callerUid;
+        // Membership requires (pid, uid) match; legacy records without uid keep pid-only match.
+        auto memberIt = record.attributions.find(callerPid);
+        bool isTaskMember = callerPid > 0 && memberIt != record.attributions.end() &&
+            (memberIt->second.uid < 0 || memberIt->second.uid == callerUid);
+        if (!isCreator && !isTaskMember) {
+            TAG_LOGW(AAFwkTag::APPMGR, "security: caller neither creator nor managed member, ability "
+                "attribution dropped, taskId: %{public}s, creator uid: %{public}d, caller uid: %{public}d, "
+                "pid: %{public}d, target pid: %{public}d", taskId.c_str(), record.creatorUid, callerUid,
+                callerPid, targetPid);
+            return ERR_TASK_NOT_FOUND;
+        }
+        // Cap the per-task attribution set; refreshing an already managed pid is exempt.
+        if (record.attributions.find(targetPid) == record.attributions.end() &&
+            record.attributions.size() >= TASK_MAX_ATTRIBUTIONS) {
+            TAG_LOGW(AAFwkTag::APPMGR, "security: attribution quota exceeded, ability attribution "
+                "dropped, taskId: %{public}s, attributions: %{public}zu, target pid: %{public}d",
+                taskId.c_str(), record.attributions.size(), targetPid);
+            return INVALID_PARAMETERS_ERR;
+        }
+        AttributionRecord attribution;
+        attribution.pid = targetPid;
+        attribution.uid = targetUid;
+        attribution.tool = AttributionTool::ABILITY;
+        attribution.attributedTimeMillis = NowMillis();
+        record.attributions[targetPid] = attribution;
+        TAG_LOGI(AAFwkTag::APPMGR, "process attributed via startAbility, taskId: %{public}s, caller uid: "
+            "%{public}d, pid: %{public}d, target pid: %{public}d", taskId.c_str(), callerUid, callerPid,
+            targetPid);
+        replacedCtx = RestartTimeoutWindow(taskId, record);
+    }
+    ReleaseTimeoutContext(std::move(replacedCtx));
     return ERR_OK;
 }
 
