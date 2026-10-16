@@ -871,5 +871,52 @@ HWTEST_F(InsightIntentInfoForQueryTest, MarshallingVector_0500, TestSize.Level1)
     }
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
+
+/**
+ * @tc.name: UnmarshallingVector_0600
+ * @tc.desc: Test UnmarshallingVector skips a corrupt item and keeps the valid ones.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentInfoForQueryTest, UnmarshallingVector_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    MessageParcel parcel;
+    std::string jsonStr = "[{\"isConfig\":false,\"bundleName\":\"com.test.bundle\",\"moduleName\":\"entry\","
+        "\"intentName\":\"PlayMusic\",\"domain\":\"testDomain\",\"intentVersion\":\"1.0\","
+        "\"displayName\":\"Play Music\",\"intentType\":\"@InsightIntentPage\"},{\"isConfig\":true}]";
+    parcel.WriteUint32(jsonStr.size() + 1);
+    parcel.WriteRawData(jsonStr.c_str(), jsonStr.size() + 1);
+
+    std::vector<InsightIntentInfoForQuery> readInfos;
+    EXPECT_TRUE(InsightIntentInfoForQuery::UnmarshallingVector(parcel, readInfos));
+    ASSERT_EQ(readInfos.size(), 1U);
+    EXPECT_EQ(readInfos[0].bundleName, TEST_BUNDLE_NAME);
+    EXPECT_EQ(readInfos[0].intentName, TEST_INTENT_NAME);
+    EXPECT_EQ(readInfos[0].intentType, std::string(INSIGHT_INTENTS_TYPE_PAGE));
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: UnmarshallingVector_0700
+ * @tc.desc: Test UnmarshallingVector returns false and keeps infos untouched when every item is corrupt.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentInfoForQueryTest, UnmarshallingVector_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    MessageParcel parcel;
+    std::string jsonStr = "[{\"isConfig\":true},{\"unexpected\":1}]";
+    parcel.WriteUint32(jsonStr.size() + 1);
+    parcel.WriteRawData(jsonStr.c_str(), jsonStr.size() + 1);
+
+    std::vector<InsightIntentInfoForQuery> readInfos;
+    InsightIntentInfoForQuery sentinel;
+    sentinel.bundleName = TEST_BUNDLE_NAME;
+    readInfos.push_back(sentinel);
+    EXPECT_FALSE(InsightIntentInfoForQuery::UnmarshallingVector(parcel, readInfos));
+    ASSERT_EQ(readInfos.size(), 1U);
+    EXPECT_EQ(readInfos[0].bundleName, TEST_BUNDLE_NAME);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
