@@ -54,6 +54,8 @@ ohos_fuzztest("AbilityFrameworksNativeOhosJsEnvLoggerFuzzTest") {
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
   ]
 
+  configs += [ "${ability_runtime_services_path}/abilitymgr:fuzztest_no_lto_config" ]
+
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",

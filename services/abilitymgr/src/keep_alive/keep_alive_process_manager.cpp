@@ -17,6 +17,7 @@
 
 #include <utility>
 
+#include "ability_manager_service.h"
 #include "ability_util.h"
 #include "exit_reason.h"
 #include "ffrt.h"

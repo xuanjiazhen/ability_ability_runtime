@@ -47,6 +47,8 @@ ohos_fuzztest("FreezeUtilFuzzTest") {
 
   configs = [ "${ability_runtime_utils_path}/global/freeze:freeze_util_config" ]
 
+  configs += [ "${ability_runtime_services_path}/abilitymgr:fuzztest_no_lto_config" ]
+
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",

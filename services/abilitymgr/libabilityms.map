@@ -39,6 +39,7 @@
       *ApplicationAnrListener*;
       *AppMgrUtil*;
       *AppScheduler*;
+      *AmsResidentProcessRdb*;
       *AtomicServiceStatusCallback*;
       *RemoteIntentResultCallback*;
       *BackgroundTaskObserver*;
@@ -63,9 +64,11 @@
       *ExtensionPermissionsUtil*;
       *DataAbilityManager*;
       *BaseExtensionRecord*;
+      *DatabaseWriteCounter*;
       *FreeInstallManager*;
       *FreeInstallObserverManager*;
       *ForegroundAppConnectionManager*;
+      *HiddenStartObserverManager*;
       *ImplicitStartProcessor*;
       *InnerMissionInfo*;
       *InsightIntentUtils*;
@@ -90,13 +93,17 @@
       *PendingWantKey*;
       *PendingWantManager*;
       *PendingWantRecord*;
+      *ProcessOptions*;
       *ResidentProcessManager*;
       *StartAbilityUtils*;
       *StartOptions*;
       *StateUtils*;
+      *StatusBarDelegateManager*;
+      *SubManagersHelper*;
       *SystemDialogScheduler*;
       *TaskDataPersistenceMgr*;
       *Token*;
+      *UIAbilityLifecycleManager*;
       *UpdateCallerInfoUtil*;
       *UriUtils*;
       *UserController*;
@@ -111,6 +118,7 @@
       *WantSenderProxy*;
       *WantUtils*;
       *WindowOptionsUtils*;
+      *;
     };
   local:
     *;

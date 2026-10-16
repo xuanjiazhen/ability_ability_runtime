@@ -32,7 +32,6 @@ abilityms_files = [
   "src/ability_start_with_wait_observer_manager/ability_start_with_wait_observer_manager.cpp",
   "src/ability_token_stub.cpp",
   "src/app_scheduler.cpp",
-  "src/app_exit_reason_helper.cpp",
   "src/assert_fault_callback_death_mgr.cpp",
   "src/assert_fault_proxy.cpp",
   "src/connection_record.cpp",
@@ -126,29 +125,11 @@ abilityms_files = [
 
   "src/background_task_observer.cpp",
 
-  #resident_process
-  "src/resident_process/resident_process_manager.cpp",
-
   "src/ability_bundle_event_callback.cpp",
-
-  "src/app_exit_reason_data_manager.cpp",
 
   "src/ability_auto_startup_data_manager.cpp",
   "src/ability_auto_startup_service.cpp",
   "src/auto_startup_info.cpp",
-  "src/insight_intent/insight_intent_db_cache.cpp",
-  "src/insight_intent/insight_intent_execute_manager.cpp",
-  "src/insight_intent/insight_intent_execute_result.cpp",
-  "src/insight_intent/insight_intent_profile.cpp",
-  "src/insight_intent/insight_intent_rdb_data_mgr.cpp",
-  "src/insight_intent/insight_intent_rdb_storage_mgr.cpp",
-  "src/insight_intent/insight_intent_utils.cpp",
-  "src/insight_intent/extract_insight_intent_profile.cpp",
-  "src/insight_intent/function_call_convert.cpp",
-  "src/insight_intent/insight_intent_event_mgr.cpp",
-  "src/insight_intent/insight_intent_matcher.cpp",
-  "src/insight_intent/insight_intent_param_parser.cpp",
-  "src/insight_intent/insight_intent_sys_event_receiver.cpp",
 
   #skill execution
   "src/skill/skill_execute_callback_proxy.cpp",
@@ -164,14 +145,15 @@ abilityms_files = [
   "src/report_data_partition_usage_manager.cpp",
   "src/database_write_counter.cpp",
 
-  # keep alive
-  "src/keep_alive/ability_keep_alive_data_manager.cpp",
-  "src/keep_alive/ability_keep_alive_service.cpp",
-  "src/keep_alive/keep_alive_process_manager.cpp",
+  # keep alive — moved to libabilityms_keepalive.z.so
+  # "src/keep_alive/ability_keep_alive_data_manager.cpp",
+  # "src/keep_alive/ability_keep_alive_service.cpp",
+  # "src/keep_alive/keep_alive_process_manager.cpp",
 
   "src/ability_manager_event_subscriber.cpp",
 
-  "src/exit_info_data_manager.cpp",
+  # exit_info_data_manager — moved to libabilityms_exitreason.z.so
+  # "src/exit_info_data_manager.cpp",
 
   # preload_manager_service
   "src/preload_manager_service.cpp",

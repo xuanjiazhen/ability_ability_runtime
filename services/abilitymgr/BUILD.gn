@@ -20,6 +20,9 @@ ohos_shared_headers("abilityms_target") {
   include_dirs = [ "include/" ]
   deps = [
     ":abilityms",
+    ":abilityms_exitreason",
+    ":abilityms_insight",
+    ":abilityms_keepalive",
     ":ams_service_config",
     ":mission_list",
   ]
@@ -29,6 +32,14 @@ ohos_shared_headers("abilityms_target") {
 
 config("abilityms_exception_config") {
   cflags_cc = [ "-fexceptions" ]
+}
+
+config("allow_undefined_symbols_config") {
+  ldflags = [ "-Wl,-z,undefs" ]
+}
+
+config("fuzztest_no_lto_config") {
+  cflags = [ "-fno-lto" ]
 }
 
 # 暴露 cli_tool function include 路径给依赖 abilityms 的目标（包括所有 TDD）。
@@ -186,7 +197,13 @@ ohos_shared_library("abilityms") {
     "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection:agent_extension_connection",
   ]
 
-  public_deps = [ "${ability_runtime_path}/utils/global/common:runtime_utils" ]
+  public_deps = [
+    ":abilityms_exitreason",
+    ":abilityms_insight",
+    ":abilityms_keepalive",
+    "${ability_runtime_innerkits_path}/ability_manager:process_options",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
+  ]
 
   external_deps = [
     "ability_base:base",
@@ -639,6 +656,235 @@ ohos_shared_library("modular_object") {
   part_name = "ability_runtime"
 }
 
+ohos_shared_library("abilityms_insight") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_policy = "adaptive"
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
+  shlib_type = "sa"
+  sources = [
+    "src/insight_intent/insight_intent_db_cache.cpp",
+    "src/insight_intent/insight_intent_execute_manager.cpp",
+    "src/insight_intent/insight_intent_execute_result.cpp",
+    "src/insight_intent/insight_intent_profile.cpp",
+    "src/insight_intent/insight_intent_rdb_data_mgr.cpp",
+    "src/insight_intent/insight_intent_rdb_storage_mgr.cpp",
+    "src/insight_intent/insight_intent_utils.cpp",
+    "src/insight_intent/extract_insight_intent_profile.cpp",
+    "src/insight_intent/function_call_convert.cpp",
+    "src/insight_intent/insight_intent_event_mgr.cpp",
+    "src/insight_intent/insight_intent_matcher.cpp",
+    "src/insight_intent/insight_intent_param_parser.cpp",
+    "src/insight_intent/insight_intent_sys_event_receiver.cpp",
+  ]
+  configs = [
+    ":abilityms_config",
+    ":abilityms_exception_config",
+  ]
+  public_configs = [ ":abilityms_cli_tool_function_include" ]
+  include_dirs = [
+    "${ability_runtime_services_path}/abilitymgr/include/insight_intent",
+    "${ability_runtime_innerkits_path}/ability_manager/include/insight_intent",
+  ]
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_native_path}/ability/native:ability_observer_ipc",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
+    "${ability_runtime_path}/utils/server/startup:startup_util",
+    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:perm_verification",
+    "${ability_runtime_services_path}/common:task_handler_wrap",
+    "${ability_runtime_services_path}/common:user_controller",
+    "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client",
+  ]
+  configs += [ ":allow_undefined_symbols_config" ]
+  external_deps = [
+    "ability_base:want",
+    "ability_base:zuri",
+    "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "json:nlohmann_json_static",
+    "relational_store:native_appdatafwk",
+    "relational_store:native_dataability",
+    "relational_store:native_rdb",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+  if (ability_runtime_dsoftbus_enable) {
+    external_deps += [ "dsoftbus:softbus_client" ]
+    defines = [ "SUPPORT_RECORDER_DSOFTBUS" ]
+  }
+  defines = []
+  cflags_cc = [ "-fexceptions" ]
+  version_script = "libabilityms_insight.map"
+  subsystem_name = "ability"
+  innerapi_tags = [ "platformsdk_indirect" ]
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("abilityms_exitreason") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_policy = "adaptive"
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+  shlib_type = "sa"
+  sources = [
+    "src/app_exit_reason_data_manager.cpp",
+    "src/app_exit_reason_helper.cpp",
+    "src/exit_info_data_manager.cpp",
+  ]
+  configs = [
+    ":abilityms_config",
+    ":abilityms_exception_config",
+  ]
+  include_dirs = [
+    "${ability_runtime_services_path}/abilitymgr/include/insight_intent",
+    "${ability_runtime_innerkits_path}/ability_manager/include/insight_intent",
+  ]
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
+    "${ability_runtime_path}/utils/server/startup:startup_util",
+    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hisysevent_report",
+    "${ability_runtime_services_path}/common:perm_verification",
+    "${ability_runtime_services_path}/common:task_handler_wrap",
+    "${ability_runtime_services_path}/common:user_controller",
+  ]
+  configs += [ ":allow_undefined_symbols_config" ]
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "bundle_framework:libappexecfwk_common",
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
+    "os_account:os_account_innerkits",
+    "relational_store:native_appdatafwk",
+    "relational_store:native_dataability",
+    "relational_store:native_rdb",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "window_manager:libwsutils",
+    "window_manager:session_manager_lite",
+  ]
+  defines = []
+  cflags_cc = [ "-fexceptions" ]
+  version_script = "libabilityms_exitreason.map"
+  subsystem_name = "ability"
+  innerapi_tags = [ "platformsdk_indirect" ]
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("abilityms_keepalive") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_policy = "adaptive"
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
+  shlib_type = "sa"
+  sources = [
+    "src/keep_alive/ability_keep_alive_data_manager.cpp",
+    "src/keep_alive/ability_keep_alive_service.cpp",
+    "src/keep_alive/keep_alive_process_manager.cpp",
+    "src/resident_process/resident_process_manager.cpp",
+  ]
+  configs = [
+    ":abilityms_config",
+    ":abilityms_exception_config",
+  ]
+  include_dirs = [
+    "${ability_runtime_services_path}/abilitymgr/include/resident_process",
+    "${ability_runtime_services_path}/abilitymgr/include/keep_alive",
+    "${ability_runtime_services_path}/abilitymgr/include/utils",
+    "${ability_runtime_services_path}/abilitymgr/include/insight_intent",
+    "${ability_runtime_services_path}/abilitymgr/include",
+    "${ability_runtime_services_path}/common/include/user_controller",
+  ]
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
+    "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/utils/server/startup:startup_util",
+    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hisysevent_report",
+    "${ability_runtime_services_path}/common:perm_verification",
+    "${ability_runtime_services_path}/common:task_handler_wrap",
+    "${ability_runtime_services_path}/common:user_controller",
+  ]
+  configs += [ ":allow_undefined_symbols_config" ]
+  external_deps = [
+    "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "bundle_framework:libappexecfwk_common",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "hicollie:libhicollie",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "json:nlohmann_json_static",
+    "kv_store:distributeddata_inner",
+    "relational_store:native_appdatafwk",
+    "relational_store:native_dataability",
+    "relational_store:native_rdb",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+  defines = []
+  cflags_cc = [ "-fexceptions" ]
+  if (ability_runtime_graphics) {
+    defines += [ "SUPPORT_GRAPHICS" ]
+    external_deps += [ "window_manager:session_manager_lite" ]
+  }
+  version_script = "libabilityms_keepalive.map"
+  subsystem_name = "ability"
+  innerapi_tags = [ "platformsdk_indirect" ]
+  part_name = "ability_runtime"
+}
+
 ohos_prebuilt_etc("ams_service_config.json") {
   source = "resource/ams_service_config.json"
   subsystem_name = "ability"
@@ -729,6 +975,9 @@ ohos_shared_library("mission_list") {
 
   deps = [
     ":abilityms",
+    ":abilityms_exitreason",
+    ":abilityms_insight",
+    ":abilityms_keepalive",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",

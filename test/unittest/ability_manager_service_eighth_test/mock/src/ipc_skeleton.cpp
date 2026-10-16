@@ -47,4 +47,14 @@ uint32_t IPCSkeleton::SetCallingTokenID(pid_t tokenId)
 {
     return tokenId_ = tokenId;
 }
+
+bool IPCSkeleton::SetCallingIdentity(std::string &identity)
+{
+    return true;
+}
+
+std::string IPCSkeleton::ResetCallingIdentity()
+{
+    return "";
+}
 }  // namespace OHOS

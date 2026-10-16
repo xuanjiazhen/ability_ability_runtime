@@ -47,6 +47,7 @@ ohos_fuzztest("OpenLinkOptionsFuzzTest") {
   ]
 
   configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
+  configs += [ "${ability_runtime_test_path}/fuzztest:no_split_lto_unit" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",

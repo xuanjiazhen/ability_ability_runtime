@@ -19,15 +19,19 @@
 #include <functional>
 #include <mutex>
 
-#include "ability_manager_service.h"
 #include "app_scheduler.h"
 #include "bundle_info.h"
 #include "ffrt.h"
+#include "keep_alive_info.h"
 #include "singleton.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+class AbilityKeepAliveService;
+}
 namespace AAFwk {
 using AbilityKeepAliveService = AbilityRuntime::AbilityKeepAliveService;
+using KeepAliveInfo = AbilityRuntime::KeepAliveInfo;
 
 struct KeepAliveAbilityInfo {
     int32_t userId = 0;

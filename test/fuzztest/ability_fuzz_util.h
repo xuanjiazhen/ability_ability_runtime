@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "ability_record.h"
+#include "ability_manager_service.h"
 #include "ability_info.h"
 #include "application_info.h"
 #include "auto_startup_info.h"

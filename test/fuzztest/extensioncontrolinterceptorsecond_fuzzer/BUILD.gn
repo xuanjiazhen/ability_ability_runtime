@@ -46,7 +46,9 @@ ohos_fuzztest("ExtensionControlInterceptorSecondFuzzTest") {
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
-  cflags = []
+  cflags = [
+]
+  configs += [ "${ability_runtime_services_path}/abilitymgr:fuzztest_no_lto_config" ]
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
