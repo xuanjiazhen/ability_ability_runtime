@@ -462,13 +462,6 @@ HWTEST_F(AbilityManagerServiceMockTest, PreloadUIExtensionAbilityInner_0100, Tes
     std::string abilityName_ = "testAbility";
     Want want;
     want.SetElementName(bundleName, abilityName_);
-    StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
-    AppExecFwk::ApplicationInfo applicationInfo;
-    applicationInfo.bundleName = bundleName;
-    applicationInfo.name = "test";
-    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo = applicationInfo;
-    StartAbilityUtils::startAbilityInfo->status = ERR_OK;
-    StartAbilityUtils::startAbilityInfo->abilityInfo.visible = true;
     abilityMs->subManagersHelper_ = nullptr;
     int32_t preloadId = 1;
     int32_t userId = 1;
@@ -489,13 +482,6 @@ HWTEST_F(AbilityManagerServiceMockTest, PreloadUIExtensionAbilityInner_0200, Tes
     std::string abilityName_ = "MainAbility";
     Want want;
     want.SetElementName(bundleName, abilityName_);
-    StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
-    AppExecFwk::ApplicationInfo applicationInfo;
-    applicationInfo.bundleName = bundleName;
-    applicationInfo.name = "test";
-    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo = applicationInfo;
-    StartAbilityUtils::startAbilityInfo->status = ERR_OK;
-    StartAbilityUtils::startAbilityInfo->abilityInfo.visible = true;
     abilityMs->subManagersHelper_ = nullptr;
     int32_t preloadId = 1;
     int32_t userId = 1;
