@@ -47,6 +47,9 @@ public:
     ErrCode GetBundleInfoV9(
         const std::string &bundleName, int32_t flags, BundleInfo &bundleInfo, int32_t userId);
     ErrCode GetBundleInfosV9(int32_t flags, std::vector<BundleInfo> &bundleInfos, int32_t userId);
+    ErrCode QueryExtensionAbilityInfoOptimal(const Want &want, const int32_t &flag, const int32_t &userId,
+        ExtensionAbilityInfo &extensionInfo);
+    ErrCode GetDualModeBundleInfo(const std::string &bundleName, int32_t userId, int32_t &appIndex);
 
 private:
     DECLARE_DELAYED_SINGLETON(BundleMgrHelper)
