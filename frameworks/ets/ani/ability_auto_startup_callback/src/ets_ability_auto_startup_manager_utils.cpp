@@ -52,6 +52,11 @@ bool UnwrapAutoStartupInfo(ani_env *env, ani_object param, AutoStartupInfo &info
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Failed to get moduleName");
         return false;
     }
+    if (AppExecFwk::IsExistsProperty(env, param, "isDirectBoot") &&
+        !AppExecFwk::GetBooleanPropertyObject(env, param, "isDirectBoot", info.isDirectBoot)) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Failed to get isDirectBoot");
+        return false;
+    }
     return true;
 }
 
@@ -162,6 +167,10 @@ ani_object CreateAniAutoStartupInfo(ani_env *env, const AutoStartupInfo &info)
     }
     if ((status = env->Object_New(cls, method, &object)) != ANI_OK || object == nullptr) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Object_New failed status : %{public}d or null object", status);
+        return nullptr;
+    }
+    if (!AppExecFwk::SetRefProperty(env, object, "isDirectBoot", AppExecFwk::CreateBoolean(env, info.isDirectBoot))) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "failed to set isDirectBoot");
         return nullptr;
     }
     if (!SetAutoStartupInfo(env, object, info)) {

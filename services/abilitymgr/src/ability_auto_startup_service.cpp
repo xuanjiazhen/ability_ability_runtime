@@ -17,6 +17,7 @@
 
 #include "ability_auto_startup_data_manager.h"
 #include "ability_manager_service.h"
+#include "accesstoken_kit.h"
 #include "app_utils.h"
 #include "auto_startup_callback_proxy.h"
 #include "auto_startup_interface.h"
@@ -165,6 +166,9 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartup(const AutoStartupIn
     fullInfo.canUserModify = true;
     fullInfo.setterType = AutoStartupSetterType::USER;
 
+    if (fullInfo.isDirectBoot && CheckBootAppPermission(fullInfo) != ERR_OK) {
+        return ERR_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT;
+    }
     return InnerSetApplicationAutoStartup(fullInfo);
 }
 
@@ -608,6 +612,46 @@ std::shared_ptr<AppExecFwk::BundleMgrClient> AbilityAutoStartupService::GetBundl
         bundleMgrClient_ = DelayedSingleton<AppExecFwk::BundleMgrClient>::GetInstance();
     }
     return bundleMgrClient_;
+}
+
+int32_t AbilityAutoStartupService::CheckBootAppPermission(const AutoStartupInfo &info)
+{
+    auto tokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(
+        info.userId, info.bundleName, info.appCloneIndex);
+    if (tokenId == Security::AccessToken::INVALID_TOKENID) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "invalid boot app token");
+        return ERR_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT;
+    }
+    if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId,
+        PermissionConstants::PERMISSION_ALLOW_DIRECT_BOOT) != Security::AccessToken::PERMISSION_GRANTED ||
+        Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId,
+        PermissionConstants::PERMISSION_START_WINDOW_BELOW_LOCK_SCREEN) != Security::AccessToken::PERMISSION_GRANTED) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "target lacks direct boot permissions: %{public}s", info.bundleName.c_str());
+        return ERR_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT;
+    }
+    return ERR_OK;
+}
+
+bool AbilityAutoStartupService::CanStartBootApp(const AutoStartupInfo &info)
+{
+    DistributedKv::Key originKey;
+    auto status = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAutoStartupData(info, originKey);
+    if (status.code != ERR_OK || !status.isAutoStartup || !status.isDirectBoot) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "cannot start boot app, query/status invalid, code:%{public}d auto:%{public}d boot:%{public}d",
+            status.code, status.isAutoStartup, status.isDirectBoot);
+        return false;
+    }
+    AutoStartupAbilityData abilityData;
+    if (GetAbilityInfo(info, abilityData) != ERR_OK || abilityData.accessTokenId != info.accessTokenId) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "cannot start boot app, abilityInfo or accessTokenId mismatch: %{public}s",
+            info.bundleName.c_str());
+        return false;
+    }
+    if (CheckBootAppPermission(info) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "cannot start boot app, permission denied: %{public}s", info.bundleName.c_str());
+        return false;
+    }
+    return true;
 }
 
 int32_t AbilityAutoStartupService::CheckPermissionForSystem()
