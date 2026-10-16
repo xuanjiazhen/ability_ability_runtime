@@ -3831,6 +3831,25 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_SetGamePreLaunchCompleteTi
 
 /*
  * Feature: AbilityManagerService
+ * Function: ExtendGamePreLaunchTimeout
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy ExtendGamePreLaunchTimeout
+ * EnvConditions: NA
+ * CaseDescription: Verify ExtendGamePreLaunchTimeout with valid parameters
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_ExtendGamePreLaunchTimeout_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(NO_ERROR));
+    int32_t userId = 100;
+    int64_t extendTime = 60 * 1000 * 1000; // 60s in microseconds
+    auto res = proxy_->ExtendGamePreLaunchTimeout(userId, extendTime);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: NotifyCancelGamePreLaunch
  * SubFunction: NA
  * FunctionPoints: AbilityManagerProxy NotifyCancelGamePreLaunch
