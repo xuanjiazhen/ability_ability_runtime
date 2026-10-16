@@ -735,7 +735,7 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
         return;
     }
     int32_t userId = abilityMgr->GetValidUserId(DEFAULT_INVAL_VALUE);
-    abilityMgr->StartAutoStartupApps(userId);
+    abilityMgr->StartAutoStartupApps(userId, false, false);
 }
 
 int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
@@ -10207,7 +10207,7 @@ void AbilityManagerService::StartKeepAliveApps(int32_t userId)
     KeepAliveProcessManager::GetInstance().StartKeepAliveProcessWithMainElement(bundleInfos, userId);
 }
 
-bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart)
+bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart, bool isDirectBoot)
 {
     if (userId == DEFAULT_INVAL_VALUE) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid userId");
@@ -10221,6 +10221,9 @@ bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return false;
+    }
+    if (isDirectBoot) {
+        return true;
     }
     if (isEDMStart) {
         // EDM start is an explicit command guarded by its own permission check,
@@ -10238,10 +10241,10 @@ bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart
     return true;
 }
 
-void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart)
+void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart, bool isDirectBoot)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAutoStartupApps called");
-    if (!IsAutoStartupAllowed(userId, isEDMStart)) {
+    if (!IsAutoStartupAllowed(userId, isEDMStart, isDirectBoot)) {
         return;
     }
     std::vector<AutoStartupInfo> infoList;
@@ -10258,11 +10261,15 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart
     std::queue<AutoStartupInfo> infoQueue;
     for (auto &info : infoList) {
         info.retryCount = START_AUTO_START_APP_RETRY_MAX_TIMES;
-        infoQueue.push(info);
+        if (info.isDirectBoot == isDirectBoot) {
+            infoQueue.push(info);
+        }
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAutoStartupApps userId:%{public}d", userId);
-    StartAutoStartupApps(infoQueue, userId);
-    if (isEDMStart) {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAutoStartupApps user:%{public}d boot:%{public}d "
+        "total:%{public}zu queued:%{public}zu",
+        userId, isDirectBoot, infoList.size(), infoQueue.size());
+    StartAutoStartupApps(std::move(infoQueue), userId);
+    if (isEDMStart || isDirectBoot) {
         return;
     }
     // The auto startup trigger is done regardless of the launch results, consume the
@@ -10399,7 +10406,7 @@ std::function<void(int32_t)> AbilityManagerService::GetScreenUnlockCallback()
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityMgr pointer");
                 return;
             }
-            abilityMgr->StartAutoStartupApps(userId);
+            abilityMgr->StartAutoStartupApps(userId, false, false);
         };
         taskHandler->SubmitTask(delayStartAutoStartupAppTask, "DelayStartAutoStartupApps",
             START_AUTO_START_APP_DELAY_TIME);
@@ -14549,6 +14556,31 @@ void AbilityManagerService::SetRootSceneSession(const sptr<IRemoteObject> &rootS
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER(uiAbilityManager);
     uiAbilityManager->SetRootSceneSession(rootSceneSession);
+    if (rootSceneSession == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null rootSceneSession for boot startup");
+        return;
+    }
+    if (taskHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null taskHandler for boot startup");
+        return;
+    }
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    if (AppExecFwk::OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(
+        IPCSkeleton::GetCallingUid(), userId) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get boot startup userId from uid failed");
+        return;
+    }
+    if (userId < 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid boot startup user:%{public}d", userId);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SCB root session ready, boot startup user:%{public}d", userId);
+    taskHandler_->SubmitTask([weak = weak_from_this(), userId]() {
+        auto service = weak.lock();
+        if (service != nullptr) {
+            service->StartAutoStartupApps(userId, false, true);
+        }
+    }, "StartBootAutoStartupApps");
 }
 
 void AbilityManagerService::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
@@ -14925,7 +14957,7 @@ int32_t AbilityManagerService::ManualStartAutoStartupApps(int32_t userId)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "verify PERMISSION_MANAGE_APP_BOOT_INTERNAL fail");
         return CHECK_PERMISSION_FAILED;
     }
-    StartAutoStartupApps(userId, true);
+    StartAutoStartupApps(userId, true, false);
     return ERR_OK;
 }
 
