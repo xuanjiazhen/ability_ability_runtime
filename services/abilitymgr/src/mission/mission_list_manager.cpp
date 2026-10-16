@@ -1519,6 +1519,56 @@ int32_t MissionListManager::BackToCallerAbilityWithResult(std::shared_ptr<Abilit
         MissionAbilityRecord::FromBaseRecord(callerAbilityRecord));
 }
 
+int32_t MissionListManager::BackToCallerAppWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+    int32_t resultCode, const Want *resultWant, int64_t callerRequestCode)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::lock_guard<ffrt::mutex> guard(managerLock_);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
+        return ERR_INVALID_VALUE;
+    }
+    auto requestInfo = StartupUtil::ParseFullRequestCode(callerRequestCode);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "pid:%{public}d, backFlag:%{public}d, requestCode:%{public}d",
+        requestInfo.pid, requestInfo.backFlag, requestInfo.requestCode);
+    if (requestInfo.requestCode <= 0 || requestInfo.pid <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "cant't find caller");
+        return ERR_CALLER_NOT_EXISTS;
+    }
+    auto callerAbilityRecord = abilityRecord->GetCallerByRequestCode(requestInfo.requestCode, requestInfo.pid);
+    if (callerAbilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not exists");
+        return ERR_CALLER_NOT_EXISTS;
+    }
+    auto abilityResult = std::make_shared<AbilityResult>(requestInfo.requestCode, resultCode, *resultWant);
+    callerAbilityRecord->SendResultByBackToCaller(abilityResult);
+    abilityRecord->RemoveCallerRequestCode(callerAbilityRecord, requestInfo.requestCode);
+    if (!requestInfo.backFlag) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "not support back to caller");
+        return ERR_NOT_SUPPORT_BACK_TO_CALLER;
+    }
+    if (callerAbilityRecord == abilityRecord) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "caller is self");
+        return ERR_OK;
+    }
+    auto tokenId = abilityRecord->GetAbilityInfo().applicationInfo.accessTokenId;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "tokenId: %{public}d.", tokenId);
+    if (!abilityRecord->IsForeground() && !abilityRecord->GetAbilityForegroundingFlag() &&
+        !PermissionVerification::GetInstance()->VerifyPermissionByTokenId(tokenId,
+        PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "not start ability from background");
+        return CHECK_PERMISSION_FAILED;
+    }
+    auto foundCount = 0;
+    while (((++foundCount) <= MAX_FIND_UIEXTENSION_CALLER_TIMES) && callerAbilityRecord &&
+        UIExtensionWrapper::IsUIExtension(callerAbilityRecord->GetAbilityInfo().extensionAbilityType)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "caller is uiExtension");
+        callerAbilityRecord = callerAbilityRecord->GetCallerRecord();
+    }
+    return MoveAbilityToBackgroundLocked(MissionAbilityRecord::FromBaseRecord(abilityRecord),
+        MissionAbilityRecord::FromBaseRecord(callerAbilityRecord));
+}
+
 int MissionListManager::MoveAbilityToBackground(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
