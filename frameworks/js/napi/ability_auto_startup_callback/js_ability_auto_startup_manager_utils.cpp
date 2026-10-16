@@ -46,6 +46,11 @@ bool UnwrapAutoStartupInfo(napi_env env, napi_value param, AutoStartupInfo &info
     }
     
     AppExecFwk::UnwrapStringByPropertyName(env, param, "moduleName", info.moduleName);
+    if (AppExecFwk::IsExistsByPropertyName(env, param, "isDirectBoot") &&
+        !AppExecFwk::UnwrapBooleanByPropertyName(env, param, "isDirectBoot", info.isDirectBoot)) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "convert isDirectBoot failed");
+        return false;
+    }
     return true;
 }
 
@@ -141,6 +146,15 @@ bool AddBasicProperties(napi_env env, napi_value object, const AutoStartupInfo &
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "failed to set basic properties for js AutoStartupInfo");
             return false;
         }
+    }
+    napi_value isDirectBoot = AppExecFwk::WrapBoolToJS(env, info.isDirectBoot);
+    if (isDirectBoot == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null isDirectBoot");
+        return false;
+    }
+    if (!AppExecFwk::SetPropertyValueByPropertyName(env, object, "isDirectBoot", isDirectBoot)) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "failed to set basic properties for js AutoStartupInfo");
+        return false;
     }
     return true;
 }

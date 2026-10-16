@@ -1693,5 +1693,51 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, RestoreIfStoreEmpty_200, TestSize.Le
     EXPECT_EQ(kvStorePtr->restoreCallCount_, 1);
     GTEST_LOG_(INFO) << "RestoreIfStoreEmpty_200 end";
 }
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: ConvertAutoStartupStatusToValue
+ * FunctionPoints: Both query representations retain the startup mode and existing EDM policy.
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, BootAppValueRoundTrip, TestSize.Level1)
+{
+    AbilityAutoStartupDataManager manager;
+    AutoStartupInfo input;
+    input.isDirectBoot = true;
+    input.isHiddenStart = true;
+    input.setterUserId = 101;
+    input.setterType = AutoStartupSetterType::SYSTEM;
+    auto value = manager.ConvertAutoStartupStatusToValue(input, true, true);
+    AutoStartupInfo output;
+    AutoStartupStatus status;
+    manager.ConvertAutoStartupInfoFromValue(value, output);
+    manager.ConvertAutoStartupStatusFromValue(value, status);
+    EXPECT_TRUE(output.isDirectBoot);
+    EXPECT_TRUE(status.isDirectBoot);
+    EXPECT_TRUE(status.isAutoStartup);
+    EXPECT_TRUE(status.isEdmForce);
+    EXPECT_TRUE(output.isHiddenStart);
+    EXPECT_EQ(output.setterUserId, 101);
+}
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: ConvertAutoStartupStatusFromValue
+ * FunctionPoints: Old or malformed values cannot enable pre-unlock startup.
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, BootAppOldAndInvalidValues, TestSize.Level1)
+{
+    AbilityAutoStartupDataManager manager;
+    for (const auto &json : {R"({"isAutoStartup":true})", R"({"isDirectBoot":"true"})",
+        R"({"isDirectBoot":false})"}) {
+        DistributedKv::Value value(json);
+        AutoStartupInfo info;
+        AutoStartupStatus status;
+        manager.ConvertAutoStartupInfoFromValue(value, info);
+        manager.ConvertAutoStartupStatusFromValue(value, status);
+        EXPECT_FALSE(info.isDirectBoot);
+        EXPECT_FALSE(status.isDirectBoot);
+    }
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
