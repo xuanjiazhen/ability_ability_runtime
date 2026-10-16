@@ -3066,7 +3066,8 @@ int32_t AbilityManagerService::GenerateAbilityForSplitMode(const AAFwk::Want &se
             "StartUIAbilitiesInSplitWindowMode checkCallPermission error, result:%{public}d", result);
         return result;
     }
-    result = StartUIAbilitiesInterceptorCheck(secondaryWant, abilityRequest, callerToken, appIndex, validUserId);
+    StartAbilityContext ctx;
+    result = StartUIAbilitiesInterceptorCheck(secondaryWant, abilityRequest, callerToken, appIndex, validUserId, ctx);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "InterceptorCheck error, result:%{public}d", result);
         return result;
@@ -3252,7 +3253,7 @@ int32_t AbilityManagerService::StartUIAbilitiesHandleWant(const Want &want, sptr
         return result;
     }
 
-    result = StartUIAbilitiesInterceptorCheck(want, abilityRequest, callerToken, appIndex, validUserId);
+    result = StartUIAbilitiesInterceptorCheck(want, abilityRequest, callerToken, appIndex, validUserId, ctx);
     if (result != ERR_OK) {
         return result;
     }
@@ -3292,7 +3293,7 @@ int32_t AbilityManagerService::StartUIAbilitiesCheckDlp(const Want &want, sptr<I
 }
 
 int32_t AbilityManagerService::StartUIAbilitiesInterceptorCheck(const Want &want, AbilityRequest &abilityRequest,
-    sptr<IRemoteObject> callerToken, int32_t appIndex, int32_t userId)
+    sptr<IRemoteObject> callerToken, int32_t appIndex, int32_t userId, StartAbilityContext &ctx)
 {
     int32_t requestCode = DEFAULT_INVAL_VALUE;
     Want newWant = abilityRequest.want;
@@ -3305,9 +3306,10 @@ int32_t AbilityManagerService::StartUIAbilitiesInterceptorCheck(const Want &want
     AbilityInterceptorParam interceptorParam = InterceptorParamBuilder(newWant, requestCode, userId)
         .WithUI(true).Visible(true).CallerToken(callerToken)
         .AbilityInfo(std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo))
-        .Context<AbilityInterceptorParam::DisposedCtx>({appIndex, nullptr}).Build();
+        .Context<AbilityInterceptorParam::DisposedCtx>({appIndex, nullptr}).StartAbilityCtx(ctx).Build();
     result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
         interceptorExecuter_->DoProcess(interceptorParam);
+    ctx.SyncFrom(interceptorParam.startAbilityCtx);
     if (result == ERR_CROWDTEST_EXPIRED) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilities ERR_CROWDTEST_EXPIRED");
         return result;
@@ -3444,6 +3446,7 @@ int32_t AbilityManagerService::RequestDialogServiceInner(const Want &want, const
         .AbilityInfo(std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo)).StartAbilityCtx(ctx).Build();
     result = interceptorExecuter_ == nullptr ? ERR_INVALID_VALUE :
         interceptorExecuter_->DoProcess(interceptorParam);
+    ctx.SyncFrom(interceptorParam.startAbilityCtx);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "interceptorExecuter_ null or DoProcess error");
         return result;
@@ -5417,6 +5420,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         .StartAbilityCtx(ctx).Build();
     result = interceptorExecuter_ == nullptr ? ERR_INVALID_VALUE :
         interceptorExecuter_->DoProcess(interceptorParam);
+    ctx.SyncFrom(interceptorParam.startAbilityCtx);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "interceptorExecuter_ null or DoProcess error");
         eventInfo->errReason = "interceptorExecuter_ null or DoProcess error";
@@ -9274,7 +9278,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         Want localWant = want;
-        if (!StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
+        if (!StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken, ctx)) {
             localWant.RemoveParam(PARAM_RESV_ANCO_CALLER_UID);
             localWant.RemoveParam(PARAM_RESV_ANCO_CALLER_BUNDLENAME);
             localWant.RemoveParam(PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME);

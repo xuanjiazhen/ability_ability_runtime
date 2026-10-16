@@ -3457,7 +3457,7 @@ private:
         std::vector<AbilityRequest> &abilityRequestList);
     int32_t StartUIAbilitiesCheckDlp(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId);
     int32_t StartUIAbilitiesInterceptorCheck(const Want &want, AbilityRequest &abilityRequest,
-        sptr<IRemoteObject> callerToken, int32_t appIndex, int32_t userId);
+        sptr<IRemoteObject> callerToken, int32_t appIndex, int32_t userId, StartAbilityContext &ctx);
     /**
      * Start switch user dialog Extension ability.
      */

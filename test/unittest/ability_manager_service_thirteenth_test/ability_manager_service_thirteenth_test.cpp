@@ -2740,7 +2740,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartUIAbilitiesInterceptorCheck_0
     MyStatus::GetInstance().permPermission_ = true;
     want.SetElementName("com.ohos.test", "MainAbility");
 
-    EXPECT_EQ(abilityMs_->StartUIAbilitiesInterceptorCheck(want, abilityRequest, callerToken, appIndex, userId),
+    StartAbilityContext ctx;
+    EXPECT_EQ(abilityMs_->StartUIAbilitiesInterceptorCheck(want, abilityRequest, callerToken, appIndex, userId, ctx),
         START_UI_ABILITIES_INTERCEPTOR_CHECK_FAILED);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartUIAbilitiesInterceptorCheck_001 end");
