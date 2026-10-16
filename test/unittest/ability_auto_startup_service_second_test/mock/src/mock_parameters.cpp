@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include <iostream>
-
 #include "parameters.h"
+
+#include "direct_boot_test_support.h"
 
 namespace OHOS {
 namespace system {
@@ -29,6 +29,14 @@ void SetBoolParameter(const std::string& key, bool def)
 
 bool GetBoolParameter(const std::string& key, bool def)
 {
+    const auto &state = AAFwk::GetDirectBootTestState();
+    if (state.active) {
+        if (key == "persist.sys.abilityms.if_startup_ready") {
+            return state.ready;
+        }
+        auto parameter = state.parameters.find(key);
+        return parameter == state.parameters.end() ? def : parameter->second;
+    }
     return g_returnFlag;
 }
 } // namespace system

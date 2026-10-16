@@ -15,6 +15,7 @@
 
 #include "mock_bundle_mgr_helper.h"
 
+#include "direct_boot_test_support.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -84,6 +85,9 @@ ErrCode BundleMgrHelper::GetSandboxBundleInfo(
 bool BundleMgrHelper::GetBundleInfo(
     const std::string& bundleName, const BundleFlag flags, BundleInfo& bundleInfo, int32_t userId)
 {
+    if (AAFwk::GetDirectBootTestState().active) {
+        return AAFwk::GetDirectBootBundleInfo(bundleName, bundleInfo, userId);
+    }
     if (!bundleName.empty()) {
         int32_t accessTokenId = 1;
         if ("infoListIs0" == bundleName) {
