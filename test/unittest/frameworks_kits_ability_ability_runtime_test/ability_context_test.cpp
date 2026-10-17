@@ -202,6 +202,11 @@ public:
     {
         return ERR_OK;
     }
+    virtual ErrCode BackToCallerAppWithResult(const AAFwk::Want &want,
+        int resultCode, int64_t requestCode)
+    {
+        return ERR_OK;
+    }
     virtual ErrCode RestoreWindowStage(napi_env env, napi_value contentStorage)
     {
         return ERR_OK;

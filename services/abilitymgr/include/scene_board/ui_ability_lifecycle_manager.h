@@ -183,6 +183,9 @@ public:
     int32_t BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
         int resultCode, const Want *resultWant, int64_t callerRequestCode);
 
+    int32_t BackToCallerAppWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+        int resultCode, const Want *resultWant, int64_t callerRequestCode);
+
     int CloseUIAbility(const UIAbilityRecordPtr &abilityRecord,
         int resultCode, const Want *resultWant, bool isClearSession, bool isIndependentRecovery);
 
@@ -861,6 +864,15 @@ private:
      * @return ERR_OK if successful, error code otherwise
      */
     int32_t BackToCallerAbilityWithResultLocked(sptr<SessionInfo> currentSessionInfo,
+        std::shared_ptr<AbilityRecord> callerAbilityRecord);
+
+    /**
+     * @brief Return to caller ability with result (locked)
+     * @param currentSessionInfo Current session info
+     * @param callerAbilityRecord The caller ability record
+     * @return ERR_OK if successful, error code otherwise
+     */
+    int32_t BackToCallerAppWithResultLocked(sptr<SessionInfo> currentSessionInfo,
         std::shared_ptr<AbilityRecord> callerAbilityRecord);
 
     // byCall

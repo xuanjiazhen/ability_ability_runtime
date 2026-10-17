@@ -797,6 +797,9 @@ enum class AbilityManagerInterfaceCode {
 
     // kill process with user id
     KILL_PROCESS_WITH_USER_ID = 6183,
+
+    // Back to caller.
+    BACK_TO_CALLER_APP_WITH_RESULT = 6184,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
