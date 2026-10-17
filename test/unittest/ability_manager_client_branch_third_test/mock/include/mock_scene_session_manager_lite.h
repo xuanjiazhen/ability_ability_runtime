@@ -146,6 +146,10 @@ public:
     MOCK_METHOD(WMError, GetAppWindowShowingInfosByBundleName, (const ApplicationInfo& appInfo,
         std::vector<AppWindowShowingInfo>& windowInfos), (override));
     MOCK_METHOD(WMError, UpdateRogWindowConfig, (const RogWindowConfig& windowConfig), (override));
+    MOCK_METHOD(WMError, RegisterSessionSurfaceListener, (const sptr<ISessionSurfaceListener>& listener,
+        const std::vector<int32_t>& persistentIdList), (override));
+    MOCK_METHOD(WMError, UnregisterSessionSurfaceListener,
+        (const sptr<ISessionSurfaceListener>& listener), (override));
 };
 } // namespace OHOS::Rosen
 #endif // MOCK_SCENE_SESSION_MANAGER_LITE_H
