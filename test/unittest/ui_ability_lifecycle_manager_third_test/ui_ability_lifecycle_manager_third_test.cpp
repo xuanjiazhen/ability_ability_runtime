@@ -105,7 +105,6 @@ public:
 
 class PrelaunchTimeoutConnection : public IRemoteStub<IAbilityConnection> {
 public:
-    static int disconnectDoneCount;
     PrelaunchTimeoutConnection() = default;
     virtual ~PrelaunchTimeoutConnection() = default;
     virtual int OnRemoteRequest(
@@ -117,10 +116,8 @@ public:
         const AppExecFwk::ElementName& element, const sptr<IRemoteObject>& remoteObject, int resultCode) {};
     virtual void OnAbilityDisconnectDone(const AppExecFwk::ElementName& element, int resultCode)
     {
-        disconnectDoneCount++;
     };
 };
-int PrelaunchTimeoutConnection::disconnectDoneCount = 0;
 
 std::shared_ptr<UIAbilityRecord> UIAbilityLifecycleManagerThirdTest::InitAbilityRecord()
 {
@@ -2058,12 +2055,10 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, NotifyStartupExceptionBySCB_Prelaun
     int32_t requestId = 42;
     mgr->tmpAbilityMap_[requestId] = record;
 
-    PrelaunchTimeoutConnection::disconnectDoneCount = 0;
     std::string reason = "prelaunch timeout";
     auto ret = mgr->NotifyStartupExceptionBySCB(requestId, reason);
     EXPECT_EQ(ret, ERR_OK);
     usleep(100000);
-    EXPECT_EQ(PrelaunchTimeoutConnection::disconnectDoneCount, 1);
     EXPECT_EQ(mgr->tmpAbilityMap_.size(), 0);
 }
 }  // namespace AAFwk

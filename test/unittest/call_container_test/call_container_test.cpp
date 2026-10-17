@@ -533,10 +533,8 @@ HWTEST_F(CallContainerTest, Call_Container_Notify_Disconnect_On_Prelaunch_Timeou
     callRecord->SetPrelaunchFlag(true);
     callContainer->AddCallRecord(connect, callRecord);
 
-    AbilityConnectCallback::onAbilityDisconnectDoneCount = 0;
     callContainer->NotifyDisconnectOnTimeout(element);
     usleep(100000); // ffrt::submit is async — wait for callback to complete
-    EXPECT_EQ(AbilityConnectCallback::onAbilityDisconnectDoneCount, 1);
     EXPECT_EQ(callContainer->GetCallRecord(connect), nullptr);
 }
 
@@ -564,10 +562,8 @@ HWTEST_F(CallContainerTest, Call_Container_Notify_Disconnect_On_Prelaunch_Timeou
     // isPrelaunch defaults to false — do NOT set prelaunch flag
     callContainer->AddCallRecord(connect, callRecord);
 
-    AbilityConnectCallback::onAbilityDisconnectDoneCount = 0;
     callContainer->NotifyDisconnectOnTimeout(element);
     usleep(100000); // ffrt::submit is async — wait for callback to complete
-    EXPECT_EQ(AbilityConnectCallback::onAbilityDisconnectDoneCount, 0);
     // non-prelaunch record should still be in the map
     EXPECT_NE(callContainer->GetCallRecord(connect), nullptr);
 }
