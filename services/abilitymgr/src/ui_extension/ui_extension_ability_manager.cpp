@@ -60,7 +60,7 @@ const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_prelo
 const std::string SEPARATOR = ":";
 const int DEFAULT_INVAL_VALUE = -1;
 const int MAX_AGENT_UI_LIMIT = 5;
-constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
+constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohosSpecifiedProcessFlag";
 #ifdef SUPPORT_ASAN
 const int LOAD_TIMEOUT_MULTIPLE = 150;
 const int CONNECT_TIMEOUT_MULTIPLE = 45;

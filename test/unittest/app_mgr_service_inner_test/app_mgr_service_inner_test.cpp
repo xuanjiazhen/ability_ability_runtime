@@ -6630,7 +6630,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetSpecifiedProcessFlag_0001, TestSize.Level1)
 
     AAFwk::Want want;
     std::string flag = "uiext_flag";
-    want.SetParam("ohoSpecifiedProcessFlag", flag);
+    want.SetParam("ohosSpecifiedProcessFlag", flag);
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     MockMyAppUtilsFlag::flag_ = true;
     std::string result = appMgrServiceInner->GetSpecifiedProcessFlag(abilityInfo, want);
@@ -6671,7 +6671,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetSpecifiedProcessFlag_0003, TestSize.Level1)
     abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
     AAFwk::Want want;
     std::string flag = "uiext_flag";
-    want.SetParam("ohoSpecifiedProcessFlag", flag);
+    want.SetParam("ohosSpecifiedProcessFlag", flag);
 
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     std::string result = appMgrServiceInner->GetSpecifiedProcessFlag(abilityInfo, want);
@@ -6694,7 +6694,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetSpecifiedProcessFlag_0004, TestSize.Level1)
 
     AAFwk::Want want;
     std::string flag = "uiext_flag";
-    want.SetParam("ohoSpecifiedProcessFlag", flag);
+    want.SetParam("ohosSpecifiedProcessFlag", flag);
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     std::string result = appMgrServiceInner->GetSpecifiedProcessFlag(abilityInfo, want);
     EXPECT_EQ(result, "");
@@ -6716,7 +6716,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetSpecifiedProcessFlag_0005, TestSize.Level1)
 
     AAFwk::Want want;
     std::string flag = "uiext_flag";
-    want.SetParam("ohoSpecifiedProcessFlag", flag);
+    want.SetParam("ohosSpecifiedProcessFlag", flag);
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     MockMyAppUtilsFlag::flag_ = true;
     std::string result = appMgrServiceInner->GetSpecifiedProcessFlag(abilityInfo, want);
@@ -6739,7 +6739,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetSpecifiedProcessFlag_0006, TestSize.Level1)
 
     AAFwk::Want want;
     std::string flag = "uiext_flag";
-    want.SetParam("ohoSpecifiedProcessFlag", flag);
+    want.SetParam("ohosSpecifiedProcessFlag", flag);
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     MockMyAppUtilsFlag::flag_ = false;
     std::string result = appMgrServiceInner->GetSpecifiedProcessFlag(abilityInfo, want);

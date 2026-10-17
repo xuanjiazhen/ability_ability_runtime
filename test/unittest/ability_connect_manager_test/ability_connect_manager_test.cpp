@@ -1747,7 +1747,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_OnStartSpecifiedProcessRespo
     connectManager->OnStartSpecifiedProcessResponse("flag", requestId);
 
     EXPECT_TRUE(connectManager->loadAbilityQueue_.empty());
-    EXPECT_EQ(context.want->GetStringParam("ohoSpecifiedProcessFlag"), "flag");
+    EXPECT_EQ(context.want->GetStringParam("ohosSpecifiedProcessFlag"), "flag");
 }
 
 /*
@@ -3945,7 +3945,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_OnStartSpecifiedProcessRespo
     connectManager->OnStartSpecifiedProcessResponse("flag", mismatchedRequestId);
 
     EXPECT_EQ(connectManager->loadAbilityQueue_.size(), 1u);
-    EXPECT_TRUE(context.want->GetStringParam("ohoSpecifiedProcessFlag").empty());
+    EXPECT_TRUE(context.want->GetStringParam("ohosSpecifiedProcessFlag").empty());
 }
 
 /*
