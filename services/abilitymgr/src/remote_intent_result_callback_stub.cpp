@@ -15,7 +15,10 @@
 
 #include "remote_intent_result_callback_stub.h"
 
+#include "ability_manager_errors.h"
+#include "dms_util.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -41,6 +44,11 @@ int RemoteIntentResultCallbackStub::OnLinkDisconnectedInner(MessageParcel &data,
 int RemoteIntentResultCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    if (IPCSkeleton::GetCallingUid() != DmsUtil::DMS_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reject: callingUid=%{public}d, expected DMS uid",
+            IPCSkeleton::GetCallingUid());
+        return CHECK_PERMISSION_FAILED;
+    }
     std::u16string descriptor = RemoteIntentResultCallbackStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {

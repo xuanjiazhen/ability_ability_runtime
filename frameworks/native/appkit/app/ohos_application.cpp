@@ -100,6 +100,7 @@ void OHOSApplication::OnForeground()
         abilityRuntimeContext_->NotifyApplicationForeground();
     }
 
+    std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr) {
         TAG_LOGD(AAFwkTag::APPKIT, "NotifyApplicationState, runtime_ is nullptr");
         return;
@@ -120,6 +121,7 @@ void OHOSApplication::OnBackground()
         abilityRuntimeContext_->NotifyApplicationBackground();
     }
 
+    std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr) {
         TAG_LOGD(AAFwkTag::APPKIT, "runtime_ is nullptr");
         return;
@@ -183,6 +185,7 @@ void OHOSApplication::SetRuntime(std::unique_ptr<AbilityRuntime::Runtime> &&runt
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
     }
+    std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
     runtime_ = std::move(runtime);
 }
 
@@ -468,6 +471,11 @@ void OHOSApplication::PreloadHybridModule(const HapModuleInfo &hapModuleInfo) co
             break;
         }
     }
+    std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
+    if (runtime_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "runtime null");
+        return;
+    }
     runtime_->PreloadModule(hapModuleInfo.moduleName, hapModuleInfo.hapPath, isEsmode, useCommonTrunk);
 }
 
@@ -505,9 +513,12 @@ std::shared_ptr<AbilityRuntime::AbilityStageContext> OHOSApplication::CreateAndI
     }
 
     PreloadHybridModule(*moduleInfo);
-    if (runtime_ && (runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
-        static_cast<AbilityRuntime::JsRuntime&>(*runtime_).SetPkgContextInfoJson(
-            moduleInfo->moduleName, moduleInfo->hapPath, moduleInfo->packageName);
+    {
+        std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
+        if (runtime_ && (runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
+            static_cast<AbilityRuntime::JsRuntime&>(*runtime_).SetPkgContextInfoJson(
+                moduleInfo->moduleName, moduleInfo->hapPath, moduleInfo->packageName);
+        }
     }
     SetAppEnv(moduleInfo->appEnvironments);
 
@@ -900,11 +911,6 @@ bool OHOSApplication::AddAbilityStage(
         return false;
     }
 
-    if (runtime_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null runtime_");
-        return false;
-    }
-
     if (abilityStages_.find(hapModuleInfo.moduleName) != abilityStages_.end()) {
         TAG_LOGE(AAFwkTag::APPKIT, "object exist");
         return false;
@@ -920,8 +926,16 @@ bool OHOSApplication::AddAbilityStage(
         TAG_LOGE(AAFwkTag::APPKIT, "null moduleInfo");
         return false;
     }
-    auto &runtime = GetSpecifiedRuntime(moduleInfo->arkTSMode);
-    auto abilityStage = AbilityRuntime::AbilityStage::Create(runtime, *moduleInfo);
+    std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage;
+    {
+        std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
+        if (runtime_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null runtime_");
+            return false;
+        }
+        auto &runtime = GetSpecifiedRuntime(moduleInfo->arkTSMode);
+        abilityStage = AbilityRuntime::AbilityStage::Create(runtime, *moduleInfo);
+    }
     if (abilityStage == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null abilityStage");
         return false;
@@ -982,7 +996,7 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::GetAppContext() const
 const std::unique_ptr<AbilityRuntime::Runtime> &OHOSApplication::GetSpecifiedRuntime(
     const std::string &arkTSMode) const
 {
-    std::lock_guard<std::mutex> lock(runtimeMutex_);
+    std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
     if (arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0 &&
         runtime_ != nullptr &&
         runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
@@ -1115,6 +1129,7 @@ void OHOSApplication::SetExtensionTypeMap(std::map<int32_t, std::string> map)
 
 bool OHOSApplication::NotifyLoadRepairPatch(const std::string &hqfFile, const std::string &hapPath)
 {
+    std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr) {
         TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
         return true;
@@ -1125,6 +1140,7 @@ bool OHOSApplication::NotifyLoadRepairPatch(const std::string &hqfFile, const st
 
 bool OHOSApplication::NotifyHotReloadPage()
 {
+    std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr) {
         TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
         return true;
@@ -1135,6 +1151,7 @@ bool OHOSApplication::NotifyHotReloadPage()
 
 bool OHOSApplication::NotifyUnLoadRepairPatch(const std::string &hqfFile)
 {
+    std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr) {
         TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
         return true;
@@ -1414,7 +1431,7 @@ bool OHOSApplication::UpdateETSRuntime(AbilityRuntime::Runtime::Options &option)
         return false;
     }
     {
-        std::lock_guard<std::mutex> lock(runtimeMutex_);
+        std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
         etsRuntime->SetJsRuntime(runtime_);
         runtime_ = std::move(etsRuntime);
     }
@@ -1424,6 +1441,7 @@ bool OHOSApplication::UpdateETSRuntime(AbilityRuntime::Runtime::Options &option)
 void OHOSApplication::InitJSLeakWatcher(const std::string &bundleName)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "InitJSLeakWatcher call");
+    std::lock_guard<std::recursive_mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;

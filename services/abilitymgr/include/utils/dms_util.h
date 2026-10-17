@@ -23,6 +23,8 @@ namespace AAFwk {
 class DmsUtil {
 public:
 
+    static constexpr int32_t DMS_UID = 5522;
+
     static DmsUtil &GetInstance();
 
     void UpdateFlagForCollaboration(const Want &want);

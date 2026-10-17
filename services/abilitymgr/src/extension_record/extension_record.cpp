@@ -77,6 +77,17 @@ int32_t ExtensionRecord::RegisterStateObserver(const std::string &hostBundleName
     return ret;
 }
 
+void ExtensionRecord::UnregisterStateObserver()
+{
+    if (preLoadUIExtStateObserver_ == nullptr) {
+        return;
+    }
+    IN_PROCESS_CALL(
+        DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterApplicationStateObserver(
+            preLoadUIExtStateObserver_));
+    preLoadUIExtStateObserver_ = nullptr;
+}
+
 bool ExtensionRecord::ContinueToGetCallerToken()
 {
     return false;

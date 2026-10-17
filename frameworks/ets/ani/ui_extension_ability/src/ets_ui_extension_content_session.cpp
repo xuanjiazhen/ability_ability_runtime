@@ -62,6 +62,13 @@ constexpr const char *SIGNATURE_SET_WINDOW_PRIVACY_MODE = "zC{utils.AbilityUtils
 constexpr const char* PERMISSION_PRIVACY_WINDOW = "ohos.permission.PRIVACY_WINDOW";
 constexpr const char *SIGNATURE_START_ABILITY_AS_CALLER = "C{@ohos.app.ability.Want.Want}"
     "C{utils.AbilityUtils.AsyncCallbackWrapper}C{@ohos.app.ability.StartOptions.StartOptions}:";
+
+void ReportInnerError(ani_env *env, ani_object callback, AbilityInnerErrorMsg msg)
+{
+    OHOS::AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
+        static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        GetInnerErrorMsg(msg)), nullptr);
+}
 } // namespace
 
 void EtsAbilityResultListeners::AddListener(const uint64_t &uiExtensionComponentId,
@@ -203,11 +210,51 @@ void EtsUIExtensionContentSession::NativeTerminateSelf(ani_env *env, ani_object 
     }
 }
 
+bool EtsUIExtensionContentSession::ValidateAndTransferResult(
+    ani_env *env, ani_object abilityResult, ani_object callback,
+    AAFwk::Want &want, int32_t &resultCode)
+{
+    if (!OHOS::AppExecFwk::UnWrapAbilityResult(env, abilityResult, resultCode, want)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "UnWrapAbilityResult filed");
+        ReportInnerError(env, callback, AbilityInnerErrorMsg::INVALID_SESSION);
+        return false;
+    }
+    auto context = GetContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        ReportInnerError(env, callback, AbilityInnerErrorMsg::INVALID_SESSION);
+        return false;
+    }
+    auto token = context->GetToken();
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null token");
+        ReportInnerError(env, callback, AbilityInnerErrorMsg::INVALID_SESSION);
+        return false;
+    }
+    auto transferErr = OHOS::AAFwk::AbilityManagerClient::GetInstance()->TransferAbilityResultForExtension(
+        token, resultCode, want);
+    if (transferErr != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "transfer failed, err %{public}d", transferErr);
+    }
+    auto uiWindow = GetUIWindow();
+    if (uiWindow == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
+        ReportInnerError(env, callback, AbilityInnerErrorMsg::INVALID_SESSION);
+        return false;
+    }
+    auto result = uiWindow->TransferAbilityResult(resultCode, want);
+    if (result != Rosen::WMError::WM_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "TransferAbilityResult failed, errorCode is %{public}d", result);
+        ReportInnerError(env, callback, AbilityInnerErrorMsg::TRANSFER_ABILITY_RESULT_FAILED);
+        return false;
+    }
+    return true;
+}
+
 int EtsUIExtensionContentSession::NativeTerminateSelfWithResult(ani_env *env, ani_object obj,
     ani_object abilityResult, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "NativeTerminateSelfWithResult called");
-    int ret = 0;
     auto etsContentSession = EtsUIExtensionContentSession::GetEtsContentSession(env, obj);
     if (etsContentSession == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null etsContentSession");
@@ -215,34 +262,10 @@ int EtsUIExtensionContentSession::NativeTerminateSelfWithResult(ani_env *env, an
     }
     OHOS::AAFwk::Want want;
     int32_t resultCode = 0;
-    OHOS::AppExecFwk::UnWrapAbilityResult(env, abilityResult, resultCode, want);
-    auto context = etsContentSession->GetContext();
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
-        OHOS::AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
-            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-            GetInnerErrorMsg(AbilityInnerErrorMsg::INVALID_SESSION)), nullptr);
+    if (!etsContentSession->ValidateAndTransferResult(env, abilityResult, callback, want, resultCode)) {
         return ERR_FAILURE;
     }
-    auto token = context->GetToken();
-    OHOS::AAFwk::AbilityManagerClient::GetInstance()->TransferAbilityResultForExtension(token, resultCode, want);
-    auto uiWindow = etsContentSession->GetUIWindow();
-    if (uiWindow == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
-        OHOS::AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
-            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-            GetInnerErrorMsg(AbilityInnerErrorMsg::INVALID_SESSION)), nullptr);
-        return ERR_FAILURE;
-    }
-    auto result = uiWindow->TransferAbilityResult(resultCode, want);
-    if (result != Rosen::WMError::WM_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "TransferAbilityResult failed, errorCode is %{public}d", result);
-        OHOS::AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
-            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-            GetInnerErrorMsg(AbilityInnerErrorMsg::TRANSFER_ABILITY_RESULT_FAILED)), nullptr);
-        return ERR_FAILURE;
-    }
-    ret = etsContentSession->TerminateSelfWithResult();
+    int ret = etsContentSession->TerminateSelfWithResult();
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::UI_EXT, "TerminateSelfWithResult failed, errorCode is %{public}d", ret);
         return ERR_FAILURE;

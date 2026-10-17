@@ -674,5 +674,9 @@ group("unittest") {
         "want_utils_test:unittest",
       ]
     }
+
+    deps += [
+      "dms_util_test:unittest",
+    ]
   }
 }

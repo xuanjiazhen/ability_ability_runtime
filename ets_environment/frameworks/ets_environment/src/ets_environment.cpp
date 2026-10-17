@@ -78,6 +78,7 @@ const char ETS_SYS_NSNAME[] = "ets_system";
 constexpr const char* CLASSNAME_LINKER = "std.core.AbcRuntimeLinker";
 constexpr const int32_t ARG_ZERO = 0;
 constexpr const int32_t ARG_ONE = 1;
+constexpr ani_size ANI_LOCAL_SCOPE_CAPACITY = 32;
 } // namespace
 
 static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs);
@@ -476,6 +477,8 @@ bool ETSEnvironment::InitAbcLinker(ani_env *env)
     ani_ref undefinedRef = nullptr;
     if ((status = env->GetUndefined(&undefinedRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUndefined failed, status: %{public}d", status);
+        env->GlobalReference_Delete(vmEntry_.abcLinkerClass_);
+        vmEntry_.abcLinkerClass_ = nullptr;
         return false;
     }
 
@@ -488,11 +491,15 @@ bool ETSEnvironment::InitAbcLinker(ani_env *env)
     ani_object abcObj = CreateRuntimeLinker(env, vmEntry_.abcLinkerClass_, undefinedRef, refArray);
     if (abcObj == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "CreateRuntimeLinker failed");
+        env->GlobalReference_Delete(vmEntry_.abcLinkerClass_);
+        vmEntry_.abcLinkerClass_ = nullptr;
         return false;
     }
 
     if ((status = env->GlobalReference_Create(abcObj, &vmEntry_.abcLinkerRef_)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GlobalReference_Create failed, status: %{public}d", status);
+        env->GlobalReference_Delete(vmEntry_.abcLinkerClass_);
+        vmEntry_.abcLinkerClass_ = nullptr;
         return false;
     }
 
@@ -517,6 +524,8 @@ bool ETSEnvironment::AddAbcFiles(ani_env *env, const std::string &modulePath)
     ani_ref undefinedRef = nullptr;
     if ((status = env->GetUndefined(&undefinedRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUndefined failed, status: %{public}d", status);
+        env->GlobalReference_Delete(vmEntry_.abcLinkerClass_);
+        vmEntry_.abcLinkerClass_ = nullptr;
         return false;
     }
     ani_array refArray = nullptr;
@@ -598,14 +607,20 @@ bool ETSEnvironment::LoadModule(const std::string &modulePath, const std::string
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "LoadAbcLinker failed");
         return false;
     }
+    if (env->CreateLocalScope(ANI_LOCAL_SCOPE_CAPACITY) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "CreateLocalScope failed");
+        return false;
+    }
     ani_method loadClassMethod = nullptr;
     if ((status = env->Class_FindMethod(abcCls, "loadClass", nullptr, &loadClassMethod)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod failed, status: %{public}d", status);
+        env->DestroyLocalScope();
         return false;
     }
     ani_string clsStr = nullptr;
     if ((status = env->String_NewUTF8(srcEntrance.c_str(), srcEntrance.length(), &clsStr)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "String_NewUTF8 failed, status: %{public}d", status);
+        env->DestroyLocalScope();
         return false;
     }
     ani_ref clsRef = nullptr;
@@ -613,26 +628,31 @@ bool ETSEnvironment::LoadModule(const std::string &modulePath, const std::string
     ani_object boolObj = nullptr;
     if ((status = env->Primitive_Box_Boolean(ANI_FALSE, &boolObj)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Primitive_Box_Boolean failed, status: %{public}d", status);
+        env->DestroyLocalScope();
         return false;
     }
     if ((status = env->Object_CallMethod_Ref(abcObj, loadClassMethod, &clsRef, clsStr, boolObj)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethod_Ref failed, status: %{public}d", status);
+        env->DestroyLocalScope();
         return false;
     }
     clsAni = static_cast<ani_class>(clsRef);
     ani_method method = nullptr;
     if ((status = env->Class_FindMethod(clsAni, "<ctor>", ":", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod failed, status: %{public}d", status);
+        env->DestroyLocalScope();
         return false;
     }
     ani_object objAni = nullptr;
     if ((status = env->Object_New(clsAni, method, &objAni)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_New failed, status: %{public}d", status);
+        env->DestroyLocalScope();
         return false;
     }
     ani_ref refAni = nullptr;
     if ((status = env->GlobalReference_Create(objAni, &refAni)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GlobalReference_Create failed, status: %{public}d", status);
+        env->DestroyLocalScope();
         return false;
     }
     cls = reinterpret_cast<void *>(clsAni);
