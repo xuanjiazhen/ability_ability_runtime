@@ -99,8 +99,8 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_001, TestSize.Level1)
     int userId = 100;
     StartAbilityContext ctx;
     ctx.skipCrowTest = true;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
     auto ret = crowdTestInterceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -118,8 +118,8 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_002, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     StartAbilityContext ctx;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
 
     StartAbilityUtils::retGetApplicationInfo = false;
     auto ret = crowdTestInterceptor.DoProcess(param);
@@ -140,8 +140,8 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_003, TestSize.Level1)
     int userId = 100;
     bool isWithUI = true;
     StartAbilityContext ctx;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
 
     StartAbilityUtils::retGetApplicationInfo = true;
     StartAbilityUtils::applicationInfo.crowdtestDeadline = 1;
@@ -164,8 +164,8 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_004, TestSize.Level1)
     int userId = 100;
     bool isWithUI = true;
     StartAbilityContext ctx;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
 
     StartAbilityUtils::retGetApplicationInfo = true;
     StartAbilityUtils::applicationInfo.crowdtestDeadline = 1;
@@ -191,8 +191,8 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_005, TestSize.Level1)
     int userId = 100;
     bool isWithUI = true;
     StartAbilityContext ctx;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
 
     StartAbilityUtils::retGetApplicationInfo = true;
     StartAbilityUtils::applicationInfo.crowdtestDeadline = 1;
@@ -219,8 +219,8 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_006, TestSize.Level1)
     int userId = 100;
     bool isWithUI = true;
     StartAbilityContext ctx;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
 
     StartAbilityUtils::retGetApplicationInfo = true;
     StartAbilityUtils::applicationInfo.crowdtestDeadline = 1;
@@ -245,8 +245,8 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_007, TestSize.Level1)
     int userId = 100;
     bool isWithUI = true;
     StartAbilityContext ctx;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
 
     StartAbilityUtils::retGetApplicationInfo = true;
     StartAbilityUtils::applicationInfo.crowdtestDeadline = 1;
@@ -272,8 +272,8 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_008, TestSize.Level1)
     int userId = 100;
     bool isWithUI = true;
     StartAbilityContext ctx;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(isWithUI).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
 
     StartAbilityUtils::retGetApplicationInfo = true;
     StartAbilityUtils::applicationInfo.crowdtestDeadline = 1;
