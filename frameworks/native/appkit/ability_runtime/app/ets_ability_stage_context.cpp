@@ -62,8 +62,8 @@ ani_object ETSAbilityStageContext::CreateEtsAbilityStageContext(ani_env *env, st
         return nullptr;
     }
     ani_long nativeContextLong = (ani_long)workContext;
-    if ((status = env->Object_SetFieldByName_Long(obj, "nativeContext", nativeContextLong)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "SetField_Long nativeContext failed, status: %{public}d", status);
+    if (!ContextUtil::SetNativeContextLong(env, obj, nativeContextLong)) {
+        TAG_LOGE(AAFwkTag::ABILITY, "SetNativeContextLong nativeContext failed");
         delete workContext;
         return nullptr;
     }

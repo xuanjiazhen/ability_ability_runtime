@@ -56,10 +56,13 @@ void ExtensionRecord::SetFocusedCallerToken(sptr<IRemoteObject> &focusedCallerTo
 
 void ExtensionRecord::UnloadUIExtensionAbility()
 {
-    auto ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterApplicationStateObserver(
-        preLoadUIExtStateObserver_);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "unRegisterObserver error");
+    if (preLoadUIExtStateObserver_ != nullptr) {
+        auto ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterApplicationStateObserver(
+            preLoadUIExtStateObserver_);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "unRegisterObserver error");
+        }
+        preLoadUIExtStateObserver_ = nullptr;
     }
     auto result = DelayedSingleton<AAFwk::AbilityManagerService>::GetInstance()->UnloadUIExtensionAbility(
         abilityRecord_, hostPid_);
@@ -75,6 +78,17 @@ int32_t ExtensionRecord::RegisterStateObserver(const std::string &hostBundleName
         DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->RegisterApplicationStateObserver(
             preLoadUIExtStateObserver_, {hostBundleName}));
     return ret;
+}
+
+void ExtensionRecord::UnregisterStateObserver()
+{
+    if (preLoadUIExtStateObserver_ == nullptr) {
+        return;
+    }
+    IN_PROCESS_CALL(
+        DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterApplicationStateObserver(
+            preLoadUIExtStateObserver_));
+    preLoadUIExtStateObserver_ = nullptr;
 }
 
 bool ExtensionRecord::ContinueToGetCallerToken()

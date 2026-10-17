@@ -19,7 +19,6 @@
 namespace OHOS {
 namespace AAFwk {
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
-constexpr int32_t DMS_UID = 5522;
 
 // Device ID anonymization constants
 constexpr int32_t NON_ANONYMIZE_LENGTH = 6;
@@ -34,7 +33,7 @@ DmsUtil &DmsUtil::GetInstance()
 void DmsUtil::UpdateFlagForCollaboration(const Want &want)
 {
     if ((want.GetFlags() & Want::FLAG_ABILITY_ON_COLLABORATE) == Want::FLAG_ABILITY_ON_COLLABORATE &&
-        IPCSkeleton::GetCallingUid() == DMS_UID) {
+        IPCSkeleton::GetCallingUid() == DmsUtil::DMS_UID) {
         (const_cast<Want &>(want)).SetParam(IS_CALLING_FROM_DMS, true);
     } else {
         (const_cast<Want &>(want)).RemoveParam(IS_CALLING_FROM_DMS);

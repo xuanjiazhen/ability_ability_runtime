@@ -130,12 +130,24 @@ ETSAbilityStage::~ETSAbilityStage()
 {
     TAG_LOGI(AAFwkTag::APPKIT, "destructor");
     auto context = GetContext();
-    if (context != nullptr) {
-        context->Unbind();
-    }
     auto env = etsRuntime_.GetAniEnv();
+    if (context != nullptr) {
+        const auto &bindingObj = context->GetBindingObject();
+        if (bindingObj != nullptr) {
+            auto *contextGlobalRef = bindingObj->Get<ani_ref>();
+            if (env != nullptr && contextGlobalRef != nullptr && *contextGlobalRef != nullptr) {
+                env->GlobalReference_Delete(*contextGlobalRef);
+            }
+        }
+        context->Unbind<ani_ref>();
+    }
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    if (shellContextRef_ && shellContextRef_->aniRef) {
+        env->GlobalReference_Delete(shellContextRef_->aniRef);
+        shellContextRef_->aniRef = nullptr;
     }
 }
 

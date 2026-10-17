@@ -152,6 +152,8 @@ private:
     void LoadContentByName(ani_env *env, ani_object object, ani_string path, ani_object storage);
     void StartAbilityInner(ani_env* env, ani_object object, ani_object opt,
         ani_object callback, AAFwk::Want &want, std::shared_ptr<AbilityRuntime::Context> context);
+    bool ValidateAndTransferResult(ani_env *env, ani_object abilityResult, ani_object callback,
+        AAFwk::Want &want, int32_t &resultCode);
     static ani_status BindNativeMethod(ani_env *env, ani_class cls);
 
     sptr<AAFwk::SessionInfo> sessionInfo_;
