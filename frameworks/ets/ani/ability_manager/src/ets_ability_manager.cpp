@@ -901,7 +901,10 @@ void EtsAbilityManager::NativeOffPreloadedUIExtensionAbilityLoaded(ani_env *env,
         return;
     }
     ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(callback, &isUndefined);
+    if (env->Reference_IsUndefined(callback, &isUndefined) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Reference_IsUndefined failed");
+        return;
+    }
     std::lock_guard<std::mutex> lock(loadedCallbackMutex_);
     if (isUndefined) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "callback is undefined");
@@ -915,7 +918,10 @@ void EtsAbilityManager::NativeOffPreloadedUIExtensionAbilityLoaded(ani_env *env,
     }
     auto it = std::find_if(loadedCallback_.begin(), loadedCallback_.end(), [env, callback](const auto &cb) {
         ani_boolean isEquals = ANI_FALSE;
-        env->Reference_StrictEquals(callback, cb.first, &isEquals);
+        if (env->Reference_StrictEquals(callback, cb.first, &isEquals) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Reference_StrictEquals failed");
+            return false;
+        }
         return isEquals;
     });
     if (it == loadedCallback_.end()) {
@@ -972,7 +978,10 @@ void EtsAbilityManager::NativeOffPreloadedUIExtensionAbilityDestroyed(ani_env *e
         return;
     }
     ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(callback, &isUndefined);
+    if (env->Reference_IsUndefined(callback, &isUndefined) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Reference_IsUndefined failed");
+        return;
+    }
     std::lock_guard<std::mutex> lock(destroyedCallbackMutex_);
     if (isUndefined) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "callback is undefined");
@@ -986,7 +995,10 @@ void EtsAbilityManager::NativeOffPreloadedUIExtensionAbilityDestroyed(ani_env *e
     }
     auto it = std::find_if(destroyCallback_.begin(), destroyCallback_.end(), [env, callback](const auto &cb) {
         ani_boolean isEquals = ANI_FALSE;
-        env->Reference_StrictEquals(callback, cb.first, &isEquals);
+        if (env->Reference_StrictEquals(callback, cb.first, &isEquals) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Reference_StrictEquals failed");
+            return false;
+        }
         return isEquals;
     });
     if (it == destroyCallback_.end()) {

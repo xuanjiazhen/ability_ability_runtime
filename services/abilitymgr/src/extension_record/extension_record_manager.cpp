@@ -737,6 +737,7 @@ int32_t ExtensionRecordManager::CreateExtensionRecord(const AAFwk::AbilityReques
     result = UpdateProcessName(abilityRequest, extensionRecord);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "update processname error");
+        extensionRecord->UnregisterStateObserver();
         return result;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR,

@@ -1675,7 +1675,10 @@ napi_value JSAbilityDelegator::ParseInteropMonitorPara(napi_env env, napi_value 
 
     std::shared_ptr<NativeReference> reference = nullptr;
     napi_ref ref = nullptr;
-    napi_create_reference(env, value, 1, &ref);
+    if (napi_create_reference(env, value, 1, &ref) != napi_ok || ref == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "napi_create_reference failed");
+        return CreateJsNull(env);
+    }
     reference.reset(reinterpret_cast<NativeReference*>(ref));
     {
         std::lock_guard<std::mutex> lock(g_mtxInteropMonitorRecord);

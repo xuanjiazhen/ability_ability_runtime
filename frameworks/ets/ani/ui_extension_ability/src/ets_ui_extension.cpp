@@ -88,7 +88,11 @@ void OnDestroyPromiseCallback(ani_env* env, ani_object aniObj)
 
 EtsUIExtension *EtsUIExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
-    return new (std::nothrow) EtsUIExtension(static_cast<ETSRuntime&>(*runtime));
+    auto *extension = new (std::nothrow) EtsUIExtension(static_cast<ETSRuntime&>(*runtime));
+    if (extension == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "extension null"); 
+    }
+    return extension;
 }
 
 EtsUIExtension::EtsUIExtension(ETSRuntime &eTSRuntime) : etsRuntime_(eTSRuntime)
@@ -379,6 +383,7 @@ bool EtsUIExtension::ForegroundWindowInitInsightIntentExecutorInfo(const AAFwk::
         TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
         return false;
     }
+    std::lock_guard<std::mutex> lock(uiWindowMutex_);
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo = context->GetAbilityInfo();
     if (abilityInfo != nullptr) {
         executorInfo.hapPath = abilityInfo->hapPath;
