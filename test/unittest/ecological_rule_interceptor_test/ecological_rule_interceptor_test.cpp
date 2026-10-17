@@ -1001,8 +1001,8 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_004, TestSize.Level1)
     int userId = 100;
     StartAbilityContext ctx;
     ctx.skipErms = true;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
     ErrCode result = interceptor->DoProcess(param);
     EXPECT_EQ(result, ERR_OK);
 }
@@ -1077,8 +1077,8 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_007, TestSize.Level1)
     StartAbilityContext ctx;
     ctx.skipErms = false;
     int userId = 100;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
     AbilityEcologicalRuleMgrServiceClient::retQueryStartExperience = 0;
     AbilityEcologicalRuleMgrServiceClient::queryStartExperienceRule.resultCode = ERMS_ISALLOW_RESULTCODE;
     ErrCode result = interceptor->DoProcess(param);
@@ -1104,8 +1104,8 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_008, TestSize.Level1)
     StartAbilityContext ctx;
     ctx.skipErms = false;
     int userId = 100;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
     AbilityEcologicalRuleMgrServiceClient::retQueryStartExperience = 0;
     AbilityEcologicalRuleMgrServiceClient::queryStartExperienceRule.resultCode = -1;
     OHOS::system::SetParameter(ABILITY_SUPPORT_ECOLOGICAL_RULEMGRSERVICE, "false");

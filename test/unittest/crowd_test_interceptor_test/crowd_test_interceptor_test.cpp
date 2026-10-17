@@ -99,8 +99,8 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_001, TestSize.Level1)
     int userId = 100;
     StartAbilityContext ctx;
     ctx.skipCrowTest = true;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
     auto ret = crowdTestInterceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -118,8 +118,8 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_002, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     StartAbilityContext ctx;
-    AbilityInterceptorParam param =
-        InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(false).CallerToken(nullptr).StartAbilityCtx(ctx).Build();
 
     StartAbilityUtils::retGetApplicationInfo = false;
     auto ret = crowdTestInterceptor.DoProcess(param);

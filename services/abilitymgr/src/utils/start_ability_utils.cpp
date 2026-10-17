@@ -376,7 +376,8 @@ void StartAbilityInfo::FindExtensionInfo(const Want &want, int32_t flags, int32_
     }
 }
 
-std::shared_ptr<AppExecFwk::AbilityInfo> StartAbilityInfo::CreateCallerAbilityInfo(const sptr<IRemoteObject> &callerToken)
+std::shared_ptr<AppExecFwk::AbilityInfo> StartAbilityInfo::CreateCallerAbilityInfo(
+    const sptr<IRemoteObject> &callerToken)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (callerToken == nullptr) {
