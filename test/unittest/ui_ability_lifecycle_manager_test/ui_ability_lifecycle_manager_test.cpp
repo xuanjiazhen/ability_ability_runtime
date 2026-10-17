@@ -31,6 +31,7 @@
 #include "process_options.h"
 #include "session/host/include/session.h"
 #include "session_info.h"
+#include "server_constant.h"
 #include "startup_util.h"
 #include "ability_manager_service.h"
 #include "ability_scheduler_mock.h"
@@ -125,6 +126,12 @@ public:
         isCallbackInvoked = true;
         callbackResult = result;
     }
+};
+
+class MockBackToCallerSession : public Rosen::Session {
+public:
+    using Rosen::Session::Session;
+    MOCK_METHOD1(PendingSessionActivation, Rosen::WSError(const sptr<SessionInfo>));
 };
 
 UIAbilityRecordPtr UIAbilityLifecycleManagerTest::InitAbilityRecord()
@@ -9235,5 +9242,661 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_WithRequestId_0700, TestS
     EXPECT_EQ(requestId, 100);
     EXPECT_EQ(scbRequestId, 200);
 }
+
+/**
+ * @tc.name: BackToCallerAppWithResult_001
+ * @tc.desc: Verify ERR_CALLER_NOT_EXISTS when no caller matches the request
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_001, TestSize.Level1)
+{
+    auto manager = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    Want resultWant;
+    auto requestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(1, true, 1);
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, requestCode);
+    EXPECT_EQ(ret, ERR_CALLER_NOT_EXISTS);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_002
+ * @tc.desc: Verify ERR_NOT_SUPPORT_BACK_TO_CALLER and request consumption when backFlag is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_002, TestSize.Level1)
+{
+    auto manager = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    auto callerAbilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    ASSERT_NE(callerAbilityRecord, nullptr);
+    constexpr int32_t pid = 1;
+    constexpr int32_t requestCode = 1;
+    callerAbilityRecord->pid_ = pid;
+    auto callerRecord = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
+    callerRecord->AddHistoryRequestCode(requestCode);
+    abilityRecord->callerList_.emplace_back(callerRecord);
+    sptr<AbilitySchedulerMock> scheduler = new AbilitySchedulerMock();
+    callerAbilityRecord->scheduler_ = scheduler;
+    EXPECT_CALL(*scheduler, SendResult(requestCode, 100, _)).Times(1);
+    Want resultWant;
+    auto fullRequestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(pid, false, requestCode);
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, fullRequestCode);
+    EXPECT_EQ(ret, ERR_NOT_SUPPORT_BACK_TO_CALLER);
+    EXPECT_EQ(abilityRecord->GetCallerByRequestCode(requestCode, pid), nullptr);
+    EXPECT_FALSE(abilityRecord->IsTerminating());
+}
+/**
+ * @tc.name: BackToCallerAppWithResult_003
+ * @tc.desc: A null target record returns ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_003, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Want resultWant;
+    auto ret = manager->BackToCallerAppWithResult(nullptr, 100, &resultWant, 1);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_004
+ * @tc.desc: A non-positive request code is rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_004, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    Want resultWant;
+    auto requestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(1, true, 0);
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, requestCode);
+    EXPECT_EQ(ret, ERR_CALLER_NOT_EXISTS);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_005
+ * @tc.desc: A non-positive caller pid is rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_005, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    Want resultWant;
+    auto requestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(0, true, 1);
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, requestCode);
+    EXPECT_EQ(ret, ERR_CALLER_NOT_EXISTS);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_006
+ * @tc.desc: Returning to self consumes only the matching request.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_006, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->pid_ = 1;
+    auto callerRecord = std::make_shared<CallerRecord>(1, abilityRecord);
+    callerRecord->AddHistoryRequestCode(1);
+    callerRecord->AddHistoryRequestCode(2);
+    abilityRecord->callerList_.emplace_back(callerRecord);
+    Want resultWant;
+    auto firstRequest = AbilityRuntime::StartupUtil::GenerateFullRequestCode(1, true, 1);
+    auto secondRequest = AbilityRuntime::StartupUtil::GenerateFullRequestCode(1, true, 2);
+
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, firstRequest);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetCallerByRequestCode(1, 1), nullptr);
+    EXPECT_EQ(abilityRecord->GetCallerByRequestCode(2, 1), abilityRecord);
+    ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, firstRequest);
+    EXPECT_EQ(ret, ERR_CALLER_NOT_EXISTS);
+    ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, secondRequest);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetCallerByRequestCode(2, 1), nullptr);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_007
+ * @tc.desc: A background target without permission still consumes the sent result.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_007, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    auto callerAbilityRecord = InitAbilityRecord();
+    ASSERT_NE(callerAbilityRecord, nullptr);
+    callerAbilityRecord->pid_ = 1;
+    auto callerRecord = std::make_shared<CallerRecord>(1, callerAbilityRecord);
+    callerRecord->AddHistoryRequestCode(1);
+    abilityRecord->callerList_.emplace_back(callerRecord);
+    abilityRecord->currentState_ = AbilityState::BACKGROUND;
+    abilityRecord->isAbilityForegrounding_ = false;
+    Want resultWant;
+    auto requestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(1, true, 1);
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, requestCode);
+    EXPECT_EQ(ret, CHECK_PERMISSION_FAILED);
+    EXPECT_EQ(abilityRecord->GetCallerByRequestCode(1, 1), nullptr);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_008
+ * @tc.desc: A foreground target reaches the foreground transition.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_008, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    auto callerAbilityRecord = InitAbilityRecord();
+    ASSERT_NE(callerAbilityRecord, nullptr);
+    callerAbilityRecord->pid_ = 1;
+    auto callerRecord = std::make_shared<CallerRecord>(1, callerAbilityRecord);
+    callerRecord->AddHistoryRequestCode(1);
+    abilityRecord->callerList_.emplace_back(callerRecord);
+    abilityRecord->currentState_ = AbilityState::FOREGROUND;
+    callerAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    Want resultWant;
+    auto requestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(1, true, 1);
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, requestCode);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityRecord->GetCallerByRequestCode(1, 1), nullptr);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_009
+ * @tc.desc: A foregrounding target does not require background-start permission.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_009, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    auto callerAbilityRecord = InitAbilityRecord();
+    ASSERT_NE(callerAbilityRecord, nullptr);
+    callerAbilityRecord->pid_ = 1;
+    auto callerRecord = std::make_shared<CallerRecord>(1, callerAbilityRecord);
+    callerRecord->AddHistoryRequestCode(1);
+    abilityRecord->callerList_.emplace_back(callerRecord);
+    abilityRecord->currentState_ = AbilityState::BACKGROUND;
+    abilityRecord->isAbilityForegrounding_ = true;
+    Want resultWant;
+    auto requestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(1, true, 1);
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, requestCode);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_010
+ * @tc.desc: A UIExtension caller is followed to its host ability.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_010, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    auto callerAbilityRecord = InitAbilityRecord();
+    ASSERT_NE(callerAbilityRecord, nullptr);
+    callerAbilityRecord->pid_ = 1;
+    auto callerRecord = std::make_shared<CallerRecord>(1, callerAbilityRecord);
+    callerRecord->AddHistoryRequestCode(1);
+    abilityRecord->callerList_.emplace_back(callerRecord);
+    abilityRecord->currentState_ = AbilityState::FOREGROUND;
+    callerAbilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
+    auto hostAbilityRecord = InitAbilityRecord();
+    ASSERT_NE(hostAbilityRecord, nullptr);
+    hostAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    callerAbilityRecord->callerList_.emplace_back(std::make_shared<CallerRecord>(2, hostAbilityRecord));
+    Want resultWant;
+    auto requestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(1, true, 1);
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, requestCode);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityRecord->GetCallerByRequestCode(1, 1), nullptr);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_011
+ * @tc.desc: A UIExtension without a host terminates the caller search.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_011, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    auto callerAbilityRecord = InitAbilityRecord();
+    ASSERT_NE(callerAbilityRecord, nullptr);
+    callerAbilityRecord->pid_ = 1;
+    auto callerRecord = std::make_shared<CallerRecord>(1, callerAbilityRecord);
+    callerRecord->AddHistoryRequestCode(1);
+    abilityRecord->callerList_.emplace_back(callerRecord);
+    abilityRecord->currentState_ = AbilityState::BACKGROUND;
+    abilityRecord->isAbilityForegrounding_ = true;
+    callerAbilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
+    Want resultWant;
+    auto requestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(1, true, 1);
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, requestCode);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResultLocked_001
+ * @tc.desc: Invalid current session information is rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResultLocked_001, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto caller = InitAbilityRecord();
+    EXPECT_EQ(manager->BackToCallerAppWithResultLocked(nullptr, caller), ERR_INVALID_VALUE);
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    EXPECT_EQ(manager->BackToCallerAppWithResultLocked(sessionInfo, caller), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResultLocked_002
+ * @tc.desc: A missing caller and invalid caller session are rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResultLocked_002, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    EXPECT_EQ(manager->BackToCallerAppWithResultLocked(sessionInfo, nullptr), ERR_INVALID_VALUE);
+    auto caller = InitAbilityRecord();
+    ASSERT_NE(caller, nullptr);
+    caller->SetSessionInfo(nullptr);
+    EXPECT_EQ(manager->BackToCallerAppWithResultLocked(sessionInfo, caller), ERR_INVALID_VALUE);
+    caller->SetSessionInfo(new SessionInfo());
+    EXPECT_EQ(manager->BackToCallerAppWithResultLocked(sessionInfo, caller), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResultLocked_003
+ * @tc.desc: Successful activation preserves caller identity and uses the new scenario.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResultLocked_003, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<MockBackToCallerSession> session = new MockBackToCallerSession(info);
+    sptr<SessionInfo> currentSession = new SessionInfo();
+    currentSession->sessionToken = session;
+    sptr<SessionInfo> callerSession = new SessionInfo();
+    callerSession->sessionToken = new Rosen::Session(info);
+    callerSession->persistentId = 10;
+    callerSession->identityToken = "caller";
+    callerSession->want.SetElementName("device", "com.example.test", "MainAbility", "entry");
+    callerSession->want.SetParam("original", std::string("value"));
+    auto caller = InitAbilityRecord();
+    ASSERT_NE(caller, nullptr);
+    caller->SetSessionInfo(callerSession);
+    caller->SetAppIndex(1);
+    auto skipScenarios = caller->GetOnNewWantSkipScenarios();
+    sptr<SessionInfo> activation;
+    EXPECT_CALL(*session, PendingSessionActivation(_))
+        .WillOnce(DoAll(SaveArg<0>(&activation), Return(Rosen::WSError::WS_OK)));
+
+    auto ret = manager->BackToCallerAppWithResultLocked(currentSession, caller);
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_NE(activation, nullptr);
+    EXPECT_EQ(activation->persistentId, 10);
+    EXPECT_EQ(activation->identityToken, "caller");
+    EXPECT_EQ(activation->want.GetElement().GetDeviceID(), "device");
+    EXPECT_EQ(activation->want.GetElement().GetBundleName(), "com.example.test");
+    EXPECT_EQ(activation->want.GetElement().GetAbilityName(), "MainAbility");
+    EXPECT_EQ(activation->want.GetElement().GetModuleName(), "entry");
+    EXPECT_EQ(activation->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), 1);
+    EXPECT_FALSE(activation->want.HasParameter("original"));
+    EXPECT_TRUE(activation->isBackTransition);
+    EXPECT_FALSE(activation->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true));
+    EXPECT_EQ(activation->scenarios, ServerConstant::SCENARIO_BACK_TO_CALLER_APP_WITH_RESULT);
+    EXPECT_EQ(caller->GetOnNewWantSkipScenarios(), skipScenarios);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResultLocked_004
+ * @tc.desc: Failed activation returns the session error.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResultLocked_004, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<MockBackToCallerSession> session = new MockBackToCallerSession(info);
+    sptr<SessionInfo> currentSession = new SessionInfo();
+    currentSession->sessionToken = session;
+    sptr<SessionInfo> callerSession = new SessionInfo();
+    callerSession->sessionToken = new Rosen::Session(info);
+    auto caller = InitAbilityRecord();
+    ASSERT_NE(caller, nullptr);
+    caller->SetSessionInfo(callerSession);
+    EXPECT_CALL(*session, PendingSessionActivation(_))
+        .WillOnce(Return(Rosen::WSError::WS_ERROR_INVALID_PARAM));
+
+    auto ret = manager->BackToCallerAppWithResultLocked(currentSession, caller);
+    EXPECT_EQ(ret, static_cast<int32_t>(Rosen::WSError::WS_ERROR_INVALID_PARAM));
+}
+
+/**
+ * @tc.name: StartUIAbility_BackToCallerAppWithResult_001
+ * @tc.desc: The new interface scenario suppresses a pending onNewWant.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_BackToCallerAppWithResult_001, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 10;
+    sessionInfo->isNewWant = true;
+    sessionInfo->scenarios = ServerConstant::SCENARIO_BACK_TO_CALLER_APP_WITH_RESULT;
+    AbilityRequest request;
+    request.want.SetParam("value", std::string("new"));
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->isLaunching_ = false;
+    Want originalWant;
+    originalWant.SetParam("value", std::string("original"));
+    abilityRecord->SetWant(originalWant);
+    abilityRecord->SetSessionInfo(sessionInfo);
+    abilityRecord->SetIsNewWant(false);
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    manager->sessionAbilityMap_.emplace(10, abilityRecord);
+    auto skipScenarios = abilityRecord->GetOnNewWantSkipScenarios();
+    AbilityRuntime::StartParamsBySCB params;
+    bool isColdStart = false;
+
+    auto ret = manager->StartUIAbility(request, sessionInfo, params, isColdStart);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(isColdStart);
+    EXPECT_FALSE(abilityRecord->HasLastWant());
+    EXPECT_EQ(abilityRecord->GetOnNewWantSkipScenarios(), skipScenarios);
+}
+
+/**
+ * @tc.name: StartUIAbility_BackToCallerAppWithResult_002
+ * @tc.desc: The old interface scenario retains a pending onNewWant.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_BackToCallerAppWithResult_002, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 10;
+    sessionInfo->isNewWant = true;
+    sessionInfo->scenarios = ServerConstant::SCENARIO_BACK_TO_CALLER_ABILITY_WITH_RESULT;
+    AbilityRequest request;
+    request.want.SetParam("value", std::string("new"));
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->isLaunching_ = false;
+    Want originalWant;
+    originalWant.SetParam("value", std::string("original"));
+    abilityRecord->SetWant(originalWant);
+    abilityRecord->SetSessionInfo(sessionInfo);
+    abilityRecord->SetIsNewWant(false);
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    manager->sessionAbilityMap_.emplace(10, abilityRecord);
+    auto skipScenarios = abilityRecord->GetOnNewWantSkipScenarios();
+    AbilityRuntime::StartParamsBySCB params;
+    bool isColdStart = false;
+
+    auto ret = manager->StartUIAbility(request, sessionInfo, params, isColdStart);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(isColdStart);
+    EXPECT_TRUE(abilityRecord->HasLastWant());
+    EXPECT_EQ(abilityRecord->GetOnNewWantSkipScenarios(), skipScenarios);
+}
+
+/**
+ * @tc.name: StartUIAbility_BackToCallerAppWithResult_005
+ * @tc.desc: The new interface scenario preserves the reused ability's Want.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_BackToCallerAppWithResult_005, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 10;
+    sessionInfo->isNewWant = true;
+    sessionInfo->scenarios = ServerConstant::SCENARIO_BACK_TO_CALLER_APP_WITH_RESULT;
+    AbilityRequest request;
+    request.want.SetParam("value", std::string("new"));
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->isLaunching_ = false;
+    Want originalWant;
+    originalWant.SetParam("value", std::string("original"));
+    abilityRecord->SetWant(originalWant);
+    ASSERT_EQ(abilityRecord->GetWant().GetStringParam("value"), "original");
+    abilityRecord->SetSessionInfo(sessionInfo);
+    abilityRecord->SetIsNewWant(false);
+    abilityRecord->SetPendingState(AbilityState::INITIAL);
+    manager->sessionAbilityMap_.emplace(10, abilityRecord);
+    auto skipScenarios = abilityRecord->GetOnNewWantSkipScenarios();
+    AbilityRuntime::StartParamsBySCB params;
+    bool isColdStart = false;
+
+    auto ret = manager->StartUIAbility(request, sessionInfo, params, isColdStart);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(isColdStart);
+    EXPECT_EQ(abilityRecord->GetWant().GetStringParam("value"), "original");
+    EXPECT_EQ(abilityRecord->GetOnNewWantSkipScenarios(), skipScenarios);
+}
+
+/**
+ * @tc.name: StartUIAbility_BackToCallerAppWithResult_006
+ * @tc.desc: The old interface scenario updates the reused ability's Want.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_BackToCallerAppWithResult_006, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 10;
+    sessionInfo->isNewWant = true;
+    sessionInfo->scenarios = ServerConstant::SCENARIO_BACK_TO_CALLER_ABILITY_WITH_RESULT;
+    AbilityRequest request;
+    request.want.SetParam("value", std::string("new"));
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->isLaunching_ = false;
+    Want originalWant;
+    originalWant.SetParam("value", std::string("original"));
+    abilityRecord->SetWant(originalWant);
+    ASSERT_EQ(abilityRecord->GetWant().GetStringParam("value"), "original");
+    abilityRecord->SetSessionInfo(sessionInfo);
+    abilityRecord->SetIsNewWant(false);
+    abilityRecord->SetPendingState(AbilityState::INITIAL);
+    manager->sessionAbilityMap_.emplace(10, abilityRecord);
+    auto skipScenarios = abilityRecord->GetOnNewWantSkipScenarios();
+    AbilityRuntime::StartParamsBySCB params;
+    bool isColdStart = false;
+
+    auto ret = manager->StartUIAbility(request, sessionInfo, params, isColdStart);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(isColdStart);
+    EXPECT_EQ(abilityRecord->GetWant().GetStringParam("value"), "new");
+    EXPECT_EQ(abilityRecord->GetOnNewWantSkipScenarios(), skipScenarios);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResult_012
+ * @tc.desc: A cyclic UIExtension caller chain stops at the search limit.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResult_012, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    auto caller = InitAbilityRecord();
+    ASSERT_NE(caller, nullptr);
+    caller->pid_ = 1;
+    caller->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
+    auto callerRecord = std::make_shared<CallerRecord>(1, caller);
+    callerRecord->AddHistoryRequestCode(1);
+    abilityRecord->callerList_.emplace_back(callerRecord);
+    caller->callerList_.emplace_back(std::make_shared<CallerRecord>(2, caller));
+    abilityRecord->currentState_ = AbilityState::FOREGROUND;
+    Want resultWant;
+    auto requestCode = AbilityRuntime::StartupUtil::GenerateFullRequestCode(1, true, 1);
+
+    auto ret = manager->BackToCallerAppWithResult(abilityRecord, 100, &resultWant, requestCode);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityRecord->GetCallerByRequestCode(1, 1), nullptr);
+}
+
+/**
+ * @tc.name: StartUIAbility_BackToCallerAppWithResult_007
+ * @tc.desc: The existing skip configuration still suppresses a pending onNewWant.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_BackToCallerAppWithResult_007, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 10;
+    sessionInfo->isNewWant = true;
+    sessionInfo->scenarios = ServerConstant::SCENARIO_BACK_TO_CALLER_ABILITY_WITH_RESULT;
+    AbilityRequest request;
+    request.want.SetParam("value", std::string("new"));
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->isLaunching_ = false;
+    Want originalWant;
+    originalWant.SetParam("value", std::string("original"));
+    abilityRecord->SetWant(originalWant);
+    abilityRecord->SetSessionInfo(sessionInfo);
+    abilityRecord->SetIsNewWant(false);
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    manager->sessionAbilityMap_.emplace(10, abilityRecord);
+    abilityRecord->SetOnNewWantSkipScenarios(ServerConstant::SCENARIO_BACK_TO_CALLER_ABILITY_WITH_RESULT);
+    auto skipScenarios = abilityRecord->GetOnNewWantSkipScenarios();
+    AbilityRuntime::StartParamsBySCB params;
+    bool isColdStart = false;
+
+    auto ret = manager->StartUIAbility(request, sessionInfo, params, isColdStart);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(isColdStart);
+    EXPECT_FALSE(abilityRecord->HasLastWant());
+    EXPECT_EQ(abilityRecord->GetOnNewWantSkipScenarios(), skipScenarios);
+}
+
+/**
+ * @tc.name: StartUIAbility_BackToCallerAppWithResult_008
+ * @tc.desc: A pending activation without a new Want does not update the caller Want.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_BackToCallerAppWithResult_008, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 10;
+    sessionInfo->isNewWant = false;
+    sessionInfo->scenarios = ServerConstant::SCENARIO_BACK_TO_CALLER_ABILITY_WITH_RESULT;
+    AbilityRequest request;
+    request.want.SetParam("value", std::string("new"));
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->isLaunching_ = false;
+    Want originalWant;
+    originalWant.SetParam("value", std::string("original"));
+    abilityRecord->SetWant(originalWant);
+    abilityRecord->SetSessionInfo(sessionInfo);
+    abilityRecord->SetIsNewWant(false);
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    manager->sessionAbilityMap_.emplace(10, abilityRecord);
+    auto skipScenarios = abilityRecord->GetOnNewWantSkipScenarios();
+    AbilityRuntime::StartParamsBySCB params;
+    bool isColdStart = false;
+
+    auto ret = manager->StartUIAbility(request, sessionInfo, params, isColdStart);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(isColdStart);
+    EXPECT_FALSE(abilityRecord->HasLastWant());
+    EXPECT_EQ(abilityRecord->GetOnNewWantSkipScenarios(), skipScenarios);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResultLocked_005
+ * @tc.desc: Failed session conversion returns ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResultLocked_005, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    auto caller = InitAbilityRecord();
+    ASSERT_NE(caller, nullptr);
+    ASSERT_NE(caller->GetToken(), nullptr);
+    sptr<SessionInfo> currentSession = new SessionInfo();
+    currentSession->sessionToken = caller->GetToken()->AsObject();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> callerSession = new SessionInfo();
+    callerSession->sessionToken = new Rosen::Session(info);
+    caller->SetSessionInfo(callerSession);
+
+    auto ret = manager->BackToCallerAppWithResultLocked(currentSession, caller);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: BackToCallerAppWithResultLocked_006
+ * @tc.desc: Activation preserves the caller DLP index without using the clone parameter.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BackToCallerAppWithResultLocked_006, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<MockBackToCallerSession> session = new MockBackToCallerSession(info);
+    sptr<SessionInfo> currentSession = new SessionInfo();
+    currentSession->sessionToken = session;
+    sptr<SessionInfo> callerSession = new SessionInfo();
+    callerSession->sessionToken = new Rosen::Session(info);
+    callerSession->want.SetElementName("device", "com.example.test", "MainAbility", "entry");
+    constexpr int32_t appIndex = 1001;
+    callerSession->want.SetParam(ServerConstant::DLP_INDEX, appIndex);
+    auto caller = InitAbilityRecord();
+    ASSERT_NE(caller, nullptr);
+    caller->SetSessionInfo(callerSession);
+    caller->SetAppIndex(appIndex);
+    sptr<SessionInfo> activation;
+    EXPECT_CALL(*session, PendingSessionActivation(_))
+        .WillOnce(DoAll(SaveArg<0>(&activation), Return(Rosen::WSError::WS_OK)));
+
+    auto ret = manager->BackToCallerAppWithResultLocked(currentSession, caller);
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_NE(activation, nullptr);
+    EXPECT_EQ(activation->want.GetIntParam(ServerConstant::DLP_INDEX, 0), appIndex);
+    EXPECT_FALSE(activation->want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY));
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

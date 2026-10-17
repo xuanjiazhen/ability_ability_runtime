@@ -1097,6 +1097,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::QUERY_SKILL_TYPE) {
         return QuerySkillTypeInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::BACK_TO_CALLER_APP_WITH_RESULT) {
+        return BackToCallerAppWithResultInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -1347,6 +1350,26 @@ int AbilityManagerStub::BackToCallerInner(MessageParcel &data, MessageParcel &re
     if (resultWant != nullptr) {
         delete resultWant;
     }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::BackToCallerAppWithResultInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> token = nullptr;
+    if (data.ReadBool()) {
+        token = data.ReadRemoteObject();
+    }
+    int resultCode = data.ReadInt32();
+    std::unique_ptr<Want> resultWant(data.ReadParcelable<Want>());
+    if (resultWant == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "resultWant null");
+        return ERR_INVALID_VALUE;
+    }
+    SanitizeWantParams(*resultWant);
+    resultWant->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
+    int64_t callerRequestCode = data.ReadInt64();
+    int32_t result = BackToCallerAppWithResult(token, resultCode, resultWant.get(), callerRequestCode);
+    reply.WriteInt32(result);
     return NO_ERROR;
 }
 
