@@ -293,14 +293,15 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         ProcessColdStartBranch(abilityRequest, sessionInfo, uiAbilityRecord, isColdStart)) {
         return ERR_OK;
     }
-    auto scenarios = static_cast<uint32_t>(uiAbilityRecord->GetOnNewWantSkipScenarios()) &
-        static_cast<uint32_t>(sessionInfo->scenarios);
+    bool skipNewWant = sessionInfo->scenarios == ServerConstant::SCENARIO_BACK_TO_CALLER_APP_WITH_RESULT ||
+        (static_cast<uint32_t>(uiAbilityRecord->GetOnNewWantSkipScenarios()) &
+        static_cast<uint32_t>(sessionInfo->scenarios)) != 0;
     if (!uiAbilityRecord->CheckStartPendingState(sessionInfo->requestId)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state dropped START: %{public}d, %{public}d",
             static_cast<int32_t>(uiAbilityRecord->GetPendingState()), sessionInfo->requestId);
         uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
         uiAbilityRecord->lifeCycleStateInfo_.sceneFlagBak = params.sceneFlag;
-        if (scenarios == 0 && sessionInfo->isNewWant) {
+        if (!skipNewWant && sessionInfo->isNewWant) {
             uiAbilityRecord->SetLastWant(std::make_shared<Want>(abilityRequest.want));
         }
         return ERR_OK;
@@ -308,7 +309,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         TAG_LOGD(AAFwkTag::ABILITYMGR, "pending state is not FOREGROUND or BACKGROUND.");
         uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
     }
-    if (!isColdStart && scenarios == 0) {
+    if (!isColdStart && !skipNewWant) {
         uiAbilityRecord->SetIsNewWant(sessionInfo->isNewWant);
         if (sessionInfo->isNewWant) {
             uiAbilityRecord->SetWant(abilityRequest.want);
@@ -2517,6 +2518,76 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(sptr<Sess
             AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED));
     auto ret = static_cast<int>(currentSession->PendingSessionActivation(newSessionInfo));
     return ret;
+}
+
+int32_t UIAbilityLifecycleManager::BackToCallerAppWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
+    int resultCode, const Want *resultWant, int64_t callerRequestCode)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    auto requestInfo = StartupUtil::ParseFullRequestCode(callerRequestCode);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "pid:%{public}d, backFlag:%{public}d, requestCode:%{public}d",
+        requestInfo.pid, requestInfo.backFlag, requestInfo.requestCode);
+    if (requestInfo.requestCode <= 0 || requestInfo.pid <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no find caller by requestCode");
+        return ERR_CALLER_NOT_EXISTS;
+    }
+    auto callerAbilityRecord = abilityRecord->GetCallerByRequestCode(requestInfo.requestCode, requestInfo.pid);
+    CHECK_POINTER_AND_RETURN(callerAbilityRecord, ERR_CALLER_NOT_EXISTS);
+    auto abilityResult = std::make_shared<AbilityResult>(requestInfo.requestCode, resultCode, *resultWant);
+    callerAbilityRecord->SendResultByBackToCaller(abilityResult);
+    abilityRecord->RemoveCallerRequestCode(callerAbilityRecord, requestInfo.requestCode);
+    if (!requestInfo.backFlag) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "not back to caller");
+        return ERR_NOT_SUPPORT_BACK_TO_CALLER;
+    }
+    if (callerAbilityRecord == abilityRecord) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "caller is self");
+        return ERR_OK;
+    }
+    auto tokenId = abilityRecord->GetAbilityInfo().applicationInfo.accessTokenId;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "tokenId: %{public}d.", tokenId);
+    if (!abilityRecord->IsForeground() && !abilityRecord->GetAbilityForegroundingFlag() &&
+        !PermissionVerification::GetInstance()->VerifyPermissionByTokenId(tokenId,
+        PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "no call ability");
+        return CHECK_PERMISSION_FAILED;
+    }
+    auto foundCount = 0;
+    while (((++foundCount) <= MAX_FIND_UIEXTENSION_CALLER_TIMES) && callerAbilityRecord &&
+        UIExtensionWrapper::IsUIExtension(callerAbilityRecord->GetAbilityInfo().extensionAbilityType)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "caller uiExtension");
+        callerAbilityRecord = callerAbilityRecord->GetCallerRecord();
+    }
+    return BackToCallerAppWithResultLocked(abilityRecord->GetSessionInfo(), callerAbilityRecord);
+}
+
+int32_t UIAbilityLifecycleManager::BackToCallerAppWithResultLocked(sptr<SessionInfo> currentSessionInfo,
+    std::shared_ptr<AbilityRecord> callerAbilityRecord)
+{
+    CHECK_POINTER_AND_RETURN(currentSessionInfo, ERR_INVALID_VALUE);
+    CHECK_POINTER_AND_RETURN(currentSessionInfo->sessionToken, ERR_INVALID_VALUE);
+    CHECK_POINTER_AND_RETURN(callerAbilityRecord, ERR_INVALID_VALUE);
+
+    auto callerSessionInfo = callerAbilityRecord->GetSessionInfo();
+    CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
+    CHECK_POINTER_AND_RETURN(callerSessionInfo->sessionToken, ERR_INVALID_VALUE);
+    sptr<SessionInfo> newSessionInfo = sptr<SessionInfo>::MakeSptr();
+    newSessionInfo->want.SetElement(callerSessionInfo->want.GetElement());
+    newSessionInfo->want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, callerAbilityRecord->GetAppIndex());
+    newSessionInfo->persistentId = callerSessionInfo->persistentId;
+    newSessionInfo->identityToken = callerSessionInfo->identityToken;
+
+    auto currentSession = iface_cast<Rosen::ISession>(currentSessionInfo->sessionToken);
+    CHECK_POINTER_AND_RETURN(currentSession, ERR_INVALID_VALUE);
+    newSessionInfo->isBackTransition = true;
+    newSessionInfo->want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
+    newSessionInfo->scenarios = ServerConstant::SCENARIO_BACK_TO_CALLER_APP_WITH_RESULT;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, backToCaller, windowMode:%{public}d",
+        newSessionInfo->want.GetIntParam(Want::PARAM_RESV_WINDOW_MODE,
+            AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED));
+    return static_cast<int>(currentSession->PendingSessionActivation(newSessionInfo));
 }
 
 int UIAbilityLifecycleManager::CloseUIAbility(const UIAbilityRecordPtr &abilityRecord,
