@@ -52,6 +52,8 @@ public:
     void UnloadUIExtensionAbility();
 
     int32_t RegisterStateObserver(const std::string &hostBundleName);
+    
+    void UnregisterStateObserver();
 
     bool isHostSpecified_ = false;
     int32_t extensionRecordId_ = INVALID_EXTENSION_RECORD_ID;

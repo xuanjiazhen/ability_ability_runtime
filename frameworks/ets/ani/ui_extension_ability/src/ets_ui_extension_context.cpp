@@ -1002,8 +1002,10 @@ RuntimeTask EtsUIExtensionContext::CreateRuntimeTask(ani_vm *etsVm, ani_ref call
 {
     return [etsVm, callbackRef] (int resultCode, const AAFwk::Want &want, bool isInner) {
         ani_env* env = nullptr;
-        if (etsVm->GetEnv(ANI_VERSION_1, &env) != ANI_OK || env == nullptr) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "GetEnv failed in callback");
+        bool isAttachThread = false;
+        env = AppExecFwk::AttachAniEnv(etsVm, isAttachThread);
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "GetEnv and AttachAniEnv failed in callback");
             return;
         }
 
@@ -1014,6 +1016,7 @@ RuntimeTask EtsUIExtensionContext::CreateRuntimeTask(ani_vm *etsVm, ani_ref call
                 EtsErrorUtil::CreateError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
                     GetInnerErrorMsg(AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED)), nullptr);
             env->GlobalReference_Delete(callbackRef);
+            AppExecFwk::DetachAniEnv(etsVm, isAttachThread);
             return;
         }
 
@@ -1021,6 +1024,7 @@ RuntimeTask EtsUIExtensionContext::CreateRuntimeTask(ani_vm *etsVm, ani_ref call
         AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
             EtsErrorUtil::CreateErrorByNativeErr(env, errCode), abilityResult);
         env->GlobalReference_Delete(callbackRef);
+        AppExecFwk::DetachAniEnv(etsVm, isAttachThread);
     };
 }
 

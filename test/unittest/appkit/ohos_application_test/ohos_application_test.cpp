@@ -2708,5 +2708,62 @@ HWTEST_F(OHOSApplicationTest, ChangeAppGcState_0300, TestSize.Level1)
     GTEST_LOG_(INFO) << "ChangeAppGcState_0300 end.";
 }
 
+/**
+ * @tc.number: AppExecFwk_OHOSApplicationTest_RecursiveMutex_0100
+ * @tc.name: RecursiveMutex
+ * @tc.desc: Verify runtimeMutex_ allows recursive locking (GetRuntime within locked scope).
+ */
+HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_RecursiveMutex_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_RecursiveMutex_0100 start.";
+    ohosApplication_->runtime_ = std::make_unique<AbilityRuntime::MockRuntime>();
+    {
+        std::lock_guard<std::recursive_mutex> lock(ohosApplication_->runtimeMutex_);
+        auto &runtimeRef = ohosApplication_->GetRuntime();
+        EXPECT_TRUE(runtimeRef != nullptr);
+    }
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_RecursiveMutex_0100 end.";
+}
+
+/**
+ * @tc.number: AppExecFwk_OHOSApplicationTest_AddAbilityStage_HapModuleInfo_0100
+ * @tc.name: AddAbilityStage with HapModuleInfo
+ * @tc.desc: Verify AddAbilityStage(HapModuleInfo) returns false when runtime_ is null.
+ */
+HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_AddAbilityStage_HapModuleInfo_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_HapModuleInfo_0100 start.";
+    ohosApplication_->OnStart();
+    EXPECT_TRUE(ohosApplication_->runtime_ == nullptr);
+
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    hapModuleInfo.moduleName = "testModule";
+    auto callback = []() {};
+    bool isAsyncCallback = false;
+    auto result = ohosApplication_->AddAbilityStage(hapModuleInfo, callback, isAsyncCallback);
+    EXPECT_FALSE(result);
+    ohosApplication_->OnTerminate();
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_HapModuleInfo_0100 end.";
+}
+
+/**
+ * @tc.number: AppExecFwk_OHOSApplicationTest_AddAbilityStage_HapModuleInfo_0200
+ * @tc.name: AddAbilityStage with HapModuleInfo
+ * @tc.desc: Verify AddAbilityStage(HapModuleInfo) returns false when abilityRuntimeContext_ is null.
+ */
+HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_AddAbilityStage_HapModuleInfo_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_HapModuleInfo_0200 start.";
+    EXPECT_TRUE(ohosApplication_->abilityRuntimeContext_ == nullptr);
+
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    hapModuleInfo.moduleName = "testModule";
+    auto callback = []() {};
+    bool isAsyncCallback = false;
+    auto result = ohosApplication_->AddAbilityStage(hapModuleInfo, callback, isAsyncCallback);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_HapModuleInfo_0200 end.";
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS
