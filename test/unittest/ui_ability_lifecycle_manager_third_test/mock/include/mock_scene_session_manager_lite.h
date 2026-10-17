@@ -27,6 +27,7 @@
 #include "mission_snapshot.h"
 #include "session_info.h"
 #include "session_lifecycle_listener_interface.h"
+#include "session_surface_listener_interface.h"
 #include "session_manager/include/zidl/scene_session_manager_lite_interface.h"
 #include "zidl/window_manager_lite_interface.h"
 namespace OHOS::Media {
@@ -146,6 +147,10 @@ public:
     MOCK_METHOD(WMError, GetAppWindowShowingInfosByBundleName, (const ApplicationInfo& appInfo,
         std::vector<AppWindowShowingInfo>& windowInfos), (override));
     MOCK_METHOD(WMError, UpdateRogWindowConfig, (const RogWindowConfig& windowConfig), (override));
+    MOCK_METHOD(WMError, RegisterSessionSurfaceListener, (const sptr<ISessionSurfaceListener>& listener,
+        const std::vector<int32_t>& persistentIdList), (override));
+    MOCK_METHOD(WMError, UnregisterSessionSurfaceListener,
+        (const sptr<ISessionSurfaceListener>& listener), (override));
 };
 } // namespace OHOS::Rosen
 #endif // MOCK_SCENE_SESSION_MANAGER_LITE_H
