@@ -193,6 +193,8 @@ public:
 
     virtual ErrCode BackToCallerAbilityWithResult(const AAFwk::Want &want, int resultCode, int64_t requestCode) = 0;
 
+    virtual ErrCode BackToCallerAppWithResult(const AAFwk::Want &want, int resultCode, int64_t requestCode) = 0;
+
     virtual ErrCode RestoreWindowStage(napi_env env, napi_value contentStorage) = 0;
 
     virtual ErrCode RestoreWindowStage(void *contentStorage) = 0;

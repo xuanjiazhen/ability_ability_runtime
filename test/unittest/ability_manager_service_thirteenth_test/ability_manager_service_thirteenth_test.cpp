@@ -5279,5 +5279,190 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartSandboxCloneAbility_ForbidSta
     EXPECT_EQ(ret, INNER_ERR);
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Name: BackToCallerAppWithResult_001
+ * Function: BackToCallerAppWithResult
+ * SubFunction: NA
+ * FunctionPoints: BackToCallerAppWithResult rejects an unverified token
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAppWithResult_001, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    auto &status = MyStatus::GetInstance();
+    auto previousStatus = status;
+    status.ipcGetCallingTokenID_ = 1;
+    status.arGetAbilityInfo_.applicationInfo.accessTokenId = 1;
+    status.arGetAbilityRecord_ = MockAbilityRecord(AbilityType::PAGE);
+    status.smhVerificationAllToken_ = false;
+
+    Want want;
+    auto token = MockToken(AbilityType::PAGE);
+    auto ret = abilityMs->BackToCallerAppWithResult(token, 100, &want, 1);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    status = previousStatus;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: BackToCallerAppWithResult_002
+ * Function: BackToCallerAppWithResult
+ * SubFunction: NA
+ * FunctionPoints: BackToCallerAppWithResult rejects a token without an AbilityRecord
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAppWithResult_002, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    auto &status = MyStatus::GetInstance();
+    auto previousStatus = status;
+    status.smhVerificationAllToken_ = true;
+    status.ipcGetCallingTokenID_ = 1;
+    status.arGetAbilityInfo_.applicationInfo.accessTokenId = 1;
+    status.arGetAbilityRecord_ = nullptr;
+
+    Want want;
+    auto token = MockToken(AbilityType::PAGE);
+    auto ret = abilityMs->BackToCallerAppWithResult(token, 100, &want, 1);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    status = previousStatus;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: BackToCallerAppWithResult_003
+ * Function: BackToCallerAppWithResult
+ * SubFunction: NA
+ * FunctionPoints: BackToCallerAppWithResult rejects a caller with a different access token
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAppWithResult_003, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    auto &status = MyStatus::GetInstance();
+    auto previousStatus = status;
+    status.smhVerificationAllToken_ = true;
+    status.ipcGetCallingTokenID_ = 1;
+    status.arGetAbilityRecord_ = MockAbilityRecord(AbilityType::PAGE);
+    status.arGetAbilityInfo_.applicationInfo.accessTokenId = 2;
+
+    Want want;
+    auto token = MockToken(AbilityType::PAGE);
+    auto ret = abilityMs->BackToCallerAppWithResult(token, 100, &want, 1);
+    EXPECT_EQ(ret, CHECK_PERMISSION_FAILED);
+    status = previousStatus;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: BackToCallerAppWithResult_004
+ * Function: BackToCallerAppWithResult
+ * SubFunction: NA
+ * FunctionPoints: BackToCallerAppWithResult rejects a missing SceneBoard manager
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAppWithResult_004, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    auto &status = MyStatus::GetInstance();
+    auto previousStatus = status;
+    status.smhVerificationAllToken_ = true;
+    status.ipcGetCallingTokenID_ = 1;
+    status.arGetAbilityInfo_.applicationInfo.accessTokenId = 1;
+    status.arGetAbilityRecord_ = MockAbilityRecord(AbilityType::PAGE);
+    status.sbjIsSceneBoardEnabled_ = true;
+    status.smhGetUIAbilityManagerByUserId_ = false;
+
+    Want want;
+    auto token = MockToken(AbilityType::PAGE);
+    auto ret = abilityMs->BackToCallerAppWithResult(token, 100, &want, 1);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    status = previousStatus;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: BackToCallerAppWithResult_005
+ * Function: BackToCallerAppWithResult
+ * SubFunction: NA
+ * FunctionPoints: BackToCallerAppWithResult forwards to the SceneBoard manager
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAppWithResult_005, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    auto &status = MyStatus::GetInstance();
+    auto previousStatus = status;
+    status.smhVerificationAllToken_ = true;
+    status.ipcGetCallingTokenID_ = 1;
+    status.arGetAbilityInfo_.applicationInfo.accessTokenId = 1;
+    status.arGetAbilityRecord_ = MockAbilityRecord(AbilityType::PAGE);
+    status.sbjIsSceneBoardEnabled_ = true;
+    status.smhGetUIAbilityManagerByUserId_ = true;
+    abilityMs->subManagersHelper_->currentUIAbilityManager_ = std::make_shared<UIAbilityLifecycleManager>(0);
+
+    Want want;
+    auto token = MockToken(AbilityType::PAGE);
+    auto ret = abilityMs->BackToCallerAppWithResult(token, 100, &want, 1);
+    EXPECT_EQ(ret, ERR_OK);
+    status = previousStatus;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: BackToCallerAppWithResult_006
+ * Function: BackToCallerAppWithResult
+ * SubFunction: NA
+ * FunctionPoints: BackToCallerAppWithResult rejects a missing Mission manager
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAppWithResult_006, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    auto &status = MyStatus::GetInstance();
+    auto previousStatus = status;
+    status.smhVerificationAllToken_ = true;
+    status.ipcGetCallingTokenID_ = 1;
+    status.arGetAbilityInfo_.applicationInfo.accessTokenId = 1;
+    status.arGetAbilityRecord_ = MockAbilityRecord(AbilityType::PAGE);
+    status.sbjIsSceneBoardEnabled_ = false;
+    status.smhGetMissionListManagerByUserId_ = false;
+
+    Want want;
+    auto token = MockToken(AbilityType::PAGE);
+    auto ret = abilityMs->BackToCallerAppWithResult(token, 100, &want, 1);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    status = previousStatus;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: BackToCallerAppWithResult_007
+ * Function: BackToCallerAppWithResult
+ * SubFunction: NA
+ * FunctionPoints: BackToCallerAppWithResult forwards to the Mission manager
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAppWithResult_007, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    auto &status = MyStatus::GetInstance();
+    auto previousStatus = status;
+    status.smhVerificationAllToken_ = true;
+    status.ipcGetCallingTokenID_ = 1;
+    status.arGetAbilityInfo_.applicationInfo.accessTokenId = 1;
+    status.arGetAbilityRecord_ = MockAbilityRecord(AbilityType::PAGE);
+    status.sbjIsSceneBoardEnabled_ = false;
+    status.smhGetMissionListManagerByUserId_ = true;
+    abilityMs->subManagersHelper_->currentMissionListManager_ = std::make_shared<MissionListManager>(0);
+
+    Want want;
+    auto token = MockToken(AbilityType::PAGE);
+    auto ret = abilityMs->BackToCallerAppWithResult(token, 100, &want, 1);
+    EXPECT_EQ(ret, ERR_CALLER_NOT_EXISTS);
+    status = previousStatus;
+}
+
 } // namespace AAFwk
 } // namespace OHOS

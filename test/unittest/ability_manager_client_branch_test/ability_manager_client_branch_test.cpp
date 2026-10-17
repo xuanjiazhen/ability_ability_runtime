@@ -3194,5 +3194,37 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_StartSelf_0100, Te
     auto result = client_->StartSelf(token);
     EXPECT_EQ(ERR_OK, result);
 }
+
+/**
+ * @tc.name: AbilityManagerClient_BackToCallerAppWithResult_0100
+ * @tc.desc: BackToCallerAppWithResult forwards arguments and returns ERR_OK.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_BackToCallerAppWithResult_0100, TestSize.Level1)
+{
+    Want want;
+    sptr<IRemoteObject> token = mock_->AsObject();
+    int64_t requestCode = 0x100000001;
+    EXPECT_CALL(*mock_, BackToCallerAppWithResult(token, 100, &want, requestCode)).WillOnce(Return(ERR_OK));
+    auto result = client_->BackToCallerAppWithResult(token, 100, &want, requestCode);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_BackToCallerAppWithResult_0200
+ * @tc.desc: BackToCallerAppWithResult forwards arguments and returns ERR_CALLER_NOT_EXISTS.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_BackToCallerAppWithResult_0200, TestSize.Level1)
+{
+    Want want;
+    sptr<IRemoteObject> token = mock_->AsObject();
+    int64_t requestCode = 0x100000001;
+    EXPECT_CALL(*mock_, BackToCallerAppWithResult(token, 100, &want, requestCode))
+        .WillOnce(Return(ERR_CALLER_NOT_EXISTS));
+    auto result = client_->BackToCallerAppWithResult(token, 100, &want, requestCode);
+    EXPECT_EQ(result, ERR_CALLER_NOT_EXISTS);
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
