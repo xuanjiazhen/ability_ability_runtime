@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -206,7 +206,10 @@ ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, int requestCod
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode);
-    if (err != ERR_OK) {
+    if (err == AAFwk::START_ABILITY_WAITING && !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        return ERR_OK;
+    }
+    if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
     return err;
@@ -217,7 +220,10 @@ ErrCode AbilityContextImpl::StartAbilityAsCaller(const AAFwk::Want &want, int re
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbilityAsCaller(want, token_, nullptr, requestCode);
-    if (err != ERR_OK) {
+    if (err == AAFwk::START_ABILITY_WAITING && !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        return ERR_OK;
+    }
+    if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
     return err;
@@ -228,7 +234,10 @@ ErrCode AbilityContextImpl::StartAbilityWithAccount(const AAFwk::Want& want, int
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     (const_cast<Want &>(want)).SetParam(START_ABILITY_TYPE, true);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode, accountId);
-    if (err != ERR_OK) {
+    if (err == AAFwk::START_ABILITY_WAITING && !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        return ERR_OK;
+    }
+    if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
     return err;
@@ -240,7 +249,10 @@ ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, const AAFwk::S
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_, requestCode);
-    if (err != ERR_OK) {
+    if (err == AAFwk::START_ABILITY_WAITING && !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        return ERR_OK;
+    }
+    if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
     return err;
@@ -253,7 +265,10 @@ ErrCode AbilityContextImpl::StartAbilityAsCaller(const AAFwk::Want &want, const 
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbilityAsCaller(want,
         startOptions, token_, nullptr, requestCode);
-    if (err != ERR_OK) {
+    if (err == AAFwk::START_ABILITY_WAITING && !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        return ERR_OK;
+    }
+    if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
     return err;
@@ -267,7 +282,10 @@ ErrCode AbilityContextImpl::StartAbilityWithAccount(
     (const_cast<Want &>(want)).SetParam(START_ABILITY_TYPE, true);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(
         want, startOptions, token_, requestCode, accountId);
-    if (err != ERR_OK) {
+    if (err == AAFwk::START_ABILITY_WAITING && !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        return ERR_OK;
+    }
+    if (err != ERR_OK && err != AAFwk::START_ABILITY_WAITING) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
     return err;
