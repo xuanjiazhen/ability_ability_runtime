@@ -588,7 +588,7 @@ bool DialogSessionManager::IsCreateCloneSelectorDialog(StartAbilityContext &ctx,
     const std::string &bundleName, int32_t userId)
 {
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
-    ctx.isWantWithAppCloneIndex = false;
+    (void)ctx.ConsumeIsWantWithAppCloneIndex();
     return false;
 #else
     bool wantWithClone = ctx.ConsumeIsWantWithAppCloneIndex();
