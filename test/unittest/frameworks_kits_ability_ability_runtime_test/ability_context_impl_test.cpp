@@ -3017,5 +3017,19 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetupModalUIExtensionCallb
 }
 #endif
 
+/**
+ * @tc.number: Ability_Context_Impl_BackToCallerAppWithResult_0100
+ * @tc.name: BackToCallerAppWithResult
+ * @tc.desc: Verify that BackToCallerAppWithResult forwards to AbilityManagerClient.
+ */
+HWTEST_F(AbilityContextImplTest, BackToCallerAppWithResult_0100, Function | MediumTest | Level1)
+{
+    AAFwk::Want want;
+    int resultCode = 100;
+    int64_t requestCode = 1;
+    auto err = context_->BackToCallerAppWithResult(want, resultCode, requestCode);
+    EXPECT_EQ(err, ERR_OK);
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS
