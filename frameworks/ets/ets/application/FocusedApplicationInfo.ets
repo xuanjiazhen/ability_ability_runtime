@@ -12,7 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export default class FocusedApplicationInfo {
-    public focusedUid: int;
+export interface FocusedApplicationInfo {
+    focusedBundleName: string;
+    focusedUid: int;
+}
+
+export default class FocusedApplicationInfoInner implements FocusedApplicationInfo {
     public focusedBundleName: string = '';
+    public focusedUid: int;
 }

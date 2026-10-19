@@ -18,7 +18,6 @@
 #include "ability_foreground_state_observer_stub.h"
 #include "app_foreground_state_observer_stub.h"
 #include "application_state_observer_stub.h"
-#include "bundle_mgr_helper.h"
 #include "focused_application_observer_stub.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -38,7 +37,6 @@ constexpr int OBSERVER_SINGLE_STEP_LOG = 10;
 constexpr int OBSERVER_UID_COUNT_LOG = 3;
 constexpr int OBSERVER_AMOUNT_COUNT_LOG = 70;
 constexpr int32_t RESOURCE_MANAGER_UID = 1096;
-constexpr int32_t ERR_OBSERVER_NOT_FOUND = 16300004;
 constexpr int32_t ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT = 16000165;
 constexpr int32_t FOCUSED_APPLICATION_OBSERVER_LIMIT = 10;
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
@@ -236,13 +234,6 @@ int32_t AppStateObserverManager::RegisterFocusedApplicationObserver(const sptr<I
         return ERR_PERMISSION_DENIED;
     }
     auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callingBundleName;
-    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
-    if (bundleMgrHelper == nullptr ||
-        IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, callingBundleName)) != ERR_OK) {
-        TAG_LOGW(AAFwkTag::APPMGR, "GetNameForUid failed, fallback to uid string, uid: %{public}d", callingUid);
-        callingBundleName = std::to_string(callingUid);
-    }
     std::lock_guard lockRegister(focusedApplicationObserverLock_);
     bool exist = false;
     for (const auto &[it, pair] : focusedApplicationObserverMap_) {
@@ -255,18 +246,17 @@ int32_t AppStateObserverManager::RegisterFocusedApplicationObserver(const sptr<I
         TAG_LOGW(AAFwkTag::APPMGR, "observer exist");
         return ERR_INVALID_VALUE;
     }
-    int32_t sameBundleCount = 0;
+    int32_t sameUidCount = 0;
     for (const auto &[it, pair] : focusedApplicationObserverMap_) {
-        if (pair.second == callingBundleName) {
-            sameBundleCount++;
+        if (pair.first == callingUid) {
+            sameUidCount++;
         }
     }
-    if (sameBundleCount >= FOCUSED_APPLICATION_OBSERVER_LIMIT) {
-        TAG_LOGE(AAFwkTag::APPMGR, "focus observer count reach upper limit, bundle: %{public}s",
-            callingBundleName.c_str());
+    if (sameUidCount >= FOCUSED_APPLICATION_OBSERVER_LIMIT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "focus observer count reach upper limit, uid: %{public}d", callingUid);
         return ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT;
     }
-    focusedApplicationObserverMap_.emplace(observer, std::make_pair(callingUid, callingBundleName));
+    focusedApplicationObserverMap_.emplace(observer, std::make_pair(callingUid, std::string()));
     AddObserverDeathRecipient(observer, ObserverType::FOCUSED_APPLICATION_OBSERVER);
     AddObserverCount(callingUid);
     return ERR_OK;
@@ -293,7 +283,7 @@ int32_t AppStateObserverManager::UnregisterFocusedApplicationObserver(const sptr
             return ERR_OK;
         }
     }
-    return ERR_OBSERVER_NOT_FOUND;
+    return ERR_INVALID_VALUE;
 }
 
 int32_t AppStateObserverManager::RegisterAbilityForegroundStateObserver(

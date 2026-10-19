@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import FocusedApplicationInfo from 'application.FocusedApplicationInfo';
+import { FocusedApplicationInfo } from 'application.FocusedApplicationInfo';
 
 export interface FocusedApplicationObserver {
   onFocusedApplicationChanged(focusedApplicationInfo: FocusedApplicationInfo): void;
