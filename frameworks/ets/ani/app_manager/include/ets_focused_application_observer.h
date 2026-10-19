@@ -34,7 +34,7 @@ public:
     void OnFocusedApplicationChanged(const FocusedApplicationInfo &focusedApplicationInfo) override;
     void HandleOnFocusedApplicationChanged(const FocusedApplicationInfo &focusedApplicationInfo);
     void AddEtsObserverObject(ani_env *env, int32_t observerId, const ani_object &observerObj);
-    void RemoveEtsObserverObjectById(int32_t observerId);
+    bool RemoveEtsObserverObjectById(int32_t observerId);
     bool IsEmpty();
     void SetValid(bool valid);
 
