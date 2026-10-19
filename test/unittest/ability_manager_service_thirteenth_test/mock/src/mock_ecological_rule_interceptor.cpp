@@ -36,17 +36,17 @@ ErrCode EcologicalRuleInterceptor::QueryAtomicServiceStartupRule(
     return MyStatus::GetInstance().eriQueryAtomicServiceStartupRule_;
 }
 
-void EcologicalRuleInterceptor::GetEcologicalTargetInfo(StartAbilityContext &ctx,
+void EcologicalRuleInterceptor::GetEcologicalTargetInfo(const StartAbilityContext &ctx,
     const Want &want, const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo, ErmsCallerInfo &callerInfo)
 {
 }
 
-void EcologicalRuleInterceptor::GetEcologicalCallerInfo(StartAbilityContext &ctx,
+void EcologicalRuleInterceptor::GetEcologicalCallerInfo(const StartAbilityContext &ctx,
     const Want &want, ErmsCallerInfo &callerInfo, int32_t userId, const sptr<IRemoteObject> &callerToken)
 {
 }
 
-void EcologicalRuleInterceptor::InitErmsCallerInfo(StartAbilityContext &ctx,
+void EcologicalRuleInterceptor::InitErmsCallerInfo(const StartAbilityContext &ctx,
     const Want &want, const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo,
     ErmsCallerInfo &callerInfo, int32_t userId, const sptr<IRemoteObject> &callerToken,
     bool skipCallerInfo)

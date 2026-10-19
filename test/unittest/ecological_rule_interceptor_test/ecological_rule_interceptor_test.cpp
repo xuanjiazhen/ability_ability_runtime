@@ -422,7 +422,6 @@ HWTEST_F(EcologicalRuleInterceptorTest, GetEcologicalTargetInfo_001, TestSize.Le
         static_cast<AppExecFwk::ApplicationFlag>(123);
     ErmsCallerInfo callerInfo;
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo = nullptr;
-    StartAbilityContext ctx;
     interceptor->GetEcologicalTargetInfo(ctx, want, abilityInfo, callerInfo);
     EXPECT_EQ(callerInfo.targetLinkFeature, "testFeature");
     EXPECT_EQ(callerInfo.targetLinkType, 123);
@@ -463,7 +462,6 @@ HWTEST_F(EcologicalRuleInterceptorTest, GetEcologicalTargetInfo_002, TestSize.Le
     abilityInfo->extensionAbilityType = OHOS::AppExecFwk::ExtensionAbilityType::SERVICE;
     abilityInfo->applicationInfo.applicationReservedFlag = static_cast<AppExecFwk::ApplicationFlag>(456);
     ErmsCallerInfo callerInfo;
-    StartAbilityContext ctx;
     interceptor->GetEcologicalTargetInfo(ctx, want, abilityInfo, callerInfo);
     EXPECT_EQ(callerInfo.targetLinkFeature, "testFeature");
     EXPECT_EQ(callerInfo.targetLinkType, 123);
@@ -497,7 +495,6 @@ HWTEST_F(EcologicalRuleInterceptorTest, GetEcologicalTargetInfo_003, TestSize.Le
     ctx.startAbilityInfo->abilityInfo.name = "DifferentAbility";
     ErmsCallerInfo callerInfo;
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo = nullptr;
-    StartAbilityContext ctx;
     interceptor->GetEcologicalTargetInfo(ctx, want, abilityInfo, callerInfo);
     EXPECT_EQ(callerInfo.targetLinkFeature, "testFeature");
     EXPECT_EQ(callerInfo.targetLinkType, 123);
@@ -1026,7 +1023,6 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_005, TestSize.Level1)
     StartAbilityContext ctx;
     ctx.skipErms = true;
     int userId = 100;
-    StartAbilityContext ctx;
     bool result = interceptor->DoProcess(ctx, want, userId);
     EXPECT_TRUE(result);
 }
