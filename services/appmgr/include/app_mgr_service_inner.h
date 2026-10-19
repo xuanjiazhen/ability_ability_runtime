@@ -1232,7 +1232,6 @@ public:
     void HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo);
     void NotifyFocusedApplicationChanged(int32_t focusedUid, int32_t unfocusedUid, int64_t displayId,
         const std::shared_ptr<AppRunningRecord> &appRecord);
-    std::string GetBundleNameByUid(int32_t uid);
 
     /**
      * Handle window visibility changed.

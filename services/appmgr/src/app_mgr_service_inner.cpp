@@ -9286,27 +9286,6 @@ void AppMgrServiceInner::NotifyFocusedApplicationChanged(int32_t focusedUid, int
     DelayedSingleton<AppStateObserverManager>::GetInstance()->NotifyFocusedApplicationChanged(data);
 }
 
-std::string AppMgrServiceInner::GetBundleNameByUid(int32_t uid)
-{
-    if (uid < 0) {
-        TAG_LOGW(AAFwkTag::APPMGR, "invalid uid:%{public}d", uid);
-        return std::string();
-    }
-    if (appRunningManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null appRunningManager_");
-        return std::string();
-    }
-    auto recordMap = appRunningManager_->GetAppRunningRecordMap();
-    for (const auto &item : recordMap) {
-        const auto &record = item.second;
-        if (record && record->GetUid() == uid) {
-            return record->GetBundleName();
-        }
-    }
-    TAG_LOGW(AAFwkTag::APPMGR, "no app running record found, uid:%{public}d", uid);
-    return std::string();
-}
-
 void AppMgrServiceInner::HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo)
 {
     if (!focusChangeInfo) {
