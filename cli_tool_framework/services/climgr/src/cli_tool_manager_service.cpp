@@ -581,6 +581,41 @@ void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionR
         record->sessionId.c_str(), record->processId, record->taskId.length());
 }
 
+void CliToolManagerService::AttachSkillTaskAttribution(const std::shared_ptr<SessionRecord> &record,
+    const std::string &bundleName)
+{
+    if (record == nullptr) {
+        return;
+    }
+    // Not carried (or rejected at the entry gate): zero attribution side effects (R-7/INV-1).
+    if (record->taskId.empty()) {
+        return;
+    }
+    // The in-app skill has no forked child of its own: the anchor pid is the
+    // target bundle's main process, resolved by the attribution service
+    // (IPC 151, v1.4 P1-1). callerUid is read from the session record, never
+    // threaded through the setup signatures (P2-2).
+    pid_t resolvedPid = -1;
+    int32_t ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess(
+        record->taskId, bundleName, resolvedPid, record->callerUid);
+    if (ret != ERR_OK || resolvedPid <= 0) {
+        // Not attributed (target not running / cold-start window / task gone /
+        // owned by another uid): no attribution object and no side effect
+        // (R-10/R-11) — attributedPid stays -1 (no detach will fire) and the
+        // key residue is dropped (INV-1). The skill execution itself is never
+        // affected (ADR-2).
+        TAG_LOGW(AAFwkTag::CLI_TOOL,
+            "AttachSkillTaskAttribution not attributed, ret=%{public}d, sessionId=%{public}s, taskId length: "
+            "%{public}zu", ret, record->sessionId.c_str(), record->taskId.length());
+        record->taskId.clear();
+        return;
+    }
+    record->attributedPid = resolvedPid;
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "AttachSkillTaskAttribution attributed, sessionId=%{public}s, pid=%{public}d, taskId length: %{public}zu",
+        record->sessionId.c_str(), resolvedPid, record->taskId.length());
+}
+
 void CliToolManagerService::PostDetachTaskAttribution(const std::string &taskId, pid_t attributedPid,
     int32_t callerUid)
 {
@@ -2527,6 +2562,16 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
         RemoveSessionRecord(record->sessionId);
         return ret;
     }
+
+    // STATE-1 attach hook (in-app skill setup point, ADR-5 / v1.4 P1-1): the
+    // skill executes inside the target application's main process, so the
+    // anchor pid is resolved server-side by bundle name (IPC 151) rather than
+    // taken from a fork return value. Attached here — after the dispatch
+    // succeeded and before the background reply — so a failed dispatch rolls
+    // the record back above with zero attribution side effects. A locate
+    // rejection (cold-start window, target not running) is non-blocking: the
+    // execution itself stands (ADR-2/R-10).
+    AttachSkillTaskAttribution(record, bundleName);
 
     if (param.options.background) {
         HandleBackgroundSessionReply(record, eventId);

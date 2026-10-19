@@ -287,6 +287,19 @@ private:
     void AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record);
 
     /**
+     * @brief STATE-1 attach hook for the in-app skill path (ADR-5 / v1.4 P1-1):
+     *        the skill runs inside the target application's main process, so
+     *        the anchor pid is resolved server-side by bundle name through the
+     *        attribution service (IPC 151) instead of a fork return value. On
+     *        success attributedPid becomes the resolved pid; a locate rejection
+     *        (target not running / cold-start window / task gone) is
+     *        non-blocking with no side effects — attributedPid stays -1 and the
+     *        key residue is cleared (INV-1), the execution itself stands
+     *        (ADR-2/R-10).
+     */
+    void AttachSkillTaskAttribution(const std::shared_ptr<SessionRecord> &record, const std::string &bundleName);
+
+    /**
      * @brief STATE-1 detach post: schedule the unregister IPC on the threaded
      *        execution environment (ffrt worker, the same facility
      *        PostExecToolTask/DelayUnloadTask rely on). Callers read
