@@ -25,8 +25,18 @@
 #include "exec_options.h"
 #include "mock_app_mgr_service.h"
 #include "task_attribution_manager.h"
+#include "task_mgr/attribution_record.h"
 
 using namespace testing::ext;
+
+// IPC value-contract guard (review finding): the tool field crosses the
+// attribution IPC boundary as a raw int32_t, so the climgr-side constant and
+// the appmgr-side enum must stay numerically equal — a future enum insertion
+// would otherwise misroute silently. Compile-time check: any drift breaks
+// this binary's build (mirrored at run time by AttributionToolContract_0100).
+static_assert(OHOS::CliTool::ATTRIBUTION_TOOL_CLI ==
+    static_cast<int32_t>(OHOS::AppExecFwk::AttributionTool::CLI),
+    "ATTRIBUTION_TOOL_CLI drifted from AppExecFwk::AttributionTool::CLI");
 
 namespace OHOS {
 namespace CliTool {
@@ -423,6 +433,20 @@ HWTEST_F(TaskAttributionManagerTest, DetachProcess_0400, TestSize.Level1)
     auto late = TaskAttributionManager::GetInstance().DetachProcess("task_detach_0400",
         TEST_TOOL_PID, TEST_CALLER_UID);
     EXPECT_EQ(late, AAFwk::ERR_TASK_NOT_FOUND);
+}
+
+/**
+ * @tc.name: AttributionToolContract_0100
+ * @tc.desc: IPC value contract (review finding): the tool field crosses the
+ *           attribution IPC boundary as a raw int32_t, so the climgr-side
+ *           constant must equal the appmgr-side enum value — a future enum
+ *           insertion would otherwise misroute silently. Mirrored at compile
+ *           time by the static_assert at the top of this file.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TaskAttributionManagerTest, AttributionToolContract_0100, TestSize.Level1)
+{
+    EXPECT_EQ(ATTRIBUTION_TOOL_CLI, static_cast<int32_t>(AppExecFwk::AttributionTool::CLI));
 }
 } // namespace CliTool
 } // namespace OHOS
