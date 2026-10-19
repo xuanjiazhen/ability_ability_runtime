@@ -817,10 +817,26 @@ void DumpRuntimeHelper::DumpKmpKotlinHeap(const OHOS::AppExecFwk::MemDumpInfo &i
 
 void DumpRuntimeHelper::DumpJsvmHeap(const OHOS::AppExecFwk::MemDumpInfo &info)
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "dump jsvm heaps, tid:%{public}d, needRaw:%{public}d", info.tid, info.needRaw);
+    TAG_LOGI(AAFwkTag::APPKIT, "dump jsvm heaps, tid:%{public}d, needRaw:%{public}d, needGc:%{public}d",
+        info.tid, info.needRaw, info.needGc);
     void* jsvmHandle = dlopen("libjsvm.so", RTLD_LAZY);
     if (jsvmHandle == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "jsvm dlopen failed");
+        return;
+    }
+    if (info.needGc) {
+        using JsvmGcFunc = int32_t (*)(void);
+        auto jsvmGc = reinterpret_cast<JsvmGcFunc>(dlsym(jsvmHandle, "jsvm_request_gc"));
+        if (jsvmGc == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "jsvm request gc dlsym failed");
+            dlclose(jsvmHandle);
+            return;
+        }
+        int32_t gcRet = jsvmGc();
+        if (gcRet != 0) {
+            TAG_LOGE(AAFwkTag::APPKIT, "jsvm request gc failed, ret:%{public}d", gcRet);
+        }
+        dlclose(jsvmHandle);
         return;
     }
     using jsvmFunc = int (*)(uint32_t, int);
