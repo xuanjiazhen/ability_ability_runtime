@@ -86,13 +86,15 @@ public:
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
      * @param objectCallback The callback RemoteObject.
+     * @param taskId Attribution task id (trailing IPC parameter; empty = not provided).
      * @return Returns ERR_OK on success, error code otherwise.
      */
     int32_t ExecTool(const ExecToolParam &param, const std::string &eventId,
-        const sptr<ICliToolManagerScheduler> &scheduler) override;
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &taskId = "") override;
 
     int32_t ExecCmd(const ExecCmdParam &param, const std::string &eventId,
-        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId) override;
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId,
+        const std::string &taskId = "") override;
 
     int32_t ClearSession(const std::string &sessionId) override;
     int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
@@ -358,6 +360,11 @@ private:
     void InvokeBeforeCallTool(ExecToolParam &param);
     void InvokeAfterCallTool(CliSessionInfo &session, const SessionRecord &record);
     void InvokeBeforeCallCmd(ExecCmdParam &param);
+    // Strips reserved attribution keys from the model-rendered args tree,
+    // recursing into nested WantParams and WantParams arrays (ADR-6/R-6).
+    // The key set is defined by RESERVED_ATTRIBUTION_KEYS (single source of
+    // truth); other parameters are passed through unchanged.
+    void StripAttributionKeys(AAFwk::WantParams &args, int32_t depth = 0);
 
     bool initialized_ = false;
     bool isDeveloperMode_ = false;

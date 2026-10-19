@@ -36,9 +36,10 @@ public:
     int32_t ResetNamespaceFunctionsAsync(int32_t userId, const std::string &functionNamespace,
         const FunctionsRawData &functions) override;
     int32_t ExecTool(const ExecToolParam &param, const std::string &eventId,
-        const sptr<ICliToolManagerScheduler> &scheduler) override;
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &taskId) override;
     int32_t ExecCmd(const ExecCmdParam &param, const std::string &eventId,
-        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId) override;
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId,
+        const std::string &taskId) override;
     int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
     int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;

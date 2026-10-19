@@ -21,6 +21,7 @@
 #include <csignal>
 #include <cstdio>
 #include <cstring>
+#include <set>
 #include <fcntl.h>
 #include <poll.h>
 #include <sys/types.h>
@@ -32,6 +33,7 @@
 #include "ability_manager_errors.h"
 #include "accesstoken_kit.h"
 #include "app_mgr_client.h"
+#include "base_interfaces.h"
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_event_report.h"
@@ -52,6 +54,8 @@
 #include "process_manager.h"
 #include "session_record.h"
 #include "tool_util.h"
+#include "want_params.h"
+#include "want_params_wrapper.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -75,6 +79,13 @@ void SanitizeTraceIds(OptionsT &options)
         options.dmSessionId.clear();
     }
 }
+
+// Reserved attribution keys stripped from the model-rendered args tree (ADR-6/R-6).
+// Single source of truth (C1): taskId is the attribution key carried only via
+// the options object / trailing IPC parameter (INV-2), so a key of the same
+// name injected by the model into args is stripped. Extend this set explicitly
+// when a new reserved key is ever required.
+const std::set<std::string> RESERVED_ATTRIBUTION_KEYS = { "taskId" };
 
 constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
 constexpr const char* PERMISSION_EXEC_PUBLIC_CLI_TOOL = "ohos.permission.EXEC_PUBLIC_CLI_TOOL";
@@ -1398,8 +1409,68 @@ int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &para
     return ret;
 }
 
+// Strips reserved attribution keys (RESERVED_ATTRIBUTION_KEYS) from the args tree.
+// The walk covers the current level, nested WantParams values (unboxed, stripped
+// and re-boxed — the wrapper stores the value by copy) and WantParams arrays.
+// The depth bound only guards against pathological IPC-crafted trees; regular
+// NAPI input is flat (nested JS args are flattened to arg_NNN keys at NAPI).
+void CliToolManagerService::StripAttributionKeys(AAFwk::WantParams &args, int32_t depth)
+{
+    constexpr int32_t MAX_STRIP_DEPTH = 16;
+    if (depth > MAX_STRIP_DEPTH) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "args attribution strip depth limit reached: %{public}d", depth);
+        return;
+    }
+    for (const auto &reserved : RESERVED_ATTRIBUTION_KEYS) {
+        if (args.HasParam(reserved)) {
+            args.Remove(reserved);
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "reserved attribution key stripped from args: key=%{public}s, depth=%{public}d",
+                reserved.c_str(), depth);
+        }
+    }
+    for (const auto &entry : args.GetParams()) {
+        if (entry.second == nullptr) {
+            continue;
+        }
+        AAFwk::IInterface *iface = entry.second.GetRefPtr();
+        AAFwk::IWantParams *nested = AAFwk::IWantParams::Query(iface);
+        if (nested != nullptr) {
+            AAFwk::WantParams nestedCopy;
+            if (nested->GetValue(nestedCopy) == ERR_OK) {
+                StripAttributionKeys(nestedCopy, depth + 1);
+                args.SetParam(entry.first, AAFwk::WantParamWrapper::Box(std::move(nestedCopy)).GetRefPtr());
+            }
+            continue;
+        }
+        AAFwk::IArray *array = AAFwk::IArray::Query(iface);
+        if (array == nullptr) {
+            continue;
+        }
+        long length = 0;
+        if (array->GetLength(length) != ERR_OK) {
+            continue;
+        }
+        for (long i = 0; i < length; ++i) {
+            sptr<AAFwk::IInterface> element;
+            if (array->Get(i, element) != ERR_OK || element == nullptr) {
+                continue;
+            }
+            AAFwk::IWantParams *elementParams = AAFwk::IWantParams::Query(element.GetRefPtr());
+            if (elementParams == nullptr) {
+                continue;
+            }
+            AAFwk::WantParams elementCopy;
+            if (elementParams->GetValue(elementCopy) == ERR_OK) {
+                StripAttributionKeys(elementCopy, depth + 1);
+                array->Set(i, AAFwk::WantParamWrapper::Box(std::move(elementCopy)).GetRefPtr());
+            }
+        }
+    }
+}
+
 int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::string &eventId,
-    const sptr<ICliToolManagerScheduler> &scheduler)
+    const sptr<ICliToolManagerScheduler> &scheduler, const std::string &taskId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
@@ -1434,6 +1505,22 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
             "ExecTool trace ids: toolCallId=%{public}s, dmSessionId=%{public}s",
             actualParam.options.toolCallId.c_str(), actualParam.options.dmSessionId.c_str());
     }
+    // taskId (attribution key) rides the trailing IPC parameter and is backfilled
+    // into the working copy AFTER the before-hook round-trip: the [inout] hook
+    // message does not carry taskId (parcelables are unchanged), and
+    // InvokeHookAsync overwrites the param with the round-tripped copy
+    // (param = *paramCopy), so an earlier backfill would be silently wiped.
+    // An invalid format means "not provided": no attribution, no rejection.
+    if (!IsValidTraceId(taskId)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ExecTool taskId invalid, treated as not provided, length: %{public}zu",
+            taskId.length());
+        actualParam.options.taskId.clear();
+    } else {
+        actualParam.options.taskId = taskId;
+    }
+    // Channel isolation (ADR-6/R-6): reserved attribution keys injected into the
+    // model-rendered args tree are stripped recursively; other keys are untouched.
+    StripAttributionKeys(actualParam.args);
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
@@ -1473,7 +1560,8 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
 }
 
 int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::string &eventId,
-    const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId)
+    const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId,
+    const std::string &taskId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{private}s", param.cmd.c_str());
@@ -1518,6 +1606,18 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     // Defense in depth (see ExecTool): drop hook-supplied identifiers that fail
     // validation so unvalidated data never reaches logs or the child env.
     SanitizeTraceIds(actualParam.execCmdOptions);
+    // taskId backfill with the same discipline as ExecTool: after the before-hook
+    // round-trip (taskId is not in the hook message; an earlier backfill would be
+    // wiped by the param = *paramCopy write-back) and before all consumers
+    // (ValidateAndPrepareCmd / shell path / ExecCmdToolMode). Invalid format
+    // means "not provided": no attribution, no rejection.
+    if (!IsValidTraceId(taskId)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ExecCmd taskId invalid, treated as not provided, length: %{public}zu",
+            taskId.length());
+        actualParam.execCmdOptions.taskId.clear();
+    } else {
+        actualParam.execCmdOptions.taskId = taskId;
+    }
 
     // Tool command mode
     if (!actualParam.execCmdOptions.isShellCommand) {

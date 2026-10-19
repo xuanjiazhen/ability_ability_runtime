@@ -34,6 +34,10 @@ public:
     int64_t timeout = 0;
     std::string toolCallId;
     std::string dmSessionId;
+    // Attribution task id (R-1/R-2): carried only via the trailing IPC parameter
+    // and this in-process member — never serialized in ExecOptions (ADR-8).
+    // Empty means "not provided" (zero-attribution behavior, R-7).
+    std::string taskId;
 
     bool Marshalling(Parcel &parcel) const;
     static ExecOptions *Unmarshalling(Parcel &parcel);

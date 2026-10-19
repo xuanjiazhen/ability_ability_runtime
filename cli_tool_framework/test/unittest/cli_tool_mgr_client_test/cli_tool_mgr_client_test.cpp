@@ -17,6 +17,7 @@
 #include "cli_error_code.h"
 #include "mock_cli_tool_mgr_client_flag.h"
 #include "mock_cli_tool_mgr_service.h"
+#include "message_parcel.h"
 
 using namespace testing::ext;
 
@@ -1254,6 +1255,134 @@ HWTEST_F(CliToolMGRClientTest, Hook_AfterInvokeFunction_NullProxy_0400, TestSize
     EXPECT_EQ(CliToolMGRClient::GetInstance().AfterInvokeFunction(wrap),
         GET_CLI_TOOL_MGR_SERVICE_FAILED);
     EXPECT_EQ(CliToolMgrClientFlag::afterInvokeFunctionCount, 0);
+}
+
+// Local scheduler stub: provides the remote object required by the parcel
+// layout tests (based on the frozen mock interface, like the mock recipient).
+class TaskIdTestScheduler : public IRemoteStub<ICliToolManagerScheduler> {
+public:
+    int32_t SchedulerSessionEvent(const std::string &, const std::string &, const CliToolEvent &) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t SchedulerInputReplyEvent(const std::string &, int32_t) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t SchedulerExecToolReplyEvent(const std::string &, int32_t, const CliSessionInfo &) override
+    {
+        return ERR_OK;
+    }
+};
+
+/**
+ * @tc.name: ExecTool_TaskIdPassThrough_0100
+ * @tc.desc: A carried taskId rides the trailing IPC parameter through the
+ *           generated proxy/stub chain and reaches the service override
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecTool_TaskIdPassThrough_0100, TestSize.Level1)
+{
+    SetMockService();
+    ExecToolParam param;
+    param.toolName = "ohos-tool";
+    param.options.taskId = "task_abc-123";
+
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecTool(param,
+        [](int32_t code, const CliSessionInfo &) {}), ERR_OK);
+    // The generated proxy writes the tail parameter unconditionally; the mock
+    // records what the generated stub dispatched to the override.
+    EXPECT_EQ(CliToolMgrClientFlag::lastTaskId, "task_abc-123");
+}
+
+/**
+ * @tc.name: ExecTool_TaskIdPassThrough_0200
+ * @tc.desc: A not-carried taskId travels as an empty trailing string
+ *           (old format + 4-byte empty-string prefix, behavior-identical)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecTool_TaskIdPassThrough_0200, TestSize.Level1)
+{
+    SetMockService();
+    ExecToolParam param;
+    param.toolName = "ohos-tool";
+
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecTool(param,
+        [](int32_t code, const CliSessionInfo &) {}), ERR_OK);
+    EXPECT_TRUE(CliToolMgrClientFlag::lastTaskId.empty());
+}
+
+/**
+ * @tc.name: ExecCmd_TaskIdPassThrough_0100
+ * @tc.desc: A carried taskId rides the trailing IPC parameter of ExecCmd
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecCmd_TaskIdPassThrough_0100, TestSize.Level1)
+{
+    SetMockService();
+    ExecCmdParam param;
+    param.cmd = "echo test_cmd";
+    param.execCmdOptions.timeout = 30;
+    param.execCmdOptions.taskId = "task_cmd-456";
+    auto sessionCallback = std::make_shared<MockSessionCallback>();
+
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecCmd(param,
+        [](int32_t code, const CliSessionInfo &) {}, sessionCallback), ERR_OK);
+    EXPECT_EQ(CliToolMgrClientFlag::lastTaskId, "task_cmd-456");
+}
+
+/**
+ * @tc.name: ExecCmd_TaskIdPassThrough_0200
+ * @tc.desc: A not-carried ExecCmd taskId travels as an empty trailing string
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecCmd_TaskIdPassThrough_0200, TestSize.Level1)
+{
+    SetMockService();
+    ExecCmdParam param;
+    param.cmd = "echo test_cmd";
+    param.execCmdOptions.timeout = 30;
+    auto sessionCallback = std::make_shared<MockSessionCallback>();
+
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecCmd(param,
+        [](int32_t code, const CliSessionInfo &) {}, sessionCallback), ERR_OK);
+    EXPECT_TRUE(CliToolMgrClientFlag::lastTaskId.empty());
+}
+
+/**
+ * @tc.name: ExecCmd_MixedDeploy_NewWriteOldRead_0100
+ * @tc.desc: A new-format message (trailing taskId present) read with the old
+ *           message signature keeps all pre-taskId fields aligned; the tail
+ *           bytes are simply left unread
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecCmd_MixedDeploy_NewWriteOldRead_0100, TestSize.Level1)
+{
+    // New-format request: token + param + eventId + scheduler + subscriptionId
+    // + trailing taskId.
+    MessageParcel data;
+    ASSERT_TRUE(data.WriteInterfaceToken(ICliToolManager::GetDescriptor()));
+    ExecCmdParam param;
+    param.cmd = "echo test_cmd";
+    ASSERT_TRUE(data.WriteParcelable(&param));
+    ASSERT_TRUE(data.WriteString16(u"event_mixed_new"));
+    sptr<TaskIdTestScheduler> scheduler = sptr<TaskIdTestScheduler>::MakeSptr();
+    ASSERT_NE(scheduler, nullptr);
+    ASSERT_TRUE(data.WriteRemoteObject(scheduler->AsObject()));
+    ASSERT_TRUE(data.WriteString16(u"sub_mixed_new"));
+    ASSERT_TRUE(data.WriteString16(u"task_mixed-789"));
+
+    // Old-reader simulation: sequential reads exactly as the pre-taskId stub
+    // (token, param, eventId, scheduler, subscriptionId — then stop).
+    EXPECT_FALSE(data.ReadInterfaceToken().empty());
+    std::unique_ptr<ExecCmdParam> readParam(data.ReadParcelable<ExecCmdParam>());
+    ASSERT_NE(readParam, nullptr);
+    EXPECT_EQ(readParam->cmd, "echo test_cmd");
+    EXPECT_EQ(data.ReadString16(), u"event_mixed_new");
+    EXPECT_NE(data.ReadRemoteObject(), nullptr);
+    EXPECT_EQ(data.ReadString16(), u"sub_mixed_new");
 }
 } // namespace CliTool
 } // namespace OHOS

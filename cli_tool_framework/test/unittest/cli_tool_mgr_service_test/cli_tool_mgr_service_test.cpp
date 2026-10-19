@@ -54,15 +54,18 @@
 #include "function_info.h"
 #include "ipc_skeleton.h"
 #include "io_monitor.h"
+#include "message_parcel.h"
 #include "nativetoken_kit.h"
 #include "parameters.h"
 #include "skill/skill_execute_result.h"
 #include "string_wrapper.h"
 #include "token_setproc.h"
 #include "accesstoken_kit.h"
+#include "array_wrapper.h"
 #include "tool_info.h"
 #include "tool_util.h"
 #include "want_params.h"
+#include "want_params_wrapper.h"
 #include "hilog_tag_wrapper.h"
 
 using namespace testing::ext;
@@ -4262,6 +4265,7 @@ public:
         beforeCallToolCount++;
         lastBeforeToolCallId = param.options.toolCallId;
         lastBeforeDmSessionId = param.options.dmSessionId;
+        lastBeforeTaskId = param.options.taskId;
         if (modifyParam) {
             param.toolName = "modified_tool";
         }
@@ -4285,6 +4289,7 @@ public:
         beforeCallCmdCount++;
         lastBeforeCmdToolCallId = param.execCmdOptions.toolCallId;
         lastBeforeCmdDmSessionId = param.execCmdOptions.dmSessionId;
+        lastBeforeCmdTaskId = param.execCmdOptions.taskId;
         if (modifyCmdIsShell) {
             param.execCmdOptions.isShellCommand = targetIsShell;
         }
@@ -4310,8 +4315,10 @@ public:
     int afterCallCmdCount = 0;
     std::string lastBeforeToolCallId;
     std::string lastBeforeDmSessionId;
+    std::string lastBeforeTaskId;
     std::string lastBeforeCmdToolCallId;
     std::string lastBeforeCmdDmSessionId;
+    std::string lastBeforeCmdTaskId;
     std::string lastWrapToolCallId;
     std::string lastWrapDmSessionId;
     bool modifyParam = false;
@@ -5883,5 +5890,348 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterFunctionHook_PermissionDenied_0100
     IPCSkeleton::Reset();
     TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_PermissionDenied_0100 end");
 }
+/**
+ * @tc.name: CliToolManagerService_StripAttributionKeys_0100
+ * @tc.desc: Reserved attribution keys are stripped from the args tree (top
+ *           level, nested WantParams, WantParams arrays) while all other
+ *           parameters are passed through unchanged (ADR-6/R-6)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, StripAttributionKeys_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_StripAttributionKeys_0100 start");
+
+    AAFwk::WantParams args;
+    args.SetParam("bundleName", AAFwk::String::Box("com.example.app").GetRefPtr());
+    args.SetParam("taskId", AAFwk::String::Box("task_sneaky").GetRefPtr());
+
+    // Nested WantParams carrying a reserved key plus a kept key.
+    AAFwk::WantParams nested;
+    nested.SetParam("taskId", AAFwk::String::Box("task_nested").GetRefPtr());
+    nested.SetParam("inner", AAFwk::String::Box("kept").GetRefPtr());
+    args.SetParam("nested", AAFwk::WantParamWrapper::Box(std::move(nested)).GetRefPtr());
+
+    // Array of WantParams: element 0 carries the reserved key, element 1 does not.
+    sptr<AAFwk::Array> array = new AAFwk::Array(2, AAFwk::g_IID_IWantParams);
+    ASSERT_NE(array, nullptr);
+    AAFwk::WantParams element0;
+    element0.SetParam("taskId", AAFwk::String::Box("task_arr0").GetRefPtr());
+    ASSERT_EQ(array->Set(0, AAFwk::WantParamWrapper::Box(std::move(element0)).GetRefPtr()), ERR_OK);
+    AAFwk::WantParams element1;
+    element1.SetParam("keep", AAFwk::String::Box("kept_arr").GetRefPtr());
+    ASSERT_EQ(array->Set(1, AAFwk::WantParamWrapper::Box(std::move(element1)).GetRefPtr()), ERR_OK);
+    // Array reaches IInterface through multiple bases; go via IArray explicitly.
+    args.SetParam("list", static_cast<AAFwk::IArray *>(array.GetRefPtr()));
+
+    service_->StripAttributionKeys(args);
+
+    // Top level: reserved key gone, everything else intact.
+    EXPECT_FALSE(args.HasParam("taskId"));
+    EXPECT_TRUE(args.HasParam("bundleName"));
+    EXPECT_EQ(args.GetStringParam("bundleName"), "com.example.app");
+
+    // Nested: reserved key stripped, kept key intact.
+    AAFwk::WantParams nestedOut = args.GetWantParams("nested");
+    EXPECT_FALSE(nestedOut.HasParam("taskId"));
+    EXPECT_TRUE(nestedOut.HasParam("inner"));
+    EXPECT_EQ(nestedOut.GetStringParam("inner"), "kept");
+
+    // Array elements: reserved key stripped in element 0, element 1 intact.
+    sptr<AAFwk::IInterface> listValue = args.GetParam("list");
+    ASSERT_NE(listValue, nullptr);
+    AAFwk::IArray *outArray = AAFwk::IArray::Query(listValue.GetRefPtr());
+    ASSERT_NE(outArray, nullptr);
+    long length = 0;
+    ASSERT_EQ(outArray->GetLength(length), ERR_OK);
+    ASSERT_EQ(length, 2);
+    sptr<AAFwk::IInterface> outElement0;
+    ASSERT_EQ(outArray->Get(0, outElement0), ERR_OK);
+    ASSERT_NE(outElement0, nullptr);
+    AAFwk::IWantParams *element0Params = AAFwk::IWantParams::Query(outElement0.GetRefPtr());
+    ASSERT_NE(element0Params, nullptr);
+    AAFwk::WantParams element0Copy;
+    ASSERT_EQ(element0Params->GetValue(element0Copy), ERR_OK);
+    EXPECT_FALSE(element0Copy.HasParam("taskId"));
+    sptr<AAFwk::IInterface> outElement1;
+    ASSERT_EQ(outArray->Get(1, outElement1), ERR_OK);
+    ASSERT_NE(outElement1, nullptr);
+    AAFwk::IWantParams *element1Params = AAFwk::IWantParams::Query(outElement1.GetRefPtr());
+    ASSERT_NE(element1Params, nullptr);
+    AAFwk::WantParams element1Copy;
+    ASSERT_EQ(element1Params->GetValue(element1Copy), ERR_OK);
+    EXPECT_EQ(element1Copy.GetStringParam("keep"), "kept_arr");
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_StripAttributionKeys_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_TaskIdHookScenario_0100
+ * @tc.desc: With a registered before-hook the taskId backfill happens AFTER
+ *           the hook round-trip: the hook never sees a taskId (it is not in
+ *           the [inout] hook message), and the call is not blocked (v1.8)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_TaskIdHookScenario_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_TaskIdHookScenario_0100 start");
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    ASSERT_NE(hook, nullptr);
+    service_->isDeveloperMode_ = true;
+    service_->cliHook_ = hook;
+    service_->cliHookActiveMethods_ = 0;
+
+    ExecToolParam param;
+    param.toolName = "hook_task_tool";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t result = service_->ExecTool(param, "event_hook_task", scheduler, "task_hook-001");
+
+    // The before-hook fired through the real InvokeHookAsync round-trip...
+    EXPECT_EQ(hook->beforeCallToolCount, 1);
+    // ...and saw no taskId: the backfill sits after the hook (v1.8), and the
+    // [inout] hook message never carries one (parcelables unchanged).
+    EXPECT_TRUE(hook->lastBeforeTaskId.empty());
+    // The call itself is not blocked by the taskId or the hook.
+    EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
+
+    service_->cliHook_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_TaskIdHookScenario_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_TaskIdHookScenario_0100
+ * @tc.desc: Same v1.8 discipline on ExecCmd: the before-hook runs the round
+ *           trip without a taskId and the call is not blocked
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_TaskIdHookScenario_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_TaskIdHookScenario_0100 start");
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    ASSERT_NE(hook, nullptr);
+    service_->isDeveloperMode_ = true;
+    service_->cliHook_ = hook;
+    service_->cliHookActiveMethods_ = 0;
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t result = service_->ExecCmd(param, "event_hook_cmd_task", scheduler, "sub_hook_task", "task_hook-002");
+
+    EXPECT_EQ(hook->beforeCallCmdCount, 1);
+    EXPECT_TRUE(hook->lastBeforeCmdTaskId.empty());
+    EXPECT_TRUE(result == ERR_NO_INIT || result == ERR_NOT_HAP || result == ERR_INVALID_PARAM ||
+        result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
+
+    service_->cliHook_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_TaskIdHookScenario_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_TaskIdInvalid_0100
+ * @tc.desc: An invalid-format taskId is treated as "not provided": the call
+ *           completes with the same result as a not-carried taskId (no new
+ *           error code, no block; R-4/R-5 discipline)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_TaskIdInvalid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_TaskIdInvalid_0100 start");
+
+    ExecToolParam param;
+    param.toolName = "invalid_task_tool";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t notCarried = service_->ExecTool(param, "event_no_task", scheduler);
+    std::string tooLong(TRACE_ID_MAX_LEN + 1, 'a');
+    std::string illegal = "task;rm -rf";
+    int32_t overlongResult = service_->ExecTool(param, "event_long_task", scheduler, tooLong);
+    int32_t illegalResult = service_->ExecTool(param, "event_bad_task", scheduler, illegal);
+
+    EXPECT_EQ(notCarried, overlongResult);
+    EXPECT_EQ(notCarried, illegalResult);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_TaskIdInvalid_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_TaskIdInvalid_0100
+ * @tc.desc: Same treat-as-not-provided discipline on ExecCmd
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_TaskIdInvalid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_TaskIdInvalid_0100 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t notCarried = service_->ExecCmd(param, "event_cmd_no_task", scheduler, "sub_invalid");
+    std::string tooLong(TRACE_ID_MAX_LEN + 1, 'a');
+    std::string illegal = "task;rm -rf";
+    int32_t overlongResult = service_->ExecCmd(
+        param, "event_cmd_long_task", scheduler, "sub_invalid", tooLong);
+    int32_t illegalResult = service_->ExecCmd(
+        param, "event_cmd_bad_task", scheduler, "sub_invalid", illegal);
+
+    EXPECT_EQ(notCarried, overlongResult);
+    EXPECT_EQ(notCarried, illegalResult);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_TaskIdInvalid_0100 end");
+}
+
+// Captures the trailing taskId parameter dispatched by the REAL generated stub
+// (linked via cli_tool_client): lets parcel-level mixed-deployment cases assert
+// what the generated reading logic actually produces.
+class TaskIdCaptureStub : public CliToolManagerStub {
+public:
+    ErrCode ExecTool(const ExecToolParam &, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &, const std::string &taskId) override
+    {
+        lastEventId = eventId;
+        lastExecToolTaskId = taskId;
+        return ERR_OK;
+    }
+
+    ErrCode ExecCmd(const ExecCmdParam &, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &, const std::string &, const std::string &taskId) override
+    {
+        lastEventId = eventId;
+        lastExecCmdTaskId = taskId;
+        return ERR_OK;
+    }
+
+    ErrCode GetAllToolSummaries(std::vector<ToolSummary> &) override { return ERR_OK; }
+    ErrCode GetToolInfoByName(const std::string &, ToolInfo &) override { return ERR_OK; }
+    ErrCode GetAllToolInfos(ToolsRawData &) override { return ERR_OK; }
+    ErrCode SubscribeSession(const std::string &, const std::string &,
+        const sptr<ICliToolManagerScheduler> &) override { return ERR_OK; }
+    ErrCode UnsubscribeSession(const std::string &, const std::string &) override { return ERR_OK; }
+    ErrCode ClearSession(const std::string &) override { return ERR_OK; }
+    ErrCode QuerySession(const std::string &, CliSessionInfo &) override { return ERR_OK; }
+    ErrCode SendMessage(const std::string &, const std::string &, const std::string &,
+        const sptr<ICliToolManagerScheduler> &) override { return ERR_OK; }
+    ErrCode BatchQueryPermissionBySubCommand(const std::vector<Command> &,
+        std::vector<CommandPermission> &) override { return ERR_OK; }
+    ErrCode RegisterFunction(const FunctionInfo &) override { return ERR_OK; }
+    ErrCode BatchRegisterFunctions(const FunctionsRawData &, int32_t &) override { return ERR_OK; }
+    ErrCode GetFunctionInfo(const std::string &, const std::string &, FunctionInfo &) override
+    {
+        return ERR_OK;
+    }
+    ErrCode UnregisterFunction(int32_t, const std::string &, const std::string &) override
+    {
+        return ERR_OK;
+    }
+    ErrCode UnregisterIntentFunctionsByNamespace(int32_t, const std::string &) override
+    {
+        return ERR_OK;
+    }
+    ErrCode ResetNamespaceFunctions(int32_t, const std::string &, const FunctionsRawData &,
+        int32_t &) override { return ERR_OK; }
+    ErrCode GetAllFunctions(FunctionsRawData &) override { return ERR_OK; }
+    ErrCode BatchRegisterFunctionsAsync(const FunctionsRawData &) override { return ERR_OK; }
+    ErrCode UnregisterIntentFunctionsByNamespaceAsync(int32_t, const std::string &) override
+    {
+        return ERR_OK;
+    }
+    ErrCode ResetNamespaceFunctionsAsync(int32_t, const std::string &, const FunctionsRawData &) override
+    {
+        return ERR_OK;
+    }
+    ErrCode RegisterCliHook(const sptr<ICliHookInterface> &, int32_t) override { return ERR_OK; }
+    ErrCode UnregisterCliHook(const sptr<ICliHookInterface> &) override { return ERR_OK; }
+    ErrCode RegisterFunctionHook(const sptr<IFunctionHookInterface> &, int32_t) override
+    {
+        return ERR_OK;
+    }
+    ErrCode UnregisterFunctionHook(const sptr<IFunctionHookInterface> &) override { return ERR_OK; }
+    ErrCode BeforeInvokeFunction(InvokeFunctionParam &) override { return ERR_OK; }
+    ErrCode AfterInvokeFunction(FunctionResultWrap &) override { return ERR_OK; }
+
+    std::string lastEventId;
+    std::string lastExecToolTaskId;
+    std::string lastExecCmdTaskId;
+};
+
+/**
+ * @tc.name: CliToolManagerService_MixedDeploy_OldWriteNewRead_0100
+ * @tc.desc: An old-format message (no trailing taskId) fed directly to the
+ *           REAL generated stub reads an empty taskId (lenient read; the
+ *           mixed-deployment guarantee, ADR-8) and leaves earlier fields intact
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, MixedDeploy_OldWriteNewRead_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_MixedDeploy_OldWriteNewRead_0100 start");
+
+    sptr<TaskIdCaptureStub> stub = sptr<TaskIdCaptureStub>::MakeSptr();
+    ASSERT_NE(stub, nullptr);
+
+    // Old-format request exactly as the pre-taskId proxy wrote it:
+    // token + param + eventId + scheduler, no trailing taskId string.
+    MessageParcel data;
+    ASSERT_TRUE(data.WriteInterfaceToken(ICliToolManager::GetDescriptor()));
+    ExecToolParam param;
+    param.toolName = "mixed_old_tool";
+    ASSERT_TRUE(data.WriteParcelable(&param));
+    ASSERT_TRUE(data.WriteString16(u"event_mixed_old"));
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    ASSERT_NE(scheduler, nullptr);
+    ASSERT_TRUE(data.WriteRemoteObject(scheduler->AsObject()));
+
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_EQ(stub->OnRemoteRequest(
+        static_cast<uint32_t>(ICliToolManagerIpcCode::COMMAND_EXEC_TOOL), data, reply, option), ERR_NONE);
+    // The missing tail string is read leniently: empty = "not provided".
+    EXPECT_TRUE(stub->lastExecToolTaskId.empty());
+    // Pre-taskId fields are unaffected (zero misalignment).
+    EXPECT_EQ(stub->lastEventId, "event_mixed_old");
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_MixedDeploy_OldWriteNewRead_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_MixedDeploy_NewWriteNewRead_0100
+ * @tc.desc: A new-format message (trailing taskId present) dispatched by the
+ *           REAL generated stub delivers the carried value to the override
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, MixedDeploy_NewWriteNewRead_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_MixedDeploy_NewWriteNewRead_0100 start");
+
+    sptr<TaskIdCaptureStub> stub = sptr<TaskIdCaptureStub>::MakeSptr();
+    ASSERT_NE(stub, nullptr);
+
+    MessageParcel data;
+    ASSERT_TRUE(data.WriteInterfaceToken(ICliToolManager::GetDescriptor()));
+    ExecCmdParam param;
+    param.cmd = "echo mixed_new";
+    ASSERT_TRUE(data.WriteParcelable(&param));
+    ASSERT_TRUE(data.WriteString16(u"event_mixed_new"));
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    ASSERT_NE(scheduler, nullptr);
+    ASSERT_TRUE(data.WriteRemoteObject(scheduler->AsObject()));
+    ASSERT_TRUE(data.WriteString16(u"sub_mixed_new"));
+    ASSERT_TRUE(data.WriteString16(u"task_mixed-789"));
+
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_EQ(stub->OnRemoteRequest(
+        static_cast<uint32_t>(ICliToolManagerIpcCode::COMMAND_EXEC_CMD), data, reply, option), ERR_NONE);
+    EXPECT_EQ(stub->lastExecCmdTaskId, "task_mixed-789");
+    EXPECT_EQ(stub->lastEventId, "event_mixed_new");
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_MixedDeploy_NewWriteNewRead_0100 end");
+}
+
 } // namespace CliTool
 } // namespace OHOS
