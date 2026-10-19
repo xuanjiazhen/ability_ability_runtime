@@ -335,6 +335,11 @@ void OHOSApplication::OnConfigurationUpdated(
 void OHOSApplication::OnUpdateConfigurationForAll(Configuration config)
 {
 #ifdef SUPPORT_GRAPHICS
+    std::string fontKey = ConfigurationInner::APPLICATION_FONT;
+    std::string animationKey = ConfigurationInner::APPLICATION_FONT_ANIMATION;
+    TAG_LOGI(AAFwkTag::APPKIT,
+        "before Window::UpdateConfigurationForAll font:%{public}s, enableAnimation:%{public}s",
+        config.GetItem(fontKey).c_str(), config.GetItem(animationKey).c_str());
     // Notify Window
     auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(config);
     Rosen::Window::UpdateConfigurationForAll(diffConfiguration);
