@@ -68,6 +68,7 @@ private:
     void DumpNativeHeap(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
     napi_value GetJsLeakModule(napi_env env, napi_value global);
     napi_value GetMethodCheck(napi_env env, napi_value requireValue, napi_value global);
+    static void SubmitThreadStackLeakTask(sptr<IMemDumpCallback> callback);
     static bool Init2DOOMDumpQuota(const std::string &path, uint32_t oomDumpProcessMaxQuota);
     static bool Check2DOOMDumpQuota(uint32_t oomDumpMaxQuota, uint32_t oomDumpProcessMaxQuota);
     static bool Get2DQuota(const std::string &path, const std::string &property, uint64_t &timestamp, int &quota);
@@ -95,6 +96,9 @@ private:
     static bool GetDumpResult(std::string &dumpResult);
     static bool GetSnapshot(int fd);
     static std::string DetectAndUnwindThreadStackLeak();
+    static std::string UnwindLeakedStacks(
+        const std::vector<ThreadStackRegion> &regions,
+        std::shared_ptr<OHOS::HiviewDFX::DfxMaps> &maps);
     // Extract tid from a thread stack map name like "[anon:stack:11111]".
     // Returns 0 if the tid cannot be parsed.
     static int32_t ParseTidFromMapName(const std::string &mapName);
