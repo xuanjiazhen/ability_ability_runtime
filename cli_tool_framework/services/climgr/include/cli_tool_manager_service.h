@@ -275,6 +275,29 @@ private:
     std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
     std::vector<std::shared_ptr<SessionRecord>> GetSessionRecords();
     void RemoveSessionRecord(const std::string &sessionId);
+
+    /**
+     * @brief STATE-1 attach hook: attribute the forked process into the caller's
+     *        task after a session is fully established (one-hop anchor =
+     *        record->processId, the fork return value, ADR-3 v1.5). Reads the
+     *        attribution key and the forensic uid from the session record
+     *        (P2-2). Non-blocking on any failure: a rejected verdict clears
+     *        record->taskId and leaves attributedPid at -1 (INV-1/ADR-2).
+     */
+    void AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record);
+
+    /**
+     * @brief STATE-1 detach post: schedule the unregister IPC on the threaded
+     *        execution environment (ffrt worker, the same facility
+     *        PostExecToolTask/DelayUnloadTask rely on). Callers read
+     *        taskId/attributedPid/callerUid under the session-table lock and
+     *        invoke this OUTSIDE the lock; the synchronous IPC must never run
+     *        inline on the reaper/timeout thread (P2-3). attributedPid <= 0 or
+     *        an empty taskId is a silent no-op (never attributed / already
+     *        consumed, INV-3).
+     */
+    void PostDetachTaskAttribution(const std::string &taskId, pid_t attributedPid, int32_t callerUid);
+
     bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
 
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecOptions &options);

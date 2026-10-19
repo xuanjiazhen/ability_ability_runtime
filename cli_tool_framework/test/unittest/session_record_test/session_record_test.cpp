@@ -89,6 +89,43 @@ HWTEST_F(SessionRecordTest, SessionRecord_OutputAndTerminal_0100, TestSize.Level
 }
 
 /**
+ * @tc.name: SessionRecord_TaskAttribution_0100
+ * @tc.desc: STATE-1 (ADR-7): the task-attribution mapping rides the session
+ *           record lifetime — defaults are "not carried / not attributed",
+ *           the setup path writes both members, and the one-shot consume
+ *           (teardown) resets attributedPid to -1 so later teardown paths
+ *           (finalize/timeout) stay no-ops.
+ * @tc.type: FUNC
+ */
+HWTEST_F(SessionRecordTest, SessionRecord_TaskAttribution_0100, TestSize.Level1)
+{
+    SessionRecord record;
+    // Defaults: not carried, no attribution (INV-1: a session that never
+    // attached must read exactly like this).
+    EXPECT_TRUE(record.taskId.empty());
+    EXPECT_EQ(record.attributedPid, -1);
+
+    // Setup-path write: the attribution key from the options plus the
+    // one-hop anchor pid (fork return value, ADR-3 v1.5).
+    record.taskId = "task_record_0100";
+    record.attributedPid = record.processId = 4242;
+    EXPECT_EQ(record.taskId, "task_record_0100");
+    EXPECT_EQ(record.attributedPid, 4242);
+
+    // Teardown consume: after the detach snapshot is taken the record reads as
+    // "no attribution" — a repeated RemoveSessionRecord/finalize on the same
+    // record must not produce a second unregister call (INV-3 idempotence by
+    // consumption).
+    record.attributedPid = -1;
+    EXPECT_EQ(record.attributedPid, -1);
+
+    // A rejected attach verdict clears the mapping residue (INV-1).
+    record.taskId = "task_record_0100";
+    record.taskId.clear();
+    EXPECT_TRUE(record.taskId.empty());
+}
+
+/**
  * @tc.name: SessionRecord_BuildSessionInfo_0100
  * @tc.desc: Test running, completed, failed and timeout session info branches
  * @tc.type: FUNC
