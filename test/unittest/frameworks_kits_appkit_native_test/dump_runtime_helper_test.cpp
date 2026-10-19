@@ -43,8 +43,11 @@ public:
     bool WaitForResult(std::string &dumpResult, int32_t timeoutMs)
     {
         std::unique_lock<std::mutex> lock(mtx_);
-        return cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this] { return done_; }) &&
-            !dumpResult_.empty();
+        if (cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this] { return done_; }) && !dumpResult_.empty()) {
+            dumpResult = dumpResult_;
+            return true;
+        }
+        return false;
     }
     std::string GetResult() const { return dumpResult_; }
 
@@ -868,7 +871,7 @@ HWTEST_F(DumpRuntimeHelperTest, DumpMem_ThreadStackLeak_0100, Function | MediumT
     info.needLeakobj = false;
     info.dumpType = MemDumpType::THREAD_STACK_LEAK;
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    sptr<MemDumpCallbackMock> callback = new (std::nothrow) MemDumpCallbackMock();
+    sptr<MemDumpCallbackMock> callback(new (std::nothrow) MemDumpCallbackMock());
     ASSERT_NE(callback, nullptr);
     helper->DumpMem(info, callback);
     // DumpMem with THREAD_STACK_LEAK submits an ffrt task. Wait briefly for the
