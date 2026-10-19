@@ -432,6 +432,10 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<
         return;
     }
 
+    if (info.dumpType == MemDumpType::NATIVE) {
+        
+    }
+
     std::string dumpResult;
     if (info.dumpType == MemDumpType::KMP_KOTLIN) {
         DumpKmpKotlinHeap(info);

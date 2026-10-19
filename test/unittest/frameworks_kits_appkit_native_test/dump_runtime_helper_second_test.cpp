@@ -651,6 +651,7 @@ HWTEST_F(DumpRuntimeHelperTestSecond, DetectAndUnwindThreadStackLeak_0100, TestS
     // On a normal test process there should be no leaked thread stack, so the
     // result is expected to be empty. We mainly verify the function does not
     // crash and returns a well-formed string.
+    
     GTEST_LOG_(INFO) << "DetectAndUnwindThreadStackLeak result size:" << result.size();
     EXPECT_TRUE(result.empty());
 }

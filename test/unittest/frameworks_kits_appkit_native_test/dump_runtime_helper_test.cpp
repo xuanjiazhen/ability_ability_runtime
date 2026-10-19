@@ -237,6 +237,7 @@ HWTEST_F(DumpRuntimeHelperTest, DetectAndUnwindThreadStackLeak_0100, Function | 
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DetectAndUnwindThreadStackLeak_0100 start";
     std::string result = DumpRuntimeHelper::DetectAndUnwindThreadStackLeak();
     // On a normal test process no leaked thread stack is expected, so the result
+    
     // should be empty. This case mainly guards against crashes and verifies the
     // happy path returns a well-formed (empty) string.
     GTEST_LOG_(INFO) << "DetectAndUnwindThreadStackLeak result size:" << result.size();
