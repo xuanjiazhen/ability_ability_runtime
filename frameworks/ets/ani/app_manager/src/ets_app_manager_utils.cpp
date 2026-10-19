@@ -41,7 +41,7 @@ constexpr const char *KEEP_ALIVE_BUNDLE_INFO_INNER_CLASS_NAME =
 constexpr const char *ABILITY_FIRST_FRAME_STATE_DATA_CLASS_NAME =
     "application.AbilityFirstFrameStateData.AbilityFirstFrameStateDataInner";
 constexpr const char *FOCUSED_APPLICATION_INFO_CLASS_NAME =
-    "application.FocusedApplicationInfo.FocusedApplicationInfo";
+    "application.FocusedApplicationInfo.FocusedApplicationInfoInner";
 }  // namespace
 
 ani_object WrapAppStateData(ani_env *env, const AppExecFwk::AppStateData &appStateData)

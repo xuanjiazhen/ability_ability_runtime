@@ -26,7 +26,9 @@
 #include "app_mgr_interface.h"
 #include "ets_ability_first_frame_state_observer.h"
 #include "ets_app_foreground_state_observer.h"
+#ifdef SUPPORT_SCREEN
 #include "ets_focused_application_observer.h"
+#endif
 #include "ets_app_manager_utils.h"
 #include "ets_app_state_observer.h"
 #include "ani_common_app_state_filter.h"
@@ -159,14 +161,18 @@ private:
     static std::atomic<int32_t> serialNumber_;
     static sptr<AbilityRuntime::EtsAppStateObserver> appStateObserver_;
     static sptr<OHOS::AbilityRuntime::ETSAppForegroundStateObserver> observerForeground_;
+#ifdef SUPPORT_SCREEN
     static sptr<AbilityRuntime::ETSFocusedApplicationObserver> observerFocusedApp_;
+#endif
     static std::mutex appStateObserverLock_;
 };
 
 std::atomic<int32_t> EtsAppManager::serialNumber_(0);
 sptr<AbilityRuntime::EtsAppStateObserver> EtsAppManager::appStateObserver_ = nullptr;
 sptr<OHOS::AbilityRuntime::ETSAppForegroundStateObserver> EtsAppManager::observerForeground_ = nullptr;
+#ifdef SUPPORT_SCREEN
 sptr<AbilityRuntime::ETSFocusedApplicationObserver> EtsAppManager::observerFocusedApp_ = nullptr;
+#endif
 std::mutex EtsAppManager::appStateObserverLock_;
 
 sptr<AppExecFwk::IAppMgr> EtsAppManager::GetAppManagerInstance()
@@ -1631,6 +1637,7 @@ void EtsAppManager::OnOffAppForegroundState(ani_env *env, ani_string type, ani_o
 
 ani_int EtsAppManager::OnOnFocusedApplicationChanged(ani_env *env, ani_object observer)
 {
+#ifdef SUPPORT_SCREEN
     TAG_LOGD(AAFwkTag::APPMGR, "OnOnFocusedApplicationChanged called");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
@@ -1677,10 +1684,18 @@ ani_int EtsAppManager::OnOnFocusedApplicationChanged(ani_env *env, ani_object ob
     observerFocusedApp_->AddEtsObserverObject(env, observerId, observer);
     TAG_LOGI(AAFwkTag::APPMGR, "observerId: %{public}d", observerId);
     return static_cast<ani_int>(observerId);
+#else
+    TAG_LOGE(AAFwkTag::APPMGR, "not support");
+    EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+        static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+        GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
+    return 0;
+#endif
 }
 
 void EtsAppManager::OnOffFocusedApplicationChanged(ani_env *env, ani_int observerId)
 {
+#ifdef SUPPORT_SCREEN
     TAG_LOGD(AAFwkTag::APPMGR, "OnOffFocusedApplicationChanged called");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
@@ -1703,7 +1718,14 @@ void EtsAppManager::OnOffFocusedApplicationChanged(ani_env *env, ani_int observe
         return;
     }
     int32_t id = static_cast<int32_t>(observerId);
-    observerFocusedApp_->RemoveEtsObserverObjectById(id);
+    bool isExist = observerFocusedApp_->RemoveEtsObserverObjectById(id);
+    if (!isExist) {
+        TAG_LOGE(AAFwkTag::APPMGR, "observerId not exist: %{public}d", id);
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND), "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+        return;
+    }
     if (observerFocusedApp_->IsEmpty()) {
         int32_t ret = appMgr->UnregisterFocusedApplicationObserver(observerFocusedApp_);
         if (ret != NO_ERROR) {
@@ -1714,6 +1736,12 @@ void EtsAppManager::OnOffFocusedApplicationChanged(ani_env *env, ani_int observe
         }
     }
     TAG_LOGD(AAFwkTag::APPMGR, "OnOffFocusedApplicationChanged end");
+#else
+    TAG_LOGE(AAFwkTag::APPMGR, "not support");
+    EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+        static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+        GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
+#endif
 }
 
 void EtsAppManager::ClearUpApplicationDataCheck(ani_env *env, ani_string aniBundleName)

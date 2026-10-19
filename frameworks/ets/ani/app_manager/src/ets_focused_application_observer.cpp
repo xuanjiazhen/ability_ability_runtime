@@ -119,7 +119,7 @@ void ETSFocusedApplicationObserver::AddEtsObserverObject(
     etsObserverMap_.emplace(observerId, observerRef);
 }
 
-void ETSFocusedApplicationObserver::RemoveEtsObserverObjectById(int32_t observerId)
+bool ETSFocusedApplicationObserver::RemoveEtsObserverObjectById(int32_t observerId)
 {
     std::lock_guard<std::mutex> lock(etsObserverMapLock_);
     auto it = etsObserverMap_.find(observerId);
@@ -128,7 +128,9 @@ void ETSFocusedApplicationObserver::RemoveEtsObserverObjectById(int32_t observer
             AppManagerEts::ReleaseObjectReference(etsVm_, it->second);
         }
         etsObserverMap_.erase(it);
+        return true;
     }
+    return false;
 }
 
 bool ETSFocusedApplicationObserver::IsEmpty()
