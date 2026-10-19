@@ -439,8 +439,10 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<
                 dumpResult = DumpRuntimeHelper::DetectAndUnwindThreadStackLeak();
             } catch (const std::exception &e) {
                 TAG_LOGE(AAFwkTag::APPKIT, "DetectAndUnwindThreadStackLeak exception: %{public}s", e.what());
+                dumpResult = "DetectAndUnwindThreadStackLeak failed: exception occurred\n";
             } catch (...) {
                 TAG_LOGE(AAFwkTag::APPKIT, "DetectAndUnwindThreadStackLeak unknown exception");
+                dumpResult = "DetectAndUnwindThreadStackLeak failed: unknown exception\n";
             }
             if (client != nullptr && callback != nullptr) {
                 client->ReportDumpMemResult(callback, dumpResult);
