@@ -42,7 +42,6 @@
 #endif
 #endif
 #ifdef SUPPORT_SCREEN
-#include "accesstoken_kit.h"
 #include "js_focused_application_observer.h"
 #endif
 #include "js_error_utils.h"
@@ -438,16 +437,13 @@ private:
             ThrowInvalidParamError(env, "Parse param observer failed, must be a AppFocusedApplicationObserver.");
             return CreateJsUndefined(env);
         }
-        if (!CheckFocusedApplicationPermission(env)) {
-            return CreateJsUndefined(env);
-        }
         if (observerFocusedApp_ == nullptr) {
             observerFocusedApp_ = new (std::nothrow) JSFocusedApplicationObserver(env);
         }
         if (appManager_ == nullptr || observerFocusedApp_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null appMgr or observer");
             ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-                GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
+                GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE));
             return CreateJsUndefined(env);
         }
         if (observerFocusedApp_->IsEmpty()) {
@@ -463,19 +459,6 @@ private:
         observerFocusedApp_->AddJsObserverObjectWithId(observerId, argv[INDEX_ZERO]);
         TAG_LOGI(AAFwkTag::APPMGR, "observerId: %{public}d", observerId);
         return CreateJsValue(env, observerId);
-    }
-
-    bool CheckFocusedApplicationPermission(napi_env env)
-    {
-        auto selfToken = IPCSkeleton::GetSelfTokenID();
-        int verifyResult = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
-            selfToken, "ohos.permission.RUNNING_STATE_OBSERVER");
-        if (verifyResult != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
-            TAG_LOGE(AAFwkTag::APPMGR, "VerifyAccessToken fail");
-            ThrowNoPermissionError(env, "ohos.permission.RUNNING_STATE_OBSERVER");
-            return false;
-        }
-        return true;
     }
 
     void ThrowObserverNotExist(napi_env env)
@@ -496,9 +479,6 @@ private:
         if (!AppExecFwk::IsTypeForNapiValue(env, argv[INDEX_ZERO], napi_number)) {
             TAG_LOGE(AAFwkTag::APPMGR, "invalid param");
             ThrowInvalidParamError(env, "Parse param observerId failed, must be a number.");
-            return CreateJsUndefined(env);
-        }
-        if (!CheckFocusedApplicationPermission(env)) {
             return CreateJsUndefined(env);
         }
         if (appManager_ == nullptr) {

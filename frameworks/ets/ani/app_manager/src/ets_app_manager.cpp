@@ -1672,6 +1672,7 @@ ani_int EtsAppManager::OnOnFocusedApplicationChanged(ani_env *env, ani_object ob
                 GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
             return 0;
         }
+        observerFocusedApp_->SetValid(true);
     }
     int32_t observerId = GetObserverId();
     observerFocusedApp_->AddEtsObserverObject(env, observerId, observer);
@@ -1703,7 +1704,14 @@ void EtsAppManager::OnOffFocusedApplicationChanged(ani_env *env, ani_int observe
         return;
     }
     int32_t id = static_cast<int32_t>(observerId);
-    observerFocusedApp_->RemoveEtsObserverObjectById(id);
+    bool isExist = observerFocusedApp_->RemoveEtsObserverObjectById(id);
+    if (!isExist) {
+        TAG_LOGE(AAFwkTag::APPMGR, "observerId not exist: %{public}d", id);
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND), "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+        return;
+    }
     if (observerFocusedApp_->IsEmpty()) {
         int32_t ret = appMgr->UnregisterFocusedApplicationObserver(observerFocusedApp_);
         if (ret != NO_ERROR) {
@@ -1711,6 +1719,8 @@ void EtsAppManager::OnOffFocusedApplicationChanged(ani_env *env, ani_int observe
             EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
                 static_cast<int32_t>(ret), "",
                 GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+        } else {
+            observerFocusedApp_->SetValid(false);
         }
     }
     TAG_LOGD(AAFwkTag::APPMGR, "OnOffFocusedApplicationChanged end");
