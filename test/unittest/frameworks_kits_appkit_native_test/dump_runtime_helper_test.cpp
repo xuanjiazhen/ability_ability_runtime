@@ -47,7 +47,7 @@ public:
             !dumpResult_.empty();
     }
     std::string GetResult() const { return dumpResult_; }
- 
+
 private:
     std::mutex mtx_;
     std::condition_variable cv_;
