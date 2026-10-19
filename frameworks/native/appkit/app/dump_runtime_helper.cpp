@@ -472,9 +472,28 @@ void DumpRuntimeHelper::SubmitThreadStackLeakTask(sptr<IMemDumpCallback> callbac
             TAG_LOGE(AAFwkTag::APPKIT, "DetectAndUnwindThreadStackLeak unknown exception");
             dumpResult = "DetectAndUnwindThreadStackLeak failed: unknown exception\n";
         }
+        if (callback == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "callback is null, cannot report thread stack leak result");
+            return;
+        }
         auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
-        if (client != nullptr && callback != nullptr) {
-            client->ReportDumpMemResult(callback, dumpResult);
+        if (client != nullptr) {
+            try {
+                client->ReportDumpMemResult(callback, dumpResult);
+                return;
+            } catch (const std::exception &e) {
+                TAG_LOGE(AAFwkTag::APPKIT, "ReportDumpMemResult exception: %{public}s", e.what());
+            } catch (...) {
+                TAG_LOGE(AAFwkTag::APPKIT, "ReportDumpMemResult unknown exception");
+            }
+        }
+        // Fallback: invoke callback IPC directly so caller does not hang waiting.
+        try {
+            callback->OnMemDumpDone(dumpResult);
+        } catch (const std::exception &e) {
+            TAG_LOGE(AAFwkTag::APPKIT, "OnMemDumpDone exception: %{public}s", e.what());
+        } catch (...) {
+            TAG_LOGE(AAFwkTag::APPKIT, "OnMemDumpDone unknown exception");
         }
     };
     ffrt::submit(task, {}, {}, {ffrt::task_attr().name("ffrt_DumpThreadStackLeak")});
@@ -630,7 +649,7 @@ int32_t DumpRuntimeHelper::ParseTidFromMapName(const std::string &mapName)
     }
     return static_cast<int32_t>(val);
 }
- 
+
 // Check whether the given tid is still alive in current process by looking up
 // /proc/self/task/<tid>. Returns true if the tid directory exists.
 bool DumpRuntimeHelper::IsTidAlive(int32_t tid)
@@ -664,7 +683,7 @@ size_t DumpRuntimeHelper::CountTotalThreads()
     closedir(dir);
     return count;
 }
- 
+
 // Parse /proc/self/smaps and collect all thread stack map regions whose name
 // starts with THREAD_STACK_MAP_PREFIX. Each region's tid is extracted from the
 // map name and validated against /proc/self/task.
@@ -760,7 +779,7 @@ std::vector<uintptr_t> DumpRuntimeHelper::CollectPcsFromStack(
     TAG_LOGI(AAFwkTag::APPKIT, "CollectPcsFromStack: pcs:%{public}zu", pcs.size());
     return pcs;
 }
- 
+
 // Build a standardized stack string for one leaked thread stack using
 // faultloggerd's Unwinder + DfxFrameFormatter, which produces the canonical
 // "#00 pc <pc> <mapName>(<funcName>+<offset>)" format.
@@ -788,7 +807,7 @@ std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
     size_t leakCount = regions.size();
     std::string statusSuffix;
     std::string body;
- 
+
     if (regions.empty()) {
         TAG_LOGI(AAFwkTag::APPKIT, "no leaked thread stack found, total thread count:%{public}zu",
             totalThreadCount);
@@ -801,7 +820,7 @@ std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
             body = UnwindLeakedStacks(regions, maps);
         }
     }
- 
+
     std::ostringstream header;
     header << "total thread count: " << totalThreadCount
            << ", leak thread stack count: " << leakCount << statusSuffix << "\n";
