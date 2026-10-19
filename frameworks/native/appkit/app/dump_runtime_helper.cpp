@@ -432,6 +432,18 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<
         return;
     }
 
+    if (info.dumpType == MemDumpType::THREAD_STACK_LEAK) {
+        std::string dumpResult;
+        auto task = [self = shared_from_this(), callback, client, dumpResult]() mutable {
+            dumpResult = self->DetectAndUnwindThreadStackLeak();
+            if (client != nullptr && callback != nullptr) {
+                client->ReportDumpMemResult(callback, dumpResult);
+            }
+        };
+        ffrt::submit(task, {}, {}, {ffrt::task_attr().name("ffrt_DumpThreadStackLeak")});
+        return;
+    }
+
     std::string dumpResult;
     if (info.dumpType == MemDumpType::KMP_KOTLIN) {
         DumpKmpKotlinHeap(info);
@@ -759,6 +771,9 @@ std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
     if (regions.empty()) {
         TAG_LOGI(AAFwkTag::APPKIT, "no leaked thread stack found, total thread count:%{public}zu",
             totalThreadCount);
+        std::ostringstream noLeakHeader;
+        noLeakHeader << "total thread count: " << totalThreadCount << ", leak thread stack count: 0\n";
+        dumpResult.append(noLeakHeader.str());
         return dumpResult;
     }
     auto maps = OHOS::HiviewDFX::DfxMaps::Create(0, true, false);
@@ -766,7 +781,7 @@ std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
         TAG_LOGE(AAFwkTag::APPKIT, "failed to create DfxMaps, skip stack unwinding");
         std::ostringstream errHeader;
         errHeader << "total thread count: " << totalThreadCount
-                  << ", orphan thread stack count: " << regions.size() << " (unwind failed)\n";
+                  << ", leak thread stack count: " << regions.size() << " (unwind failed)\n";
         dumpResult.append(errHeader.str());
         return dumpResult;
     }
@@ -793,7 +808,7 @@ std::string DumpRuntimeHelper::DetectAndUnwindThreadStackLeak()
     }
     std::ostringstream header;
     header << "total thread count: " << totalThreadCount
-           << ", orphan thread stack count: " << regions.size() << "\n";
+           << ", leak thread stack count: " << regions.size() << "\n";
     dumpResult.insert(0, header.str());
     return dumpResult;
 }

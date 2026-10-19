@@ -237,10 +237,11 @@ HWTEST_F(DumpRuntimeHelperTest, DetectAndUnwindThreadStackLeak_0100, Function | 
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DetectAndUnwindThreadStackLeak_0100 start";
     std::string result = DumpRuntimeHelper::DetectAndUnwindThreadStackLeak();
     // On a normal test process no leaked thread stack is expected, so the result
-    // should be empty. This case mainly guards against crashes and verifies the
-    // happy path returns a well-formed (empty) string.
-    GTEST_LOG_(INFO) << "DetectAndUnwindThreadStackLeak result size:" << result.size();
-    EXPECT_TRUE(result.empty());
+    // should contain the header with "leak thread stack count: 0" and be non-empty.
+    GTEST_LOG_(INFO) << "DetectAndUnwindThreadStackLeak result:" << result;
+    EXPECT_FALSE(result.empty());
+    EXPECT_NE(result.find("total thread count:"), std::string::npos);
+    EXPECT_NE(result.find("leak thread stack count: 0"), std::string::npos);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DetectAndUnwindThreadStackLeak_0100 end";
 }
 
@@ -820,6 +821,70 @@ HWTEST_F(CreateDirTest, CreateDir_0200, Function | MediumTest | Level1)
     EXPECT_TRUE(DumpRuntimeHelper::IsFileExists(testDir));
     RemoveTestDir(testDir);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CreateDir_0200 end";
+}
+
+/**
+ * @tc.number: DumpMem_ThreadStackLeak_0100
+ * @tc.name: DumpMem_ThreadStackLeak
+ * @tc.desc: Test DumpMem with THREAD_STACK_LEAK type does not crash and triggers detection.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DumpMem_ThreadStackLeak_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_ThreadStackLeak_0100 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    EXPECT_NE(application, nullptr);
+    OHOS::AppExecFwk::MemDumpInfo info;
+    info.pid = 1;
+    info.needLeakobj = false;
+    info.dumpType = MemDumpType::THREAD_STACK_LEAK;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    helper->DumpMem(info, nullptr);
+    // DumpMem with THREAD_STACK_LEAK submits an ffrt task; the function returns
+    // immediately. We just verify it does not crash.
+    EXPECT_NE(application, nullptr);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_ThreadStackLeak_0100 end";
+}
+
+/**
+ * @tc.number: DetectAndUnwindThreadStackLeak_0200
+ * @tc.name: DetectAndUnwindThreadStackLeak
+ * @tc.desc: Test DetectAndUnwindThreadStackLeak returns header with leak count 0 on normal process.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DetectAndUnwindThreadStackLeak_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DetectAndUnwindThreadStackLeak_0200 start";
+    std::string result = DumpRuntimeHelper::DetectAndUnwindThreadStackLeak();
+    GTEST_LOG_(INFO) << "DetectAndUnwindThreadStackLeak_0200 result:" << result;
+    EXPECT_FALSE(result.empty());
+    // Verify the result contains the expected header format
+    EXPECT_NE(result.find("total thread count:"), std::string::npos);
+    EXPECT_NE(result.find("leak thread stack count: 0"), std::string::npos);
+    // The result should end with a newline
+    EXPECT_EQ(result.back(), '\n');
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DetectAndUnwindThreadStackLeak_0200 end";
+}
+
+/**
+ * @tc.number: DumpNativeHeap_0100
+ * @tc.name: DumpNativeHeap
+ * @tc.desc: Test DumpNativeHeap with needLeakobj=true calls GetDumpResult (no longer bypassed).
+ */
+HWTEST_F(DumpRuntimeHelperTest, DumpNativeHeap_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpNativeHeap_0100 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    EXPECT_NE(application, nullptr);
+    OHOS::AppExecFwk::MemDumpInfo info;
+    info.pid = 1;
+    info.needLeakobj = true;
+    std::string dumpResult;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    // This should not crash. GetDumpResult may succeed or fail depending on
+    // whether liborphanmem is loaded, but the function must not crash.
+    helper->DumpNativeHeap(info, dumpResult);
+    GTEST_LOG_(INFO) << "DumpNativeHeap_0100 dumpResult size:" << dumpResult.size();
+    EXPECT_NE(application, nullptr);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpNativeHeap_0100 end";
 }
 }
 }
