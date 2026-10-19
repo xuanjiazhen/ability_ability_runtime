@@ -15,7 +15,9 @@
 
 #include <gtest/gtest.h>
 
+#define private public
 #include "appfreeze_event_report.h"
+#undef private
 
 using namespace testing;
 using namespace testing::ext;
@@ -535,5 +537,45 @@ HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_014, TestSize.Level1)
         HISYSEVENT_FAULT, eventInfo);
     EXPECT_EQ(ret, 0);
 }
+
+HWTEST_F(AppfreezeEventReportTest, Req2OptionalSchemaPreservesLogValidity, TestSize.Level1)
+{
+    auto report = std::make_shared<AAFwk::HisyseventReport>(10);
+    const std::string validity = "20:0:15:0|30:0:18:0:3";
+    report->InsertParam("LOG_VALIDITY", validity);
+    AppfreezeTaskMetadata metadata;
+    metadata.generationId = "101:20001";
+    metadata.episodeId = "1234";
+    metadata.fingerprint = "101:20001:1234";
+    metadata.freezeSeverity = "FATAL";
+    AppfreezeEventReport::AppendMetadata(report, metadata);
+    ASSERT_EQ(report->pos_, 6);
+    EXPECT_STREQ(report->params_[0].v.s, validity.c_str());
+    EXPECT_STREQ(report->params_[1].name, "APPFREEZE_SCHEMA_VERSION");
+    EXPECT_EQ(report->params_[1].t, HISYSEVENT_INT32);
+    EXPECT_EQ(report->params_[1].v.i32, 1);
+    EXPECT_STREQ(report->params_[2].name, "GENERATION_ID");
+    EXPECT_STREQ(report->params_[4].name, "FREEZE_FINGERPRINT");
+    auto legacy = std::make_shared<AAFwk::HisyseventReport>(10);
+    AppfreezeEventReport::AppendMetadata(legacy, {});
+    EXPECT_EQ(legacy->pos_, 0);
+}
+
+HWTEST_F(AppfreezeEventReportTest, Req2StormDetectionSetsGenerationId, TestSize.Level1)
+{
+    std::atomic<int64_t> now {1000};
+    auto scheduler = std::make_shared<AppfreezeTaskScheduler>([](auto) { return false; }, [&] { return now.load(); });
+    EXPECT_FALSE(scheduler->Observe(100, 200).stormTrigger);
+    EXPECT_FALSE(scheduler->Observe(101, 201).stormTrigger);
+    const auto metadata = scheduler->Observe(102, 202);
+    ASSERT_TRUE(metadata.stormTrigger);
+    EXPECT_FALSE(metadata.stormGenerationId.empty());
+    EXPECT_EQ(metadata.freezeAppCount1min, 1);
+    now = 65000;
+    scheduler->Observe(103, 203);
+    scheduler->Observe(104, 204);
+    EXPECT_TRUE(scheduler->Observe(105, 205).stormTrigger);
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

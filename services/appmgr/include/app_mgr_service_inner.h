@@ -43,6 +43,7 @@
 #include "app_record_id.h"
 #include "app_refresh_recipient.h"
 #include "app_running_manager.h"
+#include "appfreeze_task_scheduler.h"
 #include "app_running_record.h"
 #include "app_running_status_listener_interface.h"
 #include "app_running_status_module.h"
@@ -2486,14 +2487,16 @@ private:
     static void SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo);
     void AddToKillProcessMap(const std::string &processName);
     bool IsAllowedNWebPreload(const std::string &processName);
-    void ParseInfoToAppfreeze(const FaultData &faultData, int32_t pid, int32_t uid, const std::string &bundleName,
-        const std::string &processName, const bool isOccurException = false);
-    int GetExceptionTimerId(const FaultData &faultData, const std::string &bundleName,
-        const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid, const int32_t callerUid);
     bool UpdateForeground(const std::shared_ptr<AppRunningRecord> &appRecord, const std::string &eventName,
         bool abilityPendingBackground = false, bool isInForeground = false);
     int32_t SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
-        const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
+        const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid, bool saTimeout = false);
+    __attribute__((visibility("hidden"))) void StartAppfreezeDisposition(const FaultData& faultData,
+        const std::shared_ptr<AppRunningRecord>& record, bool saTimeout, bool focusFlag);
+    int32_t PostAppfreezeDisposition(int32_t pid, int32_t recordId, bool recovery, int64_t delayMs,
+        const std::function<void()>& task);
+    void ClearAppfreezeTasks(const std::shared_ptr<AppRunningRecord>& record);
+    __attribute__((visibility("hidden"))) void ClearAllAppfreezeTasks();
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
     void ReportAbilityStartInfoForSpecified(std::shared_ptr<AppRunningRecord> appRecord,
         const AbilityInfo &abilityInfo);
@@ -2580,6 +2583,21 @@ private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> rssTaskHandler_;
     std::shared_ptr<AMSEventHandler> eventHandler_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> dfxTaskHandler_;
+    struct AppfreezeDisposition {
+        std::weak_ptr<AppRunningRecord> record;
+        std::atomic<bool> closed {false};
+        bool started = false;
+        bool killPosting = false;
+        bool recoveryPosting = false;
+        bool killPosted = false;
+        bool recoveryPosted = false;
+        AAFwk::TaskHandle killTask;
+        AAFwk::TaskHandle recoveryTask;
+    };
+    std::mutex appfreezeStateMutex_;
+    bool appfreezeStopped_ = false;
+    std::shared_ptr<AppfreezeTaskScheduler> appfreezeScheduler_;
+    std::map<int32_t, std::shared_ptr<AppfreezeDisposition>> appfreezeDispositions_;
     std::shared_ptr<AppDebugManager> appDebugManager_;
     std::shared_ptr<AbilityRuntime::AppRunningStatusModule> appRunningStatusModule_;
     std::shared_ptr<AdvancedSecurityModeManager> securityModeManager_;
