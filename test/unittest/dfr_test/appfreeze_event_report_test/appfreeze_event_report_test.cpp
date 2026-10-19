@@ -15,7 +15,9 @@
 
 #include <gtest/gtest.h>
 
+#define private public
 #include "appfreeze_event_report.h"
+#undef private
 
 using namespace testing;
 using namespace testing::ext;
@@ -535,5 +537,73 @@ HWTEST_F(AppfreezeEventReportTest, SendAppfreezeEvent_Test_014, TestSize.Level1)
         HISYSEVENT_FAULT, eventInfo);
     EXPECT_EQ(ret, 0);
 }
+
+HWTEST_F(AppfreezeEventReportTest, Req2OptionalSchemaPreservesLogValidityAndKeepsStormSeparate, TestSize.Level1)
+{
+    auto report = std::make_shared<AAFwk::HisyseventReport>(10);
+    const std::string validity = "20:0:15:0|30:0:18:0:3";
+    report->InsertParam("LOG_VALIDITY", validity);
+    AppfreezeTaskMetadata metadata;
+    metadata.generationId = "101:20001";
+    metadata.episodeId = "1234";
+    metadata.fingerprint = "101:20001:1234";
+    metadata.freezeSeverity = "FATAL";
+    metadata.stormTrigger = true;
+    metadata.stormGenerationId = "60000:2";
+    AppfreezeEventReport::AppendMetadata(report, metadata);
+    ASSERT_EQ(report->pos_, 6);
+    EXPECT_STREQ(report->params_[0].v.s, validity.c_str());
+    EXPECT_STREQ(report->params_[1].name, "APPFREEZE_SCHEMA_VERSION");
+    EXPECT_EQ(report->params_[1].t, HISYSEVENT_INT32);
+    EXPECT_EQ(report->params_[1].v.i32, 1);
+    EXPECT_STREQ(report->params_[2].name, "GENERATION_ID");
+    EXPECT_STREQ(report->params_[4].name, "FREEZE_FINGERPRINT");
+    for (int i = 0; i < report->pos_; ++i) {
+        EXPECT_STRNE(report->params_[i].name, "HOST_RESOURCE_WARNING");
+        EXPECT_STRNE(report->params_[i].name, "APPFREEZE_STORM_TRIGGER");
+        EXPECT_STRNE(report->params_[i].name, "STORM_GENERATION_ID");
+    }
+    auto legacy = std::make_shared<AAFwk::HisyseventReport>(10);
+    AppfreezeEventReport::AppendMetadata(legacy, {});
+    EXPECT_EQ(legacy->pos_, 0);
+}
+
+
+HWTEST_F(AppfreezeEventReportTest, Req2StormSourceUsesRealSenderAndDedicatedGeneration, TestSize.Level1)
+{
+    std::atomic<int64_t> now {1000};
+    auto scheduler = std::make_shared<AppfreezeTaskScheduler>([](auto) { return false; }, [&] { return now.load(); });
+    scheduler->Observe(100, 200);
+    now = 2000;
+    scheduler->Observe(101, 201);
+    now = 3000;
+    const auto metadata = scheduler->Observe(102, 202);
+    ASSERT_TRUE(metadata.stormTrigger);
+    auto report = AppfreezeEventReport::BuildStormReport(metadata);
+    ASSERT_EQ(report->pos_, 5);
+    EXPECT_STREQ(report->params_[0].name, "PID");
+    EXPECT_EQ(report->params_[0].v.i32, getpid());
+    EXPECT_STREQ(report->params_[1].name, "UID");
+    EXPECT_EQ(report->params_[1].v.i32, getuid());
+    EXPECT_STREQ(report->params_[2].v.s, "foundation");
+    const std::string summary = report->params_[3].v.s;
+    EXPECT_NE(summary.find("60000 ms"), std::string::npos);
+    EXPECT_NE(summary.find("monotonic_window=(-57000,3000]"), std::string::npos);
+    EXPECT_NE(summary.find("STORM_GENERATION_ID=3000:1"), std::string::npos);
+    EXPECT_NE(summary.find("100:200@1000"), std::string::npos);
+    EXPECT_NE(summary.find("101:201@2000"), std::string::npos);
+    EXPECT_NE(summary.find("102:202@3000"), std::string::npos);
+    EXPECT_LT(summary.size(), 512u);
+    EXPECT_STREQ(report->params_[4].name, "STORM_GENERATION_ID");
+    EXPECT_STREQ(report->params_[4].v.s, "3000:1");
+    now = 65000;
+    scheduler->Observe(103, 203);
+    scheduler->Observe(104, 204);
+    EXPECT_TRUE(scheduler->Observe(105, 205).stormTrigger);
+    EXPECT_EQ(metadata.stormSummary, summary);
+    EXPECT_EQ(std::string(report->params_[3].v.s), summary);
+    EXPECT_EQ(AppfreezeEventReport::SendAppfreezeStorm({}), 0);
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

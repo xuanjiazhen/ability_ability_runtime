@@ -13,6 +13,14 @@
 
 domain: AAFWK
 
+APPFREEZE_STORM_WARNING:
+  __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: multiple app process generations frozen in one minute}
+  PID: {type: INT32, desc: reporting foundation process id}
+  UID: {type: INT32, desc: reporting foundation uid}
+  PROCESS_NAME: {type: STRING, desc: reporting process name}
+  MSG: {type: STRING, desc: storm threshold and time window snapshot}
+  STORM_GENERATION_ID: {type: STRING, desc: unique producer claimed storm occurrence identity}
+
 LIFECYCLE_TIMEOUT:
   __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: ability timeout}
   PID: {type: INT32, desc: process id}
@@ -23,7 +31,12 @@ LIFECYCLE_TIMEOUT:
   STACK: {type: STRING, desc: main thread stacktrace}
   HEAVIEST_STACK: {type: STRING, desc: most frequent sampled stack}
   SAMPLER_COUNT: {type: INT32, desc: processed samples or -1 when unavailable}
-  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and notification feedback latency in ms}
+  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and feedback latency in ms with optional recent distinct app UID count}
+  APPFREEZE_SCHEMA_VERSION: {type: INT32, desc: trusted producer identity schema version}
+  GENERATION_ID: {type: STRING, desc: process pid and uid identity}
+  EPISODE_ID: {type: STRING, desc: in-flight capture episode timestamp}
+  FREEZE_FINGERPRINT: {type: STRING, desc: readable process and episode identity}
+  FREEZE_SEVERITY: {type: STRING, desc: WARNING or FATAL}
 
 LIFECYCLE_TIMEOUT_WARNING:
   __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: ability timeout}
@@ -35,7 +48,12 @@ LIFECYCLE_TIMEOUT_WARNING:
   STACK: {type: STRING, desc: main thread stacktrace}
   HEAVIEST_STACK: {type: STRING, desc: most frequent sampled stack}
   SAMPLER_COUNT: {type: INT32, desc: processed samples or -1 when unavailable}
-  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and notification feedback latency in ms}
+  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and feedback latency in ms with optional recent distinct app UID count}
+  APPFREEZE_SCHEMA_VERSION: {type: INT32, desc: trusted producer identity schema version}
+  GENERATION_ID: {type: STRING, desc: process pid and uid identity}
+  EPISODE_ID: {type: STRING, desc: in-flight capture episode timestamp}
+  FREEZE_FINGERPRINT: {type: STRING, desc: readable process and episode identity}
+  FREEZE_SEVERITY: {type: STRING, desc: WARNING or FATAL}
 
 LIFECYCLE_HALF_TIMEOUT:
   __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: ability timeout}
@@ -47,7 +65,12 @@ LIFECYCLE_HALF_TIMEOUT:
   STACK: {type: STRING, desc: main thread stacktrace}
   HEAVIEST_STACK: {type: STRING, desc: most frequent sampled stack}
   SAMPLER_COUNT: {type: INT32, desc: processed samples or -1 when unavailable}
-  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and notification feedback latency in ms}
+  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and feedback latency in ms with optional recent distinct app UID count}
+  APPFREEZE_SCHEMA_VERSION: {type: INT32, desc: trusted producer identity schema version}
+  GENERATION_ID: {type: STRING, desc: process pid and uid identity}
+  EPISODE_ID: {type: STRING, desc: in-flight capture episode timestamp}
+  FREEZE_FINGERPRINT: {type: STRING, desc: readable process and episode identity}
+  FREEZE_SEVERITY: {type: STRING, desc: WARNING or FATAL}
 
 LIFECYCLE_HALF_TIMEOUT_WARNING:
   __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: ability timeout}
@@ -59,7 +82,12 @@ LIFECYCLE_HALF_TIMEOUT_WARNING:
   STACK: {type: STRING, desc: main thread stacktrace}
   HEAVIEST_STACK: {type: STRING, desc: most frequent sampled stack}
   SAMPLER_COUNT: {type: INT32, desc: processed samples or -1 when unavailable}
-  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and notification feedback latency in ms}
+  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and feedback latency in ms with optional recent distinct app UID count}
+  APPFREEZE_SCHEMA_VERSION: {type: INT32, desc: trusted producer identity schema version}
+  GENERATION_ID: {type: STRING, desc: process pid and uid identity}
+  EPISODE_ID: {type: STRING, desc: in-flight capture episode timestamp}
+  FREEZE_FINGERPRINT: {type: STRING, desc: readable process and episode identity}
+  FREEZE_SEVERITY: {type: STRING, desc: WARNING or FATAL}
 
 APP_LIFECYCLE_TIMEOUT:
   __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: application timeout}
@@ -89,7 +117,12 @@ THREAD_BLOCK_3S:
   STACK: {type: STRING, desc: stacktrace of current process}
   HEAVIEST_STACK: {type: STRING, desc: most frequent sampled stack}
   SAMPLER_COUNT: {type: INT32, desc: processed samples or -1 when unavailable}
-  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and notification feedback latency in ms}
+  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and feedback latency in ms with optional recent distinct app UID count}
+  APPFREEZE_SCHEMA_VERSION: {type: INT32, desc: trusted producer identity schema version}
+  GENERATION_ID: {type: STRING, desc: process pid and uid identity}
+  EPISODE_ID: {type: STRING, desc: in-flight capture episode timestamp}
+  FREEZE_FINGERPRINT: {type: STRING, desc: readable process and episode identity}
+  FREEZE_SEVERITY: {type: STRING, desc: WARNING or FATAL}
 
 THREAD_BLOCK_6S:
   __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: application freeze}
@@ -101,7 +134,12 @@ THREAD_BLOCK_6S:
   STACK: {type: STRING, desc: main thread stacktrace}
   HEAVIEST_STACK: {type: STRING, desc: most frequent sampled stack}
   SAMPLER_COUNT: {type: INT32, desc: processed samples or -1 when unavailable}
-  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and notification feedback latency in ms}
+  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and feedback latency in ms with optional recent distinct app UID count}
+  APPFREEZE_SCHEMA_VERSION: {type: INT32, desc: trusted producer identity schema version}
+  GENERATION_ID: {type: STRING, desc: process pid and uid identity}
+  EPISODE_ID: {type: STRING, desc: in-flight capture episode timestamp}
+  FREEZE_FINGERPRINT: {type: STRING, desc: readable process and episode identity}
+  FREEZE_SEVERITY: {type: STRING, desc: WARNING or FATAL}
 
 APP_INPUT_BLOCK:
   __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: application freeze}
@@ -113,7 +151,12 @@ APP_INPUT_BLOCK:
   STACK: {type: STRING, desc: main thread stacktrace}
   HEAVIEST_STACK: {type: STRING, desc: most frequent sampled stack}
   SAMPLER_COUNT: {type: INT32, desc: processed samples or -1 when unavailable}
-  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and notification feedback latency in ms}
+  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and feedback latency in ms with optional recent distinct app UID count}
+  APPFREEZE_SCHEMA_VERSION: {type: INT32, desc: trusted producer identity schema version}
+  GENERATION_ID: {type: STRING, desc: process pid and uid identity}
+  EPISODE_ID: {type: STRING, desc: in-flight capture episode timestamp}
+  FREEZE_FINGERPRINT: {type: STRING, desc: readable process and episode identity}
+  FREEZE_SEVERITY: {type: STRING, desc: WARNING or FATAL}
 
 # fault event
 
