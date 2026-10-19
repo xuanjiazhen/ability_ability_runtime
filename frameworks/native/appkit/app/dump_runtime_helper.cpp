@@ -433,7 +433,7 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<
     }
 
     if (info.dumpType == MemDumpType::THREAD_STACK_LEAK) {
-        auto task = [callback, client]() {
+        auto task = [callback]() {
             std::string dumpResult;
             try {
                 dumpResult = DumpRuntimeHelper::DetectAndUnwindThreadStackLeak();
@@ -444,6 +444,7 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<
                 TAG_LOGE(AAFwkTag::APPKIT, "DetectAndUnwindThreadStackLeak unknown exception");
                 dumpResult = "DetectAndUnwindThreadStackLeak failed: unknown exception\n";
             }
+            auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
             if (client != nullptr && callback != nullptr) {
                 client->ReportDumpMemResult(callback, dumpResult);
             }
