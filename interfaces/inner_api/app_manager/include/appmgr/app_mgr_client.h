@@ -1845,6 +1845,49 @@ public:
      */
     int32_t FinishTask(const std::string &taskId);
 
+    /**
+     * Attribute a process into the task owned by the caller. Reserved for the trusted
+     * caller process that forwards the forensic creator uid.
+     *
+     * @param taskId Attribution key of the task (1~256 characters).
+     * @param pid Pid of the managed process to attribute (> 0).
+     * @param tool Tool type of the attribution (AttributionTool value).
+     * @param callerUid Forensic uid of the original task creator; negative skips the
+     *        ownership check.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool, int32_t callerUid);
+
+    /**
+     * Remove a process from the managed set of the task (idempotent). Reserved for the
+     * trusted caller process that forwards the forensic creator uid.
+     *
+     * @param taskId Attribution key of the task (1~256 characters).
+     * @param pid Pid of the process to remove (> 0).
+     * @param callerUid Forensic uid of the original task creator; negative skips the
+     *        ownership check.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t UnregisterManagedProcess(const std::string &taskId, int32_t pid, int32_t callerUid);
+
+    /**
+     * Attribute the main process of the running application into the task. The target
+     * process is located server-side by the bundle name. Reserved for the trusted caller
+     * process that forwards the forensic creator uid.
+     *
+     * @param taskId Attribution key of the task (1~256 characters).
+     * @param bundleName Bundle name used only for process location.
+     * @param callerUid Forensic uid of the original task creator; negative skips the
+     *        ownership check.
+     * @param resolvedPid Outputs the located pid on success, or -1 on any failure.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
+        int32_t callerUid, int32_t &resolvedPid);
+
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);
     /**

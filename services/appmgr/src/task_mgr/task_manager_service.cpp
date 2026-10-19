@@ -253,6 +253,12 @@ void TaskManagerService::RemoveManagedProcessFromAllTasksInner(pid_t pid)
 
 int32_t TaskManagerService::RegisterManagedProcess(const std::string &taskId, const AttributionRecord &attribution)
 {
+    return RegisterManagedProcess(taskId, attribution, SYSTEM_INITIATED_UID);
+}
+
+int32_t TaskManagerService::RegisterManagedProcess(const std::string &taskId,
+    const AttributionRecord &attribution, int32_t callerUid)
+{
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     int32_t toolType = static_cast<int32_t>(attribution.tool);
@@ -263,10 +269,15 @@ int32_t TaskManagerService::RegisterManagedProcess(const std::string &taskId, co
             "toolType: %{public}d", taskId.size(), attribution.pid, toolType);
         return INVALID_PARAMETERS_ERR;
     }
-    return RegisterManagedProcessInner(taskId, attribution);
+    return RegisterManagedProcessInner(taskId, attribution, callerUid);
 }
 
 int32_t TaskManagerService::UnregisterManagedProcess(const std::string &taskId, int32_t pid)
+{
+    return UnregisterManagedProcess(taskId, pid, SYSTEM_INITIATED_UID);
+}
+
+int32_t TaskManagerService::UnregisterManagedProcess(const std::string &taskId, int32_t pid, int32_t callerUid)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -275,11 +286,11 @@ int32_t TaskManagerService::UnregisterManagedProcess(const std::string &taskId, 
             taskId.size(), pid);
         return INVALID_PARAMETERS_ERR;
     }
-    return UnregisterManagedProcessInner(taskId, pid);
+    return UnregisterManagedProcessInner(taskId, pid, callerUid);
 }
 
 int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskId,
-    const AttributionRecord &attribution)
+    const AttributionRecord &attribution, int32_t callerUid)
 {
     std::unique_ptr<TimeoutContext> replacedCtx;
     {
@@ -287,6 +298,12 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
         auto it = tasks_.find(taskId);
         if (it == tasks_.end()) {
             TAG_LOGW(AAFwkTag::APPMGR, "task not found, taskId: %{public}s", taskId.c_str());
+            return ERR_TASK_NOT_FOUND;
+        }
+        if (callerUid >= 0 && it->second.creatorUid != callerUid) {
+            TAG_LOGW(AAFwkTag::APPMGR, "caller is not the creator, rejected, taskId: %{public}s, "
+                "creator uid: %{public}d, caller uid: %{public}d", taskId.c_str(), it->second.creatorUid,
+                callerUid);
             return ERR_TASK_NOT_FOUND;
         }
         AttributionRecord stored = attribution;
@@ -300,12 +317,19 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
     return ERR_OK;
 }
 
-int32_t TaskManagerService::UnregisterManagedProcessInner(const std::string &taskId, pid_t pid)
+int32_t TaskManagerService::UnregisterManagedProcessInner(const std::string &taskId, pid_t pid,
+    int32_t callerUid)
 {
     std::lock_guard<ffrt::mutex> lock(tasksMutex_);
     auto it = tasks_.find(taskId);
     if (it == tasks_.end()) {
         TAG_LOGW(AAFwkTag::APPMGR, "task not found, taskId: %{public}s", taskId.c_str());
+        return ERR_TASK_NOT_FOUND;
+    }
+    if (callerUid >= 0 && it->second.creatorUid != callerUid) {
+        TAG_LOGW(AAFwkTag::APPMGR, "caller is not the creator, rejected, taskId: %{public}s, "
+            "creator uid: %{public}d, caller uid: %{public}d", taskId.c_str(), it->second.creatorUid,
+            callerUid);
         return ERR_TASK_NOT_FOUND;
     }
     it->second.attributions.erase(pid);

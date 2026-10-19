@@ -64,6 +64,11 @@ constexpr size_t INDEX_TWO = 2;
 constexpr size_t INDEX_THREE = 3;
 constexpr size_t INDEX_FOUR = 4;
 const int32_t HIDUMPER_SERVICE_UID = 1212;
+// The climgr SA (186) runs in the aimgr process and is the only caller allowed on the
+// managed-process attribution IPC face. Numeric authority: base/startup/init/services/
+// etc/passwd:183 ("aimgr:x:3092:3092"); symbolic declaration: cli_tool_framework/etc/
+// profile/aimgr.cfg:15 ("uid":"aimgr"). Keep both sources in sync when the value changes.
+const int32_t AIMGR_SERVICE_UID = 3092;
 constexpr int32_t RESOURCE_MANAGER_UID = 1096;
 constexpr const int INDEX_PID = 1;
 constexpr const int INDEX_CMD = 2;
@@ -188,6 +193,72 @@ int32_t AppMgrService::FinishTask(const std::string &taskId)
         return AAFwk::ERR_NOT_SYSTEM_APP;
     }
     return TaskManagerService::GetInstance().FinishTask(taskId);
+}
+
+int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
+    int32_t callerUid)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "caller is not system app, rejected");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (IPCSkeleton::GetCallingUid() != AIMGR_SERVICE_UID) {
+        TAG_LOGW(AAFwkTag::APPMGR, "caller is not climgr process, rejected, calling uid: %{public}d",
+            IPCSkeleton::GetCallingUid());
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    AttributionRecord attribution;
+    attribution.pid = pid;
+    attribution.tool = static_cast<AttributionTool>(tool);
+    return TaskManagerService::GetInstance().RegisterManagedProcess(taskId, attribution, callerUid);
+}
+
+int32_t AppMgrService::UnregisterManagedProcess(const std::string &taskId, int32_t pid, int32_t callerUid)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "caller is not system app, rejected");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (IPCSkeleton::GetCallingUid() != AIMGR_SERVICE_UID) {
+        TAG_LOGW(AAFwkTag::APPMGR, "caller is not climgr process, rejected, calling uid: %{public}d",
+            IPCSkeleton::GetCallingUid());
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    return TaskManagerService::GetInstance().UnregisterManagedProcess(taskId, pid, callerUid);
+}
+
+int32_t AppMgrService::RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
+    int32_t callerUid, int32_t &resolvedPid)
+{
+    resolvedPid = -1;
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "caller is not system app, rejected");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (IPCSkeleton::GetCallingUid() != AIMGR_SERVICE_UID) {
+        TAG_LOGW(AAFwkTag::APPMGR, "caller is not climgr process, rejected, calling uid: %{public}d",
+            IPCSkeleton::GetCallingUid());
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "inner service is not ready");
+        return AAFwk::INNER_ERR;
+    }
+    pid_t targetPid = appMgrServiceInner_->ResolveMainProcessPidByBundleName(bundleName);
+    if (targetPid <= 0) {
+        // The target application is not running or its on-demand startup has not
+        // finished yet; no attribution object is created and no side effect is left.
+        TAG_LOGW(AAFwkTag::APPMGR, "main process not found, bundle: %{public}s", bundleName.c_str());
+        return AAFwk::INNER_ERR;
+    }
+    AttributionRecord attribution;
+    attribution.pid = targetPid;
+    attribution.tool = AttributionTool::CLI;
+    int32_t result = TaskManagerService::GetInstance().RegisterManagedProcess(taskId, attribution, callerUid);
+    if (result == ERR_OK) {
+        resolvedPid = static_cast<int32_t>(targetPid);
+    }
+    return result;
 }
 
 AppMgrServiceState AppMgrService::QueryServiceState()

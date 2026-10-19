@@ -93,6 +93,21 @@ public:
     int32_t RegisterManagedProcess(const std::string &taskId, const AttributionRecord &attribution);
 
     /**
+     * @brief Attributes a process into the task owned by the given caller and restarts
+     *        its inactivity timeout window. Same as the two-parameter overload, plus the
+     *        creator-ownership check.
+     * @param taskId Indicates the attribution key of the task.
+     * @param attribution Indicates the attribution record (pid and tool; the
+     *        attribution time is stamped here).
+     * @param callerUid Indicates the forensic uid of the task creator; a negative value
+     *        (SYSTEM_INITIATED_UID) skips the ownership check.
+     * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters;
+     *         ERR_TASK_NOT_FOUND if the task does not exist or is owned by another uid.
+     */
+    int32_t RegisterManagedProcess(const std::string &taskId, const AttributionRecord &attribution,
+        int32_t callerUid);
+
+    /**
      * @brief Removes a process from the managed set of the task; the inactivity
      *        timeout window is left running untouched.
      * @param taskId Indicates the attribution key of the task.
@@ -101,6 +116,19 @@ public:
      *         ERR_TASK_NOT_FOUND if the task does not exist.
      */
     int32_t UnregisterManagedProcess(const std::string &taskId, int32_t pid);
+
+    /**
+     * @brief Removes a process from the managed set of the task owned by the given
+     *        caller; the inactivity timeout window is left running untouched. Same as
+     *        the two-parameter overload, plus the creator-ownership check.
+     * @param taskId Indicates the attribution key of the task.
+     * @param pid Indicates the pid of the process to remove.
+     * @param callerUid Indicates the forensic uid of the task creator; a negative value
+     *        (SYSTEM_INITIATED_UID) skips the ownership check.
+     * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters;
+     *         ERR_TASK_NOT_FOUND if the task does not exist or is owned by another uid.
+     */
+    int32_t UnregisterManagedProcess(const std::string &taskId, int32_t pid, int32_t callerUid);
 
     /**
      * @brief Notifies that a task has ended, reserved for the resource-schedule control to
@@ -205,7 +233,8 @@ private:
      *        stamped server-side.
      * @return Returns ERR_OK on success; ERR_TASK_NOT_FOUND if the task does not exist.
      */
-    int32_t RegisterManagedProcessInner(const std::string &taskId, const AttributionRecord &attribution);
+    int32_t RegisterManagedProcessInner(const std::string &taskId, const AttributionRecord &attribution,
+        int32_t callerUid);
 
     /**
      * @brief Removes a process from the managed set of the task; locks tasksMutex_
@@ -214,7 +243,7 @@ private:
      * @param pid Indicates the pid of the process to remove.
      * @return Returns ERR_OK on success; ERR_TASK_NOT_FOUND if the task does not exist.
      */
-    int32_t UnregisterManagedProcessInner(const std::string &taskId, pid_t pid);
+    int32_t UnregisterManagedProcessInner(const std::string &taskId, pid_t pid, int32_t callerUid);
 
     /**
      * @brief Restarts the inactivity window of the task: posts a new one-shot timer for
