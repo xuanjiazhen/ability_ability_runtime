@@ -29,6 +29,9 @@ bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const st
 }
 
 bool PermissionVerification::VerifyPreloadApplicationPermission() const
+{
+    return MyFlag::flag_;
+}
 
 int32_t PermissionVerification::VerifyAppStateObserverPermission() const
 {

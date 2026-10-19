@@ -1231,9 +1231,8 @@ public:
 #ifdef SUPPORT_SCREEN
     void HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo);
     void HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo);
-    void NotifyFocusedApplicationChanged(int32_t focusedUid, int32_t unfocusedUid, int64_t displayId,
-        const std::shared_ptr<AppRunningRecord> &appRecord);
-    std::string GetBundleNameByUid(int32_t uid);
+    void NotifyFocusedApplicationChanged(int32_t focusedUid, int32_t unfocusedUid,
+        uint64_t displayGroupId, const std::shared_ptr<AppRunningRecord> &appRecord);
 
     /**
      * Handle window visibility changed.
@@ -2601,7 +2600,6 @@ private:
     sptr<WindowFocusChangedListener> focusListener_;
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
     sptr<WindowPidVisibilityChangedListener> windowPidVisibilityChangedListener_;
-    int32_t lastFocusedUid_ = -1;
 #endif //SUPPORT_SCREEN
     std::atomic<bool> sceneBoardAttachFlag_ = true;
     std::atomic<int32_t> willKillPidsNum_ = 0;

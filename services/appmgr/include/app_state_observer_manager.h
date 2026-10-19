@@ -55,7 +55,7 @@ using AppStateObserverMap = std::map<sptr<IApplicationStateObserver>, AppStateOb
 using AppForegroundStateObserverMap = std::map<sptr<IAppForegroundStateObserver>, int32_t>;
 using AbilityForegroundObserverMap = std::map<sptr<IAbilityForegroundStateObserver>, int32_t>;
 using ImageProcessObserverMap = std::map<sptr<IImageProcessStateObserver>, int32_t>;
-using FocusedApplicationObserverMap = std::map<sptr<IFocusedApplicationObserver>, std::pair<int32_t, std::string>>;
+using FocusedApplicationObserverMap = std::map<sptr<IFocusedApplicationObserver>, int32_t>;
 
 enum class ObserverType {
     APPLICATION_STATE_OBSERVER,
@@ -138,7 +138,6 @@ private:
     bool IsAppForegroundObserverExist(const sptr<IRemoteBroker> &observer);
     bool IsAbilityForegroundObserverExist(const sptr<IRemoteBroker> &observer);
     bool IsImageProcessObserverExist(const sptr<IRemoteBroker> &observer);
-    bool IsFocusedApplicationObserverExist(const sptr<IRemoteBroker> &observer);
     void AddObserverDeathRecipient(const sptr<IRemoteBroker> &observer, const ObserverType &type);
     void RemoveObserverDeathRecipient(const sptr<IRemoteBroker> &observer);
     AppStateObserverMap GetAppStateObserverMapCopy();

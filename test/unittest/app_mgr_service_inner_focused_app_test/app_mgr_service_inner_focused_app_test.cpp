@@ -47,11 +47,34 @@ constexpr int32_t UNFOCUSED_UID = 10002;
 constexpr int32_t SAME_UID = 10001;
 constexpr int32_t FIRST_FOCUS_UNFOCUSED_UID = -1;
 constexpr int32_t INVALID_UID = -1;
-constexpr int64_t MAIN_DISPLAY_ID = 0;
-constexpr int64_t NON_MAIN_DISPLAY_ID = 1;
-constexpr int64_t INVALID_DISPLAY_ID = -1;
+#ifdef SUPPORT_SCREEN
+const OHOS::Rosen::DisplayGroupId MAIN_DISPLAY_GROUP_ID = OHOS::Rosen::DISPLAY_GROUP_ID_DEFAULT;
+const OHOS::Rosen::DisplayGroupId NON_MAIN_DISPLAY_GROUP_ID = OHOS::Rosen::DISPLAY_GROUP_ID_SECONDARY;
+const OHOS::Rosen::DisplayGroupId INVALID_DISPLAY_GROUP_ID = OHOS::Rosen::DISPLAY_GROUP_ID_INVALID;
+#endif // SUPPORT_SCREEN
 const std::string TEST_BUNDLE_NAME = "com.test.focused";
 }  // namespace
+
+// Synchronous task handler: AppStateObserverManager::NotifyFocusedApplicationChanged posts the
+// notification to handler_->SubmitTask and returns; the manager's handler_ is only created by
+// AppStateObserverManager::Init(), which the unit test never calls, so handler_ is nullptr and the
+// notify path early-returns (observer never called). Injecting this handler makes the posted task
+// run synchronously so the observer callback executes before the test assertions.
+class FocusedAppSyncTaskHandler : public AAFwk::TaskHandlerWrap {
+public:
+    FocusedAppSyncTaskHandler() : TaskHandlerWrap("focused_app_test") {}
+    ~FocusedAppSyncTaskHandler() override = default;
+    std::shared_ptr<AAFwk::InnerTaskHandle> SubmitTaskInner(std::function<void()> &&task,
+        const AAFwk::TaskAttribute &taskAttr) override
+    {
+        if (task) {
+            task();
+        }
+        return nullptr;
+    }
+    bool CancelTaskInner(const std::shared_ptr<AAFwk::InnerTaskHandle> &taskHandle) override { return true; }
+    void WaitTaskInner(const std::shared_ptr<AAFwk::InnerTaskHandle> &taskHandle) override {}
+};
 
 class TestFocusedApplicationObserver : public FocusedApplicationObserverStub {
 public:
@@ -68,13 +91,6 @@ public:
     bool IsCalled() const { return called_; }
     int32_t GetFocusedUid() const { return focusedUid_; }
     const std::string &GetFocusedBundleName() const { return focusedBundleName_; }
-
-    void Reset()
-    {
-        called_ = false;
-        focusedUid_ = -1;
-        focusedBundleName_.clear();
-    }
 
 private:
     bool called_ = false;
@@ -109,6 +125,12 @@ void AppMgrServiceInnerFocusedAppTest::SetUp()
     appInfo.bundleName = TEST_BUNDLE_NAME;
     appRecord_ = std::make_shared<AppRunningRecord>(std::make_shared<ApplicationInfo>(appInfo), 0, "process");
     ASSERT_NE(appRecord_, nullptr);
+    // Inject a synchronous handler so AppStateObserverManager async notifications (e.g.
+    // NotifyFocusedApplicationChanged) run synchronously in-process; otherwise handler_ is null and
+    // the notify path early-returns, leaving observers uncalled (NotifyFocusedApplicationChanged_0900).
+    auto stateObserverManager = DelayedSingleton<AppStateObserverManager>::GetInstance();
+    ASSERT_NE(stateObserverManager, nullptr);
+    stateObserverManager->handler_ = std::make_shared<FocusedAppSyncTaskHandler>();
 }
 
 void AppMgrServiceInnerFocusedAppTest::TearDown()
@@ -132,7 +154,7 @@ void AppMgrServiceInnerFocusedAppTest::TearDown()
 HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0100, TestSize.Level1)
 {
     EXPECT_NE(inner_, nullptr);
-    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, MAIN_DISPLAY_ID, appRecord_);
+    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, MAIN_DISPLAY_GROUP_ID, appRecord_);
 }
 
 /**
@@ -143,7 +165,7 @@ HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0100,
 HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0200, TestSize.Level1)
 {
     EXPECT_NE(inner_, nullptr);
-    inner_->NotifyFocusedApplicationChanged(SAME_UID, SAME_UID, MAIN_DISPLAY_ID, appRecord_);
+    inner_->NotifyFocusedApplicationChanged(SAME_UID, SAME_UID, MAIN_DISPLAY_GROUP_ID, appRecord_);
 }
 
 /**
@@ -154,7 +176,7 @@ HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0200,
 HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0300, TestSize.Level1)
 {
     EXPECT_NE(inner_, nullptr);
-    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, NON_MAIN_DISPLAY_ID, appRecord_);
+    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, NON_MAIN_DISPLAY_GROUP_ID, appRecord_);
 }
 
 /**
@@ -165,18 +187,18 @@ HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0300,
 HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0400, TestSize.Level1)
 {
     EXPECT_NE(inner_, nullptr);
-    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, MAIN_DISPLAY_ID, nullptr);
+    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, MAIN_DISPLAY_GROUP_ID, nullptr);
 }
 
 /**
  * @tc.number: NotifyFocusedApplicationChanged_0500
- * @tc.desc: AC-15 invalid displayId=-1, verify no crash.
+ * @tc.desc: AC-15 invalid displayGroupId, verify no crash.
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0500, TestSize.Level1)
 {
     EXPECT_NE(inner_, nullptr);
-    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, INVALID_DISPLAY_ID, appRecord_);
+    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, INVALID_DISPLAY_GROUP_ID, appRecord_);
 }
 
 /**
@@ -187,7 +209,7 @@ HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0500,
 HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0600, TestSize.Level1)
 {
     EXPECT_NE(inner_, nullptr);
-    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, MAIN_DISPLAY_ID, appRecord_);
+    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, MAIN_DISPLAY_GROUP_ID, appRecord_);
 }
 
 /**
@@ -198,7 +220,7 @@ HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0600,
 HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0700, TestSize.Level1)
 {
     EXPECT_NE(inner_, nullptr);
-    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, FIRST_FOCUS_UNFOCUSED_UID, MAIN_DISPLAY_ID, appRecord_);
+    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, FIRST_FOCUS_UNFOCUSED_UID, MAIN_DISPLAY_GROUP_ID, appRecord_);
 }
 
 /**
@@ -213,41 +235,34 @@ HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0800,
     ASSERT_NE(observer, nullptr);
     ASSERT_EQ(ERR_OK, inner_->RegisterFocusedApplicationObserver(observer));
 
-    inner_->NotifyFocusedApplicationChanged(SAME_UID, SAME_UID, MAIN_DISPLAY_ID, appRecord_);
+    inner_->NotifyFocusedApplicationChanged(SAME_UID, SAME_UID, MAIN_DISPLAY_GROUP_ID, appRecord_);
     EXPECT_FALSE(observer->IsCalled());
 
-    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, NON_MAIN_DISPLAY_ID, appRecord_);
+    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, NON_MAIN_DISPLAY_GROUP_ID, appRecord_);
     EXPECT_FALSE(observer->IsCalled());
 
-    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, INVALID_DISPLAY_ID, appRecord_);
+    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, INVALID_DISPLAY_GROUP_ID, appRecord_);
     EXPECT_FALSE(observer->IsCalled());
 
     inner_->UnregisterFocusedApplicationObserver(observer);
 }
 
 /**
- * @tc.number: GetBundleNameByUid_0100
- * @tc.desc: invalid uid=-1 returns empty string.
+ * @tc.number: NotifyFocusedApplicationChanged_0900
+ * @tc.desc: AC-4 cross-app focus switch on main display, verify observer called with correct data.
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrServiceInnerFocusedAppTest, GetBundleNameByUid_0100, TestSize.Level1)
+HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0900, TestSize.Level1)
 {
     EXPECT_NE(inner_, nullptr);
-    auto result = inner_->GetBundleNameByUid(INVALID_UID);
-    EXPECT_TRUE(result.empty());
-}
-
-/**
- * @tc.number: GetBundleNameByUid_0200
- * @tc.desc: null appRunningManager returns empty string.
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerFocusedAppTest, GetBundleNameByUid_0200, TestSize.Level1)
-{
-    EXPECT_NE(inner_, nullptr);
-    inner_->appRunningManager_ = nullptr;
-    auto result = inner_->GetBundleNameByUid(FOCUSED_UID);
-    EXPECT_TRUE(result.empty());
+    auto observer = sptr<TestFocusedApplicationObserver>(new TestFocusedApplicationObserver());
+    ASSERT_NE(observer, nullptr);
+    ASSERT_EQ(ERR_OK, inner_->RegisterFocusedApplicationObserver(observer));
+    inner_->NotifyFocusedApplicationChanged(FOCUSED_UID, UNFOCUSED_UID, MAIN_DISPLAY_GROUP_ID, appRecord_);
+    EXPECT_TRUE(observer->IsCalled());
+    EXPECT_EQ(FOCUSED_UID, observer->GetFocusedUid());
+    EXPECT_EQ(TEST_BUNDLE_NAME, observer->GetFocusedBundleName());
+    inner_->UnregisterFocusedApplicationObserver(observer);
 }
 
 /**
@@ -265,7 +280,7 @@ HWTEST_F(AppMgrServiceInnerFocusedAppTest, HandleFocused_0100, TestSize.Level1)
     sptr<OHOS::Rosen::FocusChangeInfo> focusChangeInfo = new OHOS::Rosen::FocusChangeInfo();
     focusChangeInfo->pid_ = 9999;
     focusChangeInfo->uid_ = FOCUSED_UID;
-    focusChangeInfo->displayId_ = static_cast<OHOS::Rosen::DisplayId>(MAIN_DISPLAY_ID);
+    focusChangeInfo->displayGroupId_ = MAIN_DISPLAY_GROUP_ID;
     inner_->HandleFocused(focusChangeInfo);
     EXPECT_FALSE(observer->IsCalled());
 
