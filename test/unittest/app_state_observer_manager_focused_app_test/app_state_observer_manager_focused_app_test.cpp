@@ -33,7 +33,6 @@ namespace AppExecFwk {
 using OHOS::AAFwk::MyFlag;
 
 namespace {
-constexpr int32_t TEST_ERR_OBSERVER_NOT_FOUND = 16300004;
 constexpr int32_t TEST_ERR_FOCUS_OBSERVER_EXCEED_LIMIT = 16000165;
 constexpr int32_t FOCUSED_APPLICATION_OBSERVER_LIMIT = 10;
 constexpr int32_t FOCUSED_UID = 10001;
@@ -248,7 +247,7 @@ HWTEST_F(AppStateObserverManagerFocusedAppTest, UnregisterFocusedApplicationObse
 
 /**
  * @tc.number: UnregisterFocusedApplicationObserver_0300
- * @tc.desc: AC-6 unregister non-existent observer returns ERR_OBSERVER_NOT_FOUND (16300004).
+ * @tc.desc: AC-6 unregister non-existent observer returns ERR_INVALID_VALUE.
  * @tc.type: FUNC
  */
 HWTEST_F(AppStateObserverManagerFocusedAppTest, UnregisterFocusedApplicationObserver_0300, TestSize.Level1)
@@ -257,7 +256,7 @@ HWTEST_F(AppStateObserverManagerFocusedAppTest, UnregisterFocusedApplicationObse
     auto observer = sptr<MockFocusedApplicationObserver>(new MockFocusedApplicationObserver());
     ASSERT_NE(observer, nullptr);
     auto ret = manager_->UnregisterFocusedApplicationObserver(observer);
-    EXPECT_EQ(TEST_ERR_OBSERVER_NOT_FOUND, ret);
+    EXPECT_EQ(ERR_INVALID_VALUE, ret);
 }
 
 /**

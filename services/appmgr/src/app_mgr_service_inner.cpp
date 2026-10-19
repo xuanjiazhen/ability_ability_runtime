@@ -9268,11 +9268,14 @@ void AppMgrServiceInner::NotifyFocusedApplicationChanged(int32_t focusedUid, int
         return;
     }
     if (displayId != MAIN_DISPLAY_ID) {
-        TAG_LOGD(AAFwkTag::APPMGR, "non-main display group, displayId:%{public}" PRId64 ", skip notify", displayId);
+        TAG_LOGI(AAFwkTag::APPMGR, "non-main display group, displayId:%{public}" PRId64 ", "
+            "focusedUid:%{public}d, unfocusedUid:%{public}d, focusedBundleName:%{public}s, skip notify",
+            displayId, focusedUid, unfocusedUid,
+            appRecord ? appRecord->GetBundleName().c_str() : "");
         return;
     }
     if (focusedUid == unfocusedUid) {
-        TAG_LOGD(AAFwkTag::APPMGR, "same uid focus change, skip notify");
+        TAG_LOGI(AAFwkTag::APPMGR, "same uid focus change, skip notify");
         return;
     }
     FocusedApplicationInfo data;
@@ -9284,27 +9287,6 @@ void AppMgrServiceInner::NotifyFocusedApplicationChanged(int32_t focusedUid, int
         "focusedBundleName:%{public}s",
         focusedUid, unfocusedUid, data.focusedBundleName.c_str());
     DelayedSingleton<AppStateObserverManager>::GetInstance()->NotifyFocusedApplicationChanged(data);
-}
-
-std::string AppMgrServiceInner::GetBundleNameByUid(int32_t uid)
-{
-    if (uid < 0) {
-        TAG_LOGW(AAFwkTag::APPMGR, "invalid uid:%{public}d", uid);
-        return std::string();
-    }
-    if (appRunningManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null appRunningManager_");
-        return std::string();
-    }
-    auto recordMap = appRunningManager_->GetAppRunningRecordMap();
-    for (const auto &item : recordMap) {
-        const auto &record = item.second;
-        if (record && record->GetUid() == uid) {
-            return record->GetBundleName();
-        }
-    }
-    TAG_LOGW(AAFwkTag::APPMGR, "no app running record found, uid:%{public}d", uid);
-    return std::string();
 }
 
 void AppMgrServiceInner::HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo)

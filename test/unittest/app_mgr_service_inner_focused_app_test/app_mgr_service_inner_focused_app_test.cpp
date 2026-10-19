@@ -226,31 +226,6 @@ HWTEST_F(AppMgrServiceInnerFocusedAppTest, NotifyFocusedApplicationChanged_0800,
 }
 
 /**
- * @tc.number: GetBundleNameByUid_0100
- * @tc.desc: invalid uid=-1 returns empty string.
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerFocusedAppTest, GetBundleNameByUid_0100, TestSize.Level1)
-{
-    EXPECT_NE(inner_, nullptr);
-    auto result = inner_->GetBundleNameByUid(INVALID_UID);
-    EXPECT_TRUE(result.empty());
-}
-
-/**
- * @tc.number: GetBundleNameByUid_0200
- * @tc.desc: null appRunningManager returns empty string.
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerFocusedAppTest, GetBundleNameByUid_0200, TestSize.Level1)
-{
-    EXPECT_NE(inner_, nullptr);
-    inner_->appRunningManager_ = nullptr;
-    auto result = inner_->GetBundleNameByUid(FOCUSED_UID);
-    EXPECT_TRUE(result.empty());
-}
-
-/**
  * @tc.number: HandleFocused_0100
  * @tc.desc: AC-9 HandleFocused with null appRecord, no crash, observer not notified.
  * @tc.type: FUNC
