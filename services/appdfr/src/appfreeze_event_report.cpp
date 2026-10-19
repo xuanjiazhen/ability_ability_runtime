@@ -52,8 +52,20 @@ constexpr char EVENT_REPORT_LIFECYCLE_AS_APPFREEZE [] = "report_lifecycle_as_app
 constexpr char EVENT_HEAVIEST_STACK[] = "HEAVIEST_STACK";
 constexpr char EVENT_SAMPLER_COUNT[] = "SAMPLER_COUNT";
 constexpr char EVENT_LOG_VALIDITY[] = "LOG_VALIDITY";
-constexpr int APPFREEZE_EVENT_PARAM_COUNT = 28;
-constexpr int GENERAL_EVENT_PARAM_COUNT = 23;
+constexpr int APPFREEZE_EVENT_PARAM_COUNT = 34;
+constexpr int GENERAL_EVENT_PARAM_COUNT = 29;
+}
+
+void AppfreezeEventReport::AppendMetadata(const std::shared_ptr<AAFwk::HisyseventReport>& report,
+    const AppfreezeTaskMetadata& metadata)
+{
+    if (!metadata.generationId.empty()) {
+        report->InsertParam("APPFREEZE_SCHEMA_VERSION", int32_t(1));
+        report->InsertParam("GENERATION_ID", metadata.generationId);
+        report->InsertParam("EPISODE_ID", metadata.episodeId);
+        report->InsertParam("FREEZE_FINGERPRINT", metadata.fingerprint);
+        report->InsertParam("FREEZE_SEVERITY", metadata.freezeSeverity);
+    }
 }
 
 int AppfreezeEventReport::SendAppfreezeEvent(const std::string &eventName, HiSysEventEventType type,
@@ -105,6 +117,7 @@ int AppfreezeEventReport::LogAppInputBlockEvent(const std::string &name, HiSysEv
     hisyseventReport->InsertParam(EVENT_HEAVIEST_STACK, eventInfo.heaviestStack);
     hisyseventReport->InsertParam(EVENT_SAMPLER_COUNT, eventInfo.samplerCount);
     hisyseventReport->InsertParam(EVENT_LOG_VALIDITY, eventInfo.logValidity);
+    AppendMetadata(hisyseventReport, eventInfo.metadata);
     ret = hisyseventReport->Report("AAFWK", name.c_str(), type);
     return ret;
 }
@@ -142,6 +155,7 @@ int AppfreezeEventReport::LogThreadBlockEvent(const std::string &name, HiSysEven
     if (name == AppFreezeType::THREAD_BLOCK_6S) {
         hisyseventReport->InsertParam(EVENT_TRACE_ID, eventInfo.hitraceInfo);
     }
+    AppendMetadata(hisyseventReport, eventInfo.metadata);
     ret = hisyseventReport->Report("AAFWK", name.c_str(), type);
     return ret;
 }
@@ -176,6 +190,7 @@ int AppfreezeEventReport::LogLifeCycleTimeoutEvent(const std::string &name, HiSy
     hisyseventReport->InsertParam(EVENT_APPLICATION_IO_INFO, eventInfo.applicationIOInfo);
     hisyseventReport->InsertParam(EVENT_IS_BLOCK_IN_GC, eventInfo.isBlockInGc);
     hisyseventReport->InsertParam(EVENT_PROCESS_LIFECYCLE_INFO, eventInfo.processLifeTime);
+    AppendMetadata(hisyseventReport, eventInfo.metadata);
     ret = hisyseventReport->Report("AAFWK", name.c_str(), type);
     return ret;
 }
@@ -202,6 +217,7 @@ int AppfreezeEventReport::LogGeneralEvent(const std::string &name, HiSysEventEve
     hisyseventReport->InsertParam(EVENT_HEAVIEST_STACK, eventInfo.heaviestStack);
     hisyseventReport->InsertParam(EVENT_SAMPLER_COUNT, eventInfo.samplerCount);
     hisyseventReport->InsertParam(EVENT_LOG_VALIDITY, eventInfo.logValidity);
+    AppendMetadata(hisyseventReport, eventInfo.metadata);
     ret = hisyseventReport->Report("AAFWK", name.c_str(), type);
     return ret;
 }

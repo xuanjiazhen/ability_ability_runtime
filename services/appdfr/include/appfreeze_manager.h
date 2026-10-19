@@ -31,6 +31,7 @@
 #include "fault_data.h"
 #include "freeze_util.h"
 #include "appfreeze_event_report.h"
+#include "appfreeze_task_scheduler.h"
 
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
@@ -42,10 +43,11 @@ public:
     struct AppInfo {
         bool isOccurException = false;
         bool isFrozen = false;
-        int pid;
-        int uid;
+        int pid = -1;
+        int uid = -1;
         std::string bundleName;
         std::string processName;
+        AppfreezeTaskMetadata metadata;
     };
 
     enum TypeAttribute {
@@ -105,6 +107,14 @@ public:
     static void DestroyInstance();
     int AppfreezeHandle(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     int AppfreezeHandleWithStack(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
+    std::shared_ptr<const AppfreezeCaptureResult> CaptureAppfreeze(const FaultData& faultData,
+        const AppInfo& appInfo, const std::shared_ptr<AppfreezeRequest>& request);
+    int ReportAppfreeze(const FaultData& faultData, const AppInfo& appInfo, const AppfreezeCaptureResult& result);
+    AppfreezeSubmitResult DispatchAppfreeze(const FaultData& faultData, const AppInfo& appInfo,
+        const std::shared_ptr<AppfreezeRequest>& request,
+        const std::shared_ptr<AppfreezeTaskScheduler>& scheduler,
+        const std::function<bool()>& isClosed,
+        const AppfreezeTaskScheduler::Start& start);
     int LifecycleTimeoutHandle(const ParamInfo& info, FreezeUtil::LifecycleFlow flow = FreezeUtil::LifecycleFlow());
     std::string WriteToFile(const std::string& fileName, const std::string& content);
     bool IsHandleAppfreeze(const std::string& bundleName);
@@ -145,6 +155,7 @@ private:
         std::string identity;
         std::string validity;
         std::set<std::string> halfFlows;
+        std::weak_ptr<AppfreezeReportClaim> reportClaim;
         uint64_t checkpointTime = 0;
         uint64_t lastCheckpointTime = 0;
         int64_t startTime = 0;
@@ -199,14 +210,16 @@ private:
         std::set<int>& asyncPids, AppfreezeManager::TerminalBinder& terminalBinder) const;
     void FindStackByPid(std::string& msg, int pid) const;
     std::pair<std::string, std::string> CatchJsonStacktrace(int pid, const std::string& faultType,
-        DumpTiming* timing = nullptr) const;
+        DumpTiming* timing = nullptr, bool fresh = false) const;
     std::string CatcherStacktrace(int pid, DumpTiming* timing = nullptr) const;
     FaultData GetFaultNotifyData(const FaultData& faultData, int pid);
     int AcquireStack(const FaultData& faultData, const AppInfo& appInfo, const std::string& memoryContent);
+    __attribute__((visibility("hidden"))) std::string CollectBinderAttachment(const FaultData& faultData,
+        int32_t pid, const AppfreezeAttachmentPool::Cancelled& cancelled);
     bool IsAncoProc(int pid);
     std::string GetAppfreezeInfoPath(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     int NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
-        const std::string& binderInfo, const std::string& memoryContent);
+        const std::string& binderInfo, const std::string& memoryContent, bool propagateResult = false);
     void CollectFreezeSysMemory(std::string& memoryContent);
     int MergeNotifyInfo(FaultData& faultNotifyData, const AppfreezeManager::AppInfo& appInfo);
     void AppendLogValidity(FaultData& faultData, const AppInfo& appInfo);
@@ -259,6 +272,7 @@ private:
     std::map<std::string, AppFreezeInfo> freezeKillThreadMap_;
     mutable ffrt::mutex freezeExcludedPidMutex_;
     std::unordered_map<int32_t, FreezeExcludedPidInfo> freezeExcludedPidMap_;
+    std::unique_ptr<AppfreezeAttachmentPool> attachmentPool_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

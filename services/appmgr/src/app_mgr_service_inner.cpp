@@ -536,6 +536,10 @@ void AppMgrServiceInner::Init()
     dfxTaskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler(
         "dfx_freeze_task_queue", DFX_TASKWORKER_NUM, AAFwk::TaskQoS::USER_INITIATED);
     dfxTaskHandler_->SetPrintTaskLog(true);
+    {
+        std::lock_guard<std::mutex> lock(appfreezeStateMutex_);
+        appfreezeStopped_ = false;
+    }
     rssTaskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler(
         "rss_report_task_queue", RSS_TASKWORKER_NUM, AAFwk::TaskQoS::USER_INITIATED);
     rssTaskHandler_->SetPrintTaskLog(true);
@@ -560,7 +564,12 @@ void AppMgrServiceInner::Init()
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()
-{}
+{
+    ClearAllAppfreezeTasks();
+    if (appfreezeScheduler_) {
+        appfreezeScheduler_->Reset();
+    }
+}
 
 void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     int32_t requestId, const std::string &customProcess)
@@ -3370,6 +3379,7 @@ void AppMgrServiceInner::ApplicationTerminated(const int32_t recordId)
     KillAttachedChildProcess(appRecord);
 #endif // SUPPORT_CHILD_PROCESS
     appRecord->SetState(ApplicationState::APP_STATE_TERMINATED);
+    ClearAppfreezeTasks(appRecord);
     appRecord->RemoveAppDeathRecipient();
     appRecord->SetApplicationClient(nullptr);
     appRecord->SetProcessChangeReason(ProcessChangeReason::REASON_APP_TERMINATED);
@@ -4822,6 +4832,7 @@ void AppMgrServiceInner::UpdateExtensionState(const sptr<IRemoteObject> &token, 
 
 void AppMgrServiceInner::OnStop()
 {
+    ClearAllAppfreezeTasks();
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager null");
         return;
@@ -6454,6 +6465,7 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
         TAG_LOGI(AAFwkTag::APPMGR, "null appRecord");
         return;
     }
+    ClearAppfreezeTasks(appRecord);
     CheckMakeImageState(appRecord, ImageError::ERR_TEMPLATE_DIED);
     SendProcessKillEvent(appRecord);
     AppExecFwk::AppfreezeManager::GetInstance()->ClearLogValidity(appRecord->GetPid());
@@ -6490,8 +6502,8 @@ void AppMgrServiceInner::ClearAppRunningData(const std::shared_ptr<AppRunningRec
     if (!appRecord) {
         return;
     }
-
     appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
+    ClearAppfreezeTasks(appRecord);
     FinishUserTestLocked("App died", -1, appRecord);
     appRecord->SetProcessChangeReason(ProcessChangeReason::REASON_REMOTE_DIED);
 
@@ -6647,6 +6659,7 @@ void AppMgrServiceInner::TerminateApplication(const std::shared_ptr<AppRunningRe
         return;
     }
     appRecord->SetState(ApplicationState::APP_STATE_TERMINATED);
+    ClearAppfreezeTasks(appRecord);
     appRecord->RemoveAppDeathRecipient();
     appRecord->SetApplicationClient(nullptr);
     appRecord->SetProcessChangeReason(ProcessChangeReason::REASON_APP_TERMINATED_TIMEOUT);
@@ -9045,7 +9058,6 @@ void AppMgrServiceInner::AppRecoveryNotifyApp(int32_t pid, const std::string& bu
         return;
     }
 
-    std::string timeOutName = "waitSaveTask" + std::to_string(pid) + bundleName;
     if (markers == "appRecovery") {
         TAG_LOGI(AAFwkTag::APPMGR, "waitSaveTask finish, but not kill process "
             "immediately, wait for dump stack util 2s timeout");
@@ -9055,89 +9067,14 @@ void AppMgrServiceInner::AppRecoveryNotifyApp(int32_t pid, const std::string& bu
     if (markers != "recoveryTimeout") {
         return;
     }
-    auto waitSaveTask = [pid, bundleName, innerServiceWeak = weak_from_this(), recordId]() {
-        auto innerService = innerServiceWeak.lock();
-        CHECK_POINTER_AND_RETURN_LOG(innerService, "get appMgrServiceInner fail");
-        auto appRecord = innerService->GetAppRunningRecordByPid(pid);
-        if (appRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "no appRecord");
-            return;
-        }
-        std::string name = appRecord->GetBundleName();
-        if (bundleName == name) {
-            TAG_LOGI(AAFwkTag::APPMGR,
-                "waitSaveTask timeout %{public}s,pid: %{public}d will exit",
-                bundleName.c_str(), pid);
+    auto waitSaveTask = [pid, recordId, innerServiceWeak = weak_from_this()] {
+        if (auto innerService = innerServiceWeak.lock()) {
             innerService->RecordAppRecoveryNotifyAppReason(pid);
             innerService->KillProcessByPid(pid, "AppRecoveryNotifyApp", false, recordId);
         }
     };
     constexpr int32_t timeOut = 2000;
-    CHECK_POINTER_AND_RETURN_LOG(taskHandler_, "no taskHandler_");
-    taskHandler_->SubmitTaskJust(waitSaveTask, timeOutName, timeOut);
-}
-
-void AppMgrServiceInner::ParseInfoToAppfreeze(const FaultData &faultData, int32_t pid, int32_t uid,
-    const std::string &bundleName, const std::string &processName, const bool isOccurException)
-{
-    if (faultData.faultType == FaultDataType::APP_FREEZE) {
-        bool isFrozen = AbilityRuntime::FreezeUtil::GetInstance().IsFrozen(pid);
-        AppfreezeManager::AppInfo info = {
-            .isOccurException = isOccurException,
-            .isFrozen = isFrozen,
-            .pid = pid,
-            .uid = uid,
-            .bundleName = bundleName,
-            .processName = processName,
-        };
-        AppExecFwk::AppfreezeManager::GetInstance()->AppfreezeHandleWithStack(faultData, info);
-    }
-
-    TAG_LOGW(AAFwkTag::APPMGR,
-        "name: %{public}s, faultType: %{public}d, uid: %{public}d, pid: %{public}d, bundleName: %{public}s,"
-        " processName: %{public}s, faultData.forceExit:%{public}d, faultData.waitSaveState:%{public}d,"
-        " isOccurException:%{public}d, stuckTimeout:%{public}u",
-        faultData.errorObject.name.c_str(), faultData.faultType, uid, pid, bundleName.c_str(),
-        processName.c_str(), faultData.forceExit, faultData.waitSaveState, isOccurException, faultData.stuckTimeout);
-}
-
-int AppMgrServiceInner::GetExceptionTimerId(const FaultData &faultData, const std::string &bundleName,
-    const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid, const int32_t callerUid)
-{
-    auto exceptionCallback = [faultData, bundleName, appRecord, pid, callerUid,
-        innerService = shared_from_this()](void *) {
-        auto threadTask = [faultData, bundleName, appRecord, pid, callerUid, innerService]() {
-            if (innerService->CheckAppFault(appRecord, faultData)) {
-                TAG_LOGI(AAFwkTag::APPMGR, "Ffrt Exception current dfx task is working.");
-                return;
-            }
-            bool isOccurException = true;
-            innerService->ParseInfoToAppfreeze(faultData, pid, callerUid, bundleName, appRecord->GetProcessName(),
-                isOccurException);
-            if (faultData.errorObject.name != AppFreezeType::THREAD_BLOCK_3S &&
-                faultData.errorObject.name != AppFreezeType::LIFECYCLE_HALF_TIMEOUT &&
-                faultData.errorObject.name != AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING) {
-                TAG_LOGI(AAFwkTag::APPMGR, "Ffrt Exception faultData: %{public}s,pid: %{public}d "
-                    "will exit because"" %{public}s", bundleName.c_str(), pid,
-                    innerService->FaultTypeToString(faultData.faultType).c_str());
-#ifdef APP_MGR_KILL_REASON_TAG
-                innerService->RecordAppfreezeKillReason(pid, faultData);
-#endif
-                return;
-            }
-        };
-        std::thread dfxThread(threadTask);
-        if (dfxThread.joinable()) {
-            dfxThread.join();
-        }
-    };
-    constexpr uint32_t timeout = 30; // 30s
-    int exceptionId = -1;
-#ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
-    exceptionId = HiviewDFX::XCollie::GetInstance().SetTimer("DfxFault::Exception", timeout,
-        exceptionCallback, nullptr, HiviewDFX::XCOLLIE_FLAG_NOOP);
-#endif
-    return exceptionId;
+    PostAppfreezeDisposition(pid, recordId, true, timeOut, waitSaveTask);
 }
 
 bool AppMgrServiceInner::UpdateForeground(const std::shared_ptr<AppRunningRecord> &appRecord,
@@ -9155,59 +9092,269 @@ bool AppMgrServiceInner::UpdateForeground(const std::shared_ptr<AppRunningRecord
     return AppfreezeManager::GetInstance()->CalculateFaultForeground(eventName, foregroundState);
 }
 
-int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
-    const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid)
+void AppMgrServiceInner::EnsureAppfreezeScheduler()
 {
-    if (appRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
-        return ERR_INVALID_VALUE;
+    if (appfreezeScheduler_) {
+        return;
     }
-    if (AppExecFwk::AppfreezeManager::GetInstance()->CheckPreloadUIExtension(faultData.errorObject.message,
-        bundleName, pid, faultData.errorObject.name)) {
+    appfreezeScheduler_ = std::make_shared<AppfreezeTaskScheduler>([weak = weak_from_this()](auto task) {
+        auto inner = weak.lock();
+        if (!inner) {
+            return false;
+        }
+        std::shared_ptr<AAFwk::TaskHandlerWrap> handler;
+        {
+            std::lock_guard<std::mutex> lock(inner->appfreezeStateMutex_);
+            if (inner->appfreezeStopped_) {
+                return false;
+            }
+            handler = inner->dfxTaskHandler_;
+        }
+        return handler && static_cast<bool>(handler->SubmitTask(task, "AppfreezeCapture"));
+    });
+}
+
+AppfreezeTaskScheduler::Start AppMgrServiceInner::BuildAppfreezeStartCallback(
+    const FaultData& faultData, const std::shared_ptr<AppfreezeDisposition>& disposition,
+    const std::weak_ptr<AppRunningRecord>& weakRecord, bool saTimeout, bool focusFlag)
+{
+    return [weak = weak_from_this(), weakRecord, disposition, saTimeout, focusFlag, faultData](
+        const AppfreezeTaskScheduler::Request& req) {
+        auto inner = weak.lock();
+        auto record = weakRecord.lock();
+        if (!inner || !record || disposition->closed || req->IsCancelled() ||
+            inner->GetAppRunningRecordByPid(record->GetPid()) != record) {
+            return;
+        }
+        if (!req->half) {
+            inner->StartAppfreezeDisposition(faultData, record, saTimeout, focusFlag);
+        }
+        TAG_LOGI(AAFwkTag::APPDFR, "Appfreeze RUNNING request:%{public}" PRIu64 " pid:%{public}d",
+            req->requestId, record->GetPid());
+    };
+}
+
+bool AppMgrServiceInner::PrepareAppfreezeSubmission(
+    const std::shared_ptr<AppRunningRecord>& appRecord, int32_t pid,
+    std::shared_ptr<AppfreezeTaskScheduler>& scheduler,
+    std::shared_ptr<AppfreezeDisposition>& disposition,
+    AppfreezeTaskMetadata& metadata)
+{
+    std::lock_guard<std::mutex> lock(appfreezeStateMutex_);
+    if (appfreezeStopped_ || GetAppRunningRecordByPid(pid) != appRecord ||
+        appRecord->GetState() == ApplicationState::APP_STATE_TERMINATED ||
+        appRecord->GetState() == ApplicationState::APP_STATE_END) {
+        return false;
+    }
+    EnsureAppfreezeScheduler();
+    scheduler = appfreezeScheduler_;
+    auto& entry = appfreezeDispositions_[appRecord->GetRecordId()];
+    if (!entry) {
+        entry = std::make_shared<AppfreezeDisposition>();
+        entry->record = appRecord;
+    }
+    disposition = entry;
+    metadata = scheduler->Observe(pid, appRecord->GetUid());
+    return true;
+}
+
+int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
+    const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid, bool saTimeout)
+{
+    if (faultData.faultType != FaultDataType::APP_FREEZE) {
         return ERR_OK;
     }
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
-    std::string processName = appRecord->GetProcessName();
-    int exceptionId = GetExceptionTimerId(faultData, bundleName, appRecord, pid, callerUid);
-    auto notifyAppTask = [appRecord, pid, callerUid, bundleName, processName, faultData, exceptionId,
-        innerServiceWeak = weak_from_this()]() {
-#ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(exceptionId);
-#endif
-        auto innerService = innerServiceWeak.lock();
-        CHECK_POINTER_AND_RETURN_LOG(innerService, "get appMgrServiceInner fail");
-        innerService->ParseInfoToAppfreeze(faultData, pid, callerUid, bundleName, processName);
-    };
-
-    if (!dfxTaskHandler_) {
-        TAG_LOGW(AAFwkTag::APPMGR, "get dfx handler fail");
+    if (!appRecord || !dfxTaskHandler_) {
         return ERR_INVALID_VALUE;
     }
-    int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
-    TAG_LOGI(AAFwkTag::APPDFR, "init cpuInfo, eventName:%{public}s, bundleName:%{public}s, "
-        "pid:%{public}d", faultData.errorObject.name.c_str(), bundleName.c_str(), pid);
-    bool isFrozen = AbilityRuntime::FreezeUtil::GetInstance().IsFrozen(pid);
+    auto manager = AppfreezeManager::GetInstance();
+    if (manager->CheckPreloadUIExtension(faultData.errorObject.message, bundleName, pid, faultData.errorObject.name)) {
+        return ERR_OK;
+    }
+    std::shared_ptr<AppfreezeTaskScheduler> scheduler;
+    std::shared_ptr<AppfreezeDisposition> disposition;
+    AppfreezeTaskMetadata metadata;
+    if (!PrepareAppfreezeSubmission(appRecord, pid, scheduler, disposition, metadata)) {
+        return ERR_INVALID_VALUE;
+    }
+    const bool half = AppfreezeTaskScheduler::IsHalfEvent(faultData.errorObject.name);
+    metadata.freezeSeverity = half ? "WARNING" : "FATAL";
+    auto request = std::make_shared<AppfreezeRequest>(appRecord->GetRecordId(), half, std::move(metadata));
     AppfreezeManager::AppInfo info = {
-        .isFrozen = isFrozen,
+        .isFrozen = AbilityRuntime::FreezeUtil::GetInstance().IsFrozen(pid),
         .pid = pid,
-        .uid = callerUid,
+        .uid = appRecord->GetUid(),
         .bundleName = bundleName,
-        .processName = processName,
+        .processName = appRecord->GetProcessName(),
     };
-    AppExecFwk::AppfreezeManager::GetInstance()->InitWarningCpuInfo(faultData, info);
-    dfxTaskHandler_->SubmitTask(notifyAppTask, "NotifyAppFaultTask");
-    TAG_LOGW(AAFwkTag::APPDFR, "submit NotifyAppFaultTask, eventName:%{public}s, bundleName:%{public}s, "
-        "endTime:%{public}s, interval:%{public}" PRId64 " ms", faultData.errorObject.name.c_str(),
-        bundleName.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
-        AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime);
+    manager->InitWarningCpuInfo(faultData, info);
+    auto start = BuildAppfreezeStartCallback(faultData, disposition, appRecord, saTimeout, appRecord->GetFocusFlag());
+    auto isClosed = [disposition] { return disposition->closed.load(); };
+    auto result = manager->DispatchAppfreeze(faultData, info, request, scheduler, isClosed, start);
+    if (disposition->closed) {
+        scheduler->RemoveGeneration(request->metadata.generationId, request->instanceId);
+    }
+    TAG_LOGI(AAFwkTag::APPDFR, "Appfreeze submit request:%{public}" PRIu64 " pid:%{public}d result:%{public}d",
+        request->requestId, pid, static_cast<int>(result));
+    return result == AppfreezeSubmitResult::REJECTED ? ERR_INVALID_VALUE : ERR_OK;
+}
 
-    constexpr int delayTime = 15 * 1000; // 15s
-    auto task = [pid]() {
-        AppExecFwk::AppfreezeManager::GetInstance()->DeleteStack(pid);
+void AppMgrServiceInner::StartAppfreezeDisposition(const FaultData& faultData,
+    const std::shared_ptr<AppRunningRecord>& record, bool saTimeout, bool focusFlag)
+{
+    {
+        std::lock_guard<std::mutex> lock(appfreezeStateMutex_);
+        auto it = appfreezeDispositions_.find(record->GetRecordId());
+        if (it == appfreezeDispositions_.end() || it->second->closed ||
+            it->second->record.lock() != record) {
+            return;
+        }
+        it->second->started = true;
+    }
+    const int32_t pid = record->GetPid();
+    const int32_t recordId = record->GetRecordId();
+    const std::string bundleName = record->GetBundleName();
+    const bool isExit = AppfreezeManager::GetInstance()->CheckProcessExit(record->GetProcessName(),
+        faultData.errorObject.name, faultData.isInForeground);
+    if (isExit && faultData.waitSaveState) {
+        AppRecoveryNotifyApp(pid, bundleName, FaultDataType::APP_FREEZE, "recoveryTimeout", recordId);
+    }
+    const bool needExit = saTimeout && (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK ||
+        faultData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT);
+#ifdef APP_NO_RESPONSE_DIALOG
+    auto kill = [weak = weak_from_this(), pid, bundleName, faultData, needExit, recordId] {
+        if (auto inner = weak.lock()) {
+            inner->KillFaultApp(pid, bundleName, faultData, needExit, recordId);
+        }
     };
-    dfxTaskHandler_->SubmitTaskJust(task, "DeleteStack", delayTime);
+    ModalSystemAppFreezeUIExtension::GetInstance().ProcessAppFreeze(saTimeout ? true : focusFlag,
+        faultData, std::to_string(pid), bundleName, kill);
+#else
+    if (saTimeout || isExit) {
+        KillFaultApp(pid, bundleName, faultData, needExit, recordId);
+    }
+#endif
+}
 
-    return ERR_OK;
+int32_t AppMgrServiceInner::PostAppfreezeDisposition(int32_t pid, int32_t recordId, bool recovery,
+    int64_t delayMs, const std::function<void()>& task)
+{
+    std::shared_ptr<AppfreezeDisposition> state;
+    {
+        std::lock_guard<std::mutex> lock(appfreezeStateMutex_);
+        auto it = appfreezeDispositions_.find(recordId);
+        if (it == appfreezeDispositions_.end() || it->second->closed || !it->second->started) {
+            return ERR_INVALID_OPERATION;
+        }
+        state = it->second;
+        auto record = state->record.lock();
+        if (!record || GetAppRunningRecordByPid(pid) != record) {
+            return ERR_INVALID_VALUE;
+        }
+        bool& posting = recovery ? state->recoveryPosting : state->killPosting;
+        const bool posted = recovery ? state->recoveryPosted : state->killPosted;
+        if (posting || posted) {
+            return ERR_OK;
+        }
+        posting = true;
+    }
+    auto callback = [weak = weak_from_this(), state, pid, task] {
+        auto inner = weak.lock();
+        if (!inner || state->closed) {
+            return;
+        }
+        auto original = state->record.lock();
+        if (!original || inner->GetAppRunningRecordByPid(pid) != original ||
+            original->GetState() == ApplicationState::APP_STATE_TERMINATED ||
+            original->GetState() == ApplicationState::APP_STATE_END || state->closed) {
+            return;
+        }
+        task();
+    };
+    const std::string name = std::string(recovery ? "waitSaveTask:" : "killAppTask:") +
+        std::to_string(recordId);
+    AAFwk::TaskHandle handle;
+    if (taskHandler_) {
+        handle = taskHandler_->SubmitTaskJust(callback, name, delayMs);
+    }
+    bool cancel = false;
+    {
+        std::lock_guard<std::mutex> lock(appfreezeStateMutex_);
+        (recovery ? state->recoveryPosting : state->killPosting) = false;
+        cancel = state->closed;
+        if (handle && !cancel) {
+            (recovery ? state->recoveryTask : state->killTask) = handle;
+            (recovery ? state->recoveryPosted : state->killPosted) = true;
+        }
+    }
+    if (cancel && handle) {
+        handle.Cancel();
+    }
+    if (!handle) {
+        TAG_LOGE(AAFwkTag::APPDFR, "Appfreeze disposition post failed pid:%{public}d task:%{public}s",
+            pid, name.c_str());
+        return ERR_NO_INIT;
+    }
+    TAG_LOGI(AAFwkTag::APPDFR, "Appfreeze disposition post pid:%{public}d task:%{public}s delay:%{public}" PRId64,
+        pid, name.c_str(), delayMs);
+    return cancel ? ERR_INVALID_OPERATION : ERR_OK;
+}
+
+void AppMgrServiceInner::ClearAppfreezeTasks(const std::shared_ptr<AppRunningRecord>& record)
+{
+    if (!record) {
+        return;
+    }
+    std::shared_ptr<AppfreezeDisposition> state;
+    std::shared_ptr<AppfreezeTaskScheduler> scheduler;
+    {
+        std::lock_guard<std::mutex> lock(appfreezeStateMutex_);
+        scheduler = appfreezeScheduler_;
+        auto it = appfreezeDispositions_.find(record->GetRecordId());
+        if (it != appfreezeDispositions_.end() && it->second->record.lock() == record) {
+            state = it->second;
+            state->closed = true;
+            appfreezeDispositions_.erase(it);
+        }
+    }
+    if (state) {
+        state->killTask.Cancel();
+        state->recoveryTask.Cancel();
+    }
+    if (scheduler) {
+        scheduler->RemoveGeneration(std::to_string(record->GetPid()) + ":" + std::to_string(record->GetUid()),
+            record->GetRecordId());
+    }
+    AppfreezeManager::GetInstance()->ClearLogValidity(record->GetPid());
+    AppfreezeManager::GetInstance()->DeleteStack(record->GetPid());
+}
+
+void AppMgrServiceInner::ClearAllAppfreezeTasks()
+{
+    std::shared_ptr<AppfreezeTaskScheduler> scheduler;
+    std::map<int32_t, std::shared_ptr<AppfreezeDisposition>> states;
+    {
+        std::lock_guard<std::mutex> lock(appfreezeStateMutex_);
+        appfreezeStopped_ = true;
+        scheduler = appfreezeScheduler_;
+        states.swap(appfreezeDispositions_);
+        for (const auto& entry : states) {
+            entry.second->closed = true;
+        }
+    }
+    if (scheduler) {
+        // Keep the scheduler and its executing-key fences across service restart.
+        // Only observations, queued work and future publication are reset here.
+        scheduler->CloseAll();
+    }
+    for (const auto& entry : states) {
+        entry.second->killTask.Cancel();
+        entry.second->recoveryTask.Cancel();
+        if (auto record = entry.second->record.lock()) {
+            AppfreezeManager::GetInstance()->ClearLogValidity(record->GetPid());
+            AppfreezeManager::GetInstance()->DeleteStack(record->GetPid());
+        }
+    }
 }
 
 bool AppMgrServiceInner::IsAsanEnabled(const std::shared_ptr<AppRunningRecord> &record)
@@ -9263,9 +9410,6 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     FaultData& nonConstFaultData = const_cast<FaultData&>(faultData);
     nonConstFaultData.isInForeground = UpdateForeground(appRecord, eventName,
         faultData.abilityPendingBackground, faultData.isInForeground);
-    std::string processName = appRecord->GetProcessName();
-    bool isExit = AppExecFwk::AppfreezeManager::GetInstance()->CheckProcessExit(processName,
-        eventName, nonConstFaultData.isInForeground);
     bool isThreadBlock = faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_3S ||
         faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_6S;
     nonConstFaultData.ipcLatency = isThreadBlock ? 0 : -1;
@@ -9278,9 +9422,6 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
             return ERR_OK;
         }
 
-        if (isExit && faultData.waitSaveState) {
-            AppRecoveryNotifyApp(pid, bundleName, FaultDataType::APP_FREEZE, "recoveryTimeout", recordId);
-        }
     }
 
     std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + bundleName;
@@ -9298,20 +9439,6 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     if (SubmitDfxFaultTask(nonConstFaultData, bundleName, appRecord, pid) != ERR_OK) {
         return ERR_INVALID_VALUE;
     }
-
-#ifdef APP_NO_RESPONSE_DIALOG
-    auto killFaultApp = std::bind(&AppMgrServiceInner::KillFaultApp, this, pid, bundleName, faultData, false,
-        recordId);
-    ModalSystemAppFreezeUIExtension::GetInstance().ProcessAppFreeze(appRecord->GetFocusFlag(), faultData,
-        std::to_string(pid), bundleName, killFaultApp);
-#else
-    if (isExit) {
-        KillFaultApp(pid, bundleName, faultData, false, recordId);
-    } else {
-        TAG_LOGW(AAFwkTag::APPMGR, "Process does not exit, pid:%{public}d, isExit:%{public}d, "
-            "eventName:%{public}s, processName:%{public}s", pid, isExit, eventName.c_str(), processName.c_str());
-    }
-#endif
 
     return ERR_OK;
 }
@@ -9390,49 +9517,30 @@ int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleN
     bool isNeedExit, int32_t recordId)
 {
     if (isNeedExit || (faultData.forceExit && !faultData.waitSaveState)) {
-        auto killAppTask = [pid, bundleName, faultData, isNeedExit, innerServiceWeak = weak_from_this(), recordId]() {
-            auto innerService = innerServiceWeak.lock();
-            CHECK_POINTER_AND_RETURN_LOG(innerService, "get appMgrServiceInner fail");
-            TAG_LOGW(AAFwkTag::APPMGR, "faultData: %{public}s,pid: %{public}d will exit because %{public}s",
-                bundleName.c_str(), pid, innerService->FaultTypeToString(faultData.faultType).c_str());
+        auto killAppTask = [pid, faultData, weak = weak_from_this()] {
+            auto inner = weak.lock();
+            if (!inner) {
+                return;
+            }
 #ifdef APP_MGR_KILL_REASON_TAG
-            innerService->RecordAppfreezeKillReason(pid, faultData);
+            inner->RecordAppfreezeKillReason(pid, faultData);
 #endif
-            return;
         };
-        int32_t waitTime = AppExecFwk::AppfreezeManager::GetInstance()->IsBetaVersion() ?
+        const int32_t waitTime = AppfreezeManager::GetInstance()->IsBetaVersion() ?
             BETA_APPFREEZE_KILL_WAIT_TIME : DEFAULT_APPFREEZE_KILL_WAIT_TIME;
-        // wait 3.5s or 6s before kill application
-        CHECK_POINTER_AND_RETURN_VALUE(taskHandler_, ERR_NO_INIT);
-        taskHandler_->SubmitTaskJust(killAppTask, "killAppTask", waitTime);
+        return PostAppfreezeDisposition(pid, recordId, false, waitTime, killAppTask);
     }
-
     return ERR_OK;
 }
 
 void AppMgrServiceInner::TimeoutNotifyApp(int32_t pid, int32_t uid,
     const std::string& bundleName, const std::string& processName, const FaultData &faultData, int32_t recordId)
 {
-    bool isNeedExit = (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK) ||
-        (faultData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT);
-#ifdef APP_NO_RESPONSE_DIALOG
-    auto killFaultApp = std::bind(&AppMgrServiceInner::KillFaultApp, this, pid, bundleName, faultData, isNeedExit, recordId);
-    ModalSystemAppFreezeUIExtension::GetInstance().ProcessAppFreeze(true, faultData, std::to_string(pid),
-        bundleName, killFaultApp);
-#else
-    KillFaultApp(pid, bundleName, faultData, isNeedExit, recordId);
-#endif
-    if (faultData.faultType == FaultDataType::APP_FREEZE) {
-        bool isFrozen = AbilityRuntime::FreezeUtil::GetInstance().IsFrozen(pid);    
-        AppfreezeManager::AppInfo info = {
-            .isFrozen = isFrozen,
-            .pid = pid,
-            .uid = uid,
-            .bundleName = bundleName,
-            .processName = processName,
-        };
-        AppExecFwk::AppfreezeManager::GetInstance()->AppfreezeHandleWithStack(faultData, info);
+    auto record = GetAppRunningRecordByPid(pid);
+    if (!record || record->GetRecordId() != recordId || record->GetUid() != uid) {
+        return;
     }
+    SubmitDfxFaultTask(faultData, bundleName, record, pid, true);
 }
 
 struct AppFaultCtx {
@@ -9491,16 +9599,27 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
             std::to_string(notifySequence.fetch_add(1));
         transformedFaultData.ipcLatency = ctx.eventName == AppFreezeType::THREAD_BLOCK_3S ||
             ctx.eventName == AppFreezeType::THREAD_BLOCK_6S ? IPC_LATENCY_THREAD_BLOCK : IPC_LATENCY_NOT_MEASURED;
-        auto timeoutNotifyApp = [this, ctx, transformedFaultData]() {
+        auto timeoutNotifyApp = [weak = weak_from_this(), original = std::weak_ptr<AppRunningRecord>(record),
+            ctx, transformedFaultData]() {
+            auto inner = weak.lock();
+            auto appRecord = original.lock();
+            if (!inner || !appRecord || inner->GetAppRunningRecordByPid(ctx.pid) != appRecord ||
+                appRecord->GetState() == ApplicationState::APP_STATE_TERMINATED ||
+                appRecord->GetState() == ApplicationState::APP_STATE_END) {
+                return;
+            }
             std::string key = std::to_string(ctx.pid) + "_" + std::to_string(ctx.uid) + "_" + ctx.bundleName;
             std::string message = transformedFaultData.errorObject.message;
             if (AppExecFwk::AppfreezeManager::GetInstance()->CheckPreloadUIExtension(message, ctx.bundleName, ctx.pid,
                 ctx.eventName) || AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key, ctx.eventName)) {
                 return;
             }
-            this->TimeoutNotifyApp(ctx.pid, ctx.uid, ctx.bundleName, ctx.processName, transformedFaultData, ctx.recordId);
+            inner->TimeoutNotifyApp(ctx.pid, ctx.uid, ctx.bundleName, ctx.processName, transformedFaultData, ctx.recordId);
         };
-        dfxTaskHandler_->SubmitTask(timeoutNotifyApp, transformedFaultData.timeoutMarkers, timeout);
+        if (!dfxTaskHandler_->SubmitTask(timeoutNotifyApp, transformedFaultData.timeoutMarkers, timeout)) {
+            TAG_LOGE(AAFwkTag::APPDFR, "SA Appfreeze feedback timeout post failed pid:%{public}d", ctx.pid);
+            return ERR_NO_INIT;
+        }
     }
     record->NotifyAppFault(transformedFaultData);
     TAG_LOGW(AAFwkTag::APPMGR, "FaultDataBySA is: name: %{public}s, faultType: %{public}s, uid: %{public}d,"

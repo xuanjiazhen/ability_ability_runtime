@@ -381,31 +381,6 @@ HWTEST_F(AppMgrServiceInnerSixthTest, GetRenderProcessTerminationStatus_002, Tes
 }
 
 /**
- * @tc.name: GetExceptionTimerId_002
- * @tc.type: FUNC
- * @tc.Function: GetExceptionTimerId
- * @tc.SubFunction: NA
- * @tc.EnvConditions: NA
- */
-HWTEST_F(AppMgrServiceInnerSixthTest, GetExceptionTimerId_002, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "GetExceptionTimerId_002 start";
-
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    EXPECT_NE(appMgrServiceInner, nullptr);
-#ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
-#else
-    FaultData faultData;
-    int32_t pid = 0;
-    int32_t callerUid = 0;
-    int result = appMgrServiceInner->GetExceptionTimerId(faultData, "", nullptr, pid, callerUid);
-    EXPECT_NE(result, 0);
-#endif
-
-    GTEST_LOG_(INFO) << "GetExceptionTimerId_002 end";
-}
-
-/**
  * @tc.name: KillFaultApp_003
  * @tc.type: FUNC
  * @tc.Function: KillFaultApp
