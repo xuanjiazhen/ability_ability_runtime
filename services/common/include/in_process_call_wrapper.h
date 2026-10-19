@@ -15,9 +15,9 @@
 
 #ifndef OHOS_ABILITY_RUNTIME_IN_PROCESS_CALL_WRAPPER_H
 #define OHOS_ABILITY_RUNTIME_IN_PROCESS_CALL_WRAPPER_H
-
+ 
 #include "ipc_skeleton.h"
-
+ 
 #define IN_PROCESS_CALL(theCall)                                     \
     ([&]() {                                                         \
         std::string identity = IPCSkeleton::ResetCallingIdentity();  \
@@ -25,12 +25,12 @@
         IPCSkeleton::SetCallingIdentity(identity);                   \
         return retVal;                                               \
     }())
-
+ 
 #define IN_PROCESS_CALL_WITHOUT_RET(theCall)                         \
     do {                                                             \
         std::string identity = IPCSkeleton::ResetCallingIdentity();  \
         theCall;                                                     \
         IPCSkeleton::SetCallingIdentity(identity);                   \
     } while (0)
-
+ 
 #endif // OHOS_ABILITY_RUNTIME_IN_PROCESS_CALL_WRAPPER_H

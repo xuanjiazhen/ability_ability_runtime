@@ -730,6 +730,37 @@ HWTEST_F(AgentManagerClientTest, GetAgentMgrProxy_007, TestSize.Level1)
 }
 
 /**
+* @tc.name  : GetAgentMgrProxy_ShouldReloadAfterSubfoundationDeath
+* @tc.number: GetAgentMgrProxy_008
+* @tc.desc  : Verify the full subfoundation restart cycle (AC-5.1): get proxy -> service dies ->
+*            proxy cleared -> get proxy again -> reload succeeds -> new proxy returned.
+*            This is the self-healing path when subfoundation crashes and restarts.
+*/
+HWTEST_F(AgentManagerClientTest, GetAgentMgrProxy_008, TestSize.Level1)
+{
+    AgentClientTestGuard guard;
+    auto &instance = AgentManagerClient::GetInstance();
+    instance.SetAgentMgr(nullptr);
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    MyFlag::agentMgr = mockAgentMgr;
+
+    // 1. Initial load: proxy cached with death recipient.
+    auto proxy1 = instance.GetAgentMgrProxy();
+    ASSERT_NE(proxy1, nullptr);
+    ASSERT_NE(mockAgentMgr->GetDeathRecipient(), nullptr);
+
+    // 2. Simulate subfoundation crash: death recipient fires, proxy cleared.
+    mockAgentMgr->GetDeathRecipient()->OnRemoteDied(mockAgentMgr);
+    EXPECT_EQ(instance.GetAgentMgr(), nullptr);
+
+    // 3. Subfoundation restarts: next GetAgentMgrProxy reloads and returns new proxy.
+    auto proxy2 = instance.GetAgentMgrProxy();
+    EXPECT_NE(proxy2, nullptr);
+    EXPECT_EQ(instance.GetAgentMgr()->AsObject(), mockAgentMgr->AsObject());
+}
+
+/**
 * @tc.name  : OnLoadSystemAbilitySuccess_ShouldInstallProxyAndRegisterRecipient
 * @tc.number: OnLoadSystemAbilitySuccess_004
 * @tc.desc  : A load callback on an empty cache installs the proxy AND registers its death
