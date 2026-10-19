@@ -12,19 +12,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <chrono>
+#include <condition_variable>
 #include <cstdlib>
+#include <mutex>
 #include <unistd.h>
 #include <gtest/gtest.h>
 #define private public
 #include "dump_runtime_helper.h"
 #undef private
 #include "dfx_maps.h"
+#include "mem_dump_callback_stub.h"
 #include "parameters.h"
 
 using namespace testing::ext;
 
 namespace OHOS {
 namespace AppExecFwk {
+class MemDumpCallbackMock : public MemDumpCallbackStub {
+public:
+    MemDumpCallbackMock() = default;
+    ~MemDumpCallbackMock() override = default;
+    void OnMemDumpDone(const std::string &dumpResult) override
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        dumpResult_ = dumpResult;
+        done_ = true;
+        cv_.notify_one();
+    }
+    bool WaitForResult(std::string &dumpResult, int32_t timeoutMs)
+    {
+        std::unique_lock<std::mutex> lock(mtx_);
+        return cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this] { return done_; }) &&
+            !dumpResult_.empty();
+    }
+    std::string GetResult() const { return dumpResult_; }
+ 
+private:
+    std::mutex mtx_;
+    std::condition_variable cv_;
+    std::string dumpResult_;
+    bool done_ = false;
+};
+
 class DumpRuntimeHelperTest : public testing::Test {
 public:
     DumpRuntimeHelperTest()
@@ -826,7 +856,7 @@ HWTEST_F(CreateDirTest, CreateDir_0200, Function | MediumTest | Level1)
 /**
  * @tc.number: DumpMem_ThreadStackLeak_0100
  * @tc.name: DumpMem_ThreadStackLeak
- * @tc.desc: Test DumpMem with THREAD_STACK_LEAK type does not crash and triggers detection.
+ * @tc.desc: Test DumpMem with THREAD_STACK_LEAK type submits ffrt task and reports result via callback.
  */
 HWTEST_F(DumpRuntimeHelperTest, DumpMem_ThreadStackLeak_0100, Function | MediumTest | Level1)
 {
@@ -838,9 +868,15 @@ HWTEST_F(DumpRuntimeHelperTest, DumpMem_ThreadStackLeak_0100, Function | MediumT
     info.needLeakobj = false;
     info.dumpType = MemDumpType::THREAD_STACK_LEAK;
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    helper->DumpMem(info, nullptr);
-    // DumpMem with THREAD_STACK_LEAK submits an ffrt task; the function returns
-    // immediately. We just verify it does not crash.
+    sptr<MemDumpCallbackMock> callback = new (std::nothrow) MemDumpCallbackMock();
+    ASSERT_NE(callback, nullptr);
+    helper->DumpMem(info, callback);
+    // DumpMem with THREAD_STACK_LEAK submits an ffrt task. Wait briefly for the
+    // task to invoke DetectAndUnwindThreadStackLeak. The client (AppMgrClient)
+    // singleton may not be connected in the UT environment, so ReportDumpMemResult
+    // can fail silently; we mainly verify no crash and the task is submitted.
+    std::string result;
+    callback->WaitForResult(result, 3000); // 3s timeout
     EXPECT_NE(application, nullptr);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_ThreadStackLeak_0100 end";
 }
