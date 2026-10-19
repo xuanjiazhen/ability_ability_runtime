@@ -36,22 +36,12 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-    sptr<MockFocusedApplicationObserverStub> observerStub_ {nullptr};
 };
 
 void FocusedApplicationObserverStubTest::SetUpTestCase(void) {}
 void FocusedApplicationObserverStubTest::TearDownTestCase(void) {}
-void FocusedApplicationObserverStubTest::SetUp()
-{
-    observerStub_ = new (std::nothrow) MockFocusedApplicationObserverStub();
-}
-void FocusedApplicationObserverStubTest::TearDown()
-{
-    if (observerStub_ != nullptr) {
-        testing::Mock::AllowLeak(observerStub_);
-        observerStub_ = nullptr;
-    }
-}
+void FocusedApplicationObserverStubTest::SetUp() {}
+void FocusedApplicationObserverStubTest::TearDown() {}
 
 /**
  * @tc.number: HandleOnFocusedApplicationChanged_0100

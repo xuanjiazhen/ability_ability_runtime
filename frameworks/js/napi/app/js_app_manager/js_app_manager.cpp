@@ -42,7 +42,6 @@
 #endif
 #endif
 #ifdef SUPPORT_SCREEN
-#include "accesstoken_kit.h"
 #include "js_focused_application_observer.h"
 #endif
 #include "js_error_utils.h"
@@ -272,12 +271,24 @@ public:
 
     static napi_value OnFocusedApplicationChanged(napi_env env, napi_callback_info info)
     {
+#ifdef SUPPORT_SCREEN
         GET_CB_INFO_AND_CALL(env, info, JsAppManager, HandleOnFocusedApplicationChanged);
+#else
+        TAG_LOGE(AAFwkTag::APPMGR, "not support");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "Screen is not supported.");
+        return CreateJsUndefined(env);
+#endif
     }
 
     static napi_value OffFocusedApplicationChanged(napi_env env, napi_callback_info info)
     {
+#ifdef SUPPORT_SCREEN
         GET_CB_INFO_AND_CALL(env, info, JsAppManager, HandleOffFocusedApplicationChanged);
+#else
+        TAG_LOGE(AAFwkTag::APPMGR, "not support");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "Screen is not supported.");
+        return CreateJsUndefined(env);
+#endif
     }
 
 private:
@@ -439,16 +450,13 @@ private:
             ThrowInvalidParamError(env, "Parse param observer failed, must be a AppFocusedApplicationObserver.");
             return CreateJsUndefined(env);
         }
-        if (!CheckFocusedApplicationPermission(env)) {
-            return CreateJsUndefined(env);
-        }
         if (observerFocusedApp_ == nullptr) {
             observerFocusedApp_ = new (std::nothrow) JSFocusedApplicationObserver(env);
         }
         if (appManager_ == nullptr || observerFocusedApp_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null appMgr or observer");
             ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-                GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
+                GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE));
             return CreateJsUndefined(env);
         }
         if (observerFocusedApp_->IsEmpty()) {
@@ -460,30 +468,10 @@ private:
                 return CreateJsUndefined(env);
             }
         }
-        int32_t observerId = serialNumber_++;
+        int32_t observerId = static_cast<int32_t>(serialNumber_++);
         observerFocusedApp_->AddJsObserverObjectWithId(observerId, argv[INDEX_ZERO]);
         TAG_LOGI(AAFwkTag::APPMGR, "observerId: %{public}d", observerId);
         return CreateJsValue(env, observerId);
-    }
-
-    bool CheckFocusedApplicationPermission(napi_env env)
-    {
-        auto selfToken = IPCSkeleton::GetSelfTokenID();
-        int verifyResult = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
-            selfToken, "ohos.permission.RUNNING_STATE_OBSERVER");
-        if (verifyResult != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
-            TAG_LOGE(AAFwkTag::APPMGR, "VerifyAccessToken fail");
-            ThrowNoPermissionError(env, "ohos.permission.RUNNING_STATE_OBSERVER");
-            return false;
-        }
-        return true;
-    }
-
-    void ThrowObserverNotExist(napi_env env)
-    {
-        napi_throw(env, CreateJsErrorByNativeErr(env,
-            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND), "",
-            GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
     }
 
     napi_value HandleOffFocusedApplicationChanged(napi_env env, size_t argc, napi_value *argv)
@@ -499,9 +487,6 @@ private:
             ThrowInvalidParamError(env, "Parse param observerId failed, must be a number.");
             return CreateJsUndefined(env);
         }
-        if (!CheckFocusedApplicationPermission(env)) {
-            return CreateJsUndefined(env);
-        }
         if (appManager_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null appMgr");
             ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
@@ -510,7 +495,9 @@ private:
         }
         if (observerFocusedApp_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "observer does not exist, no observer registered");
-            ThrowObserverNotExist(env);
+            napi_throw(env, CreateJsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND), "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
             return CreateJsUndefined(env);
         }
         int32_t observerId = 0;
@@ -522,7 +509,9 @@ private:
         bool isExist = observerFocusedApp_->RemoveJsObserverObjectById(observerId);
         if (!isExist) {
             TAG_LOGE(AAFwkTag::APPMGR, "observer does not exist: %{public}d", observerId);
-            ThrowObserverNotExist(env);
+            napi_throw(env, CreateJsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND), "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
             return CreateJsUndefined(env);
         }
         if (observerFocusedApp_->IsEmpty()) {
@@ -534,20 +523,6 @@ private:
                 return CreateJsUndefined(env);
             }
         }
-        return CreateJsUndefined(env);
-    }
-#else
-    napi_value HandleOnFocusedApplicationChanged(napi_env env, size_t argc, napi_value *argv)
-    {
-        TAG_LOGE(AAFwkTag::APPMGR, "not support");
-        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "Screen is not supported.");
-        return CreateJsUndefined(env);
-    }
-
-    napi_value HandleOffFocusedApplicationChanged(napi_env env, size_t argc, napi_value *argv)
-    {
-        TAG_LOGE(AAFwkTag::APPMGR, "not support");
-        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "Screen is not supported.");
         return CreateJsUndefined(env);
     }
 #endif
