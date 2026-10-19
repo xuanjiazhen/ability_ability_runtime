@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H
 #define OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H
 
+#include <set>
 #include <string>
 
 #include "singleton.h"
@@ -30,6 +31,7 @@ public:
     bool VerifyCallingPermission(const std::string &permissionName, const uint32_t specifyTokenId = 0) const;
     bool JudgeCallerIsAllowedToUseSystemAPI() const;
     bool CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const;
+    bool CheckSpecificSystemAbilityAccessPermission(const std::set<std::string> &processNames) const;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

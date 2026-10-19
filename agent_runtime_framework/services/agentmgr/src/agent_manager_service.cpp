@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <set>
 #include <utility>
 
 #include "ability_manager_client.h"
@@ -88,6 +89,11 @@ const bool REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(AgentManagerS
 constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr const char *AGENT_CONNECT_PREFLIGHT_CLEANUP_TASK = "AgentConnectPreflightCleanup";
 constexpr const char *FOUNDATION_PROCESS_NAME = "foundation";
+constexpr const char *SUBFOUNDATION_PROCESS_NAME = "subfoundation";
+const std::set<std::string> FOUNDATION_AND_SUBFOUNDATION_PROCESS_NAMES = {
+    FOUNDATION_PROCESS_NAME,
+    SUBFOUNDATION_PROCESS_NAME,
+};
 
 sptr<AgentManagerService> AgentManagerService::GetInstance()
 {
@@ -1159,8 +1165,8 @@ int32_t AgentManagerService::VerifyAgentConnectRequest(const AAFwk::Want &want,
 {
     want.AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
-        FOUNDATION_PROCESS_NAME)) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "non-foundation AMS confirmation caller");
+        FOUNDATION_AND_SUBFOUNDATION_PROCESS_NAMES)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "non-foundation/subfoundation AMS confirmation caller");
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
     if (connection == nullptr) {
@@ -1181,8 +1187,8 @@ int32_t AgentManagerService::VerifyAgentDisconnectRequests(const std::vector<AAF
         want.AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     }
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
-        FOUNDATION_PROCESS_NAME)) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "non-foundation AMS confirmation caller");
+        FOUNDATION_AND_SUBFOUNDATION_PROCESS_NAMES)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "non-foundation/subfoundation AMS confirmation caller");
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
     if (connection == nullptr || wants.empty()) {

@@ -35,6 +35,12 @@ bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const st
     return g_mockGrantFoundationPermission;
 }
 
+bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(
+    const std::set<std::string> &processNames) const
+{
+    return g_mockGrantFoundationPermission;
+}
+
 bool PermissionVerification::VerifyRunningInfoPerm() const { return false; }
 bool PermissionVerification::VerifyControllerPerm() const { return false; }
 bool PermissionVerification::VerifyDlpPermission(Want &want) const { return false; }
