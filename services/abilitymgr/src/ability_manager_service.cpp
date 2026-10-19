@@ -9502,6 +9502,28 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, bool clear
 int AbilityManagerService::KillProcessWithUserId(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
     const std::string& reason, int32_t userId)
 {
+    return KillProcessWithUserIdInner(bundleName, clearPageStack, appIndex, reason, userId, DEFAULT_KILL_ID,
+        REASON_UNKNOWN);
+}
+
+int AbilityManagerService::KillProcessWithKillId(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
+    const std::string& reason, int32_t userId, int32_t killId, int32_t exitReason)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Kill process with killId, bundleName: %{public}s, userId: %{public}d, "
+        "killId: %{public}d, exitReason: %{public}d", bundleName.c_str(), userId, killId, exitReason);
+    // caller-specified killId is validated server-side before recording
+    ExitReasonCompability tmpReason;
+    tmpReason.killId = killId;
+    if (!IsExitReasonValid(tmpReason)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "killId: %{public}d is invalid", killId);
+        return ERR_INVALID_VALUE;
+    }
+    return KillProcessWithUserIdInner(bundleName, clearPageStack, appIndex, reason, userId, killId, exitReason);
+}
+
+int AbilityManagerService::KillProcessWithUserIdInner(const std::string &bundleName, bool clearPageStack,
+    int32_t appIndex, const std::string& reason, int32_t userId, int32_t recordKillId, int32_t recordExitReason)
+{
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Kill process, bundleName: %{public}s, clearPageStack: %{public}d"
         "callingUid: %{public}d, callingPid: %{public}d", bundleName.c_str(), clearPageStack,
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
@@ -9550,6 +9572,10 @@ int AbilityManagerService::KillProcessWithUserId(const std::string &bundleName, 
         && DelayedSingleton<AppScheduler>::GetInstance()->IsMemorySizeSufficient()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no kill alive process");
         return KILL_PROCESS_KEEP_ALIVE;
+    }
+    // stamp after all refusal checks; recording failure never blocks the kill
+    if (recordKillId != DEFAULT_KILL_ID && appExitReasonHelper_ != nullptr) {
+        appExitReasonHelper_->RecordKillIdByBundleName(bundleName, userId, appIndex, recordKillId, recordExitReason);
     }
     int ret = DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(
         bundleName, clearPageStack, appIndex, reason, originUserId);

@@ -139,6 +139,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_USER_ID) {
         return KillProcessWithUserIdInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_KILL_ID) {
+        return KillProcessWithKillIdInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::UNINSTALL_APP) {
         return UninstallAppInner(data, reply);
     }
@@ -1618,6 +1621,53 @@ int AbilityManagerStub::KillProcessWithUserIdInner(MessageParcel &data, MessageP
     int result = KillProcessWithUserId(bundleName, clearPageStack, appIndex, reason, userId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "remove stack error");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::KillProcessWithKillIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::u16string bundleNameU16;
+    if (!data.ReadString16(bundleNameU16)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read bundleName failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::string bundleName = Str16ToStr8(bundleNameU16);
+    bool clearPageStack = false;
+    if (!data.ReadBool(clearPageStack)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read clearPageStack failed");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t appIndex = 0;
+    if (!data.ReadInt32(appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read appIndex failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::u16string reasonU16;
+    if (!data.ReadString16(reasonU16)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read reason failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::string reason = Str16ToStr8(reasonU16);
+    int32_t userId = -1;
+    if (!data.ReadInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read userId failed");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t killId = -1;
+    if (!data.ReadInt32(killId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read killId failed");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t exitReason = REASON_UNKNOWN;
+    if (!data.ReadInt32(exitReason)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read exitReason failed");
+        return ERR_INVALID_VALUE;
+    }
+    int result = KillProcessWithKillId(bundleName, clearPageStack, appIndex, reason, userId, killId, exitReason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result error");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;

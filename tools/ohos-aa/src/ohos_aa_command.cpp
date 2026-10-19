@@ -449,7 +449,8 @@ ErrCode ClawAaShellCommand::RunAsForceStop()
         if (!toolCallId.empty()) {
             TAG_LOGI(AAFwkTag::AA_TOOL, "toolCallId: %{public}s", toolCallId.c_str());
         }
-        ErrCode result = AbilityManagerClient::GetInstance()->KillProcess(bundleName, false, 0, inputReason);
+        ErrCode result = AbilityManagerClient::GetInstance()->KillProcessWithKillId(bundleName, false, 0,
+            inputReason, -1, HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP);
         if (result == OHOS::ERR_OK) {
             TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_FORCE_STOP_OK.c_str());
             PrintSuccess(STRING_FORCE_STOP_OK, toolCallId_);

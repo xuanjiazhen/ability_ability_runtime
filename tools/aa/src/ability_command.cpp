@@ -864,7 +864,8 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     }
 
     ErrCode result = OHOS::ERR_OK;
-    result = AbilityManagerClient::GetInstance()->KillProcessWithUserId(bundleName, false, 0, inputReason, userId);
+    result = AbilityManagerClient::GetInstance()->KillProcessWithKillId(bundleName, false, 0, inputReason, userId,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP, reason);
     if (result == OHOS::ERR_OK) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_FORCE_STOP_OK.c_str());
         resultReceiver_ = STRING_FORCE_STOP_OK + "\n";

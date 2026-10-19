@@ -624,5 +624,26 @@ void AppExitReasonHelper::RecordInvalidKillId(int32_t pid, const ExitReasonCompa
     DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReasonCompability(
         pid, INVALID_KILLID, params.killMsg, params.innerMsg, params.reason, callerPid);
 }
+
+void AppExitReasonHelper::RecordKillIdByBundleName(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    int32_t killId, int32_t exitReason)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, userId: %{public}d, appIndex: %{public}d, "
+        "killId: %{public}d, exitReason: %{public}d", bundleName.c_str(), userId, appIndex, killId, exitReason);
+    auto processInfos = GetRunningProcessInfos(userId, bundleName);
+    for (const auto &processInfo : processInfos) {
+        if (processInfo.pid_ <= 0 ||
+            (processInfo.appCloneIndex != appIndex && processInfo.appCloneIndex != -1)) {
+            continue;
+        }
+        int32_t ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReasonCompability(
+            processInfo.pid_, killId, "", "", exitReason, DEFAULT_INVAL_VALUE);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "pid: %{public}d record killId failed: %{public}d",
+                processInfo.pid_, ret);
+        }
+    }
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
