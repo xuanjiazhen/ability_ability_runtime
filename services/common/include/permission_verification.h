@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H
 #define OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H
 
+#include <set>
+
 #include "ipc_skeleton.h"
 #include "singleton.h"
 #include "want.h"
@@ -54,6 +56,8 @@ struct VerificationInfo {
     bool IsShellCallByTokenId(uint32_t callerTokenId) const;
 
     bool CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const;
+
+    bool CheckSpecificSystemAbilityAccessPermission(const std::set<std::string> &processNames) const;
 
     bool CheckObserverCallerPermission() const;
 

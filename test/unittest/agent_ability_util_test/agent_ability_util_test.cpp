@@ -301,3 +301,27 @@ HWTEST_F(AgentAbilityUtilTest, CheckConnectResolvedNonAgentRequestNonAgentTarget
     info.extensionAbilityType = ExtensionAbilityType::SERVICE;
     EXPECT_EQ(AgentAbilityUtil::CheckConnectAgentResolvedTarget(ExtensionAbilityType::SERVICE, info), ERR_OK);
 }
+
+// ===================== CheckSpecificSystemAbilityAccessPermission (set overload) =====================
+
+HWTEST_F(AgentAbilityUtilTest, CheckSpecificSystemAbilityAccessPermissionSetGrantedReturnsTrue, TestSize.Level1)
+{
+    g_mockGrantFoundationPermission = true;
+    std::set<std::string> names = {"foundation", "subfoundation"};
+    EXPECT_TRUE(PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(names));
+}
+
+HWTEST_F(AgentAbilityUtilTest, CheckSpecificSystemAbilityAccessPermissionSetDeniedReturnsFalse, TestSize.Level1)
+{
+    g_mockGrantFoundationPermission = false;
+    std::set<std::string> names = {"foundation", "subfoundation"};
+    EXPECT_FALSE(PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(names));
+}
+
+HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntrySubfoundationGrantedProceedsToParamCheck, TestSize.Level1)
+{
+    g_mockGrantFoundationPermission = true;
+    Want want;
+    // Permission granted via set overload; params invalid => ERR_INVALID_VALUE (not CHECK_PERMISSION_FAILED).
+    EXPECT_EQ(AgentAbilityUtil::CheckAgentConnectEntry(want, ExtensionAbilityType::AGENT), ERR_INVALID_VALUE);
+}
