@@ -43,7 +43,8 @@ public:
     bool WaitForResult(std::string &dumpResult, int32_t timeoutMs)
     {
         std::unique_lock<std::mutex> lock(mtx_);
-        if (cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this] { return done_; }) && !dumpResult_.empty()) {
+        bool ready = cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this] { return done_; });
+        if (ready && !dumpResult_.empty()) {
             dumpResult = dumpResult_;
             return true;
         }
