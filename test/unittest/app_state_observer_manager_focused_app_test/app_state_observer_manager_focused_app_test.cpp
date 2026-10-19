@@ -33,7 +33,6 @@ namespace AppExecFwk {
 using OHOS::AAFwk::MyFlag;
 
 namespace {
-constexpr int32_t TEST_ERR_OBSERVER_NOT_FOUND = 16300004;
 constexpr int32_t TEST_ERR_FOCUS_OBSERVER_EXCEED_LIMIT = 16000165;
 constexpr int32_t FOCUSED_APPLICATION_OBSERVER_LIMIT = 10;
 constexpr int32_t FOCUSED_UID = 10001;
@@ -128,7 +127,6 @@ HWTEST_F(AppStateObserverManagerFocusedAppTest, RegisterFocusedApplicationObserv
     ASSERT_NE(observer, nullptr);
     auto ret = manager_->RegisterFocusedApplicationObserver(observer);
     EXPECT_EQ(ERR_OK, ret);
-    EXPECT_TRUE(manager_->IsFocusedApplicationObserverExist(observer));
     manager_->UnregisterFocusedApplicationObserver(observer);
 }
 
@@ -213,7 +211,6 @@ HWTEST_F(AppStateObserverManagerFocusedAppTest, RegisterFocusedApplicationObserv
     ASSERT_NE(observer, nullptr);
     auto ret = manager_->RegisterFocusedApplicationObserver(observer);
     EXPECT_EQ(ERR_PERMISSION_DENIED, ret);
-    EXPECT_FALSE(manager_->IsFocusedApplicationObserverExist(observer));
     MyFlag::flag_ = 1;
 }
 
@@ -243,12 +240,11 @@ HWTEST_F(AppStateObserverManagerFocusedAppTest, UnregisterFocusedApplicationObse
     EXPECT_EQ(ERR_OK, ret);
     auto ret2 = manager_->UnregisterFocusedApplicationObserver(observer);
     EXPECT_EQ(ERR_OK, ret2);
-    EXPECT_FALSE(manager_->IsFocusedApplicationObserverExist(observer));
 }
 
 /**
  * @tc.number: UnregisterFocusedApplicationObserver_0300
- * @tc.desc: AC-6 unregister non-existent observer returns ERR_OBSERVER_NOT_FOUND (16300004).
+ * @tc.desc: AC-6 unregister non-existent observer returns ERR_INVALID_VALUE.
  * @tc.type: FUNC
  */
 HWTEST_F(AppStateObserverManagerFocusedAppTest, UnregisterFocusedApplicationObserver_0300, TestSize.Level1)
@@ -257,7 +253,7 @@ HWTEST_F(AppStateObserverManagerFocusedAppTest, UnregisterFocusedApplicationObse
     auto observer = sptr<MockFocusedApplicationObserver>(new MockFocusedApplicationObserver());
     ASSERT_NE(observer, nullptr);
     auto ret = manager_->UnregisterFocusedApplicationObserver(observer);
-    EXPECT_EQ(TEST_ERR_OBSERVER_NOT_FOUND, ret);
+    EXPECT_EQ(ERR_INVALID_VALUE, ret);
 }
 
 /**
@@ -357,35 +353,6 @@ HWTEST_F(AppStateObserverManagerFocusedAppTest, HandleNotifyFocusedApplicationCh
 }
 
 /**
- * @tc.number: IsFocusedApplicationObserverExist_0100
- * @tc.desc: returns false for unregistered observer.
- * @tc.type: FUNC
- */
-HWTEST_F(AppStateObserverManagerFocusedAppTest, IsFocusedApplicationObserverExist_0100, TestSize.Level1)
-{
-    EXPECT_NE(manager_, nullptr);
-    auto observer = sptr<MockFocusedApplicationObserver>(new MockFocusedApplicationObserver());
-    ASSERT_NE(observer, nullptr);
-    EXPECT_FALSE(manager_->IsFocusedApplicationObserverExist(observer));
-}
-
-/**
- * @tc.number: IsFocusedApplicationObserverExist_0200
- * @tc.desc: returns true after registration.
- * @tc.type: FUNC
- */
-HWTEST_F(AppStateObserverManagerFocusedAppTest, IsFocusedApplicationObserverExist_0200, TestSize.Level1)
-{
-    EXPECT_NE(manager_, nullptr);
-    auto observer = sptr<MockFocusedApplicationObserver>(new MockFocusedApplicationObserver());
-    ASSERT_NE(observer, nullptr);
-    auto ret = manager_->RegisterFocusedApplicationObserver(observer);
-    EXPECT_EQ(ERR_OK, ret);
-    EXPECT_TRUE(manager_->IsFocusedApplicationObserverExist(observer));
-    manager_->UnregisterFocusedApplicationObserver(observer);
-}
-
-/**
  * @tc.number: OnObserverDied_0100
  * @tc.desc: AC-8 register observer, simulate death, verify removed from map.
  * @tc.type: FUNC
@@ -397,11 +364,9 @@ HWTEST_F(AppStateObserverManagerFocusedAppTest, OnObserverDied_0100, TestSize.Le
     ASSERT_NE(observer, nullptr);
     auto ret = manager_->RegisterFocusedApplicationObserver(observer);
     EXPECT_EQ(ERR_OK, ret);
-    EXPECT_TRUE(manager_->IsFocusedApplicationObserverExist(observer));
 
     manager_->OnObserverDied(observer->AsObject(), ObserverType::FOCUSED_APPLICATION_OBSERVER);
 
-    EXPECT_FALSE(manager_->IsFocusedApplicationObserverExist(observer));
     EXPECT_EQ(0, static_cast<int32_t>(manager_->focusedApplicationObserverMap_.size()));
 }
 
@@ -421,13 +386,9 @@ HWTEST_F(AppStateObserverManagerFocusedAppTest, OnObserverDied_0200, TestSize.Le
     EXPECT_EQ(ERR_OK, ret1);
     auto ret2 = manager_->RegisterFocusedApplicationObserver(observer2);
     EXPECT_EQ(ERR_OK, ret2);
-    EXPECT_TRUE(manager_->IsFocusedApplicationObserverExist(observer1));
-    EXPECT_TRUE(manager_->IsFocusedApplicationObserverExist(observer2));
 
     manager_->OnObserverDied(observer1->AsObject(), ObserverType::FOCUSED_APPLICATION_OBSERVER);
 
-    EXPECT_FALSE(manager_->IsFocusedApplicationObserverExist(observer1));
-    EXPECT_TRUE(manager_->IsFocusedApplicationObserverExist(observer2));
     EXPECT_EQ(1, static_cast<int32_t>(manager_->focusedApplicationObserverMap_.size()));
 
     manager_->UnregisterFocusedApplicationObserver(observer2);

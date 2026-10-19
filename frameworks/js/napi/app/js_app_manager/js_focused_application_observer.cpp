@@ -16,6 +16,7 @@
 
 #include "hilog_tag_wrapper.h"
 #include "js_runtime_utils.h"
+#include "napi/native_api.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -50,18 +51,19 @@ void JSFocusedApplicationObserver::OnFocusedApplicationChanged(const FocusedAppl
         return;
     }
     wptr<JSFocusedApplicationObserver> self = this;
-    std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
-        [self, focusedApplicationInfo](napi_env env, NapiAsyncTask &task, int32_t status) {
-            sptr<JSFocusedApplicationObserver> jsObserver = self.promote();
-            if (jsObserver == nullptr) {
-                TAG_LOGE(AAFwkTag::APPMGR, "null observer");
-                return;
-            }
-            jsObserver->HandleOnFocusedApplicationChanged(focusedApplicationInfo);
-        });
-    napi_ref callback = nullptr;
-    NapiAsyncTask::Schedule("JSFocusedApplicationObserver::OnFocusedApplicationChanged", env_,
-        std::make_unique<NapiAsyncTask>(callback, nullptr, std::move(complete)));
+    auto asyncTask = [self, focusedApplicationInfo, env = env_]() {
+        HandleScope handleScope(env);
+        sptr<JSFocusedApplicationObserver> jsObserver = self.promote();
+        if (jsObserver == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null observer");
+            return;
+        }
+        jsObserver->HandleOnFocusedApplicationChanged(focusedApplicationInfo);
+    };
+    napi_status ret = napi_send_event(env_, asyncTask, napi_eprio_high);
+    if (ret != napi_status::napi_ok) {
+        TAG_LOGE(AAFwkTag::APPMGR, "failed to send event");
+    }
 }
 
 void JSFocusedApplicationObserver::HandleOnFocusedApplicationChanged(
