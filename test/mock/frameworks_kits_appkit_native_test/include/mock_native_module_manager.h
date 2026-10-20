@@ -26,4 +26,12 @@
 void MockSetNativeModuleManager(NativeModuleManager* instance);
 void MockSetNativeModule(NativeModule* module);
 
+// RR-30096301: inject loaded system module names / preload failure names for collector and preload unit tests
+void MockSetLoadedSystemNativeModules(const std::vector<std::string>& names);
+void MockSetPreloadFailNames(const std::vector<std::string>& names);
+std::vector<std::string> MockGetPreloadCalls();
+// Record the thread id that invoked PreloadSystemNativeModule (for non-main-thread assertions)
+int MockGetPreloadCallTid();
+void MockResetNativeModuleManagerState();
+
 #endif // MOCK_NATIVE_MODULE_MANAGER_H

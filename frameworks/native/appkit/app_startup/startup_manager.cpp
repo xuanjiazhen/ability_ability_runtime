@@ -25,7 +25,10 @@
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "native_module_collector.h"
+#include "native_module_manager.h"
 #include "native_startup_task.h"
+#include "parameters.h"
 #include "preload_system_so_startup_task.h"
 #include "preload_so_startup_task.h"
 #include "startup_utils.h"
@@ -64,6 +67,10 @@ constexpr const char* PRELOAD_SYSTEM_SO_ALLOWLIST_FILE_PATH = "/etc/ability_runt
 constexpr const char* SYSTEM_PRELOAD_SO_ALLOW_LIST = "systemPreloadSoAllowList";
 constexpr const char* ARK_TS_MODE = "arkTSMode";
 constexpr const int32_t PRIORITY_PRELOAD_SO = -20;
+// RR-30096301: predict-preload device-difference switch (system parameter, default-off fail-safe) and collect window
+constexpr const char* PREDICT_PRELOAD_PARAM = "const.abilityruntime.nativepreload.enable";
+constexpr uint32_t NATIVE_MODULE_COLLECT_WINDOW_MS = 5000;
+constexpr const char* NATIVE_MODULE_COLLECT_TASK = "_NativeModuleCollectTask";
 
 struct StartupTaskResultCallbackInfo {
     std::unique_ptr<StartupTaskResultCallback> callback_;
@@ -117,7 +124,7 @@ int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bund
         moduleStartupConfigInfos_.emplace_back(module.name, module.appStartup, module.hapPath, module.moduleType,
             module.compileMode == AppExecFwk::CompileMode::ES_MODULE);
     }
-    preloadHandler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create());
+    preloadHandler_ = GetPreloadHandler();
     if (preloadHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "failed to create handler");
         return ERR_STARTUP_INTERNAL_ERROR;
@@ -815,6 +822,150 @@ int32_t StartupManager::RunAppAutoPreloadSystemSoTask()
 
     return RunAppPreloadSoTask(appAutoPreloadSystemSoTasks, true);
 }
+
+void StartupManager::InitPredictPreloadSwitch()
+{
+    // read the device-difference switch (system parameter) once per process
+    if (predictPreloadSwitchInited_.exchange(true)) {
+        return;
+    }
+    predictPreloadEnabled_ = OHOS::system::GetBoolParameter(PREDICT_PRELOAD_PARAM, false);
+    TAG_LOGI(AAFwkTag::STARTUP, "predict preload enabled: %{public}d", predictPreloadEnabled_.load());
+}
+
+bool StartupManager::IsPredictPreloadEnabled()
+{
+    return predictPreloadEnabled_.load();
+}
+
+bool StartupManager::IsAutoPreloadSoStopped()
+{
+    std::lock_guard<std::mutex> lock(autoPreloadSoTaskManagerMutex_);
+    return autoPreloadSoStopped_;
+}
+
+std::shared_ptr<AppExecFwk::EventHandler> StartupManager::GetPreloadHandler()
+{
+    // single lazy owner of the preload thread handler; thread-safe
+    std::lock_guard<std::mutex> lock(preloadHandlerMutex_);
+    if (preloadHandler_ == nullptr) {
+        preloadHandler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create());
+    }
+    return preloadHandler_;
+}
+
+int32_t StartupManager::RunPredictPreloadSystemSoTask(const std::string& cacheDir,
+    const std::string& moduleName)
+{
+    InitPredictPreloadSwitch();
+    if (!IsPredictPreloadEnabled() || IsAutoPreloadSoStopped()) {
+        TAG_LOGD(AAFwkTag::STARTUP, "predict preload disabled or stopped");
+        return ERR_OK;
+    }
+    if (cacheDir.empty() || moduleName.empty()) {
+        TAG_LOGW(AAFwkTag::STARTUP, "empty cacheDir or moduleName");
+        return ERR_STARTUP_INVALID_VALUE;
+    }
+    auto& collector = NativeModuleCollector::GetInstance();
+    if (!collector.IsInitialized()) {
+        CollectConfig config;
+        config.collectWindowMs = NATIVE_MODULE_COLLECT_WINDOW_MS;
+        collector.Init(cacheDir, moduleName, config);
+    }
+    collector.SetEnabled(true);
+    auto preloadHandler = GetPreloadHandler();
+    if (preloadHandler == nullptr) {
+        TAG_LOGW(AAFwkTag::STARTUP, "null preloadHandler_");
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+    // run predict preload and collect scheduling on the preload thread (non-main); never block the main thread
+    bool posted = preloadHandler->PostTask([weak = weak_from_this()]() {
+        auto self = weak.lock();
+        if (self == nullptr) {
+            return;
+        }
+        self->DoPredictPreloadSystemSo();
+        self->ScheduleNativeModuleCollect();
+    });
+    if (!posted) {
+        TAG_LOGW(AAFwkTag::STARTUP, "post predict preload task failed");
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+    return ERR_OK;
+}
+
+void StartupManager::DoPredictPreloadSystemSo()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    auto& collector = NativeModuleCollector::GetInstance();
+    std::vector<std::string> predicted = collector.LoadPredictedModules();
+    if (predicted.empty()) {
+        TAG_LOGD(AAFwkTag::STARTUP, "no predicted modules");
+        return;
+    }
+    // preload modules one by one; a single failure logs a fault event and continues without blocking app startup
+    for (const auto& soName : predicted) {
+        // honor the shared auto-preload stop mechanism: abort the rest if stopped
+        if (IsAutoPreloadSoStopped()) {
+            TAG_LOGI(AAFwkTag::STARTUP, "predict preload stopped, abort remaining");
+            break;
+        }
+        PreloadPredictedSystemSo(soName);
+    }
+}
+
+void StartupManager::PreloadPredictedSystemSo(const std::string &soName)
+{
+    NativeModuleManager *moduleManager = NativeModuleManager::GetInstance();
+    if (moduleManager == nullptr) {
+        TAG_LOGW(AAFwkTag::STARTUP, "null moduleManager");
+        return;
+    }
+    int ret = moduleManager->PreloadSystemNativeModule(soName.c_str());
+    if (ret != 0) {
+        TAG_LOGW(AAFwkTag::STARTUP, "predict preload failed: %{public}s", soName.c_str());
+        AAFwk::EventInfo eventInfo;
+        eventInfo.errCode = ERR_LOAD_NATIVE_MODULE;
+        eventInfo.errReason = "predict preload failed: " + soName;
+        AAFwk::EventReport::SendLaunchFrameworkEvent(
+            AAFwk::EventName::STARTUP_TASK_ERROR, HISYSEVENT_FAULT, eventInfo);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::STARTUP, "predict preload done: %{public}s", soName.c_str());
+}
+
+void StartupManager::ScheduleNativeModuleCollect()
+{
+    if (!IsPredictPreloadEnabled()) {
+        return;
+    }
+    auto preloadHandler = GetPreloadHandler();
+    if (preloadHandler == nullptr) {
+        return;
+    }
+    // schedule the collect-persist only once per launch (INV-4)
+    if (nativeModuleCollectScheduled_.exchange(true)) {
+        TAG_LOGD(AAFwkTag::STARTUP, "native module collect already scheduled");
+        return;
+    }
+    const uint32_t delayMs = NATIVE_MODULE_COLLECT_WINDOW_MS;
+    bool posted = preloadHandler->PostTask([]() {
+        // defensive: bail out if the collector was torn down or never initialized,
+        // so a queued task fired late in process teardown cannot persist garbage
+        auto& collector = NativeModuleCollector::GetInstance();
+        if (!collector.IsEnabled() || !collector.IsInitialized()) {
+            return;
+        }
+        collector.CollectAndPersist();
+    }, NATIVE_MODULE_COLLECT_TASK, delayMs, AppExecFwk::EventHandler::Priority::LOW);
+    if (!posted) {
+        TAG_LOGW(AAFwkTag::STARTUP, "schedule native module collect failed");
+        nativeModuleCollectScheduled_ = false;
+        return;
+    }
+    TAG_LOGI(AAFwkTag::STARTUP, "native module collect scheduled in %{public}u ms", delayMs);
+}
+
 
 int32_t StartupManager::RunAppPreloadSoTask(
     const std::map<std::string, std::shared_ptr<StartupTask>> &appPreloadSoTasks, bool isSystemSo)

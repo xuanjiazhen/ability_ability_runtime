@@ -106,6 +106,8 @@
 #include "hisysevent_report.h"
 #include "js_runtime_utils.h"
 #include "context/application_context.h"
+#include "startup_manager.h"
+#include "singleton.h"
 #include "os_account_manager_wrapper.h"
 #ifdef SUPPORT_HIPERF
 #include "appcapture_perf.h"
@@ -1859,6 +1861,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     }
 #endif
     
+    
     LoadExtStartupTasks();
 
     if (isStageBased) {
@@ -2187,6 +2190,17 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     }
 #endif
     RunNativeStartupTask(bundleInfo, appLaunchData);
+
+    // RR-30096301: trigger the prediction preload AFTER the existing preload-hint startup
+    // (so the static preload runs first), independent of the app_startup config presence.
+    // Collect window ends ~5s later; the snapshot approximates "HandleLaunchApplication
+    // finished + 5s".
+    predictPreloadModuleName_ = entryHapModuleInfo.moduleName;
+    if (predictPreloadModuleName_.empty()) {
+        predictPreloadModuleName_ = appLaunchData.GetPreloadModuleName();
+    }
+    predictPreloadEligible_ = IsNativeModulePredictPreloadEligible(appLaunchData, bundleInfo);
+    TriggerNativeModulePredictPreload();
     if (appLaunchData.IsNeedPreloadModule() ||
         appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE) {
         PreloadModule(bundleInfo, appLaunchData, entryHapModuleInfo, application_->GetRuntime());
@@ -4597,6 +4611,57 @@ void MainThread::LoadExtStartupTasks()
         TAG_LOGE(AAFwkTag::APPKIT, "null extStartupTask");
     }
     AbilityRuntime::ExtNativeStartupManager::RunNativeStartupTask(nativeStartupTask);
+}
+
+bool MainThread::IsNativeModulePredictPreloadEligible(const AppLaunchData &appLaunchData,
+    const BundleInfo &bundleInfo)
+{
+    // main-process cold start only; extension / render / gpu / child processes are
+    // excluded so their module loads do not pollute the prediction data.
+    // (replicates OHOSApplication::IsMainProcess which is private)
+    bool isMainProcess = false;
+    if (processInfo_ != nullptr &&
+        processInfo_->GetProcessType() == AppExecFwk::ProcessType::NORMAL) {
+        isMainProcess = true;
+    } else if (processInfo_ != nullptr) {
+        std::string processName = processInfo_->GetProcessName();
+        const std::string &bundleName = bundleInfo.applicationInfo.name;
+        const std::string &process = bundleInfo.applicationInfo.process;
+        isMainProcess = !processName.empty() && (processName == bundleName || processName == process);
+    }
+    if (!isMainProcess) {
+        return false;
+    }
+    // exclude app pre-warm (preload) modes
+    if (appLaunchData.GetAppPreloadMode() != AppExecFwk::PreloadMode::PRELOAD_NONE) {
+        return false;
+    }
+    // exclude debug scenes / debug apps
+    if (appLaunchData.GetDebugApp()) {
+        return false;
+    }
+    return true;
+}
+
+void MainThread::TriggerNativeModulePredictPreload()
+{
+    if (!predictPreloadEligible_) {
+        return;
+    }
+    auto appContext = AbilityRuntime::ApplicationContext::GetInstance();
+    // use the module-level sandbox (<appBase>/haps/<module>/cache), not the app-level one
+    std::string baseDir = (appContext != nullptr) ? appContext->GetBaseDir() : "";
+    if (baseDir.empty() || predictPreloadModuleName_.empty()) {
+        TAG_LOGW(AAFwkTag::APPKIT, "predict preload skipped: empty baseDir or moduleName");
+        return;
+    }
+    std::string cacheDir = baseDir + "/haps/" + predictPreloadModuleName_ + "/cache";
+    auto startupManager = OHOS::DelayedSingleton<AbilityRuntime::StartupManager>::GetInstance();
+    if (startupManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null startupManager");
+        return;
+    }
+    startupManager->RunPredictPreloadSystemSoTask(cacheDir, predictPreloadModuleName_);
 }
 
 void MainThread::RunNativeStartupTask(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData)

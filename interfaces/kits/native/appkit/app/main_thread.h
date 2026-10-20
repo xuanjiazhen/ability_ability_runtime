@@ -796,6 +796,9 @@ private:
     std::shared_ptr<ProcessInfo> processInfo_ = nullptr;
     std::shared_ptr<OHOSApplication> application_ = nullptr;
     std::shared_ptr<ApplicationImpl> applicationImpl_ = nullptr;
+    // RR-30096301: gating inputs for the prediction preload triggered in LoadExtStartupTasks
+    bool predictPreloadEligible_ = false;
+    std::string predictPreloadModuleName_;
     static std::shared_ptr<MainHandler> mainHandler_;
     std::shared_ptr<AbilityRecordMgr> abilityRecordMgr_ = nullptr;
     std::shared_ptr<Watchdog> watchdog_ = nullptr;
@@ -884,6 +887,12 @@ private:
     void PreloadAppStartup(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData) const;
     void RunNativeStartupTask(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData);
     void LoadExtStartupTasks();
+
+    // RR-30096301: prediction preload of system SOs driven by cross-launch prediction,
+    // triggered at LoadExtStartupTasks for a main-process cold start.
+    bool IsNativeModulePredictPreloadEligible(const AppLaunchData &appLaunchData,
+        const BundleInfo &bundleInfo);
+    void TriggerNativeModulePredictPreload();
     bool GetTestRunnerTypeAndPath(const std::string bundleName, const std::string moduleName,
         AppExecFwk::ModuleTestRunner &tsTestRunner);
     bool CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord);

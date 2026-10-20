@@ -15,9 +15,16 @@
 
 #include "mock_native_module_manager.h"
 
+#include <algorithm>
+#include <unistd.h>
+
 namespace {
     NativeModuleManager* g_instance = nullptr;
     NativeModule* g_module = nullptr;
+    std::vector<std::string> g_loadedSystemModules;
+    std::vector<std::string> g_preloadCalls;
+    std::vector<std::string> g_preloadFailNames;
+    int g_preloadCallTid = 0;
 }
 
 void MockSetNativeModuleManager(NativeModuleManager* instance)
@@ -30,6 +37,35 @@ void MockSetNativeModule(NativeModule* module)
     g_module = module;
 }
 
+void MockSetLoadedSystemNativeModules(const std::vector<std::string>& names)
+{
+    g_loadedSystemModules = names;
+}
+
+void MockSetPreloadFailNames(const std::vector<std::string>& names)
+{
+    g_preloadFailNames = names;
+}
+
+std::vector<std::string> MockGetPreloadCalls()
+{
+    return g_preloadCalls;
+}
+
+int MockGetPreloadCallTid()
+{
+    return g_preloadCallTid;
+}
+
+void MockResetNativeModuleManagerState()
+{
+    g_loadedSystemModules.clear();
+    g_preloadCalls.clear();
+    g_preloadFailNames.clear();
+    g_preloadCallTid = 0;
+    g_module = nullptr;
+}
+
 NativeModuleManager* NativeModuleManager::GetInstance()
 {
     static NativeModuleManager realMockInstance;
@@ -39,13 +75,23 @@ NativeModuleManager* NativeModuleManager::GetInstance()
     return g_instance;
 }
 
-NativeModule* NativeModuleManager::LoadNativeModule(const char* moduleName, const char* path, bool isAppModule,
-    std::string& errInfo, bool internal, const char* relativePath)
+std::vector<std::string> NativeModuleManager::GetLoadedSystemNativeModules() const
 {
-    if (g_module == nullptr) {
-        errInfo = "mock load failed";
+    return g_loadedSystemModules;
+}
+
+int NativeModuleManager::PreloadSystemNativeModule(const char* moduleName)
+{
+    if (moduleName == nullptr) {
+        return -1;
     }
-    return g_module;
+    g_preloadCallTid = static_cast<int>(gettid());
+    std::string name = moduleName;
+    g_preloadCalls.emplace_back(name);
+    if (std::find(g_preloadFailNames.begin(), g_preloadFailNames.end(), name) != g_preloadFailNames.end()) {
+        return -1;
+    }
+    return 0;
 }
 
 NativeModule* NativeModuleManager::LoadNativeModuleWithErrorInfo(const char* moduleName, const char* path,

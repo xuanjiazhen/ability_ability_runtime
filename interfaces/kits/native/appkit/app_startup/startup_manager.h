@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_STARTUP_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_STARTUP_MANAGER_H
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -93,6 +94,11 @@ public:
 
     void StopAutoPreloadSoTask();
 
+    // RR-30096301: prediction preload (consume predicted system modules off the main
+    // thread at early startup) and collect scheduling; scoped to the launched module.
+    int32_t RunPredictPreloadSystemSoTask(const std::string& cacheDir, const std::string& moduleName);
+    void ScheduleNativeModuleCollect();
+
     bool HasAppStartupConfig() const;
 
     int32_t BuildStartupTaskManager(const std::map<std::string, std::shared_ptr<StartupTask>> &tasks,
@@ -141,7 +147,13 @@ private:
     std::map<std::string, std::shared_ptr<StartupConfig>> moduleConfigs_;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
     std::shared_ptr<AppExecFwk::EventHandler> preloadHandler_;
+    std::mutex preloadHandlerMutex_;
     std::unordered_set<std::string> preloadSystemSoAllowlist_;
+
+    // RR-30096301: predict-preload switch and collect-scheduling state
+    std::atomic<bool> predictPreloadEnabled_ = false;
+    std::atomic<bool> predictPreloadSwitchInited_ = false;
+    std::atomic<bool> nativeModuleCollectScheduled_ = false;
 
     static int32_t AddStartupTask(const std::string &name, std::map<std::string, std::shared_ptr<StartupTask>> &taskMap,
         std::map<std::string, std::shared_ptr<AppStartupTask>> &allTasks);
@@ -161,6 +173,18 @@ private:
     bool ParsePreloadSystemSoAllowlist(const nlohmann::json &jsonStr, std::unordered_set<std::string> &allowlist);
 
     void PreloadAppHintStartupTask(std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData);
+
+    // RR-30096301: predict preload and collect
+    void InitPredictPreloadSwitch();
+    bool IsPredictPreloadEnabled();
+    void DoPredictPreloadSystemSo();
+    void PreloadPredictedSystemSo(const std::string &soName);
+    // honor the shared auto-preload stop mechanism (autoPreloadSoStopped_)
+    bool IsAutoPreloadSoStopped();
+
+    // thread-safe lazy single owner of the preload thread handler (avoids
+    // double-creation and the read/write race on preloadHandler_)
+    std::shared_ptr<AppExecFwk::EventHandler> GetPreloadHandler();
     int32_t AddLoadAppStartupConfigTask(std::map<std::string, std::shared_ptr<StartupTask>> &preloadAppHintTasks);
     int32_t RunLoadAppStartupConfigTask();
     int32_t AddAppAutoPreloadSoTask(std::map<std::string, std::shared_ptr<StartupTask>> &preloadAppHintTasks,
