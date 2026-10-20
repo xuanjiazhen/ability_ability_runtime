@@ -74,8 +74,6 @@ ohos_unittest("insight_intent_sys_event_receiver_test") {
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "ffrt:libffrt",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",

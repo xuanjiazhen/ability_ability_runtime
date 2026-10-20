@@ -82,8 +82,6 @@ ohos_unittest("status_bar_delegate_manager_test") {
     "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",

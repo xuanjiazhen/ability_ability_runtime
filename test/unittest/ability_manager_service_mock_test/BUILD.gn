@@ -116,7 +116,6 @@ ohos_unittest("ability_manager_service_mock_test") {
     "eventhandler:libeventhandler",
     "faultloggerd:libbacktrace_local",
     "ffrt:libffrt",
-    "googletest:gmock_main",
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
