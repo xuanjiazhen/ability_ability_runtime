@@ -25,6 +25,7 @@
 #include "app_death_recipient.h"
 #include "app_mgr_constants.h"
 #include "app_utils.h"
+#include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "param.h"
 #include "perf_profile.h"
@@ -936,6 +937,11 @@ int32_t AmsMgrScheduler::CheckPreloadAppRecordExist(const std::string &bundleNam
     if (!amsMgrServiceInner_->IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
         return ERR_PERMISSION_DENIED;
+    }
+    if (appIndex < 0 || (appIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX &&
+        appIndex != AbilityRuntime::GlobalConstant::PC_TABLET_INDEX)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appIndex for preload: %{public}d", appIndex);
+        return ERR_INVALID_VALUE;
     }
     isExist = amsMgrServiceInner_->CheckPreloadAppRecordExist(bundleName, userId, appIndex);
     return ERR_OK;

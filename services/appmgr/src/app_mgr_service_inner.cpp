@@ -678,9 +678,16 @@ int32_t AppMgrServiceInner::PreloadApplication(const std::string &bundleName, in
         auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
         bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appIndex);
     }
-    if (appIndex != 0 && appIndex != AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not support clone app preload");
+    if (appIndex != -1 && (appIndex < 0 ||
+        (appIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX &&
+        appIndex != AbilityRuntime::GlobalConstant::PC_TABLET_INDEX))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appIndex for preload: %{public}d", appIndex);
         return ERR_INVALID_VALUE;
+    }
+    bool isExist = CheckPreloadAppRecordExist(bundleName, userId, appIndex);
+    if (isExist) {
+        TAG_LOGW(AAFwkTag::APPMGR, "preload app record already exist, appIndex: %{public}d", appIndex);
+        return AAFwk::ERR_PRELOAD_APP_RECORD_ALREADY_EXIST;
     }
     Want want;
     want.SetBundle(bundleName);
