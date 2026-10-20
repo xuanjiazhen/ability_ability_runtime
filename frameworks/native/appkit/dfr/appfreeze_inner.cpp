@@ -563,6 +563,7 @@ void AppfreezeInner::EnableFreezeSample(FaultData& newFaultData)
         newFaultData.isEnableMainThreadSample = GetMainThreadSample();
         OHOS::HiviewDFX::Watchdog::GetInstance().GetSamplerResult(newFaultData.samplerStartTime,
             newFaultData.samplerFinishTime, newFaultData.samplerCount);
+        newFaultData.heaviestStack = OHOS::HiviewDFX::Watchdog::GetInstance().GetHeaviestStack();
         TAG_LOGI(AAFwkTag::APPDFR, "stop to sample freeze stack, eventName:%{public}s freezeFile:%{public}s "
             "enbleMainThreadSample:%{public}d.", eventName.c_str(), newFaultData.appfreezeInfo.c_str(),
             newFaultData.isEnableMainThreadSample);
@@ -679,9 +680,13 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
         faultData.samplerStartTime = it->samplerStartTime;
         faultData.samplerFinishTime = it->samplerFinishTime;
         faultData.samplerCount = it->samplerCount;
+        faultData.heaviestStack = it->heaviestStack;
+        faultData.token = it->token;
+        faultData.state = it->state;
         faultData.pid = it->pid;
         faultData.applicationHeapInfo = it->applicationHeapInfo;
         faultData.processLifeTime = it->processLifeTime;
+        faultData.abilityPendingBackground = it->abilityPendingBackground;
         ChangeFaultDateInfo(faultData, msgContent);
     }
     return 0;

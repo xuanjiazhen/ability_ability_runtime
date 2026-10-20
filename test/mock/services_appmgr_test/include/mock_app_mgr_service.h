@@ -46,8 +46,8 @@ public:
     MOCK_METHOD3(ForceKillApplication, int32_t(const std::string& appName, const int userId, const int appIndex));
     MOCK_METHOD3(KillApplicationWithUserId, int32_t(const std::string& appName, const int userId, const int appIndex));
     MOCK_METHOD1(KillProcessesByAccessTokenId, int32_t(const uint32_t accessTokenId));
-    MOCK_METHOD4(KillApplication, int32_t(const std::string& appName, const bool clearPageStack, int32_t appIndex,
-        const std::string& reason));
+    MOCK_METHOD5(KillApplication, int32_t(const std::string& appName, const bool clearPageStack, int32_t appIndex,
+        const std::string& reason, int32_t userId));
     MOCK_METHOD3(KillApplicationByUid, int(const std::string&, const int uid, const std::string&));
     MOCK_METHOD1(IsBackgroundRunningRestricted, int(const std::string& bundleName));
     MOCK_METHOD1(GetAllRunningProcesses, int(std::vector<RunningProcessInfo>& info));
@@ -155,6 +155,8 @@ public:
     MOCK_METHOD2(GetAllAbilityInfos, int32_t(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos));
     MOCK_METHOD1(EnableDelayedProcessExit, int32_t(bool enabled));
     MOCK_METHOD1(CancelDelayedExitTask, void(int32_t pid));
+    MOCK_METHOD2(StartTask, int32_t(const std::string &taskId, int32_t priority));
+    MOCK_METHOD1(FinishTask, int32_t(const std::string &taskId));
     MOCK_METHOD2(DumpMem, int32_t(MemDumpInfo &info, sptr<IMemDumpCallback> callback));
     MOCK_METHOD2(ReportDumpMemResult, int32_t(sptr<IMemDumpCallback>, const std::string&));
     MOCK_METHOD1(DumpJsHandleMap, int32_t(OHOS::AppExecFwk::JsHandleMapInfo &));

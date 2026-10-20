@@ -255,6 +255,9 @@ public:
      */
     int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest, const int32_t frameNum);
 
+    int PrepareAndNotifyPrelaunchSession(const AbilityRequest &abilityRequest,
+        const UIAbilityRecordPtr &uiAbilityRecord, int32_t persistentId, bool reuse, int32_t frameNum);
+
     /**
      * Call UIAbility by SCB.
      *
@@ -428,7 +431,7 @@ public:
 
     int MoveMissionToFront(int32_t sessionId, std::shared_ptr<StartOptions> startOptions = nullptr);
 
-    bool IsAbilityStarted(AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord);
+    bool IsAbilityStarted(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord);
 
     /**
      * @brief Update session info.
