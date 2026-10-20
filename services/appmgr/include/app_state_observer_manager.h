@@ -27,6 +27,7 @@
 #include "app_state_data.h"
 #include "application_state_filter.h"
 #include "cpp/mutex.h"
+#include "process_lifecycle_observer_interface.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "image_error_handler_interface.h"
@@ -54,11 +55,22 @@ using AppForegroundStateObserverMap = std::map<sptr<IAppForegroundStateObserver>
 using AbilityForegroundObserverMap = std::map<sptr<IAbilityForegroundStateObserver>, int32_t>;
 using ImageProcessObserverMap = std::map<sptr<IImageProcessStateObserver>, int32_t>;
 
+struct ProcessLifecycleInfo {
+    int32_t uid = 0;
+    pid_t pid = 0;
+    std::string bundleName;
+};
+using ProcessLifecycleObserverMap = std::map<sptr<IProcessLifecycleObserver>, ProcessLifecycleInfo>;
+
+constexpr int32_t MAX_PROCESS_LIFECYCLE_OBSERVER_PER_APP = 10;
+constexpr int32_t ERR_PROCESS_LIFECYCLE_OBSERVER_EXCEED_LIMIT = 16000165;
+
 enum class ObserverType {
     APPLICATION_STATE_OBSERVER,
     APP_FOREGROUND_STATE_OBSERVER,
     ABILITY_FOREGROUND_STATE_OBSERVER,
-    IMAGE_PROCESS_STATE_OBSERVER
+    IMAGE_PROCESS_STATE_OBSERVER,
+    PROCESS_LIFECYCLE_OBSERVER
 };
 class AppStateObserverManager : public std::enable_shared_from_this<AppStateObserverManager> {
     DECLARE_DELAYED_SINGLETON(AppStateObserverManager)
@@ -73,6 +85,8 @@ public:
     int32_t UnregisterAbilityForegroundStateObserver(const sptr<IAbilityForegroundStateObserver> &observer);
     int32_t RegisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer);
     int32_t UnregisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer);
+    int32_t RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer);
+    int32_t UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer);
     void StateChangedNotifyObserver(const AbilityStateData abilityStateData, bool isAbility,
         bool isFromWindowFocusChanged, BundleType bundleType = BundleType::APP);
     void OnAppStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord, const ApplicationState state,
@@ -131,12 +145,14 @@ private:
     bool IsAppForegroundObserverExist(const sptr<IRemoteBroker> &observer);
     bool IsAbilityForegroundObserverExist(const sptr<IRemoteBroker> &observer);
     bool IsImageProcessObserverExist(const sptr<IRemoteBroker> &observer);
+    bool IsProcessLifecycleObserverExist(const sptr<IRemoteBroker> &observer);
     void AddObserverDeathRecipient(const sptr<IRemoteBroker> &observer, const ObserverType &type);
     void RemoveObserverDeathRecipient(const sptr<IRemoteBroker> &observer);
     AppStateObserverMap GetAppStateObserverMapCopy();
     AppForegroundStateObserverMap GetAppForegroundStateObserverMapCopy();
     AbilityForegroundObserverMap GetAbilityForegroundObserverMapCopy();
     ImageProcessObserverMap GetImageProcessObserverMapCopy();
+    ProcessLifecycleObserverMap GetProcessLifecycleObserverMapCopy();
     std::shared_ptr<ProcessData> WrapProcessData(
         const std::shared_ptr<AppRunningRecord> &appRecord, bool isFromWindowFocusChanged = false,
         bool isFromScreenOffBackground = false);
@@ -168,6 +184,8 @@ private:
     void HandleOnImageProcessStateChanged(std::shared_ptr<ImageProcessStateData> data);
     void HandleOnForkAllWorkProcessFailed(std::shared_ptr<ImageProcessStateData> data, int32_t errCode);
     void HandleOnPreForkAllWorkProcess(std::shared_ptr<ImageProcessStateData> data);
+    void DispatchProcessLifecycleCreated(const ProcessData &data);
+    void DispatchProcessLifecycleDied(const ProcessData &data);
 
 private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> handler_;
@@ -185,6 +203,9 @@ private:
 
     ffrt::mutex imageProcessObserverLock_;
     ImageProcessObserverMap imageProcessStateObserverMap_;
+
+    ffrt::mutex processLifecycleObserverLock_;
+    ProcessLifecycleObserverMap processLifecycleObserverMap_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
