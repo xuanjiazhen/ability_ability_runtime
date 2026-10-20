@@ -1218,6 +1218,22 @@ public:
     ErrCode KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
         const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1);
 
+    /**
+     * Force stop the process via the dedicated force-stop scenario entry. Admission follows
+     * the legacy kill permission model; every admitted call is recorded server-side with the
+     * process kill id REASON_AA_FORCE_STOP.
+     *
+     * @param bundleName Bundle name of the application to kill.
+     * @param reason Kill reason string recorded in exit statistics.
+     * @param userId The user id to kill process for, -1 means use caller's userId.
+     * @param exitReason The exit reason to record, REASON_UNKNOWN records nothing.
+     * @param recordPid The pid whose record is scoped to, >0 records only this process,
+     *        otherwise all processes of the bundle. Does not change the kill scope.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ForceStopProcess(const std::string &bundleName, const std::string& reason = "Abilityms::KillProcess",
+        int32_t userId = -1, int32_t exitReason = REASON_UNKNOWN, int32_t recordPid = -1);
+
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
      * Force a lifecycle timeout for the named ability for testing (simulates ANR/timeout paths).

@@ -30,6 +30,7 @@ namespace {
 constexpr int32_t INVALID_KILLID = -2;
 constexpr int32_t DEFAULT_KILL_ID = -1;
 constexpr int32_t DEFAULT_PROCESS_RUNNING_INFO_PID = 0;
+constexpr const char *FORCE_STOP_KILL_MSG = "aa force-stop";
 }
 
 AppExitReasonHelper::AppExitReasonHelper(std::shared_ptr<SubManagersHelper> subManagersHelper)
@@ -623,6 +624,75 @@ void AppExitReasonHelper::RecordInvalidKillId(int32_t pid, const ExitReasonCompa
     }
     DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReasonCompability(
         pid, INVALID_KILLID, params.killMsg, params.innerMsg, params.reason, callerPid);
+}
+
+void AppExitReasonHelper::RecordForceStopKillId(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    int32_t killId, int32_t exitReason, int32_t callerPid, const std::string &reason, int32_t recordPid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, userId: %{public}d, appIndex: %{public}d, "
+        "killId: %{public}d, exitReason: %{public}d, callerPid: %{public}d, recordPid: %{public}d",
+        bundleName.c_str(), userId, appIndex, killId, exitReason, callerPid, recordPid);
+    if (callerPid <= 0) {
+        callerPid = DEFAULT_INVAL_VALUE;
+    }
+    // the declared exit reason follows the legacy recording semantics: only values within
+    // the Reason enum range are recorded, out-of-range input is treated as unset
+    if (exitReason < REASON_MIN || exitReason > REASON_MAX) {
+        exitReason = REASON_UNKNOWN;
+    }
+    // an invalid -p (recordPid == 0) stamps only the server-fixed scenario killId: the
+    // user-declared fields and the persistence follow the legacy gate-blocked behavior.
+    // recordPid -1 (no -p given) and >0 (a valid pid) both record the full field set.
+    bool recordFields = recordPid != 0;
+    int32_t stampedExitReason = recordFields ? exitReason : REASON_UNKNOWN;
+    int32_t stampedCallerPid = recordFields ? callerPid : DEFAULT_INVAL_VALUE;
+    const std::string &stampedKillMsg = recordFields ? FORCE_STOP_KILL_MSG : "";
+    auto processInfos = GetRunningProcessInfos(userId, bundleName);
+    std::vector<std::string> abilityLists;
+    AppExecFwk::RunningProcessInfo matchedInfo;
+    bool hasMatched = false;
+    for (const auto &processInfo : processInfos) {
+        if (processInfo.pid_ <= 0) {
+            continue;
+        }
+        // recordPid > 0 narrows the attribution to one process of this bundle; a pid outside
+        // the bundle never matches the enumeration above, so forged pids are ignored
+        if (recordPid > 0 && processInfo.pid_ != recordPid) {
+            continue;
+        }
+        if (recordPid <= 0 &&
+            (processInfo.appCloneIndex != appIndex && processInfo.appCloneIndex != -1)) {
+            continue;
+        }
+        int32_t ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReasonCompability(
+            processInfo.pid_, killId, stampedKillMsg, "", stampedExitReason, stampedCallerPid);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "pid: %{public}d record killId failed: %{public}d",
+                processInfo.pid_, ret);
+        }
+        if (!recordFields) {
+            continue;
+        }
+        std::vector<std::string> abilityList;
+        GetActiveAbilityListWithPid(processInfo.uid_, abilityList, processInfo.pid_);
+        abilityLists.insert(abilityLists.end(), abilityList.begin(), abilityList.end());
+        matchedInfo = processInfo;
+        hasMatched = true;
+    }
+    // persist the declared exit reason (bundle level); an invalid -p keeps the legacy
+    // no-persistence behavior
+    if (!recordFields || !hasMatched || abilityLists.empty()) {
+        return;
+    }
+    AAFwk::ExitReason persistReason = { static_cast<Reason>(exitReason), reason };
+    persistReason.killId = killId;
+    int32_t tokenAppIndex = matchedInfo.appCloneIndex > 0 ? matchedInfo.appCloneIndex : appIndex;
+    uint32_t accessTokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, tokenAppIndex);
+    DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->SetAppExitReason(
+        bundleName, accessTokenId, abilityLists, persistReason, matchedInfo, false);
+    RecordProcessExtensionExitReason(recordPid > 0 ? recordPid : NO_PID, bundleName, persistReason,
+        matchedInfo, false);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
