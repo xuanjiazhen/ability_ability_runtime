@@ -7974,6 +7974,11 @@ int32_t AbilityManagerProxy::GetKioskStatus(KioskStatus &kioskStatus)
         return ERR_READ_RESULT_PARCEL_FAILED;
     }
     kioskStatus = *info;
+    // The token is optional on the wire: AbilityManagerStub::GetKioskStatusInner skips
+    // WriteRemoteObject when kioskToken_ is null. Reading unconditionally is safe here -- when no
+    // binder object was written, Parcel::CheckOffsets() fails WITHOUT consuming bytes, so this
+    // ReadRemoteObject() returns nullptr and the ReadInt32() below still gets the result code.
+    // Keep this read in sync with the stub's conditional-write contract when changing this reply.
     sptr<IRemoteObject> token = reply.ReadRemoteObject();
     if (token != nullptr) {
         kioskStatus.kioskToken_ = token;
