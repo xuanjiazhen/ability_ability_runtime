@@ -1056,6 +1056,25 @@ public:
         int32_t appIndex = -1, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1) override;
 
     /**
+     * Force stop the process via the dedicated force-stop scenario entry. Admission follows
+     * the legacy kill permission model; every admitted call is recorded server-side with the
+     * process kill id REASON_AA_FORCE_STOP.
+     * @param bundleName Bundle name of the application to kill.
+     * @param clearPageStack true to also clear mission/page-stack records of the app.
+     * @param appIndex Clone application index; 0 means the base application.
+     * @param reason Kill reason string recorded in exit statistics.
+     * @param userId The user id to kill process for, -1 means use caller's userId.
+     * @param exitReason The exit reason to record, REASON_UNKNOWN records nothing.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ForceStopProcess(const std::string &bundleName, bool clearPageStack = false,
+        int32_t appIndex = 0, const std::string& reason = "aa force-stop", int32_t userId = -1,
+        int32_t exitReason = REASON_UNKNOWN) override;
+
+    int32_t KillProcessWithUserIdInner(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
+        const std::string &reason, int32_t userId, bool recordForceStopKillId, int32_t recordExitReason);
+
+    /**
      * Uninstall app
      *
      * @param bundleName bundle name of uninstalling app.
