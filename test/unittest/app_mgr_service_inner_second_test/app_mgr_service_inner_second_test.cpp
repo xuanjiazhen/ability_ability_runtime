@@ -14,6 +14,8 @@
  */
 
 #include <gtest/gtest.h>
+#include <deque>
+#include <future>
 
 #define private public
 #include "app_mgr_service_inner.h"
@@ -39,6 +41,7 @@
 #include "mock_ability_debug_response_stub.h"
 #include "mock_task_handler_wrap.h"
 #include "mock_parameters.h"
+#include "ffrt_task_utils_wrap.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -3188,6 +3191,334 @@ HWTEST_F(AppMgrServiceInnerSecondTest, Req1NotificationCorrelationAndFrozenLaten
     EXPECT_TRUE(service->CheckAppFault(record, report));
     report.ipcLatency = service->GetAppFaultNotifyLatency(report.timeoutMarkers, 101, 5, 1250);
     EXPECT_EQ(report.ipcLatency, 250);
+}
+
+
+namespace {
+class FreezeRecordingHandler : public AAFwk::TaskHandlerWrap {
+public:
+    FreezeRecordingHandler() : TaskHandlerWrap("req2-recording") {}
+    std::vector<std::function<void()>> callbacks;
+    std::vector<AAFwk::TaskAttribute> attributes;
+    int cancelled = 0;
+    bool reject = false;
+    bool runImmediately = false;
+    std::shared_ptr<AAFwk::InnerTaskHandle> SubmitTaskInner(std::function<void()>&& task,
+        const AAFwk::TaskAttribute& attribute) override
+    {
+        if (reject) { return nullptr; }
+        callbacks.push_back(std::move(task));
+        attributes.push_back(attribute);
+        if (runImmediately) { callbacks.back()(); }
+        return std::make_shared<AAFwk::InnerTaskHandle>(ffrt::task_handle());
+    }
+    bool CancelTaskInner(const std::shared_ptr<AAFwk::InnerTaskHandle>&) override
+    {
+        ++cancelled;
+        return true;
+    }
+    void WaitTaskInner(const std::shared_ptr<AAFwk::InnerTaskHandle>&) override {}
+};
+
+std::shared_ptr<AppRunningRecord> MakeFreezeRecord(const std::shared_ptr<AppMgrServiceInner>& service,
+    int32_t recordId = 7001)
+{
+    auto info = std::make_shared<ApplicationInfo>();
+    info->uid = 200031;
+    info->bundleName = "req2.test";
+    auto record = std::make_shared<AppRunningRecord>(info, recordId, "req2.test");
+    record->SetUid(info->uid); // Production StartProcess sets the process UID separately from ApplicationInfo.
+    EXPECT_EQ(record->GetUid(), 200031);
+    record->GetPriorityObject()->SetPid(987654);
+    service->appRunningManager_->appRunningRecordMap_.emplace(recordId, record);
+    return record;
+}
+
+void ExpectTerminationClosesFreeze(const std::function<void(const std::shared_ptr<AppMgrServiceInner>&,
+    const std::shared_ptr<AppRunningRecord>&)>& terminate, bool stop = false)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    record->SetState(ApplicationState::APP_STATE_BACKGROUND);
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->taskHandler_ = handler;
+    service->dfxTaskHandler_ = handler;
+    std::deque<AppfreezeTaskScheduler::Task> executor;
+    auto scheduler = std::make_shared<AppfreezeTaskScheduler>([&](auto task) {
+        executor.push_back(std::move(task));
+        return true;
+    });
+    service->appfreezeScheduler_ = scheduler;
+    std::promise<void> entered;
+    auto enteredFuture = entered.get_future();
+    std::promise<void> release;
+    auto gate = release.get_future().share();
+    std::atomic<int> captures {0};
+    std::atomic<int> reports {0};
+    auto half = std::make_shared<AppfreezeRequest>(record->GetRecordId(), true,
+        scheduler->Observe(record->GetPid(), record->GetUid()));
+    ASSERT_EQ(half->metadata.generationId, "987654:200031");
+    EXPECT_EQ(scheduler->Submit(half, [&](const auto&) {
+        ++captures;
+        entered.set_value();
+        gate.wait();
+        return std::make_shared<AppfreezeCaptureResult>();
+    }, [&](const auto&, const auto& result) {
+        if (result) { ++reports; }
+    }), AppfreezeSubmitResult::DISPATCHED);
+    ASSERT_EQ(executor.size(), 1u);
+    auto task = std::move(executor.front());
+    executor.pop_front();
+    std::thread worker(std::move(task));
+    EXPECT_EQ(enteredFuture.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    FaultData fault;
+    fault.faultType = FaultDataType::APP_FREEZE;
+    fault.errorObject.name = AppFreezeType::LIFECYCLE_TIMEOUT;
+    fault.forceExit = true;
+    EXPECT_EQ(service->SubmitDfxFaultTask(fault, record->GetBundleName(), record, record->GetPid()), ERR_OK);
+    EXPECT_EQ(scheduler->PendingSize("987654:200031"), 1u);
+    auto disposition = service->appfreezeDispositions_[record->GetRecordId()];
+    terminate(service, record); // Call the real lifecycle entry while H is executing and U is queued.
+    EXPECT_TRUE(half->IsCancelled());
+    EXPECT_TRUE(disposition && disposition->closed);
+    EXPECT_TRUE(service->appfreezeDispositions_.empty());
+    EXPECT_EQ(scheduler->PendingSize("987654:200031"), 0u);
+    EXPECT_EQ(scheduler->GenerationSize(), 1u); // H still owns the execution fence.
+    EXPECT_EQ(service->GetAppRunningRecordByPid(record->GetPid()), nullptr);
+    EXPECT_EQ(service->SubmitDfxFaultTask(fault, record->GetBundleName(), record, record->GetPid()),
+        ERR_INVALID_VALUE);
+    auto replacement = MakeFreezeRecord(service, 7002);
+    if (stop) {
+        EXPECT_TRUE(service->appfreezeStopped_);
+        EXPECT_EQ(scheduler->RecentAppSize(), 0u);
+        EXPECT_EQ(service->SubmitDfxFaultTask(fault, replacement->GetBundleName(), replacement,
+            replacement->GetPid()), ERR_INVALID_VALUE);
+        service->Init();
+        EXPECT_FALSE(service->appfreezeStopped_);
+        EXPECT_EQ(service->appfreezeScheduler_, scheduler);
+    }
+    EXPECT_EQ(service->SubmitDfxFaultTask(fault, replacement->GetBundleName(), replacement,
+        replacement->GetPid()), ERR_INVALID_VALUE); // Old real execution has not exited.
+    EXPECT_EQ(scheduler->RecentAppSize(), 1u);
+    release.set_value();
+    worker.join();
+    EXPECT_EQ(captures, 1);
+    EXPECT_EQ(reports, 0);
+    EXPECT_TRUE(executor.empty()); // No removed U capture/report was dispatched.
+    EXPECT_EQ(scheduler->GenerationSize(), 0u);
+    EXPECT_EQ(service->SubmitDfxFaultTask(fault, replacement->GetBundleName(), replacement,
+        replacement->GetPid()), ERR_OK);
+    EXPECT_EQ(executor.size(), 1u);
+    service->ClearAppfreezeTasks(replacement);
+    for (const auto& stale : executor) { stale(); }
+    for (const auto& attribute : handler->attributes) {
+        EXPECT_NE(attribute.taskName_, "killAppTask:7001");
+        EXPECT_NE(attribute.taskName_, "waitSaveTask:7001");
+    }
+}
+}
+
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2ApplicationTerminatedCancelsRunningHalfAndPendingUpgrade, TestSize.Level1)
+{
+    ExpectTerminationClosesFreeze([](const auto& service, const auto& record) {
+        service->ApplicationTerminated(record->GetRecordId());
+    });
+}
+
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2TerminateTimeoutCancelsRunningHalfAndPendingUpgrade, TestSize.Level1)
+{
+    ExpectTerminationClosesFreeze([](const auto& service, const auto& record) {
+        service->TerminateApplication(record);
+    });
+}
+
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2OnStopClearsWindowAndPreservesRunningFenceAcrossInit, TestSize.Level1)
+{
+    ExpectTerminationClosesFreeze([](const auto& service, const auto&) { service->OnStop(); }, true);
+}
+
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2DispositionRequiresRunningAndRecordsPostFailure, TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    auto state = std::make_shared<AppMgrServiceInner::AppfreezeDisposition>();
+    state->record = record;
+    service->appfreezeDispositions_[record->GetRecordId()] = state;
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->taskHandler_ = handler;
+    FaultData fault;
+    fault.faultType = FaultDataType::APP_FREEZE;
+    fault.errorObject.name = AppFreezeType::LIFECYCLE_TIMEOUT;
+    fault.forceExit = true;
+    EXPECT_EQ(service->KillFaultApp(record->GetPid(), record->GetBundleName(), fault, true,
+        record->GetRecordId()), ERR_INVALID_OPERATION);
+    service->AppRecoveryNotifyApp(record->GetPid(), record->GetBundleName(), FaultDataType::APP_FREEZE,
+        "recoveryTimeout", record->GetRecordId());
+    EXPECT_TRUE(handler->callbacks.empty());
+    EXPECT_FALSE(state->killPosted);
+    EXPECT_FALSE(state->recoveryPosted);
+    state->started = true;
+    handler->reject = true;
+    EXPECT_EQ(service->PostAppfreezeDisposition(record->GetPid(), record->GetRecordId(), false, 3500,
+        [] {}), ERR_NO_INIT);
+    EXPECT_FALSE(state->killPosted);
+    EXPECT_FALSE(state->killPosting);
+    service->ClearAppfreezeTasks(record);
+}
+
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2FinishedDispositionAllowsNewEpisodeAndRejectsOldClosure,
+    TestSize.Level1)
+{
+    for (const bool recovery : {false, true}) {
+        for (const bool immediate : {false, true}) {
+            auto service = std::make_shared<AppMgrServiceInner>();
+            auto record = MakeFreezeRecord(service);
+            auto state = std::make_shared<AppMgrServiceInner::AppfreezeDisposition>();
+            state->record = record;
+            state->started = true;
+            service->appfreezeDispositions_[record->GetRecordId()] = state;
+            auto handler = std::make_shared<FreezeRecordingHandler>();
+            handler->runImmediately = immediate;
+            service->taskHandler_ = handler;
+            int invoked = 0;
+            auto post = [&] {
+                return service->PostAppfreezeDisposition(record->GetPid(), record->GetRecordId(), recovery,
+                    2000, [&] { ++invoked; });
+            };
+            ASSERT_EQ(post(), ERR_OK);
+            ASSERT_EQ(handler->callbacks.size(), 1u);
+            auto old = handler->callbacks[0];
+            if (!immediate) { old(); }
+            EXPECT_EQ(invoked, 1);
+            EXPECT_FALSE(recovery ? state->recoveryPosted : state->killPosted);
+            EXPECT_FALSE(recovery ? state->recoveryPosting : state->killPosting);
+            ASSERT_EQ(post(), ERR_OK);
+            ASSERT_EQ(handler->callbacks.size(), 2u);
+            old(); // A replay of the old callback must not consume the new one.
+            EXPECT_EQ(invoked, immediate ? 2 : 1);
+            if (!immediate) {
+                EXPECT_TRUE(recovery ? state->recoveryPosted : state->killPosted);
+                handler->callbacks[1]();
+            }
+            EXPECT_EQ(invoked, 2);
+            EXPECT_FALSE(recovery ? state->recoveryPosted : state->killPosted);
+            service->ClearAppfreezeTasks(record);
+        }
+    }
+}
+
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2CaptureFinishKeepsBothMessagesExitInvalidatesOldPidCallbacks,
+    TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    auto state = std::make_shared<AppMgrServiceInner::AppfreezeDisposition>();
+    state->record = record;
+    state->started = true;
+    service->appfreezeDispositions_[record->GetRecordId()] = state;
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->taskHandler_ = handler;
+    int invoked = 0;
+    EXPECT_EQ(service->PostAppfreezeDisposition(record->GetPid(), record->GetRecordId(), false, 3500,
+        [&] { ++invoked; }), ERR_OK);
+    EXPECT_EQ(service->PostAppfreezeDisposition(record->GetPid(), record->GetRecordId(), true, 2000,
+        [&] { ++invoked; }), ERR_OK);
+    EXPECT_EQ(service->PostAppfreezeDisposition(record->GetPid(), record->GetRecordId(), false, 6000,
+        [&] { ++invoked; }), ERR_OK);
+    ASSERT_EQ(handler->callbacks.size(), 2u);
+    EXPECT_EQ(handler->attributes[0].delayMillis_, 3500);
+    EXPECT_EQ(handler->attributes[1].delayMillis_, 2000);
+    service->appfreezeScheduler_ = std::make_shared<AppfreezeTaskScheduler>([](auto task) { task(); return true; });
+    auto request = std::make_shared<AppfreezeRequest>(record->GetRecordId(), false,
+        service->appfreezeScheduler_->Observe(record->GetPid(), record->GetUid()));
+    service->appfreezeScheduler_->Submit(request,
+        [](const auto&) { return std::make_shared<AppfreezeCaptureResult>(); }, {});
+    EXPECT_EQ(handler->cancelled, 0);
+    EXPECT_TRUE(state->killPosted);
+    EXPECT_TRUE(state->recoveryPosted);
+    service->ClearAppfreezeTasks(record);
+    EXPECT_EQ(handler->cancelled, 2);
+    EXPECT_TRUE(service->appfreezeDispositions_.empty());
+    service->appRunningManager_->appRunningRecordMap_.erase(record->GetRecordId());
+    auto replacement = MakeFreezeRecord(service, 7002);
+    for (const auto& callback : handler->callbacks) { callback(); }
+    EXPECT_EQ(invoked, 0);
+    EXPECT_EQ(service->GetAppRunningRecordByPid(replacement->GetPid()), replacement);
+}
+
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2SaTimeoutQueuesUntilWorkerStartsAndUsesTargetUid, TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->taskHandler_ = handler;
+    service->dfxTaskHandler_ = handler;
+    std::deque<AppfreezeTaskScheduler::Task> executor;
+    service->appfreezeScheduler_ = std::make_shared<AppfreezeTaskScheduler>([&](auto task) {
+        executor.push_back(task);
+        return true;
+    });
+    auto half = std::make_shared<AppfreezeRequest>(record->GetRecordId(), true,
+        service->appfreezeScheduler_->Observe(record->GetPid(), record->GetUid()));
+    ASSERT_EQ(half->metadata.generationId, "987654:200031");
+    FaultData fault;
+    fault.faultType = FaultDataType::APP_FREEZE;
+    fault.errorObject.name = AppFreezeType::LIFECYCLE_TIMEOUT;
+    fault.forceExit = true;
+    service->appfreezeScheduler_->Submit(half, [&](const auto&) {
+        service->TimeoutNotifyApp(record->GetPid(), record->GetUid(), record->GetBundleName(),
+            record->GetProcessName(), fault, record->GetRecordId());
+        EXPECT_TRUE(handler->callbacks.empty());
+        EXPECT_TRUE(executor.empty());
+        EXPECT_EQ(service->appfreezeScheduler_->PendingSize("987654:200031"), 1u);
+        return std::make_shared<AppfreezeCaptureResult>();
+    }, {});
+    auto run = [&] {
+        auto task = executor.front();
+        executor.pop_front();
+        task();
+    };
+    run();
+    EXPECT_TRUE(handler->callbacks.empty()); // U is now DISPATCHED, still not RUNNING
+    EXPECT_EQ(service->appfreezeScheduler_->Observe(987655, record->GetUid()).freezeAppCount1min, 1);
+    ASSERT_EQ(executor.size(), 1u);
+    run(); // runs the real AppMgr capture/report path using an intentionally absent target PID
+    ASSERT_EQ(handler->callbacks.size(), 1u);
+    EXPECT_EQ(handler->attributes[0].taskName_, "killAppTask:7001");
+    EXPECT_EQ(handler->cancelled, 0);
+    service->ClearAppfreezeTasks(record);
+    EXPECT_EQ(handler->cancelled, 1);
+}
+
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2RecoveryTimeoutStartsOnlyWithUpgradeWorker, TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->taskHandler_ = handler;
+    service->dfxTaskHandler_ = handler;
+    std::deque<AppfreezeTaskScheduler::Task> executor;
+    service->appfreezeScheduler_ = std::make_shared<AppfreezeTaskScheduler>([&](auto task) {
+        executor.push_back(task);
+        return true;
+    });
+    FaultData fault;
+    fault.faultType = FaultDataType::APP_FREEZE;
+    fault.errorObject.name = AppFreezeType::LIFECYCLE_TIMEOUT;
+    fault.forceExit = true;
+    fault.waitSaveState = true;
+    EXPECT_EQ(service->SubmitDfxFaultTask(fault, record->GetBundleName(), record, record->GetPid()), ERR_OK);
+    EXPECT_TRUE(handler->callbacks.empty());
+    ASSERT_EQ(executor.size(), 1u);
+    auto task = executor.front();
+    executor.pop_front();
+    task();
+    ASSERT_EQ(handler->callbacks.size(), 1u);
+    EXPECT_EQ(handler->attributes[0].taskName_, "waitSaveTask:7001");
+    EXPECT_EQ(handler->attributes[0].delayMillis_, 2000);
+    EXPECT_EQ(handler->cancelled, 0);
+    service->ClearAppfreezeTasks(record);
+    EXPECT_EQ(handler->cancelled, 1);
 }
 
 } // namespace AppExecFwk

@@ -19,6 +19,7 @@
 #include <string>
 
 #include "hisysevent_report.h"
+#include "appfreeze_task_scheduler.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -43,6 +44,7 @@ struct AppfreezeEventInfo {
     int32_t samplerCount = -1;
     std::string heaviestStack;
     std::string logValidity;
+    AppfreezeTaskMetadata metadata;
     int32_t markedId = 0;
     int32_t processedId = 0;
     int32_t dispatchedEventId = 0;
@@ -58,10 +60,14 @@ struct AppfreezeEventInfo {
 
 class AppfreezeEventReport {
 public:
+    static int SendAppfreezeStorm(const AppfreezeTaskMetadata& metadata);
     static int SendAppfreezeEvent(const std::string &eventName, HiSysEventEventType type,
         const AppfreezeEventInfo &eventInfo);
 
 private:
+    static std::shared_ptr<AAFwk::HisyseventReport> BuildStormReport(const AppfreezeTaskMetadata& metadata);
+    static void AppendMetadata(const std::shared_ptr<AAFwk::HisyseventReport>& report,
+        const AppfreezeTaskMetadata& metadata);
     static int LogAppInputBlockEvent(const std::string &name, HiSysEventEventType type,
         const AppfreezeEventInfo &eventInfo);
     static int LogThreadBlockEvent(const std::string &name, HiSysEventEventType type,

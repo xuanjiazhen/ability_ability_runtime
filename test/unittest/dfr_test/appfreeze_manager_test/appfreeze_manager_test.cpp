@@ -1442,5 +1442,99 @@ HWTEST_F(AppfreezeManagerTest, Req1DumpTimingMeasuresActualFailure, TestSize.Lev
     EXPECT_FALSE(stack.first.empty());
 }
 
+
+HWTEST_F(AppfreezeManagerTest, Req2SharedCapturePreservesEachFiveItemSnapshot, TestSize.Level1)
+{
+    AppfreezeManager::AppInfo app {false, false, 987654, 200011, "", "req2.test"};
+    app.metadata.generationId = "987654:200011";
+    app.metadata.episodeId = "1000";
+    app.metadata.fingerprint = "987654:200011:1000";
+    app.metadata.freezeSeverity = "WARNING";
+    app.metadata.processStartTime = 1000;
+    app.metadata.freezeAppCount1min = 1;
+    AppfreezeCaptureResult result;
+    result.stack = "shared-target-stack";
+    result.dumpResult = 0;
+    result.dumpLatency = 15;
+    result.processStart = 1000;
+    FaultData first;
+    first.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
+    first.detectTime = 980;
+    first.ipcLatency = 0;
+    appfreezeManager->ReportAppfreeze(first, app, result);
+    EXPECT_EQ(appfreezeManager->freezeLogInfo_.at(app.pid).validity, "20:0:15:0:1");
+    app.metadata.processStartTime = 1010;
+    app.metadata.freezeAppCount1min = 3;
+    FaultData second;
+    second.errorObject.name = AppFreezeType::LIFECYCLE_HALF_TIMEOUT;
+    second.detectTime = 980;
+    second.ipcLatency = 7;
+    appfreezeManager->ReportAppfreeze(second, app, result);
+    EXPECT_EQ(appfreezeManager->freezeLogInfo_.at(app.pid).validity, "20:0:15:0:1|30:0:15:7:3");
+    auto event = appfreezeManager->UpdateEventInfo(second, app, "binder", "memory");
+    EXPECT_EQ(event.metadata.freezeAppCount1min, 3);
+    EXPECT_EQ(event.metadata.fingerprint, "987654:200011:1000");
+    EXPECT_EQ(result.stack, "shared-target-stack");
+    appfreezeManager->ClearLogValidity(app.pid);
+}
+
+HWTEST_F(AppfreezeManagerTest, Req2MissingCountRemainsFourItems, TestSize.Level1)
+{
+    AppfreezeManager::AppInfo app {false, false, 987655, 200012, "", "req2.test"};
+    AppfreezeCaptureResult result;
+    result.processStart = 1000;
+    result.dumpResult = 0;
+    result.dumpLatency = 11;
+    FaultData fault;
+    fault.errorObject.name = AppFreezeType::LIFECYCLE_HALF_TIMEOUT;
+    fault.detectTime = 990;
+    fault.ipcLatency = -1;
+    appfreezeManager->ReportAppfreeze(fault, app, result);
+    EXPECT_EQ(appfreezeManager->freezeLogInfo_.at(app.pid).validity, "10:0:11:-1");
+    appfreezeManager->ClearLogValidity(app.pid);
+}
+
+HWTEST_F(AppfreezeManagerTest, Req2OriginalFreezeSuppressionDoesNotRefreshOnDrop, TestSize.Level1)
+{
+    const std::string key = "req2-filter-regression";
+    AppfreezeManager::AppFreezeInfo existing;
+    existing.state = AppfreezeManager::APPFREEZE_STATE_FREEZE;
+    existing.reportTimes = 2;
+    existing.occurTime = appfreezeManager->GetFreezeCurrentTime() - 12000;
+    appfreezeManager->appfreezeInfo_[key] = existing;
+    EXPECT_TRUE(appfreezeManager->CheckAppfreezeHappend(key, AppFreezeType::THREAD_BLOCK_6S));
+    EXPECT_TRUE(appfreezeManager->CheckAppfreezeHappend(key, AppFreezeType::LIFECYCLE_TIMEOUT));
+    EXPECT_EQ(appfreezeManager->appfreezeInfo_.at(key).occurTime, existing.occurTime);
+    appfreezeManager->appfreezeInfo_[key].occurTime = appfreezeManager->GetFreezeCurrentTime() - 61000;
+    EXPECT_FALSE(appfreezeManager->CheckAppfreezeHappend(key, AppFreezeType::LIFECYCLE_TIMEOUT));
+    EXPECT_GT(appfreezeManager->appfreezeInfo_.at(key).occurTime, existing.occurTime);
+    appfreezeManager->appfreezeInfo_.erase(key);
+    appfreezeManager->appInputBlockFreezeInfo_[key] = appfreezeManager->GetFreezeCurrentTime() - 12000;
+    const auto previous = appfreezeManager->appInputBlockFreezeInfo_.at(key);
+    EXPECT_TRUE(appfreezeManager->IsNeedIgnoreInputBlockEvent(key));
+    EXPECT_EQ(appfreezeManager->appInputBlockFreezeInfo_.at(key), previous);
+    appfreezeManager->appInputBlockFreezeInfo_.erase(key);
+}
+
+
+HWTEST_F(AppfreezeManagerTest, Req2SameCaptureHalfFlowKeepsEachSnapshotNewCaptureResets, TestSize.Level1)
+{
+    AppfreezeManager::AppInfo app {false, false, 987656, 200013, "", "req2.test"};
+    app.metadata.reportClaim = std::make_shared<AppfreezeReportClaim>();
+    FaultData fault;
+    fault.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
+    fault.detectTime = 1000;
+    fault.logValidity = "20:0:10:0:1";
+    appfreezeManager->AppendLogValidity(fault, app);
+    fault.logValidity = "30:0:10:0:3";
+    appfreezeManager->AppendLogValidity(fault, app);
+    EXPECT_EQ(fault.logValidity, "20:0:10:0:1|30:0:10:0:3");
+    app.metadata.reportClaim = std::make_shared<AppfreezeReportClaim>();
+    fault.logValidity = "40:0:11:0:4";
+    appfreezeManager->AppendLogValidity(fault, app);
+    EXPECT_EQ(fault.logValidity, "40:0:11:0:4");
+    appfreezeManager->ClearLogValidity(app.pid);
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS
