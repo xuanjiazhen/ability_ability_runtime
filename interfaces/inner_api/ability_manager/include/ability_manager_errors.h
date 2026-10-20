@@ -1211,6 +1211,11 @@ enum {
     ERR_TASK_NOT_FOUND = 2099502,
 
     /**
+     * Result(2099503) for query disposed rule failed.
+     */
+    ERR_CHECK_CHILD_PROCESS_FAILED = 2099503,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,
