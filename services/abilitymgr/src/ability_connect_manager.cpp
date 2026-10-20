@@ -38,6 +38,7 @@
 #include "init_reboot.h"
 #include "insight_intent_execute_param.h"
 #include "int_wrapper.h"
+#include "mem_mgr_client.h"
 #include "multi_instance_utils.h"
 #include "modular_object_manager.h"
 #include "modular_object_utils.h"
@@ -3429,6 +3430,21 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         targetService = AbilityCacheManager::GetInstance().Get(abilityRequest);
         if (targetService != nullptr) {
             AddToServiceMap(serviceKey, targetService);
+        }
+    }
+    if (targetService != nullptr) {
+        pid_t recordPid = targetService->GetPid();
+        if (recordPid > 0) {
+            bool isAvailable = false;
+            int32_t result = Memory::MemMgrClient::GetInstance().IsProcessAvailable(recordPid, isAvailable);
+            if (result != ERR_OK || !isAvailable) {
+                TAG_LOGW(AAFwkTag::EXT,
+                    "service process pid:%{public}d is not available, recreate record: %{public}s/%{public}s",
+                    recordPid, element.GetBundleName().c_str(), element.GetAbilityName().c_str());
+                RemoveServiceFromMapSafe(serviceKey);
+                AbilityCacheManager::GetInstance().Remove(targetService);
+                targetService = nullptr;
+            }
         }
     }
     if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
