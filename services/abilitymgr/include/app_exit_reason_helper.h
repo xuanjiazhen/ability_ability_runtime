@@ -61,6 +61,8 @@ public:
         const std::vector<AppExecFwk::RunningProcessInfo> &processInfoList);
     void RecordInvalidKillId(int32_t pid, const ExitReasonCompability &params,
         const std::string &bundleName = "", int32_t userId = 0, int32_t callerPid = DEFAULT_INVAL_VALUE);
+    void RecordKillIdByBundleName(const std::string &bundleName, int32_t userId, int32_t appIndex, int32_t killId,
+        int32_t exitReason, int32_t callerPid);
 
 private:
     int32_t RecordProcessExitReason(const int32_t pid, const std::string bundleName, const int32_t uid,

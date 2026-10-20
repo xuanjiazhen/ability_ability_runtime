@@ -1218,6 +1218,24 @@ public:
     ErrCode KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
         const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1);
 
+    /**
+     * Kill the process immediately with a specified userId, and record the caller-specified
+     * kill id on the killed processes. Admission follows the legacy kill permission model;
+     * every admitted call is recorded server-side with the given kill id.
+     *
+     * @param bundleName Bundle name of the application to kill.
+     * @param clearPageStack true to also clear mission/page-stack records of the app.
+     * @param appIndex Clone application index; 0 means the base application.
+     * @param reason Kill reason string recorded in exit statistics.
+     * @param userId The user id to kill process for, -1 means use caller's userId.
+     * @param killId The process kill event id to record.
+     * @param exitReason The exit reason to record, REASON_UNKNOWN records nothing.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode KillProcessWithKillId(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
+        const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1, int32_t killId = -1,
+        int32_t exitReason = REASON_UNKNOWN);
+
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
      * Force a lifecycle timeout for the named ability for testing (simulates ANR/timeout paths).

@@ -8110,7 +8110,9 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
     }
     DestroyImageForAppExitCompatibility(appRecord, killId, innerMsg);
     appRecord->SetKillId(killId);
-    appRecord->SetKillMsg(killMsg);
+    if (!killMsg.empty()) {
+        appRecord->SetKillMsg(killMsg);
+    }
     appRecord->SetInnerMsg(innerMsg);
     appRecord->SetExitReason(reason);
     const int32_t killCallerPid = callerPid > 0 ? callerPid : DEFAULT_INVAL_VALUE;
