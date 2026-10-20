@@ -161,6 +161,23 @@ public:
         return isByOeExt_;
     }
 
+    // Handle of the task attribution created by a warm-start report; 0 means none.
+    inline void SetTaskAttribution(const std::string &taskId, int64_t attributionId)
+    {
+        taskAttributionTaskId_ = taskId;
+        taskAttributionId_ = attributionId;
+    }
+
+    inline std::string GetTaskAttributionTaskId() const
+    {
+        return taskAttributionTaskId_;
+    }
+
+    inline int64_t GetTaskAttributionId() const
+    {
+        return taskAttributionId_;
+    }
+
 private:
     bool exitReasonLoaded_ = false;
     bool hookOff_ = false;
@@ -172,6 +189,8 @@ private:
     std::atomic_int32_t scenarios_ = 0;
     std::shared_ptr<Want> launchWant_;
     std::shared_ptr<Want> lastWant_;
+    std::string taskAttributionTaskId_;
+    int64_t taskAttributionId_ = 0;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
