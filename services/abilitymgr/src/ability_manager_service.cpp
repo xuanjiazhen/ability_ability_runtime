@@ -5900,12 +5900,15 @@ int AbilityManagerService::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionI
     eventInfo->bundleName = abilityRecord->GetAbilityInfo().bundleName;
     eventInfo->abilityName = abilityRecord->GetAbilityInfo().name;
     SendAbilityEvent(EventName::CLOSE_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
+    if (sessionInfo->isClearSession && !isUserRequestedExit && appExitReasonHelper_ != nullptr) {
+        appExitReasonHelper_->RecordKillCallerInfo(abilityRecord->GetPid(), IPCSkeleton::GetCallingPid());
+    }
     if (isUserRequestedExit) {
         CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
         AAFwk::ExitReason exitReason = { REASON_NORMAL, "User Request" };
         exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST;
         appExitReasonHelper_->RecordUIAbilityExitReason(abilityRecord->GetPid(), abilityRecord->GetAbilityInfo().name,
-            exitReason);
+            exitReason, IPCSkeleton::GetCallingPid());
     }
     eventInfo->errCode = uiAbilityManager->CloseUIAbility(abilityRecord, sessionInfo->resultCode,
         &(sessionInfo->want), sessionInfo->isClearSession, false);
@@ -18161,7 +18164,7 @@ int32_t AbilityManagerService::CleanUIAbilityBySCB(const sptr<SessionInfo> &sess
         AAFwk::ExitReason exitReason = { REASON_NORMAL, "User Request" };
         exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST;
         appExitReasonHelper_->RecordUIAbilityExitReason(abilityRecord->GetPid(), abilityRecord->GetAbilityInfo().name,
-            exitReason);
+            exitReason, IPCSkeleton::GetCallingPid());
     }
     int32_t errCode = uiAbilityManager->CleanUIAbility(abilityRecord);
     ReportCleanSession(sessionInfo, abilityRecord, errCode);

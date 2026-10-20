@@ -4538,6 +4538,8 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     hisyseventReport->InsertParam(EVENT_KEY_FOREGROUND, foreground);
     hisyseventReport->InsertParam("APP_RUNNING_UNIQUE_ID", appRunningUniqueId);
     hisyseventReport->InsertParam(EVENT_KEY_KILL_ID, killId);
+    hisyseventReport->InsertParam(EVENT_KEY_CALLING_PID, appRecord->GetKillCallerPid());
+    hisyseventReport->InsertParam(EVENT_KEY_CALLING_PROCESS_NAME, appRecord->GetKillCallerProcessName());
     int result = hisyseventReport->Report("FRAMEWORK", "PROCESS_KILL", HISYSEVENT_FAULT);
     TAG_LOGW(AAFwkTag::APPMGR, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], pid="
         "%{public}d, processName=%{public}s, msg=%{public}s, reason=%{public}s, FOREGROUND=%{public}d,"
