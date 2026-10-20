@@ -9502,6 +9502,26 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, bool clear
 int AbilityManagerService::KillProcessWithUserId(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
     const std::string& reason, int32_t userId)
 {
+    return KillProcessWithUserIdInner(bundleName, clearPageStack, appIndex, reason, userId, false, REASON_UNKNOWN, -1);
+}
+
+int32_t AbilityManagerService::ForceStopProcess(const std::string &bundleName, const std::string& reason,
+    int32_t userId, int32_t exitReason, int32_t recordPid)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Force stop process, bundleName: %{public}s, userId: %{public}d, "
+        "reason: %{public}s, exitReason: %{public}d, recordPid: %{public}d",
+        bundleName.c_str(), userId, reason.c_str(), exitReason, recordPid);
+    // dedicated force-stop scenario entry: admission is the legacy kill permission model
+    // (checked in Inner); the killId REASON_AA_FORCE_STOP is fixed server-side and never a
+    // caller input, so fault-range kill ids cannot be claimed through this entry.
+    // clearPageStack=false and appIndex=0 are the force-stop semantics.
+    return KillProcessWithUserIdInner(bundleName, false, 0, reason, userId, true, exitReason, recordPid);
+}
+
+int32_t AbilityManagerService::KillProcessWithUserIdInner(const std::string &bundleName, bool clearPageStack,
+    int32_t appIndex, const std::string& reason, int32_t userId, bool recordForceStopKillId,
+    int32_t recordExitReason, int32_t recordPid)
+{
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Kill process, bundleName: %{public}s, clearPageStack: %{public}d"
         "callingUid: %{public}d, callingPid: %{public}d", bundleName.c_str(), clearPageStack,
         IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
@@ -9551,7 +9571,14 @@ int AbilityManagerService::KillProcessWithUserId(const std::string &bundleName, 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no kill alive process");
         return KILL_PROCESS_KEEP_ALIVE;
     }
-    int ret = DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(
+    // stamp after all refusal checks; recording failure never blocks the kill.
+    // callerPid is the real kill caller captured at the AMS entry (e.g. the aa tool process).
+    if (recordForceStopKillId && appExitReasonHelper_ != nullptr) {
+        appExitReasonHelper_->RecordKillIdByBundleName(bundleName, userId, appIndex,
+            HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP, recordExitReason,
+            IPCSkeleton::GetCallingPid(), reason, recordPid);
+    }
+    int32_t ret = DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(
         bundleName, clearPageStack, appIndex, reason, originUserId);
     return ret == ERR_OK ? ERR_OK : KILL_PROCESS_FAILED;
 }

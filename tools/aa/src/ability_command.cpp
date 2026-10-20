@@ -40,7 +40,6 @@
 #include "system_ability_definition.h"
 #include "test_observer.h"
 #include "app_mem_info.h"
-#include "xcollie/process_kill_reason.h"
 
 using namespace OHOS::AppExecFwk;
 
@@ -824,9 +823,17 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     auto reason = Reason::REASON_UNKNOWN;
     std::string inputReason = "aa force-stop";
     pid_t pid = 0;
+    bool hasPidOption = false;
     int32_t userId = -1;
+    // recordPid: -1 all processes (no -p), >0 the given pid. An invalid -p drops the
+    // declared exit reason and behaves as a plain force stop.
+    int32_t recordPid = -1;
     std::unordered_map<std::string, std::function<void(std::string&)>> optHandlers = {
-        {"-p", [&](std::string& v) { pid = ConvertPid(v); }},
+        {"-p", [&](std::string& v) {
+            pid = ConvertPid(v);
+            hasPidOption = true;
+            recordPid = pid > 0 ? static_cast<int32_t>(pid) : 0;
+        }},
         {"-r", [&](std::string& v) {
             inputReason = v;
             reason = AbilityToolConvertUtil::ConvertExitReason(v);
@@ -853,18 +860,20 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
         }
     }
 
-    TAG_LOGI(AAFwkTag::AA_TOOL, "pid %{public}d, reason %{public}s, userId %{public}d", pid, inputReason.c_str(),
-        userId);
-    if (pid > 0 && reason != Reason::REASON_UNKNOWN) {
-        ExitReason exitReason = {reason, "aa force-stop"};
-        exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP;
-        if (AbilityManagerClient::GetInstance()->RecordProcessExitReason(pid, exitReason) != ERR_OK) {
-            TAG_LOGE(AAFwkTag::AA_TOOL, "bundle %{public}s save reason %{public}d failed", bundleName.c_str(), reason);
-        }
+    // an invalid -p drops the user-declared reason; the scenario killId is not user input
+    // and is recorded in every case
+    if (hasPidOption && recordPid <= 0) {
+        reason = Reason::REASON_UNKNOWN;
+        inputReason = "aa force-stop";
+        recordPid = -1;
     }
 
+    TAG_LOGI(AAFwkTag::AA_TOOL, "pid %{public}d, reason %{public}s, userId %{public}d", pid, inputReason.c_str(),
+        userId);
+
     ErrCode result = OHOS::ERR_OK;
-    result = AbilityManagerClient::GetInstance()->KillProcessWithUserId(bundleName, false, 0, inputReason, userId);
+    result = AbilityManagerClient::GetInstance()->ForceStopProcess(bundleName, inputReason, userId, reason,
+        recordPid);
     if (result == OHOS::ERR_OK) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_FORCE_STOP_OK.c_str());
         resultReceiver_ = STRING_FORCE_STOP_OK + "\n";
