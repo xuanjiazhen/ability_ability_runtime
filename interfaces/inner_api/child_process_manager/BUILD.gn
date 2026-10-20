@@ -55,6 +55,7 @@ ohos_shared_library("child_process_manager") {
     "ability_base:extractortool",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",

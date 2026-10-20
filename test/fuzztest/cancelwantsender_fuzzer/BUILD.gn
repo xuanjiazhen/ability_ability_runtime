@@ -47,6 +47,7 @@ ohos_fuzztest("CancelWantSenderFuzzTest") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",

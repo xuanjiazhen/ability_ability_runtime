@@ -53,6 +53,7 @@ ohos_fuzztest("AtomicServiceStatusCallbackStubFuzzTest") {
 
   external_deps = [
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",

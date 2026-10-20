@@ -50,6 +50,7 @@ ohos_unittest("ability_madvise_utils_test") {
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "googletest:gmock_main",

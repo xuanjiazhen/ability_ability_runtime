@@ -85,6 +85,7 @@ ohos_unittest("extension_record_manager_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "bundle_framework:libappexecfwk_common",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "config_policy:configpolicy_util",

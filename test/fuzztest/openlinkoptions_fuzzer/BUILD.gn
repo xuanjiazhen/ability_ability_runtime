@@ -65,6 +65,7 @@ ohos_fuzztest("OpenLinkOptionsFuzzTest") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",

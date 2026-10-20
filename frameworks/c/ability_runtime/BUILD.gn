@@ -95,6 +95,7 @@ ohos_shared_library("ability_runtime") {
   external_deps = [
     "ability_base:ability_base_want",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",

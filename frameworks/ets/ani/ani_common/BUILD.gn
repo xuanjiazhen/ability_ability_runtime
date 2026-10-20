@@ -111,6 +111,7 @@ ohos_shared_library("ani_common") {
     "ability_base:session_info",
     "ability_base:want",
     "access_token:libtokenid_sdk",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:bms_ani_common",
     "c_utils:utils",

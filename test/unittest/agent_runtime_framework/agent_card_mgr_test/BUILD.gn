@@ -53,6 +53,7 @@ ohos_unittest("agent_card_mgr_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "bundle_framework:libappexecfwk_common",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock_main",

@@ -45,6 +45,7 @@ ohos_fuzztest("WantAgentHelperTriggerFuzzTest") {
     "ability_base:base",
     "ability_base:configuration",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "ipc:ipc_core",

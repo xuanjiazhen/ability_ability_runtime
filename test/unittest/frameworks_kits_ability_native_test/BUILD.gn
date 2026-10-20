@@ -1782,6 +1782,7 @@ ohos_unittest("data_uri_utils_test") {
     "ability_base:zuri",
     "bundle_framework:appexecfwk_base",
     "cJSON:cjson",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
