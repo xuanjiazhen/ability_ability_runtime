@@ -86,7 +86,7 @@ ErrCode CrowdTestInterceptor::DoProcess(AbilityInterceptorParam &param)
     return ERR_OK;
 }
 
-bool CrowdTestInterceptor::CheckCrowdtest(StartAbilityContext &ctx,
+bool CrowdTestInterceptor::CheckCrowdtest(const StartAbilityContext &ctx,
     const Want &want, int32_t userId)
 {
     // get crowdtest status and time

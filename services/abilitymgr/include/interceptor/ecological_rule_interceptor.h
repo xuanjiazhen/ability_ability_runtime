@@ -41,11 +41,11 @@ public:
         sptr<IRemoteObject> callerToken, int32_t userId, AtomicServiceStartupRule &rule, sptr<Want> &replaceWant);
 
 private:
-    void GetEcologicalTargetInfo(StartAbilityContext &ctx, const Want &want,
+    void GetEcologicalTargetInfo(const StartAbilityContext &ctx, const Want &want,
         const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo, ErmsCallerInfo &callerInfo);
-    void GetEcologicalCallerInfo(StartAbilityContext &ctx, const Want &want,
+    void GetEcologicalCallerInfo(const StartAbilityContext &ctx, const Want &want,
         ErmsCallerInfo &callerInfo, int32_t userId, const sptr<IRemoteObject> &callerToken = nullptr);
-    void InitErmsCallerInfo(StartAbilityContext &ctx, const Want &want,
+    void InitErmsCallerInfo(const StartAbilityContext &ctx, const Want &want,
         const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo, ErmsCallerInfo &callerInfo, int32_t userId,
         const sptr<IRemoteObject> &callerToken = nullptr, bool skipCallerInfo = false);
     static int32_t GetAppTypeByBundleType(int32_t bundleType);

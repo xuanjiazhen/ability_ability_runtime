@@ -127,7 +127,7 @@ std::vector<int32_t> StartAbilityUtils::GetCloneAppIndexes(const std::string &bu
 int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userId, sptr<IRemoteObject> callerToken)
 {
     int32_t appIndex = -1;
-    if (!GetAppIndex(want, callerToken, appIndex, userId)) {
+    if (!GetAppIndex(want, callerToken, userId, appIndex)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid app clone index");
         return ERR_APP_CLONE_INDEX_INVALID;
     }
