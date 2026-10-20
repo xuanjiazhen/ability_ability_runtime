@@ -209,7 +209,7 @@ ErrCode EcologicalRuleInterceptor::QueryAtomicServiceStartupRule(
     return ERR_OK;
 }
 
-void EcologicalRuleInterceptor::GetEcologicalTargetInfo(StartAbilityContext &ctx,
+void EcologicalRuleInterceptor::GetEcologicalTargetInfo(const StartAbilityContext &ctx,
     const Want &want, const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo, ErmsCallerInfo &callerInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -239,7 +239,7 @@ void EcologicalRuleInterceptor::GetEcologicalTargetInfo(StartAbilityContext &ctx
     }
 }
 
-void EcologicalRuleInterceptor::GetEcologicalCallerInfo(StartAbilityContext &ctx,
+void EcologicalRuleInterceptor::GetEcologicalCallerInfo(const StartAbilityContext &ctx,
     const Want &want, ErmsCallerInfo &callerInfo, int32_t userId, const sptr<IRemoteObject> &callerToken)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -287,7 +287,7 @@ void EcologicalRuleInterceptor::GetEcologicalCallerInfo(StartAbilityContext &ctx
     }
 }
 
-void EcologicalRuleInterceptor::InitErmsCallerInfo(StartAbilityContext &ctx,
+void EcologicalRuleInterceptor::InitErmsCallerInfo(const StartAbilityContext &ctx,
     const Want &want, const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo,
     ErmsCallerInfo &callerInfo, int32_t userId, const sptr<IRemoteObject> &callerToken,
     bool skipCallerInfo)

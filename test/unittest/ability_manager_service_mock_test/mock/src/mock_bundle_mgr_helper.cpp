@@ -120,12 +120,6 @@ ErrCode BundleMgrHelper::QueryExtensionAbilityInfoOptimal(const Want &want, cons
     return ERR_OK;
 }
 
-ErrCode BundleMgrHelper::GetDualModeBundleInfo(const std::string &bundleName, int32_t userId, int32_t &appIndex)
-{
-    appIndex = 0;
-    return ERR_OK;
-}
-
 ErrCode BundleMgrHelper::GetBundleInfosV9(int32_t flags,
     std::vector<BundleInfo> &bundleInfos, int32_t userId)
 {
