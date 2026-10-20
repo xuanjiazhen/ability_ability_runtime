@@ -65,5 +65,7 @@ inline task_handle submit_h(std::function<void()> &&task,
 }
 
 inline void wait(std::vector<task_handle> taskHandles) {}
+
+inline void skip(task_handle) {}
 }  // namespace ffrt
 #endif // FFRT_API_FFRT_H
