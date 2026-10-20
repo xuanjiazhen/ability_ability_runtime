@@ -30,6 +30,7 @@
 #include "start_ability_utils.h"
 #include "start_options.h"
 #include "bundle_mgr_interface.h"
+#include "bundle_info.h"
 
 namespace OHOS {
 namespace AAFwk {

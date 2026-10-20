@@ -25,6 +25,7 @@
 #include "app_death_recipient.h"
 #include "app_mgr_constants.h"
 #include "app_utils.h"
+#include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "param.h"
 #include "perf_profile.h"
