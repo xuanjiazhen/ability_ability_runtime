@@ -177,6 +177,20 @@ public:
     virtual AppMgrResultCode SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch);
 
     /**
+     * Report task attribution for a warm start-ability call. Caller identity is the
+     * system-stamped reserved params; validation happens on the appmgr side.
+     *
+     * @param taskId Attribution key of the task.
+     * @param callerUid Uid of the start caller (system stamped).
+     * @param callerPid Pid of the start caller (system stamped).
+     * @param targetPid Pid of the target process.
+     * @param targetUid Uid of the target process.
+     * @return Raw result code from the service; attribution failure never blocks startup.
+     */
+    virtual int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+        int32_t targetPid, int32_t targetUid);
+
+    /**
      * Kill all application processes of the given user. Typically invoked when a
      * user is removed or stopped.
      *

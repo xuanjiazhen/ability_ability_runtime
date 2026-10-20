@@ -19,6 +19,7 @@
 #include "app_mgr_service_inner.h"
 #include "app_running_record.h"
 #include "remote_client_manager.h"
+#include "task_mgr/task_manager_service.h"
 #undef private
 #include "ability_manager_errors.h"
 #include "accesstoken_kit.h"
@@ -42,6 +43,7 @@
 #include "param.h"
 #include "parameters.h"
 #include "render_state_observer_stub.h"
+#include "task_mgr/common.h"
 #include "window_manager.h"
 
 using namespace testing;
@@ -1584,6 +1586,266 @@ HWTEST_F(AppMgrServiceInnerTest, AllowChildProcessInMultiProcessFeatureApp_NullA
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     bool ret = appMgrServiceInner->AllowChildProcessInMultiProcessFeatureApp(nullptr);
     EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: ConsumeTaskAttributionParam_001
+ * @tc.desc: A valid reserved key with the stamped caller identity is extracted into the
+ *           outputs and removed from this Want copy.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ConsumeTaskAttributionParam_001, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto want = std::make_shared<AAFwk::Want>();
+    want->SetParam(TASK_ID_CALLER_KEY, std::string("task_attr_001"));
+    want->SetParam(AAFwk::Want::PARAM_RESV_CALLER_UID, 20000001);
+    want->SetParam(AAFwk::Want::PARAM_RESV_CALLER_PID, 1234);
+
+    std::string taskId;
+    int32_t callerUid = -1;
+    pid_t callerPid = -1;
+    appMgrServiceInner->ConsumeTaskAttributionParam(want, taskId, callerUid, callerPid);
+
+    EXPECT_EQ(taskId, "task_attr_001");
+    EXPECT_EQ(callerUid, 20000001);
+    EXPECT_EQ(callerPid, 1234);
+    // the reserved key is consumed from this Want copy
+    EXPECT_FALSE(want->HasParameter(TASK_ID_CALLER_KEY));
+}
+
+/**
+ * @tc.name: ConsumeTaskAttributionParam_002
+ * @tc.desc: Without the reserved key nothing is extracted or mutated; a null Want must not
+ *           crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ConsumeTaskAttributionParam_002, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto want = std::make_shared<AAFwk::Want>();
+    want->SetParam(std::string("business.key"), std::string("untouched"));
+
+    std::string taskId = "stale";
+    int32_t callerUid = 1;
+    pid_t callerPid = 1;
+    appMgrServiceInner->ConsumeTaskAttributionParam(want, taskId, callerUid, callerPid);
+    EXPECT_EQ(taskId, "stale"); // no-key path must short-circuit before touching any output
+    EXPECT_EQ(callerUid, 1);
+    EXPECT_EQ(callerPid, 1);
+    EXPECT_EQ(want->GetStringParam("business.key"), "untouched");
+
+    appMgrServiceInner->ConsumeTaskAttributionParam(nullptr, taskId, callerUid, callerPid);
+}
+
+/**
+ * @tc.name: ConsumeTaskAttributionParam_003
+ * @tc.desc: An empty or over-length value is consumed and dropped: no attribution for this
+ *           call.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ConsumeTaskAttributionParam_003, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    auto want = std::make_shared<AAFwk::Want>();
+    want->SetParam(TASK_ID_CALLER_KEY, std::string(""));
+    std::string taskId;
+    int32_t callerUid = -1;
+    pid_t callerPid = -1;
+    appMgrServiceInner->ConsumeTaskAttributionParam(want, taskId, callerUid, callerPid);
+    EXPECT_TRUE(taskId.empty());
+    EXPECT_FALSE(want->HasParameter(TASK_ID_CALLER_KEY));
+
+    std::string tooLongTaskId(TASK_ID_MAX_LEN + 1, 'd');
+    want->SetParam(TASK_ID_CALLER_KEY, tooLongTaskId);
+    appMgrServiceInner->ConsumeTaskAttributionParam(want, taskId, callerUid, callerPid);
+    EXPECT_TRUE(taskId.empty());
+    EXPECT_FALSE(want->HasParameter(TASK_ID_CALLER_KEY));
+}
+/**
+ * @tc.name: ConsumeTaskAttributionParam_004
+ * @tc.desc: A key without stamped identity params extracts no identity (uid/pid stay at
+ *           defaults).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ConsumeTaskAttributionParam_004, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto want = std::make_shared<AAFwk::Want>();
+    want->SetParam(TASK_ID_CALLER_KEY, std::string("task_attr_004"));
+
+    std::string taskId;
+    int32_t callerUid = -1;
+    pid_t callerPid = -1;
+    appMgrServiceInner->ConsumeTaskAttributionParam(want, taskId, callerUid, callerPid);
+
+    EXPECT_EQ(taskId, "task_attr_004");
+    EXPECT_EQ(callerUid, -1);
+    EXPECT_EQ(callerPid, -1);
+    EXPECT_FALSE(want->HasParameter(TASK_ID_CALLER_KEY));
+}
+
+/**
+ * @tc.name: TryAttributeTaskProcess_001
+ * @tc.desc: Guard branches: an empty taskId, a null appRecord or a non-positive pid never
+ *           reach the task manager and never crash. No task with this id exists, so the
+ *           dump assertion only anchors the no-crash path; rejection discrimination is
+ *           covered by AttributeProcessForAbility_0400.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, TryAttributeTaskProcess_001, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    std::shared_ptr<ApplicationInfo> info = std::make_shared<AppExecFwk::ApplicationInfo>();
+    auto appRecord = std::make_shared<AppExecFwk::AppRunningRecord>(info, 0x0001, "processName");
+    appRecord->priorityObject_ = std::make_shared<AppExecFwk::PriorityObject>();
+    appRecord->priorityObject_->SetPid(4321);
+    appRecord->SetUid(20000003);
+
+    // empty taskId / null record / non-positive pid: no attribution, no crash
+    appMgrServiceInner->TryAttributeTaskProcess("", 1, 1, appRecord);
+    appMgrServiceInner->TryAttributeTaskProcess("task_guards", 1, 1, nullptr);
+    auto noPidRecord = std::make_shared<AppExecFwk::AppRunningRecord>(info, 0x0002, "processName2");
+    appMgrServiceInner->TryAttributeTaskProcess("task_guards", 1, 1, noPidRecord);
+    EXPECT_TRUE(TaskManagerService::GetInstance().DumpActiveTasks().find("task_guards") ==
+        std::string::npos);
+}
+
+/**
+ * @tc.name: TryAttributeTaskProcess_002
+ * @tc.desc: Positive path: with a live task whose creator uid matches the caller uid, the
+ *           target process is registered with the ABILITY tool.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, TryAttributeTaskProcess_002, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto &service = TaskManagerService::GetInstance();
+    std::string taskId = "tms_tdd_try_attr_002";
+    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    int32_t creatorUid = -1;
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        creatorUid = service.tasks_[taskId].creatorUid;
+    }
+    EXPECT_GE(creatorUid, 0);
+
+    std::shared_ptr<ApplicationInfo> info = std::make_shared<AppExecFwk::ApplicationInfo>();
+    auto appRecord = std::make_shared<AppExecFwk::AppRunningRecord>(info, 0x0003, "processName3");
+    appRecord->priorityObject_ = std::make_shared<AppExecFwk::PriorityObject>();
+    appRecord->priorityObject_->SetPid(4322);
+    appRecord->SetUid(20000003);
+    appMgrServiceInner->TryAttributeTaskProcess(taskId, creatorUid, 100, appRecord);
+
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        auto attrIt = service.tasks_[taskId].attributions.find(4322);
+        EXPECT_NE(attrIt, service.tasks_[taskId].attributions.end());
+        if (attrIt != service.tasks_[taskId].attributions.end()) {
+            EXPECT_EQ(attrIt->second.tool, AttributionTool::ABILITY);
+            EXPECT_EQ(attrIt->second.uid, 20000003);
+        }
+    }
+    // Unconditional cleanup: the service is a process-level singleton.
+    EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
+}
+
+/**
+ * @tc.name: LoadAbility_TaskAttrConsumed_001
+ * @tc.desc: LoadAbility consumes the reserved key before any branch; with a valid
+ *           applicationName the load proceeds past the consumption point and fails later
+ *           (selfPid without a matching record / no bundle manager), with the key stripped.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, LoadAbility_TaskAttrConsumed_001, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->name = "LoadAbility_TaskAttrConsumed_001";
+    abilityInfo->bundleName = "com.example.taskattr";
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    appInfo->bundleName = abilityInfo->bundleName;
+    appInfo->name = abilityInfo->bundleName;
+    abilityInfo->applicationName = appInfo->name; // required by CheckLoadAbilityConditions
+    auto want = std::make_shared<AAFwk::Want>();
+    want->SetParam(TASK_ID_CALLER_KEY, std::string("task_load_001"));
+    want->SetParam(AAFwk::Want::PARAM_RESV_CALLER_UID, 20000001);
+    want->SetParam(AAFwk::Want::PARAM_RESV_CALLER_PID, 100);
+
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.token = token;
+    loadParam.selfPid = 999999; // no running record with this pid: load fails after consumption
+    auto loadParamPtr = std::make_shared<AbilityRuntime::LoadParam>(loadParam);
+
+    appMgrServiceInner->LoadAbility(abilityInfo, appInfo, want, loadParamPtr);
+
+    // the key was consumed before the failing branch
+    EXPECT_FALSE(want->HasParameter(TASK_ID_CALLER_KEY));
+}
+
+/**
+ * @tc.name: LoadAbility_TaskAttrReusePid_002
+ * @tc.desc: When the load reuses an existing process (reusePid), the resolved process
+ *           is attributed to the task at the tail hook of LoadAbility.
+ */
+HWTEST_F(AppMgrServiceInnerTest, LoadAbility_TaskAttrReusePid_002, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto &service = TaskManagerService::GetInstance();
+    std::string taskId = "tms_tdd_load_reuse_002";
+    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    int32_t creatorUid = -1;
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        creatorUid = service.tasks_[taskId].creatorUid;
+    }
+    EXPECT_GE(creatorUid, 0);
+
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    appInfo->bundleName = "com.example.taskattr";
+    appInfo->name = "com.example.taskattr";
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->name = "LoadAbility_TaskAttrReusePid_002";
+    abilityInfo->bundleName = appInfo->bundleName;
+    abilityInfo->applicationName = appInfo->name; // required by CheckLoadAbilityConditions
+    abilityInfo->type = AppExecFwk::AbilityType::EXTENSION;
+
+    // synthetic running record discovered by reusePid
+    AppExecFwk::BundleInfo bundleInfo;
+    auto appRecord = appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(
+        appInfo, "test_processName", bundleInfo, "");
+    ASSERT_NE(appRecord, nullptr);
+    const pid_t targetPid = 5100;
+    appRecord->priorityObject_ = std::make_shared<AppExecFwk::PriorityObject>();
+    appRecord->priorityObject_->SetPid(targetPid);
+    appRecord->SetUid(20000007);
+
+    auto want = std::make_shared<AAFwk::Want>();
+    want->SetParam(TASK_ID_CALLER_KEY, taskId);
+    want->SetParam(AAFwk::Want::PARAM_RESV_CALLER_UID, creatorUid);
+    want->SetParam(AAFwk::Want::PARAM_RESV_CALLER_PID, 100);
+
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.token = token;
+    loadParam.reusePid = targetPid;
+    auto loadParamPtr = std::make_shared<AbilityRuntime::LoadParam>(loadParam);
+
+    appMgrServiceInner->LoadAbility(abilityInfo, appInfo, want, loadParamPtr);
+
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        auto attrIt = service.tasks_[taskId].attributions.find(targetPid);
+        EXPECT_NE(attrIt, service.tasks_[taskId].attributions.end());
+        if (attrIt != service.tasks_[taskId].attributions.end()) {
+            EXPECT_EQ(attrIt->second.tool, AttributionTool::ABILITY);
+            EXPECT_EQ(attrIt->second.uid, 20000007);
+        }
+    }
+    // Unconditional cleanup: the service is a process-level singleton.
+    EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

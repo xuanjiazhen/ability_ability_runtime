@@ -52,6 +52,15 @@ private:
     int32_t HandleReset(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessByAbilityToken(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetGameSAPrelaunch(MessageParcel &data, MessageParcel &reply);
+
+    /**
+     * Handle the attribution report of a warm start-ability call, reply the result code.
+     *
+     * @param data, the attribution params (taskId/callerUid/callerPid/targetPid/targetUid).
+     * @param reply, the result code.
+     * @return Returns NO_ERROR on success, others on failure.
+     */
+    int32_t HandleAttributeProcessForAbility(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessesByUserId(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessesByPids(MessageParcel &data, MessageParcel &reply);
     int32_t HandleAttachPidToParent(MessageParcel &data, MessageParcel &reply);

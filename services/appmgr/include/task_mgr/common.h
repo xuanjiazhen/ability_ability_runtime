@@ -40,6 +40,30 @@ constexpr const char *TASK_TIMEOUT_PARAM = "persist.sys.appms.taskmanager.task_t
 // Safety ceiling on the number of simultaneously active tasks (memory and timer resources).
 constexpr size_t TASK_MAX_ACTIVE_TASKS = 10;
 
+// Safety ceiling on managed processes attributed to one task.
+constexpr size_t TASK_MAX_ATTRIBUTIONS = 256;
+
+// Valid attribution key: length-bounded, no control characters (log injection guard).
+inline bool IsTaskIdValidForAttribution(const std::string &taskId)
+{
+    if (taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN) {
+        return false;
+    }
+    for (char c : taskId) {
+        if (static_cast<unsigned char>(c) < 0x20 || c == static_cast<char>(0x7f)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// System-reserved key carrying the taskId across a start/connect-family call.
+// Consumed and removed by AppMgrServiceInner::LoadAbility. Shared contract with the
+// agent-extension connect link; keep the literal in sync with ams_want_param_filter.cpp.
+// Caller-originated data: its visibility to the target app is accepted by design — the
+// trust boundary is the ownership + liveness check at consumption, not key secrecy.
+constexpr const char *TASK_ID_CALLER_KEY = "ohos.task.id";
+
 // How a task reached its end; logged with a unified tag and dumped for DFX.
 enum class TaskFinishReason : int32_t {
     FINISHED_BY_CALLER = 0,

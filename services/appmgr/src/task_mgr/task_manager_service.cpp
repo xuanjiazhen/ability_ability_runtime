@@ -291,6 +291,14 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
         }
         AttributionRecord stored = attribution;
         stored.attributedTimeMillis = NowMillis();
+        // Cap the per-task attribution set; refreshing an already managed pid is exempt.
+        if (it->second.attributions.find(stored.pid) == it->second.attributions.end() &&
+            it->second.attributions.size() >= TASK_MAX_ATTRIBUTIONS) {
+            TAG_LOGW(AAFwkTag::APPMGR, "attribution quota exceeded, taskId: %{public}s, "
+                "attributions: %{public}zu, pid: %{public}d",
+                taskId.c_str(), it->second.attributions.size(), stored.pid);
+            return INVALID_PARAMETERS_ERR;
+        }
         it->second.attributions[stored.pid] = stored;
         TAG_LOGI(AAFwkTag::APPMGR, "process registered, taskId: %{public}s, pid: %{public}d, tool: %{public}s",
             taskId.c_str(), stored.pid, AttributionToolToString(stored.tool));
@@ -312,6 +320,73 @@ int32_t TaskManagerService::UnregisterManagedProcessInner(const std::string &tas
     TAG_LOGI(AAFwkTag::APPMGR, "process unregistered, taskId: %{public}s, pid: %{public}d",
         taskId.c_str(), pid);
     return ERR_OK;
+}
+
+int32_t TaskManagerService::RemoveAttributionsByPid(pid_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (pid <= 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid pid: %{public}d", pid);
+        return INVALID_PARAMETERS_ERR;
+    }
+    std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+    for (auto &entry : tasks_) {
+        auto it = entry.second.attributions.find(pid);
+        if (it == entry.second.attributions.end()) {
+            continue;
+        }
+        entry.second.attributions.erase(it);
+        TAG_LOGI(AAFwkTag::APPMGR, "process died, attribution removed, taskId: %{public}s, pid: %{public}d",
+            entry.first.c_str(), pid);
+    }
+    return ERR_OK;
+}
+
+int32_t TaskManagerService::AttributeProcessForAbility(const std::string &taskId, int32_t callerUid,
+    pid_t callerPid, pid_t targetPid, int32_t targetUid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (!IsTaskIdValidForAttribution(taskId) || targetPid <= 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, targetPid: %{public}d",
+            taskId.size(), targetPid);
+        return INVALID_PARAMETERS_ERR;
+    }
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        auto it = tasks_.find(taskId);
+        if (it == tasks_.end()) {
+            TAG_LOGW(AAFwkTag::APPMGR, "security: task not alive, ability attribution dropped, taskId: "
+                "%{public}s, caller uid: %{public}d, pid: %{public}d, target pid: %{public}d",
+                taskId.c_str(), callerUid, callerPid, targetPid);
+            return ERR_TASK_NOT_FOUND;
+        }
+        TaskRecord &record = it->second;
+        bool isCreator = callerUid >= 0 && record.creatorUid == callerUid;
+        // Membership requires (pid, uid) match; legacy records without uid keep pid-only match.
+        auto memberIt = record.attributions.find(callerPid);
+        bool isTaskMember = callerPid > 0 && memberIt != record.attributions.end() &&
+            (memberIt->second.uid < 0 || memberIt->second.uid == callerUid);
+        if (!isCreator && !isTaskMember) {
+            TAG_LOGW(AAFwkTag::APPMGR, "security: caller neither creator nor managed member, ability "
+                "attribution dropped, taskId: %{public}s, creator uid: %{public}d, caller uid: %{public}d, "
+                "pid: %{public}d, target pid: %{public}d", taskId.c_str(), record.creatorUid, callerUid,
+                callerPid, targetPid);
+            return ERR_TASK_NOT_FOUND;
+        }
+    }
+    // Delegate to the shared registration path: param check, task liveness, quota with
+    // refresh exemption, insertion and timeout-window restart all live in RegisterManagedProcess.
+    AttributionRecord attribution;
+    attribution.pid = targetPid;
+    attribution.uid = targetUid;
+    attribution.tool = AttributionTool::ABILITY;
+    int32_t result = RegisterManagedProcess(taskId, attribution);
+    if (result != ERR_OK) {
+        TAG_LOGW(AAFwkTag::APPMGR, "ability attribution register failed, taskId: %{public}s, caller uid: "
+            "%{public}d, pid: %{public}d, target pid: %{public}d, result: %{public}d",
+            taskId.c_str(), callerUid, callerPid, targetPid, result);
+    }
+    return result;
 }
 
 std::unique_ptr<TimeoutContext> TaskManagerService::RestartTimeoutWindow(const std::string &taskId,

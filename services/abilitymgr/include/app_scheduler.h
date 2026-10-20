@@ -314,6 +314,20 @@ public:
     int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch);
 
     /**
+     * AttributeProcessForAbility, report task attribution for a warm start-ability call
+     * (target process already exists) through the app manager service.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param callerUid, the uid of the start caller (system stamped).
+     * @param callerPid, the pid of the start caller (system stamped).
+     * @param targetPid, the pid of the target process.
+     * @param targetUid, the uid of the target process.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+        int32_t targetPid, int32_t targetUid);
+
+    /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
      * kill the process by user id.
      * Send appSpawn uninstall debug hap message.

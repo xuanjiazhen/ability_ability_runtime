@@ -103,6 +103,14 @@ public:
     int32_t UnregisterManagedProcess(const std::string &taskId, int32_t pid);
 
     /**
+     * @brief Removes the attribution entries of a dead process from every task; called from the
+     *        app death path so quota and membership do not outlive the process.
+     * @param pid Indicates the pid of the dead process.
+     * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid pid.
+     */
+    int32_t RemoveAttributionsByPid(pid_t pid);
+
+    /**
      * @brief Notifies that a task has ended, reserved for the resource-schedule control to
      *        downgrade or release the control applied to the managed processes. Only
      *        called after tasksMutex_ is released.
@@ -110,6 +118,29 @@ public:
      * @param reason Indicates why the task ends.
      */
     void NotifyTaskFinished(const std::string &taskId, TaskFinishReason reason);
+
+    /**
+     * @brief Attributes a process started through the startAbility-family channel into the
+     *        task: liveness check plus dual-condition ownership check (the caller uid is the
+     *        creator uid, or the caller pid is already a managed member with a matching
+     *        (pid, uid) pair, covering task-member propagation), then registers with
+     *        AttributionTool::ABILITY and restarts the inactivity timeout window. The caller
+     *        identity is the IPC-proven one captured by the AMS convergence point (never
+     *        Want-supplied by the caller). A spoofed or replayed taskId is not trusted: no
+     *        attribution happens and a security log is recorded, while the startup itself
+     *        proceeds unaffected.
+     * @param taskId Indicates the attribution key carried by the reserved Want parameter.
+     * @param callerUid Indicates the IPC-proven uid of the startAbility caller.
+     * @param callerPid Indicates the IPC-proven pid of the startAbility caller.
+     * @param targetPid Indicates the pid of the process hosting the started ability.
+     * @param targetUid Indicates the uid of the target process; binds the member entry as a
+     *        (pid, uid) pair so a reused pid no longer grants membership.
+     * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters or
+     *         when the per-task attribution quota is exhausted; ERR_TASK_NOT_FOUND if the
+     *         task does not exist or the ownership check fails.
+     */
+    int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, pid_t callerPid,
+        pid_t targetPid, int32_t targetUid);
 
     /**
      * @brief Dumps the snapshot of active tasks, taken under the mutex for consistency
