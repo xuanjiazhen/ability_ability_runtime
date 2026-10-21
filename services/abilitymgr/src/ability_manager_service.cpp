@@ -11705,6 +11705,9 @@ void AbilityManagerService::ScheduleRecoverAbility(const sptr<IRemoteObject>& to
         return;
     }
 
+    const RestartAppIdentity identity = {
+        record->GetPid(), record->GetUid(), record->GetApplicationInfo().bundleName
+    };
     AAFwk::Want curWant;
     {
         std::lock_guard<ffrt::mutex> guard(globalLock_);
@@ -11779,7 +11782,7 @@ void AbilityManagerService::ScheduleRecoverAbility(const sptr<IRemoteObject>& to
 
         ReportAppRecoverResult(record->GetUid(), appInfo, abilityInfo.name, "SUCCESS");
     }
-    RestartApp(curWant, true, record->GetPid());
+    RestartAppInner(curWant, true, identity);
 }
 
 int32_t AbilityManagerService::GetRemoteMissionSnapshotInfo(const std::string& deviceId, int32_t missionId,
@@ -16837,15 +16840,25 @@ int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRec
 
 int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRecovery, pid_t callerPid)
 {
+    const RestartAppIdentity identity = {
+        callerPid, IPCSkeleton::GetCallingUid(), want.GetElement().GetBundleName()
+    };
+    return RestartAppInner(want, isAppRecovery, identity);
+}
+
+int32_t AbilityManagerService::RestartAppInner(const Want &want, bool isAppRecovery,
+    const RestartAppIdentity &identity)
+{
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
         return INNER_ERR;
     }
+    const auto callerPid = identity.pid;
+    const auto callerUid = identity.uid;
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "RestartApp, isAppRecovery: %{public}d, callerPid: %{public}d", isAppRecovery, callerPid);
     AppExecFwk::RunningProcessInfo processInfo;
     DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callerPid, processInfo);
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
     int32_t userId = callerUid / BASE_USER_RANGE;
     auto result = CheckRestartAppWant(want.GetElement(), processInfo.appCloneIndex, userId);
     if (result != ERR_OK) {
@@ -16865,6 +16878,7 @@ int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRec
 
     SignRestartAppFlagParam param =
         { userId, callerUid, processInfo.instanceKey, processInfo.appMode, isAppRecovery, false };
+    param.bundleName = identity.bundleName;
     RecordAppRestartExitReason(isAppRecovery, callerPid, callerUid);
     int32_t restartResult = SignRestartAppFlag(param);
     if (!isAppRecovery && restartResult != ERR_OK) {
@@ -16968,6 +16982,11 @@ int32_t AbilityManagerService::SignRestartAppFlag(const SignRestartAppFlagParam 
     if (param.isAtomicService) {
         return DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->KillApplicationSelf(false,
             "RestartSelfAtomicService");
+    }
+    if (param.isAppRecovery) {
+        // A one-way recovery request may have a zero Binder caller PID. Use the validated application identity.
+        return IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->KillApplicationByUid(
+            param.bundleName, param.uid, "RestartApp"));
     }
     return DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->KillApplicationSelf(false, "RestartApp");
 }

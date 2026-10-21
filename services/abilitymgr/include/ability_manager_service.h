@@ -3526,6 +3526,13 @@ private:
 
     void WaitBootAnimationStart();
 
+    struct RestartAppIdentity {
+        pid_t pid = 0;
+        int32_t uid = 0;
+        std::string bundleName;
+    };
+    int32_t RestartAppInner(const Want &want, bool isAppRecovery, const RestartAppIdentity &identity);
+
     struct SignRestartAppFlagParam {
         int32_t userId;
         int32_t uid;
@@ -3533,6 +3540,7 @@ private:
         AppExecFwk::MultiAppModeType type;
         bool isAppRecovery = false;
         bool isAtomicService = false;
+        std::string bundleName;
     };
     int32_t SignRestartAppFlag(const SignRestartAppFlagParam &param);
 
