@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <chrono>
 
 #define private public
 #include "appfreeze_inner.h"
@@ -1119,6 +1120,99 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_IsAsanEnabled_002, TestSize.Level1)
     bool ret = appfreezeInner->IsAsanEnabled();
     EXPECT_EQ(ret, true);
     GTEST_LOG_(INFO) << "AppfreezeInner_IsAsanEnabled_002 end";
+}
+
+/**
+ * @tc.number: AppfreezeInner_ClaimMainFreezeCallback_001
+ * @tc.name: ClaimMainFreezeCallback
+ * @tc.desc: Non THREAD_BLOCK_6S/APP_INPUT_BLOCK events are never suppressed.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ClaimMainFreezeCallback_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppfreezeInner_ClaimMainFreezeCallback_001 start";
+    appfreezeInner->mainFreezeCallbackTime_.store(-1);
+    EXPECT_TRUE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::THREAD_BLOCK_3S));
+    EXPECT_TRUE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::LIFECYCLE_TIMEOUT));
+    EXPECT_TRUE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::LIFECYCLE_HALF_TIMEOUT));
+    appfreezeInner->mainFreezeCallbackTime_.store(-1);
+    GTEST_LOG_(INFO) << "AppfreezeInner_ClaimMainFreezeCallback_001 end";
+}
+
+/**
+ * @tc.number: AppfreezeInner_ClaimMainFreezeCallback_002
+ * @tc.name: ClaimMainFreezeCallback
+ * @tc.desc: First THREAD_BLOCK_6S is admitted; the immediate second one is suppressed.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ClaimMainFreezeCallback_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppfreezeInner_ClaimMainFreezeCallback_002 start";
+    appfreezeInner->mainFreezeCallbackTime_.store(-1);
+    EXPECT_TRUE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::THREAD_BLOCK_6S));
+    EXPECT_FALSE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::THREAD_BLOCK_6S));
+    appfreezeInner->mainFreezeCallbackTime_.store(-1);
+    GTEST_LOG_(INFO) << "AppfreezeInner_ClaimMainFreezeCallback_002 end";
+}
+
+/**
+ * @tc.number: AppfreezeInner_ClaimMainFreezeCallback_003
+ * @tc.name: ClaimMainFreezeCallback
+ * @tc.desc: APP_INPUT_BLOCK is subject to the same deduplication as THREAD_BLOCK_6S.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ClaimMainFreezeCallback_003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppfreezeInner_ClaimMainFreezeCallback_003 start";
+    appfreezeInner->mainFreezeCallbackTime_.store(-1);
+    EXPECT_TRUE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::APP_INPUT_BLOCK));
+    EXPECT_FALSE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::APP_INPUT_BLOCK));
+    appfreezeInner->mainFreezeCallbackTime_.store(-1);
+    GTEST_LOG_(INFO) << "AppfreezeInner_ClaimMainFreezeCallback_003 end";
+}
+
+/**
+ * @tc.number: AppfreezeInner_ResetMainFreezeCallback_001
+ * @tc.name: ResetMainFreezeCallback
+ * @tc.desc: ResetMainFreezeCallback re-admits subsequent callbacks (non-DIALOG build); in
+ *          the DIALOG build, time-window expiry re-admits callbacks. Only the non-DIALOG
+ *          branch compiles under the current test target (BUILD.gn does not define
+ *          APP_NO_RESPONSE_DIALOG); the DIALOG branch is a guarded placeholder.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ResetMainFreezeCallback_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppfreezeInner_ResetMainFreezeCallback_001 start";
+    appfreezeInner->mainFreezeCallbackTime_.store(-1);
+    ASSERT_TRUE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::THREAD_BLOCK_6S));
+    ASSERT_FALSE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::THREAD_BLOCK_6S));
+    appfreezeInner->ResetMainFreezeCallback();
+#ifdef APP_NO_RESPONSE_DIALOG
+    // DIALOG build: ResetMainFreezeCallback is a no-op; simulate the 60s window elapse
+    // by rewinding the recorded timestamp so the next claim is outside the interval.
+    appfreezeInner->mainFreezeCallbackTime_.store(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count() - 60001);
+#else
+    // non-DIALOG build: ResetMainFreezeCallback stores -1, re-admitting the next callback.
+    EXPECT_EQ(appfreezeInner->mainFreezeCallbackTime_.load(), -1);
+#endif
+    EXPECT_TRUE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::THREAD_BLOCK_6S));
+    appfreezeInner->mainFreezeCallbackTime_.store(-1);
+    GTEST_LOG_(INFO) << "AppfreezeInner_ResetMainFreezeCallback_001 end";
+}
+
+/**
+ * @tc.number: AppfreezeInner_ClaimMainFreezeCallback_004
+ * @tc.name: ClaimMainFreezeCallback
+ * @tc.desc: A non-suppressed event leaves the deduplication guard untouched, so a
+ *          subsequent THREAD_BLOCK_6S is still admitted.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ClaimMainFreezeCallback_004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppfreezeInner_ClaimMainFreezeCallback_004 start";
+    appfreezeInner->mainFreezeCallbackTime_.store(-1);
+    EXPECT_TRUE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::THREAD_BLOCK_3S));
+    EXPECT_EQ(appfreezeInner->mainFreezeCallbackTime_.load(), -1);
+    EXPECT_TRUE(appfreezeInner->ClaimMainFreezeCallback(AppFreezeType::THREAD_BLOCK_6S));
+    appfreezeInner->mainFreezeCallbackTime_.store(-1);
+    GTEST_LOG_(INFO) << "AppfreezeInner_ClaimMainFreezeCallback_004 end";
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

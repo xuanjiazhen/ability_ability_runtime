@@ -69,6 +69,7 @@ public:
     void SetReportLifeCycleAsAppfreeze(bool reportLifecycleToFreeze);
     void SetAppfreezeApplication(const std::shared_ptr<OHOSApplication> &application);
     std::string GetProcessLifeCycle();
+    void ResetMainFreezeCallback();
 
 private:
     static std::weak_ptr<EventHandler> appMainHandler_;
@@ -79,6 +80,8 @@ private:
     bool IsAppFreeze(const std::string& name);
     bool IsAppFreezeWarning(const std::string& name);
     bool IsHandleAppfreeze();
+    bool ClaimMainFreezeCallback(const std::string& eventName);
+    FaultData CreateThreadBlockFault(bool isSixSecondEvent);
     std::string GetProcStatm(int32_t pid);
     bool GetAppInForeground();
     bool GetMainThreadSample();
@@ -120,6 +123,7 @@ private:
     std::atomic<int64_t> lastMainStackTime_ = 0;
     std::atomic<uint64_t> threadBlock3STime_ = 0;
     std::atomic<uint64_t> lifeCycleHalfTime_ = 0;
+    std::atomic<int64_t> mainFreezeCallbackTime_ {-1};
 };
 
 class MainHandlerDumper : public Dumper {
