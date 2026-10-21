@@ -22,6 +22,7 @@
 #include "common_event_support.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
+#include "security_audit_proxy.h"
 #include "want.h"
 
 namespace OHOS {
@@ -48,6 +49,17 @@ void AbilityEventUtil::SendStartAbilityErrorEvent(EventInfo &eventInfo, int32_t 
     ffrt::submit([name, eventInfo]() {
         EventReport::SendAbilityEvent(name, HISYSEVENT_FAULT, eventInfo);
         }, ffrt::task_attr().timeout(FFRT_TASK_TIMEOUT));
+
+    // Parallel security audit reporting path (design DD-1/DD-3, spec AC-1.1/AC-1.2):
+    // bypass the Hiview 20/day throttle. Fire-and-forget; proxy acquisition failure
+    // (EX-1) and IPC failure (EX-2) are logged inside, never block the interception
+    // decision. Hiview channel above is left untouched.
+    auto auditProxy = ISecurityAudit::GetInstance();
+    if (auditProxy != nullptr) {
+        auditProxy->ReportInterceptEventAsync(eventInfo);
+    } else {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "security audit proxy unavailable, skip parallel report (EX-1)");
+    }
 }
 
 void AbilityEventUtil::SendKillProcessWithReasonEvent(int32_t errCode, const std::string &errMsg, EventInfo &eventInfo)

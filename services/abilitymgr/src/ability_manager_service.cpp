@@ -2502,6 +2502,12 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto eventInfo = BuildEventInfo(want, userId);
+    // isPreload from isPreloadStart source-of-truth (design DD-2, spec AC-2.1/AC-2.2):
+    // distinguishes user-initiated vs system preload start so the security audit
+    // parallel report and Hiview carry the correct isPreload value.
+    if (startOptions.processOptions != nullptr) {
+        eventInfo->isPreload = startOptions.processOptions->isPreloadStart;
+    }
     int32_t oriValidUserId = GetValidUserId(userId);
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
     CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), oriValidUserId),

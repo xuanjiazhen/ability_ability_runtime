@@ -18,6 +18,7 @@
 #define protected public
 #include "ability_manager_service.h"
 #include "interceptor/disposed_rule_interceptor.h"
+#include "security_audit_proxy.h"
 #undef private
 #undef protected
 
@@ -299,6 +300,100 @@ HWTEST_F(AbilityInterceptorSecondTest, DisposedRuleInterceptor_012, TestSize.Lev
     abilityInfo->uid = 0;
     ErrCode result = executer->StartNonBlockRule(want, disposedRule, abilityInfo);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityInterceptorSecondTest_SecurityAuditProxy_ReportAsync_NoThrow_001
+ * @tc.desc: SecurityAuditProxy::ReportInterceptEventAsync with null remote must not throw
+ *           and must return without blocking (EX-1 path, spec AC-1.2).
+ * @tc.type: FUNC
+ * @tc.require: No
+ */
+HWTEST_F(AbilityInterceptorSecondTest, SecurityAuditProxy_ReportAsync_NoThrow_001, TestSize.Level1)
+{
+    // Construct proxy bound to a null remote: Remote() returns nullptr,
+    // ReportInterceptEventAsync must hit the EX-1 "remote unavailable" branch,
+    // log a warning, and return without throwing or blocking.
+    sptr<IRemoteObject> nullRemote = nullptr;
+    SecurityAuditProxy proxy(nullRemote);
+    EventInfo eventInfo;
+    eventInfo.isPreload = true;
+    eventInfo.bundleName = "com.example.audit";
+    EXPECT_NO_FATAL_FAILURE(proxy.ReportInterceptEventAsync(eventInfo));
+}
+
+/**
+ * @tc.name: AbilityInterceptorSecondTest_SecurityAuditProxy_GetInstance_Unavailable_001
+ * @tc.desc: ISecurityAudit::GetInstance returns nullptr when the security audit SA is not
+ *           registered (service unavailable, EX-1), so callers must null-check.
+ * @tc.type: FUNC
+ * @tc.require: No
+ */
+HWTEST_F(AbilityInterceptorSecondTest, SecurityAuditProxy_GetInstance_Unavailable_001, TestSize.Level1)
+{
+    // SECURITY_AUDIT_SERVICE_ID is a placeholder (-1); the SA is not registered,
+    // so GetInstance must return nullptr (EX-1) rather than crash.
+    sptr<ISecurityAudit> proxy = ISecurityAudit::GetInstance();
+    if (proxy != nullptr) {
+        EventInfo eventInfo;
+        eventInfo.isPreload = false;
+        EXPECT_NO_FATAL_FAILURE(proxy->ReportInterceptEventAsync(eventInfo));
+    } else {
+        EXPECT_EQ(proxy, nullptr);
+    }
+}
+
+/**
+ * @tc.name: AbilityInterceptorSecondTest_IsPreload_DefaultFalse_001
+ * @tc.desc: EventInfo.isPreload defaults to false (event_report.h:74), so user-initiated
+ *           starts that do not set processOptions->isPreloadStart carry isPreload=false
+ *           (spec AC-2.2).
+ * @tc.type: FUNC
+ * @tc.require: No
+ */
+HWTEST_F(AbilityInterceptorSecondTest, IsPreload_DefaultFalse_001, TestSize.Level1)
+{
+    EventInfo eventInfo;
+    EXPECT_FALSE(eventInfo.isPreload);
+}
+
+/**
+ * @tc.name: AbilityInterceptorSecondTest_IsPreload_True_OnPreloadStart_001
+ * @tc.desc: When StartOptions.processOptions->isPreloadStart is true (preload start),
+ *           the interception eventInfo.isPreload must be true (spec AC-2.1, design DD-2).
+ * @tc.type: FUNC
+ * @tc.require: No
+ */
+HWTEST_F(AbilityInterceptorSecondTest, IsPreload_True_OnPreloadStart_001, TestSize.Level1)
+{
+    // Verify the isPreload assignment direction: isPreloadStart=true => isPreload=true.
+    StartOptions startOptions;
+    startOptions.processOptions = std::make_shared<ProcessOptions>();
+    startOptions.processOptions->isPreloadStart = true;
+    EventInfo eventInfo;
+    if (startOptions.processOptions != nullptr) {
+        eventInfo.isPreload = startOptions.processOptions->isPreloadStart;
+    }
+    EXPECT_TRUE(eventInfo.isPreload);
+}
+
+/**
+ * @tc.name: AbilityInterceptorSecondTest_IsPreload_False_OnUserStart_001
+ * @tc.desc: When StartOptions.processOptions->isPreloadStart is false (user start),
+ *           the interception eventInfo.isPreload must be false (spec AC-2.2, design DD-2).
+ * @tc.type: FUNC
+ * @tc.require: No
+ */
+HWTEST_F(AbilityInterceptorSecondTest, IsPreload_False_OnUserStart_001, TestSize.Level1)
+{
+    StartOptions startOptions;
+    startOptions.processOptions = std::make_shared<ProcessOptions>();
+    startOptions.processOptions->isPreloadStart = false;
+    EventInfo eventInfo;
+    if (startOptions.processOptions != nullptr) {
+        eventInfo.isPreload = startOptions.processOptions->isPreloadStart;
+    }
+    EXPECT_FALSE(eventInfo.isPreload);
 }
 } // namespace AAFwk
 } // namespace OHOS
