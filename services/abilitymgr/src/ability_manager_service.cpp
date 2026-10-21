@@ -16825,9 +16825,13 @@ void AbilityManagerService::RecordAppRestartExitReason(bool isAppRecovery, int32
     if (isAppRecovery) {
         return;
     }
+    if (appExitReasonHelper_ == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "RecordAppRestartExitReason failed, appExitReasonHelper_ is null");
+        return;
+    }
     int32_t killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESTART;
     AAFwk::ExitReasonCompability exitReason(killId);
-    auto result = IN_PROCESS_CALL(RecordAppWithReason(callerPid, callerUid, exitReason));
+    auto result = appExitReasonHelper_->RecordAppWithReason(callerPid, callerUid, exitReason, callerPid);
     if (result != ERR_OK) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "RecordAppRestartExitReason failed, result: %{public}d", result);
     }
