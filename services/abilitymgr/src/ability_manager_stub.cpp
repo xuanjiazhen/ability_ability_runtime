@@ -5869,7 +5869,13 @@ int32_t AbilityManagerStub::GetKioskStatusInner(MessageParcel &data, MessageParc
         return ERR_WRITE_KIOSK_STATUS_FAILED;
     }
 
-    if (!reply.WriteRemoteObject(kioskStatus.kioskToken_)) {
+    // kioskToken_ is optional: when null (kiosk mode inactive or GetKioskStatus failed), skip the
+    // write entirely because WriteRemoteObject(nullptr) always returns false without writing any
+    // byte. The peer AbilityManagerProxy::GetKioskStatus reads the token unconditionally via
+    // ReadRemoteObject(), which fails in Parcel::CheckOffsets() WITHOUT consuming bytes when no
+    // object exists at the read cursor, so its subsequent ReadInt32() still gets the result code.
+    // Keep this conditional-write contract in sync with the proxy side when changing this reply.
+    if (kioskStatus.kioskToken_ != nullptr && !reply.WriteRemoteObject(kioskStatus.kioskToken_)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
         return ERR_WRITE_CALLER_TOKEN_FAILED;
     }
