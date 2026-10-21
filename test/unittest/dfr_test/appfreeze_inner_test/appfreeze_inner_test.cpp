@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <chrono>
 
 #define private public
 #include "appfreeze_inner.h"
@@ -1120,5 +1121,6 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_IsAsanEnabled_002, TestSize.Level1)
     EXPECT_EQ(ret, true);
     GTEST_LOG_(INFO) << "AppfreezeInner_IsAsanEnabled_002 end";
 }
+
 }  // namespace AppExecFwk
 }  // namespace OHOS
