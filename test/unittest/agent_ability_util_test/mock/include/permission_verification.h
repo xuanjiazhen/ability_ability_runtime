@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H
 #define OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H
 
+#include <set>
 #include <string>
 #include "want.h"
 
@@ -46,6 +47,7 @@ public:
     bool IsShellCall() const;
     bool IsShellCallByTokenId(uint32_t callerTokenId) const;
     bool CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const;
+    bool CheckSpecificSystemAbilityAccessPermission(const std::set<std::string> &processNames) const;
     bool VerifyRunningInfoPerm() const;
     bool VerifyControllerPerm() const;
     bool VerifyDlpPermission(Want &want) const;

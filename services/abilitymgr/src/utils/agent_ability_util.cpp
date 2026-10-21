@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <set>
+
 #include "utils/agent_ability_util.h"
 
 #include "ability_manager_errors.h"
@@ -26,6 +28,11 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 constexpr const char* FOUNDATION_PROCESS_NAME = "foundation";
+constexpr const char* SUBFOUNDATION_PROCESS_NAME = "subfoundation";
+const std::set<std::string> FOUNDATION_AND_SUBFOUNDATION_PROCESS_NAMES = {
+    FOUNDATION_PROCESS_NAME,
+    SUBFOUNDATION_PROCESS_NAME,
+};
 }
 
 bool AgentAbilityUtil::IsAgentExtensionType(AppExecFwk::ExtensionAbilityType extensionType)
@@ -90,9 +97,10 @@ int32_t AgentAbilityUtil::CheckAgentConnectEntry(const Want &want, AppExecFwk::E
 {
     if (IsAgentExtensionType(extensionType)) {
         bool isFoundationCall =
-            PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME);
+            PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+                FOUNDATION_AND_SUBFOUNDATION_PROCESS_NAMES);
         if (!isFoundationCall) {
-            TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT connect only accepts foundation process callers");
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT connect only accepts foundation/subfoundation process callers");
             return CHECK_PERMISSION_FAILED;
         }
         if (want.GetStringParam(AgentRuntime::AGENTID_KEY).empty() ||
