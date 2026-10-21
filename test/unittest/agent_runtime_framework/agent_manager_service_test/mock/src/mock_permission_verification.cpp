@@ -52,5 +52,10 @@ bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const st
 {
     return AgentRuntime::MyFlag::retCheckSpecificSystemAbilityAccessPermission;
 }
+
+bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const std::set<std::string> &) const
+{
+    return AgentRuntime::MyFlag::retCheckSpecificSystemAbilityAccessPermission;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

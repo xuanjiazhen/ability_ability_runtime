@@ -1,0 +1,140 @@
+﻿diff --git a/services/abilitymgr/src/utils/agent_ability_util.cpp b/services/abilitymgr/src/utils/agent_ability_util.cpp
+index 6e782074e7..1375be0d34 100644
+--- a/services/abilitymgr/src/utils/agent_ability_util.cpp
++++ b/services/abilitymgr/src/utils/agent_ability_util.cpp
+@@ -13,8 +13,6 @@
+  * limitations under the License.
+  */
+ 
+-#include <set>
+-
+ #include "utils/agent_ability_util.h"
+ 
+ #include "ability_manager_errors.h"
+@@ -27,12 +25,7 @@
+ namespace OHOS {
+ namespace AAFwk {
+ namespace {
+-constexpr const char* FOUNDATION_PROCESS_NAME = "foundation";
+ constexpr const char* SUBFOUNDATION_PROCESS_NAME = "subfoundation";
+-const std::set<std::string> FOUNDATION_AND_SUBFOUNDATION_PROCESS_NAMES = {
+-    FOUNDATION_PROCESS_NAME,
+-    SUBFOUNDATION_PROCESS_NAME,
+-};
+ }
+ 
+ bool AgentAbilityUtil::IsAgentExtensionType(AppExecFwk::ExtensionAbilityType extensionType)
+@@ -96,11 +89,11 @@ int64_t AgentAbilityUtil::GetAgentVerificationNonceParam(const Want &want)
+ int32_t AgentAbilityUtil::CheckAgentConnectEntry(const Want &want, AppExecFwk::ExtensionAbilityType extensionType)
+ {
+     if (IsAgentExtensionType(extensionType)) {
+-        bool isFoundationCall =
++        bool isSubfoundationCall =
+             PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+-                FOUNDATION_AND_SUBFOUNDATION_PROCESS_NAMES);
+-        if (!isFoundationCall) {
+-            TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT connect only accepts foundation/subfoundation process callers");
++                SUBFOUNDATION_PROCESS_NAME);
++        if (!isSubfoundationCall) {
++            TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT connect only accepts subfoundation process caller");
+             return CHECK_PERMISSION_FAILED;
+         }
+         if (want.GetStringParam(AgentRuntime::AGENTID_KEY).empty() ||
+diff --git a/test/unittest/agent_ability_util_test/agent_ability_util_test.cpp b/test/unittest/agent_ability_util_test/agent_ability_util_test.cpp
+index 006b385138..b7a1d46bcb 100644
+--- a/test/unittest/agent_ability_util_test/agent_ability_util_test.cpp
++++ b/test/unittest/agent_ability_util_test/agent_ability_util_test.cpp
+@@ -48,8 +48,16 @@ public:
+ 
+ class AgentAbilityUtilTest : public testing::Test {
+ public:
+-    void SetUp() override { g_mockGrantFoundationPermission = false; }
+-    void TearDown() override { g_mockGrantFoundationPermission = false; }
++    void SetUp() override
++    {
++        g_mockGrantFoundationPermission = false;
++        g_mockCallerProcessName = "subfoundation";
++    }
++    void TearDown() override
++    {
++        g_mockGrantFoundationPermission = false;
++        g_mockCallerProcessName = "subfoundation";
++    }
+ };
+ 
+ // ===================== IsAgentExtensionType =====================
+@@ -224,6 +232,16 @@ HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntryAgentNoPermissionReturnsChe
+         CHECK_PERMISSION_FAILED);
+ }
+ 
++HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntryAgentFoundationCallerRejected, TestSize.Level1)
++{
++    // AGENT connect must only be initiated by subfoundation; foundation caller is rejected.
++    g_mockGrantFoundationPermission = true;
++    g_mockCallerProcessName = "foundation";
++    Want want;
++    EXPECT_EQ(AgentAbilityUtil::CheckAgentConnectEntry(want, ExtensionAbilityType::AGENT),
++        CHECK_PERMISSION_FAILED);
++}
++
+ HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntryAgentInvalidParamsReturnsInvalidValue, TestSize.Level1)
+ {
+     g_mockGrantFoundationPermission = true;
+@@ -321,7 +339,8 @@ HWTEST_F(AgentAbilityUtilTest, CheckSpecificSystemAbilityAccessPermissionSetDeni
+ HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntrySubfoundationGrantedProceedsToParamCheck, TestSize.Level1)
+ {
+     g_mockGrantFoundationPermission = true;
++    g_mockCallerProcessName = "subfoundation";
+     Want want;
+-    // Permission granted via set overload; params invalid => ERR_INVALID_VALUE (not CHECK_PERMISSION_FAILED).
++    // Subfoundation caller passes the permission gate; params invalid => ERR_INVALID_VALUE.
+     EXPECT_EQ(AgentAbilityUtil::CheckAgentConnectEntry(want, ExtensionAbilityType::AGENT), ERR_INVALID_VALUE);
+ }
+diff --git a/test/unittest/agent_ability_util_test/mock/include/permission_verification.h b/test/unittest/agent_ability_util_test/mock/include/permission_verification.h
+index 77cc1afda4..d33caec688 100644
+--- a/test/unittest/agent_ability_util_test/mock/include/permission_verification.h
++++ b/test/unittest/agent_ability_util_test/mock/include/permission_verification.h
+@@ -72,8 +72,13 @@ public:
+     bool IsSystemAppCall() const;
+ };
+ 
+-// Test-only control: when true, CheckSpecificSystemAbilityAccessPermission returns true.
++// Test-only controls:
++// - g_mockGrantFoundationPermission: master grant flag.
++// - g_mockCallerProcessName: simulates the caller's native-token process name;
++//   CheckSpecificSystemAbilityAccessPermission returns true only when the
++//   input name matches g_mockCallerProcessName and the master flag is set.
+ extern bool g_mockGrantFoundationPermission;
++extern std::string g_mockCallerProcessName;
+ 
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/test/unittest/agent_ability_util_test/mock/src/mock_permission_verification.cpp b/test/unittest/agent_ability_util_test/mock/src/mock_permission_verification.cpp
+index d102f83b20..465cd540e3 100644
+--- a/test/unittest/agent_ability_util_test/mock/src/mock_permission_verification.cpp
++++ b/test/unittest/agent_ability_util_test/mock/src/mock_permission_verification.cpp
+@@ -19,6 +19,7 @@ namespace OHOS {
+ namespace AAFwk {
+ 
+ bool g_mockGrantFoundationPermission = false;
++std::string g_mockCallerProcessName = "subfoundation";
+ 
+ bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName,
+     const uint32_t specifyTokenId) const
+@@ -32,13 +33,14 @@ bool PermissionVerification::IsShellCallByTokenId(uint32_t callerTokenId) const
+ 
+ bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const
+ {
+-    return g_mockGrantFoundationPermission;
++    return g_mockGrantFoundationPermission && processName == g_mockCallerProcessName;
+ }
+ 
+ bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(
+     const std::set<std::string> &processNames) const
+ {
+-    return g_mockGrantFoundationPermission;
++    return g_mockGrantFoundationPermission &&
++        processNames.find(g_mockCallerProcessName) != processNames.end();
+ }
+ 
+ bool PermissionVerification::VerifyRunningInfoPerm() const { return false; }

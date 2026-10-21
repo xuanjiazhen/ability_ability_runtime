@@ -38,6 +38,11 @@ const int32_t SHELL_START_EXTENSION_FLOOR = 0; // FORM
 const int32_t SHELL_START_EXTENSION_CEIL = 21; // EMBEDDED_UI
 const int32_t TOKEN_ID_BIT_SIZE = 32;
 const std::string FOUNDATION_PROCESS_NAME = "foundation";
+const std::string SUBFOUNDATION_PROCESS_NAME = "subfoundation";
+const std::set<std::string> FOUNDATION_AND_SUBFOUNDATION_PROCESS_NAMES = {
+    FOUNDATION_PROCESS_NAME,
+    SUBFOUNDATION_PROCESS_NAME,
+};
 const std::string DEVELOPER_MODE_STATE = "const.security.developermode.state";
 const std::set<std::string> OBSERVER_NATIVE_CALLER = {
     "memmgrservice",
@@ -128,6 +133,25 @@ bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const st
     Security::AccessToken::NativeTokenInfo nativeTokenInfo;
     int32_t result = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(callerToken, nativeTokenInfo);
     if (result != ERR_OK || nativeTokenInfo.processName != processName) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "check process fail");
+        return false;
+    }
+    return true;
+}
+
+bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(
+    const std::set<std::string> &processNames) const
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::DEFAULT, "called");
+    if (!IsSACall()) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "verify fail");
+        return false;
+    }
+    auto callerToken = GetCallingTokenID();
+    Security::AccessToken::NativeTokenInfo nativeTokenInfo;
+    int32_t result = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(callerToken, nativeTokenInfo);
+    if (result != ERR_OK || processNames.find(nativeTokenInfo.processName) == processNames.end()) {
         TAG_LOGE(AAFwkTag::DEFAULT, "check process fail");
         return false;
     }
@@ -312,7 +336,7 @@ int PermissionVerification::CheckCallDataAbilityPermission(const VerificationInf
 int PermissionVerification::CheckCallServiceAbilityPermission(const VerificationInfo &verificationInfo,
     uint32_t specifyTokenId) const
 {
-    if (CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)) {
+    if (CheckSpecificSystemAbilityAccessPermission(FOUNDATION_AND_SUBFOUNDATION_PROCESS_NAMES)) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Allow fms to connect service ability");
         return ERR_OK;
     }
