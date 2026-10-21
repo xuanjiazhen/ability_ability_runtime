@@ -132,6 +132,46 @@ HWTEST_F(DumpRuntimeHelperTest, DumpCjHeap_0300, Function | MediumTest | Level1)
 }
 
 /**
+ * @tc.number: DumpKmpKotlinHeap_0100
+ * @tc.name: DumpKmpKotlinHeap
+ * @tc.desc: Test whether DumpKmpKotlinHeap snapshot path is called normally.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DumpKmpKotlinHeap_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpKmpKotlinHeap_0100 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    EXPECT_NE(application, nullptr);
+    OHOS::AppExecFwk::MemDumpInfo info;
+    info.pid = 1;
+    info.dumpType = OHOS::AppExecFwk::MemDumpType::KMP_KOTLIN;
+    info.needGc = false;
+    info.needDump = true;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    helper->DumpKmpKotlinHeap(info);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpKmpKotlinHeap_0100 end";
+}
+
+/**
+ * @tc.number: DumpKmpKotlinHeap_0200
+ * @tc.name: DumpKmpKotlinHeap
+ * @tc.desc: Test whether DumpKmpKotlinHeap gc path is called normally.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DumpKmpKotlinHeap_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpKmpKotlinHeap_0200 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    EXPECT_NE(application, nullptr);
+    OHOS::AppExecFwk::MemDumpInfo info;
+    info.pid = 1;
+    info.dumpType = OHOS::AppExecFwk::MemDumpType::KMP_KOTLIN;
+    info.needGc = true;
+    info.needDump = false;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    helper->DumpKmpKotlinHeap(info);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpKmpKotlinHeap_0200 end";
+}
+
+/**
  * @tc.number: DumpMem_0100
  * @tc.name: DumpMem
  * @tc.desc: Test whether DumpMem and are called normally.
