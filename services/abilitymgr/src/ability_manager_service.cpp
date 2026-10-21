@@ -15029,6 +15029,35 @@ int32_t AbilityManagerService::SetGamePreLaunchCompleteTime(int32_t userId, int6
     return uiAbilityManager->SetGamePreLaunchCompleteTime(completeTime);
 }
 
+int32_t AbilityManagerService::ExtendGamePreLaunchTimeout(int32_t userId, int64_t extendTime)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ExtendGamePreLaunchTimeout called, userId: %{public}d, extendTime: %{public}" PRId64,
+        userId, extendTime);
+
+    if (IPCSkeleton::GetCallingUid() != AbilityRuntime::GlobalConstant::GAME_SA_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "verify game SA failed");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    constexpr int64_t MIN_EXTEND_TIME = 30 * 1000 * 1000; // 30s in microseconds
+    constexpr int64_t MAX_EXTEND_TIME = 4LL * 60 * 60 * 1000 * 1000; // 4h in microseconds
+    if (extendTime <= MIN_EXTEND_TIME || extendTime >= MAX_EXTEND_TIME) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid extendTime, out of range (30s, 4h)");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scene board not enabled");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+
+    return uiAbilityManager->ExtendGamePreLaunchTimeout(extendTime);
+}
+
 int AbilityManagerService::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isTerminate)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
