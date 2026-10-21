@@ -121,11 +121,10 @@ HWTEST_F(AppExitReasonHelperTest, RecordKillCallerInfo_0100, TestSize.Level1)
     std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;
     appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(subManagersHelper_);
 
-    appExitReasonHelper_->RecordKillCallerInfo(0, 1234);
-    appExitReasonHelper_->RecordKillCallerInfo(-1, 1234);
-    appExitReasonHelper_->RecordKillCallerInfo(1, 1234);
-    appExitReasonHelper_->RecordKillCallerInfo(1, -1);
-    EXPECT_TRUE(true);
+    EXPECT_EQ(appExitReasonHelper_->RecordKillCallerInfo(0, 1234), ERR_INVALID_VALUE);
+    EXPECT_EQ(appExitReasonHelper_->RecordKillCallerInfo(-1, 1234), ERR_INVALID_VALUE);
+    EXPECT_EQ(appExitReasonHelper_->RecordKillCallerInfo(1, -1), ERR_INVALID_VALUE);
+    EXPECT_NE(appExitReasonHelper_->RecordKillCallerInfo(1, 1234), ERR_OK);
 }
 
 /**

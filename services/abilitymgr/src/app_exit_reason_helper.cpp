@@ -549,18 +549,19 @@ int32_t AppExitReasonHelper::RecordUIAbilityExitReason(const pid_t pid, const st
     return ERR_OK;
 }
 
-void AppExitReasonHelper::RecordKillCallerInfo(const pid_t pid, int32_t callerPid)
+int32_t AppExitReasonHelper::RecordKillCallerInfo(const pid_t pid, int32_t callerPid)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "pid:%{public}d, callerPid:%{public}d", pid, callerPid);
-    if (pid <= 0) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid pid:%{public}d", pid);
-        return;
+    if (pid <= 0 || callerPid <= 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid pid:%{public}d, callerPid:%{public}d", pid, callerPid);
+        return ERR_INVALID_VALUE;
     }
     int32_t ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReasonCompability(
         pid, DEFAULT_INVAL_VALUE, "", "", static_cast<int32_t>(Reason::REASON_UNKNOWN), callerPid);
     if (ret != ERR_OK) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "record kill caller info failed, pid:%{public}d, ret:%{public}d", pid, ret);
     }
+    return ret;
 }
 
 void AppExitReasonHelper::GetRunningProcessInfo(int32_t pid, int32_t userId, const std::string &bundleName,

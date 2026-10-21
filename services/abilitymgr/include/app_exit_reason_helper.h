@@ -51,7 +51,7 @@ public:
     int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason);
     int32_t RecordUIAbilityExitReason(const pid_t pid, const std::string &abilityName, const ExitReason &exitReason,
         int32_t callerPid = DEFAULT_INVAL_VALUE);
-    void RecordKillCallerInfo(const pid_t pid, int32_t callerPid);
+    int32_t RecordKillCallerInfo(const pid_t pid, int32_t callerPid);
     int32_t RecordProcessExitReasonForTimeout(const AppExecFwk::AbilityInfo &abilityInfo, const ExitReason &exitReason,
         const std::vector<std::string> &abilityList, const AppExecFwk::RunningProcessInfo &processInfo);
     int32_t AddAppExitReason(const std::string &bundleName, int32_t pid, int32_t uid, int32_t appIndex,
