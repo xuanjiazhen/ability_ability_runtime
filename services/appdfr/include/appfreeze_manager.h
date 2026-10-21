@@ -18,9 +18,12 @@
 
 #include <sys/types.h>
 
+#include <atomic>
+#include <chrono>
 #include <fstream>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 #include <unordered_set>
@@ -31,22 +34,67 @@
 #include "fault_data.h"
 #include "freeze_util.h"
 #include "appfreeze_event_report.h"
+#include "appfreeze_info.h"
+
+namespace ffrt {
+template<typename R>
+class future;
+}
 
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
 namespace AppExecFwk {
-static constexpr int DEFAULT_APPFREEZE_REPORT_TIMES = 1;
-
 class AppfreezeManager : public std::enable_shared_from_this<AppfreezeManager> {
+private:
+    using AppFreezeInfo = OHOS::AppExecFwk::AppFreezeInfo;
+
 public:
+    using FreezeInfo = std::shared_ptr<AppFreezeInfo>;
+    using FreezeTask = std::function<void()>;
+    using FreezeProcess = std::function<void(const FreezeInfo&)>;
+    AppfreezeSubmitResult SubmitAppfreezeEvent(const FreezeInfo& info, FreezeProcess process,
+        const std::shared_ptr<AAFwk::TaskHandlerWrap>& handler);
+    FreezeInfo ClaimAppfreezeFeedback(int32_t pid, int32_t instanceId,
+        const std::string& marker, const std::string& eventName);
+    bool CanPublishAppfreeze(const FreezeInfo& info, int64_t now);
+    void CancelAppfreezeEvent(const FreezeInfo& info, bool withdraw = false);
+    void SetAppfreezeFeedbackTask(const FreezeInfo& info, FreezeTask cancel);
+    void RemoveAppfreezeInstance(const std::string& generation, int32_t instanceId);
+    void CloseAppfreezeEvents();
+
     struct AppInfo {
         bool isOccurException = false;
         bool isFrozen = false;
-        int pid;
-        int uid;
+        int pid = 0;
+        int uid = 0;
         std::string bundleName;
         std::string processName;
+        FreezeInfo request;
+        int32_t instanceId = 0;
+        bool focusFlag = false;
+        // Refresh the service-owned snapshot; optionally exclude a debugging process.
+        std::function<bool(AppInfo&, bool)> refresh;
+        std::function<void(const FaultData&, const AppInfo&, bool)> handleFault;
     };
+
+    FreezeInfo ReserveAppfreezeEvent(const AppInfo& appInfo, const AppfreezeObservation& observation,
+        int64_t now, const std::string& marker = {}, AppfreezeSubmitResult* result = nullptr);
+    AppfreezeSubmitResult SubmitAppfreezeEvent(const FreezeInfo& info, const AppInfo& appInfo,
+        FreezeProcess process, const std::shared_ptr<AAFwk::TaskHandlerWrap>& handler);
+    bool ProcessAppfreezeEvent(const FreezeInfo& info, const AppInfo& appInfo,
+        const FreezeTask& disposition);
+
+    int32_t SubmitAppfreezeFault(const FaultData& faultData, AppInfo appInfo,
+        const std::shared_ptr<AAFwk::TaskHandlerWrap>& handler, const FreezeInfo& reserved = nullptr,
+        bool saTimeout = false);
+    bool PrepareAppfreezeFeedback(const FaultData& faultData, int32_t pid, int32_t instanceId,
+        const std::shared_ptr<AAFwk::TaskHandlerWrap>& handler, FreezeInfo& reserved);
+    int32_t PrepareAppfreezeNotification(FaultData& faultData, AppInfo appInfo,
+        const std::shared_ptr<AAFwk::TaskHandlerWrap>& handler, FreezeInfo& reserved);
+    void TimeoutNotifyApp(const FaultData& faultData, AppInfo appInfo,
+        const std::shared_ptr<AAFwk::TaskHandlerWrap>& handler);
+    void ClearAppfreezeTasks(int32_t pid, int32_t uid, int32_t instanceId);
+    int GetExceptionTimerId(const std::function<void()>& fallback);
 
     enum TypeAttribute {
         NORMAL_TIMEOUT = 0,
@@ -105,6 +153,9 @@ public:
     static void DestroyInstance();
     int AppfreezeHandle(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     int AppfreezeHandleWithStack(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
+    bool CaptureAppfreeze(const FaultData& faultData,
+        const AppInfo& appInfo, const FreezeInfo& request, AppfreezeCaptureResult& result);
+    int ReportAppfreeze(const FaultData& faultData, const AppInfo& appInfo, const AppfreezeCaptureResult& result);
     int LifecycleTimeoutHandle(const ParamInfo& info, FreezeUtil::LifecycleFlow flow = FreezeUtil::LifecycleFlow());
     std::string WriteToFile(const std::string& fileName, const std::string& content);
     bool IsHandleAppfreeze(const std::string& bundleName);
@@ -136,6 +187,33 @@ public:
     bool IsValidFreezeTypeName(const std::string& freezeTypeName);
 
 private:
+    FreezeInfo ReserveAppfreezeTask(const FaultData& faultData, AppInfo& appInfo,
+        const std::string& marker, AppfreezeSubmitResult& result);
+    AppfreezeSubmitResult SubmitAppfreezeCapture(AppInfo appInfo, const FreezeInfo& request,
+        const std::shared_ptr<AAFwk::TaskHandlerWrap>& handler, bool saTimeout);
+    void ExpireAppfreezeEvents(int64_t now);
+    void ScheduleAppfreezeMaintenance();
+    bool IsAppfreezeEventTrackedLocked(const FreezeInfo& info) const;
+    void InitAppfreezeObservation(const FreezeInfo& info, const AppfreezeObservation& observation);
+    FreezeInfo GetAppfreezeApplicationLocked(const FreezeInfo& info);
+    FreezeInfo FindAppfreezeHalfLocked(const FreezeInfo& info, const FreezeInfo& current) const;
+    bool PrepareAppfreezeAdmissionLocked(const FreezeInfo& info, int64_t now, FreezeTask& cancelDiscardedFeedback);
+    bool PrepareAppfreezeCallbackLocked(const FreezeInfo& info, int64_t now);
+    AppfreezeSubmitResult EnqueueAppfreezeEventLocked(const FreezeInfo& info, int64_t now);
+    void WithdrawAppfreezeEventLocked(const FreezeInfo& info, const FreezeInfo& app);
+    void ObserveAppfreezeLocked(const FreezeInfo& info, int64_t now);
+    void ExpireAppfreezeHistoryLocked(int64_t now);
+    bool DispatchAppfreezeEvent(const FreezeInfo& info);
+    void RunAppfreezeEvent(const FreezeInfo& info, bool fallback = false);
+    void FinishAppfreezeEvent(const FreezeInfo& info);
+
+    std::mutex appfreezeEventMutex_;
+    std::map<std::string, FreezeInfo> appfreezeApps_;
+    std::multiset<int64_t> recentFreezes_;
+    uint64_t appfreezeTimerVersion_ = 0;
+    int64_t appfreezeTimerDeadline_ = 0;
+    int64_t lastAppfreezeEpisode_ = 0;
+
     struct DumpTiming {
         int result = -1;
         int64_t latency = -1;
@@ -170,13 +248,6 @@ private:
         int layer;
     };
 
-    struct AppFreezeInfo {
-        int64_t occurTime = 0;
-        int pid = 0;
-        int reportTimes = DEFAULT_APPFREEZE_REPORT_TIMES;
-        int state = 0;
-    };
-
     struct FreezeExcludedPidInfo {
         int32_t targetPid = 0;
         int32_t profilerPid = 0;
@@ -199,16 +270,26 @@ private:
         std::set<int>& asyncPids, AppfreezeManager::TerminalBinder& terminalBinder) const;
     void FindStackByPid(std::string& msg, int pid) const;
     std::pair<std::string, std::string> CatchJsonStacktrace(int pid, const std::string& faultType,
-        DumpTiming* timing = nullptr) const;
+        DumpTiming* timing = nullptr, bool fresh = false) const;
     std::string CatcherStacktrace(int pid, DumpTiming* timing = nullptr) const;
     FaultData GetFaultNotifyData(const FaultData& faultData, int pid);
     int AcquireStack(const FaultData& faultData, const AppInfo& appInfo, const std::string& memoryContent);
+    AppfreezeCaptureResult RunAppfreezeAttachments(const FaultData& faultData, int32_t pid, const FreezeInfo& request,
+        std::chrono::steady_clock::time_point deadline);
+    std::pair<std::string, std::string> CollectSyncBinderAttachment(const std::set<int>& syncPids,
+        TerminalBinder& terminalBinder, int32_t pid, const std::function<bool()>& cancelled, std::string& binderInfo);
+    __attribute__((visibility("hidden"))) ffrt::future<AppfreezeCaptureResult> CollectAppfreezeAttachments(
+        const FaultData& faultData, int32_t pid, const FreezeInfo& request,
+        std::chrono::steady_clock::time_point deadline);
+    __attribute__((visibility("hidden"))) std::string CollectBinderAttachment(const FaultData& faultData,
+        int32_t pid, const std::function<bool()>& cancelled);
     bool IsAncoProc(int pid);
     std::string GetAppfreezeInfoPath(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     int NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
         const std::string& binderInfo, const std::string& memoryContent);
     void CollectFreezeSysMemory(std::string& memoryContent);
     int MergeNotifyInfo(FaultData& faultNotifyData, const AppfreezeManager::AppInfo& appInfo);
+    void ExpireLogValidityLocked(int32_t pid, int64_t now, int64_t logChainTimeoutMs);
     void AppendLogValidity(FaultData& faultData, const AppInfo& appInfo);
     FaultData PrepareFaultNotifyData(const FaultData& faultData, int64_t processStart);
     std::string ParseDecToHex(uint64_t id);
@@ -259,6 +340,8 @@ private:
     std::map<std::string, AppFreezeInfo> freezeKillThreadMap_;
     mutable ffrt::mutex freezeExcludedPidMutex_;
     std::unordered_map<int32_t, FreezeExcludedPidInfo> freezeExcludedPidMap_;
+    // Includes queued collectors; only their actual completion releases capacity.
+    std::atomic<size_t> activeAttachments_ {0};
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

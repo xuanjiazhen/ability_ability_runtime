@@ -73,6 +73,9 @@ constexpr int BUSINESS_INPUT_BLOCK_TYPE = 7;
 constexpr int DUMP_MAIN_STACK_TIMEOUT = 1; // s
 constexpr int LAST_SAVE_MAIN_STACK_TIME = 3000; // ms
 constexpr uint64_t APP_INPUT_BLOCK_TIME = 8000; // ms
+#ifdef APP_NO_RESPONSE_DIALOG
+constexpr int64_t MAIN_FREEZE_CALLBACK_INTERVAL = 60000; // ms
+#endif
 }
 std::weak_ptr<EventHandler> AppfreezeInner::appMainHandler_;
 std::shared_ptr<AppfreezeInner> AppfreezeInner::instance_ = nullptr;
@@ -121,6 +124,33 @@ void AppfreezeInner::DestroyInstance()
 bool AppfreezeInner::IsHandleAppfreeze()
 {
     return !isAppDebug_;
+}
+
+bool AppfreezeInner::ClaimMainFreezeCallback(const std::string& eventName)
+{
+    if (eventName != AppFreezeType::THREAD_BLOCK_6S && eventName != AppFreezeType::APP_INPUT_BLOCK) {
+        return true;
+    }
+    const int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    auto previous = mainFreezeCallbackTime_.load();
+    do {
+#ifdef APP_NO_RESPONSE_DIALOG
+        if (previous >= 0 && now - previous < MAIN_FREEZE_CALLBACK_INTERVAL) {
+#else
+        if (previous >= 0) {
+#endif
+            return false;
+        }
+    } while (!mainFreezeCallbackTime_.compare_exchange_weak(previous, now));
+    return true;
+}
+
+void AppfreezeInner::ResetMainFreezeCallback()
+{
+#ifndef APP_NO_RESPONSE_DIALOG
+    mainFreezeCallbackTime_.store(-1);
+#endif
 }
 
 bool AppfreezeInner::IsProcessDebug(int32_t pid, std::string bundleName)
@@ -500,7 +530,7 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
     }
 }
 
-void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
+FaultData AppfreezeInner::CreateThreadBlockFault(bool isSixSecondEvent)
 {
     FaultData faultData;
     std::string faultTimeStr = "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
@@ -531,6 +561,13 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
         }
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
     }
+    return faultData;
+}
+
+void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
+{
+    auto faultData = CreateThreadBlockFault(isSixSecondEvent);
+    const int32_t pid = static_cast<int32_t>(getpid());
     std::string bundleName = GetBundleNameByApplication();
     if (IsAsanEnabled()) {
         TAG_LOGI(AAFwkTag::APPMGR, "skip freeze detect cause asan enable, bundleName:%{public}s, pid:%{public}d",
@@ -540,6 +577,9 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
     if (!IsHandleAppfreeze() || IsProcessDebug(pid, bundleName)) {
         TAG_LOGW(AAFwkTag::APPDFR, "don't report event and kill, pid:%{public}d, bundleName:%{public}s",
             pid, bundleName.c_str());
+        return;
+    }
+    if (!ClaimMainFreezeCallback(faultData.errorObject.name)) {
         return;
     }
     std::string msgContent;
@@ -607,6 +647,9 @@ int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThr
         TAG_LOGW(AAFwkTag::APPDFR, "don't report event and kill, pid:%{public}d, bundleName:%{public}s",
             pid, bundleName.c_str());
         return -1;
+    }
+    if (!ClaimMainFreezeCallback(faultData.errorObject.name)) {
+        return ERR_OK;
     }
     auto watchdogTask = [faultData, onlyMainThread, this] { this->ReportAppfreezeTask(faultData, onlyMainThread); };
     OHOS::HiviewDFX::Watchdog::GetInstance().RunOneShotTask("ReportAppfreezeInnerTask", watchdogTask);
@@ -695,51 +738,22 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
 void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent, uint64_t schedTime,
     uint64_t now, bool isInBackground)
 {
-    FaultData faultData;
-    std::string faultTimeStr = "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
-    faultData.errorObject.message = faultTimeStr;
-    faultData.errorObject.message += "App main thread is not response!";
-    bool onlyMainThread = false;
-    int32_t pid = static_cast<int32_t>(getpid());
-    faultData.pid = pid;
-    faultData.schedTime = schedTime;
-    faultData.detectTime = now;
-    faultData.appStatus = isInBackground ? AppStatus::APP_STATUS_BACKGROUND : AppStatus::APP_STATUS_FOREGROUND;
-
-    if (isSixSecondEvent) {
-        faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
-        onlyMainThread = true;
+    const bool onlyMainThread = isSixSecondEvent.load();
+    if (onlyMainThread) {
 #ifdef APP_NO_RESPONSE_DIALOG
         isSixSecondEvent.store(false);
 #endif
-        faultData.procStatm = GetProcStatm(pid);
-        if (BETA_VERSION) {
-            std::string packageName = "";
-            auto hisyseventReport = std::make_shared<HisyseventReport>(3);
-            hisyseventReport->InsertParam("PID", pid);
-            hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
-            hisyseventReport->InsertParam("FAULT_TIME", faultTimeStr);
-            int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
-            faultData.errorObject.message += (ret == 0) ? "FREEZE_HALF_HIVIEW_LOG write success" : "";
-        }
     } else {
-        if (!BETA_VERSION) {
-            std::string packageName = "";
-            auto hisyseventReport = std::make_shared<HisyseventReport>(2);
-            hisyseventReport->InsertParam("PID", pid);
-            hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
-            int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
-            TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:,"
-                " ret:%{public}d", pid, ret);
-        }
-        faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
         isSixSecondEvent.store(true);
     }
-
+    auto faultData = CreateThreadBlockFault(onlyMainThread);
+    faultData.pid = static_cast<int32_t>(getpid());
+    faultData.schedTime = schedTime;
+    faultData.detectTime = now;
+    faultData.appStatus = isInBackground ? AppStatus::APP_STATUS_BACKGROUND : AppStatus::APP_STATUS_FOREGROUND;
     if (!IsHandleAppfreeze()) {
         return;
     }
-
     AppfreezeHandle(faultData, onlyMainThread);
 }
 
