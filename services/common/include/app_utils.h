@@ -325,6 +325,8 @@ public:
      */
     bool IsSupportAppServiceExtension();
 
+    bool IsAppServiceFullCapability();
+
     /**
      * IsPrepareTerminateEnabled, check if it supports prepare terminate.
      *
@@ -491,6 +493,8 @@ private:
     std::mutex isConnectSupportCrossUserMutex_;
     volatile DeviceConfiguration<bool> isConnectSupportCrossUser_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportAppServiceExtension_ = {false, false};
+    std::mutex appServiceFullCapabilityMutex_;
+    DeviceConfiguration<bool> appServiceFullCapability_ = {false, false};
     volatile DeviceConfiguration<bool> isGrantTempUriPermission_ = {false, true};
     volatile DeviceConfiguration<bool> isSupportStartAbilities_ = {false, false};
     volatile DeviceConfiguration<bool> isPreloadApplicationEnabled_ = {false, false};

@@ -64,6 +64,7 @@ ohos_unittest("ability_manager_service_sixth_test") {
     "${ability_runtime_services_path}/abilitymgr/src/utils/exit_reason_util.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/utils/request_id_util.cpp",
     "ability_manager_service_sixth_test.cpp",
+    "AppServiceProxyTest.cpp",
     "mock/src/mock_my_flag.cpp",
     "mock/src/mock_permission_verification.cpp",
     "mock/src/mock_parameters.cpp",
