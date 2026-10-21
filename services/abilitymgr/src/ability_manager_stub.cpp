@@ -1717,6 +1717,9 @@ int AbilityManagerStub::StartAbilityByUIContentSessionAddCallerInner(MessageParc
         }
     }
 
+    if (sessionInfo != nullptr) {
+        sessionInfo->want.AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
+    }
     int32_t userId = data.ReadInt32();
     int requestCode = data.ReadInt32();
     int32_t result = StartAbilityByUIContentSession(*want, callerToken, sessionInfo, userId, requestCode);
@@ -1754,6 +1757,9 @@ int AbilityManagerStub::StartAbilityByUIContentSessionForOptionsInner(MessagePar
             TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo null");
             return ERR_INVALID_VALUE;
         }
+    }
+    if (sessionInfo != nullptr) {
+        sessionInfo->want.AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     }
     int32_t userId = data.ReadInt32();
     int requestCode = data.ReadInt32();
@@ -2589,6 +2595,7 @@ int AbilityManagerStub::ContinueMissionInner(MessageParcel &data, MessageParcel 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null wantParams");
         return ERR_NULL_OBJECT;
     }
+    wantParams->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     int32_t result = ContinueMission(srcDeviceId, dstDeviceId, missionId, callback, *wantParams);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "result=%{public}d", result);
     return result;
@@ -2611,6 +2618,7 @@ int AbilityManagerStub::ContinueMissionOfBundleNameInner(MessageParcel &data, Me
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null wantParams");
         return ERR_NULL_OBJECT;
     }
+    wantParams->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     continueMissionInfo.wantParams = *wantParams;
     continueMissionInfo.srcBundleName = data.ReadString();
     continueMissionInfo.continueType = data.ReadString();
@@ -2643,6 +2651,7 @@ int AbilityManagerStub::StartContinuationInner(MessageParcel &data, MessageParce
         return ERR_NULL_OBJECT;
     }
     SanitizeWantParams(*want);
+    want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
 
     sptr<IRemoteObject> abilityToken = data.ReadRemoteObject();
     if (abilityToken == nullptr) {
@@ -3459,6 +3468,7 @@ int AbilityManagerStub::FreeInstallAbilityFromRemoteInner(MessageParcel &data, M
         return ERR_INVALID_VALUE;
     }
     SanitizeWantParams(*want);
+    want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     want->SetParam(FROM_REMOTE_KEY, true);
 
     auto callback = data.ReadRemoteObject();
@@ -3571,6 +3581,7 @@ int AbilityManagerStub::HandleRequestDialogService(MessageParcel &data, MessageP
         return ERR_INVALID_VALUE;
     }
     SanitizeWantParams(*want);
+    want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
 
     sptr<IRemoteObject> callerToken = data.ReadRemoteObject();
     if (!callerToken) {
@@ -3633,6 +3644,7 @@ int AbilityManagerStub::ShareDataDoneInner(MessageParcel &data, MessageParcel &r
         TAG_LOGE(AAFwkTag::ABILITYMGR, "wantParam read fail");
         return ERR_INVALID_VALUE;
     }
+    wantParam->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     int32_t result = ShareDataDone(token, resultCode, uniqueId, *wantParam);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
@@ -3666,6 +3678,7 @@ int AbilityManagerStub::ScheduleRecoverAbilityInner(MessageParcel &data, Message
     Want *want = data.ReadParcelable<Want>();
     if (want != nullptr) {
         SanitizeWantParams(*want);
+        want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     }
     ScheduleRecoverAbility(token, reason, want);
     if (want != nullptr) {
@@ -4571,6 +4584,7 @@ int32_t AbilityManagerStub::ExecuteIntentForDistributedInner(MessageParcel &data
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
         return ERR_INVALID_VALUE;
     }
+    want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
 
     std::string srcDeviceId = data.ReadString();
     if (srcDeviceId.empty()) {
@@ -4612,6 +4626,7 @@ int32_t AbilityManagerStub::ExecuteIntentByFunctionCallInner(MessageParcel &data
         TAG_LOGE(AAFwkTag::ABILITYMGR, "wantParam null");
         return ERR_INVALID_VALUE;
     }
+    wantParam->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     auto result = ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, *wantParam);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
@@ -4628,6 +4643,7 @@ int32_t AbilityManagerStub::ExecuteUIAbilityForegroundIntentWithSpecifyTokenIdIn
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
     }
+    want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     sptr<IRemoteObject> callerAbilityToken = data.ReadRemoteObject();
     std::unique_ptr<InsightIntentExecuteLiteParam> param(data.ReadParcelable<InsightIntentExecuteLiteParam>());
     if (param == nullptr) {
@@ -4911,6 +4927,7 @@ int32_t AbilityManagerStub::RequestAssertFaultDialogInner(MessageParcel &data, M
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null wantParams");
         return ERR_NULL_OBJECT;
     }
+    wantParams->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     auto result = RequestAssertFaultDialog(callback, *wantParams);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
@@ -5008,6 +5025,7 @@ int32_t AbilityManagerStub::RestartAppInner(MessageParcel &data, MessageParcel &
         return IPC_STUB_ERR;
     }
     SanitizeWantParams(*want);
+    want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     bool isAppRecovery = data.ReadBool();
     auto result = RestartApp(*want, isAppRecovery);
     if (!reply.WriteInt32(result)) {

@@ -32,6 +32,7 @@ int32_t StartSpecifiedAbilityResponseStub::HandleOnAcceptWantResponse(MessagePar
     auto flag = Str16ToStr8(data.ReadString16());
     auto requestId = data.ReadInt32();
     auto userId = data.ReadInt32();
+    want->AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     OnAcceptWantResponse(*want, flag, requestId, userId);
     delete want;
     return NO_ERROR;

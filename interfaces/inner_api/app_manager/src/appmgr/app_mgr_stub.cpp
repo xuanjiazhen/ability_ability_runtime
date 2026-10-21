@@ -554,6 +554,7 @@ int32_t AppMgrStub::HandleMakeImage(MessageParcel &data, MessageParcel &reply)
             return ERR_INVALID_VALUE;
         }
     }
+    want->AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     auto result = MakeImage(*want, userId, static_cast<PreloadMode>(preloadMode),
         appIndex, errorHandler);
     if (!reply.WriteInt32(result)) {
@@ -1194,6 +1195,7 @@ int32_t AppMgrStub::HandleStartUserTestProcess(MessageParcel &data, MessageParce
         return ERR_INVALID_VALUE;
     }
     int32_t userId = data.ReadInt32();
+    want->AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     int32_t result = StartUserTestProcess(*want, observer, *bundleInfo, userId);
     reply.WriteInt32(result);
     return result;
@@ -1623,6 +1625,7 @@ int32_t AppMgrStub::HandleStartNativeProcessForDebugger(MessageParcel &data, Mes
         TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
     }
+    want->AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     auto result = StartNativeProcessForDebugger(*want);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
@@ -2451,6 +2454,7 @@ int32_t AppMgrStub::HandleIsSpecifiedModuleLoaded(MessageParcel &data, MessagePa
         return ERR_INVALID_VALUE;
     }
 
+    want->AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     bool exist = false;
     bool isDebug = false;
     auto ret = IsSpecifiedModuleLoaded(*want, *abilityInfo, exist, isDebug);
@@ -2623,6 +2627,7 @@ int32_t AppMgrStub::HandlePreloadExtension(MessageParcel &data, MessageParcel &r
     }
     int32_t appIndex = data.ReadInt32();
     int32_t userId = data.ReadInt32();
+    want->AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     auto result = PreloadExtension(*want, appIndex, userId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Stub HandlePreloadExtension Write result failed.");
