@@ -14,6 +14,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <cstdio>
+#include <fstream>
+#include <iterator>
 
 #define private public
 #include "appfreeze_manager.h"
@@ -1440,6 +1443,128 @@ HWTEST_F(AppfreezeManagerTest, Req1DumpTimingMeasuresActualFailure, TestSize.Lev
     EXPECT_GE(timing.latency, 0);
     EXPECT_LE(timing.latency, elapsed);
     EXPECT_FALSE(stack.first.empty());
+}
+
+
+HWTEST_F(AppfreezeManagerTest, Req2CountIsOneTrailingItemAfterTheTimingChain, TestSize.Level1)
+{
+    AppfreezeManager::AppInfo app {false, false, 987659, 200011, "req2.count", "req2.count"};
+    FaultData half;
+    half.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
+    half.logValidity = "20:0:15:0";
+    app.request = std::make_shared<AppFreezeInfo>();
+    app.request->freezeCount1min = 1;
+    appfreezeManager->AppendLogValidity(half, app);
+    EXPECT_EQ(half.logValidity, "20:0:15:0|1");
+    FaultData fatal;
+    fatal.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    fatal.logValidity = "30:0:18:0";
+    app.request->freezeCount1min = 3;
+    appfreezeManager->AppendLogValidity(fatal, app);
+    EXPECT_EQ(fatal.logValidity, "20:0:15:0|30:0:18:0|3");
+    EXPECT_EQ(appfreezeManager->freezeLogInfo_.at(app.pid).validity, "20:0:15:0|30:0:18:0");
+    appfreezeManager->ClearLogValidity(app.pid);
+}
+
+HWTEST_F(AppfreezeManagerTest, Req2LogChainDoesNotStoreFaultCount, TestSize.Level1)
+{
+    AppfreezeManager::AppInfo app {false, false, 987654, 200011, "", "req2.test"};
+    app.request = std::make_shared<AppFreezeInfo>();
+    app.request->freezeCount1min = 1;
+    AppfreezeCaptureResult result;
+    result.stack = "shared-target-stack";
+    result.dumpResult = 0;
+    result.dumpLatency = 15;
+    result.processStart = 1000;
+    FaultData first;
+    first.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
+    first.detectTime = 980;
+    first.ipcLatency = 0;
+    appfreezeManager->ReportAppfreeze(first, app, result);
+    EXPECT_EQ(appfreezeManager->freezeLogInfo_.at(app.pid).validity, "20:0:15:0");
+    result.processStart = 1010;
+    app.request->freezeCount1min = 3;
+    FaultData second;
+    second.errorObject.name = AppFreezeType::LIFECYCLE_HALF_TIMEOUT;
+    second.detectTime = 980;
+    second.ipcLatency = 7;
+    appfreezeManager->ReportAppfreeze(second, app, result);
+    EXPECT_EQ(appfreezeManager->freezeLogInfo_.at(app.pid).validity, "20:0:15:0|30:0:15:7");
+    EXPECT_EQ(result.stack, "shared-target-stack");
+    appfreezeManager->ClearLogValidity(app.pid);
+}
+
+HWTEST_F(AppfreezeManagerTest, Req2MissingCountRemainsFourItems, TestSize.Level1)
+{
+    AppfreezeManager::AppInfo app {false, false, 987655, 200012, "", "req2.test"};
+    AppfreezeCaptureResult result;
+    result.processStart = 1000;
+    result.dumpResult = 0;
+    result.dumpLatency = 11;
+    FaultData fault;
+    fault.errorObject.name = AppFreezeType::LIFECYCLE_HALF_TIMEOUT;
+    fault.detectTime = 990;
+    fault.ipcLatency = -1;
+    appfreezeManager->ReportAppfreeze(fault, app, result);
+    EXPECT_EQ(appfreezeManager->freezeLogInfo_.at(app.pid).validity, "10:0:11:-1");
+    appfreezeManager->ClearLogValidity(app.pid);
+}
+
+HWTEST_F(AppfreezeManagerTest, Req2OriginalFreezeSuppressionDoesNotRefreshOnDrop, TestSize.Level1)
+{
+    const std::string key = "req2-filter-regression";
+    AppfreezeManager::AppFreezeInfo existing;
+    existing.state = AppfreezeManager::APPFREEZE_STATE_FREEZE;
+    existing.reportTimes = 2;
+    existing.occurTime = appfreezeManager->GetFreezeCurrentTime() - 12000;
+    appfreezeManager->appfreezeInfo_[key] = existing;
+    EXPECT_TRUE(appfreezeManager->CheckAppfreezeHappend(key, AppFreezeType::THREAD_BLOCK_6S));
+    EXPECT_TRUE(appfreezeManager->CheckAppfreezeHappend(key, AppFreezeType::LIFECYCLE_TIMEOUT));
+    EXPECT_EQ(appfreezeManager->appfreezeInfo_.at(key).occurTime, existing.occurTime);
+    appfreezeManager->appfreezeInfo_[key].occurTime = appfreezeManager->GetFreezeCurrentTime() - 61000;
+    EXPECT_FALSE(appfreezeManager->CheckAppfreezeHappend(key, AppFreezeType::LIFECYCLE_TIMEOUT));
+    EXPECT_GT(appfreezeManager->appfreezeInfo_.at(key).occurTime, existing.occurTime);
+    appfreezeManager->appfreezeInfo_.erase(key);
+    appfreezeManager->appInputBlockFreezeInfo_[key] = appfreezeManager->GetFreezeCurrentTime() - 12000;
+    const auto previous = appfreezeManager->appInputBlockFreezeInfo_.at(key);
+    EXPECT_TRUE(appfreezeManager->IsNeedIgnoreInputBlockEvent(key));
+    EXPECT_EQ(appfreezeManager->appInputBlockFreezeInfo_.at(key), previous);
+    appfreezeManager->appInputBlockFreezeInfo_.erase(key);
+}
+
+HWTEST_F(AppfreezeManagerTest, Req2LifecycleCaptureAlwaysCreatesFreshStackFiles, TestSize.Level1)
+{
+    AppfreezeManager::AppInfo app;
+    app.pid = 987654; // Deliberately absent: still exercise the real dump failure and file-writing path.
+    app.uid = 200031;
+    const std::string cached = "cached-half-stack-must-not-be-reused";
+    appfreezeManager->catchStackMap_[app.pid] = cached;
+    uint64_t sequence = 0;
+    for (const auto& name : {AppFreezeType::LIFECYCLE_HALF_TIMEOUT, AppFreezeType::LIFECYCLE_TIMEOUT,
+        AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING, AppFreezeType::LIFECYCLE_TIMEOUT_WARNING}) {
+        std::string previous;
+        for (int i = 0; i < 2; ++i) {
+            FaultData fault;
+            fault.faultType = FaultDataType::APP_FREEZE;
+            fault.errorObject.name = name;
+            auto info = std::make_shared<AppFreezeInfo>();
+            info->pid = app.pid;
+            info->requestId = ++sequence;
+            info->episodeId = "req2-lifecycle-test";
+            AppfreezeCaptureResult result;
+            ASSERT_TRUE(appfreezeManager->CaptureAppfreeze(fault, app, info, result));
+            EXPECT_FALSE(result.stack.empty());
+            EXPECT_NE(result.stack, previous);
+            std::ifstream file(result.stack);
+            EXPECT_TRUE(file.is_open());
+            const std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            EXPECT_EQ(content.find(cached), std::string::npos);
+            file.close();
+            previous = result.stack;
+            if (!result.stack.empty()) { std::remove(result.stack.c_str()); }
+        }
+    }
+    appfreezeManager->DeleteStack(app.pid);
 }
 
 }  // namespace AppExecFwk
