@@ -38,6 +38,7 @@ const int32_t SHELL_START_EXTENSION_FLOOR = 0; // FORM
 const int32_t SHELL_START_EXTENSION_CEIL = 21; // EMBEDDED_UI
 const int32_t TOKEN_ID_BIT_SIZE = 32;
 const std::string FOUNDATION_PROCESS_NAME = "foundation";
+const std::string SUBFOUNDATION_PROCESS_NAME = "subfoundation";
 const std::string DEVELOPER_MODE_STATE = "const.security.developermode.state";
 const std::set<std::string> OBSERVER_NATIVE_CALLER = {
     "memmgrservice",
@@ -312,7 +313,8 @@ int PermissionVerification::CheckCallDataAbilityPermission(const VerificationInf
 int PermissionVerification::CheckCallServiceAbilityPermission(const VerificationInfo &verificationInfo,
     uint32_t specifyTokenId) const
 {
-    if (CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)) {
+    if (CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME) ||
+        CheckSpecificSystemAbilityAccessPermission(SUBFOUNDATION_PROCESS_NAME)) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Allow fms to connect service ability");
         return ERR_OK;
     }
