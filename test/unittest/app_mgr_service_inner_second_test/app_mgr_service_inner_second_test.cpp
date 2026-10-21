@@ -14,17 +14,20 @@
  */
 
 #include <gtest/gtest.h>
+#include <deque>
+#include <future>
 
 #define private public
 #include "app_mgr_service_inner.h"
+#include "appfreeze_manager.h"
 #include "app_running_record.h"
 #include "app_utils.h"
 #include "remote_client_manager.h"
 #undef private
 #include "ability_manager_errors.h"
-#include "appfreeze_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_token.h"
+#include "mock_application.h"
 #include "mock_app_mgr_service_inner.h"
 #include "mock_ipc_skeleton.h"
 #include "mock_my_flag.h"
@@ -39,6 +42,7 @@
 #include "mock_ability_debug_response_stub.h"
 #include "mock_task_handler_wrap.h"
 #include "mock_parameters.h"
+#include "ffrt_task_utils_wrap.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1610,6 +1614,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_TransformedN
         TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
     appRecord->GetPriorityObject()->SetPid(TEST_PID_100);
     faultData.pid = TEST_PID_100;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
     ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
     EXPECT_EQ(ret, ERR_OK);
 
@@ -1650,6 +1655,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_TransformedN
     appRecord->GetPriorityObject()->SetPid(TEST_PID_100);
     faultData.pid = TEST_PID_100;
     faultData.faultType = FaultDataType::APP_FREEZE;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
     appMgrServiceInner->dfxTaskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("dfx_freeze_task_queue_test");
     int32_t ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
     EXPECT_EQ(ret, ERR_OK);
@@ -3164,6 +3170,11 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_007, Te
 }
 
 
+/**
+ * @tc.name: Req1NotificationCorrelationAndFrozenLatency
+ * @tc.desc: Verify GetAppFaultNotifyLatency parses notifyFault markers and CheckAppFault claims pending feedback.
+ * @tc.type: FUNC
+ */
 HWTEST_F(AppMgrServiceInnerSecondTest, Req1NotificationCorrelationAndFrozenLatency, TestSize.Level1)
 {
     auto service = std::make_shared<AppMgrServiceInner>();
@@ -3190,5 +3201,621 @@ HWTEST_F(AppMgrServiceInnerSecondTest, Req1NotificationCorrelationAndFrozenLaten
     EXPECT_EQ(report.ipcLatency, 250);
 }
 
+
+namespace {
+class FreezeRecordingHandler : public AAFwk::TaskHandlerWrap {
+public:
+    FreezeRecordingHandler() : TaskHandlerWrap("req2-recording") {}
+    std::vector<std::function<void()>> callbacks;
+    std::vector<AAFwk::TaskAttribute> attributes;
+    int cancelled = 0;
+    bool reject = false;
+    bool runImmediately = false;
+    std::function<bool(std::function<void()>)> capture;
+    std::shared_ptr<AAFwk::InnerTaskHandle> SubmitTaskInner(std::function<void()>&& task,
+        const AAFwk::TaskAttribute& attribute) override
+    {
+        if (reject) { return nullptr; }
+        if (attribute.taskName_ == "AppfreezeCapture" && capture) {
+            return capture(std::move(task)) ? std::make_shared<AAFwk::InnerTaskHandle>(ffrt::task_handle()) : nullptr;
+        }
+        callbacks.push_back(std::move(task));
+        attributes.push_back(attribute);
+        if (runImmediately) { callbacks.back()(); }
+        return std::make_shared<AAFwk::InnerTaskHandle>(ffrt::task_handle());
+    }
+    bool CancelTaskInner(const std::shared_ptr<AAFwk::InnerTaskHandle>&) override
+    {
+        ++cancelled;
+        return true;
+    }
+    void WaitTaskInner(const std::shared_ptr<AAFwk::InnerTaskHandle>&) override {}
+};
+
+std::shared_ptr<AppRunningRecord> MakeFreezeRecord(const std::shared_ptr<AppMgrServiceInner>& service,
+    int32_t recordId = 7001)
+{
+    if (recordId == 7001) { // 7001: test value
+        AppfreezeManager::DestroyInstance(); // Each simulated application starts with fresh filter state.
+    }
+    auto info = std::make_shared<ApplicationInfo>();
+    info->uid = 200031; // 200031: test value
+    info->bundleName = "req2.test";
+    auto record = std::make_shared<AppRunningRecord>(info, recordId, "req2.test");
+    record->SetUid(info->uid); // Production StartProcess sets the process UID separately from ApplicationInfo.
+    EXPECT_EQ(record->GetUid(), 200031); // 200031: test value
+    record->GetPriorityObject()->SetPid(987654); // 987654: test value
+    service->appRunningManager_->appRunningRecordMap_.emplace(recordId, record);
+    return record;
+}
+
+
+// Test driver only: production admission/execution belongs to AppfreezeManager.
+struct FreezeStateTestDriver {
+    using Task = std::function<void()>;
+    using Info = std::shared_ptr<AppFreezeInfo>;
+    std::shared_ptr<AppMgrServiceInner> service;
+    std::shared_ptr<AppfreezeManager> manager = AppfreezeManager::GetInstance();
+    std::function<int64_t()> clock;
+    explicit FreezeStateTestDriver(std::shared_ptr<AppMgrServiceInner> owner,
+        std::function<bool(Task)> capture = {}, std::function<int64_t()> now = {})
+        : service(std::move(owner)), clock(std::move(now))
+    {
+        if (!clock) { clock = [] { return std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count(); }; }
+        if (capture) {
+            auto handler = std::static_pointer_cast<FreezeRecordingHandler>(service->dfxTaskHandler_);
+            if (!handler) {
+                handler = std::make_shared<FreezeRecordingHandler>();
+                service->dfxTaskHandler_ = handler;
+            }
+            handler->capture = std::move(capture);
+        }
+    }
+    Info Reserve(int pid, int uid, const AppfreezeObservation& observation, const std::string& marker = "")
+    {
+        return manager->ReserveAppfreezeEvent({.pid = pid, .uid = uid}, observation, clock(), marker);
+    }
+    AppfreezeSubmitResult Submit(const Info& info, AppfreezeManager::FreezeProcess process)
+    { return manager->SubmitAppfreezeEvent(info, std::move(process), service->dfxTaskHandler_); }
+    Info ClaimFeedback(int pid, int instance, const std::string& marker, const std::string& event)
+    { return manager->ClaimAppfreezeFeedback(pid, instance, marker, event); }
+    bool CanPublish(const Info& info) { return manager->CanPublishAppfreeze(info, clock()); }
+    void Cancel(const Info& info, bool withdraw = false) { manager->CancelAppfreezeEvent(info, withdraw); }
+    void SetFeedbackTask(const Info& info, Task cancel) { manager->SetAppfreezeFeedbackTask(info, std::move(cancel)); }
+    void RemoveGeneration(const std::string& key, int instance) { manager->RemoveAppfreezeInstance(key, instance); }
+    void CloseAll() { manager->CloseAppfreezeEvents(); }
+    void Expire() { manager->ExpireAppfreezeEvents(clock()); }
+    size_t GenerationSize()
+    {
+        std::lock_guard<std::mutex> lock(manager->appfreezeEventMutex_);
+        size_t size = 0;
+        for (const auto& app : manager->appfreezeApps_) { size += app.second->groups_.size(); }
+        return size;
+    }
+    size_t RecentFreezeCount()
+    {
+        std::lock_guard<std::mutex> lock(manager->appfreezeEventMutex_);
+        return manager->recentFreezes_.size();
+    }
+    size_t PendingSize(const std::string& key)
+    {
+        std::lock_guard<std::mutex> lock(manager->appfreezeEventMutex_);
+        auto it = manager->appfreezeApps_.find(key);
+        if (it == manager->appfreezeApps_.end()) { return 0; }
+        size_t size = 0;
+        for (const auto& group : it->second->groups_) { size += group.second->pending_.size(); }
+        return size;
+    }
+};
+
+std::shared_ptr<FreezeStateTestDriver> FreezeState(const std::shared_ptr<AppMgrServiceInner>& service)
+{
+    return std::make_shared<FreezeStateTestDriver>(service);
+}
+
+void ExpectTerminationClosesFreeze(const std::function<void(const std::shared_ptr<AppMgrServiceInner>&,
+    const std::shared_ptr<AppRunningRecord>&)>& terminate)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    record->SetState(ApplicationState::APP_STATE_BACKGROUND);
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->taskHandler_ = handler;
+    service->dfxTaskHandler_ = handler;
+    std::deque<FreezeStateTestDriver::Task> executor;
+    auto scheduler = std::make_shared<FreezeStateTestDriver>(service, [&executor](auto task) {
+        executor.push_back(std::move(task));
+        return true;
+    });
+    std::promise<void> entered;
+    auto enteredFuture = entered.get_future();
+    std::promise<void> release;
+    auto gate = release.get_future().share();
+    std::atomic<int> captures {0};
+    std::atomic<int> reports {0};
+    auto half = scheduler->Reserve(record->GetPid(), record->GetUid(), {"LIFECYCLE_HALF_TIMEOUT",
+        record->GetRecordId()});
+    EXPECT_EQ(scheduler->Submit(half, [&captures, &entered, &gate, &scheduler, &half, &reports](const auto&) {
+        ++captures;
+        entered.set_value();
+        gate.wait();
+        if (scheduler->CanPublish(half)) {
+            ++reports;
+        }}), AppfreezeSubmitResult::DISPATCHED);
+    auto task = std::move(executor.front());
+    executor.pop_front();
+    std::thread worker(std::move(task));
+    FaultData fault;
+    fault.faultType = FaultDataType::APP_FREEZE;
+    fault.errorObject.name = AppFreezeType::LIFECYCLE_TIMEOUT;
+    fault.forceExit = true;
+    auto handler_ = service->dfxTaskHandler_;
+    AppfreezeManager::AppInfo info1 = service->GetAppfreezeAppInfo(record);
+    AppfreezeManager::GetInstance()->SubmitAppfreezeFault(fault, info1, handler_);
+    terminate(service, record); // Call the real lifecycle entry while H is executing and U is queued.
+    AppfreezeManager::GetInstance()->SubmitAppfreezeFault(fault, info1, handler_);
+    auto replacement = MakeFreezeRecord(service, 7002);
+    AppfreezeManager::AppInfo info2 = service->GetAppfreezeAppInfo(replacement);
+    release.set_value();
+    worker.join();
+    EXPECT_EQ(AppfreezeManager::GetInstance()->SubmitAppfreezeFault(fault, info2, handler_), 0);
+    AppfreezeManager::GetInstance()->ClearAppfreezeTasks(
+        replacement->GetPid(), replacement->GetUid(), replacement->GetRecordId());
+    for (const auto& stale : executor) {
+        stale();
+    }
+}
+}
+
+/**
+ * @tc.name: Req2ApplicationTerminatedCancelsRunningHalfAndPendingUpgrade
+ * @tc.desc: Verify ApplicationTerminated cancels the running half and pending upgrade.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2ApplicationTerminatedCancelsRunningHalfAndPendingUpgrade, TestSize.Level1)
+{
+    ExpectTerminationClosesFreeze([](const auto& service, const auto& record) {
+        EXPECT_TRUE(service != nullptr);
+        service->ApplicationTerminated(record->GetRecordId());
+    });
+}
+
+/**
+ * @tc.name: Req2TerminateTimeoutCancelsRunningHalfAndPendingUpgrade
+ * @tc.desc: Verify TerminateApplication (timeout) cancels the running half and pending upgrade.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2TerminateTimeoutCancelsRunningHalfAndPendingUpgrade, TestSize.Level1)
+{
+    ExpectTerminationClosesFreeze([](const auto& service, const auto& record) {
+        EXPECT_TRUE(service != nullptr);
+        service->TerminateApplication(record);
+    });
+}
+
+/**
+ * @tc.name: Req2XCollieTimerExecutesFallbackThroughFfrt
+ * @tc.desc: Verify GetExceptionTimerId fires the fallback through FFRT after the 30s timeout.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2XCollieTimerExecutesFallbackThroughFfrt, TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto completed = std::make_shared<std::promise<void>>();
+    auto result = completed->get_future();
+    const int timerId = AppfreezeManager::GetInstance()->GetExceptionTimerId([completed] { completed->set_value(); });
+    ASSERT_GE(timerId, 0); // The app_manager target uses the same APP_MGR_SERVICE_HICOLLIE_ENABLE switch.
+    EXPECT_EQ(result.wait_for(std::chrono::seconds(35)), std::future_status::ready);
+}
+
+/**
+ * @tc.name: Req2SaTimeoutQueuesUntilWorkerStartsAndUsesTargetUid
+ * @tc.desc: Verify SA timeout queues the upgrade until the worker starts and uses the target uid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2SaTimeoutQueuesUntilWorkerStartsAndUsesTargetUid, TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->taskHandler_ = handler;
+    service->dfxTaskHandler_ = handler;
+    std::deque<FreezeStateTestDriver::Task> executor;
+    auto driver = std::make_shared<FreezeStateTestDriver>(service, [&executor](auto task) {
+        executor.push_back(task);
+        return true;
+    });
+    auto half = FreezeState(service)->Reserve(record->GetPid(), record->GetUid(),
+        {"LIFECYCLE_HALF_TIMEOUT", record->GetRecordId()});
+    ASSERT_EQ(half->generationId, "987654:200031");
+    FaultData fault;
+    fault.faultType = FaultDataType::APP_FREEZE;
+    fault.errorObject.name = AppFreezeType::LIFECYCLE_TIMEOUT;
+    fault.forceExit = true;
+    FreezeState(service)->Submit(half, [&fault, &service, &handler, &executor, &record](const auto&) {
+        AppfreezeManager::GetInstance()->TimeoutNotifyApp(
+            fault, service->GetAppfreezeAppInfo(record), service->dfxTaskHandler_);
+        EXPECT_TRUE(handler->callbacks.empty());
+        EXPECT_TRUE(executor.empty());
+        EXPECT_EQ(FreezeState(service)->PendingSize("987654:200031"), 1u);
+    });
+    auto run = [&executor] {
+        auto task = executor.front();
+        executor.pop_front();
+        task();
+    };
+    run();
+    EXPECT_TRUE(handler->callbacks.empty()); // U is now DISPATCHED, still not RUNNING
+    EXPECT_EQ(FreezeState(service)->RecentFreezeCount(), 2u);
+    ASSERT_EQ(executor.size(), 1u);
+    run(); // runs the real AppMgr capture/report path using an intentionally absent target PID
+    ASSERT_EQ(handler->callbacks.size(), 1u);
+    EXPECT_EQ(handler->attributes[0].taskName_, "killAppTask");
+    EXPECT_EQ(handler->cancelled, 0);
+    AppfreezeManager::GetInstance()->ClearAppfreezeTasks(record->GetPid(), record->GetUid(), record->GetRecordId());
+    EXPECT_EQ(handler->cancelled, 0); // Capture cleanup does not cancel the original delayed disposition.
+}
+
+/**
+ * @tc.name: Req2RecoveryTimeoutStartsOnlyWithUpgradeWorker
+ * @tc.desc: Verify recovery timeout (waitSaveState) starts only with the upgrade worker
+ *              and retains baseline delayed-task.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2RecoveryTimeoutStartsOnlyWithUpgradeWorker, TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->taskHandler_ = handler;
+    service->dfxTaskHandler_ = handler;
+    std::deque<FreezeStateTestDriver::Task> executor;
+    auto driver = std::make_shared<FreezeStateTestDriver>(service, [&executor](auto task) {
+        executor.push_back(task);
+        return true;
+    });
+    FaultData fault;
+    fault.faultType = FaultDataType::APP_FREEZE;
+    fault.errorObject.name = AppFreezeType::LIFECYCLE_TIMEOUT;
+    fault.forceExit = true;
+    fault.waitSaveState = true;
+    EXPECT_EQ(AppfreezeManager::GetInstance()->SubmitAppfreezeFault(
+        fault, service->GetAppfreezeAppInfo(record), service->dfxTaskHandler_), ERR_OK);
+    EXPECT_TRUE(handler->callbacks.empty());
+    ASSERT_EQ(executor.size(), 1u);
+    auto task = executor.front();
+    executor.pop_front();
+    task();
+    ASSERT_EQ(handler->callbacks.size(), 1u);
+    EXPECT_EQ(handler->attributes[0].taskName_,
+        "waitSaveTask" + std::to_string(record->GetPid()) + record->GetBundleName());
+    EXPECT_EQ(handler->attributes[0].delayMillis_, 2000);
+    EXPECT_EQ(handler->cancelled, 0);
+    AppfreezeManager::GetInstance()->ClearAppfreezeTasks(record->GetPid(), record->GetUid(), record->GetRecordId());
+    EXPECT_EQ(handler->cancelled, 0); // Recovery retains the baseline delayed-task behavior.
+}
+
+/**
+ * @tc.name: Req2SixSecondInputNotifyApplicationOnceBeforeCapture
+ * @tc.desc: Verify 6s/input notifies the application once before capture begins.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2SixSecondInputNotifyApplicationOnceBeforeCapture, TestSize.Level1)
+{
+    for (const auto& first : {AppFreezeType::THREAD_BLOCK_6S, AppFreezeType::APP_INPUT_BLOCK}) {
+        auto service = std::make_shared<AppMgrServiceInner>();
+        auto record = MakeFreezeRecord(service);
+        auto handler = std::make_shared<FreezeRecordingHandler>();
+        service->dfxTaskHandler_ = handler;
+        service->taskHandler_ = handler;
+        sptr<MockApplication> application = new MockApplication();
+        record->SetApplicationClient(application);
+        std::vector<std::string> names;
+        EXPECT_CALL(*application, ScheduleNotifyAppFault(_)).Times(2).WillRepeatedly(
+            Invoke([&names](const FaultData& data) {
+            names.push_back(data.errorObject.name);
+            return ERR_OK;
+        }));
+        AppFaultDataBySA fault;
+        fault.pid = record->GetPid();
+        fault.faultType = FaultDataType::APP_FREEZE;
+        fault.errorObject.name = first;
+        EXPECT_EQ(service->TransformedNotifyAppFault(fault), ERR_OK);
+        fault.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+        EXPECT_EQ(service->TransformedNotifyAppFault(fault), ERR_OK);
+        fault.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+        EXPECT_EQ(service->TransformedNotifyAppFault(fault), ERR_OK);
+        ASSERT_EQ(names.size(), 1u);
+        EXPECT_EQ(names[0], first);
+        EXPECT_EQ(FreezeState(service)->RecentFreezeCount(), 1u);
+        fault.errorObject.name = AppFreezeType::LIFECYCLE_TIMEOUT;
+        EXPECT_EQ(service->TransformedNotifyAppFault(fault), ERR_OK);
+        EXPECT_EQ(names.size(), 2u);
+        EXPECT_EQ(FreezeState(service)->GenerationSize(), 2u);
+        EXPECT_EQ(FreezeState(service)->RecentFreezeCount(), 2u);
+        AppfreezeManager::GetInstance()->ClearAppfreezeTasks(record->GetPid(), record->GetUid(), record->GetRecordId());
+        EXPECT_EQ(handler->cancelled, 2);
+    }
+}
+
+/**
+ * @tc.name: Req2ApplicationOriginatedSixSecondSuppressesInputCallback
+ * @tc.desc: Verify an application-originated 6s suppresses the later input callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2ApplicationOriginatedSixSecondSuppressesInputCallback, TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->dfxTaskHandler_ = handler;
+    sptr<MockApplication> application = new MockApplication();
+    record->SetApplicationClient(application);
+    EXPECT_CALL(*application, ScheduleNotifyAppFault(_)).Times(0);
+    FaultData direct;
+    direct.faultType = FaultDataType::APP_FREEZE;
+    direct.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    EXPECT_EQ(AppfreezeManager::GetInstance()->SubmitAppfreezeFault(
+        direct, service->GetAppfreezeAppInfo(record), service->dfxTaskHandler_), ERR_OK);
+    AppFaultDataBySA input;
+    input.pid = record->GetPid();
+    input.faultType = FaultDataType::APP_FREEZE;
+    input.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+    EXPECT_EQ(service->TransformedNotifyAppFault(input), ERR_OK);
+    EXPECT_EQ(FreezeState(service)->RecentFreezeCount(), 1u);
+    AppfreezeManager::GetInstance()->ClearAppfreezeTasks(record->GetPid(), record->GetUid(), record->GetRecordId());
+}
+
+/**
+ * @tc.name: Req2NotifyPostFailureWithdrawsBeforeApplicationIpc
+ * @tc.desc: Verify notify post failure withdraws before application IPC.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2NotifyPostFailureWithdrawsBeforeApplicationIpc, TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->dfxTaskHandler_ = handler;
+    sptr<MockApplication> application = new MockApplication();
+    record->SetApplicationClient(application);
+    EXPECT_CALL(*application, ScheduleNotifyAppFault(_)).Times(1).WillOnce(Return(ERR_OK));
+    AppFaultDataBySA fault;
+    fault.pid = record->GetPid();
+    fault.faultType = FaultDataType::APP_FREEZE;
+    fault.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+    handler->reject = true;
+    EXPECT_EQ(service->TransformedNotifyAppFault(fault), ERR_NO_INIT);
+    EXPECT_EQ(FreezeState(service)->GenerationSize(), 0u);
+    EXPECT_EQ(FreezeState(service)->RecentFreezeCount(), 0u);
+    handler->reject = false;
+    EXPECT_EQ(service->TransformedNotifyAppFault(fault), ERR_OK);
+    EXPECT_EQ(FreezeState(service)->RecentFreezeCount(), 1u);
+    AppfreezeManager::GetInstance()->ClearAppfreezeTasks(record->GetPid(), record->GetUid(), record->GetRecordId());
+}
+
+/**
+ * @tc.name: Req2ApplicationIpcReentryCannotNotifyInputAgain
+ * @tc.desc: Verify application IPC reentry cannot notify input again.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, Req2ApplicationIpcReentryCannotNotifyInputAgain, TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto record = MakeFreezeRecord(service);
+    auto handler = std::make_shared<FreezeRecordingHandler>();
+    service->dfxTaskHandler_ = handler;
+    sptr<MockApplication> application = new MockApplication();
+    record->SetApplicationClient(application);
+    AppFaultDataBySA fault;
+    fault.pid = record->GetPid();
+    fault.faultType = FaultDataType::APP_FREEZE;
+    fault.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    EXPECT_CALL(*application, ScheduleNotifyAppFault(_)).Times(1).WillOnce(
+        Invoke([&fault, &service](const FaultData&) {
+        AppFaultDataBySA input = fault;
+        input.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+        EXPECT_EQ(service->TransformedNotifyAppFault(input), ERR_OK);
+        return ERR_OK;
+    }));
+    EXPECT_EQ(service->TransformedNotifyAppFault(fault), ERR_OK);
+    AppfreezeManager::GetInstance()->ClearAppfreezeTasks(record->GetPid(), record->GetUid(), record->GetRecordId());
+}
+
+
+namespace {
+using SubmitResult = AppfreezeSubmitResult;
+struct Harness {
+    int64_t now = 100;
+    const int64_t origin = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count() - now;
+    std::deque<FreezeStateTestDriver::Task> tasks;
+    bool reject = false;
+    std::shared_ptr<AppMgrServiceInner> service = std::make_shared<AppMgrServiceInner>();
+    std::shared_ptr<FreezeStateTestDriver> state = std::make_shared<FreezeStateTestDriver>(service,
+        [this](auto task) {
+            if (reject) {
+                return false;
+            }
+            tasks.push_back(std::move(task));
+            return true;
+        }, [this] {
+            return origin + now;
+        });
+    int pid = 10;
+    int instance = 1;
+    FreezeStateTestDriver::Info Make(const std::string& name = "THREAD_BLOCK_3S", uint64_t detect = 0,
+        const std::string& marker = "", uintptr_t token = 0)
+    {
+        return state->Reserve(pid, 20, {name, instance, token, 0, detect}, marker); // 20: test value
+    }
+    void Run()
+    {
+        auto task = std::move(tasks.front());
+        tasks.pop_front();
+        task();
+    }
+};
+}
+
+class AppfreezeApplicationStateTest : public testing::Test {
+public:
+    static void SetUpTestCase() {}
+    static void TearDownTestCase() {}
+    void SetUp() {}
+    void TearDown() {}
+};
+
+/**
+ * @tc.name: Req2AppFreezeInfoPreservesLegacyValueFields
+ * @tc.desc: Verify AppFreezeInfo preserves legacy value fields (reportTimes/state/pid) on copy.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeApplicationStateTest, Req2AppFreezeInfoPreservesLegacyValueFields, TestSize.Level1)
+{
+    AppFreezeInfo original;
+    EXPECT_EQ(original.reportTimes, 1);
+    original.state = 2;
+    original.pid = 10;
+    AppFreezeInfo copy = original;
+    EXPECT_EQ(copy.state, 2);
+    EXPECT_FALSE(copy.IsCancelled());
+}
+
+/**
+ * @tc.name: Req2SameGroupSuccessorIsSubmittedOnlyAfterPredecessorReturns
+ * @tc.desc: Verify a queued successor in the same group is submitted only after the predecessor returns.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeApplicationStateTest, Req2SameGroupSuccessorIsSubmittedOnlyAfterPredecessorReturns,
+    TestSize.Level1)
+{
+    Harness h;
+    auto half = h.Make();
+    std::vector<std::string> order;
+    h.state->Submit(half, [&h, &order](const auto&) {
+        order.push_back("half-start");
+        auto fatal = h.Make("THREAD_BLOCK_6S");
+        ASSERT_TRUE(fatal);
+        EXPECT_EQ(h.state->Submit(fatal, [&order](const auto&) {
+            order.push_back("fatal"); }), SubmitResult::QUEUED);
+        EXPECT_TRUE(h.tasks.empty());
+        order.push_back("half-end");
+    });
+    h.Run();
+    ASSERT_EQ(h.tasks.size(), 1u);
+    h.Run();
+    EXPECT_EQ(order, (std::vector<std::string> {"half-start", "half-end", "fatal"}));
+    EXPECT_EQ(h.state->GenerationSize(), 0u);
+}
+
+/**
+ * @tc.name: Req2LifecycleAndMainGroupsCanRunBeforeEitherCompletes
+ * @tc.desc: Verify lifecycle and main groups can run concurrently before either completes.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeApplicationStateTest, Req2LifecycleAndMainGroupsCanRunBeforeEitherCompletes, TestSize.Level1)
+{
+    for (const auto& name : {"THREAD_BLOCK_3S", "THREAD_BLOCK_6S", "APP_INPUT_BLOCK"}) {
+        Harness h;
+        auto main = h.Make(name);
+        auto lifecycle = h.Make("LIFECYCLE_TIMEOUT");
+        ASSERT_TRUE(main); ASSERT_TRUE(lifecycle);
+        int completed = 0;
+        h.state->Submit(main, [&h, &completed](const auto&) {
+            h.Run(); // The other group is runnable even while this task is on the stack.
+            EXPECT_EQ(completed, 1);
+            ++completed;
+        });
+        EXPECT_EQ(h.state->Submit(lifecycle, [&completed](const auto&) {
+            ++completed;
+        }), SubmitResult::DISPATCHED);
+        ASSERT_EQ(h.tasks.size(), 2u);
+        h.Run();
+        EXPECT_EQ(completed, 2);
+    }
+}
+
+/**
+ * @tc.name: Req2LifecycleHalfFatalRemainSerialAndDoNotClaimMainFatal
+ * @tc.desc: Verify lifecycle half/fatal remain serial and do not claim main group fatal.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeApplicationStateTest, Req2LifecycleHalfFatalRemainSerialAndDoNotClaimMainFatal,
+    TestSize.Level1)
+{
+    Harness h;
+    auto half = h.Make("LIFECYCLE_HALF_TIMEOUT", 1);
+    auto fatal = h.Make("LIFECYCLE_TIMEOUT", 2);
+    auto input = h.Make("APP_INPUT_BLOCK", 3);
+    ASSERT_TRUE(half); ASSERT_TRUE(fatal); ASSERT_TRUE(input);
+    h.state->Submit(half, [](const auto&) {});
+    EXPECT_EQ(h.state->Submit(fatal, [](const auto&) {}), SubmitResult::QUEUED);
+    EXPECT_EQ(h.state->Submit(input, [](const auto&) {}), SubmitResult::DISPATCHED);
+    EXPECT_EQ(half->reportClaim, fatal->reportClaim);
+    EXPECT_NE(input->reportClaim, fatal->reportClaim);
+    EXPECT_EQ(h.state->RecentFreezeCount(), 12u);
+    h.Run();
+    h.Run();
+    h.Run();
+}
+
+/**
+ * @tc.name: Req2DifferentLifecycleTokensDoNotMergeFaultsOrReportRights
+ * @tc.desc: Verify different lifecycle tokens do not merge faults or report rights.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeApplicationStateTest, Req2DifferentLifecycleTokensDoNotMergeFaultsOrReportRights,
+    TestSize.Level1)
+{
+    Harness h;
+    auto half = h.Make("LIFECYCLE_HALF_TIMEOUT", 1, "", 11);
+    auto fatal = h.Make("LIFECYCLE_TIMEOUT", 2, "", 12);
+    ASSERT_TRUE(half); ASSERT_TRUE(fatal);
+    EXPECT_NE(half->reportClaim, fatal->reportClaim);
+    EXPECT_EQ(h.state->RecentFreezeCount(), 14u);
+}
+
+/**
+ * @tc.name: Req2FirstSixSecondOrInputReservationOwnsNotificationBeforeCapture
+ * @tc.desc: Verify the first 6s/input reservation owns notification before capture.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeApplicationStateTest, Req2FirstSixSecondOrInputReservationOwnsNotificationBeforeCapture,
+    TestSize.Level1)
+{
+    for (const auto& first : {"THREAD_BLOCK_6S", "APP_INPUT_BLOCK"}) {
+        Harness h;
+        auto half = h.Make("THREAD_BLOCK_3S", 1);
+        auto fatal = h.Make(first, 2, "notify-one");
+        EXPECT_FALSE(h.Make("THREAD_BLOCK_6S", 3, "notify-two"));
+        EXPECT_FALSE(h.Make("APP_INPUT_BLOCK", 4, "notify-three"));
+        EXPECT_EQ(h.state->RecentFreezeCount(), 16u);
+        h.state->Submit(half, [](const auto&) {});
+        h.Run();
+        EXPECT_TRUE(h.tasks.empty()); // Waiting for the one application response consumes no worker.
+        EXPECT_EQ(h.state->ClaimFeedback(10, 1, "notify-one", first), fatal);
+        EXPECT_FALSE(h.state->ClaimFeedback(10, 1, "notify-one", first));
+        EXPECT_EQ(h.state->Submit(fatal, [](const auto&) {}), SubmitResult::DISPATCHED);
+        h.Run();
+        EXPECT_TRUE(h.Make("APP_INPUT_BLOCK", 5, "new-round"));
+    }
+}
+
+/**
+ * @tc.name: Req2ApplicationOriginatedSixSecondAlsoSuppressesLaterInputCallback
+ * @tc.desc: Verify an application-originated 6s also suppresses a later input callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeApplicationStateTest, Req2ApplicationOriginatedSixSecondAlsoSuppressesLaterInputCallback,
+    TestSize.Level1)
+{
+    Harness h;
+    auto fatal = h.Make("THREAD_BLOCK_6S", 1);
+    ASSERT_TRUE(!fatal);
+    EXPECT_FALSE(h.Make("APP_INPUT_BLOCK", 2, "input"));
+    EXPECT_EQ(h.state->RecentFreezeCount(), 16u);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
