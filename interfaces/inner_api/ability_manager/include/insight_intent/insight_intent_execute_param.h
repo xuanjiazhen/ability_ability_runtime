@@ -91,6 +91,9 @@ constexpr char INSIGHT_INTENT_DISTRIBUTED_CALLBACK_KEY[] = "ohos.insightIntent.d
 constexpr char INSIGHT_INTENT_DISTRIBUTED_SRC_DEVICE_ID[] = "ohos.insightIntent.distributed.srcDeviceId";
 constexpr char INSIGHT_INTENT_DISTRIBUTED_REQUEST_CODE[] = "ohos.insightIntent.distributed.requestCode";
 constexpr char INSIGHT_INTENT_TOOL_CALL_ID[] = "ohos.insightIntent.toolCallId";
+constexpr char INSIGHT_INTENT_CALLER_BUNDLE_NAME[] = "ohos.insightIntent.executeParam.callerBundleName";
+constexpr char INSIGHT_INTENT_CALLER_TOKEN_ID[] = "ohos.insightIntent.executeParam.callerTokenId";
+constexpr char INSIGHT_INTENT_CALLER_UID[] = "ohos.insightIntent.executeParam.callerUid";
 
 constexpr int32_t INVALID_DISPLAY_ID = -1;
 constexpr char METHOD_PARAM_SEPARATOR = '\x1f';
@@ -159,6 +162,11 @@ public:
 
     // Shared by Driver and FunctionManager; empty means no tool call identifier.
     std::string toolCallId_;
+
+    // caller identity of this intent execution, filled by AMS and passed down to the application.
+    std::string callerBundleName_;
+    std::string callerTokenId_;
+    int32_t callerUid_ = 0;
 };
 } // namespace AppExecFwk
 } // namespace OHOS
