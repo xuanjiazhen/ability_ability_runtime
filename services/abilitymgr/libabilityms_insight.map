@@ -21,9 +21,11 @@
       *InsightIntentUtils*;
       *InsightIntentMatcher*;
       *InsightIntentRdbDataMgr*;
-      *InsightIntentRdbStorageMgr*;
+      *InsightRdbStorageMgr*;
+      *IntentRdbOpenCallback*;
       *InsightIntentDbCache*;
       *InsightIntentExecuteResult*;
+      *InsightIntentExecuteRecipient*;
       *InsightIntentSysEventReceiver*;
       *ExtractInsightIntentProfile*;
       *FunctionCallConvert*;

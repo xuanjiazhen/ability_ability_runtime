@@ -118,7 +118,6 @@
       *WantSenderProxy*;
       *WantUtils*;
       *WindowOptionsUtils*;
-      *;
     };
   local:
     *;
