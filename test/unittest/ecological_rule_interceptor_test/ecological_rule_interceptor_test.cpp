@@ -1566,8 +1566,9 @@ HWTEST_F(EcologicalRuleInterceptorTest, GetEcologicalTargetInfo_007, TestSize.Le
     int userId = 100;
     StartAbilityContext ctx;
     interceptor->GetEcologicalCallerInfo(ctx, want, callerInfo, userId, callerToken);
-    EXPECT_EQ(callerInfo.callerAppType, ErmsCallerInfo::TYPE_APP_SERVICE);
+    EXPECT_EQ(callerInfo.callerAppType, ErmsCallerInfo::TYPE_HARMONY_APP);
     EXPECT_NE(callerInfo.packageName, BUNDLE_NAME_SCENEBOARD);
+    StartAbilityUtils::retGetCallerAbilityInfo = false;
 }
 
 /**
@@ -1590,8 +1591,9 @@ HWTEST_F(EcologicalRuleInterceptorTest, GetEcologicalTargetInfo_008, TestSize.Le
     int userId = 100;
     StartAbilityContext ctx;
     interceptor->GetEcologicalCallerInfo(ctx, want, callerInfo, userId, callerToken);
-    EXPECT_EQ(callerInfo.callerAppType, ErmsCallerInfo::TYPE_APP_SERVICE);
-    EXPECT_NE(callerInfo.packageName, BUNDLE_NAME_SCENEBOARD);
+    EXPECT_EQ(callerInfo.callerAppType, ErmsCallerInfo::TYPE_HARMONY_APP);
+    EXPECT_EQ(callerInfo.packageName, BUNDLE_NAME_SCENEBOARD);
+    StartAbilityUtils::retGetCallerAbilityInfo = false;
 }
 
 /**
@@ -1614,8 +1616,9 @@ HWTEST_F(EcologicalRuleInterceptorTest, GetEcologicalTargetInfo_009, TestSize.Le
     int userId = 100;
     StartAbilityContext ctx;
     interceptor->GetEcologicalCallerInfo(ctx, want, callerInfo, userId, callerToken);
-    EXPECT_EQ(callerInfo.callerAppType, ErmsCallerInfo::TYPE_APP_SERVICE);
+    EXPECT_EQ(callerInfo.callerAppType, ErmsCallerInfo::TYPE_HARMONY_APP);
     EXPECT_NE(callerInfo.packageName, BUNDLE_NAME_SCENEBOARD);
+    StartAbilityUtils::retGetCallerAbilityInfo = false;
 }
 
 /**
@@ -1638,8 +1641,9 @@ HWTEST_F(EcologicalRuleInterceptorTest, GetEcologicalTargetInfo_010, TestSize.Le
     int userId = 100;
     StartAbilityContext ctx;
     interceptor->GetEcologicalCallerInfo(ctx, want, callerInfo, userId, callerToken);
-    EXPECT_EQ(callerInfo.callerAppType, ErmsCallerInfo::TYPE_APP_SERVICE);
+    EXPECT_EQ(callerInfo.callerAppType, ErmsCallerInfo::TYPE_HARMONY_APP);
     EXPECT_NE(callerInfo.packageName, BUNDLE_NAME_SCENEBOARD);
+    StartAbilityUtils::retGetCallerAbilityInfo = false;
 }
 
 /**
