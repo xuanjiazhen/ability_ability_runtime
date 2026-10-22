@@ -132,11 +132,11 @@ HWTEST_F(DumpRuntimeHelperTest, DumpCjHeap_0300, Function | MediumTest | Level1)
 }
 
 /**
- * @tc.number: DumpKmpKotlinHeap_0100
- * @tc.name: DumpKmpKotlinHeap
- * @tc.desc: Test whether DumpKmpKotlinHeap snapshot path is called normally.
+ * @tc.number: DumpKmpHeap_0100
+ * @tc.name: DumpKmpHeap
+ * @tc.desc: Test whether KMP heap snapshot path is called normally.
  */
-HWTEST_F(DumpRuntimeHelperTest, DumpKmpKotlinHeap_0100, Function | MediumTest | Level1)
+HWTEST_F(DumpRuntimeHelperTest, DumpKmpHeap_0100, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest KmpHeap_0100 start";
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
@@ -152,11 +152,11 @@ HWTEST_F(DumpRuntimeHelperTest, DumpKmpKotlinHeap_0100, Function | MediumTest | 
 }
 
 /**
- * @tc.number: DumpKmpKotlinHeap_0200
- * @tc.name: DumpKmpKotlinHeap
- * @tc.desc: Test whether DumpKmpKotlinHeap gc path is called normally.
+ * @tc.number: DumpKmpHeap_0200
+ * @tc.name: DumpKmpHeap
+ * @tc.desc: Test whether KMP heap gc path is called normally.
  */
-HWTEST_F(DumpRuntimeHelperTest, DumpKmpKotlinHeap_0200, Function | MediumTest | Level1)
+HWTEST_F(DumpRuntimeHelperTest, DumpKmpHeap_0200, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest KmpHeap_0200 start";
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
