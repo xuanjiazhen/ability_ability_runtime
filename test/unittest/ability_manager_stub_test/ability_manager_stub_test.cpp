@@ -4327,6 +4327,47 @@ HWTEST_F(AbilityManagerStubTest, GetUIExtensionRootHostInfo_0100, TestSize.Level
 }
 
 /**
+ * @tc.name: GetUIExtensionHostInfoById_0100
+ * @tc.desc: GetUIExtensionHostInfoById dispatch by code 6184
+ * @tc.type: FUNC
+ * @tc.require: SR20260802799171
+ */
+HWTEST_F(AbilityManagerStubTest, GetUIExtensionHostInfoById_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+    MessageParcel data;
+    bool writeRet = data.WriteInterfaceToken(AbilityManagerStubImplMock::GetDescriptor());
+    writeRet &= data.WriteInt32(100);
+    EXPECT_EQ(writeRet, true);
+
+    UIExtensionHostInfo expected;
+    expected.elementName_.SetModuleName("entry");
+    expected.sessionName = "session_stub";
+    expected.persistentId_ = 77;
+    EXPECT_CALL(*stub_, GetUIExtensionHostInfoById(_, _))
+        .WillOnce(DoAll(SetArgReferee<1>(expected), Return(0)));
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+
+    // Read back the reply: verify the "Parcelable first, Int32 result second" contract
+    // (aligned with the proxy read order)
+    std::unique_ptr<UIExtensionHostInfo> readInfo(reply.ReadParcelable<UIExtensionHostInfo>());
+    EXPECT_NE(readInfo, nullptr);
+    EXPECT_EQ(readInfo->elementName_.GetModuleName(), "entry");
+    EXPECT_EQ(readInfo->sessionName, "session_stub");
+    EXPECT_EQ(readInfo->persistentId_, 77);
+    int32_t innerResult = -1;
+    EXPECT_TRUE(reply.ReadInt32(innerResult));
+    EXPECT_EQ(innerResult, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
  * @tc.name: RestartAppInner_0100
  * @tc.desc: RestartAppInner
  * @tc.type: FUNC

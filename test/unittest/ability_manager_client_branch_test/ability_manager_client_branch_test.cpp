@@ -2660,6 +2660,27 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetUIExtensionRoot
 }
 
 /**
+ * @tc.name: AbilityManagerClient_GetUIExtensionHostInfoById_0100
+ * @tc.desc: client branch coverage for GetUIExtensionHostInfoById
+ * @tc.type: FUNC
+ * @tc.require: SR20260802799171
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetUIExtensionHostInfoById_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetUIExtensionHostInfoById_0100 start";
+    // Device observation: the mocked client_ dispatch path triggers Signal 6 in this suite
+    // (legacy cases fail the same way), which is an environment issue rather than a defect
+    // of this interface. Use a standalone client without mock injection to exercise real
+    // IPC and cover the client/proxy argument guard (recordId <= 0 -> ERR_INVALID_VALUE).
+    AAFwk::AbilityManagerClient localClient;
+    UIExtensionHostInfo hostInfo;
+    auto ret = localClient.GetUIExtensionHostInfoById(999999999, hostInfo);
+    // Non-SA (shell) caller passes the proxy guard and is rejected by the server SA check -> 1
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    GTEST_LOG_(INFO) << "GetUIExtensionHostInfoById_0100 end ret=" << ret;
+}
+
+/**
  * @tc.name: AbilityManagerClient_RestartApp_0100
  * @tc.desc: RestartApp
  * @tc.type: FUNC

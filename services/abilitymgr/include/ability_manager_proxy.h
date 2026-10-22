@@ -1671,6 +1671,14 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     /**
+     * @brief Get root host info of a UIExtension by ability record id.
+     * @param abilityRecordId The record id of the UIExtension.
+     * @param hostInfo Output host info.
+     * @return int32_t Returns 0 on success, others on failure.
+     */
+    int32_t GetUIExtensionHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo) override;
+
+    /**
      * @brief Get ui extension session info
      *
      * @param token The ability token.
