@@ -1411,6 +1411,49 @@ int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemot
     return ret;
 }
 
+int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunchByPid(int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    UIAbilityRecordPtr prelaunchRecord = nullptr;
+    {
+        std::lock_guard<ffrt::mutex> guard(sessionLock_);
+        for (const auto &[persistentId, record] : sessionAbilityMap_) {
+            if (record == nullptr || record->GetPid() != pid) {
+                continue;
+            }
+            if (record->IsGameSAPreLaunch()) {
+                prelaunchRecord = record;
+                break;
+            }
+        }
+    }
+
+    if (prelaunchRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not found game SA prelaunch by pid: %{public}d", pid);
+        return ERR_NOT_GAME_PRELOAD_STATE;
+    }
+
+    // Clear the game SA prelaunch flag in AbilityRecord and AppRecord
+    prelaunchRecord->SetGameSAPreLaunch(false);
+
+    auto callerToken = prelaunchRecord->GetToken();
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability record token is null");
+        return ERR_INVALID_VALUE;
+    }
+
+    int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->SetGameSAPrelaunch(callerToken,
+        false));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to SetGameSAPrelaunch, ret=%{public}d", ret);
+        return ret;
+    }
+    // Notification SCB goes to the background
+    int32_t notifyScbBackgroundReason = static_cast<int32_t>(NotifyScbBackgroundReason::GAME_PRELAUNCH_BACKGROUND);
+    ret = NotifySCBToMinimizeUIAbility(callerToken, true, notifyScbBackgroundReason);
+    return ret;
+}
+
 void UIAbilityLifecycleManager::CompleteForegroundSuccess(const UIAbilityRecordPtr &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

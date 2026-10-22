@@ -14954,6 +14954,28 @@ int32_t AbilityManagerService::NotifyCompleteGamePreLaunch(const sptr<IRemoteObj
     return uiAbilityManager->NotifyCompleteGamePreLaunch(callerToken);
 }
 
+int32_t AbilityManagerService::NotifyCompleteGamePreLaunchByPid(int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyCompleteGamePreLaunchByPid called, pid: %{public}d", pid);
+
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid != AbilityRuntime::GlobalConstant::GAME_SA_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "verify game SA failed");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scene board not enabled");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    auto uiAbilityManager = GetUIAbilityManagerByUid(callingUid);
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+
+    return uiAbilityManager->NotifyCompleteGamePreLaunchByPid(pid);
+}
+
 int32_t AbilityManagerService::SetGamePreLaunchCompleteTime(int32_t userId, int64_t completeTime)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

@@ -797,6 +797,9 @@ enum class AbilityManagerInterfaceCode {
 
     // kill process with user id
     KILL_PROCESS_WITH_USER_ID = 6183,
+
+    // complete game prelaunch by pid
+    COMPLETE_GAME_PRELAUNCH_BY_PID = 6185,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
