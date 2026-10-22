@@ -797,6 +797,12 @@ enum class AbilityManagerInterfaceCode {
 
     // kill process with user id
     KILL_PROCESS_WITH_USER_ID = 6183,
+
+    // register listener that an insight intent is about to be executed
+    REGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK = 6184,
+
+    // unregister listener that an insight intent is about to be executed
+    UNREGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK = 6185,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
