@@ -242,9 +242,7 @@ ohos_shared_library("abilityms") {
     external_deps += [ "resource_schedule_service:ressched_client" ]
   }
 
-  if (memmgr_override_enable) {
-    external_deps += [ "memmgr:memmgrclient" ]
-  }
+  external_deps += [ "memmgr:memmgrclient" ]
 
   if (os_dlp_part_enabled) {
     cflags_cc += [ "-DWITH_DLP" ]
