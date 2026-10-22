@@ -5293,7 +5293,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, RestartApp_ForbidStart_001, TestSi
     ForbidStartSwitch forbidSwitch;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     Want want;
-    auto ret = abilityMs->RestartApp(want, false, 1);
+    auto ret = abilityMs->RestartApp(want, false);
     EXPECT_EQ(ret, INNER_ERR);
 }
 

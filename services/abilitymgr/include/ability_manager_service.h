@@ -2343,13 +2343,16 @@ public:
     int32_t RestartApp(const AAFwk::Want &want, bool isAppRecovery = false) override;
 
     /**
-     * @brief Restart app self with an explicit caller pid.
+     * @brief Restart app self with an explicit caller identity.
      * @param callerPid Pid of the process requesting the restart. Required for oneway
      *        callers (e.g. ScheduleRecoverAbility) because the binder driver delivers no
      *        sender pid for async transactions, so IPCSkeleton::GetCallingPid() returns 0.
+     * @param callerUid Caller uid, obtained from the validated AbilityRecord for recovery.
+     * @param bundleName Caller bundle name, obtained from the validated AbilityRecord for recovery.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t RestartApp(const AAFwk::Want &want, bool isAppRecovery, pid_t callerPid);
+    int32_t RestartApp(const AAFwk::Want &want, bool isAppRecovery, pid_t callerPid, int32_t callerUid,
+        const std::string &bundleName);
     
     /**
      * @brief Get host info of root caller.
@@ -3525,9 +3528,6 @@ private:
     bool CheckCallerIsDmsProcess();
 
     void WaitBootAnimationStart();
-
-    int32_t RestartAppInner(const Want &want, bool isAppRecovery, pid_t callerPid, int32_t callerUid,
-        const std::string &bundleName);
 
     struct SignRestartAppFlagParam {
         int32_t userId;

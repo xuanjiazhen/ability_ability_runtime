@@ -11779,7 +11779,7 @@ void AbilityManagerService::ScheduleRecoverAbility(const sptr<IRemoteObject>& to
 
         ReportAppRecoverResult(record->GetUid(), appInfo, abilityInfo.name, "SUCCESS");
     }
-    RestartAppInner(curWant, true, record->GetPid(), record->GetUid(), record->GetApplicationInfo().bundleName);
+    RestartApp(curWant, true, record->GetPid(), record->GetUid(), record->GetApplicationInfo().bundleName);
 }
 
 int32_t AbilityManagerService::GetRemoteMissionSnapshotInfo(const std::string& deviceId, int32_t missionId,
@@ -16832,16 +16832,11 @@ void AbilityManagerService::RecordAppRestartExitReason(bool isAppRecovery, int32
 
 int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRecovery)
 {
-    return RestartApp(want, isAppRecovery, IPCSkeleton::GetCallingPid());
-}
-
-int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRecovery, pid_t callerPid)
-{
-    return RestartAppInner(want, isAppRecovery, callerPid, IPCSkeleton::GetCallingUid(),
+    return RestartApp(want, isAppRecovery, IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(),
         want.GetElement().GetBundleName());
 }
 
-int32_t AbilityManagerService::RestartAppInner(const Want &want, bool isAppRecovery, pid_t callerPid, int32_t callerUid,
+int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRecovery, pid_t callerPid, int32_t callerUid,
     const std::string &bundleName)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
