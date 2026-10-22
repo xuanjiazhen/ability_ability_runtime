@@ -25,6 +25,7 @@
 #include "extract_insight_intent_profile.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_result.h"
+#include "insight_intent_execution_info.h"
 #include "insight_intent_query_param.h"
 #include "iremote_object.h"
 #include "singleton.h"
@@ -113,6 +114,7 @@ public:
 
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+        AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
         Want &want);
 
     std::map<int32_t, int64_t> GetAllIntentExemptionInfo() const;
@@ -163,7 +165,7 @@ private:
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, Want &want);
     static int32_t CheckAndUpdateDecoratorParams(
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
-        const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+        AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
         Want &want);
     static int32_t UpdateFuncDecoratorParams(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         AbilityRuntime::ExtractInsightIntentInfo &info, Want &want);

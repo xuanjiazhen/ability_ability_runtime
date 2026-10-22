@@ -18,6 +18,7 @@
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_CONTEXT_H
 
 #include "insight_intent_constant.h"
+#include "insight_intent_execution_info.h"
 #include "iremote_object.h"
 #include "want.h"
 
@@ -30,8 +31,11 @@ namespace AbilityRuntime {
 class InsightIntentContext final {
 public:
     InsightIntentContext(const sptr<IRemoteObject>& token, const std::string& bundleName, int32_t winMode,
-        uint64_t intentId, const std::string& toolCallId = "")
-        : token_(token), bundleName_(bundleName), winMode_(winMode), intentId_(intentId), toolCallId_(toolCallId) {}
+        uint64_t intentId, const std::string& toolCallId = "", const std::string& intentName = "",
+        const std::string& callerBundleName = "", const std::string& callerTokenId = "", int32_t callerUid = 0)
+        : token_(token), bundleName_(bundleName), winMode_(winMode), intentId_(intentId), toolCallId_(toolCallId),
+          intentName_(intentName), callerBundleName_(callerBundleName), callerTokenId_(callerTokenId),
+          callerUid_(callerUid) {}
     ~InsightIntentContext() = default;
 
     /**
@@ -42,6 +46,14 @@ public:
      * @return result of StartAbility.
      */
     ErrCode StartAbilityByInsightIntent(const AAFwk::Want &want);
+
+    /**
+     * Gets the insight intent execution info of this context.
+     *
+     * @param info Indicates the insight intent execution info.
+     * @return result of GetInsightIntentExecutionInfo.
+     */
+    ErrCode GetInsightIntentExecutionInfo(AppExecFwk::InsightIntentExecutionInfo &info);
 
     std::string GetBundleName() const
     {
@@ -89,6 +101,10 @@ private:
     int32_t winMode_ = 0;
     uint64_t intentId_ = 0;
     std::string toolCallId_ = "";
+    std::string intentName_ = "";
+    std::string callerBundleName_ = "";
+    std::string callerTokenId_ = "";
+    int32_t callerUid_ = 0;
     int32_t executeMode_ = -1;
     InsightIntentReturnMode delayReturnMode_ = InsightIntentReturnMode::CALLBACK;
 };

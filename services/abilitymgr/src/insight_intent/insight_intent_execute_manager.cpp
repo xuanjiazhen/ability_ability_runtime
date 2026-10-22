@@ -584,20 +584,11 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
-    const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+    AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
     Want &want)
 {
-    // ExtractInsightIntentGenericInfo don't satisfy for now
-    ExtractInsightIntentInfo info;
-    int32_t userId = param->userId_;
-    if (userId == DEFAULT_INVAL_VALUE) {
-        userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
-    }
-    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        AbilityRuntime::IntentKey{param->bundleName_, param->moduleName_, param->insightIntentName_, userId}, info);
-
     InsightIntentType type = InsightIntentType::DECOR_NONE;
-    std::string decoratorType = info.genericInfo.decoratorType;
+    std::string decoratorType = extractInfo.genericInfo.decoratorType;
     TAG_LOGD(AAFwkTag::INTENT, "intentName %{public}s, decoratorType %{public}s", param->insightIntentName_.c_str(),
         decoratorType.c_str());
     static const std::unordered_map<std::string, InsightIntentType> mapping = {
@@ -617,13 +608,13 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
         static_cast<int8_t>(type));
     switch (type) {
         case InsightIntentType::DECOR_FUNC: {
-            return UpdateFuncDecoratorParams(param, info, want);
+            return UpdateFuncDecoratorParams(param, extractInfo, want);
         }
         case InsightIntentType::DECOR_PAGE: {
-            return UpdatePageDecoratorParams(param, info, want);
+            return UpdatePageDecoratorParams(param, extractInfo, want);
         }
         case InsightIntentType::DECOR_ENTRY: {
-            return UpdateEntryDecoratorParams(param, info, want);
+            return UpdateEntryDecoratorParams(param, extractInfo, want);
         }
         case InsightIntentType::DECOR_NONE:
         case InsightIntentType::DECOR_LINK:
@@ -637,6 +628,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
 int32_t InsightIntentExecuteManager::GenerateWant(
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
     const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+    AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
     Want &want)
 {
     if (param == nullptr) {
@@ -672,6 +664,9 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_MODE, param->executeMode_);
     want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(param->insightIntentId_));
     want.SetParam(INSIGHT_INTENT_PARAM_USER_ID, param->userId_);
+    want.SetParam(INSIGHT_INTENT_CALLER_BUNDLE_NAME, param->callerBundleName_);
+    want.SetParam(INSIGHT_INTENT_CALLER_TOKEN_ID, param->callerTokenId_);
+    want.SetParam(INSIGHT_INTENT_CALLER_UID, param->callerUid_);
     if (param->displayId_ != INVALID_DISPLAY_ID) {
         want.SetParam(Want::PARAM_RESV_DISPLAY_ID, param->displayId_);
         TAG_LOGD(AAFwkTag::INTENT, "Generate want with displayId: %{public}d", param->displayId_);
@@ -689,7 +684,7 @@ int32_t InsightIntentExecuteManager::GenerateWant(
         return intRet;
     }
 
-    intRet = CheckAndUpdateDecoratorParams(param, decoratorInfo, want);
+    intRet = CheckAndUpdateDecoratorParams(param, extractInfo, want);
     if (intRet != ERR_OK) {
         return intRet;
     }
