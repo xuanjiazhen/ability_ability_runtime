@@ -5390,6 +5390,33 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_SetGamePreLaunchCompleteTime
 
 /*
  * Feature: AbilityManagerStub
+ * Function: ExtendGamePreLaunchTimeoutInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub ExtendGamePreLaunchTimeoutInner
+ * EnvConditions: NA
+ * CaseDescription: Verify ExtendGamePreLaunchTimeoutInner with valid parameters
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExtendGamePreLaunchTimeoutInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    // Write pid
+    data.WriteInt32(100);
+
+    // Write extendTime
+    data.WriteInt64(60 * 1000 * 1000); // 60s in microseconds
+
+    auto res = stub_->ExtendGamePreLaunchTimeoutInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+
+    // Verify the result was written to reply
+    int32_t result = reply.ReadInt32();
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerStub
  * Function: OnRemoteRequest
  * SubFunction: NA
  * FunctionPoints: AbilityManagerStub StartSandboxCloneAbilityInner via OnRemoteRequest

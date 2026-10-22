@@ -1745,7 +1745,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, LaunchGameCustomized_001, TestSize
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest LaunchGameCustomized_001 start");
     std::string bundleName = "com.test.game";
-    int32_t userId = 100;
+    int32_t pid = 100;
     int32_t appIndex = 0;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
@@ -1762,7 +1762,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, LaunchGameCustomized_001, TestSize
 HWTEST_F(AbilityManagerServiceFourteenthTest, SetGamePreLaunchCompleteTime_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest SetGamePreLaunchCompleteTime_001 start");
-    int32_t userId = 100;
+    int32_t pid = 100;
     int64_t completeTime = 1000;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
@@ -1774,6 +1774,67 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, SetGamePreLaunchCompleteTime_001, 
         EXPECT_EQ(result, ERR_OK);
     }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest SetGamePreLaunchCompleteTime_001 end");
+}
+
+/**
+ * @tc.name: ExtendGamePreLaunchTimeout_001
+ * @tc.desc: Test ExtendGamePreLaunchTimeout with invalid permission (wrong UID).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_001 start");
+    int32_t pid = 100;
+    int64_t extendTime = 60 * 1000 * 1000; // 60s in microseconds
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
+    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_001 end");
+}
+
+/**
+ * @tc.name: ExtendGamePreLaunchTimeout_002
+ * @tc.desc: Test ExtendGamePreLaunchTimeout with invalid extendTime (<=30s).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_002 start");
+    int32_t pid = 100;
+    int64_t extendTime = 30 * 1000 * 1000; // 30s, at the boundary
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
+    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    } else {
+        EXPECT_EQ(result, ERR_INVALID_VALUE);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_002 end");
+}
+
+/**
+ * @tc.name: ExtendGamePreLaunchTimeout_003
+ * @tc.desc: Test ExtendGamePreLaunchTimeout with invalid extendTime (>=4h).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_003 start");
+    int32_t pid = 100;
+    int64_t extendTime = 4LL * 60 * 60 * 1000 * 1000; // 4h, at the boundary
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
+    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    } else {
+        EXPECT_EQ(result, ERR_INVALID_VALUE);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_003 end");
 }
 
 /**
