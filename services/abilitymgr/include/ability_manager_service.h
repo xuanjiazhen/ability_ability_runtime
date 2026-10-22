@@ -3526,12 +3526,8 @@ private:
 
     void WaitBootAnimationStart();
 
-    struct RestartAppIdentity {
-        pid_t pid = 0;
-        int32_t uid = 0;
-        std::string bundleName;
-    };
-    int32_t RestartAppInner(const Want &want, bool isAppRecovery, const RestartAppIdentity &identity);
+    int32_t RestartAppInner(const Want &want, bool isAppRecovery, pid_t callerPid, int32_t callerUid,
+        const std::string &bundleName);
 
     struct SignRestartAppFlagParam {
         int32_t userId;

@@ -11705,9 +11705,6 @@ void AbilityManagerService::ScheduleRecoverAbility(const sptr<IRemoteObject>& to
         return;
     }
 
-    const RestartAppIdentity identity = {
-        record->GetPid(), record->GetUid(), record->GetApplicationInfo().bundleName
-    };
     AAFwk::Want curWant;
     {
         std::lock_guard<ffrt::mutex> guard(globalLock_);
@@ -11782,7 +11779,7 @@ void AbilityManagerService::ScheduleRecoverAbility(const sptr<IRemoteObject>& to
 
         ReportAppRecoverResult(record->GetUid(), appInfo, abilityInfo.name, "SUCCESS");
     }
-    RestartAppInner(curWant, true, identity);
+    RestartAppInner(curWant, true, record->GetPid(), record->GetUid(), record->GetApplicationInfo().bundleName);
 }
 
 int32_t AbilityManagerService::GetRemoteMissionSnapshotInfo(const std::string& deviceId, int32_t missionId,
@@ -16840,21 +16837,17 @@ int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRec
 
 int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRecovery, pid_t callerPid)
 {
-    const RestartAppIdentity identity = {
-        callerPid, IPCSkeleton::GetCallingUid(), want.GetElement().GetBundleName()
-    };
-    return RestartAppInner(want, isAppRecovery, identity);
+    return RestartAppInner(want, isAppRecovery, callerPid, IPCSkeleton::GetCallingUid(),
+        want.GetElement().GetBundleName());
 }
 
-int32_t AbilityManagerService::RestartAppInner(const Want &want, bool isAppRecovery,
-    const RestartAppIdentity &identity)
+int32_t AbilityManagerService::RestartAppInner(const Want &want, bool isAppRecovery, pid_t callerPid, int32_t callerUid,
+    const std::string &bundleName)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
         return INNER_ERR;
     }
-    const auto callerPid = identity.pid;
-    const auto callerUid = identity.uid;
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "RestartApp, isAppRecovery: %{public}d, callerPid: %{public}d", isAppRecovery, callerPid);
     AppExecFwk::RunningProcessInfo processInfo;
@@ -16877,8 +16870,7 @@ int32_t AbilityManagerService::RestartAppInner(const Want &want, bool isAppRecov
     }
 
     SignRestartAppFlagParam param =
-        { userId, callerUid, processInfo.instanceKey, processInfo.appMode, isAppRecovery, false };
-    param.bundleName = identity.bundleName;
+        { userId, callerUid, processInfo.instanceKey, processInfo.appMode, isAppRecovery, false, bundleName };
     RecordAppRestartExitReason(isAppRecovery, callerPid, callerUid);
     int32_t restartResult = SignRestartAppFlag(param);
     if (!isAppRecovery && restartResult != ERR_OK) {
