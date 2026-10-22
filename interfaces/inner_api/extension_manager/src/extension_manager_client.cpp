@@ -14,6 +14,7 @@
  */
 
 #include "ability_manager_errors.h"
+#include "app_utils.h"
 #include "extension_ability_info.h"
 #include "extension_manager_client.h"
 #include "extension_manager_proxy.h"
@@ -52,6 +53,10 @@ ExtensionManagerClient& ExtensionManagerClient::GetInstance()
 
 sptr<IExtensionManager> ExtensionManagerClient::GetExtensionManager()
 {
+    if (AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::EXTMGR, "forbid start");
+        return nullptr;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     if (proxy_ == nullptr) {
         Connect();

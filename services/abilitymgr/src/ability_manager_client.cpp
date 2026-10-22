@@ -18,6 +18,7 @@
 #ifdef WITH_DLP
 #include "dlp_file_kits.h"
 #endif // WITH_DLP
+#include "app_utils.h"
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -1731,6 +1732,10 @@ void AbilityManagerClient::ScheduleClearRecoveryPageStack()
 sptr<IAbilityManager> AbilityManagerClient::GetAbilityManager()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start");
+        return nullptr;
+    }
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!proxy_) {
         (void)Connect();
