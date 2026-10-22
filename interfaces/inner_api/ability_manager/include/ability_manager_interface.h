@@ -1022,6 +1022,23 @@ public:
         return 0;
     }
 
+    /**
+     * Force stop the application with a fixed kill id for cli tool, only used by aa force-stop.
+     * The kill id is fixed to REASON_AA_FORCE_STOP on the server side and cannot be forged by callers.
+     *
+     * @param bundleName bundle name of the application to force stop.
+     * @param reason kill reason text, recorded to the kill reason of the process record.
+     * @param userId The user id to force stop process for, -1 means use caller's userId.
+     * @param exitReason user declared exit reason, invalid value is normalized to REASON_UNKNOWN.
+     * @param recordPid record scope, >0 means only the specified pid, others mean all processes of the bundle.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ForceStopProcess(const std::string &bundleName, const std::string &reason, int32_t userId = -1,
+        int32_t exitReason = static_cast<int32_t>(Reason::REASON_UNKNOWN), int32_t recordPid = -1)
+    {
+        return 0;
+    }
+
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
      * force timeout ability.

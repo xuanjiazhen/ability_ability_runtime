@@ -4685,6 +4685,13 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
     appRecord->AddModule(appInfo, abilityInfo, loadParam->token, hapModuleInfo, want, loadParam->abilityRecordId);
     appRecord->SetIsKia(isKia);
     SetAppRunningRecordStrictMode(appRecord, loadParam);
+    // keep the invariant appIndex_ == appInfo_->appIndex for every record: the force-stop kill
+    // matches GetAppIndex() while the report reverse-lookup reads appInfo_->appIndex, so the
+    // assignment must not be gated by want (a want==null caller would leave appIndex_ at the
+    // default 0 and structurally break it); abilityInfo is the value source, aligned with path-2
+    if (abilityInfo) {
+        appRecord->SetAppIndex(abilityInfo->applicationInfo.appIndex);
+    }
     if (want) {
         appRecord->SetStartupTaskData(*want);
         appRecord->SetDebugApp(want->GetBoolParam(DEBUG_APP, false));
@@ -4696,8 +4703,6 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
         appRecord->SetPerfCmd(want->GetStringParam(PERF_CMD));
         appRecord->SetErrorInfoEnhance(want->GetBoolParam(ERROR_INFO_ENHANCE, false));
         appRecord->SetMultiThread(want->GetBoolParam(MULTI_THREAD, false));
-        int32_t appIndex = abilityInfo->applicationInfo.appIndex;
-        appRecord->SetAppIndex(appIndex);
         if (loadParam->isGamePrelaunch) {
             appRecord->SetPreloadMode(AppExecFwk::PreloadMode::GAME_PRELAUNCH);
         }
