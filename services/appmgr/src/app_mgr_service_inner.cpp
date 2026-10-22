@@ -63,6 +63,7 @@
 #include "distributed_data_mgr.h"
 #include "extension_ability_info.h"
 #include "ffrt.h"
+#include "cpp/condition_variable.h"
 #include "freeze_util.h"
 #include "global_constant.h"
 #include "hap_token_info.h"
@@ -149,6 +150,36 @@ using namespace OHOS::Security;
 using namespace OHOS::Rosen;
 
 namespace {
+constexpr int32_t PROCESS_AVAILABLE_QUERY_TIMEOUT_MS = 100;
+
+class ProcessStateCallback : public Memory::MemoryObserverStub {
+public:
+    void OnProcessAvailable(bool isAvailable) override
+    {
+        TAG_LOGI(AAFwkTag::APPMGR, "OnProcessAvailable, isAvailable:%{public}d", isAvailable);
+        {
+            std::lock_guard<ffrt::mutex> lock(mtx_);
+            isAvailable_ = isAvailable;
+            isDone_ = true;
+        }
+        cv_.notify_all();
+    }
+
+    bool WaitForResult(int32_t timeoutMs)
+    {
+        std::unique_lock<ffrt::mutex> lock(mtx_);
+        return cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this] { return isDone_; });
+    }
+
+    bool IsAvailable() const { return isAvailable_; }
+
+private:
+    mutable ffrt::mutex mtx_;
+    ffrt::condition_variable cv_;
+    bool isAvailable_ = false;
+    bool isDone_ = false;
+};
+
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) { \
         TAG_LOGE(AAFwkTag::APPMGR, "can't use SA");    \
@@ -2355,6 +2386,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     if (appRecord && appRecord->GetProcessCacheLocked()) {
         TAG_LOGI(AAFwkTag::APPMGR, "process %{public}s is locked", processName.c_str());
         DelayedSingleton<CacheProcessManager>::GetInstance()->OnAppProcessCacheBlocked(appRecord);
+        appRecord = nullptr;
+    }
+    if (appRecord && !CheckProcessAvailable(appRecord)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "process %{public}s is being killed by memmgr, skip reuse", processName.c_str());
         appRecord = nullptr;
     }
     if (appRecord && abilityInfo->type == AppExecFwk::AbilityType::PAGE) {
@@ -11321,6 +11356,43 @@ bool AppMgrServiceInner::NotifyMemMgrPriorityChanged(const std::shared_ptr<AppRu
     }
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "notifyPriorityChangedSync error, result:%{public}d", result);
+        return false;
+    }
+    return true;
+}
+
+bool AppMgrServiceInner::CheckProcessAvailable(const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (!appRecord) {
+        return true;
+    }
+    auto priorityObject = appRecord->GetPriorityObject();
+    if (!priorityObject) {
+        return true;
+    }
+    int32_t pid = priorityObject->GetPid();
+    if (pid <= 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "pid not ready, skip check, pid:%{public}d", pid);
+        return true;
+    }
+
+    sptr<ProcessStateCallback> callback = new ProcessStateCallback();
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    int32_t result = Memory::MemMgrClient::GetInstance().QueryProcessStateWithCallback(
+        pid, callback, PROCESS_AVAILABLE_QUERY_TIMEOUT_MS);
+    if (result != ERR_OK) {
+        TAG_LOGW(AAFwkTag::APPMGR, "QueryProcessStateWithCallback failed, result:%{public}d, pid:%{public}d",
+            result, pid);
+        return true;
+    }
+
+    if (!callback->WaitForResult(PROCESS_AVAILABLE_QUERY_TIMEOUT_MS)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "QueryProcessStateWithCallback timeout, pid:%{public}d, use default", pid);
+        return true;
+    }
+
+    if (!callback->IsAvailable()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "process pid:%{public}d is not available, skip reuse", pid);
         return false;
     }
     return true;

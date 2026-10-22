@@ -38,6 +38,8 @@
 #include "init_reboot.h"
 #include "insight_intent_execute_param.h"
 #include "int_wrapper.h"
+#include "cpp/condition_variable.h"
+#include "mem_mgr_client.h"
 #include "multi_instance_utils.h"
 #include "modular_object_manager.h"
 #include "modular_object_utils.h"
@@ -57,6 +59,36 @@
 namespace OHOS {
 namespace AAFwk {
 namespace {
+constexpr int32_t PROCESS_AVAILABLE_QUERY_TIMEOUT_MS = 100;
+
+class ProcessStateCallback : public Memory::MemoryObserverStub {
+public:
+    void OnProcessAvailable(bool isAvailable) override
+    {
+        TAG_LOGI(AAFwkTag::EXT, "OnProcessAvailable, isAvailable:%{public}d", isAvailable);
+        {
+            std::lock_guard<ffrt::mutex> lock(mtx_);
+            isAvailable_ = isAvailable;
+            isDone_ = true;
+        }
+        cv_.notify_all();
+    }
+
+    bool WaitForResult(int32_t timeoutMs)
+    {
+        std::unique_lock<ffrt::mutex> lock(mtx_);
+        return cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this] { return isDone_; });
+    }
+
+    bool IsAvailable() const { return isAvailable_; }
+
+private:
+    mutable ffrt::mutex mtx_;
+    ffrt::condition_variable cv_;
+    bool isAvailable_ = false;
+    bool isDone_ = false;
+};
+
 constexpr char EVENT_KEY_UID[] = "UID";
 constexpr char EVENT_KEY_PID[] = "PID";
 constexpr char EVENT_KEY_MESSAGE[] = "MSG";
@@ -3429,6 +3461,24 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         targetService = AbilityCacheManager::GetInstance().Get(abilityRequest);
         if (targetService != nullptr) {
             AddToServiceMap(serviceKey, targetService);
+        }
+    }
+    if (targetService != nullptr) {
+        pid_t recordPid = targetService->GetPid();
+        if (recordPid > 0) {
+            sptr<ProcessStateCallback> callback = new ProcessStateCallback();
+            int32_t result = Memory::MemMgrClient::GetInstance().QueryProcessStateWithCallback(
+                recordPid, callback, PROCESS_AVAILABLE_QUERY_TIMEOUT_MS);
+            bool isTimeout = (result != ERR_OK) ||
+                !callback->WaitForResult(PROCESS_AVAILABLE_QUERY_TIMEOUT_MS);
+            if (isTimeout || !callback->IsAvailable()) {
+                TAG_LOGW(AAFwkTag::EXT,
+                    "service process pid:%{public}d is not available, recreate: %{public}s/%{public}s",
+                    recordPid, element.GetBundleName().c_str(), element.GetAbilityName().c_str());
+                RemoveServiceFromMapSafe(serviceKey);
+                AbilityCacheManager::GetInstance().Remove(targetService);
+                targetService = nullptr;
+            }
         }
     }
     if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
