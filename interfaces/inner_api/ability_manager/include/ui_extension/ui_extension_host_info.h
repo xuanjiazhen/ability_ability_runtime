@@ -32,6 +32,8 @@ public:
 
     AppExecFwk::ElementName elementName_;
     std::string sessionName;
+    int32_t persistentId_ = 0;
+    std::string moduleName;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

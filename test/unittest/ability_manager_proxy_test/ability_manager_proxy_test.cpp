@@ -4361,5 +4361,33 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSandboxCloneAbility_0
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_006 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetUIExtensionHostInfoById
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy GetUIExtensionHostInfoById
+ * EnvConditions: NA
+ * CaseDescription: Verify GetUIExtensionHostInfoById request code and reply parsing
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetUIExtensionHostInfoById_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeUIExtensionHostInfoReply));
+
+    UIExtensionHostInfo hostInfo;
+    auto ret = proxy_->GetUIExtensionHostInfoById(100, hostInfo);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(hostInfo.elementName_.GetBundleName(), "com.proxy.reply");
+    EXPECT_EQ(hostInfo.elementName_.GetAbilityName(), "ReplyAbility");
+    EXPECT_EQ(hostInfo.elementName_.GetModuleName(), "entry");
+    EXPECT_EQ(hostInfo.sessionName, "session_proxy");
+    EXPECT_EQ(hostInfo.persistentId_, 88);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID), mock_->code_);
+
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
 } // namespace AAFwk
 } // namespace OHOS

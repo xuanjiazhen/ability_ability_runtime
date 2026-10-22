@@ -2660,6 +2660,21 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetUIExtensionRoot
 }
 
 /**
+ * @tc.name: AbilityManagerClient_GetUIExtensionHostInfoById_0100
+ * @tc.desc: GetUIExtensionHostInfoById
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetUIExtensionHostInfoById_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetUIExtensionHostInfoById_0100 start";
+    AAFwk::AbilityManagerClient localClient;
+    UIExtensionHostInfo hostInfo;
+    auto ret = localClient.GetUIExtensionHostInfoById(999999999, hostInfo);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    GTEST_LOG_(INFO) << "GetUIExtensionHostInfoById_0100 end ret=" << ret;
+}
+
+/**
  * @tc.name: AbilityManagerClient_RestartApp_0100
  * @tc.desc: RestartApp
  * @tc.type: FUNC
