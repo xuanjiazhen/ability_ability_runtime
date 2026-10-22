@@ -797,6 +797,9 @@ enum class AbilityManagerInterfaceCode {
 
     // kill process with user id
     KILL_PROCESS_WITH_USER_ID = 6183,
+
+    // ipc id for get ui extension host info by ability record id
+    GET_UI_EXTENSION_HOST_INFO_BY_ID = 6184,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
