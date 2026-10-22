@@ -2857,6 +2857,22 @@ ErrCode AbilityManagerClient::NotifyInsightIntentExecute(uint64_t intentId)
     return abms->NotifyInsightIntentExecute(intentId);
 }
 
+ErrCode AbilityManagerClient::RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->RegisterWillInsightIntentExecuteCallback(callback);
+}
+
+ErrCode AbilityManagerClient::UnregisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->UnregisterWillInsightIntentExecuteCallback(callback);
+}
+
 ErrCode AbilityManagerClient::QuerySkillType(const std::string &bundleName, const std::string &moduleName,
     const std::string &skillName, int32_t &skillType)
 {

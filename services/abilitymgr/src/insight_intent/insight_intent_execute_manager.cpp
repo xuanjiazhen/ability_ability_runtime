@@ -17,6 +17,7 @@
 #include "json_safe_util.h"
 
 #include <algorithm>
+#include <new>
 #include <unordered_map>
 
 #include "ability_config.h"
@@ -584,20 +585,11 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
-    const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+    AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
     Want &want)
 {
-    // ExtractInsightIntentGenericInfo don't satisfy for now
-    ExtractInsightIntentInfo info;
-    int32_t userId = param->userId_;
-    if (userId == DEFAULT_INVAL_VALUE) {
-        userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
-    }
-    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
-        AbilityRuntime::IntentKey{param->bundleName_, param->moduleName_, param->insightIntentName_, userId}, info);
-
     InsightIntentType type = InsightIntentType::DECOR_NONE;
-    std::string decoratorType = info.genericInfo.decoratorType;
+    std::string decoratorType = extractInfo.genericInfo.decoratorType;
     TAG_LOGD(AAFwkTag::INTENT, "intentName %{public}s, decoratorType %{public}s", param->insightIntentName_.c_str(),
         decoratorType.c_str());
     static const std::unordered_map<std::string, InsightIntentType> mapping = {
@@ -617,13 +609,13 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
         static_cast<int8_t>(type));
     switch (type) {
         case InsightIntentType::DECOR_FUNC: {
-            return UpdateFuncDecoratorParams(param, info, want);
+            return UpdateFuncDecoratorParams(param, extractInfo, want);
         }
         case InsightIntentType::DECOR_PAGE: {
-            return UpdatePageDecoratorParams(param, info, want);
+            return UpdatePageDecoratorParams(param, extractInfo, want);
         }
         case InsightIntentType::DECOR_ENTRY: {
-            return UpdateEntryDecoratorParams(param, info, want);
+            return UpdateEntryDecoratorParams(param, extractInfo, want);
         }
         case InsightIntentType::DECOR_NONE:
         case InsightIntentType::DECOR_LINK:
@@ -637,6 +629,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
 int32_t InsightIntentExecuteManager::GenerateWant(
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
     const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+    AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
     Want &want)
 {
     if (param == nullptr) {
@@ -672,6 +665,9 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_MODE, param->executeMode_);
     want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(param->insightIntentId_));
     want.SetParam(INSIGHT_INTENT_PARAM_USER_ID, param->userId_);
+    want.SetParam(INSIGHT_INTENT_CALLER_BUNDLE_NAME, param->callerBundleName_);
+    want.SetParam(INSIGHT_INTENT_CALLER_TOKEN_ID, param->callerTokenId_);
+    want.SetParam(INSIGHT_INTENT_CALLER_UID, param->callerUid_);
     if (param->displayId_ != INVALID_DISPLAY_ID) {
         want.SetParam(Want::PARAM_RESV_DISPLAY_ID, param->displayId_);
         TAG_LOGD(AAFwkTag::INTENT, "Generate want with displayId: %{public}d", param->displayId_);
@@ -689,7 +685,7 @@ int32_t InsightIntentExecuteManager::GenerateWant(
         return intRet;
     }
 
-    intRet = CheckAndUpdateDecoratorParams(param, decoratorInfo, want);
+    intRet = CheckAndUpdateDecoratorParams(param, extractInfo, want);
     if (intRet != ERR_OK) {
         return intRet;
     }
@@ -900,14 +896,19 @@ void InsightIntentExecuteManager::OnInsightAppDied(const std::string &bundleName
 
 void InsightIntentExecuteManager::SetTargetPid(uint64_t intentId, pid_t pid)
 {
-    std::lock_guard<ffrt::mutex> lock(mutex_);
-    auto it = records_.find(intentId);
-    if (it == records_.end() || it->second == nullptr) {
-        TAG_LOGD(AAFwkTag::INTENT, "SetTargetPid: record not found, intentId: %{public}" PRIu64, intentId);
-        return;
+    AppExecFwk::InsightIntentExecutionInfo executionInfo;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        auto it = records_.find(intentId);
+        if (it == records_.end() || it->second == nullptr) {
+            TAG_LOGD(AAFwkTag::INTENT, "SetTargetPid: record not found, intentId: %{public}" PRIu64, intentId);
+            return;
+        }
+        it->second->targetPid = pid;
+        executionInfo = it->second->executionInfo;
+        TAG_LOGD(AAFwkTag::INTENT, "SetTargetPid: intentId: %{public}" PRIu64 ", pid: %{public}d", intentId, pid);
     }
-    it->second->targetPid = pid;
-    TAG_LOGD(AAFwkTag::INTENT, "SetTargetPid: intentId: %{public}" PRIu64 ", pid: %{public}d", intentId, pid);
+    NotifyInsightIntentWillExecute(pid, executionInfo);
 }
 
 void InsightIntentExecuteManager::HandleDiedRecordsCleanup(const std::vector<uint64_t> &toRemove,
@@ -1108,6 +1109,87 @@ void InsightIntentExecuteManager::SetQueryEntityWantExtras(Want &want,
     want.SetParam(INSIGHT_INTENT_DECORATOR_TYPE, static_cast<int>(InsightIntentType::DECOR_QUERY_ENTITY));
     want.SetParam(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME, param.className_);
     want.SetParam(INSIGHT_INTENT_QUERY_TYPE, param.queryEntityParam_.queryType_);
+}
+
+namespace {
+class InsightIntentWillExecuteDeathRecipient : public IRemoteObject::DeathRecipient {
+public:
+    explicit InsightIntentWillExecuteDeathRecipient(pid_t pid) : pid_(pid) {}
+
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override
+    {
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()
+            ->RemoveInsightIntentWillExecuteCallback(pid_);
+    }
+
+private:
+    pid_t pid_ = 0;
+};
+} // namespace
+
+int32_t InsightIntentExecuteManager::RegisterWillInsightIntentExecuteCallback(
+    pid_t pid, const sptr<IRemoteObject> &callback)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "register will insight intent execute callback, pid:%{public}d", pid);
+    auto proxy = iface_cast<IInsightIntentWillExecuteCallback>(callback);
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "iface_cast failed");
+        return ERR_INVALID_VALUE;
+    }
+    sptr<IRemoteObject::DeathRecipient> deathRecipient =
+        new (std::nothrow) InsightIntentWillExecuteDeathRecipient(pid);
+    if (deathRecipient != nullptr) {
+        callback->AddDeathRecipient(deathRecipient);
+    }
+    std::lock_guard<std::mutex> lock(insightIntentWillExecuteMutex_);
+    insightIntentWillExecuteCallbacks_[pid] = proxy;
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::UnregisterWillInsightIntentExecuteCallback(pid_t pid)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "unregister will insight intent execute callback, pid:%{public}d", pid);
+    std::lock_guard<std::mutex> lock(insightIntentWillExecuteMutex_);
+    insightIntentWillExecuteCallbacks_.erase(pid);
+    return ERR_OK;
+}
+
+void InsightIntentExecuteManager::NotifyInsightIntentWillExecute(
+    pid_t pid, const AppExecFwk::InsightIntentExecutionInfo &info)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "notify will insight intent execute, pid:%{public}d, intent:%{public}s",
+        pid, info.intentName.c_str());
+    sptr<IInsightIntentWillExecuteCallback> callback;
+    {
+        std::lock_guard<std::mutex> lock(insightIntentWillExecuteMutex_);
+        auto it = insightIntentWillExecuteCallbacks_.find(pid);
+        if (it == insightIntentWillExecuteCallbacks_.end()) {
+            return;
+        }
+        callback = it->second;
+    }
+    if (callback != nullptr) {
+        callback->OnWillInsightIntentExecute(info);
+    }
+}
+
+void InsightIntentExecuteManager::RemoveInsightIntentWillExecuteCallback(pid_t pid)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "remove will insight intent execute callback, pid:%{public}d", pid);
+    std::lock_guard<std::mutex> lock(insightIntentWillExecuteMutex_);
+    insightIntentWillExecuteCallbacks_.erase(pid);
+}
+
+void InsightIntentExecuteManager::SetInsightIntentExecutionInfo(uint64_t intentId,
+    const AppExecFwk::InsightIntentExecutionInfo &info)
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto it = records_.find(intentId);
+    if (it == records_.end() || it->second == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "record not found, intentId: %{public}" PRIu64, intentId);
+        return;
+    }
+    it->second->executionInfo = info;
 }
 } // namespace AAFwk
 } // namespace OHOS
