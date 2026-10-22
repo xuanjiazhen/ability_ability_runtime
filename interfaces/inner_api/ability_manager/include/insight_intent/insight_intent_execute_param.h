@@ -87,9 +87,6 @@ constexpr char INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME[] = "ohos.insightIntent.qu
 constexpr char INSIGHT_INTENT_QUERY_TYPE[] = "ohos.insightIntent.queryEntity.queryType";
 constexpr char INSIGHT_INTENT_QUERY_ENTITY_PARAM_PARAM[] = "ohos.insightIntent.queryEntity.param";
 constexpr char INSIGHT_INTENT_PARAM_USER_ID[] = "ohos.insightIntent.param.userId";
-constexpr char INSIGHT_INTENT_DISTRIBUTED_CALLBACK_KEY[] = "ohos.insightIntent.distributed.callbackKey";
-constexpr char INSIGHT_INTENT_DISTRIBUTED_SRC_DEVICE_ID[] = "ohos.insightIntent.distributed.srcDeviceId";
-constexpr char INSIGHT_INTENT_DISTRIBUTED_REQUEST_CODE[] = "ohos.insightIntent.distributed.requestCode";
 constexpr char INSIGHT_INTENT_TOOL_CALL_ID[] = "ohos.insightIntent.toolCallId";
 
 constexpr int32_t INVALID_DISPLAY_ID = -1;
