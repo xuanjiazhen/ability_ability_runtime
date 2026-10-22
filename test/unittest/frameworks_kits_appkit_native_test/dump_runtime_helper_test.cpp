@@ -138,7 +138,7 @@ HWTEST_F(DumpRuntimeHelperTest, DumpCjHeap_0300, Function | MediumTest | Level1)
  */
 HWTEST_F(DumpRuntimeHelperTest, DumpKmpKotlinHeap_0100, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpKmpKotlinHeap_0100 start";
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest KmpHeap_0100 start";
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
     EXPECT_NE(application, nullptr);
     OHOS::AppExecFwk::MemDumpInfo info;
@@ -148,7 +148,7 @@ HWTEST_F(DumpRuntimeHelperTest, DumpKmpKotlinHeap_0100, Function | MediumTest | 
     info.needDump = true;
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
     helper->DumpKmpKotlinHeap(info);
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpKmpKotlinHeap_0100 end";
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest KmpHeap_0100 end";
 }
 
 /**
@@ -158,7 +158,7 @@ HWTEST_F(DumpRuntimeHelperTest, DumpKmpKotlinHeap_0100, Function | MediumTest | 
  */
 HWTEST_F(DumpRuntimeHelperTest, DumpKmpKotlinHeap_0200, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpKmpKotlinHeap_0200 start";
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest KmpHeap_0200 start";
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
     EXPECT_NE(application, nullptr);
     OHOS::AppExecFwk::MemDumpInfo info;
@@ -168,7 +168,7 @@ HWTEST_F(DumpRuntimeHelperTest, DumpKmpKotlinHeap_0200, Function | MediumTest | 
     info.needDump = false;
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
     helper->DumpKmpKotlinHeap(info);
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpKmpKotlinHeap_0200 end";
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest KmpHeap_0200 end";
 }
 
 /**
