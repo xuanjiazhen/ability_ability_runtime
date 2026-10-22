@@ -128,6 +128,27 @@ HWTEST_F(AppExitReasonHelperTest, RecordKillCallerInfo_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RecordAppRestartExitReason_0100
+ * @tc.desc: RecordAppRestartExitReason
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppExitReasonHelperTest, RecordAppRestartExitReason_0100, TestSize.Level1)
+{
+    auto ams = AAFwk::AbilityManagerService::GetPubInstance();
+    ASSERT_NE(ams, nullptr);
+    // app recovery path: return early without recording
+    ams->RecordAppRestartExitReason(true, 1234, 5678);
+    // normal restart path: record chain (no appmgr service in UT, best-effort log only)
+    ams->RecordAppRestartExitReason(false, 1234, 5678);
+    // null helper branch: return without recording
+    auto helper = ams->appExitReasonHelper_;
+    ams->appExitReasonHelper_ = nullptr;
+    ams->RecordAppRestartExitReason(false, 1234, 5678);
+    ams->appExitReasonHelper_ = helper;
+}
+
+/**
  * @tc.name: GetActiveAbilityListWithPid_0100
  * @tc.desc: GetActiveAbilityListWithPid
  * @tc.type: FUNC
