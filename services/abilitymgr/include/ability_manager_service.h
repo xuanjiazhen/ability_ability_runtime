@@ -1056,6 +1056,57 @@ public:
         int32_t appIndex = -1, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1) override;
 
     /**
+     * Force stop the application with a fixed kill id for cli tool, only used by aa force-stop.
+     * The kill id is fixed to REASON_AA_FORCE_STOP on the server side.
+     *
+     * @param bundleName bundle name of the application to force stop.
+     * @param reason kill reason text.
+     * @param userId The user id to force stop process for, -1 means use caller's userId.
+     * @param exitReason user declared exit reason, invalid value is normalized to REASON_UNKNOWN.
+     * @param recordPid record scope, >0 means only the specified pid, others mean all processes.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ForceStopProcess(const std::string &bundleName, const std::string &reason, int32_t userId,
+        int32_t exitReason, int32_t recordPid) override;
+
+    /**
+     * @brief Common body of KillProcessWithUserId and ForceStopProcess: kill permission, clone
+     *        resolution, collaborator and keep-alive checks, the force stop exit reason
+     *        report/stamp (right before the kill) and the kill itself.
+     * @param bundleName bundle name of the application to kill.
+     * @param clearPageStack true to also clear mission/page-stack records of the app.
+     * @param appIndex clone application index.
+     * @param reason kill reason string recorded in exit statistics.
+     * @param userId the user id to kill process for, -1 means use caller's userId.
+     * @param isForceStop true when called from ForceStopProcess, the exit reason report and the
+     *        kill id/caller stamping run after all gates and right before the kill.
+     * @param recordPid force stop stamping scope, >0 means only the specified pid.
+     * @param exitReason force stop declared exit reason, normalized by the caller.
+     * @param callerPid the pid of the force stop caller, captured at the transaction boundary.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t KillProcessWithUserIdInner(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
+        const std::string &reason, int32_t userId, bool isForceStop = false, int32_t recordPid = -1,
+        int32_t exitReason = static_cast<int32_t>(Reason::REASON_UNKNOWN), int32_t callerPid = 0);
+
+    /**
+     * @brief Report the exit reason of one force-stop event and stamp kill id/caller info on the
+     *        matched process records, right before the kill. Best effort: all failures are logged
+     *        and never block the kill flow. The report scope aligns with the kill scope: bundle +
+     *        resolved clone index + users (originUserId -1 means all users, enumerated per active
+     *        os account).
+     * @param bundleName bundle name of the application to report.
+     * @param appIndex resolved clone application index.
+     * @param userId the resolved user id of the caller.
+     * @param originUserId the original user id, -1 means the kill crosses all users.
+     * @param recordPid >0 means only report the specified pid, others mean all matched processes.
+     * @param exitReason the declared exit reason, normalized by the caller.
+     * @param callerPid the pid of the force stop caller, captured at the transaction boundary.
+     */
+    void ReportForceStopKillId(const std::string &bundleName, int32_t appIndex, int32_t userId,
+        int32_t originUserId, int32_t recordPid, int32_t exitReason, int32_t callerPid);
+
+    /**
      * Uninstall app
      *
      * @param bundleName bundle name of uninstalling app.
@@ -2869,7 +2920,7 @@ protected:
      * @param userId process user id.
      */
     int32_t KillProcessForCollaborator(int32_t collaboratorType, const std::string &bundleName, int32_t userId);
-    
+
     /**
      * Check if Caller is allowed to start AppServiceExtension(Stage).
      *

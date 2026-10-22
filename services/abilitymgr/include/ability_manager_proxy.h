@@ -747,6 +747,19 @@ public:
     virtual int KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false,
         int32_t appIndex = -1, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1) override;
 
+    /**
+     * Force stop the application with a fixed kill id for cli tool, only used by aa force-stop.
+     *
+     * @param bundleName bundle name of the application to force stop.
+     * @param reason kill reason text.
+     * @param userId The user id to force stop process for, -1 means use caller's userId.
+     * @param exitReason user declared exit reason.
+     * @param recordPid record scope, >0 means only the specified pid, others mean all processes.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ForceStopProcess(const std::string &bundleName, const std::string &reason, int32_t userId,
+        int32_t exitReason, int32_t recordPid) override;
+
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
      * force timeout ability.
