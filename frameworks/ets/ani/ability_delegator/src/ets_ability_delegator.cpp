@@ -1258,11 +1258,14 @@ void EtsAbilityDelegator::CleanAndFindMonitorRecord(ani_env *env, ani_object mon
             etsMonitor->aniRef, &result);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "Reference_StrictEquals failed status: %{public}d", status);
+            ++iter;
+            continue;
         }
         if (result) {
             status = env->GlobalReference_Delete(etsMonitor->aniRef);
             if (status != ANI_OK) {
                 TAG_LOGE(AAFwkTag::DELEGATOR, "GlobalReference_Delete failed status: %{public}d", status);
+                break;
             }
             g_monitorRecord.erase(iter);
             break;
@@ -1348,6 +1351,8 @@ bool EtsAbilityDelegator::ParseInteropMonitorPara(ani_env *env, ani_object monit
                 etsMonitor->aniRef, &result);
             if (status != ANI_OK) {
                 TAG_LOGE(AAFwkTag::DELEGATOR, "Reference_StrictEquals failed status: %{public}d", status);
+                ++iter;
+                continue;
             }
             if (result) {
                 TAG_LOGW(AAFwkTag::DELEGATOR, "interop monitor exist");
@@ -1426,11 +1431,14 @@ std::shared_ptr<EtsInteropAbilityMonitor> EtsAbilityDelegator::CleanAndFindInter
             etsMonitor->aniRef, &result);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "Reference_StrictEquals failed status: %{public}d", status);
+            ++iter;
+            continue;
         }
         if (result) {
             status = env->GlobalReference_Delete(etsMonitor->aniRef);
             if (status != ANI_OK) {
                 TAG_LOGE(AAFwkTag::DELEGATOR, "GlobalReference_Delete failed status: %{public}d", status);
+                break;
             }
             auto monitor = iter->second;
             g_interopMonitorRecord.erase(iter);

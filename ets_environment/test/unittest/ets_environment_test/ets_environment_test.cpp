@@ -1279,5 +1279,63 @@ HWTEST_F(EtsEnvironmentTest, GetHspPathList_0200, TestSize.Level1)
     EXPECT_EQ(paths.size(), 1);
     EXPECT_EQ(paths[0], "/system/app/com.ohos.demo/entry.hsp");
 }
+
+/**
+ * @tc.name: LoadModule_0200
+ * @tc.desc: LoadModule success path returns non-null cls/obj/ref and calls DestroyLocalScope.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadModule_0200, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockAniEnv;
+    auto &state = mockAniEnv.GetState();
+    state.destroyLocalScopeCalled = false;
+    etsEnv->vmEntry_.aniEnv_ = mockAniEnv.GetEnv();
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x11);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x11);
+    etsEnv->vmEntry_.abcCacheMap_["testModule"] = true;
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = true;
+
+    void *cls = nullptr;
+    void *obj = nullptr;
+    void *ref = nullptr;
+    bool result = etsEnv->LoadModule("testModule", "testEntrance", cls, obj, ref);
+    EXPECT_TRUE(result);
+    EXPECT_NE(cls, nullptr);
+    EXPECT_NE(obj, nullptr);
+    EXPECT_NE(ref, nullptr);
+    EXPECT_TRUE(state.destroyLocalScopeCalled);
+}
+
+/**
+ * @tc.name: LoadModule_0300
+ * @tc.desc: LoadModule error path calls DestroyLocalScope when Class_FindMethod fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadModule_0300, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockAniEnv;
+    auto &state = mockAniEnv.GetState();
+    state.destroyLocalScopeCalled = false;
+    state.classFindMethodStatus = ANI_ERROR;
+    etsEnv->vmEntry_.aniEnv_ = mockAniEnv.GetEnv();
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x11);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x11);
+    etsEnv->vmEntry_.abcCacheMap_["testModule"] = true;
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = true;
+
+    void *cls = nullptr;
+    void *obj = nullptr;
+    void *ref = nullptr;
+    bool result = etsEnv->LoadModule("testModule", "testEntrance", cls, obj, ref);
+    EXPECT_FALSE(result);
+    EXPECT_TRUE(state.destroyLocalScopeCalled);
+}
 } // namespace EtsEnv
 } // namespace OHOS

@@ -2553,9 +2553,14 @@ void EtsAbilityContext::OnRequestDialogService(ani_env *env, ani_object aniObj, 
         return;
     }
     ani_ref callbackRef = nullptr;
-    env->GlobalReference_Create(call, &callbackRef);
+    if (env->GlobalReference_Create(call, &callbackRef) != ANI_OK || callbackRef == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "GlobalReference_Create failed");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    auto callbackDeleted = std::make_shared<bool>(false);
     RequestDialogResultTask task =
-        [vm, callbackRef](int32_t resultCode, const AAFwk::Want &resultWant) {
+        [vm, callbackRef, callbackDeleted](int32_t resultCode, const AAFwk::Want &resultWant) {
         bool isAttachThread = false;
         ani_env *env = AppExecFwk::AttachAniEnv(vm, isAttachThread);
         if (env == nullptr) {
@@ -2571,7 +2576,10 @@ void EtsAbilityContext::OnRequestDialogService(ani_env *env, ani_object aniObj, 
             ani_object errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
             AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, requestResult);
         }
-        env->GlobalReference_Delete(callbackRef);
+        if (!*callbackDeleted) {
+            env->GlobalReference_Delete(callbackRef);
+            *callbackDeleted = true;
+        }
         AppExecFwk::DetachAniEnv(vm, isAttachThread);
         TAG_LOGD(AAFwkTag::CONTEXT, "end async callback");
     };
@@ -2579,11 +2587,19 @@ void EtsAbilityContext::OnRequestDialogService(ani_env *env, ani_object aniObj, 
     auto context = context_.lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        if (!*callbackDeleted) {
+            env->GlobalReference_Delete(callbackRef);
+            *callbackDeleted = true;
+        }
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
     } else {
         auto errCode = context->RequestDialogService(want, std::move(task));
         if (errCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::UIABILITY, "errCode: %{public}d", errCode);
+            if (!*callbackDeleted) {
+                env->GlobalReference_Delete(callbackRef);
+                *callbackDeleted = true;
+            }
             EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateError(env, GetJsErrorCodeByNativeError(errCode)));
         }
     }

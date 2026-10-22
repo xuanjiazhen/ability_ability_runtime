@@ -322,6 +322,8 @@ private:
     void RemoveStageMonitorRecord(napi_env env, napi_value value);
     napi_value ParseInteropMonitorPara(napi_env env, napi_value value,
         std::shared_ptr<InteropAbilityMonitor> &monitor);
+    bool FindExistingInteropMonitor(napi_env env, napi_value value,
+        std::shared_ptr<InteropAbilityMonitor> &monitor);
 };
 }  // namespace AbilityDelegatorJs
 }  // namespace OHOS

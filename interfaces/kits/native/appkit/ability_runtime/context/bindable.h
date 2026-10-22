@@ -77,7 +77,7 @@ public:
         if (iter == objects_.end()) {
             return;
         }
-        iter->second.release();
+        iter->second.reset();
     }
 
     BindingObject(const BindingObject&) = delete;

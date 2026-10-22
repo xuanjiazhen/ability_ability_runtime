@@ -1626,23 +1626,34 @@ napi_value JSAbilityDelegator::OnRemoveInteropAbilityMonitorSync(napi_env env, N
     return CreateJsUndefined(env);
 }
 
+bool JSAbilityDelegator::FindExistingInteropMonitor(napi_env env, napi_value value,
+    std::shared_ptr<InteropAbilityMonitor> &monitor)
+{
+    std::lock_guard<std::mutex> lock(g_mtxInteropMonitorRecord);
+    TAG_LOGI(AAFwkTag::DELEGATOR, "interopMonitorRecord size: %{public}zu", g_interopMonitorRecord.size());
+    for (auto iter = g_interopMonitorRecord.begin(); iter != g_interopMonitorRecord.end(); ++iter) {
+        std::shared_ptr<NativeReference> jsMonitor = iter->first;
+        bool isEquals = false;
+        napi_status status = napi_strict_equals(env, value, jsMonitor->GetNapiValue(), &isEquals);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::DELEGATOR, "napi_strict_equals failed");
+            continue;
+        }
+        if (isEquals) {
+            TAG_LOGW(AAFwkTag::DELEGATOR, "interop monitor exist");
+            monitor = iter->second;
+            return true;
+        }
+    }
+    return false;
+}
+
 napi_value JSAbilityDelegator::ParseInteropMonitorPara(napi_env env, napi_value value,
     std::shared_ptr<InteropAbilityMonitor> &monitor)
 {
     HandleScope handleScope(env);
-    {
-        std::lock_guard<std::mutex> lock(g_mtxInteropMonitorRecord);
-        TAG_LOGI(AAFwkTag::DELEGATOR, "interopMonitorRecord size: %{public}zu", g_interopMonitorRecord.size());
-        for (auto iter = g_interopMonitorRecord.begin(); iter != g_interopMonitorRecord.end(); ++iter) {
-            std::shared_ptr<NativeReference> jsMonitor = iter->first;
-            bool isEquals = false;
-            napi_strict_equals(env, value, jsMonitor->GetNapiValue(), &isEquals);
-            if (isEquals) {
-                TAG_LOGW(AAFwkTag::DELEGATOR, "interop monitor exist");
-                monitor = iter->second;
-                return monitor ? CreateJsNull(env) : nullptr;
-            }
-        }
+    if (FindExistingInteropMonitor(env, value, monitor)) {
+        return monitor ? CreateJsNull(env) : nullptr;
     }
 
     napi_value abilityNameValue = nullptr;
@@ -1672,10 +1683,12 @@ napi_value JSAbilityDelegator::ParseInteropMonitorPara(napi_env env, napi_value 
         jsInteropMonitor->SetAniEnv(aniEnvVoid);
     }
     monitor = std::make_shared<InteropAbilityMonitor>(abilityName, moduleName, jsInteropMonitor);
-
     std::shared_ptr<NativeReference> reference = nullptr;
     napi_ref ref = nullptr;
-    napi_create_reference(env, value, 1, &ref);
+    if (napi_create_reference(env, value, 1, &ref) != napi_ok || ref == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "napi_create_reference failed");
+        return nullptr;
+    }
     reference.reset(reinterpret_cast<NativeReference*>(ref));
     {
         std::lock_guard<std::mutex> lock(g_mtxInteropMonitorRecord);
