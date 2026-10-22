@@ -113,6 +113,7 @@ ohos_shared_library("ability_simulator_inner") {
     ]
 
     if (ability_runtime_graphics) {
+      defines += [ "SUPPORT_GRAPHICS" ]
       external_deps += [
         "ace_engine:ace_uicontent",
         "window_manager:previewer_window",
