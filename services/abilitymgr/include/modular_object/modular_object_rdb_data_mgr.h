@@ -16,6 +16,7 @@
 #ifndef OHOS_MODULAR_OBJECT_RDB_DATA_MGR_H
 #define OHOS_MODULAR_OBJECT_RDB_DATA_MGR_H
 
+#include <atomic>
 #include <vector>
 #include <mutex>
 #include <string>
@@ -71,6 +72,7 @@ public:
     int32_t InsertOrUpdateData(const std::string &key, const std::string &value);
     int32_t DeleteData(const std::string &key);
     int32_t QueryData(const std::string &key, std::string &value);
+    void ReleaseIfIdle(int64_t thresholdMs);
 
 private:
     int32_t IsDatabaseReady();
@@ -82,6 +84,7 @@ private:
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
     std::mutex rdbStoreMutex_;
     ModularObjectExtensionRdbConfig config_;
+    std::atomic<int64_t> lastAccessTime_ = 0;
 };
 
 } // namespace AbilityRuntime

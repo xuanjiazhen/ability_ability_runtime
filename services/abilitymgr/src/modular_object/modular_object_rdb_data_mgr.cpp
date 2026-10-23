@@ -42,6 +42,11 @@ ModularObjectExtensionRdbDataMgr::~ModularObjectExtensionRdbDataMgr() = default;
 
 std::shared_ptr<NativeRdb::RdbStore> ModularObjectExtensionRdbDataMgr::GetRdbStore()
 {
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    lastAccessTime_.store(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count(),
+        std::memory_order_relaxed);
     if (rdbStore_ != nullptr) {
         return rdbStore_;
     }
@@ -211,6 +216,21 @@ int32_t ModularObjectExtensionRdbOpenCallback::onCorruption(std::string dbFile)
 {
     TAG_LOGW(AAFwkTag::EXT, "DB corrupted: %{public}s", dbFile.c_str());
     return NativeRdb::E_OK;
+}
+
+void ModularObjectExtensionRdbDataMgr::ReleaseIfIdle(int64_t thresholdMs)
+{
+    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    auto last = lastAccessTime_.load(std::memory_order_relaxed);
+    if (last == 0 || now - last < thresholdMs) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    if (rdbStore_ != nullptr) {
+        TAG_LOGI(AAFwkTag::EXT, "Release idle modular_object rdb store");
+        rdbStore_.reset();
+    }
 }
 
 } // namespace AbilityRuntime

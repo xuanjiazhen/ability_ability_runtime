@@ -19,6 +19,8 @@
 #include "rdb_data_manager.h"
 #include "rdb/parser_util.h"
 
+#include <atomic>
+#include <chrono>
 #include <unordered_map>
 
 namespace OHOS {
@@ -176,7 +178,11 @@ public:
      * @return Returns 0 on success, non-zero on failure.
      */
     int32_t GetSaResidentProcessRawData(const std::string &bundleName, int32_t callerUid);
+
+    void ReleaseIfIdle(int64_t thresholdMs);
+
 private:
+    void EnsureInit();
     /*
      * Verify callerUid against the sa uid list which is stored as a JSON array text.
      * Elements are compared exactly one by one; substring match is forbidden
@@ -222,6 +228,7 @@ private:
 
     // Pointer to the RDB data manager, responsible for managing RDB operations.
     std::unique_ptr<RdbDataManager> rdbMgr_ = nullptr;
+    std::atomic<int64_t> lastAccessTime_ = 0;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

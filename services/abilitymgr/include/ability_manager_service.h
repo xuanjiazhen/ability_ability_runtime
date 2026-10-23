@@ -3510,6 +3510,7 @@ private:
     void InitInterceptorForScreenUnlock();
     void UpdateScreenUnlockInterceptor(int32_t userId);
     void InitPushTask();
+    void StartRdbIdleReleaseTimer();
     void InitAppSpawnMsgPipe();
     void InitDeepLinkReserve();
 

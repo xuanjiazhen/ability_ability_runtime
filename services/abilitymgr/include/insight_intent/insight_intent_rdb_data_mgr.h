@@ -16,6 +16,7 @@
 #ifndef OHOS_INSIGHT_RDB_INTENT_DATA_MGR_H
 #define OHOS_INSIGHT_RDB_INTENT_DATA_MGR_H
 
+#include <atomic>
 #include <vector>
 #include <mutex>
 #include <string>
@@ -78,6 +79,7 @@ public:
     bool QueryDataBeginWithKey(const std::string &key, std::unordered_map<std::string, std::string> &datas);
     bool QueryAllData(std::unordered_map<std::string, std::string> &datas);
     void BackupRdb();
+    void ReleaseIfIdle(int64_t thresholdMs);
 
 private:
     bool IsIntentRdbLoaded();
@@ -89,6 +91,7 @@ private:
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
     std::mutex rdbStoreMutex_;
     IntentRdbConfig intentRdbConfig_;
+    std::atomic<int64_t> lastAccessTime_ = 0;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

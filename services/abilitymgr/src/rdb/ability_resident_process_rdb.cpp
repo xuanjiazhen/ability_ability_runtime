@@ -202,6 +202,31 @@ int32_t AmsResidentProcessRdb::Init()
     return Rdb_OK;
 }
 
+void AmsResidentProcessRdb::EnsureInit()
+{
+    lastAccessTime_.store(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count(),
+        std::memory_order_relaxed);
+    if (rdbMgr_ == nullptr) {
+        Init();
+    }
+}
+
+void AmsResidentProcessRdb::ReleaseIfIdle(int64_t thresholdMs)
+{
+    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    auto last = lastAccessTime_.load(std::memory_order_relaxed);
+    if (last == 0 || now - last < thresholdMs) {
+        return;
+    }
+    if (rdbMgr_ != nullptr) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Release idle resident_process rdb");
+        rdbMgr_.reset();
+    }
+}
+
 AmsResidentProcessRdb &AmsResidentProcessRdb::GetInstance()
 {
     static AmsResidentProcessRdb instance;
@@ -211,6 +236,7 @@ AmsResidentProcessRdb &AmsResidentProcessRdb::GetInstance()
 int32_t AmsResidentProcessRdb::VerifyConfigurationPermissions(
     const std::string &bundleName, const std::string &callerBundleName)
 {
+    EnsureInit();
     if (bundleName.empty() || callerBundleName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundle name");
         return Rdb_Parameter_Err;
@@ -257,6 +283,7 @@ int32_t AmsResidentProcessRdb::VerifyConfigurationPermissions(
 
 int32_t AmsResidentProcessRdb::GetResidentProcessEnable(const std::string &bundleName, bool &enable)
 {
+    EnsureInit();
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleName");
         return Rdb_Parameter_Err;
@@ -301,6 +328,7 @@ int32_t AmsResidentProcessRdb::GetResidentProcessEnable(const std::string &bundl
 
 int32_t AmsResidentProcessRdb::UpdateResidentProcessEnable(const std::string &bundleName, bool enable)
 {
+    EnsureInit();
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleName");
         return Rdb_Parameter_Err;
@@ -320,6 +348,7 @@ int32_t AmsResidentProcessRdb::UpdateResidentProcessEnable(const std::string &bu
 
 int32_t AmsResidentProcessRdb::RemoveData(const std::string &bundleName)
 {
+    EnsureInit();
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleName");
         return Rdb_Parameter_Err;
@@ -337,6 +366,7 @@ int32_t AmsResidentProcessRdb::RemoveData(const std::string &bundleName)
 int32_t AmsResidentProcessRdb::GetResidentProcessRawData(const std::string &bundleName,
     const std::string &callerName)
 {
+    EnsureInit();
     std::vector<ResidentBundleCapability> jsonList;
     ParserUtil::GetInstance().GetResidentProcessRawData(jsonList);
     if (jsonList.empty() || bundleName.empty() || callerName.empty()) {
@@ -402,6 +432,7 @@ bool AmsResidentProcessRdb::VerifyCallerInConfiguredList(const std::string &json
 
 int32_t AmsResidentProcessRdb::VerifySaConfigurationPermissions(const std::string &bundleName, int32_t callerUid)
 {
+    EnsureInit();
     if (bundleName.empty() || callerUid < 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundle name or invalid uid");
         return Rdb_Parameter_Err;
@@ -443,6 +474,7 @@ int32_t AmsResidentProcessRdb::VerifySaConfigurationPermissions(const std::strin
 
 int32_t AmsResidentProcessRdb::GetSaResidentProcessRawData(const std::string &bundleName, int32_t callerUid)
 {
+    EnsureInit();
     std::vector<ResidentBundleCapability> jsonList;
     ParserUtil::GetInstance().GetResidentProcessRawData(jsonList);
     if (jsonList.empty() || bundleName.empty() || callerUid < 0) {

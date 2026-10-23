@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "insight_intent_rdb_data_mgr.h"
+#include <chrono>
 #include "hilog_tag_wrapper.h"
 #include "scope_guard.h"
 #include "utils/hmsf_utils.h"
@@ -37,6 +38,14 @@ InsightIntentRdbDataMgr::~InsightIntentRdbDataMgr()
 
 std::shared_ptr<NativeRdb::RdbStore> InsightIntentRdbDataMgr::GetRdbStore()
 {
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    lastAccessTime_.store(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count(),
+        std::memory_order_relaxed);
+    if (rdbStore_ != nullptr) {
+        return rdbStore_;
+    }
     NativeRdb::RdbStoreConfig rdbStoreConfig(intentRdbConfig_.dbPath + intentRdbConfig_.dbName);
     rdbStoreConfig.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     rdbStoreConfig.SetWriteTime(WRITE_TIMEOUT);
@@ -436,5 +445,21 @@ int32_t IntentRdbOpenCallback::onCorruption(std::string databaseFile)
     TAG_LOGD(AAFwkTag::INTENT, "onCorruption");
     return NativeRdb::E_OK;
 }
+
+void InsightIntentRdbDataMgr::ReleaseIfIdle(int64_t thresholdMs)
+{
+    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    auto last = lastAccessTime_.load(std::memory_order_relaxed);
+    if (last == 0 || now - last < thresholdMs) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    if (rdbStore_ != nullptr) {
+        TAG_LOGI(AAFwkTag::INTENT, "Release idle insight_intent rdb store");
+        rdbStore_.reset();
+    }
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS

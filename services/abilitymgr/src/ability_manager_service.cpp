@@ -64,6 +64,7 @@
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_execute_lite_param.h"
 #include "insight_intent_db_cache.h"
+#include "insight_intent_rdb_data_mgr.h"
 #include "skill/skill_execute_manager.h"
 #include "insight_intent_utils.h"
 #include "extract_insight_intent_profile.h"
@@ -93,6 +94,7 @@
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
 #include "modal_system_ui_extension.h"
 #include "modular_object_manager.h"
+#include "modular_object_rdb_data_mgr.h"
 #include "modular_object_utils.h"
 #include "multi_app_utils.h"
 #include "native_ability_util.h"
@@ -100,6 +102,7 @@
 #include "permission_constants.h"
 #include "preload_manager_service.h"
 #include "process_options.h"
+#include "rdb/ability_resident_process_rdb.h"
 #include "rate_limiter.h"
 #include "recovery_info_timer.h"
 #include "recovery_param.h"
@@ -660,6 +663,8 @@ void AbilityManagerService::InitPushTask()
     auto initStartupFlagTask = [aams = shared_from_this()]() { aams->InitStartupFlag(); };
     taskHandler_->SubmitTask(initStartupFlagTask, "InitStartupFlag");
 
+    StartRdbIdleReleaseTimer();
+
     DelayedSingleton<ExtensionConfig>::GetInstance()->LoadExtensionConfiguration();
 
     auto bootCompletedTask = [handler = taskHandler_]() {
@@ -686,6 +691,32 @@ void AbilityManagerService::InitStartupFlag()
     startUpNewRule_ = CheckNewRuleSwitchState(COMPONENT_STARTUP_NEW_RULES);
     backgroundJudgeFlag_ = CheckNewRuleSwitchState(BACKGROUND_JUDGE_FLAG);
     whiteListassociatedWakeUpFlag_ = CheckNewRuleSwitchState(WHITE_LIST_ASS_WAKEUP_FLAG);
+}
+
+void AbilityManagerService::StartRdbIdleReleaseTimer()
+{
+    if (taskHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler_ null for rdb idle release");
+        return;
+    }
+    constexpr int64_t IDLE_CHECK_INTERVAL_MS = 60000;
+    constexpr int64_t IDLE_THRESHOLD_MS = 180000;
+    std::weak_ptr<AbilityManagerService> weakThis = shared_from_this();
+    std::function<void()> check = [weakThis, &check]() {
+        auto ams = weakThis.lock();
+        if (!ams || !ams->taskHandler_) {
+            return;
+        }
+        AbilityRuntime::AmsResidentProcessRdb::GetInstance().ReleaseIfIdle(IDLE_THRESHOLD_MS);
+        DelayedSingleton<AbilityRuntime::ModularObjectExtensionRdbDataMgr>::GetInstance()
+            ->ReleaseIfIdle(IDLE_THRESHOLD_MS);
+        DelayedSingleton<AbilityRuntime::InsightIntentRdbDataMgr>::GetInstance()
+            ->ReleaseIfIdle(IDLE_THRESHOLD_MS);
+        ams->taskHandler_->SubmitTask(check, "RdbIdleRelease", IDLE_CHECK_INTERVAL_MS);
+    };
+    taskHandler_->SubmitTask(check, "RdbIdleRelease", IDLE_CHECK_INTERVAL_MS);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "RDB idle release timer started (interval=%{public}lldms, threshold=%{public}lldms)",
+        static_cast<long long>(IDLE_CHECK_INTERVAL_MS), static_cast<long long>(IDLE_THRESHOLD_MS));
 }
 
 void AbilityManagerService::OnStop()
