@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_UI_ABILITY_RECORD_H
 #define OHOS_ABILITY_RUNTIME_UI_ABILITY_RECORD_H
 
+#include <map>
+
 #include "ability_record.h"
 
 namespace OHOS {
@@ -161,6 +163,24 @@ public:
         return isByOeExt_;
     }
 
+    // Warm-start attribution handles keyed by task id: one live handle per task, so a
+    // process can be attributed to multiple parallel tasks independently. 0 means none.
+    inline void SetTaskAttribution(const std::string &taskId, int64_t attributionId)
+    {
+        taskAttributions_[taskId] = attributionId;
+    }
+
+    inline int64_t GetTaskAttribution(const std::string &taskId) const
+    {
+        auto it = taskAttributions_.find(taskId);
+        return it == taskAttributions_.end() ? 0 : it->second;
+    }
+
+    inline std::map<std::string, int64_t> GetTaskAttributions() const
+    {
+        return taskAttributions_;
+    }
+
 private:
     bool exitReasonLoaded_ = false;
     bool hookOff_ = false;
@@ -172,6 +192,7 @@ private:
     std::atomic_int32_t scenarios_ = 0;
     std::shared_ptr<Want> launchWant_;
     std::shared_ptr<Want> lastWant_;
+    std::map<std::string, int64_t> taskAttributions_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

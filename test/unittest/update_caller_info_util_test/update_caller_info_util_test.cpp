@@ -743,5 +743,43 @@ HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerInfoByHapTokenId_0002, TestSize.L
     // Want baseline value must remain (failure-path early-return verified)
     EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME), "baseline_bundle");
 }
+
+/**
+ * @tc.name: FailClosedIdentityCleanup_0003
+ * @tc.desc: Stamping failure paths strip any caller-supplied identity params; anco
+ *           params are DFX-only and keep their pre-existing passthrough.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, FailClosedIdentityCleanup_0003, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+
+    // tokenId == 0: invalid param early-return
+    Want want;
+    want.SetParam(Want::PARAM_RESV_CALLER_UID, 1234);
+    want.SetParam(Want::PARAM_RESV_CALLER_PID, 5678);
+    want.SetParam(Want::PARAM_RESV_CALLER_TOKEN, 9);
+    want.SetParam("ohos.anco.param.callerUid", 4321);
+    want.SetParam("ohos.anco.param.callerBundleName", std::string("forged_bundle"));
+    updateCallerUtil->UpdateCallerInfoByHapTokenId(want, 0);
+    EXPECT_FALSE(want.HasParameter(Want::PARAM_RESV_CALLER_UID));
+    EXPECT_FALSE(want.HasParameter(Want::PARAM_RESV_CALLER_PID));
+    EXPECT_FALSE(want.HasParameter(Want::PARAM_RESV_CALLER_TOKEN));
+    // anco params are not identity for attribution and are left untouched
+    EXPECT_TRUE(want.HasParameter("ohos.anco.param.callerUid"));
+    EXPECT_TRUE(want.HasParameter("ohos.anco.param.callerBundleName"));
+
+    // unresolvable HAP token: GetHapTokenInfo failure early-return
+    Want want2;
+    want2.SetParam(Want::PARAM_RESV_CALLER_UID, 1234);
+    updateCallerUtil->UpdateCallerInfoByHapTokenId(want2, 0xFFFFFFFF);
+    EXPECT_FALSE(want2.HasParameter(Want::PARAM_RESV_CALLER_UID));
+
+    // unresolvable caller token: caller abilityRecord null early-return
+    Want want3;
+    want3.SetParam(Want::PARAM_RESV_CALLER_UID, 1234);
+    updateCallerUtil->UpdateCallerInfoFromToken(want3, nullptr);
+    EXPECT_FALSE(want3.HasParameter(Want::PARAM_RESV_CALLER_UID));
+}
 } // namespace AAFwk
 } // namespace OHOS

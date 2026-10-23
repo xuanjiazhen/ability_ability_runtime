@@ -37,6 +37,9 @@ using AttributionId = int64_t;
 
 struct AttributionRecord {
     pid_t pid = -1;
+    // Owner uid of the attributed process; (pid, uid) binding defeats pid reuse.
+    // Negative = unknown, membership then falls back to pid-only matching.
+    int32_t uid = -1;
     AttributionTool tool = AttributionTool::UNKNOWN;
     int64_t attributedTimeMillis = 0;  // server-authoritative, set at registration
 };
