@@ -3520,6 +3520,42 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_KillAppWithReasonInner_001, 
 
 /*
  * Feature: AbilityManagerService
+ * Function: ForceStopProcessInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService ForceStopProcessInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function ForceStopProcessInner is normal flow.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ForceStopProcessInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    auto res = stub_->ForceStopProcessInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+
+    data.WriteString16(u"com.example.test");
+    res = stub_->ForceStopProcessInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+
+    data.WriteString16(u"aa force-stop");
+    res = stub_->ForceStopProcessInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+
+    data.WriteInt32(-1);
+    res = stub_->ForceStopProcessInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+
+    data.WriteInt32(0);
+    res = stub_->ForceStopProcessInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+
+    data.WriteInt32(-1);
+    res = stub_->ForceStopProcessInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: KillBundleWithReasonInner
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService KillBundleWithReasonInner

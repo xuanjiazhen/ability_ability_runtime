@@ -797,6 +797,9 @@ enum class AbilityManagerInterfaceCode {
 
     // kill process with user id
     KILL_PROCESS_WITH_USER_ID = 6183,
+
+    // force stop process with kill id for cli tool
+    FORCE_STOP_PROCESS = 6184,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
