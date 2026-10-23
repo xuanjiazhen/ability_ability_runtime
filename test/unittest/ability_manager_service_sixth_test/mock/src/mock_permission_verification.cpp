@@ -296,7 +296,7 @@ bool PermissionVerification::VerifyStartLocalDebug(int32_t tokenId) const
     return !!(MyFlag::verifyStartLocalDebugFlag_);
 }
 
-bool PermissionVerification::IsLocalDebugOtherAppsCall() const
+bool PermissionVerification::IsLocalDebugOtherAppsCall(const uint32_t specifyTokenId, int32_t targetUserId) const
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s enter", __func__);
     return !!(MyFlag::localDebugOtherAppsCallFlag_);
