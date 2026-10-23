@@ -129,7 +129,6 @@ const int TERMINATE_TIMEOUT_ASANENABLED = 150;
 const int HALF_TIMEOUT = 2;
 const int MAX_URI_COUNT = 500;
 const int RESTART_SCENEBOARD_DELAY = 500;
-constexpr int32_t DMS_UID = 5522;
 constexpr int32_t SCHEDULER_DIED_TIMEOUT = 60000;
 const std::string JSON_KEY_ERR_MSG = "errMsg";
 const int32_t BY_CALL_HALF_TIMEOUT_MS = 2500;
@@ -3402,7 +3401,7 @@ void AbilityRecord::RemoveConnectWant()
 
 void AbilityRecord::UpdateDmsCallerInfo(Want &want)
 {
-    if (want.GetIntParam(Want::PARAM_RESV_CALLER_UID, 0) != DMS_UID) {
+    if (want.GetIntParam(Want::PARAM_RESV_CALLER_UID, 0) != DmsUtil::DMS_UID) {
         return;
     }
     want.SetParam(Want::PARAM_RESV_CALLER_TOKEN, -1);

@@ -36,6 +36,10 @@ MockAniEnv::MockAniEnv()
     api_.GlobalReference_Create = &MockAniEnv::GlobalReferenceCreate;
     api_.GlobalReference_Delete = &MockAniEnv::GlobalReferenceDelete;
     api_.Class_CallStaticMethodByName_Void_V = &MockAniEnv::ClassCallStaticMethodByNameVoid;
+    api_.CreateLocalScope = &MockAniEnv::CreateLocalScope;
+    api_.DestroyLocalScope = &MockAniEnv::DestroyLocalScope;
+    api_.Primitive_Box_Boolean = &MockAniEnv::PrimitiveBoxBoolean;
+    api_.Object_CallMethod_Ref_V = &MockAniEnv::ObjectCallMethodRefV;
 
     env_.c_api = &api_;
 
@@ -55,6 +59,11 @@ MockAniEnv::MockAniEnv()
     MockAniEnv::state_.arrayNewRefStatus = ANI_OK;
     MockAniEnv::state_.arraySetRefStatus = ANI_OK;
     MockAniEnv::state_.classCallStaticMethodStatus = ANI_OK;
+    MockAniEnv::state_.createLocalScopeStatus = ANI_OK;
+    MockAniEnv::state_.destroyLocalScopeStatus = ANI_OK;
+    MockAniEnv::state_.primitiveBoxBooleanStatus = ANI_OK;
+    MockAniEnv::state_.objectCallMethodRefStatus = ANI_OK;
+    MockAniEnv::state_.destroyLocalScopeCalled = false;
 }
 
 ani_env *MockAniEnv::GetEnv()
@@ -188,6 +197,36 @@ ani_status MockAniEnv::GlobalReferenceCreate(ani_env *env, ani_ref ref, ani_ref 
 ani_status MockAniEnv::GlobalReferenceDelete(ani_env *env, ani_ref ref)
 {
     return MockAniEnv::state_.globalRefDeleteStatus;
+}
+
+ani_status MockAniEnv::CreateLocalScope(ani_env *env, ani_size nr_refs)
+{
+    return MockAniEnv::state_.createLocalScopeStatus;
+}
+
+ani_status MockAniEnv::DestroyLocalScope(ani_env *env)
+{
+    MockAniEnv::state_.destroyLocalScopeCalled = true;
+    return MockAniEnv::state_.destroyLocalScopeStatus;
+}
+
+ani_status MockAniEnv::PrimitiveBoxBoolean(ani_env *env, ani_boolean value, ani_object *result)
+{
+    if (MockAniEnv::state_.primitiveBoxBooleanStatus != ANI_OK) {
+        return MockAniEnv::state_.primitiveBoxBooleanStatus;
+    }
+    *result = reinterpret_cast<ani_object>(0x11);
+    return ANI_OK;
+}
+
+ani_status MockAniEnv::ObjectCallMethodRefV(ani_env *env, ani_object obj, ani_method method,
+    ani_ref *result, va_list args)
+{
+    if (MockAniEnv::state_.objectCallMethodRefStatus != ANI_OK) {
+        return MockAniEnv::state_.objectCallMethodRefStatus;
+    }
+    *result = reinterpret_cast<ani_ref>(0x11);
+    return ANI_OK;
 }
 } // namespace EtsEnv
 } // namespace OHOS

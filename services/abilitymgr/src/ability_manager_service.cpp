@@ -363,7 +363,6 @@ constexpr uint32_t GET_PARAMETER_VALUE_LEN = 128;
 constexpr int32_t SIZE_10 = 10;
 constexpr int32_t HIDUMPER_SERVICE_UID = 1212;
 constexpr int32_t ACCOUNT_MGR_SERVICE_UID = 3058;
-constexpr int32_t DMS_UID = 5522;
 constexpr int32_t SAMGR_UID = 5555;
 constexpr int32_t BOOTEVENT_COMPLETED_DELAY_TIME = 1000;
 constexpr int32_t BOOTEVENT_BOOT_ANIMATION_READY_SIZE = 6;
@@ -757,7 +756,7 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
         return INNER_ERR;
     }
-    if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DMS_UID) {
+    if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DmsUtil::DMS_UID) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "specifiedFullTokenId only support for DMS");
         specifiedFullTokenId = 0;
     }
@@ -838,7 +837,7 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
 int AbilityManagerService::StartAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
     int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
-    if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DMS_UID) {
+    if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DmsUtil::DMS_UID) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "specifiedFullTokenId only support for DMS");
         specifiedFullTokenId = 0;
     }
@@ -1542,7 +1541,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             StartAbilityUtils::startAbilityInfo->abilityInfo, callerTokenId);
     }
     if ((param.want.GetFlags() & Want::FLAG_ABILITY_PREPARE_CONTINUATION) == Want::FLAG_ABILITY_PREPARE_CONTINUATION &&
-        IPCSkeleton::GetCallingUid() != DMS_UID) {
+        IPCSkeleton::GetCallingUid() != DmsUtil::DMS_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "flag only support DMS, flag:%{public}d", param.want.GetFlags());
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_CONTINUATION_FLAG, "flag only support DMS");
         return ERR_INVALID_CONTINUATION_FLAG;
@@ -2204,7 +2203,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     }
 
     if ((want.GetFlags() & Want::FLAG_ABILITY_PREPARE_CONTINUATION) == Want::FLAG_ABILITY_PREPARE_CONTINUATION &&
-        IPCSkeleton::GetCallingUid() != DMS_UID) {
+        IPCSkeleton::GetCallingUid() != DmsUtil::DMS_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "The flag only support for DMS, flag:%{public}d, error:%{public}d",
             want.GetFlags(), ERR_INVALID_CONTINUATION_FLAG);
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_CONTINUATION_FLAG, "flags not allowed");
@@ -2545,7 +2544,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     }
 
     if ((want.GetFlags() & Want::FLAG_ABILITY_PREPARE_CONTINUATION) == Want::FLAG_ABILITY_PREPARE_CONTINUATION &&
-        IPCSkeleton::GetCallingUid() != DMS_UID) {
+        IPCSkeleton::GetCallingUid() != DmsUtil::DMS_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "The flag only support for DMS, flag:%{public}d, error:%{public}d",
             want.GetFlags(), ERR_INVALID_CONTINUATION_FLAG);
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_CONTINUATION_FLAG, "flags not allowed");
@@ -6220,7 +6219,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
         return INNER_ERR;
     }
-    if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DMS_UID) {
+    if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DmsUtil::DMS_UID) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "specifiedFullTokenId only support for DMS");
         specifiedFullTokenId = 0;
     }
@@ -10705,7 +10704,7 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
     const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg, bool isSilent,
     bool promotePriority, bool isVisible, uint64_t specifiedFullTokenId)
 {
-    if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DMS_UID) {
+    if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DmsUtil::DMS_UID) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "specifiedFullTokenId only support for DMS");
         specifiedFullTokenId = 0;
     }
@@ -12690,7 +12689,7 @@ int AbilityManagerService::FreeInstallAbilityFromRemote(const Want &want, const 
     int32_t userId, int requestCode)
 {
     auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid != DMS_UID) {
+    if (callingUid != DmsUtil::DMS_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "interface only support DMS");
         return CHECK_PERMISSION_FAILED;
     }
@@ -13359,7 +13358,7 @@ int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const Abil
 
 bool AbilityManagerService::IsDmsSameAPP(const AbilityRequest &abilityRequest)
 {
-    if (IPCSkeleton::GetCallingUid() != DMS_UID) {
+    if (IPCSkeleton::GetCallingUid() != DmsUtil::DMS_UID) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "calling uid is not DMS_UID");
         return false;
     }
@@ -15213,7 +15212,7 @@ int32_t AbilityManagerService::StartAbilityWithServiceMatch(const InsightIntentE
 int32_t AbilityManagerService::ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId, 
     uint64_t requestCode, uint64_t specifiedFullTokenId)
 {
-    if (IPCSkeleton::GetCallingUid() != DMS_UID) {
+    if (IPCSkeleton::GetCallingUid() != DmsUtil::DMS_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not DMS");
         return ERR_PERMISSION_DENIED;
     }
