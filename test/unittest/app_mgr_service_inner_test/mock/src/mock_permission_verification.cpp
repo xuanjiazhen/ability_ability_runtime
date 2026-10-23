@@ -32,5 +32,15 @@ bool PermissionVerification::VerifyPreloadApplicationPermission() const
 {
     return MyFlag::flag_;
 }
+
+int32_t PermissionVerification::VerifyAppStateObserverPermission() const
+{
+    return MyFlag::flag_ ? 0 : ERR_PERMISSION_DENIED;
+}
+
+bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPI() const
+{
+    return MyFlag::flag_;
+}
 } // namespace AAFwk
 } // namespace OHOS
