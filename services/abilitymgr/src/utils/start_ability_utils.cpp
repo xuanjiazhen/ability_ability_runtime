@@ -137,7 +137,7 @@ int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userI
     auto abilityInfo = StartAbilityUtils::startAbilityInfo;
     if (!abilityInfo || abilityInfo->GetAppBundleName() != want.GetBundleNameRef()) {
         int32_t appIndex = -1;
-        if (!GetAppIndex(want, callerToken, appIndex, userId)) {
+        if (!GetAppIndex(want, callerToken, userId, appIndex)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid app clone index");
             return ERR_APP_CLONE_INDEX_INVALID;
         }
