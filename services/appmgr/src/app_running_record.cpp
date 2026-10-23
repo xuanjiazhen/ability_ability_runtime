@@ -128,7 +128,7 @@ void AppRunningRecord::SetCallerUid(int32_t uid)
 {
     callerUid_ = uid;
     {
-        std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+        std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
         callerBundleName_ = "";
     }
     if (uid >= 0) {
@@ -136,7 +136,7 @@ void AppRunningRecord::SetCallerUid(int32_t uid)
         std::string bundleName;
         if (bundleMgrHelper != nullptr &&
             IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(uid, bundleName)) == ERR_OK) {
-            std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+            std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
             callerBundleName_ = bundleName;
         }
     }
@@ -144,13 +144,13 @@ void AppRunningRecord::SetCallerUid(int32_t uid)
 
 std::string AppRunningRecord::GetCallerBundleName() const
 {
-    std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     return callerBundleName_;
 }
 
 void AppRunningRecord::SetCallerBundleName(const std::string &name)
 {
-    std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     callerBundleName_ = name;
 }
 
@@ -166,25 +166,25 @@ void AppRunningRecord::SetCallerTokenId(int32_t tokenId)
 
 int32_t AppRunningRecord::GetLastUIAbilityCallerUid() const
 {
-    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     return lastUIAbilityCallerUid_;
 }
 
 void AppRunningRecord::SetLastUIAbilityCallerUid(int32_t uid)
 {
-    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     lastUIAbilityCallerUid_ = uid;
 }
 
 std::string AppRunningRecord::GetLastUIAbilityCallerName() const
 {
-    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     return lastUIAbilityCallerName_;
 }
 
 void AppRunningRecord::SetLastUIAbilityCallerName(const std::string &name)
 {
-    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     lastUIAbilityCallerName_ = name;
 }
 
@@ -879,7 +879,7 @@ AbilityStateData AppRunningRecord::BuildAbilityStateData(
         abilityStateData.callerPid = ability->GetWant()->GetIntParam(Want::PARAM_RESV_CALLER_PID, -1);
     }
     {
-        std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+        std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
         abilityStateData.lastUIAbilityCallerUid = lastUIAbilityCallerUid_;
         abilityStateData.lastUIAbilityCallerName = lastUIAbilityCallerName_;
     }
@@ -1042,7 +1042,7 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
     TAG_LOGI(AAFwkTag::APPMGR, "AbilityForeground set caller info, callerUid:%{public}d, "
         "callerBundleName:%{public}s", callerInfo.callerUid, callerInfo.callerBundleName.c_str());
     {
-        std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+        std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
         lastUIAbilityCallerUid_ = callerInfo.callerUid;
         lastUIAbilityCallerName_ = callerInfo.callerBundleName;
     }
@@ -1980,10 +1980,10 @@ void AppRunningRecord::AddRenderRecord(const std::shared_ptr<RenderRecord> &reco
         return;
     }
     {
-        std::lock_guard renderPidSetLock(renderPidSetLock_);
+        std::lock_guard renderPidSetLock(renderLock_);
         renderPidSet_.insert(record->GetPid());
     }
-    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    std::lock_guard renderRecordMapLock(renderLock_);
     renderRecordMap_.emplace(record->GetUid(), record);
 }
 
@@ -1993,19 +1993,19 @@ void AppRunningRecord::RemoveRenderRecord(const std::shared_ptr<RenderRecord> &r
         TAG_LOGD(AAFwkTag::APPMGR, "RemoveRenderRecord: record null");
         return;
     }
-    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    std::lock_guard renderRecordMapLock(renderLock_);
     renderRecordMap_.erase(record->GetUid());
 }
 
 void AppRunningRecord::RemoveRenderPid(pid_t renderPid)
 {
-    std::lock_guard renderPidSetLock(renderPidSetLock_);
+    std::lock_guard renderPidSetLock(renderLock_);
     renderPidSet_.erase(renderPid);
 }
 
 void AppRunningRecord::GetRenderProcessInfos(std::list<SimpleProcessInfo> &processInfos)
 {
-    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    std::lock_guard renderRecordMapLock(renderLock_);
     for (auto &item : renderRecordMap_) {
         auto renderRecord = item.second;
         if (renderRecord && renderRecord->GetPid() > 0) {
@@ -2017,13 +2017,13 @@ void AppRunningRecord::GetRenderProcessInfos(std::list<SimpleProcessInfo> &proce
 
 bool AppRunningRecord::ConstainsRenderPid(pid_t renderPid)
 {
-    std::lock_guard renderPidSetLock(renderPidSetLock_);
+    std::lock_guard renderPidSetLock(renderLock_);
     return renderPidSet_.find(renderPid) != renderPidSet_.end();
 }
 
 std::shared_ptr<RenderRecord> AppRunningRecord::GetRenderRecordByPid(const pid_t pid)
 {
-    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    std::lock_guard renderRecordMapLock(renderLock_);
     if (renderRecordMap_.empty()) {
         return nullptr;
     }
@@ -2038,7 +2038,7 @@ std::shared_ptr<RenderRecord> AppRunningRecord::GetRenderRecordByPid(const pid_t
 
 std::map<int32_t, std::shared_ptr<RenderRecord>> AppRunningRecord::GetRenderRecordMap()
 {
-    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    std::lock_guard renderRecordMapLock(renderLock_);
     return renderRecordMap_;
 }
 
@@ -2789,55 +2789,55 @@ bool AppRunningRecord::isNativeStart() const
 
 void AppRunningRecord::SetExitReason(int32_t reason)
 {
-    std::lock_guard<ffrt::mutex> lock(exitReasonLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     exitReason_ = reason;
 }
 
 int32_t AppRunningRecord::GetExitReason() const
 {
-    std::lock_guard<ffrt::mutex> lock(exitReasonLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return exitReason_;
 }
 
 void AppRunningRecord::SetExitMsg(const std::string &exitMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(exitMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     exitMsg_ = exitMsg;
 }
 
 std::string AppRunningRecord::GetExitMsg() const
 {
-    std::lock_guard<ffrt::mutex> lock(exitMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return exitMsg_;
 }
 
 void AppRunningRecord::SetKillId(int32_t killId)
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     killId_ = killId;
 }
 
 int32_t AppRunningRecord::GetKillId() const
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return killId_;
 }
 
 void AppRunningRecord::SetKillMsg(const std::string &killMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     killMsg_ = killMsg;
 }
 
 std::string AppRunningRecord::GetKillMsg() const
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return killMsg_;
 }
 
 bool AppRunningRecord::SetKillReasonIfAbsent(int32_t killId, const std::string &killMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     if (killId_ != DEFAULT_KILL_ID) {
         TAG_LOGD(AAFwkTag::APPMGR,
             "SetKillReasonIfAbsent refused, killId already set: %{public}d, incoming: %{public}d",
@@ -2851,32 +2851,32 @@ bool AppRunningRecord::SetKillReasonIfAbsent(int32_t killId, const std::string &
 
 void AppRunningRecord::SetInnerMsg(const std::string &innerMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(innerMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     innerMsg_ = innerMsg;
 }
 
 std::string AppRunningRecord::GetInnerMsg() const
 {
-    std::lock_guard<ffrt::mutex> lock(innerMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return innerMsg_;
 }
 
 void AppRunningRecord::SetKillCallerInfo(int32_t killCallerPid, const std::string &killCallerProcessName)
 {
-    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     killCallerPid_ = killCallerPid;
     killCallerProcessName_ = killCallerProcessName;
 }
 
 int32_t AppRunningRecord::GetKillCallerPid() const
 {
-    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return killCallerPid_;
 }
 
 std::string AppRunningRecord::GetKillCallerProcessName() const
 {
-    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return killCallerProcessName_;
 }
 
@@ -3200,14 +3200,16 @@ void AppRunningRecord::SetDebugFromLocal(bool isDebugFromLocal)
 
 std::optional<bool> AppRunningRecord::IsSupportMultiProcessDeviceFeature() const
 {
-    std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
-    return supportMultiProcessDeviceFeature_;
+    auto v = supportMultiProcessDeviceFeature_.load(std::memory_order_acquire);
+    if (v == 0) {
+        return std::nullopt;
+    }
+    return v == 1;
 }
 
 void AppRunningRecord::SetSupportMultiProcessDeviceFeature(bool support)
 {
-    std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
-    supportMultiProcessDeviceFeature_ = support;
+    supportMultiProcessDeviceFeature_.store(support ? 1 : 2, std::memory_order_release);
 }
 
 void AppRunningRecord::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos)

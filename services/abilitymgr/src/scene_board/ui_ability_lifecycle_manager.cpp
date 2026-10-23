@@ -4962,6 +4962,7 @@ int32_t UIAbilityLifecycleManager::RevokeDelegator(sptr<IRemoteObject> token)
     if (!abilityRecord->IsHook()) {
         return ERR_NOT_HOOK;
     }
+    abilityRecord->ReplenishPayloadFromBMS();
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     auto isSpecified = (abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED);
     if (isSpecified) {

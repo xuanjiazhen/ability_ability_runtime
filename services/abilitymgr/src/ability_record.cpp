@@ -150,6 +150,8 @@ AbilityRecord::AbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &ab
     const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode)
     : want_(want), requestCode_(requestCode), abilityInfo_(abilityInfo)
 {
+    std::vector<AppExecFwk::Skill>().swap(abilityInfo_.skills);
+    std::vector<AppExecFwk::SkillUriForAbilityAndExtension>().swap(abilityInfo_.skillUri);
     abilityInfo_.applicationInfo = applicationInfo;
     recordId_ = abilityRecordId++;
     auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
@@ -325,6 +327,7 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     lifeCycleStateInfo_.launchParam.launchUptime = startTime_;
     lifeCycleStateInfo_.launchParam.launchUTCTime = AbilityUtil::UTCTimeMillis();
     CHECK_POINTER_AND_RETURN(token_, ERR_INVALID_VALUE);
+    ReplenishPayloadFromBMS();
     // only for UIAbility
     if (!IsDebug() && abilityInfo_.type != AppExecFwk::AbilityType::DATA) {
         LoadUIAbility();
@@ -390,7 +393,80 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
             }, ffrt::task_attr().name("HandleBundleFirstLaunch"));
     }
 
+    if (result == ERR_OK) {
+        ClearPayloadAfterLoad();
+    }
     return result;
+}
+
+void AbilityRecord::ClearPayloadAfterLoad()
+{
+    if (payloadCleared_) {
+        return;
+    }
+    payloadCleared_ = true;
+    std::vector<AppExecFwk::Metadata>().swap(abilityInfo_.metadata);
+    std::vector<std::string>().swap(abilityInfo_.deviceTypes);
+    std::vector<std::string>().swap(abilityInfo_.deviceCapabilities);
+    std::vector<std::string>().swap(abilityInfo_.permissions);
+    std::vector<std::string>().swap(abilityInfo_.configChanges);
+    std::vector<std::string>().swap(abilityInfo_.supportExtNames);
+    std::vector<std::string>().swap(abilityInfo_.supportMimeTypes);
+    std::vector<std::string>().swap(abilityInfo_.continueType);
+    std::unordered_set<std::string>().swap(abilityInfo_.continueBundleNames);
+    for (auto &s : {&abilityInfo_.uri, &abilityInfo_.readPermission, &abilityInfo_.writePermission,
+        &abilityInfo_.label, &abilityInfo_.description, &abilityInfo_.iconPath, &abilityInfo_.targetAbility,
+        &abilityInfo_.srcPath, &abilityInfo_.srcEntrance, &abilityInfo_.package, &abilityInfo_.codePath,
+        &abilityInfo_.className, &abilityInfo_.originalClassName, &abilityInfo_.versionName,
+        &abilityInfo_.privacyUrl, &abilityInfo_.privacyName, &abilityInfo_.downloadUrl,
+        &abilityInfo_.uriPermissionMode, &abilityInfo_.uriPermissionPath, &abilityInfo_.libPath,
+        &abilityInfo_.theme, &abilityInfo_.kind, &abilityInfo_.originalBundleName, &abilityInfo_.appName,
+        &abilityInfo_.startWindow, &abilityInfo_.startWindowIcon, &abilityInfo_.startWindowBackground,
+        &abilityInfo_.preferMultiWindowOrientation, &abilityInfo_.srcLanguage, &abilityInfo_.arkTSMode}) {
+        s->clear();
+        s->shrink_to_fit();
+    }
+    std::vector<AppExecFwk::ModuleInfo>().swap(abilityInfo_.applicationInfo.moduleInfos);
+    std::vector<std::string>().swap(abilityInfo_.applicationInfo.moduleSourceDirs);
+    std::vector<std::string>().swap(abilityInfo_.applicationInfo.permissions);
+    std::vector<std::string>().swap(abilityInfo_.applicationInfo.targetBundleList);
+    std::vector<AppExecFwk::ApplicationEnvironment>().swap(abilityInfo_.applicationInfo.appEnvironments);
+    std::vector<AppExecFwk::AlternateIcon>().swap(abilityInfo_.applicationInfo.alternateIcons);
+    std::vector<std::string>().swap(abilityInfo_.applicationInfo.assetAccessGroups);
+    std::vector<std::string>().swap(abilityInfo_.applicationInfo.allowCommonEvent);
+    std::vector<std::string>().swap(abilityInfo_.applicationInfo.allowListenBundleChangedEvent);
+    std::vector<int32_t>().swap(abilityInfo_.applicationInfo.resourcesApply);
+    abilityInfo_.applicationInfo.metaData.clear();
+    abilityInfo_.applicationInfo.metadata.clear();
+    abilityInfo_.applicationInfo.hnpPackages.clear();
+}
+
+void AbilityRecord::ReplenishPayloadFromBMS()
+{
+    if (!payloadCleared_) {
+        return;
+    }
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Replenish: null bundleMgrHelper, keep cleared");
+        return;
+    }
+    auto userId = abilityInfo_.uid / BASE_USER_RANGE;
+    int32_t flags = static_cast<int32_t>(AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION) |
+        static_cast<int32_t>(AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_METADATA);
+    AppExecFwk::AbilityInfo freshInfo;
+    if (!IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(want_, flags, userId, freshInfo))) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Replenish: QueryAbilityInfo fail for %{public}s, keep cleared",
+            abilityInfo_.name.c_str());
+        return;
+    }
+    auto savedProcess = abilityInfo_.process;
+    auto savedAppIndex = abilityInfo_.appIndex;
+    abilityInfo_ = freshInfo;
+    abilityInfo_.process = savedProcess;
+    abilityInfo_.appIndex = savedAppIndex;
+    payloadCleared_ = false;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Replenish: re-queried abilityInfo for %{public}s", abilityInfo_.name.c_str());
 }
 
 bool AbilityRecord::CanRestartRootLauncher()
@@ -565,18 +641,13 @@ AppExecFwk::UiAbilityLastCallerInfo AbilityRecord::GetRealLastCallerInfo(int32_t
 
     if (isCallBySCB ||
         (!isCallBySCB && callerUid == -1 && callerBundleName.empty())) {
-        int32_t scbUid = -1;
-        {
-            std::lock_guard<ffrt::mutex> lock(scbUidLock_);
-            scbUid = scbUid_;
-        }
+        int32_t scbUid = scbUid_.load(std::memory_order_acquire);
         if (scbUid < 0) {
             auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
             scbUid = bundleMgrHelper != nullptr ?
                 IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(
                     AbilityConfig::SCENEBOARD_BUNDLE_NAME, GetOwnerMissionUserId(), 0)) : -1;
-            std::lock_guard<ffrt::mutex> lock(scbUidLock_);
-            scbUid_ = scbUid;
+            scbUid_.store(scbUid, std::memory_order_release);
         }
         if (scbUid >= 0) {
             callerInfo.callerUid = scbUid;
@@ -1876,7 +1947,9 @@ void AbilityRecord::Dump(std::vector<std::string> &info)
     dumpInfo = "        app state #" + AbilityRecord::ConvertAppState(appState_);
     info.push_back(dumpInfo);
     dumpInfo = "        ready #" + std::to_string(isReady_) + "  window attached #" +
-               std::to_string(isWindowAttached_) + "  launcher #" + std::to_string(isLauncherAbility_);
+        std::to_string(isWindowAttached_) + "  launcher #" + std::to_string(isLauncherAbility_);
+    info.push_back(dumpInfo);
+    dumpInfo = "        payloadCleared #" + std::to_string(payloadCleared_);
     info.push_back(dumpInfo);
 
     if (isLauncherRoot_) {
@@ -2915,22 +2988,24 @@ void AbilityRecord::DumpClientInfo(std::vector<std::string> &info, const std::ve
     if (!isClient) {
         return;
     }
-    std::unique_lock<ffrt::mutex> lock(dumpLock_);
+    auto ctx = std::make_shared<DumpContext>();
+    dumpCtx_ = ctx;
+    std::unique_lock<ffrt::mutex> lock(ctx->lock);
     scheduler_->DumpAbilityInfo(params, info);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "dump begin wait");
-    isDumpTimeout_ = false;
+    ctx->timeout = false;
     std::chrono::milliseconds timeout { DUMP_TIMEOUT_MULTIPLE };
-    if (dumpCondition_.wait_for(lock, timeout) == ffrt::cv_status::timeout) {
-        isDumpTimeout_ = true;
+    if (ctx->cv.wait_for(lock, timeout) == ffrt::cv_status::timeout) {
+        ctx->timeout = true;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "dump done and begin parse");
-    if (!isDumpTimeout_) {
-        std::lock_guard<ffrt::mutex> infoLock(dumpInfoLock_);
-        for (auto one : dumpInfos_) {
-            info.emplace_back(one);
+    if (!ctx->timeout) {
+        for (auto &one : ctx->infos) {
+            info.emplace_back(std::move(one));
         }
     }
+    dumpCtx_.reset();
 
     if (!dumpConfig) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "not dumpConfig");
@@ -2945,18 +3020,23 @@ void AbilityRecord::DumpClientInfo(std::vector<std::string> &info, const std::ve
 void AbilityRecord::DumpAbilityInfoDone(std::vector<std::string> &infos)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    if (isDumpTimeout_) {
+    auto ctx = dumpCtx_;
+    if (!ctx) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "no active dump context");
+        return;
+    }
+    if (ctx->timeout) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, time out", __func__);
         return;
     }
     {
-        std::lock_guard<ffrt::mutex> infoLock(dumpInfoLock_);
-        dumpInfos_.clear();
-        for (auto info : infos) {
-            dumpInfos_.emplace_back(info);
+        std::lock_guard<ffrt::mutex> infoLock(ctx->lock);
+        ctx->infos.clear();
+        for (auto &info : infos) {
+            ctx->infos.emplace_back(std::move(info));
         }
     }
-    dumpCondition_.notify_all();
+    ctx->cv.notify_all();
 }
 
 #ifdef SUPPORT_UPMS

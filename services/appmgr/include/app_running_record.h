@@ -1208,7 +1208,7 @@ public:
 
     inline void SetKillReason(std::string killReason)
     {
-        std::lock_guard<ffrt::mutex> lock(killReasonLock_);
+        std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
         if (killReason_ == "") {
             killReason_ = killReason;
         }
@@ -1216,7 +1216,7 @@ public:
 
     inline std::string GetKillReason() const
     {
-        std::lock_guard<ffrt::mutex> lock(killReasonLock_);
+        std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
         return killReason_;
     }
 
@@ -1466,7 +1466,7 @@ private:
 
     // Structs and Optional Types
     AppSpawnStartMsg startMsg_; // render record
-    std::optional<bool> supportMultiProcessDeviceFeature_ = std::nullopt;
+    std::atomic<int8_t> supportMultiProcessDeviceFeature_ = {0}; // 0=unset, 1=true, 2=false
 
     // Atomic Variables
     std::atomic<ApplicationState> curState_ = ApplicationState::APP_STATE_CREATE;  // current state of this process
@@ -1515,10 +1515,9 @@ private:
     int32_t callerTokenId_ = -1;
     int32_t callerUid_ = -1;
     std::string callerBundleName_;
-    mutable ffrt::mutex callerBundleNameLock_;
+    mutable ffrt::mutex callerInfoLock_;
     int32_t lastUIAbilityCallerUid_ = -1;
     std::string lastUIAbilityCallerName_;
-    mutable ffrt::mutex lastUIAbilityCallerLock_;
     int32_t exitReason_ = 0;
     std::atomic_int32_t pssValue_ = 0;
     std::atomic<bool> isUIExtensionPreload_ = false;
@@ -1593,17 +1592,10 @@ private:
     bool isFromScreenOffBackground_ = false;
 
     ffrt::mutex appInfosLock_;
-    ffrt::mutex renderRecordMapLock_; // render record lock
-    ffrt::mutex renderPidSetLock_; // render pid set lock
+    ffrt::mutex renderLock_; // protects renderRecordMap_ and renderPidSet_
     ffrt::mutex windowIdsLock_;
     ffrt::mutex startupTaskDataLock_;
-    mutable ffrt::mutex killReasonLock_;
-    mutable ffrt::mutex exitReasonLock_;
-    mutable ffrt::mutex exitMsgLock_;
-    mutable ffrt::mutex killInfoLock_; // protects killId_ and killMsg_
-    mutable ffrt::mutex innerMsgLock_;
-    mutable ffrt::mutex killCallerLock_;
-    mutable ffrt::mutex supportMultiProcessDeviceFeatureLock_;
+    mutable ffrt::mutex exitInfoLock_; // protects killReason_/exitReason_/exitMsg_/killId_/killMsg_/innerMsg_/killCallerPid_/killCallerProcessName_
     mutable ffrt::mutex hapModulesLock_;
     mutable std::mutex specifiedMutex_;
     mutable std::shared_mutex processTypeLock_;

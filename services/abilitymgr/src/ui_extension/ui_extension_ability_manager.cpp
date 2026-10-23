@@ -755,6 +755,7 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
 void UIExtensionAbilityManager::HandleLoadAbilityOrStartSpecifiedProcess(
     const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
+    abilityRecord->ReplenishPayloadFromBMS();
     if (abilityRecord->GetAbilityInfo().isolationProcess &&
         AAFwk::UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType) &&
         AAFwk::AppUtils::GetInstance().IsStartSpecifiedProcess()) {
