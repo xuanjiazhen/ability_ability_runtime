@@ -28,6 +28,7 @@
 #undef private
 #undef protected
 #include "ability_manager_errors.h"
+#include "bundle_mgr_helper.h"
 #include "start_ability_utils.h"
 #include "message_parcel.h"
 
@@ -51,7 +52,11 @@ void AbilityManagerServiceMockTest::SetUpTestCase() {}
     
 void AbilityManagerServiceMockTest::TearDownTestCase() {}
     
-void AbilityManagerServiceMockTest::SetUp() {}
+void AbilityManagerServiceMockTest::SetUp()
+{
+    AppExecFwk::BundleMgrHelper::mockExtensionInfoSuccess = false;
+    AppExecFwk::BundleMgrHelper::mockDualModeAppIndexZero = false;
+}
     
 void AbilityManagerServiceMockTest::TearDown() {}
 
@@ -462,13 +467,8 @@ HWTEST_F(AbilityManagerServiceMockTest, PreloadUIExtensionAbilityInner_0100, Tes
     std::string abilityName_ = "testAbility";
     Want want;
     want.SetElementName(bundleName, abilityName_);
-    StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
-    AppExecFwk::ApplicationInfo applicationInfo;
-    applicationInfo.bundleName = bundleName;
-    applicationInfo.name = "test";
-    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo = applicationInfo;
-    StartAbilityUtils::startAbilityInfo->status = ERR_OK;
-    StartAbilityUtils::startAbilityInfo->abilityInfo.visible = true;
+    AppExecFwk::BundleMgrHelper::mockExtensionInfoSuccess = true;
+    AppExecFwk::BundleMgrHelper::mockDualModeAppIndexZero = true;
     abilityMs->subManagersHelper_ = nullptr;
     int32_t preloadId = 1;
     int32_t userId = 1;
@@ -489,13 +489,8 @@ HWTEST_F(AbilityManagerServiceMockTest, PreloadUIExtensionAbilityInner_0200, Tes
     std::string abilityName_ = "MainAbility";
     Want want;
     want.SetElementName(bundleName, abilityName_);
-    StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
-    AppExecFwk::ApplicationInfo applicationInfo;
-    applicationInfo.bundleName = bundleName;
-    applicationInfo.name = "test";
-    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo = applicationInfo;
-    StartAbilityUtils::startAbilityInfo->status = ERR_OK;
-    StartAbilityUtils::startAbilityInfo->abilityInfo.visible = true;
+    AppExecFwk::BundleMgrHelper::mockExtensionInfoSuccess = true;
+    AppExecFwk::BundleMgrHelper::mockDualModeAppIndexZero = true;
     abilityMs->subManagersHelper_ = nullptr;
     int32_t preloadId = 1;
     int32_t userId = 1;
