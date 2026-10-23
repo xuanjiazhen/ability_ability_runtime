@@ -64,6 +64,8 @@ namespace AAFwk {
 namespace {
 constexpr const char* SEPARATOR = ":";
 constexpr const char* PARAM_MISSION_AFFINITY_KEY = "ohos.anco.param.missionAffinity";
+// Task attribution reserved key; must stay identical with task_mgr TASK_ID_CALLER_KEY.
+constexpr const char* TASK_ATTRIBUTION_KEY = "ohos.task.id";
 constexpr const char* DMS_SRC_NETWORK_ID = "dmsSrcNetworkId";
 constexpr const char* DMS_MISSION_ID = "dmsMissionId";
 constexpr int DEFAULT_DMS_MISSION_ID = -1;
@@ -97,6 +99,66 @@ auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
     FreezeUtil::GetInstance().DeleteLifecycleEvent(token->AsObject());
 };
+
+// Shared report core (warm request context and cold pending context both funnel here).
+// A repeated report for the same task replaces the previous handle so the inactivity
+// window restarts and exactly one entry stays live. Abort the refresh if retiring
+// the old handle fails, to avoid duplicate entries and record/service divergence.
+void ReportTaskAttributionForContext(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+    const UIAbilityRecordPtr &uiAbilityRecord)
+{
+    if (taskId.empty() || uiAbilityRecord == nullptr || uiAbilityRecord->GetPid() <= 0) {
+        return;
+    }
+    int64_t previousId = uiAbilityRecord->GetTaskAttribution(taskId);
+    if (previousId != 0) {
+        int32_t retireResult = DelayedSingleton<AppScheduler>::GetInstance()->UnregisterTaskAttribution(
+            taskId, previousId);
+        if (retireResult != ERR_OK) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "task attribution retire failed, skip refresh, result: %{public}d",
+                retireResult);
+            return;
+        }
+        uiAbilityRecord->RemoveTaskAttribution(taskId);
+    }
+    int64_t attributionId = 0;
+    int32_t result = DelayedSingleton<AppScheduler>::GetInstance()->AttributeProcessForAbility(
+        taskId, callerUid, callerPid, uiAbilityRecord->GetPid(), uiAbilityRecord->GetUid(), attributionId);
+    if (result != ERR_OK) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "task attribution dropped, result: %{public}d", result);
+        return;
+    }
+    uiAbilityRecord->SetTaskAttribution(taskId, attributionId);
+}
+
+// Reports task attribution for a start-ability call whose target process already exists
+// (warm start). Self-gated: skipped when the key is absent or the target pid is not ready;
+// the cold path is covered by the attach-time report. Failure never blocks startup.
+void ReportTaskAttribution(const AbilityRequest &abilityRequest, const UIAbilityRecordPtr &uiAbilityRecord)
+{
+    std::string taskId = abilityRequest.want.GetStringParam(TASK_ATTRIBUTION_KEY);
+    if (taskId.empty() || uiAbilityRecord == nullptr || uiAbilityRecord->GetPid() <= 0) {
+        return;
+    }
+    int32_t callerUid = abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
+    int32_t callerPid = abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_PID, -1);
+    ReportTaskAttributionForContext(taskId, callerUid, callerPid, uiAbilityRecord);
+}
+
+// Reports the attribution context stashed at cold-start record creation; called once the
+// ability thread has attached and the pid is known. The stash is consumed regardless of
+// the result (fail-open: a dropped report never blocks or retries the startup).
+void ReportPendingTaskAttribution(const UIAbilityRecordPtr &uiAbilityRecord)
+{
+    if (uiAbilityRecord == nullptr || uiAbilityRecord->GetPendingTaskAttributionTaskId().empty() ||
+        uiAbilityRecord->GetPid() <= 0) {
+        return;
+    }
+    ReportTaskAttributionForContext(uiAbilityRecord->GetPendingTaskAttributionTaskId(),
+        uiAbilityRecord->GetPendingTaskAttributionCallerUid(),
+        uiAbilityRecord->GetPendingTaskAttributionCallerPid(), uiAbilityRecord);
+    uiAbilityRecord->ClearPendingTaskAttribution();
+}
 }
 
 UIAbilityLifecycleManager::UIAbilityLifecycleManager(int32_t userId): userId_(userId) {}
@@ -271,6 +333,14 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
 
     auto uiAbilityRecord = GenerateAbilityRecord(abilityRequest, sessionInfo, isColdStart);
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, ERR_INVALID_VALUE);
+    // Cold start: the pid is not known yet, so stash the attribution context (key + stamped
+    // caller identity from this request) and report it when the ability thread attaches.
+    if (isColdStart && abilityRequest.want.HasParameter(TASK_ATTRIBUTION_KEY)) {
+        uiAbilityRecord->SetPendingTaskAttribution(
+            abilityRequest.want.GetStringParam(TASK_ATTRIBUTION_KEY),
+            abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1),
+            abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_PID, -1));
+    }
     if (!isColdStart && shouldReturnPid && uiAbilityRecord->GetPid() > 0) {
         DelayedSingleton<AppScheduler>::GetInstance()->NotifyLoadAbilityFinished(
             abilityRequest.processOptions->callingPid, uiAbilityRecord->GetPid(),
@@ -422,6 +492,10 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
     }
     abilityRequest.want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
 
+    // Warm start (target process already exists) never reaches the appmgr load hook, so the
+    // attribution is reported here; identity is the system-stamped reserved params.
+    ReportTaskAttribution(abilityRequest, uiAbilityRecord);
+
     if (sessionInfo.requestId != 0 || sessionInfo.scbRequestId != 0) {
         if (sessionInfo.requestId != 0) {
             uiAbilityRecord->SetWantParam(AAFwk::Want::PARAM_RESV_APP_REQUEST_ID, sessionInfo.requestId);
@@ -473,6 +547,16 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityReque
             uiAbilityRecord->SetInstanceKey(sessionInfo->instanceKey);
             uiAbilityRecord->SetSessionInfo(sessionInfo);
             uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
+            // A re-targeted start on an already-starting record: report now if the pid is
+            // ready, otherwise stash for the attach-time report.
+            if (uiAbilityRecord->GetPid() > 0) {
+                ReportTaskAttribution(abilityRequest, uiAbilityRecord);
+            } else if (abilityRequest.want.HasParameter(TASK_ATTRIBUTION_KEY)) {
+                uiAbilityRecord->SetPendingTaskAttribution(
+                    abilityRequest.want.GetStringParam(TASK_ATTRIBUTION_KEY),
+                    abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1),
+                    abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_PID, -1));
+            }
             return uiAbilityRecord;
         }
         isColdStart = true;
@@ -605,6 +689,9 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
 
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "lifecycle name: %{public}s", abilityRecord->GetAbilityInfo().name.c_str());
+    // Cold start reaches this point with the pid just set: report the stashed attribution
+    // so cold and warm reporting share one channel and one per-record handle model.
+    ReportPendingTaskAttribution(abilityRecord);
     SyncLoadExitReasonTask(abilityRecord->GetRecordId());
     abilityRecord->EvaluateRecoveryLaunchReason();
 
@@ -1920,6 +2007,7 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
     uiAbilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_CALL);
     uiAbilityRecord->SetPromotePriority(abilityRequest.promotePriority);
     (void)uiAbilityRecord->PromotePriority();
+    ReportTaskAttribution(abilityRequest, uiAbilityRecord);
 
 #ifdef SUPPORT_UPMS
     if (InsightIntentExecuteParam::IsInsightIntentExecute(abilityRequest.want)) {
@@ -3006,6 +3094,15 @@ void UIAbilityLifecycleManager::OnAbilityDied(UIAbilityRecordPtr abilityRecord)
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
         return;
+    }
+    // The attributed process died unexpectedly: retire every warm-start attribution
+    // handle (one per task) so no attribution outlives the process.
+    for (const auto &item : abilityRecord->GetTaskAttributions()) {
+        int32_t result = DelayedSingleton<AppScheduler>::GetInstance()->UnregisterTaskAttribution(
+            item.first, item.second);
+        if (result != ERR_OK) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "task attribution unregister failed, result: %{public}d", result);
+        }
     }
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
     CHECK_POINTER_LOG(handler, "Fail to get AbilityEventHandler.");

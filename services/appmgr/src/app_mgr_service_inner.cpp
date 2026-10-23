@@ -122,6 +122,8 @@
 #include "window_pid_visibility_changed_listener.h"
 #include "cache_process_manager.h"
 #include "res_sched_util.h"
+#include "task_mgr/common.h"
+#include "task_mgr/task_manager_service.h"
 #include "session_manager_lite.h"
 #include "user_controller/user_controller.h"
 #ifdef APP_NO_RESPONSE_DIALOG
@@ -12444,6 +12446,11 @@ void AppMgrServiceInner::OnProcessDied(std::shared_ptr<AppRunningRecord> appReco
         OnAppStateChanged(appRecord, ApplicationState::APP_STATE_BACKGROUND, true, false, false);
     }
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessDied(appRecord);
+    if (appRecord != nullptr) {
+        // Timely cleanup: a dead process must not keep quota, grant task membership or
+        // keep its creator tasks alive.
+        TaskManagerService::GetInstance().OnProcessDied(appRecord->GetPid(), appRecord->GetUid());
+    }
 }
 
 bool AppMgrServiceInner::IsBlockedByDisposeRules(const std::string &bundleName, int32_t userId,

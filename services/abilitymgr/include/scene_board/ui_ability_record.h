@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_UI_ABILITY_RECORD_H
 #define OHOS_ABILITY_RUNTIME_UI_ABILITY_RECORD_H
 
+#include <map>
+
 #include "ability_record.h"
 
 namespace OHOS {
@@ -161,6 +163,61 @@ public:
         return isByOeExt_;
     }
 
+    // Warm-start attribution handles keyed by task id: one live handle per task, so a
+    // process can be attributed to multiple parallel tasks independently. 0 means none.
+    // Not self-locked: all accesses must run under UIAbilityLifecycleManager sessionLock_.
+    inline void SetTaskAttribution(const std::string &taskId, int64_t attributionId)
+    {
+        taskAttributions_[taskId] = attributionId;
+    }
+
+    inline int64_t GetTaskAttribution(const std::string &taskId) const
+    {
+        auto it = taskAttributions_.find(taskId);
+        return it == taskAttributions_.end() ? 0 : it->second;
+    }
+
+    inline void RemoveTaskAttribution(const std::string &taskId)
+    {
+        taskAttributions_.erase(taskId);
+    }
+
+    inline std::map<std::string, int64_t> GetTaskAttributions() const
+    {
+        return taskAttributions_;
+    }
+
+    // Attribution context captured when a cold-start record is created (pid not yet
+    // known); consumed once at ability-thread attach. Accessed under sessionLock_.
+    inline void SetPendingTaskAttribution(const std::string &taskId, int32_t callerUid, int32_t callerPid)
+    {
+        pendingTaskAttributionTaskId_ = taskId;
+        pendingTaskAttributionCallerUid_ = callerUid;
+        pendingTaskAttributionCallerPid_ = callerPid;
+    }
+
+    inline std::string GetPendingTaskAttributionTaskId() const
+    {
+        return pendingTaskAttributionTaskId_;
+    }
+
+    inline int32_t GetPendingTaskAttributionCallerUid() const
+    {
+        return pendingTaskAttributionCallerUid_;
+    }
+
+    inline int32_t GetPendingTaskAttributionCallerPid() const
+    {
+        return pendingTaskAttributionCallerPid_;
+    }
+
+    inline void ClearPendingTaskAttribution()
+    {
+        pendingTaskAttributionTaskId_.clear();
+        pendingTaskAttributionCallerUid_ = -1;
+        pendingTaskAttributionCallerPid_ = -1;
+    }
+
 private:
     bool exitReasonLoaded_ = false;
     bool hookOff_ = false;
@@ -172,6 +229,10 @@ private:
     std::atomic_int32_t scenarios_ = 0;
     std::shared_ptr<Want> launchWant_;
     std::shared_ptr<Want> lastWant_;
+    std::map<std::string, int64_t> taskAttributions_;
+    std::string pendingTaskAttributionTaskId_;
+    int32_t pendingTaskAttributionCallerUid_ = -1;
+    int32_t pendingTaskAttributionCallerPid_ = -1;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -36,9 +36,18 @@ enum class AttributionTool : int32_t {
 using AttributionId = int64_t;
 
 struct AttributionRecord {
+    // Pid of the attributed TARGET process (the process hosting the started ability),
+    // not the caller's pid.
     pid_t pid = -1;
+    // Owner uid of the attributed TARGET process (same process as pid above). Informational
+    // only: membership checks are pid-based (creator uid or member pid), so a negative
+    // value never blocks attribution.
+    int32_t uid = -1;
+    // Channel that created this attribution (startAbility reporting = ABILITY).
     AttributionTool tool = AttributionTool::UNKNOWN;
-    int64_t attributedTimeMillis = 0;  // server-authoritative, set at registration
+    // Server-authoritative registration time; assigned by the task manager at insertion,
+    // never trusted from the caller.
+    int64_t attributedTimeMillis = 0;
 };
 
 const char *AttributionToolToString(AttributionTool tool);
