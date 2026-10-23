@@ -1695,6 +1695,42 @@ ohos_prebuilt_etc("application_state_observer_abc_etc") {
   deps = [ ":application_state_observer_abc" ]
 }
 
+generate_static_abc("focused_application_info_abc") {
+  base_url = "./"
+  files = [ "./application/FocusedApplicationInfo.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/focused_application_info_abc.abc"
+}
+
+ohos_prebuilt_etc("focused_application_info_abc_etc") {
+  source = "$target_out_dir/focused_application_info_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":focused_application_info_abc" ]
+}
+
+generate_static_abc("focused_application_observer_abc") {
+  base_url = "./"
+  files = [ "./application/FocusedApplicationObserver.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/focused_application_observer_abc.abc"
+
+  dependencies = [ ":focused_application_info_abc" ]
+  paths_keys = [ "application.FocusedApplicationInfo" ]
+  paths_values = [ "./application/FocusedApplicationInfo.ets" ]
+}
+
+ohos_prebuilt_etc("focused_application_observer_abc_etc") {
+  source = "$target_out_dir/focused_application_observer_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":focused_application_observer_abc" ]
+}
+
 generate_static_abc("appRecovery_abc") {
   base_url = "./"
   files = [ "./@ohos.app.ability.appRecovery.ets" ]
@@ -2316,6 +2352,8 @@ group("ets_packages") {
     ":business_ability_router_abc_etc",
     ":completion_handler_for_atomic_service_abc_etc",
     ":errorManager_abc_etc",
+    ":focused_application_info_abc_etc",
+    ":focused_application_observer_abc_etc",
     ":form_extension_ability_etc",
     ":photo_editor_extension_ability_etc",
     ":quick_fix_manager_abc_etc",
