@@ -2553,7 +2553,12 @@ void EtsAbilityContext::OnRequestDialogService(ani_env *env, ani_object aniObj, 
         return;
     }
     ani_ref callbackRef = nullptr;
-    env->GlobalReference_Create(call, &callbackRef);
+    if (env->GlobalReference_Create(call, &callbackRef) != ANI_OK || callbackRef == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "GlobalReference_Create failed");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    auto callbackDeleted = std::make_shared<bool>(false);
     RequestDialogResultTask task =
         [vm, callbackRef](int32_t resultCode, const AAFwk::Want &resultWant) {
         bool isAttachThread = false;
@@ -2571,7 +2576,6 @@ void EtsAbilityContext::OnRequestDialogService(ani_env *env, ani_object aniObj, 
             ani_object errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
             AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, requestResult);
         }
-        env->GlobalReference_Delete(callbackRef);
         AppExecFwk::DetachAniEnv(vm, isAttachThread);
         TAG_LOGD(AAFwkTag::CONTEXT, "end async callback");
     };
