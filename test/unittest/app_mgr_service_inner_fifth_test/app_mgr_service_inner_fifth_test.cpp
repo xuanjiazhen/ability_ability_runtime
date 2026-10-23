@@ -19,6 +19,7 @@
 #include "app_mgr_service_inner.h"
 #include "app_running_record.h"
 #include "remote_client_manager.h"
+#include "task_mgr/task_manager_service.h"
 #undef private
 #include "ability_manager_errors.h"
 #include "accesstoken_kit.h"
@@ -42,6 +43,7 @@
 #include "param.h"
 #include "parameters.h"
 #include "render_state_observer_stub.h"
+#include "task_mgr/common.h"
 #include "window_manager.h"
 
 using namespace testing;
@@ -1585,5 +1587,12 @@ HWTEST_F(AppMgrServiceInnerTest, AllowChildProcessInMultiProcessFeatureApp_NullA
     bool ret = appMgrServiceInner->AllowChildProcessInMultiProcessFeatureApp(nullptr);
     EXPECT_FALSE(ret);
 }
+
+
+
+
+
+
+
 } // namespace AppExecFwk
 } // namespace OHOS
