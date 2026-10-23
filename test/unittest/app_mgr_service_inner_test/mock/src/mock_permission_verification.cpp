@@ -29,6 +29,13 @@ bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const st
 }
 
 bool PermissionVerification::VerifyPreloadApplicationPermission() const
+
+int32_t PermissionVerification::VerifyAppStateObserverPermission() const
+{
+    return MyFlag::flag_ ? 0 : ERR_PERMISSION_DENIED;
+}
+
+bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPI() const
 {
     return MyFlag::flag_;
 }
