@@ -181,6 +181,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerThird(uint32_t code, MessageParcel &data
             return HandleClearProcessByToken(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_BY_PIDS):
             return HandleKillProcessesByPids(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::SET_PROCESS_PREPARE_EXIT):
+            return HandleSetProcessPrepareExit(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::ATTACH_PID_TO_PARENT):
             return HandleAttachPidToParent(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::IS_MEMORY_SIZE_SUFFICIENT):
@@ -382,6 +384,14 @@ ErrCode AmsMgrStub::HandleKillProcessesByPids(MessageParcel &data, MessageParcel
     bool isKillPrecedeStart = data.ReadBool();
     int32_t ret = KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart);
     reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+ErrCode AmsMgrStub::HandleSetProcessPrepareExit(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    int32_t pid = data.ReadInt32();
+    SetProcessPrepareExit(pid);
     return NO_ERROR;
 }
 

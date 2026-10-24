@@ -4270,9 +4270,8 @@ void UIAbilityLifecycleManager::SetProcessPrepareExit(int32_t pid, size_t remain
     TAG_LOGI(AAFwkTag::ABILITYMGR, "SetProcessPrepareExit:%{public}d-%{public}zu-%{public}zu-%{public}d",
         pid, remainingTokensSize, abilitysToTerminateSize, static_cast<int32_t>(clear));
     if (remainingTokensSize != 0 && remainingTokensSize == abilitysToTerminateSize && clear) {
-        auto appMgr = AppMgrUtil::GetAppMgr();
-        CHECK_POINTER(appMgr);
-        IN_PROCESS_CALL_WITHOUT_RET(appMgr->SetProcessPrepareExit(pid));
+        IN_PROCESS_CALL_WITHOUT_RET(
+            DelayedSingleton<AppScheduler>::GetInstance()->SetProcessPrepareExit(pid));
     }
 }
 
