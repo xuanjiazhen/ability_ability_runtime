@@ -386,6 +386,27 @@ int32_t AmsMgrProxy::KillProcessesByPids(const std::vector<int32_t> &pids, const
     return reply.ReadInt32();
 }
 
+void AmsMgrProxy::SetProcessPrepareExit(int32_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed");
+        return;
+    }
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write pid failed");
+        return;
+    }
+    int32_t ret =
+        SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::SET_PROCESS_PREPARE_EXIT), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+    }
+}
+
 void AmsMgrProxy::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "start");
