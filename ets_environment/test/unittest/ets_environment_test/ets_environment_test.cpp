@@ -1038,6 +1038,83 @@ HWTEST_F(EtsEnvironmentTest, InitAbcLinker_0800, TestSize.Level0)
 }
 
 /**
+ * @tc.name: InitAbcLinker_0900
+ * @tc.desc: Test InitAbcLinker cleans up abcLinkerClass_ when GetUndefined fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_0900, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().getUndefinedStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+    EXPECT_EQ(etsEnv->vmEntry_.abcLinkerClass_, nullptr);
+    EXPECT_EQ(mockEnv.GetState().globalRefDeleteCount, 1);
+}
+
+/**
+ * @tc.name: InitAbcLinker_1000
+ * @tc.desc: Test InitAbcLinker cleans up abcLinkerClass_ when Array_New fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_1000, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().arrayNewStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+    EXPECT_EQ(etsEnv->vmEntry_.abcLinkerClass_, nullptr);
+    EXPECT_EQ(mockEnv.GetState().globalRefDeleteCount, 1);
+}
+
+/**
+ * @tc.name: InitAbcLinker_1100
+ * @tc.desc: Test InitAbcLinker cleans up abcLinkerClass_ when CreateRuntimeLinker fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_1100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().classFindMethodStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+    EXPECT_EQ(etsEnv->vmEntry_.abcLinkerClass_, nullptr);
+    EXPECT_EQ(mockEnv.GetState().globalRefDeleteCount, 1);
+}
+
+/**
+ * @tc.name: InitAbcLinker_1200
+ * @tc.desc: Test InitAbcLinker cleans up abcLinkerClass_ when second GlobalReference_Create fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_1200, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().globalRefCreateFailOnCall = 2;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+    EXPECT_EQ(etsEnv->vmEntry_.abcLinkerClass_, nullptr);
+    EXPECT_EQ(mockEnv.GetState().globalRefDeleteCount, 1);
+    EXPECT_EQ(etsEnv->vmEntry_.abcLinkerRef_, nullptr);
+}
+
+/**
  * @tc.name: AddAbcFiles_0100
  * @tc.desc: Test AddAbcFiles.
  * @tc.type: FUNC
