@@ -50,7 +50,7 @@ public:
     int32_t RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason, bool fromKillWithReason);
     int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason);
     int32_t RecordUIAbilityExitReason(const pid_t pid, const std::string &abilityName, const ExitReason &exitReason,
-        int32_t callerPid = DEFAULT_INVAL_VALUE);
+        int32_t callerPid = DEFAULT_INVAL_VALUE, bool isLastAbilityOfProcess = true);
     int32_t RecordKillCallerInfo(const pid_t pid, int32_t callerPid);
     int32_t RecordProcessExitReasonForTimeout(const AppExecFwk::AbilityInfo &abilityInfo, const ExitReason &exitReason,
         const std::vector<std::string> &abilityList, const AppExecFwk::RunningProcessInfo &processInfo);

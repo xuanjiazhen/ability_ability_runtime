@@ -510,7 +510,7 @@ int32_t AppExitReasonHelper::GetActiveAbilityListWithPid(int32_t uid, std::vecto
 }
 
 int32_t AppExitReasonHelper::RecordUIAbilityExitReason(const pid_t pid, const std::string &abilityName,
-    const ExitReason &exitReason, int32_t callerPid)
+    const ExitReason &exitReason, int32_t callerPid, bool isLastAbilityOfProcess)
 {
     AppExecFwk::ApplicationInfo application;
     bool debug = false;
@@ -532,11 +532,16 @@ int32_t AppExitReasonHelper::RecordUIAbilityExitReason(const pid_t pid, const st
     abilityLists.emplace_back(abilityName);
 
     ExitReasonCompability exitReasonCompability(exitReason);
-    ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReasonCompability(
-        pid, exitReasonCompability.killId, exitReasonCompability.killMsg,
-        exitReasonCompability.innerMsg, exitReasonCompability.reason, callerPid);
-    if (ret != ERR_OK) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "notify failed: %{public}d", ret);
+    // kill-info is process-level: writing it on a close that does not terminate the process
+    // leaves a stale record that misattributes later deaths, so it is written only when this
+    // ability is the last one of the process. KV ability-name accumulation stays unconditional.
+    if (isLastAbilityOfProcess) {
+        ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReasonCompability(
+            pid, exitReasonCompability.killId, exitReasonCompability.killMsg,
+            exitReasonCompability.innerMsg, exitReasonCompability.reason, callerPid);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "notify failed: %{public}d", ret);
+        }
     }
 
     if (isAbilityListsEmpty) {
