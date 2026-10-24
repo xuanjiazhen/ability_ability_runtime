@@ -280,6 +280,22 @@ public:
      */
     ErrCode EraseUIExtension(int32_t sessionId);
 
+    AppExecFwk::BrandColorStrategy GetBrandColorStrategy() const override
+    {
+        return brandColorStrategy_;
+    }
+
+    std::string GetBrandColorValue() const override
+    {
+        return brandColorValue_;
+    }
+
+    bool CreateNewResourceMgr();
+
+    bool ApplyBrandColorStrategy(AppExecFwk::BrandColorStrategy strategy, const sptr<AAFwk::SessionInfo> &sessionInfo);
+
+    int32_t HandleBrandColorChange(uint32_t customId, AAFwk::Want &&data);
+
     bool IsTerminating();
     void SetTerminating(bool state);
 
@@ -356,6 +372,8 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
     std::map<int32_t, AAFwk::Want> uiExtensionMap_;
     std::mutex uiExtensionMutex_;
+    std::string brandColorValue_;
+    AppExecFwk::BrandColorStrategy brandColorStrategy_ = AppExecFwk::BrandColorStrategy::BRAND_COLOR_FOLLOW_SYSTEM;
 
     Ace::ModalUIExtensionCallbacks SetupModalCallbacks(std::shared_ptr<UIExtensionModalCallback> modalCallbackWeak);
     Ace::ModalUIExtensionCallbacks SetupModalUIExtensionCallbacks(
