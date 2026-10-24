@@ -483,6 +483,18 @@ void EventReport::SendExtensionEvent(
             hisyseventReport->InsertParam(EVENT_KEY_ERROR_CODE, eventInfo.errCode);
             hisyseventReport->Report("AAFWK", name.c_str(), type);
             break;
+        case EventName::CONNECT_WITH_INVALID_CALLER:
+            hisyseventReport->InsertParam(EVENT_KEY_USERID, eventInfo.userId);
+            hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName);
+            hisyseventReport->InsertParam(EVENT_KEY_MODULE_NAME, eventInfo.moduleName);
+            hisyseventReport->InsertParam(EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
+            hisyseventReport->InsertParam(EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
+            hisyseventReport->InsertParam(EVENT_KEY_CALLER_PROCESS_NAME, eventInfo.callerProcessName);
+            hisyseventReport->InsertParam(EVENT_KEY_CALLER_PROCESS_ID, eventInfo.callerPid);
+            hisyseventReport->InsertParam(EVENT_KEY_CALLER_UID, eventInfo.callerUid);
+            hisyseventReport->InsertParam(EVENT_KEY_ERR_REASON, eventInfo.errReason);
+            hisyseventReport->Report("AAFWK", name.c_str(), type);
+            break;
         case EventName::UI_EXTENSION_ERROR:
             LogUIExtensionErrorEvent(name, type, eventInfo);
             break;
@@ -926,7 +938,10 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         "USER_DATA_SIZE",
 
         // report snapshot info
-        "SNAPSHOT_REPORT"
+        "SNAPSHOT_REPORT",
+
+        // connect ability with invalid caller context
+        "CONNECT_WITH_INVALID_CALLER"
     };
     uint32_t eventIndex = static_cast<uint32_t> (eventName);
     if (eventIndex >= sizeof(eventNames) / sizeof(const char*)) {

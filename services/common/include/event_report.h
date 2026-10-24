@@ -169,7 +169,10 @@ enum class EventName {
     USER_DATA_SIZE,
 
     // report snapshot info
-    SNAPSHOT_REPORT
+    SNAPSHOT_REPORT,
+
+    // connect ability with invalid(stale) caller context, telemetry only
+    CONNECT_WITH_INVALID_CALLER
 };
 
 typedef enum {
