@@ -132,7 +132,11 @@ bool PermissionVerification::IsSystemAppCall() const
 {
     return true;
 }
-bool PermissionVerification::IsLocalDebugOtherAppsCall() const
+bool PermissionVerification::IsLocalDebugOtherAppsCall(const uint32_t specifyTokenId, int32_t targetUserId) const
+{
+    return false;
+}
+bool PermissionVerification::IsCustomSandboxCall(const uint32_t specifyTokenId, int32_t targetUserId) const
 {
     return false;
 }
