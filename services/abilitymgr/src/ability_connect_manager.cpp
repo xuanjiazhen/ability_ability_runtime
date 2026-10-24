@@ -38,6 +38,8 @@
 #include "init_reboot.h"
 #include "insight_intent_execute_param.h"
 #include "int_wrapper.h"
+#include "mem_mgr_client.h"
+#include "process_state_callback.h"
 #include "multi_instance_utils.h"
 #include "modular_object_manager.h"
 #include "modular_object_utils.h"
@@ -57,6 +59,8 @@
 namespace OHOS {
 namespace AAFwk {
 namespace {
+constexpr int32_t PROCESS_AVAILABLE_QUERY_TIMEOUT_MS = 100;
+
 constexpr char EVENT_KEY_UID[] = "UID";
 constexpr char EVENT_KEY_PID[] = "PID";
 constexpr char EVENT_KEY_MESSAGE[] = "MSG";
@@ -3429,6 +3433,16 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         targetService = AbilityCacheManager::GetInstance().Get(abilityRequest);
         if (targetService != nullptr) {
             AddToServiceMap(serviceKey, targetService);
+        }
+    }
+    if (targetService != nullptr) {
+        pid_t recordPid = targetService->GetPid();
+        if (recordPid > 0 && !DelayedSingleton<AppScheduler>::GetInstance()->CheckProcessAvailable(recordPid)) {
+            TAG_LOGD(AAFwkTag::EXT,
+                "service process pid:%{public}d is not available, recreate: %{public}s/%{public}s",
+                recordPid, element.GetBundleName().c_str(), element.GetAbilityName().c_str());
+            MoveToTerminatingMap(targetService);
+            targetService = nullptr;
         }
     }
     if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
