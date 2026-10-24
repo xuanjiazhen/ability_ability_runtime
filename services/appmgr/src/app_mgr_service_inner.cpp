@@ -7455,6 +7455,17 @@ int32_t AppMgrServiceInner::UnregisterAppForegroundStateObserver(const sptr<IApp
     return DelayedSingleton<AppStateObserverManager>::GetInstance()->UnregisterAppForegroundStateObserver(observer);
 }
 
+
+int32_t AppMgrServiceInner::RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer)
+{
+    return DelayedSingleton<AppStateObserverManager>::GetInstance()->RegisterProcessLifecycleObserver(observer);
+}
+
+int32_t AppMgrServiceInner::UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer)
+{
+    return DelayedSingleton<AppStateObserverManager>::GetInstance()->UnregisterProcessLifecycleObserver(observer);
+}
+
 int32_t AppMgrServiceInner::RegisterAbilityForegroundStateObserver(
     const sptr<IAbilityForegroundStateObserver> &observer)
 {
@@ -11532,6 +11543,7 @@ void AppMgrServiceInner::OnChildProcessDied(std::shared_ptr<ChildProcessRecord> 
 {
     if (childProcessRecord) {
         RemoveChildProcessIsolationUid(childProcessRecord->GetUid());
+        childProcessRecord->SetState(AppProcessState::APP_STATE_TERMINATED);
         DelayedSingleton<AppStateObserverManager>::GetInstance()->OnChildProcessDied(childProcessRecord);
     }
 }
