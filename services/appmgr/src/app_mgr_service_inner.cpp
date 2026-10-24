@@ -6394,6 +6394,19 @@ static void ReportProcessKillEvent(std::string versionCode, std::string versionN
         killInfo.killId, killInfo.callingPid, killInfo.callingProcessName.c_str());
 }
 
+static void ExtractEventParamToInnerMsg(std::string &innerMsg,
+    const AppExecFwk::AppfreezeManager::ProcessKillInfo &killInfo)
+{
+    if (killInfo.killId == HiviewDFX::ProcessKillReason::KillEventId::REASON_OOM_KILLER) {
+        if (!innerMsg.empty()) {
+            innerMsg += ",";
+        }
+        innerMsg += " points=" + std::to_string(killInfo.eventParamFirst);
+        innerMsg += ", rss=" + std::to_string(killInfo.eventParamSecond);
+        innerMsg += ", drv=" + std::to_string(killInfo.eventParamThird);
+    }
+}
+
 void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> appRecord)
 {
     CHECK_POINTER_AND_RETURN_LOG(appRecord, "no appRecord");
@@ -6418,10 +6431,12 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     SetKilledEventInfo(appRecord, eventInfo);
     killInfo.processName = eventInfo.processName;
     AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HISYSEVENT_BEHAVIOR, eventInfo);
+    std::string innerMsg = appRecord->GetInnerMsg();
+    ExtractEventParamToInnerMsg(innerMsg, killInfo);
     ProcessKillReportData reportData = {
         .appRunningUniqueId = std::to_string(appRecord->GetAppRunningUniqueId()),
         .bundleName = appRecord->GetBundleName(),
-        .innerMsg = appRecord->GetInnerMsg(),
+        .innerMsg = innerMsg,
         .killMsg = appRecord->GetKillMsg(),
         .uid = appRecord->GetUid(),
         .rssValue = appRecord->GetRssValue(),
