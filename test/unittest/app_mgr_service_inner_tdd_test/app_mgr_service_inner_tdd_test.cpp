@@ -19,6 +19,7 @@
 #define private public
 #include "app_mgr_service_inner.h"
 #include "app_running_record.h"
+#include "appfreeze_manager.h"
 #include "remote_client_manager.h"
 #undef private
 #include "app_scheduler.h"
@@ -970,6 +971,48 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_009, TestSize.Level1)
     EXPECT_EQ(appRecord->GetKillCallerPid(), 1234);
     EXPECT_EQ(appRecord->GetKillCallerProcessName(), "sceneboard");
     TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_009 end");
+}
+
+/**
+ * @tc.name: SendProcessKillEvent_010
+ * @tc.desc: Verify 1-arg SendProcessKillEvent arbitrates kill attribution via CheckThreadKilled
+ * @tc.type: FUNC
+ * @tc.Function: SendProcessKillEvent
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_010, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_010 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    BundleInfo bundleInfo;
+    std::string processName = "AppMgrServiceInnerTest";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
+    ASSERT_NE(appRecord, nullptr);
+    constexpr int32_t userRequestKillId = 1000; // HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST
+    appRecord->SetKillId(userRequestKillId);
+    appRecord->SetKillMsg("testKillMsg");
+    appRecord->SetKillCallerInfo(1234, "sceneboard");
+    // not killed by AppMS: report falls back to record values and keeps them stable
+    EXPECT_FALSE(AppfreezeManager::GetInstance()->CheckThreadKilled(
+        appRecord->GetPid(), appRecord->GetUid(), appRecord->GetBundleName()));
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    EXPECT_EQ(appRecord->GetKillId(), userRequestKillId);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), 1234);
+    EXPECT_EQ(appRecord->GetKillCallerProcessName(), "sceneboard");
+    // killed by AppMS (freeze map hit): record values are trusted by the arbitration
+    AppfreezeManager::GetInstance()->InsertKillThread(0, appRecord->GetPid(),
+        appRecord->GetUid(), appRecord->GetBundleName());
+    EXPECT_TRUE(AppfreezeManager::GetInstance()->CheckThreadKilled(
+        appRecord->GetPid(), appRecord->GetUid(), appRecord->GetBundleName()));
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    EXPECT_EQ(appRecord->GetKillId(), userRequestKillId);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), 1234);
+    EXPECT_EQ(appRecord->GetKillCallerProcessName(), "sceneboard");
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_010 end");
 }
 
 /**

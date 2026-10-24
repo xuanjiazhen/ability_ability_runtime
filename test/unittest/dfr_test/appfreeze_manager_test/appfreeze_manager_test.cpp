@@ -830,6 +830,230 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetProcessKillReason_Test001
     EXPECT_TRUE(killInfo.killReason.find("OOM_KILLER") != std::string::npos);
 }
 
+namespace {
+constexpr int32_t MOCK_KERNEL_RECORD_ADJ = 100; // adj value carried by the mocked kernel kill record
+constexpr int32_t KERNEL_SPACE_CALLER_PID = 0; // kernel-originated kill has no userspace caller pid
+struct KernelReadMock {
+    bool readSuccess = false;
+    int32_t killId = -1;
+    int32_t callingPid = -1;
+    std::string callingProcessName;
+    std::string reasonOverride;
+};
+KernelReadMock g_kernelReadMock;
+}
+
+static void SetKernelReadMock(bool readSuccess, int32_t killId, int32_t callingPid,
+    const std::string &callingProcessName, const std::string &reasonOverride = "")
+{
+    g_kernelReadMock.readSuccess = readSuccess;
+    g_kernelReadMock.killId = killId;
+    g_kernelReadMock.callingPid = callingPid;
+    g_kernelReadMock.callingProcessName = callingProcessName;
+    g_kernelReadMock.reasonOverride = reasonOverride;
+}
+
+static bool MockKernelReasonReader(AppfreezeManager::ProcessKillInfo &killInfo)
+{
+    if (!g_kernelReadMock.readSuccess) {
+        killInfo.killReason = "InvalidKillId";
+        return false;
+    }
+    killInfo.killId = g_kernelReadMock.killId;
+    killInfo.killReason = g_kernelReadMock.reasonOverride.empty()
+        ? HiviewDFX::ProcessKillReason::GetKillReason(g_kernelReadMock.killId)
+        : g_kernelReadMock.reasonOverride;
+    killInfo.callingPid = g_kernelReadMock.callingPid;
+    killInfo.callingProcessName = g_kernelReadMock.callingProcessName;
+    killInfo.foreground = false;
+    killInfo.adj = MOCK_KERNEL_RECORD_ADJ;
+    killInfo.timestamp = 1;
+    return true;
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest GetProcessKillReason Arbitration Test001
+ * @tc.desc: killId>0 record is trusted when AppMS itself killed the process
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, GetProcessKillReason_Arbitration_001, TestSize.Level1)
+{
+    AppfreezeManager::ProcessKillInfo killInfo = {};
+    killInfo.pid = 4321;
+    killInfo.callingPid = 3988;
+    killInfo.callingProcessName = "com.ohos.sceneboard";
+    bool res = appfreezeManager->GetProcessKillReason(killInfo,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST, "record msg", true);
+    EXPECT_TRUE(res);
+    EXPECT_EQ(killInfo.killReason, "User Request");
+    EXPECT_EQ(killInfo.killId, HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST);
+    EXPECT_EQ(killInfo.killMsg, "record msg");
+    EXPECT_EQ(killInfo.callingPid, 3988);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest GetProcessKillReason Arbitration Test002
+ * @tc.desc: sticky record + external kill: kernel record with an external caller is adopted
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, GetProcessKillReason_Arbitration_002, TestSize.Level1)
+{
+    SetKernelReadMock(true, HiviewDFX::ProcessKillReason::KillEventId::REASON_SIGNAL_KILL, 9999, "shell");
+    AppfreezeManager::SetKernelReasonReaderForTest(MockKernelReasonReader);
+    AppfreezeManager::ProcessKillInfo killInfo = {};
+    killInfo.pid = 4321;
+    killInfo.callingPid = 3988;
+    killInfo.callingProcessName = "com.ohos.sceneboard";
+    bool res = appfreezeManager->GetProcessKillReason(killInfo,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST, "record msg", false);
+    EXPECT_TRUE(res);
+    EXPECT_EQ(killInfo.killReason, "signal kill");
+    EXPECT_EQ(killInfo.killId, HiviewDFX::ProcessKillReason::KillEventId::REASON_SIGNAL_KILL);
+    EXPECT_EQ(killInfo.callingPid, 9999);
+    EXPECT_EQ(killInfo.callingProcessName, "shell");
+    EXPECT_EQ(killInfo.killMsg, "record msg");
+    AppfreezeManager::SetKernelReasonReaderForTest(nullptr);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest GetProcessKillReason Arbitration Test003
+ * @tc.desc: sticky record + kernel query failed: fallback to record values, no retry
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, GetProcessKillReason_Arbitration_003, TestSize.Level1)
+{
+    SetKernelReadMock(false, -1, -1, "");
+    AppfreezeManager::SetKernelReasonReaderForTest(MockKernelReasonReader);
+    AppfreezeManager::ProcessKillInfo killInfo = {};
+    killInfo.pid = 4321;
+    killInfo.callingPid = 3988;
+    killInfo.callingProcessName = "com.ohos.sceneboard";
+    bool res = appfreezeManager->GetProcessKillReason(killInfo,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST, "record msg", false);
+    EXPECT_TRUE(res);
+    EXPECT_EQ(killInfo.killReason, "User Request");
+    EXPECT_EQ(killInfo.killId, HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST);
+    EXPECT_EQ(killInfo.callingPid, 3988);
+    EXPECT_EQ(killInfo.callingProcessName, "com.ohos.sceneboard");
+    AppfreezeManager::SetKernelReasonReaderForTest(nullptr);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest GetProcessKillReason Arbitration Test004
+ * @tc.desc: killId<0 branch keeps kernel-authority behavior and ignores isKilledByAms
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, GetProcessKillReason_Arbitration_004, TestSize.Level1)
+{
+    AppfreezeManager::ProcessKillInfo killInfo = {};
+    killInfo.pid = 999999; // no kernel kill record for a non-existent pid
+    killInfo.callingPid = 3988;
+    bool res = appfreezeManager->GetProcessKillReason(killInfo, -1, "kernel msg", false);
+    EXPECT_FALSE(res);
+    EXPECT_EQ(killInfo.killMsg, "kernel msg");
+    EXPECT_EQ(killInfo.callingPid, 3988);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest GetProcessKillReason Arbitration Test005
+ * @tc.desc: self-terminated death (JS error pre-report) is not adopted, "Js Error" is kept
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, GetProcessKillReason_Arbitration_005, TestSize.Level1)
+{
+    SetKernelReadMock(true, HiviewDFX::ProcessKillReason::KillEventId::REASON_SIGNAL_KILL, 4321, "self");
+    AppfreezeManager::SetKernelReasonReaderForTest(MockKernelReasonReader);
+    AppfreezeManager::ProcessKillInfo killInfo = {};
+    killInfo.pid = 4321; // kernel record callingPid equals the killed pid: self-terminated form
+    killInfo.callingPid = 3988;
+    killInfo.callingProcessName = "com.ohos.sceneboard";
+    bool res = appfreezeManager->GetProcessKillReason(killInfo,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_ERROR, "Js Error msg", false);
+    EXPECT_TRUE(res);
+    EXPECT_EQ(killInfo.killReason, "Js Error");
+    EXPECT_EQ(killInfo.killId, HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_ERROR);
+    EXPECT_EQ(killInfo.callingPid, 3988);
+    EXPECT_EQ(killInfo.callingProcessName, "com.ohos.sceneboard");
+    AppfreezeManager::SetKernelReasonReaderForTest(nullptr);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest GetProcessKillReason Arbitration Test006
+ * @tc.desc: kernel-space OOM killer (callingPid=0) passes all guards and is adopted
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, GetProcessKillReason_Arbitration_006, TestSize.Level1)
+{
+    // kernel-space OOM kill: killId maps to REASON_OOM_KILLER, no userspace caller
+    SetKernelReadMock(true, HiviewDFX::ProcessKillReason::KillEventId::REASON_OOM_KILLER,
+        KERNEL_SPACE_CALLER_PID, "");
+    AppfreezeManager::SetKernelReasonReaderForTest(MockKernelReasonReader);
+    AppfreezeManager::ProcessKillInfo killInfo = {};
+    killInfo.pid = 4321;
+    killInfo.callingPid = 3988;
+    killInfo.callingProcessName = "com.ohos.sceneboard";
+    bool res = appfreezeManager->GetProcessKillReason(killInfo,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST, "record msg", false);
+    EXPECT_TRUE(res);
+    EXPECT_EQ(killInfo.killId, HiviewDFX::ProcessKillReason::KillEventId::REASON_OOM_KILLER);
+    EXPECT_TRUE(killInfo.killReason.find("OOM_KILLER") != std::string::npos);
+    EXPECT_EQ(killInfo.callingPid, KERNEL_SPACE_CALLER_PID);
+    AppfreezeManager::SetKernelReasonReaderForTest(nullptr);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest GetProcessKillReason Arbitration Test007
+ * @tc.desc: kernel record killed by AppMS itself is not adopted, record values are kept
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, GetProcessKillReason_Arbitration_007, TestSize.Level1)
+{
+    SetKernelReadMock(true, HiviewDFX::ProcessKillReason::KillEventId::REASON_SIGNAL_KILL, getpid(), "appms");
+    AppfreezeManager::SetKernelReasonReaderForTest(MockKernelReasonReader);
+    AppfreezeManager::ProcessKillInfo killInfo = {};
+    killInfo.pid = 4321;
+    killInfo.callingPid = 3988;
+    killInfo.callingProcessName = "com.ohos.sceneboard";
+    bool res = appfreezeManager->GetProcessKillReason(killInfo,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST, "record msg", false);
+    EXPECT_TRUE(res);
+    EXPECT_EQ(killInfo.killReason, "User Request");
+    EXPECT_EQ(killInfo.killId, HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST);
+    EXPECT_EQ(killInfo.callingPid, 3988);
+    AppfreezeManager::SetKernelReasonReaderForTest(nullptr);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest GetProcessKillReason Arbitration Test008
+ * @tc.desc: kernel record with invalid killId (non-positive or unmapped) is not adopted
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, GetProcessKillReason_Arbitration_008, TestSize.Level1)
+{
+    AppfreezeManager::ProcessKillInfo killInfo = {};
+    killInfo.pid = 4321;
+    killInfo.callingPid = 3988;
+    killInfo.callingProcessName = "com.ohos.sceneboard";
+    AppfreezeManager::SetKernelReasonReaderForTest(MockKernelReasonReader);
+    // non-positive kernel killId
+    SetKernelReadMock(true, 0, 9999, "shell");
+    bool res = appfreezeManager->GetProcessKillReason(killInfo,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST, "record msg", false);
+    EXPECT_TRUE(res);
+    EXPECT_EQ(killInfo.killReason, "User Request");
+    EXPECT_EQ(killInfo.killId, HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST);
+    EXPECT_EQ(killInfo.callingPid, 3988);
+    // unmapped kernel killId maps to InvalidKillId
+    SetKernelReadMock(true, 999999, 9999, "shell");
+    res = appfreezeManager->GetProcessKillReason(killInfo,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST, "record msg", false);
+    EXPECT_TRUE(res);
+    EXPECT_EQ(killInfo.killReason, "User Request");
+    EXPECT_EQ(killInfo.killId, HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_REQUEST);
+    EXPECT_EQ(killInfo.callingPid, 3988);
+    AppfreezeManager::SetKernelReasonReaderForTest(nullptr);
+}
+
 /**
  * @tc.number: AppfreezeManagerTest GetExitKernelReason Test
  * @tc.desc: add testcase

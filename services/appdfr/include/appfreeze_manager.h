@@ -121,9 +121,17 @@ public:
     bool CheckNeedRecordAppRunningUnquieId(const std::string& eventName);
     bool IsBetaVersion();
     void InsertKillThread(int32_t state, int32_t pid, int32_t uid, const std::string& bundleName);
+    bool CheckThreadKilled(int32_t pid, int32_t uid, const std::string& bundleName);
     bool IsSkipDetect(int32_t pid, int32_t uid, const std::string& bundleName,
         const std::string& eventName);
-    bool GetProcessKillReason(AppfreezeManager::ProcessKillInfo &killInfo, int32_t killId, const std::string& killMsg);
+    bool GetProcessKillReason(AppfreezeManager::ProcessKillInfo &killInfo, int32_t killId,
+        const std::string& killMsg, bool isKilledByAms = true);
+    // Kernel kill-record reader for GetProcessKillReason arbitration. UT injects a mock reader
+    // via SetKernelReasonReaderForTest because /dev/sysload is unavailable in UT; passing nullptr
+    // restores the real ioctl path (production default).
+    using KernelReasonReader = bool (*)(ProcessKillInfo &killInfo);
+    static void SetKernelReasonReaderForTest(KernelReasonReader reader);
+    bool ResolveKillReasonFromKernel(ProcessKillInfo &killInfo, const std::string& killMsg);
     bool GetExitKernelReason(ProcessKillInfo& killInfo);
     void SetExitKernelReason(int32_t pid);
     int GetFreezeExitReason(const std::string& eventName);
@@ -218,7 +226,6 @@ private:
     std::string GetFirstLine(const std::string &path);
     bool GetHitraceId(std::string& hiTraceIdInfo);
     std::string CatchASyncByPid(const std::set<int> &asyncPids, const std::set<int> &syncPids, int pid);
-    bool CheckThreadKilled(int32_t pid, int32_t uid, const std::string& bundleName);
     std::string GetCatcherStack(const std::string& fileName, const std::string& catcherStack);
     bool IsNeedIgnoreFreezeEvent(const std::string& key, const std::string& eventName,
         int maxReportTimes = DEFAULT_APPFREEZE_REPORT_TIMES);

@@ -6415,8 +6415,12 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     killInfo.pid = appRecord->GetPid();
     killInfo.callingPid = appRecord->GetKillCallerPid();
     killInfo.callingProcessName = appRecord->GetKillCallerProcessName();
+    // A killId>0 record is trusted only when AppMS itself killed the process (e.g. user request
+    // kills); otherwise the kernel kill record, if any, is authoritative over stale records.
+    bool isKilledByAms = AppExecFwk::AppfreezeManager::GetInstance()->CheckThreadKilled(
+        appRecord->GetPid(), appRecord->GetUid(), appRecord->GetBundleName());
     bool res = AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(killInfo,
-        appRecord->GetKillId(), appRecord->GetKillMsg());
+        appRecord->GetKillId(), appRecord->GetKillMsg(), isKilledByAms);
     std::string versionCode = std::to_string(appInfo->versionCode);
     std::string versionName = appInfo->versionName;
     AAFwk::EventInfo eventInfo;
