@@ -1224,7 +1224,7 @@ private:
     virtual void PreloadModuleFinished(const int32_t recordId) override;
 
     void SetProcessPrepareExit(int32_t pid) override;
-    
+
     /**
      * @brief set TerminateTimeOut flag.
      * @param token Ability identify.
