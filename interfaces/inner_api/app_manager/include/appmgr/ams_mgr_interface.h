@@ -144,6 +144,15 @@ public:
         bool isKillPrecedeStart = false) = 0;
 
     /**
+     * SetProcessPrepareExit, mark a process as preparing to exit.
+     * Sets ProcessCacheBlocked, Terminating, and PrepareExit flags.
+     * Only system ability callers are allowed.
+     *
+     * @param pid, the process id to mark.
+     */
+    virtual void SetProcessPrepareExit(int32_t pid) {}
+
+    /**
      * Set child and parent relationship
      * @param token child process
      * @param callerToken parent process
@@ -603,6 +612,7 @@ public:
         CLEAR_PROCESS_BY_TOKEN,
         REGISTER_ABILITY_MS_DELEGATE,
         KILL_PROCESSES_BY_PIDS,
+        SET_PROCESS_PREPARE_EXIT,
         ATTACH_PID_TO_PARENT,
         IS_MEMORY_SIZE_SUFFICIENT,
         NOTIFY_APP_MGR_RECORD_EXIT_REASON,
