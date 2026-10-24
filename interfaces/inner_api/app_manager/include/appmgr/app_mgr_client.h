@@ -211,6 +211,15 @@ public:
         const std::string &reason = "KillProcessesByPids", bool subProcess = false, bool isKillPrecedeStart = false);
 
     /**
+     * Mark a process as preparing to exit: sets ProcessCacheBlocked, Terminating,
+     * and PrepareExit flags. Call before KillProcessesByPids to prevent other
+     * threads from reusing the process during the kill window.
+     *
+     * @param pid Process id to mark.
+     */
+    virtual void SetProcessPrepareExit(int32_t pid);
+
+    /**
      * Establish the parent-child relationship between two ability processes.
      * Internal use (multi-process/child-process framework). If the caller token
      * cannot be resolved on the server, the child process is killed.
