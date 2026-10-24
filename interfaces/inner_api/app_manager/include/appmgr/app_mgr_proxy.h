@@ -1009,7 +1009,7 @@ public:
     virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId) override;
 
     void SetProcessPrepareExit(int32_t pid) override;
-    
+
     /**
      * @brief set TerminateTimeOut flag.
      * @param token Ability identify.
