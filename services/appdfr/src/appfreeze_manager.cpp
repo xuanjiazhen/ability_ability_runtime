@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <fstream>
 #include <sstream>
 #include <sys/ioctl.h>
@@ -72,6 +73,9 @@ static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiont
 static bool g_overseaVersion = OHOS::system::GetParameter("const.global.region", "CN") != "CN";
 static bool g_developMode = (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "enable") ||
                             (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "true");
+// Test seam for the kernel kill-record reader of GetProcessKillReason arbitration:
+// nullptr means the real /dev/sysload ioctl path (production default).
+static AppfreezeManager::KernelReasonReader g_kernelReasonReader = nullptr;
 
 static constexpr const char *const HITRACE_ID = "hitrace_id: ";
 static constexpr const char *const SPAN_ID = "span_id: ";
@@ -1325,7 +1329,7 @@ bool AppfreezeManager::IsSkipDetect(int32_t pid, int32_t uid, const std::string&
 }
 
 bool AppfreezeManager::GetProcessKillReason(AppfreezeManager::ProcessKillInfo &killInfo, int32_t killId,
-    const std::string& killMsg)
+    const std::string& killMsg, bool isKilledByAms)
 {
     if (killId == INVALID_KILL_ID) {
         killInfo.killReason = INVALID_KILL_REASON;
@@ -1338,11 +1342,42 @@ bool AppfreezeManager::GetProcessKillReason(AppfreezeManager::ProcessKillInfo &k
             return false;
         }
     } else {
+        if (!isKilledByAms && ResolveKillReasonFromKernel(killInfo, killMsg)) {
+            return true;
+        }
         killInfo.killReason = HiviewDFX::ProcessKillReason::GetKillReason(killId);
         killInfo.killMsg = killMsg;
         killInfo.killId = killId;
         SetExitKernelReason(killInfo.pid);
     }
+    return true;
+}
+
+void AppfreezeManager::SetKernelReasonReaderForTest(AppfreezeManager::KernelReasonReader reader)
+{
+    g_kernelReasonReader = reader;
+}
+
+bool AppfreezeManager::ResolveKillReasonFromKernel(ProcessKillInfo &killInfo, const std::string& killMsg)
+{
+    // The kernel kill record is authoritative only for deaths not caused by AppMS itself
+    // (callingPid != getpid()) and not self-terminated (callingPid != killed pid). It corrects
+    // stale kill-info records (e.g. sticky SCB attribution from a non-terminal close) while
+    // keeping semantic attributions of AppMS kills and pre-reported exits such as JS errors.
+    ProcessKillInfo kernelInfo = killInfo; // guard rejection must not pollute prefilled values
+    bool res = (g_kernelReasonReader != nullptr) ? g_kernelReasonReader(kernelInfo)
+        : GetExitKernelReason(kernelInfo);
+    if (!res || kernelInfo.killId <= 0 || kernelInfo.killReason == INVALID_KILL_REASON ||
+        kernelInfo.callingPid == getpid() || kernelInfo.callingPid == killInfo.pid) {
+        TAG_LOGW(AAFwkTag::APPDFR, "kernel query failed or rejected by guard, fallback to record, "
+            "pid:%{public}d, kernelKillId:%{public}d, kernelCallingPid:%{public}d",
+            killInfo.pid, kernelInfo.killId, kernelInfo.callingPid);
+        return false;
+    }
+    killInfo = kernelInfo; // kernel record overrides killId/killReason/callingPid/callingProcessName/
+                           // foreground/timestamp/adj/eventParams
+    killInfo.killMsg = killMsg; // the kernel record has no msg field, keep the appRecord msg
+    SetExitKernelReason(killInfo.pid); // claim the kernel record right after adoption
     return true;
 }
 
