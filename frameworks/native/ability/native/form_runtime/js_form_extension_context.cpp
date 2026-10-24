@@ -136,16 +136,20 @@ private:
 
         formProviderData = AppExecFwk::FormProviderData(formDataStr);
 
-        formProviderData.SetSupportMoreImages(GetIsSupportMoreImages(env, info.argv[1]));
         NapiAsyncTask::CompleteCallback complete =
-            [weak = context_, formId, formProviderData](napi_env env, NapiAsyncTask& task, int32_t status) {
+            [weak = context_, formId, formProviderData,
+                isSupportMoreImages = GetIsSupportMoreImages(env, info.argv[1])](
+                napi_env env, NapiAsyncTask& task, int32_t status) {
                 auto context = weak.lock();
                 if (!context) {
                     TAG_LOGW(AAFwkTag::FORM_EXT, "null context");
                     task.Reject(env, CreateJsError(env, 1, "Context is released"));
                     return;
                 }
-                auto errcode = context->UpdateForm(formId, formProviderData);
+                AppExecFwk::FormProviderInfo formProviderInfo;
+                formProviderInfo.SetFormData(formProviderData);
+                formProviderInfo.SetSupportMoreImages(isSupportMoreImages);
+                auto errcode = context->UpdateForm(formId, formProviderInfo);
                 if (errcode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else {
