@@ -6404,7 +6404,6 @@ static void ExtractEventParamToInnerMsg(std::string &innerMsg,
         innerMsg += " points=" + std::to_string(killInfo.eventParamFirst);
         innerMsg += ", rss=" + std::to_string(killInfo.eventParamSecond);
         innerMsg += ", drv=" + std::to_string(killInfo.eventParamThird);
-        
     }
 }
 
