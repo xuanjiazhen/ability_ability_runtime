@@ -25,26 +25,30 @@
 namespace OHOS {
 namespace EtsEnv {
 
-class MockAniEnv {
-public:
-    struct State {
-        ani_status getUndefinedStatus { ANI_OK };
-        ani_status arrayNewStatus { ANI_OK };
-        ani_status stringNewStatus { ANI_OK };
-        ani_status arraySetStatus { ANI_OK };
-        ani_status callMethodStatus { ANI_OK };
-        ani_status findClassStatus { ANI_OK };
-        ani_status classFindMethodStatus { ANI_OK };
-        ani_status classFindFieldStatus { ANI_OK };
-        ani_status objectNewStatus { ANI_OK };
-        ani_status objectGetFieldLongStatus { ANI_OK };
-        ani_status objectSetFieldLongStatus { ANI_OK };
-        ani_status globalRefCreateStatus { ANI_OK };
-        ani_status globalRefDeleteStatus { ANI_OK };
-        ani_status arrayNewRefStatus { ANI_OK };
-        ani_status arraySetRefStatus { ANI_OK };
-        ani_status classCallStaticMethodStatus { ANI_OK };
-    };
+    class MockAniEnv {
+    public:
+        struct State {
+            ani_status getUndefinedStatus { ANI_OK };
+            ani_status arrayNewStatus { ANI_OK };
+            ani_status stringNewStatus { ANI_OK };
+            ani_status arraySetStatus { ANI_OK };
+            ani_status callMethodStatus { ANI_OK };
+            ani_status findClassStatus { ANI_OK };
+            ani_status classFindMethodStatus { ANI_OK };
+            ani_status classFindFieldStatus { ANI_OK };
+            ani_status objectNewStatus { ANI_OK };
+            ani_status objectGetFieldLongStatus { ANI_OK };
+            ani_status objectSetFieldLongStatus { ANI_OK };
+            ani_status globalRefCreateStatus { ANI_OK };
+            ani_status globalRefDeleteStatus { ANI_OK };
+            ani_status arrayNewRefStatus { ANI_OK };
+            ani_status arraySetRefStatus { ANI_OK };
+            ani_status classCallStaticMethodStatus { ANI_OK };
+            int globalRefCreateCallCount { 0 };
+            int globalRefCreateFailOnCall { 0 };
+            int globalRefDeleteCount { 0 };
+            ani_ref lastDeletedRef { nullptr };
+        };
 
     MockAniEnv();
     ~MockAniEnv() = default;
