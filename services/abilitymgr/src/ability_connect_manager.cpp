@@ -38,6 +38,8 @@
 #include "init_reboot.h"
 #include "insight_intent_execute_param.h"
 #include "int_wrapper.h"
+#include "mem_mgr_client.h"
+#include "process_state_callback.h"
 #include "multi_instance_utils.h"
 #include "modular_object_manager.h"
 #include "modular_object_utils.h"
@@ -57,6 +59,8 @@
 namespace OHOS {
 namespace AAFwk {
 namespace {
+constexpr int32_t PROCESS_AVAILABLE_QUERY_TIMEOUT_MS = 100;
+
 constexpr char EVENT_KEY_UID[] = "UID";
 constexpr char EVENT_KEY_PID[] = "PID";
 constexpr char EVENT_KEY_MESSAGE[] = "MSG";
@@ -3429,6 +3433,40 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         targetService = AbilityCacheManager::GetInstance().Get(abilityRequest);
         if (targetService != nullptr) {
             AddToServiceMap(serviceKey, targetService);
+        }
+    }
+    if (targetService != nullptr) {
+        pid_t recordPid = targetService->GetPid();
+        if (recordPid > 0) {
+            sptr<AppExecFwk::ProcessStateCallback> callback = sptr<AppExecFwk::ProcessStateCallback>::MakeSptr();
+            if (callback == nullptr) {
+                TAG_LOGE(AAFwkTag::EXT, "callback is null, skip check, pid:%{public}d", recordPid);
+            } else {
+                TAG_LOGI(AAFwkTag::EXT, "QueryProcessStateWithCallback begin, pid:%{public}d, timeout:%{public}d",
+                    recordPid, PROCESS_AVAILABLE_QUERY_TIMEOUT_MS);
+                int32_t result = Memory::MemMgrClient::GetInstance().QueryProcessStateWithCallback(
+                    recordPid, callback, PROCESS_AVAILABLE_QUERY_TIMEOUT_MS);
+                if (result != ERR_OK) {
+                    TAG_LOGW(AAFwkTag::EXT, "QueryProcessStateWithCallback failed, result:%{public}d, pid:%{public}d",
+                        result, recordPid);
+                } else if (!callback->WaitForResult(PROCESS_AVAILABLE_QUERY_TIMEOUT_MS)) {
+                    TAG_LOGW(AAFwkTag::EXT, "QueryProcessStateWithCallback timeout, pid:%{public}d, keep record",
+                        recordPid);
+                } else if (!callback->IsAvailable()) {
+                    TAG_LOGW(AAFwkTag::EXT,
+                        "service process pid:%{public}d is not available, recreate: %{public}s/%{public}s",
+                        recordPid, element.GetBundleName().c_str(), element.GetAbilityName().c_str());
+                    TAG_LOGI(AAFwkTag::EXT, "SetProcessPrepareExit begin, pid:%{public}d", recordPid);
+                    DelayedSingleton<AppScheduler>::GetInstance()->SetProcessPrepareExit(recordPid);
+                    DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(
+                        { recordPid }, "LowMemoryKill");
+                    MoveToTerminatingMap(targetService);
+                    targetService = nullptr;
+                } else {
+                    TAG_LOGI(AAFwkTag::EXT, "service process pid:%{public}d is available, keep record",
+                        recordPid);
+                }
+            }
         }
     }
     if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
