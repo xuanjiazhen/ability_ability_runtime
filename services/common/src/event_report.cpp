@@ -926,7 +926,7 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         "USER_DATA_SIZE",
 
         // report snapshot info
-        "SNAPSHOT_REPORT"
+        "SNAPSHOT_REPORT",
     };
     uint32_t eventIndex = static_cast<uint32_t> (eventName);
     if (eventIndex >= sizeof(eventNames) / sizeof(const char*)) {

@@ -6240,6 +6240,9 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         }
         return eventInfo->errCode;
     }
+    if (callerToken != nullptr && !VerificationAllToken(callerToken)) {
+        ReportConnectWithInvalidCaller(eventInfo);
+    }
     eventInfo->errCode = ConnectLocalAbility(abilityWant, validUserId, connect, callerToken, extensionType, nullptr,
         isQueryExtensionOnly, nullptr, specifiedFullTokenId, loadTimeout, indirectCallerInfo);
     if (eventInfo->errCode != ERR_OK) {
@@ -6251,6 +6254,20 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         }
     }
     return eventInfo->errCode;
+}
+
+void AbilityManagerService::ReportConnectWithInvalidCaller(const std::shared_ptr<EventInfo> &eventInfo)
+{
+    if (eventInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "eventInfo is null");
+        return;
+    }
+    TAG_LOGW(AAFwkTag::SERVICE_EXT, "connectAbility with invalid(stale) caller context, report only");
+    eventInfo->userId = IPCSkeleton::GetCallingUid();
+    eventInfo->bundleName = InsightIntentGetcallerBundleName();
+    eventInfo->errCode = ERR_INVALID_CALLER;
+    eventInfo->errReason = "connect with invalid caller token";
+    EventReport::SendExtensionEvent(EventName::CONNECT_SERVICE_ERROR, HISYSEVENT_FAULT, *eventInfo);
 }
 
 int AbilityManagerService::ConnectUIExtensionAbility(const Want &want, const sptr<IAbilityConnection> &connect,
