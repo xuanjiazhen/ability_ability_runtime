@@ -336,6 +336,10 @@ public:
     int32_t KillProcessesByPids(const std::vector<int32_t> &pids,
         const std::string &reason = "KillProcessesByPids", bool subProcess = false, bool isKillPrecedeStart = false);
 
+    void SetProcessPrepareExit(int32_t pid);
+
+    bool CheckProcessAvailable(int32_t pid);
+
     /**
      * Set child and parent relationship
      * @param token child process
