@@ -169,7 +169,7 @@ enum class EventName {
     USER_DATA_SIZE,
 
     // report snapshot info
-    SNAPSHOT_REPORT
+    SNAPSHOT_REPORT,
 };
 
 typedef enum {
