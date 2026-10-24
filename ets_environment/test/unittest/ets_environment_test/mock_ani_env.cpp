@@ -18,6 +18,7 @@ namespace OHOS {
 namespace EtsEnv {
 
 MockAniEnv::State MockAniEnv::state_;
+ani_env *MockAniEnv::mockEnv_ = nullptr;
 
 MockAniEnv::MockAniEnv()
 {
@@ -36,8 +37,16 @@ MockAniEnv::MockAniEnv()
     api_.GlobalReference_Create = &MockAniEnv::GlobalReferenceCreate;
     api_.GlobalReference_Delete = &MockAniEnv::GlobalReferenceDelete;
     api_.Class_CallStaticMethodByName_Void_V = &MockAniEnv::ClassCallStaticMethodByNameVoid;
+    api_.DestroyLocalScope = &MockAniEnv::DestroyLocalScope;
+    api_.Primitive_Box_Boolean = &MockAniEnv::PrimitiveBoxBoolean;
+    api_.Object_CallMethod_Ref_V = &MockAniEnv::ObjectCallMethodRefV;
+    api_.GetVM = &MockAniEnv::GetVM;
 
     env_.c_api = &api_;
+    mockEnv_ = &env_;
+
+    vmApi_.GetEnv = &MockAniEnv::VmGetEnv;
+    vm_.c_api = &vmApi_;
 
     MockAniEnv::state_.getUndefinedStatus = ANI_OK;
     MockAniEnv::state_.arrayNewStatus = ANI_OK;
@@ -55,11 +64,23 @@ MockAniEnv::MockAniEnv()
     MockAniEnv::state_.arrayNewRefStatus = ANI_OK;
     MockAniEnv::state_.arraySetRefStatus = ANI_OK;
     MockAniEnv::state_.classCallStaticMethodStatus = ANI_OK;
+    MockAniEnv::state_.destroyLocalScopeStatus = ANI_OK;
+    MockAniEnv::state_.primitiveBoxBooleanStatus = ANI_OK;
+    MockAniEnv::state_.objectCallMethodRefStatus = ANI_OK;
+    MockAniEnv::state_.getVMStatus = ANI_OK;
+    MockAniEnv::state_.vmGetEnvStatus = ANI_OK;
+    MockAniEnv::state_.destroyLocalScopeCalls = 0;
+    MockAniEnv::state_.globalRefDeleteCalls = 0;
 }
 
 ani_env *MockAniEnv::GetEnv()
 {
     return &env_;
+}
+
+ani_vm *MockAniEnv::GetVM()
+{
+    return &vm_;
 }
 
 MockAniEnv::State &MockAniEnv::GetState()
@@ -187,7 +208,51 @@ ani_status MockAniEnv::GlobalReferenceCreate(ani_env *env, ani_ref ref, ani_ref 
 
 ani_status MockAniEnv::GlobalReferenceDelete(ani_env *env, ani_ref ref)
 {
+    MockAniEnv::state_.globalRefDeleteCalls++;
     return MockAniEnv::state_.globalRefDeleteStatus;
+}
+
+ani_status MockAniEnv::DestroyLocalScope(ani_env *env)
+{
+    MockAniEnv::state_.destroyLocalScopeCalls++;
+    return MockAniEnv::state_.destroyLocalScopeStatus;
+}
+
+ani_status MockAniEnv::PrimitiveBoxBoolean(ani_env *env, ani_boolean value, ani_object *result)
+{
+    if (MockAniEnv::state_.primitiveBoxBooleanStatus != ANI_OK) {
+        return MockAniEnv::state_.primitiveBoxBooleanStatus;
+    }
+    *result = reinterpret_cast<ani_object>(0x11);
+    return ANI_OK;
+}
+
+ani_status MockAniEnv::ObjectCallMethodRefV(ani_env *env, ani_object object, ani_method method,
+    ani_ref *result, va_list args)
+{
+    if (MockAniEnv::state_.objectCallMethodRefStatus != ANI_OK) {
+        return MockAniEnv::state_.objectCallMethodRefStatus;
+    }
+    *result = reinterpret_cast<ani_ref>(0x11);
+    return ANI_OK;
+}
+
+ani_status MockAniEnv::GetVM(ani_env *env, ani_vm **result)
+{
+    if (MockAniEnv::state_.getVMStatus != ANI_OK) {
+        return MockAniEnv::state_.getVMStatus;
+    }
+    *result = reinterpret_cast<ani_vm *>(0x11);
+    return ANI_OK;
+}
+
+ani_status MockAniEnv::VmGetEnv(ani_vm *vm, uint32_t version, ani_env **result)
+{
+    if (MockAniEnv::state_.vmGetEnvStatus != ANI_OK) {
+        return MockAniEnv::state_.vmGetEnvStatus;
+    }
+    *result = mockEnv_;
+    return ANI_OK;
 }
 } // namespace EtsEnv
 } // namespace OHOS

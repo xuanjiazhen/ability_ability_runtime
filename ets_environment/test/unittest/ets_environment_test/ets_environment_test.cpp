@@ -1279,5 +1279,263 @@ HWTEST_F(EtsEnvironmentTest, GetHspPathList_0200, TestSize.Level1)
     EXPECT_EQ(paths.size(), 1);
     EXPECT_EQ(paths[0], "/system/app/com.ohos.demo/entry.hsp");
 }
+
+/**
+ * @tc.name: InitAbcLinker_CleanupOnGetUndefinedFail_0100
+ * @tc.desc: When GetUndefined fails after abcLinkerClass_ is created, abcLinkerClass_ must be cleaned up.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_CleanupOnGetUndefinedFail_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+    mockEnv.GetState().getUndefinedStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+    EXPECT_EQ(etsEnv->vmEntry_.abcLinkerClass_, nullptr);
+    EXPECT_GE(MockAniEnv::GetState().globalRefDeleteCalls, 1);
+}
+
+/**
+ * @tc.name: InitAbcLinker_CleanupOnArrayNewFail_0200
+ * @tc.desc: When Array_New fails after abcLinkerClass_ is created, abcLinkerClass_ must be cleaned up.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_CleanupOnArrayNewFail_0200, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+    mockEnv.GetState().arrayNewStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+    EXPECT_EQ(etsEnv->vmEntry_.abcLinkerClass_, nullptr);
+    EXPECT_GE(MockAniEnv::GetState().globalRefDeleteCalls, 1);
+}
+
+/**
+ * @tc.name: InitAbcLinker_CleanupOnClassFindMethodFail_0300
+ * @tc.desc: When Class_FindMethod fails in CreateRuntimeLinker, abcLinkerClass_ must be cleaned up.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_CleanupOnClassFindMethodFail_0300, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+    mockEnv.GetState().classFindMethodStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+    EXPECT_EQ(etsEnv->vmEntry_.abcLinkerClass_, nullptr);
+    EXPECT_GE(MockAniEnv::GetState().globalRefDeleteCalls, 1);
+}
+
+/**
+ * @tc.name: InitAbcLinker_CleanupOnObjectNewFail_0400
+ * @tc.desc: When Object_New fails in CreateRuntimeLinker, abcLinkerClass_ must be cleaned up.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_CleanupOnObjectNewFail_0400, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+    mockEnv.GetState().objectNewStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+    EXPECT_EQ(etsEnv->vmEntry_.abcLinkerClass_, nullptr);
+    EXPECT_GE(MockAniEnv::GetState().globalRefDeleteCalls, 1);
+}
+
+/**
+ * @tc.name: InitAbcLinker_SuccessNoCleanup_0500
+ * @tc.desc: On success, abcLinkerClass_ must remain valid (not cleaned up).
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_SuccessNoCleanup_0500, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_TRUE(result);
+    EXPECT_NE(etsEnv->vmEntry_.abcLinkerClass_, nullptr);
+    EXPECT_NE(etsEnv->vmEntry_.abcLinkerRef_, nullptr);
+    EXPECT_EQ(MockAniEnv::GetState().globalRefDeleteCalls, 0);
+}
+
+/**
+ * @tc.name: LoadModule_CleanupOnClassFindMethodFail_0100
+ * @tc.desc: When Class_FindMethod fails in LoadModule, DestroyLocalScope must be called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadModule_CleanupOnClassFindMethodFail_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+    etsEnv->vmEntry_.aniVm_ = mockEnv.GetVM();
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+    etsEnv->vmEntry_.abcCacheMap_.emplace("testModule", true);
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = true;
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->appInnerHspPathList_.clear();
+    etsEnv->staticPluginHspPathList_.clear();
+    mockEnv.GetState().classFindMethodStatus = ANI_ERROR;
+
+    void *cls = nullptr;
+    void *obj = nullptr;
+    void *ref = nullptr;
+    auto result = etsEnv->LoadModule("testModule", "srcEntrance", cls, obj, ref);
+    EXPECT_FALSE(result);
+    EXPECT_GE(MockAniEnv::GetState().destroyLocalScopeCalls, 1);
+}
+
+/**
+ * @tc.name: LoadModule_CleanupOnStringNewFail_0200
+ * @tc.desc: When String_NewUTF8 fails in LoadModule, DestroyLocalScope must be called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadModule_CleanupOnStringNewFail_0200, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+    etsEnv->vmEntry_.aniVm_ = mockEnv.GetVM();
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+    etsEnv->vmEntry_.abcCacheMap_.emplace("testModule", true);
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = true;
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->appInnerHspPathList_.clear();
+    etsEnv->staticPluginHspPathList_.clear();
+    mockEnv.GetState().stringNewStatus = ANI_ERROR;
+
+    void *cls = nullptr;
+    void *obj = nullptr;
+    void *ref = nullptr;
+    auto result = etsEnv->LoadModule("testModule", "srcEntrance", cls, obj, ref);
+    EXPECT_FALSE(result);
+    EXPECT_GE(MockAniEnv::GetState().destroyLocalScopeCalls, 1);
+}
+
+/**
+ * @tc.name: LoadModule_CleanupOnPrimitiveBoxBooleanFail_0300
+ * @tc.desc: When Primitive_Box_Boolean fails in LoadModule, DestroyLocalScope must be called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadModule_CleanupOnPrimitiveBoxBooleanFail_0300, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+    etsEnv->vmEntry_.aniVm_ = mockEnv.GetVM();
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+    etsEnv->vmEntry_.abcCacheMap_.emplace("testModule", true);
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = true;
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->appInnerHspPathList_.clear();
+    etsEnv->staticPluginHspPathList_.clear();
+    mockEnv.GetState().primitiveBoxBooleanStatus = ANI_ERROR;
+
+    void *cls = nullptr;
+    void *obj = nullptr;
+    void *ref = nullptr;
+    auto result = etsEnv->LoadModule("testModule", "srcEntrance", cls, obj, ref);
+    EXPECT_FALSE(result);
+    EXPECT_GE(MockAniEnv::GetState().destroyLocalScopeCalls, 1);
+}
+
+/**
+ * @tc.name: LoadModule_CleanupOnObjectCallMethodRefFail_0400
+ * @tc.desc: When Object_CallMethod_Ref fails in LoadModule, DestroyLocalScope must be called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadModule_CleanupOnObjectCallMethodRefFail_0400, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+    etsEnv->vmEntry_.aniVm_ = mockEnv.GetVM();
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+    etsEnv->vmEntry_.abcCacheMap_.emplace("testModule", true);
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = true;
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->appInnerHspPathList_.clear();
+    etsEnv->staticPluginHspPathList_.clear();
+    mockEnv.GetState().objectCallMethodRefStatus = ANI_ERROR;
+
+    void *cls = nullptr;
+    void *obj = nullptr;
+    void *ref = nullptr;
+    auto result = etsEnv->LoadModule("testModule", "srcEntrance", cls, obj, ref);
+    EXPECT_FALSE(result);
+    EXPECT_GE(MockAniEnv::GetState().destroyLocalScopeCalls, 1);
+}
+
+/**
+ * @tc.name: LoadModule_CleanupOnObjectNewFail_0500
+ * @tc.desc: When Object_New fails in LoadModule, DestroyLocalScope must be called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadModule_CleanupOnObjectNewFail_0500, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+    etsEnv->vmEntry_.aniVm_ = mockEnv.GetVM();
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+    etsEnv->vmEntry_.abcCacheMap_.emplace("testModule", true);
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = true;
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->appInnerHspPathList_.clear();
+    etsEnv->staticPluginHspPathList_.clear();
+    mockEnv.GetState().objectNewStatus = ANI_ERROR;
+
+    void *cls = nullptr;
+    void *obj = nullptr;
+    void *ref = nullptr;
+    auto result = etsEnv->LoadModule("testModule", "srcEntrance", cls, obj, ref);
+    EXPECT_FALSE(result);
+    EXPECT_GE(MockAniEnv::GetState().destroyLocalScopeCalls, 1);
+}
+
+/**
+ * @tc.name: LoadModule_CleanupOnGlobalRefCreateFail_0600
+ * @tc.desc: When GlobalReference_Create fails at the end of LoadModule, DestroyLocalScope must be called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadModule_CleanupOnGlobalRefCreateFail_0600, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    MockAniEnv mockEnv;
+    etsEnv->vmEntry_.aniVm_ = mockEnv.GetVM();
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+    etsEnv->vmEntry_.abcCacheMap_.emplace("testModule", true);
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = true;
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->appInnerHspPathList_.clear();
+    etsEnv->staticPluginHspPathList_.clear();
+    mockEnv.GetState().globalRefCreateStatus = ANI_ERROR;
+
+    void *cls = nullptr;
+    void *obj = nullptr;
+    void *ref = nullptr;
+    auto result = etsEnv->LoadModule("testModule", "srcEntrance", cls, obj, ref);
+    EXPECT_FALSE(result);
+    EXPECT_GE(MockAniEnv::GetState().destroyLocalScopeCalls, 1);
+}
 } // namespace EtsEnv
 } // namespace OHOS

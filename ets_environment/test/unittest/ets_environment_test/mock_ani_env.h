@@ -44,12 +44,20 @@ public:
         ani_status arrayNewRefStatus { ANI_OK };
         ani_status arraySetRefStatus { ANI_OK };
         ani_status classCallStaticMethodStatus { ANI_OK };
+        ani_status destroyLocalScopeStatus { ANI_OK };
+        ani_status primitiveBoxBooleanStatus { ANI_OK };
+        ani_status objectCallMethodRefStatus { ANI_OK };
+        ani_status getVMStatus { ANI_OK };
+        ani_status vmGetEnvStatus { ANI_OK };
+        int destroyLocalScopeCalls { 0 };
+        int globalRefDeleteCalls { 0 };
     };
 
     MockAniEnv();
     ~MockAniEnv() = default;
 
     ani_env *GetEnv();
+    ani_vm *GetVM();
     State &GetState();
 
 private:
@@ -73,9 +81,18 @@ private:
     static ani_status ObjectSetFieldLong(ani_env *env, ani_object obj, ani_field field, ani_long value);
     static ani_status GlobalReferenceCreate(ani_env *env, ani_ref ref, ani_ref *result);
     static ani_status GlobalReferenceDelete(ani_env *env, ani_ref ref);
+    static ani_status DestroyLocalScope(ani_env *env);
+    static ani_status PrimitiveBoxBoolean(ani_env *env, ani_boolean value, ani_object *result);
+    static ani_status ObjectCallMethodRefV(ani_env *env, ani_object object, ani_method method,
+        ani_ref *result, va_list args);
+    static ani_status GetVM(ani_env *env, ani_vm **result);
+    static ani_status VmGetEnv(ani_vm *vm, uint32_t version, ani_env **result);
     
     __ani_interaction_api api_ {};
     ani_env env_ {};
+    __ani_vm_api vmApi_ {};
+    ani_vm vm_ {};
+    static ani_env *mockEnv_;
     static State state_;
 };
 } // namespace EtsEnv

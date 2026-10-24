@@ -155,5 +155,144 @@ HWTEST_F(BindableSubThreadTest, StaticRemoveSubThreadObject_0200, TestSize.Level
     EXPECT_EQ(instance->GetSubThreadObject(env), nullptr);
     EXPECT_EQ(NativeReference::destructCount, 1);
 }
+
+class TestBindable : public Bindable {
+public:
+    TestBindable() = default;
+    ~TestBindable() = default;
+};
+
+/**
+ * @tc.name: Unbind_0100
+ * @tc.desc: Unbind<NativeReference> must invoke the deleter (reset, not release).
+ * @tc.type: FUNC
+ */
+HWTEST_F(BindableSubThreadTest, Unbind_0100, TestSize.Level0)
+{
+    NativeReference::ResetCount();
+    auto obj = std::make_unique<BindingObject>();
+    ASSERT_NE(obj, nullptr);
+    auto *ref = new NativeReference();
+    obj->Bind<NativeReference>(ref);
+    ASSERT_EQ(NativeReference::destructCount, 0);
+    obj->Unbind<NativeReference>();
+    EXPECT_EQ(NativeReference::destructCount, 1);
+}
+
+/**
+ * @tc.name: Unbind_0200
+ * @tc.desc: After Unbind, Get must return nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BindableSubThreadTest, Unbind_0200, TestSize.Level0)
+{
+    NativeReference::ResetCount();
+    auto obj = std::make_unique<BindingObject>();
+    ASSERT_NE(obj, nullptr);
+    obj->Bind<NativeReference>(new NativeReference());
+    EXPECT_NE(obj->Get<NativeReference>(), nullptr);
+    obj->Unbind<NativeReference>();
+    EXPECT_EQ(obj->Get<NativeReference>(), nullptr);
+    EXPECT_EQ(NativeReference::destructCount, 1);
+}
+
+/**
+ * @tc.name: Unbind_0300
+ * @tc.desc: Unbind on never-bound object must not crash and must not free anything.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BindableSubThreadTest, Unbind_0300, TestSize.Level1)
+{
+    NativeReference::ResetCount();
+    auto obj = std::make_unique<BindingObject>();
+    ASSERT_NE(obj, nullptr);
+    obj->Unbind<NativeReference>();
+    EXPECT_EQ(NativeReference::destructCount, 0);
+    EXPECT_EQ(obj->Get<NativeReference>(), nullptr);
+}
+
+/**
+ * @tc.name: Unbind_0400
+ * @tc.desc: Double Unbind must not double-free (no UAF / no crash).
+ * @tc.type: FUNC
+ */
+HWTEST_F(BindableSubThreadTest, Unbind_0400, TestSize.Level0)
+{
+    NativeReference::ResetCount();
+    auto obj = std::make_unique<BindingObject>();
+    ASSERT_NE(obj, nullptr);
+    obj->Bind<NativeReference>(new NativeReference());
+    obj->Unbind<NativeReference>();
+    EXPECT_EQ(NativeReference::destructCount, 1);
+    obj->Unbind<NativeReference>();
+    EXPECT_EQ(NativeReference::destructCount, 1);
+}
+
+/**
+ * @tc.name: Unbind_0500
+ * @tc.desc: Default Unbind() (no template arg) targets NativeReference and frees it.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BindableSubThreadTest, Unbind_0500, TestSize.Level0)
+{
+    NativeReference::ResetCount();
+    auto obj = std::make_unique<BindingObject>();
+    ASSERT_NE(obj, nullptr);
+    obj->Bind<NativeReference>(new NativeReference());
+    obj->Unbind();
+    EXPECT_EQ(NativeReference::destructCount, 1);
+    EXPECT_EQ(obj->Get<NativeReference>(), nullptr);
+}
+
+/**
+ * @tc.name: Unbind_0600
+ * @tc.desc: Bindable wrapper Bind + Unbind full lifecycle frees the object.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BindableSubThreadTest, Unbind_0600, TestSize.Level0)
+{
+    NativeReference::ResetCount();
+    auto bindable = std::make_unique<TestBindable>();
+    ASSERT_NE(bindable, nullptr);
+    bindable->Bind<NativeReference>(new NativeReference());
+    ASSERT_EQ(NativeReference::destructCount, 0);
+    bindable->Unbind();
+    EXPECT_EQ(NativeReference::destructCount, 1);
+}
+
+/**
+ * @tc.name: Unbind_0700
+ * @tc.desc: Re-bind after Unbind and Unbind again frees the second object.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BindableSubThreadTest, Unbind_0700, TestSize.Level1)
+{
+    NativeReference::ResetCount();
+    auto obj = std::make_unique<BindingObject>();
+    ASSERT_NE(obj, nullptr);
+    obj->Bind<NativeReference>(new NativeReference());
+    obj->Unbind<NativeReference>();
+    EXPECT_EQ(NativeReference::destructCount, 1);
+    obj->Bind<NativeReference>(new NativeReference());
+    EXPECT_EQ(NativeReference::destructCount, 1);
+    obj->Unbind<NativeReference>();
+    EXPECT_EQ(NativeReference::destructCount, 2);
+}
+
+/**
+ * @tc.name: Unbind_0800
+ * @tc.desc: Destructor of BindingObject must free remaining bound object.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BindableSubThreadTest, Unbind_0800, TestSize.Level0)
+{
+    NativeReference::ResetCount();
+    auto *obj = new BindingObject();
+    ASSERT_NE(obj, nullptr);
+    obj->Bind<NativeReference>(new NativeReference());
+    EXPECT_EQ(NativeReference::destructCount, 0);
+    delete obj;
+    EXPECT_EQ(NativeReference::destructCount, 1);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
