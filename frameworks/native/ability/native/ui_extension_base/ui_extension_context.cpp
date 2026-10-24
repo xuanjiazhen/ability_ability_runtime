@@ -19,10 +19,12 @@
 
 #include "ability_business_error.h"
 #include "ability_manager_client.h"
+#include "application_configuration_manager.h"
 #include "bool_wrapper.h"
 #include "configuration.h"
 #include "configuration_convertor.h"
 #include "connection_manager.h"
+#include "context.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -43,6 +45,7 @@ namespace {
 constexpr const char* DISPOSED_PROHIBIT_BACK = "ohos.disposed.prohibitBack";
 constexpr const char* IS_WINDOWMODE_FOLLOWHOST = "ohos.window.mode.followHost";
 constexpr const char* USE_GLOBAL_UICONTENT = "ohos.uec.params.useGlobalUIContent";
+constexpr uint32_t BRAND_COLOR_BUSINESS = 4001;
 
 bool IsEmbeddableStart(int32_t screenMode)
 {
@@ -754,6 +757,90 @@ void UIExtensionContext::RequestComponentTerminate()
     if (ret != Rosen::WMError::WM_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "transfer extension data failed, ret:%{public}d", ret);
     }
+}
+
+bool UIExtensionContext::CreateNewResourceMgr()
+{
+    auto abilityContext = Context::ConvertTo<Context>(shared_from_this());
+    if (abilityContext == nullptr || GetAbilityInfo() == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "abilityContext nullptr or null abilityInfo");
+        return false;
+    }
+    auto abilityModuleContext = CreateModuleContext(GetAbilityInfo()->moduleName, abilityContext);
+    if (abilityModuleContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null abilityModuleContext");
+        return false;
+    }
+    auto abilityResourceMgr = abilityModuleContext->GetResourceManager();
+    SetAbilityResourceManager(abilityResourceMgr);
+    if (!abilityConfiguration_) {
+        abilityConfiguration_ = std::make_shared<AppExecFwk::Configuration>();
+    }
+    AbilityRuntime::ApplicationConfigurationManager::GetInstance().AddIgnoreContext(
+        abilityContext, abilityResourceMgr);
+    return true;
+}
+
+bool UIExtensionContext::ApplyBrandColorStrategy(
+    AppExecFwk::BrandColorStrategy strategy, const sptr<AAFwk::SessionInfo> &sessionInfo)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "onGetConfigurationStrategy brandColorStrategy: %{public}d", strategy);
+    if (strategy != AppExecFwk::BrandColorStrategy::BRAND_COLOR_FOLLOW_UEC) {
+        return false;
+    }
+    brandColorStrategy_ = strategy;
+    if (sessionInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
+        return false;
+    }
+    if (!CreateNewResourceMgr()) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "CreateNewResourceMgr error");
+        return false;
+    }
+    auto abilityResourceMgr = GetResourceManager();
+    if (abilityResourceMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "abilityResourceMgr null");
+        return false;
+    }
+    abilityResourceMgr->SetBrandColor(sessionInfo->brandColorStr);
+    brandColorValue_ = sessionInfo->brandColorStr;
+    TAG_LOGD(AAFwkTag::UI_EXT, "SetBrandColorValue %{public}s", sessionInfo->brandColorStr.c_str());
+    return true;
+}
+
+int32_t UIExtensionContext::HandleBrandColorChange(uint32_t customId, AAFwk::Want &&data)
+{
+    if (customId != BRAND_COLOR_BUSINESS) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "customid invalid %{public}d", customId);
+        return ERR_INVALID_VALUE;
+    }
+    if (GetBrandColorStrategy() == AppExecFwk::BrandColorStrategy::BRAND_COLOR_FOLLOW_SYSTEM) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "follow system ,no deal");
+        return ERR_INVALID_VALUE;
+    }
+    auto brandColor = data.GetStringParam("ohos.application.brandColor");
+    if (brandColor.empty()) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null brandColor");
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "SetBrandColorValue %{public}s", brandColor.c_str());
+    auto currentBrandColor = GetBrandColorValue();
+    if (currentBrandColor == brandColor) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "brandColor is same ,no deal %{public}s", currentBrandColor.c_str());
+        return ERR_INVALID_VALUE;
+    }
+    if (brandColor == "#00000000") {
+        TAG_LOGE(AAFwkTag::UI_EXT, "invalid brandColor");
+        return ERR_INVALID_VALUE;
+    }
+    brandColorValue_ = brandColor;
+    auto abilityResourceMgr = GetResourceManager();
+    if (abilityResourceMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "abilityResourceMgr nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    abilityResourceMgr->SetBrandColor(brandColor);
+    return ERR_OK;
 }
 
 bool UIExtensionContext::IsTerminating()
