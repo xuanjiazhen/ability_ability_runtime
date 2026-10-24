@@ -2240,6 +2240,15 @@ private:
     void ReportUIExtensionProcColdStartToRss(const std::shared_ptr<AbilityInfo>& abilityInfo,
         const std::shared_ptr<AAFwk::Want>& want, bool isPreloadUIExtension);
 
+    /**
+     * Async query memmgr whether the process is available for reuse.
+     * If memmgr is unreachable, tolerate and return true (backward compatible).
+     *
+     * @param appRecord Current app running record.
+     * @return true if process is available or memmgr unreachable; false if being killed.
+     */
+    bool CheckProcessAvailable(const std::shared_ptr<AppRunningRecord> &appRecord);
+
 private:
     /**
      * ClearUpApplicationData, clear the application data.
