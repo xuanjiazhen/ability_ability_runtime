@@ -452,8 +452,6 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandlePreloadExtension(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::LOCK_PROCESS_CACHE):
             return HandleLockProcessCache(data, reply);
-        case static_cast<uint32_t>(AppMgrInterfaceCode::SET_PROCESS_PREPARE_EXIT):
-            return HandleSetProcessPrepareExit(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::MAKE_IMAGE):
             return HandleMakeImage(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::DESTROY_IMAGE):
@@ -2628,15 +2626,6 @@ int32_t AppMgrStub::HandlePreloadExtension(MessageParcel &data, MessageParcel &r
         TAG_LOGE(AAFwkTag::APPMGR, "Stub HandlePreloadExtension Write result failed.");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
-    return NO_ERROR;
-}
-
-
-int32_t AppMgrStub::HandleSetProcessPrepareExit(MessageParcel &data, MessageParcel &reply)
-{
-    TAG_LOGD(AAFwkTag::APPMGR, "HandleSetProcessPrepareExit call");
-    pid_t pid = data.ReadInt32();
-    SetProcessPrepareExit(pid);
     return NO_ERROR;
 }
 

@@ -210,6 +210,8 @@ public:
     virtual AppMgrResultCode KillProcessesByPids(const std::vector<int32_t> &pids,
         const std::string &reason = "KillProcessesByPids", bool subProcess = false, bool isKillPrecedeStart = false);
 
+    virtual void SetProcessPrepareExit(int32_t pid);
+
     /**
      * Establish the parent-child relationship between two ability processes.
      * Internal use (multi-process/child-process framework). If the caller token

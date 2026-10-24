@@ -1281,8 +1281,6 @@ public:
         return 0;
     }
 
-    virtual void SetProcessPrepareExit(int32_t pid) {}
-
     /**
      * @brief set TerminateTimeOut flag.
      * @param token Ability identify.
