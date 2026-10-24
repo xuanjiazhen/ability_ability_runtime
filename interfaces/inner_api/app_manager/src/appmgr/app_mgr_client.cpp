@@ -306,6 +306,14 @@ AppMgrResultCode AppMgrClient::KillProcessesByPids(const std::vector<int32_t> &p
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
+void AppMgrClient::SetProcessPrepareExit(int32_t pid)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        service->SetProcessPrepareExit(pid);
+    }
+}
+
 AppMgrResultCode AppMgrClient::AttachPidToParent(const sptr<IRemoteObject> &token,
     const sptr<IRemoteObject> &callerToken)
 {
