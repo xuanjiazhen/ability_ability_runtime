@@ -301,6 +301,20 @@ int32_t AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, c
     return amsMgrServiceInner_->KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart);
 }
 
+void AmsMgrScheduler::SetProcessPrepareExit(int32_t pid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrScheduler is not ready");
+        return;
+    }
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SetProcessPrepareExit: not foundation call, uid: %{public}d",
+            IPCSkeleton::GetCallingUid());
+        return;
+    }
+    amsMgrServiceInner_->SetProcessPrepareExit(pid);
+}
+
 void AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
 {
     if (!IsReady()) {
