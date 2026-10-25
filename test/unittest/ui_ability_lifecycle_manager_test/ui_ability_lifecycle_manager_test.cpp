@@ -3502,6 +3502,61 @@ HWTEST_F(UIAbilityLifecycleManagerTest, IsAbilityStarted_002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UIAbilityLifecycleManager_HasStartedAbility_0100
+ * @tc.desc: HasStartedAbility when record has no scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, HasStartedAbility_001, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+    ASSERT_NE(uiAbilityLifecycleManager, nullptr);
+    AbilityRequest abilityRequest;
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 1;
+    abilityRequest.sessionInfo = sessionInfo;
+    auto targetRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    uiAbilityLifecycleManager->sessionAbilityMap_.emplace(sessionInfo->persistentId, targetRecord);
+    EXPECT_EQ(uiAbilityLifecycleManager->HasStartedAbility(abilityRequest), false);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_HasStartedAbility_0200
+ * @tc.desc: HasStartedAbility when record has scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, HasStartedAbility_002, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+    ASSERT_NE(uiAbilityLifecycleManager, nullptr);
+    AbilityRequest abilityRequest;
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 1;
+    abilityRequest.sessionInfo = sessionInfo;
+    auto targetRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    uiAbilityLifecycleManager->sessionAbilityMap_.emplace(sessionInfo->persistentId, targetRecord);
+    sptr<IAbilityScheduler> scheduler = new AbilitySchedulerMock();
+    targetRecord->SetScheduler(scheduler);
+    EXPECT_EQ(uiAbilityLifecycleManager->HasStartedAbility(abilityRequest), true);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_HasStartedAbility_0300
+ * @tc.desc: HasStartedAbility when no record matched
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, HasStartedAbility_003, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+    ASSERT_NE(uiAbilityLifecycleManager, nullptr);
+    AbilityRequest abilityRequest;
+    EXPECT_EQ(uiAbilityLifecycleManager->HasStartedAbility(abilityRequest), false);
+}
+
+/**
  * @tc.name: UIAbilityLifecycleManager_TryPrepareTerminateByPids_0100
  * @tc.desc: TryPrepareTerminateByPids
  * @tc.type: FUNC

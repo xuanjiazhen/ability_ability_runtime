@@ -3353,6 +3353,12 @@ bool MissionListManager::IsAbilityStarted(const AbilityRequest &abilityRequest,
     return ret;
 }
 
+bool MissionListManager::HasStartedAbility(const AbilityRequest &abilityRequest)
+{
+    std::lock_guard guard(managerLock_);
+    return GetReusedMission(abilityRequest) != nullptr;
+}
+
 int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call ability");

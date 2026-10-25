@@ -3527,6 +3527,16 @@ private:
     bool IsAbilityStarted(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord,
         const int32_t oriValidUserId);
 
+    /**
+     * @brief Checks whether the target ability already exists, without refreshing call info.
+     *        Used by the BlockAllAppStart escape-hatch query only.
+     *
+     * @param abilityRequest The resolved ability request.
+     * @param oriValidUserId The valid user ID.
+     * @return true if the ability is already started; otherwise false.
+     */
+    bool HasStartedAbility(const AbilityRequest &abilityRequest, const int32_t oriValidUserId);
+
     void InitInterceptor();
     void InitBlockAllAppStartInterceptorCallbacks(const std::shared_ptr<BlockAllAppStartInterceptor>& interceptor);
     std::function<bool(int32_t)> MakeBlockAllEscapeCheck(const AbilityRequest &req);

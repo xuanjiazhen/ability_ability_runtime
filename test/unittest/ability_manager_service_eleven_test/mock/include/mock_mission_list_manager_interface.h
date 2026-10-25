@@ -242,6 +242,10 @@ public:
     {
         return false;
     }
+    bool HasStartedAbility(const AbilityRequest& abilityRequest) override
+    {
+        return false;
+    }
     void SignRestartAppFlag(int32_t uid, const std::string& instanceKey) override
     {
         return;

@@ -113,6 +113,16 @@ public:
 
     virtual bool IsAbilityStarted(const AbilityRequest &abilityRequest,
         std::shared_ptr<AbilityRecord> &targetRecord) = 0;
+
+    /**
+     * @brief Checks whether the target ability already exists, without refreshing call info.
+     *
+     * Side-effect-free variant of IsAbilityStarted for pure existence queries.
+     *
+     * @param abilityRequest A reference to the AbilityRequest object containing the details of the ability to check.
+     * @return A boolean indicating whether the ability has been started.
+     */
+    virtual bool HasStartedAbility(const AbilityRequest &abilityRequest) = 0;
     virtual void SignRestartAppFlag(int32_t uid, const std::string &instanceKey) = 0;
 #ifdef SUPPORT_SCREEN
 public:

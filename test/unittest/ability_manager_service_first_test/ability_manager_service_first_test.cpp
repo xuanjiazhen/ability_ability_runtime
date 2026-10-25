@@ -2602,6 +2602,21 @@ HWTEST_F(AbilityManagerServiceFirstTest, IsAbilityStarted_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AbilityManagerServiceFirstTest_HasStartedAbility_0100
+ * @tc.desc: Test HasStartedAbility when missionListMgr is nullptr and IsSceneBoardEnabled return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, HasStartedAbility_0100, TestSize.Level1)
+{
+    AppExecFwk::AbilityRequest abilityRequest;
+    int32_t oriValidUserId = 0;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    auto res = abilityMs->HasStartedAbility(abilityRequest, oriValidUserId);
+    EXPECT_EQ(res, false);
+}
+
+/**
  * @tc.name: AbilityManagerServiceFirstTest_OnExecuteIntent_0100
  * @tc.desc: Test OnExecuteIntent.
  * @tc.type: FUNC
