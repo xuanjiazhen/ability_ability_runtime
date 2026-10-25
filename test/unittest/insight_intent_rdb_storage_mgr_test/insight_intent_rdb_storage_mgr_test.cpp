@@ -26,6 +26,7 @@ void MockQueryData(bool mockRet);
 void MockQueryDataBeginWithKey(bool mockRet);
 void MockInsertData(bool mockRet);
 void MockBatchInsertData(bool mockRet);
+void MockSaveBatchDataWithTransaction(bool mockRet);
 void MockDeleteData(bool mockRet);
 void MockDeleteDataBeginWithKey(bool mockRet);
 void MockQueryDataBeginWithKeyData(const std::string &key, const std::string &value);
@@ -1001,11 +1002,11 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_046, Tes
     EXPECT_EQ(DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentDataBatch(
         emptyParams), ERR_OK);
 
-    MockBatchInsertData(false);
+    MockSaveBatchDataWithTransaction(false);
     EXPECT_EQ(DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentDataBatch(
         saveParams), ERR_INVALID_VALUE);
 
-    MockBatchInsertData(true);
+    MockSaveBatchDataWithTransaction(true);
     EXPECT_EQ(DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentDataBatch(
         saveParams), ERR_OK);
 }

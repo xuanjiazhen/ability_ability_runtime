@@ -515,15 +515,11 @@ HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_011, TestSize.Level0
     EXPECT_EQ(DelayedSingleton<InsightIntentDbCache>::GetInstance()->SaveBatchInsightIntentTotalInfo(
         saveParams), ERR_INVALID_VALUE);
 
-    // load cache for userId, then batch save fails on delete
+    // load cache for userId; stale-module deletion is now atomic with the insert
+    // inside one RDB transaction (SaveStorageInsightIntentDataBatch), so db cache
+    // only fails when the batch save itself fails
     MockLoadInsightIntentInfos(true);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(userId);
-    MockDeleteData(false);
-    EXPECT_EQ(DelayedSingleton<InsightIntentDbCache>::GetInstance()->SaveBatchInsightIntentTotalInfo(
-        saveParams), ERR_INVALID_VALUE);
-    // delete fails: bundleVersionMap_ must not be updated
-    EXPECT_FALSE(DelayedSingleton<InsightIntentDbCache>::GetInstance()->HasBundleCache(
-        IntentKey{bundleName, "", "", userId}));
 
     // batch save fails on insert
     MockDeleteData(true);

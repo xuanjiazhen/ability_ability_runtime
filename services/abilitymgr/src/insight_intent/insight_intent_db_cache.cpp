@@ -132,14 +132,9 @@ int32_t InsightIntentDbCache::SaveBatchInsightIntentTotalInfo(const std::vector<
             return ERR_INVALID_VALUE;
         }
     }
-    for (const auto &saveParam : saveParams) {
-        int32_t res = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->DeleteStorageInsightIntentData(
-            IntentKey{saveParam.bundleName, saveParam.moduleName, "", saveParam.userId, saveParam.appIndex});
-        if (res != ERR_OK) {
-            TAG_LOGW(AAFwkTag::INTENT, "Save before delete key error");
-            return res;
-        }
-    }
+    // Stale-module deletion happens inside the same RDB transaction as the fresh
+    // insert (SaveStorageInsightIntentDataBatch), so a failed save no longer
+    // leaves the bundle with no data at all.
     int32_t res = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentDataBatch(saveParams);
     if (res != ERR_OK) {
         return res;

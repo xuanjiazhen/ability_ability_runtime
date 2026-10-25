@@ -146,6 +146,88 @@ bool InsightIntentRdbDataMgr::BatchInsertData(const std::vector<std::pair<std::s
     return true;
 }
 
+bool InsightIntentRdbDataMgr::SaveBatchDataWithTransaction(
+    const std::vector<std::pair<std::string, std::string>> &keyValues,
+    const std::vector<std::string> &deletePrefixes)
+{
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    TAG_LOGD(AAFwkTag::INTENT, "SaveBatchDataWithTransaction start");
+    if (keyValues.empty() && deletePrefixes.empty()) {
+        return true;
+    }
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
+        return false;
+    }
+    // One retry to recover from a corrupted db via the backup file.
+    for (int32_t attempt = 0; attempt < RETRY_TIMES; attempt++) {
+        auto ret = rdbStore_->BeginTransaction();
+        if (ret != NativeRdb::E_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "BeginTransaction failed ret:%{public}d", ret);
+            return false;
+        }
+        ret = ExecuteBatchSaveNoLock(keyValues, deletePrefixes);
+        if (ret == NativeRdb::E_OK) {
+            ret = rdbStore_->Commit();
+            if (ret == NativeRdb::E_OK) {
+                TAG_LOGD(AAFwkTag::INTENT, "transaction committed, delete:%{public}zu insert:%{public}zu",
+                    deletePrefixes.size(), keyValues.size());
+                return true;
+            }
+            TAG_LOGE(AAFwkTag::INTENT, "Commit failed ret:%{public}d", ret);
+        } else {
+            TAG_LOGE(AAFwkTag::INTENT, "batch save in transaction failed ret:%{public}d", ret);
+        }
+        rdbStore_->Rollback();
+        if (ret == NativeRdb::E_SQLITE_CORRUPT && attempt < RETRY_TIMES - 1) {
+            std::string rdbFilePath = intentRdbConfig_.dbPath + std::string("/") + std::string(INTENT_BACK_UP_RDB_NAME);
+            if (rdbStore_->Restore(rdbFilePath) != NativeRdb::E_OK) {
+                TAG_LOGE(AAFwkTag::INTENT, "rdb restore failed");
+                return false;
+            }
+            continue;
+        }
+        return false;
+    }
+    return false;
+}
+
+int32_t InsightIntentRdbDataMgr::ExecuteBatchSaveNoLock(
+    const std::vector<std::pair<std::string, std::string>> &keyValues,
+    const std::vector<std::string> &deletePrefixes)
+{
+    for (const auto &prefix : deletePrefixes) {
+        int32_t rowId = -1;
+        NativeRdb::AbsRdbPredicates absRdbPredicates(intentRdbConfig_.tableName);
+        absRdbPredicates.BeginsWith(INTENT_KEY, prefix);
+        auto ret = rdbStore_->Delete(rowId, absRdbPredicates);
+        if (ret != NativeRdb::E_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "Delete prefix failed ret:%{public}d", ret);
+            return ret;
+        }
+    }
+    if (keyValues.empty()) {
+        return NativeRdb::E_OK;
+    }
+    std::vector<NativeRdb::ValuesBucket> valuesBuckets;
+    valuesBuckets.reserve(keyValues.size());
+    for (const auto &[key, value] : keyValues) {
+        NativeRdb::ValuesBucket valuesBucket;
+        valuesBucket.PutString(INTENT_KEY, key);
+        valuesBucket.PutString(INTENT_VALUE, value);
+        valuesBuckets.emplace_back(valuesBucket);
+    }
+    auto [ret, insertNum] = rdbStore_->BatchInsert(intentRdbConfig_.tableName, valuesBuckets,
+        NativeRdb::ConflictResolution::ON_CONFLICT_REPLACE);
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "BatchInsert failed ret:%{public}d", ret);
+        return ret;
+    }
+    TAG_LOGD(AAFwkTag::INTENT, "BatchInsert success, size:%{public}zu insertNum:%{public}d",
+        keyValues.size(), static_cast<int32_t>(insertNum));
+    return NativeRdb::E_OK;
+}
+
 bool InsightIntentRdbDataMgr::UpdateData(const std::string &key, const std::string &value)
 {
     TAG_LOGD(AAFwkTag::INTENT, "UpdateData start");

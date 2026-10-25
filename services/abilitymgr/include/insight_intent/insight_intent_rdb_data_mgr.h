@@ -69,6 +69,11 @@ public:
 
     bool BatchInsertData(const std::vector<std::pair<std::string, std::string>> &keyValues);
 
+    // Delete-then-insert atomically in one RDB transaction: all deletePrefixes are
+    // removed and all keyValues are written, or the whole operation is rolled back.
+    bool SaveBatchDataWithTransaction(const std::vector<std::pair<std::string, std::string>> &keyValues,
+        const std::vector<std::string> &deletePrefixes);
+
     bool UpdateData(const std::string &key, const std::string &value);
 
     bool DeleteData(const std::string &key);
@@ -82,6 +87,8 @@ public:
 private:
     bool IsIntentRdbLoaded();
     std::shared_ptr<NativeRdb::RdbStore> GetRdbStore();
+    int32_t ExecuteBatchSaveNoLock(const std::vector<std::pair<std::string, std::string>> &keyValues,
+        const std::vector<std::string> &deletePrefixes);
     int32_t InsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore, int64_t &rowId,
         const NativeRdb::ValuesBucket &valuesBucket);
     bool IsRetryErrCode(int32_t errCode);

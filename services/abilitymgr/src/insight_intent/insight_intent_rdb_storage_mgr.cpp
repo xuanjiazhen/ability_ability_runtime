@@ -310,8 +310,16 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const InsightIntentSa
 int32_t InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::vector<InsightIntentSaveParam> &saveParams)
 {
     std::vector<std::pair<std::string, std::string>> keyValues;
+    std::vector<std::string> deletePrefixes;
     for (const auto &saveParam : saveParams) {
         IntentKey intentKey{saveParam.bundleName, saveParam.moduleName, "", saveParam.userId, saveParam.appIndex};
+        // Same prefix DeleteStorageInsightIntentData used: stale entries of the
+        // module are removed inside the same transaction as the fresh insert.
+        if (!saveParam.moduleName.empty()) {
+            deletePrefixes.emplace_back(BuildBundlePrefix(intentKey).append(saveParam.moduleName).append("/"));
+        } else {
+            deletePrefixes.emplace_back(BuildBundlePrefix(intentKey));
+        }
         for (auto profileInfo : saveParam.profileInfos.insightIntents) {
             intentKey.intentName = profileInfo.intentName;
             std::string key = BuildIntentKey(intentKey, saveParam.versionCode);
@@ -345,12 +353,14 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::vecto
             keyValues.emplace_back(key, value);
         }
     }
-    if (keyValues.empty()) {
+    if (keyValues.empty() && deletePrefixes.empty()) {
         return ERR_OK;
     }
     std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
-    if (!DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->BatchInsertData(keyValues)) {
-        TAG_LOGE(AAFwkTag::INTENT, "BatchInsertData error, count: %{public}zu", keyValues.size());
+    if (!DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->SaveBatchDataWithTransaction(keyValues,
+        deletePrefixes)) {
+        TAG_LOGE(AAFwkTag::INTENT, "SaveBatchDataWithTransaction error, insert: %{public}zu, delete: %{public}zu",
+            keyValues.size(), deletePrefixes.size());
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
