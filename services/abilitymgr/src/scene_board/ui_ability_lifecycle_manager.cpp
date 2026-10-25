@@ -1960,6 +1960,18 @@ bool UIAbilityLifecycleManager::IsAbilityStarted(const AbilityRequest &abilityRe
     return false;
 }
 
+bool UIAbilityLifecycleManager::HasStartedAbility(const AbilityRequest &abilityRequest)
+{
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    bool reuse = false;
+    auto persistentId = GetPersistentIdByAbilityRequest(abilityRequest, reuse);
+    if (persistentId == 0) {
+        return false;
+    }
+    auto targetRecord = sessionAbilityMap_.at(persistentId);
+    return targetRecord && targetRecord->GetScheduler() != nullptr;
+}
+
 int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRequest, std::string &errMsg)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "CallAbilityLocked");

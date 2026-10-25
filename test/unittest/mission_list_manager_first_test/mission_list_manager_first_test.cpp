@@ -1809,5 +1809,56 @@ HWTEST_F(MissionListManagerFirstTest, ReleaseCallLocked_001, TestSize.Level1)
     missionListManager.reset();
     GTEST_LOG_(INFO) << "ReleaseCallLocked_001 end";
 }
+
+/*
+ * Feature: MissionListManager
+ * Function: HasStartedAbility
+ * SubFunction: no reused mission
+ * FunctionPoints: MissionListManager HasStartedAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify HasStartedAbility returns false when no mission exists
+ */
+HWTEST_F(MissionListManagerFirstTest, HasStartedAbility_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HasStartedAbility_001 start");
+    int userId = 3;
+    auto missionListManager = std::make_shared<MissionListManager>(userId);
+    missionListManager->Init();
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SINGLETON;
+    EXPECT_EQ(missionListManager->HasStartedAbility(abilityRequest), false);
+    missionListManager.reset();
+    TAG_LOGI(AAFwkTag::TEST, "HasStartedAbility_001 end");
+}
+
+/*
+ * Feature: MissionListManager
+ * Function: HasStartedAbility
+ * SubFunction: reused mission exists
+ * FunctionPoints: MissionListManager HasStartedAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify HasStartedAbility returns true when a singleton mission is reused
+ */
+HWTEST_F(MissionListManagerFirstTest, HasStartedAbility_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HasStartedAbility_002 start");
+    int userId = 3;
+    auto missionListManager = std::make_shared<MissionListManager>(userId);
+    missionListManager->Init();
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AbilityType::PAGE;
+    abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SINGLETON;
+    auto ability = MissionAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(ability, nullptr);
+    auto mission = std::make_shared<Mission>(11, ability, missionListManager->GetMissionName(abilityRequest));
+    mission->abilityRecord_ = ability;
+    missionListManager->defaultSingleList_->AddMissionToTop(mission);
+    EXPECT_EQ(missionListManager->HasStartedAbility(abilityRequest), true);
+    missionListManager.reset();
+    TAG_LOGI(AAFwkTag::TEST, "HasStartedAbility_002 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

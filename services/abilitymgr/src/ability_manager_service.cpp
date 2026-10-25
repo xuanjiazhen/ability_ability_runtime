@@ -574,8 +574,10 @@ std::function<bool(int32_t)> AbilityManagerService::MakeBlockAllEscapeCheck(cons
 {
     auto self = shared_from_this();
     return [self, &req](int32_t userId) -> bool {
-        std::shared_ptr<AbilityRecord> targetRecord;
-        return self->IsAbilityStarted(req, targetRecord, userId);
+        // Existence check only: must not go through IsAbilityStarted, which refreshes
+        // call info (AddCallerRecord / SetLaunchReason / mission state) as a side effect.
+        // Call info is refreshed later by the managers when the start actually proceeds.
+        return self->HasStartedAbility(req, userId);
     };
 }
 
@@ -15911,6 +15913,19 @@ bool AbilityManagerService::IsAbilityStarted(const AbilityRequest &abilityReques
         return false;
     }
     return missionListMgr->IsAbilityStarted(abilityRequest, targetRecord);
+}
+
+bool AbilityManagerService::HasStartedAbility(const AbilityRequest &abilityRequest, const int32_t oriValidUserId)
+{
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
+        CHECK_POINTER_AND_RETURN(uiAbilityManager, false);
+        return uiAbilityManager->HasStartedAbility(abilityRequest);
+    }
+
+    auto missionListMgr = GetMissionListManagerByUserId(oriValidUserId);
+    CHECK_POINTER_AND_RETURN(missionListMgr, false);
+    return missionListMgr->HasStartedAbility(abilityRequest);
 }
 
 int32_t AbilityManagerService::OnExecuteIntent(AbilityRequest &abilityRequest,

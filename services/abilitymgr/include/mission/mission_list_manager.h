@@ -473,13 +473,26 @@ public:
         const AAFwk::ContinueState &state) override;
 
     /**
-     * @brief Checks whether an ability has been started.
+     * @brief Checks whether the target ability is already started, and refreshes call info when found.
+     *
+     * This is NOT a pure existence check: when a reused mission is found, the record's want is
+     * overwritten and the new-want flag is set, and the mission info (start method, running
+     * state, time) may be refreshed. Only for call-type start flows; use HasStartedAbility for
+     * a side-effect-free existence query.
      *
      * @param abilityRequest A reference to the AbilityRequest object containing the details of the ability to check.
      * @param targetRecord A shared pointer to the AbilityRecord that will be set to the started ability if found.
      * @return A boolean indicating whether the ability has been started.
      */
     bool IsAbilityStarted(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord) override;
+
+    /**
+     * @brief Checks whether the target ability already exists, without refreshing call info.
+     *
+     * @param abilityRequest A reference to the AbilityRequest object containing the details of the ability to check.
+     * @return A boolean indicating whether the ability has been started.
+     */
+    bool HasStartedAbility(const AbilityRequest &abilityRequest) override;
 
     /**
      * @brief Signs an application for restart based on the provided user ID and instance key.

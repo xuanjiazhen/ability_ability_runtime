@@ -440,7 +440,27 @@ public:
 
     int MoveMissionToFront(int32_t sessionId, std::shared_ptr<StartOptions> startOptions = nullptr);
 
+    /**
+     * @brief Checks whether the target ability is already started, and refreshes call info when found.
+     *
+     * This is NOT a pure existence check: when a started record with an attached scheduler is
+     * found, the caller is registered on the record (AddCallerRecord) and the launch reason is
+     * set to LAUNCHREASON_CALL. Only for call-type start flows; use HasStartedAbility for a
+     * side-effect-free existence query.
+     *
+     * @param abilityRequest The ability request used to locate the target ability.
+     * @param targetRecord Set to the found ability record when true is returned.
+     * @return true if a started ability record with a scheduler is found; otherwise false.
+     */
     bool IsAbilityStarted(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord);
+
+    /**
+     * @brief Check whether the target ability already exists, without refreshing call info.
+     *
+     * @param abilityRequest The ability request used to locate the target ability.
+     * @return true if a started ability record with a scheduler is found; otherwise false.
+     */
+    bool HasStartedAbility(const AbilityRequest &abilityRequest);
 
     /**
      * @brief Update session info.

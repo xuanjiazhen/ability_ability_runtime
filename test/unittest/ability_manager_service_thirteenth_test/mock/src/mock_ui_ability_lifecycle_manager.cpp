@@ -263,6 +263,11 @@ bool UIAbilityLifecycleManager::IsAbilityStarted(const AbilityRequest &abilityRe
     return false;
 }
 
+bool UIAbilityLifecycleManager::HasStartedAbility(const AbilityRequest &abilityRequest)
+{
+    return false;
+}
+
 int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRequest, std::string &errMsg)
 {
     return 0;

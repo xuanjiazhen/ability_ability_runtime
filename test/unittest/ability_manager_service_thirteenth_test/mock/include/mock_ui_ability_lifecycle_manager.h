@@ -403,6 +403,8 @@ public:
 
     bool IsAbilityStarted(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord);
 
+    bool HasStartedAbility(const AbilityRequest &abilityRequest);
+
     /**
      * @brief Update session info.
      * @param sessionInfos The vector of session info.
