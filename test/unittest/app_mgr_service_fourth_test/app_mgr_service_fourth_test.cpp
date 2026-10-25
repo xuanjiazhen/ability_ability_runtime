@@ -406,5 +406,91 @@ HWTEST_F(AppMgrServiceFourthTest, GetHyperSnapLastError_0300, TestSize.Level1)
     IPCSkeleton::SetCallingUid(0);
     TAG_LOGI(AAFwkTag::TEST, "GetHyperSnapLastError_0300 end");
 }
+
+/**
+ * @tc.name: StartUserTestProcess_CrossUserBlocked_0100
+ * @tc.desc: normal app via IsAllowLocalDebugOtherApps, cross-user → INVALID_USERID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceFourthTest, StartUserTestProcess_CrossUserBlocked_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartUserTestProcess_CrossUserBlocked_0100 start");
+    auto& status = AAFwk::MyStatus::GetInstance();
+    status.isShellCall_ = false;
+    status.isAllowLocalDebugOtherApps_ = true;
+    IPCSkeleton::SetCallingUid(100 * BASE_USER_RANGE);
+    AAFwk::Want want;
+    want.SetParam("ohos.param.debugFrom", true);
+    AppExecFwk::BundleInfo bundleInfo;
+    EXPECT_EQ(appMgrService_->StartUserTestProcess(want, nullptr, bundleInfo, 101),
+        AAFwk::INVALID_USERID_VALUE);
+    status.isAllowLocalDebugOtherApps_ = false;
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "StartUserTestProcess_CrossUserBlocked_0100 end");
+}
+
+/**
+ * @tc.name: StartUserTestProcess_SameUserAllowed_0100
+ * @tc.desc: normal app via IsAllowLocalDebugOtherApps, same user → proceeds (ERR_OK)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceFourthTest, StartUserTestProcess_SameUserAllowed_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartUserTestProcess_SameUserAllowed_0100 start");
+    auto& status = AAFwk::MyStatus::GetInstance();
+    status.isShellCall_ = false;
+    status.isAllowLocalDebugOtherApps_ = true;
+    IPCSkeleton::SetCallingUid(100 * BASE_USER_RANGE);
+    AAFwk::Want want;
+    want.SetParam("ohos.param.debugFrom", true);
+    AppExecFwk::BundleInfo bundleInfo;
+    EXPECT_EQ(appMgrService_->StartUserTestProcess(want, nullptr, bundleInfo, 100), ERR_OK);
+    status.isAllowLocalDebugOtherApps_ = false;
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "StartUserTestProcess_SameUserAllowed_0100 end");
+}
+
+/**
+ * @tc.name: StartUserTestProcess_ShellCallExempt_0100
+ * @tc.desc: shell call with cross-user → cross-user block skipped (ERR_OK)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceFourthTest, StartUserTestProcess_ShellCallExempt_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartUserTestProcess_ShellCallExempt_0100 start");
+    auto& status = AAFwk::MyStatus::GetInstance();
+    status.isShellCall_ = true;
+    status.isAllowLocalDebugOtherApps_ = true;
+    IPCSkeleton::SetCallingUid(100 * BASE_USER_RANGE);
+    AAFwk::Want want;
+    want.SetParam("ohos.param.debugFrom", true);
+    AppExecFwk::BundleInfo bundleInfo;
+    EXPECT_EQ(appMgrService_->StartUserTestProcess(want, nullptr, bundleInfo, 101), ERR_OK);
+    status.isShellCall_ = false;
+    status.isAllowLocalDebugOtherApps_ = false;
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "StartUserTestProcess_ShellCallExempt_0100 end");
+}
+
+/**
+ * @tc.name: StartUserTestProcess_U0CallerExempt_0100
+ * @tc.desc: caller in U0 (callingUserId<=1) with cross-user → exempt (ERR_OK)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceFourthTest, StartUserTestProcess_U0CallerExempt_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartUserTestProcess_U0CallerExempt_0100 start");
+    auto& status = AAFwk::MyStatus::GetInstance();
+    status.isShellCall_ = false;
+    status.isAllowLocalDebugOtherApps_ = true;
+    IPCSkeleton::SetCallingUid(0);
+    AAFwk::Want want;
+    want.SetParam("ohos.param.debugFrom", true);
+    AppExecFwk::BundleInfo bundleInfo;
+    EXPECT_EQ(appMgrService_->StartUserTestProcess(want, nullptr, bundleInfo, 100), ERR_OK);
+    status.isAllowLocalDebugOtherApps_ = false;
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "StartUserTestProcess_U0CallerExempt_0100 end");
+}
 } // namespace AppExecFwk
 } // namespace OHOS
