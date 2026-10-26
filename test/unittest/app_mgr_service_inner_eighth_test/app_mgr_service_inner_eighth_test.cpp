@@ -2017,6 +2017,22 @@ HWTEST_F(AppMgrServiceInnerEighthTest, IsFinalAppProcessByBundleName_001, TestSi
 }
 
 /**
+ * @tc.name: IsHyperSnapInitializing_001
+ * @tc.desc: test IsHyperSnapInitializing when appRunningManager is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, IsHyperSnapInitializing_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsHyperSnapInitializing_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = nullptr;
+
+    auto ret = appMgrServiceInner->IsHyperSnapInitializing();
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsHyperSnapInitializing_001 end");
+}
+
+/**
  * @tc.name: IsFinalAppProcessByBundleName_002
  * @tc.desc: test IsFinalAppProcessByBundleName_002
  * @tc.type: FUNC
