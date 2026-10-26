@@ -216,8 +216,9 @@ ErrCode AbilityManagerClient::TerminateAbility(sptr<IRemoteObject> token, int re
 }
 
 ErrCode AbilityManagerClient::BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
-    const Want *resultWant, int64_t callerRequestCode)
+    const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp)
 {
+    MyFlag::GetInstance()->SetBackToCallerApp(isBackToCallerApp);
     return ERR_OK;
 }
 
@@ -512,7 +513,8 @@ ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbility
     return ERR_OK;
 }
 
-ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
+ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
+    const sptr<IAbilityConnection> &connect)
 {
     return ERR_OK;
 }
@@ -644,7 +646,7 @@ ErrCode AbilityManagerClient::DelegatorDoAbilityForeground(sptr<IRemoteObject> t
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::DelegatorDoAbilityBackground(sptr<IRemoteObject> token, int32_t userId)
+ErrCode AbilityManagerClient::DelegatorDoAbilityBackground(sptr<IRemoteObject> token)
 {
     return ERR_OK;
 }

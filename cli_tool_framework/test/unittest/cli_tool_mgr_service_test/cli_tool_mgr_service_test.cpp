@@ -131,7 +131,8 @@ private:
 // =====================================================================================
 constexpr int32_t ATTR_TEST_CALLER_UID = 3099;
 constexpr pid_t ATTR_TEST_ANCHOR_PID = 4321;
-constexpr pid_t ATTR_TEST_ATTRIBUTED_PID = 5555;
+// Server-assigned attribution handle handed back by the mock register calls.
+constexpr int64_t ATTR_TEST_ATTRIBUTION_ID = 5555;
 // Anchor pid the mock appmgr resolves for the in-app skill path (IPC 151).
 constexpr int32_t ATTR_TEST_RESOLVED_PID = 8765;
 constexpr int32_t ATTR_TEST_WAIT_MS = 1000;
@@ -146,23 +147,25 @@ constexpr int32_t ATTR_TEST_WAIT_MS = 1000;
 class MockAppMgrEndpoint : public AppExecFwk::MockAppMgrService {
 public:
     int32_t RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
-        int32_t callerUid) override
+        int32_t callerUid, int64_t &attributionId) override
     {
         ++registerCalls;
         lastRegisterTaskId = taskId;
         lastRegisterPid = pid;
         lastRegisterTool = tool;
         lastRegisterCallerUid = callerUid;
+        attributionId = registerRet == ERR_OK ? registerAttributionId : 0;
         return registerRet;
     }
 
-    int32_t UnregisterManagedProcess(const std::string &taskId, int32_t pid, int32_t callerUid) override
+    int32_t UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+        int32_t callerUid) override
     {
         {
             std::lock_guard<std::mutex> lock(mtx);
             ++unregisterCalls;
             lastUnregisterTaskId = taskId;
-            lastUnregisterPid = pid;
+            lastUnregisterAttributionId = attributionId;
             lastUnregisterCallerUid = callerUid;
             unregisterThreadId = std::this_thread::get_id();
         }
@@ -183,15 +186,17 @@ public:
 
     // TASK-4: server-side locate for the in-app skill path (IPC 151) — the
     // resolved main-process pid is the attribution anchor instead of a fork
-    // return value (v1.4 P1-1).
+    // return value (v1.4 P1-1); the attribution handle is handed back for the
+    // later detach.
     int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
-        int32_t callerUid, int32_t &resolvedPid) override
+        int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId) override
     {
         ++inAppSkillCalls;
         lastInAppSkillTaskId = taskId;
         lastInAppSkillBundle = bundleName;
         lastInAppSkillCallerUid = callerUid;
         resolvedPid = inAppSkillResolvedPid;
+        attributionId = inAppSkillRet == ERR_OK ? registerAttributionId : 0;
         return inAppSkillRet;
     }
 
@@ -203,12 +208,13 @@ public:
     int32_t lastRegisterCallerUid = -1;
     int registerCalls = 0;
     std::string lastUnregisterTaskId;
-    int32_t lastUnregisterPid = 0;
+    int64_t lastUnregisterAttributionId = 0;
     int32_t lastUnregisterCallerUid = -1;
     int unregisterCalls = 0;
     std::thread::id unregisterThreadId {};
     int32_t registerRet = ERR_OK;
     int32_t unregisterRet = ERR_OK;
+    int64_t registerAttributionId = ATTR_TEST_ATTRIBUTION_ID;
     std::string lastInAppSkillTaskId;
     std::string lastInAppSkillBundle;
     int32_t lastInAppSkillCallerUid = -1;
@@ -3922,6 +3928,7 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0100, TestSize.L
         function.functionName = "async_test_func_" + std::to_string(i);
         function.functionNamespace = "async_test_ns";
         function.functionType = FunctionType::INTENT_FUNCTION;
+        function.userId = 0;
         functions.push_back(function);
     }
     FunctionsRawData rawData;
@@ -6358,7 +6365,7 @@ HWTEST_F(CliToolManagerServiceTest, MixedDeploy_NewWriteNewRead_0100, TestSize.L
  * @tc.name: CliToolManagerService_AttachTaskAttribution_0100
  * @tc.desc: STATE-1 attach hook, accepted verdict: the one-hop anchor pid is
  *           registered with the CLI tool contract and the forensic uid from
- *           the session record; attributedPid becomes the anchor pid and the
+ *           the session record; attributionId becomes the server-assigned handle and the
  *           mapping key survives (P2-2, ADR-3 v1.5).
  * @tc.type: FUNC
  */
@@ -6379,7 +6386,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0100, TestSize.Level1)
     EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_ANCHOR_PID));
     EXPECT_EQ(g_mockAppMgr->lastRegisterTool, ATTRIBUTION_TOOL_CLI);
     EXPECT_EQ(g_mockAppMgr->lastRegisterCallerUid, ATTR_TEST_CALLER_UID);
-    EXPECT_EQ(record->attributedPid, ATTR_TEST_ANCHOR_PID);
+    EXPECT_EQ(record->attributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(record->taskId, "task_attach_attrib_0100");
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0100 end");
@@ -6388,7 +6395,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0100, TestSize.Level1)
 /**
  * @tc.name: CliToolManagerService_AttachTaskAttribution_0200
  * @tc.desc: STATE-1 attach hook, taskId not carried: zero attribution side
- *           effects — no IPC, no attributedPid (AC-4 not-carried baseline).
+ *           effects — no IPC, no attributionId (AC-4 not-carried baseline).
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0200, TestSize.Level1)
@@ -6404,7 +6411,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0200, TestSize.Level1)
     service_->AttachTaskAttribution(record);
 
     EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
-    EXPECT_EQ(record->attributedPid, -1);
+    EXPECT_EQ(record->attributionId, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0200 end");
 }
@@ -6412,7 +6419,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0200, TestSize.Level1)
 /**
  * @tc.name: CliToolManagerService_AttachTaskAttribution_0300
  * @tc.desc: STATE-1 attach hook, rejected verdict (spoofed/unknown task): no
- *           attribution object — attributedPid stays -1 and the mapping
+ *           attribution object — attributionId stays 0 and the mapping
  *           residue is cleared (INV-1) so no teardown path ever produces a
  *           stray unregister.
  * @tc.type: FUNC
@@ -6432,7 +6439,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0300, TestSize.Level1)
 
     EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
     EXPECT_TRUE(record->taskId.empty());
-    EXPECT_EQ(record->attributedPid, -1);
+    EXPECT_EQ(record->attributionId, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0300 end");
 }
@@ -6456,7 +6463,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0400, TestSize.Level1)
     service_->AttachTaskAttribution(record);
 
     EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
-    EXPECT_EQ(record->attributedPid, -1);
+    EXPECT_EQ(record->attributionId, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0400 end");
 }
@@ -6479,14 +6486,14 @@ HWTEST_F(CliToolManagerServiceTest, CreateSessionRecord_TaskId_0100, TestSize.Le
     auto record = service_->CreateSessionRecord(param, "event_taskid_carry");
     ASSERT_NE(record, nullptr);
     EXPECT_EQ(record->taskId, "task_create_record_0100");
-    EXPECT_EQ(record->attributedPid, -1);
+    EXPECT_EQ(record->attributionId, 0);
 
     ExecToolParam notCarried;
     notCarried.toolName = "taskid_absent_tool";
     auto bare = service_->CreateSessionRecord(notCarried, "event_taskid_absent");
     ASSERT_NE(bare, nullptr);
     EXPECT_TRUE(bare->taskId.empty());
-    EXPECT_EQ(bare->attributedPid, -1);
+    EXPECT_EQ(bare->attributionId, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CreateSessionRecord_TaskId_0100 end");
 }
@@ -6495,7 +6502,7 @@ HWTEST_F(CliToolManagerServiceTest, CreateSessionRecord_TaskId_0100, TestSize.Le
  * @tc.name: CliToolManagerService_RemoveSessionRecord_Detach_0100
  * @tc.desc: STATE-1 unified teardown entry: RemoveSessionRecord snapshots the
  *           attribution inside the session-table lock and posts the detach —
- *           the unregister object is attributedPid (NOT processId) with the
+ *           the unregister object is attributionId (NOT processId) with the
  *           forensic uid from the record (INV-3 / P2-3).
  * @tc.type: FUNC
  */
@@ -6507,7 +6514,7 @@ HWTEST_F(CliToolManagerServiceTest, RemoveSessionRecord_Detach_0100, TestSize.Le
     record->sessionId = "remove_detach_session";
     record->taskId = "task_remove_detach_0100";
     record->processId = 6666;
-    record->attributedPid = ATTR_TEST_ATTRIBUTED_PID;
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
@@ -6516,7 +6523,7 @@ HWTEST_F(CliToolManagerServiceTest, RemoveSessionRecord_Detach_0100, TestSize.Le
     EXPECT_TRUE(WaitForUnregister(1));
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_remove_detach_0100");
-    EXPECT_EQ(g_mockAppMgr->lastUnregisterPid, static_cast<int32_t>(ATTR_TEST_ATTRIBUTED_PID));
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
     EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
 
@@ -6536,13 +6543,13 @@ HWTEST_F(CliToolManagerServiceTest, RemoveSessionRecord_Detach_0200, TestSize.Le
 
     auto noKey = std::make_shared<SessionRecord>();
     noKey->sessionId = "remove_nokey_session";
-    noKey->attributedPid = -1;
+    noKey->attributionId = 0;
     service_->AddSessionRecord(noKey);
 
     auto noAttribution = std::make_shared<SessionRecord>();
     noAttribution->sessionId = "remove_noattr_session";
     noAttribution->taskId = "task_remove_detach_0200";
-    noAttribution->attributedPid = -1;
+    noAttribution->attributionId = 0;
     service_->AddSessionRecord(noAttribution);
 
     service_->RemoveSessionRecord(noKey->sessionId);
@@ -6558,8 +6565,8 @@ HWTEST_F(CliToolManagerServiceTest, RemoveSessionRecord_Detach_0200, TestSize.Le
 /**
  * @tc.name: CliToolManagerService_WaitPid_Detach_0100
  * @tc.desc: STATE-1 process-death teardown: WaitPid consumes the attribution
- *           inside the lock (attributedPid reset to -1), posts the detach with
- *           attributedPid as the unregister key, and the IPC runs on an ffrt
+ *           inside the lock (attributionId reset to 0), posts the detach with
+ *           attributionId as the unregister key, and the IPC runs on an ffrt
  *           worker — NOT inline on the WaitPid caller (reaper) thread (P2-3).
  *           The later finalize/RemoveSessionRecord pass stays a no-op thanks
  *           to the consumption (single detach per attribution, INV-3).
@@ -6573,7 +6580,7 @@ HWTEST_F(CliToolManagerServiceTest, WaitPid_Detach_0100, TestSize.Level1)
     record->sessionId = "waitpid_detach_session";
     record->taskId = "task_waitpid_detach_0100";
     record->processId = 7777;
-    record->attributedPid = ATTR_TEST_ATTRIBUTED_PID;
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
     record->callerUid = ATTR_TEST_CALLER_UID;
     record->MarkStdoutClosed();
     record->MarkStderrClosed();
@@ -6586,12 +6593,12 @@ HWTEST_F(CliToolManagerServiceTest, WaitPid_Detach_0100, TestSize.Level1)
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_waitpid_detach_0100");
     // The unregister key is the attributed pid, not the invalidated processId.
-    EXPECT_EQ(g_mockAppMgr->lastUnregisterPid, static_cast<int32_t>(ATTR_TEST_ATTRIBUTED_PID));
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
     // P2-3: posted execution — the IPC ran on a worker thread, not inline here.
     EXPECT_NE(g_mockAppMgr->unregisterThreadId, reaperThreadId);
     // Consumption: the record now reads as "no attribution"...
-    EXPECT_EQ(record->attributedPid, -1);
+    EXPECT_EQ(record->attributionId, 0);
     // ...so the finalize pass (WaitPid drained -> FinalizeBackgroundSession ->
     // RemoveSessionRecord) does not post a second detach.
     service_->FinalizeBackgroundSession(record);
@@ -6621,7 +6628,7 @@ HWTEST_F(CliToolManagerServiceTest, OnProcessDied_Detach_0100, TestSize.Level1)
     // processId stays -1: no active child to Killpg in the test environment.
     record->processId = -1;
     record->taskId = "task_died_detach_0100";
-    record->attributedPid = ATTR_TEST_ATTRIBUTED_PID;
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
@@ -6629,7 +6636,7 @@ HWTEST_F(CliToolManagerServiceTest, OnProcessDied_Detach_0100, TestSize.Level1)
     otherRecord->sessionId = "died_other_session";
     otherRecord->callerPid = 2002;
     otherRecord->taskId = "task_died_other_0100";
-    otherRecord->attributedPid = 4444;
+    otherRecord->attributionId = 4444;
     otherRecord->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(otherRecord);
 
@@ -6638,7 +6645,7 @@ HWTEST_F(CliToolManagerServiceTest, OnProcessDied_Detach_0100, TestSize.Level1)
     EXPECT_TRUE(WaitForUnregister(1));
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_died_detach_0100");
-    EXPECT_EQ(g_mockAppMgr->lastUnregisterPid, static_cast<int32_t>(ATTR_TEST_ATTRIBUTED_PID));
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
     // Only the dead caller's session was torn down.
     EXPECT_EQ(service_->GetSessionRecord(otherRecord->sessionId), otherRecord);
@@ -6663,7 +6670,7 @@ HWTEST_F(CliToolManagerServiceTest, HandleProcessTimeout_NoDetach_0100, TestSize
     record->sessionId = "timeout_no_detach_session";
     record->taskId = "task_timeout_0100";
     record->processId = 999999; // not a live pid: Killpg fails harmlessly
-    record->attributedPid = ATTR_TEST_ATTRIBUTED_PID;
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
     record->callerUid = ATTR_TEST_CALLER_UID;
     record->SetBackground(true); // already background: avoid the reply dispatch branch
     service_->AddSessionRecord(record);
@@ -6684,7 +6691,7 @@ HWTEST_F(CliToolManagerServiceTest, HandleProcessTimeout_NoDetach_0100, TestSize
         std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
         EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
         EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_timeout_0100");
-        EXPECT_EQ(g_mockAppMgr->lastUnregisterPid, static_cast<int32_t>(ATTR_TEST_ATTRIBUTED_PID));
+        EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
     }
     EXPECT_TRUE(record->Timeout());
     EXPECT_EQ(record->GetState(), SessionState::CANCELLING);
@@ -6734,7 +6741,7 @@ HWTEST_F(CliToolManagerServiceTest, OnStop_Detach_0100, TestSize.Level1)
     record->taskId = "task_stop_detach_0100";
     // processId stays -1: no active child to Killpg/WaitPid in OnStop.
     record->processId = -1;
-    record->attributedPid = ATTR_TEST_ATTRIBUTED_PID;
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
@@ -6743,7 +6750,7 @@ HWTEST_F(CliToolManagerServiceTest, OnStop_Detach_0100, TestSize.Level1)
     EXPECT_TRUE(WaitForUnregister(1));
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_stop_detach_0100");
-    EXPECT_EQ(g_mockAppMgr->lastUnregisterPid, static_cast<int32_t>(ATTR_TEST_ATTRIBUTED_PID));
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnStop_Detach_0100 end");
@@ -6757,7 +6764,7 @@ HWTEST_F(CliToolManagerServiceTest, OnStop_Detach_0100, TestSize.Level1)
  * @tc.name: CliToolManagerService_AttachSkillTaskAttribution_0100
  * @tc.desc: In-app skill attach, locate pass: the target bundle's main-process
  *           pid is registered through IPC 151 with the forensic uid from the
- *           record (P2-2) and attributedPid becomes the RESOLVED pid — the
+ *           record (P2-2) and attributionId becomes the server-assigned handle — the
  *           anchor is server-located, not a fork return value (v1.4 P1-1).
  * @tc.type: FUNC
  */
@@ -6776,7 +6783,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0100, TestSize.Le
     EXPECT_EQ(g_mockAppMgr->lastInAppSkillTaskId, "task_skill_attach_0100");
     EXPECT_EQ(g_mockAppMgr->lastInAppSkillBundle, "com.example.skill.host");
     EXPECT_EQ(g_mockAppMgr->lastInAppSkillCallerUid, ATTR_TEST_CALLER_UID);
-    EXPECT_EQ(record->attributedPid, static_cast<pid_t>(ATTR_TEST_RESOLVED_PID));
+    EXPECT_EQ(record->attributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(record->taskId, "task_skill_attach_0100");
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0100 end");
@@ -6787,7 +6794,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0100, TestSize.Le
  * @tc.desc: In-app skill attach, locate rejection (target application not
  *           running / on-demand startup not finished — the known cold-start
  *           boundary): no attribution object, no side effects (R-10/R-11) —
- *           attributedPid stays -1 and the key residue is cleared (INV-1) so
+ *           attributionId stays 0 and the key residue is cleared (INV-1) so
  *           no teardown path ever produces a stray unregister.
  * @tc.type: FUNC
  */
@@ -6806,7 +6813,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0200, TestSize.Le
 
     EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 1);
     EXPECT_TRUE(record->taskId.empty());
-    EXPECT_EQ(record->attributedPid, -1);
+    EXPECT_EQ(record->attributionId, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0200 end");
 }
@@ -6834,7 +6841,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0300, TestSize.Le
 
     EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 1);
     EXPECT_TRUE(record->taskId.empty());
-    EXPECT_EQ(record->attributedPid, -1);
+    EXPECT_EQ(record->attributionId, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0300 end");
 }
@@ -6859,7 +6866,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0400, TestSize.Le
     service_->AttachSkillTaskAttribution(nullptr, "com.example.skill.host");
 
     EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 0);
-    EXPECT_EQ(record->attributedPid, -1);
+    EXPECT_EQ(record->attributionId, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0400 end");
 }
@@ -6901,7 +6908,7 @@ HWTEST_F(CliToolManagerServiceTest, SetupAndStartSkillSession_DispatchFail_0100,
  * @tc.desc: Skill session exit (timeout) unified detach: the TASK-3
  *           RemoveSessionRecord entry posts the unregister for an attributed
  *           skill session — the unregister object is the server-located
- *           attributedPid (NOT processId, which stays -1 for skill sessions)
+ *           attributionId (NOT processId, which stays -1 for skill sessions)
  *           with the forensic uid from the record (INV-3 / P2-2 / P2-3).
  * @tc.type: FUNC
  */
@@ -6913,7 +6920,7 @@ HWTEST_F(CliToolManagerServiceTest, HandleSkillSessionTimeout_Detach_0100, TestS
     record->sessionId = "skill_timeout_detach_session";
     record->eventId = "skill_timeout_detach_event";
     record->taskId = "task_skill_timeout_0100";
-    record->attributedPid = ATTR_TEST_RESOLVED_PID;
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
     record->callerUid = ATTR_TEST_CALLER_UID;
     record->sessionType = SessionType::SKILL;
     service_->AddSessionRecord(record);
@@ -6923,7 +6930,7 @@ HWTEST_F(CliToolManagerServiceTest, HandleSkillSessionTimeout_Detach_0100, TestS
     EXPECT_TRUE(WaitForUnregister(1));
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_skill_timeout_0100");
-    EXPECT_EQ(g_mockAppMgr->lastUnregisterPid, ATTR_TEST_RESOLVED_PID);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
     EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
 
@@ -6944,7 +6951,7 @@ HWTEST_F(CliToolManagerServiceTest, ClearSession_SKILL_Detach_0100, TestSize.Lev
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "skill_clear_detach_session";
     record->taskId = "task_skill_clear_0100";
-    record->attributedPid = ATTR_TEST_RESOLVED_PID;
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
     record->callerUid = ATTR_TEST_CALLER_UID;
     record->sessionType = SessionType::SKILL;
     record->SetState(SessionState::RUNNING);
@@ -6956,7 +6963,7 @@ HWTEST_F(CliToolManagerServiceTest, ClearSession_SKILL_Detach_0100, TestSize.Lev
     EXPECT_TRUE(WaitForUnregister(1));
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_skill_clear_0100");
-    EXPECT_EQ(g_mockAppMgr->lastUnregisterPid, ATTR_TEST_RESOLVED_PID);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ClearSession_SKILL_Detach_0100 end");

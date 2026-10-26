@@ -15,7 +15,9 @@
 
 #include "app_mgr_service.h"
 
+#include <algorithm>
 #include <chrono>
+#include <cinttypes>
 #include <cstdlib>
 #include <nlohmann/json.hpp>
 #include <sys/types.h>
@@ -28,6 +30,7 @@
 #include "app_utils.h"
 #include "application_state_filter.h"
 #include "datetime_ex.h"
+#include "task_mgr/common.h"
 #include "fd_guard.h"
 #include "freeze_util.h"
 #include "global_constant.h"
@@ -195,50 +198,74 @@ int32_t AppMgrService::FinishTask(const std::string &taskId)
     return TaskManagerService::GetInstance().FinishTask(taskId);
 }
 
-int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
-    int32_t callerUid)
+namespace {
+// Aligned with the IsTaskIdValidForAttribution semantics of the upcoming startAbility
+// attribution change (20752): length bound plus control-character rejection, so a
+// task id can never forge log/audit lines. Consume the shared helper once it lands.
+bool IsTaskIdSanitized(const std::string &taskId)
 {
-    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
-        TAG_LOGW(AAFwkTag::APPMGR, "caller is not system app, rejected");
-        return AAFwk::ERR_NOT_SYSTEM_APP;
+    if (taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN) {
+        return false;
     }
+    return std::all_of(taskId.begin(), taskId.end(), [](char c) {
+        return c >= 0x20 && c != 0x7f;
+    });
+}
+} // namespace
+
+int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
+    int32_t callerUid, int64_t &attributionId)
+{
+    attributionId = 0;
+    // The native climgr token never carries the system-app flag, so the check is the
+    // aimgr uid alone (same shape as the hidumper service call gate).
     if (IPCSkeleton::GetCallingUid() != AIMGR_SERVICE_UID) {
         TAG_LOGW(AAFwkTag::APPMGR, "caller is not climgr process, rejected, calling uid: %{public}d",
             IPCSkeleton::GetCallingUid());
         return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!IsTaskIdSanitized(taskId) || pid <= 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, pid: %{public}d",
+            taskId.size(), pid);
+        return AAFwk::INVALID_PARAMETERS_ERR;
     }
     AttributionRecord attribution;
     attribution.pid = pid;
     attribution.tool = static_cast<AttributionTool>(tool);
-    return TaskManagerService::GetInstance().RegisterManagedProcess(taskId, attribution, callerUid);
+    return TaskManagerService::GetInstance().RegisterManagedProcess(taskId, attribution, callerUid,
+        attributionId);
 }
 
-int32_t AppMgrService::UnregisterManagedProcess(const std::string &taskId, int32_t pid, int32_t callerUid)
+int32_t AppMgrService::UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+    int32_t callerUid)
 {
-    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
-        TAG_LOGW(AAFwkTag::APPMGR, "caller is not system app, rejected");
-        return AAFwk::ERR_NOT_SYSTEM_APP;
-    }
     if (IPCSkeleton::GetCallingUid() != AIMGR_SERVICE_UID) {
         TAG_LOGW(AAFwkTag::APPMGR, "caller is not climgr process, rejected, calling uid: %{public}d",
             IPCSkeleton::GetCallingUid());
         return AAFwk::ERR_NOT_SYSTEM_APP;
     }
-    return TaskManagerService::GetInstance().UnregisterManagedProcess(taskId, pid, callerUid);
+    if (!IsTaskIdSanitized(taskId) || attributionId <= 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, "
+            "attributionId: %{public}" PRId64, taskId.size(), attributionId);
+        return AAFwk::INVALID_PARAMETERS_ERR;
+    }
+    return TaskManagerService::GetInstance().UnregisterManagedProcess(taskId, attributionId, callerUid);
 }
 
 int32_t AppMgrService::RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
-    int32_t callerUid, int32_t &resolvedPid)
+    int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId)
 {
     resolvedPid = -1;
-    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
-        TAG_LOGW(AAFwkTag::APPMGR, "caller is not system app, rejected");
-        return AAFwk::ERR_NOT_SYSTEM_APP;
-    }
+    attributionId = 0;
     if (IPCSkeleton::GetCallingUid() != AIMGR_SERVICE_UID) {
         TAG_LOGW(AAFwkTag::APPMGR, "caller is not climgr process, rejected, calling uid: %{public}d",
             IPCSkeleton::GetCallingUid());
         return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!IsTaskIdSanitized(taskId) || bundleName.empty()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, bundle size: %{public}zu",
+            taskId.size(), bundleName.size());
+        return AAFwk::INVALID_PARAMETERS_ERR;
     }
     if (appMgrServiceInner_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "inner service is not ready");
@@ -254,7 +281,8 @@ int32_t AppMgrService::RegisterInAppSkillProcess(const std::string &taskId, cons
     AttributionRecord attribution;
     attribution.pid = targetPid;
     attribution.tool = AttributionTool::CLI;
-    int32_t result = TaskManagerService::GetInstance().RegisterManagedProcess(taskId, attribution, callerUid);
+    int32_t result = TaskManagerService::GetInstance().RegisterManagedProcess(taskId, attribution,
+        callerUid, attributionId);
     if (result == ERR_OK) {
         resolvedPid = static_cast<int32_t>(targetPid);
     }
@@ -284,6 +312,10 @@ ErrCode AppMgrService::Init()
     appMgrServiceInner_->SetTaskHandler(taskHandler_);
     appMgrServiceInner_->SetEventHandler(eventHandler_);
     DelayedSingleton<CacheProcessManager>::GetInstance()->SetAppMgr(appMgrServiceInner_);
+    TaskManagerService::GetInstance().SetPidValidator(
+        [appMgrServiceInner = appMgrServiceInner_](pid_t pid) {
+            return appMgrServiceInner->GetAppRunningRecordByPid(pid) != nullptr;
+        });
     std::function<void()> initAppMgrServiceInnerTask = [appMgrServiceInner = appMgrServiceInner_]() {
         appMgrServiceInner->Init();
     };
@@ -1117,9 +1149,9 @@ int AppMgrService::ShowHelp(const std::vector<std::u16string>& args, std::string
         .append("--task                      ")
         .append("dump agent task manager active tasks\n")
         .append("--task register <taskId> <pid> <insight|cli|a2a|ability>    ")
-        .append("test hook: attribute a process into the task\n")
-        .append("--task unregister <taskId> <pid>    ")
-        .append("test hook: remove a process from the task\n");
+        .append("test hook: attribute an entity into the task\n")
+        .append("--task unregister <taskId> <attributionId>    ")
+        .append("test hook: remove an attribution from the task\n");
 
     return ERR_OK;
 }
@@ -1148,7 +1180,7 @@ int AppMgrService::DumpTask(const std::vector<std::u16string>& args, std::string
         }
         if (subCmd == "unregister") {
             if (args.size() != SIZE_FOUR) {
-                result.append("usage: --task unregister <taskId> <pid>\n");
+                result.append("usage: --task unregister <taskId> <attributionId>\n");
                 return DumpErrorCode::ERR_INVALID_NUM_ARGS_ERROR;
             }
             auto ret = TaskManagerService::GetInstance().DumpUnregisterManagedProcess(
@@ -1946,6 +1978,26 @@ int32_t AppMgrService::UnregisterAppForegroundStateObserver(const sptr<IAppForeg
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->UnregisterAppForegroundStateObserver(observer);
+}
+
+int32_t AppMgrService::RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->RegisterProcessLifecycleObserver(observer);
+}
+
+int32_t AppMgrService::UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->UnregisterProcessLifecycleObserver(observer);
 }
 
 int32_t AppMgrService::IsApplicationRunning(const std::string &bundleName, bool &isRunning)

@@ -348,6 +348,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, IsAppRunning_003, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "IsAppRunning_003 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->remoteClientManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.remoteClientManager_ = nullptr;
     AAFwk::MyStatus::GetInstance().verifyRunningInfoPerm_ = true;
     std::string bundleName = "";
     int32_t appCloneIndex = 1;
@@ -2007,6 +2008,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, IsFinalAppProcessByBundleName_001, TestSi
     TAG_LOGI(AAFwkTag::TEST, "IsFinalAppProcessByBundleName_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
 
     std::string result = "";
     auto ret = appMgrServiceInner->IsFinalAppProcessByBundleName(result);
@@ -2024,6 +2026,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, IsFinalAppProcessByBundleName_002, TestSi
     TAG_LOGI(AAFwkTag::TEST, "IsFinalAppProcessByBundleName_002 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
 
     std::string result = "";
     auto ret = appMgrServiceInner->IsFinalAppProcessByBundleName(result);
@@ -2144,6 +2147,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GetAppRunningUniqueIdByPid_001, TestSize.
     TAG_LOGI(AAFwkTag::TEST, "GetAppRunningUniqueIdByPid_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
 
     int32_t uid = 0;
     std::string instanceKey = "";
@@ -2179,6 +2183,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GetAllUIExtensionRootHostPid_001, TestSiz
     TAG_LOGI(AAFwkTag::TEST, "GetAllUIExtensionRootHostPid_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
 
     pid_t pid = 0;
     std::vector<pid_t> hostPids;
@@ -2197,6 +2202,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GetAllUIExtensionProviderPid_001, TestSiz
     TAG_LOGI(AAFwkTag::TEST, "GetAllUIExtensionProviderPid_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     
     pid_t pid = 0;
     std::vector<pid_t> hostPids;
@@ -2865,6 +2871,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, CheckIsKiaProcess_001, TestSize.Level1)
     AAFwk::MyStatus::GetInstance().verifySuperviseKiaServicePermission_ = true;
     OHOS::AAFwk::MyStatus::GetInstance().getBoolParameter_ = true;
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
 
     pid_t pid = 0;
     bool isKia = false;
@@ -4030,7 +4037,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, TryToUseImageInfo_NotifyAppRunningStatusE
     
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     appMgrServiceInner->TryToUseImageInfo(abilityInfo, appInfo, nullptr, "callerKey", 0, "testProcess",
-        "instanceKey", "", "", appRecord);
+        "instanceKey", "", "", appRecord, false);
     
     TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_NotifyAppRunningStatusEvent_001 end");
 }
@@ -4692,7 +4699,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, TryToUseImageInfo_0100, TestSize.Level2)
     AAFwk::MyStatus::GetInstance().getSpawnClient_ = std::make_shared<AppSpawnClient>();
     std::shared_ptr<AppRunningRecord> appRecord;
     int32_t result = appMgrServiceInner->TryToUseImageInfo(abilityInfo, appInfo, nullptr, "", 0,
-        "PROCESS_NAME", "", "", "", appRecord);
+        "PROCESS_NAME", "", "", "", appRecord, false);
     EXPECT_EQ(result, ERR_OK);
     HyperSnapErrorRecord record;
     EXPECT_EQ(appMgrServiceInner->GetHyperSnapLastError(HyperSnapErrorType::FORK_FROM_SNAPSHOT, record), ERR_OK);

@@ -46,8 +46,8 @@ public:
     MOCK_METHOD3(ForceKillApplication, int32_t(const std::string& appName, const int userId, const int appIndex));
     MOCK_METHOD3(KillApplicationWithUserId, int32_t(const std::string& appName, const int userId, const int appIndex));
     MOCK_METHOD1(KillProcessesByAccessTokenId, int32_t(const uint32_t accessTokenId));
-    MOCK_METHOD4(KillApplication, int32_t(const std::string& appName, const bool clearPageStack, int32_t appIndex,
-        const std::string& reason));
+    MOCK_METHOD5(KillApplication, int32_t(const std::string& appName, const bool clearPageStack, int32_t appIndex,
+        const std::string& reason, int32_t userId));
     MOCK_METHOD3(KillApplicationByUid, int(const std::string&, const int uid, const std::string&));
     MOCK_METHOD1(IsBackgroundRunningRestricted, int(const std::string& bundleName));
     MOCK_METHOD1(GetAllRunningProcesses, int(std::vector<RunningProcessInfo>& info));
@@ -157,11 +157,13 @@ public:
     MOCK_METHOD1(CancelDelayedExitTask, void(int32_t pid));
     MOCK_METHOD2(StartTask, int32_t(const std::string &taskId, int32_t priority));
     MOCK_METHOD1(FinishTask, int32_t(const std::string &taskId));
-    MOCK_METHOD4(RegisterManagedProcess,
-        int32_t(const std::string &taskId, int32_t pid, int32_t tool, int32_t callerUid));
-    MOCK_METHOD3(UnregisterManagedProcess, int32_t(const std::string &taskId, int32_t pid, int32_t callerUid));
-    MOCK_METHOD4(RegisterInAppSkillProcess, int32_t(const std::string &taskId, const std::string &bundleName,
-        int32_t callerUid, int32_t &resolvedPid));
+    MOCK_METHOD5(RegisterManagedProcess,
+        int32_t(const std::string &taskId, int32_t pid, int32_t tool, int32_t callerUid,
+            int64_t &attributionId));
+    MOCK_METHOD3(UnregisterManagedProcess,
+        int32_t(const std::string &taskId, int64_t attributionId, int32_t callerUid));
+    MOCK_METHOD5(RegisterInAppSkillProcess, int32_t(const std::string &taskId, const std::string &bundleName,
+        int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId));
     MOCK_METHOD2(DumpMem, int32_t(MemDumpInfo &info, sptr<IMemDumpCallback> callback));
     MOCK_METHOD2(ReportDumpMemResult, int32_t(sptr<IMemDumpCallback>, const std::string&));
     MOCK_METHOD1(DumpJsHandleMap, int32_t(OHOS::AppExecFwk::JsHandleMapInfo &));

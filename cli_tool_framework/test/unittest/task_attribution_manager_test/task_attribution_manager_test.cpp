@@ -45,6 +45,7 @@ constexpr int32_t TEST_CALLER_UID = 3099;
 constexpr int32_t TEST_OTHER_UID = 3100;
 constexpr pid_t TEST_TOOL_PID = 4321;
 constexpr int32_t TEST_RESOLVED_PID = 8765;
+constexpr int64_t TEST_ATTRIBUTION_ID = 77;
 
 // In-process endpoint standing in for the appmgr service. It derives from the shared
 // MockAppMgrService (a complete AppMgrStub mock) and overrides the three
@@ -59,7 +60,7 @@ public:
     int32_t lastRegisterTool = -1;
     int32_t lastRegisterCallerUid = -1;
     std::string lastUnregisterTaskId;
-    int32_t lastUnregisterPid = 0;
+    int64_t lastUnregisterAttributionId = 0;
     int32_t lastUnregisterCallerUid = -1;
     std::string lastInAppSkillTaskId;
     std::string lastInAppSkillBundle;
@@ -68,38 +69,42 @@ public:
     int32_t unregisterRet = ERR_OK;
     int32_t inAppSkillRet = ERR_OK;
     int32_t resolvedPid = TEST_RESOLVED_PID;
+    int64_t attributionId = TEST_ATTRIBUTION_ID;
     int registerCalls = 0;
     int unregisterCalls = 0;
     int inAppSkillCalls = 0;
 
     int32_t RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
-        int32_t callerUid) override
+        int32_t callerUid, int64_t &outAttributionId) override
     {
         ++registerCalls;
         lastRegisterTaskId = taskId;
         lastRegisterPid = pid;
         lastRegisterTool = tool;
         lastRegisterCallerUid = callerUid;
+        outAttributionId = registerRet == ERR_OK ? attributionId : 0;
         return registerRet;
     }
 
-    int32_t UnregisterManagedProcess(const std::string &taskId, int32_t pid, int32_t callerUid) override
+    int32_t UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+        int32_t callerUid) override
     {
         ++unregisterCalls;
         lastUnregisterTaskId = taskId;
-        lastUnregisterPid = pid;
+        lastUnregisterAttributionId = attributionId;
         lastUnregisterCallerUid = callerUid;
         return unregisterRet;
     }
 
     int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
-        int32_t callerUid, int32_t &resolvedPid) override
+        int32_t callerUid, int32_t &outPid, int64_t &outAttributionId) override
     {
         ++inAppSkillCalls;
         lastInAppSkillTaskId = taskId;
         lastInAppSkillBundle = bundleName;
         lastInAppSkillCallerUid = callerUid;
-        resolvedPid = this->resolvedPid;
+        outPid = this->resolvedPid;
+        outAttributionId = inAppSkillRet == ERR_OK ? attributionId : 0;
         return inAppSkillRet;
     }
 };
@@ -156,9 +161,10 @@ HWTEST_F(TaskAttributionManagerTest, GetInstance_0100, TestSize.Level1)
  */
 HWTEST_F(TaskAttributionManagerTest, AttachProcess_0100, TestSize.Level1)
 {
+    int64_t attributionId = 0;
     g_mockEndpoint->registerRet = ERR_OK;
     auto ret = TaskAttributionManager::GetInstance().AttachProcess("task_attach_0100", TEST_TOOL_PID,
-        TEST_CALLER_UID);
+        TEST_CALLER_UID, attributionId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(g_mockEndpoint->registerCalls, 1);
     EXPECT_EQ(g_mockEndpoint->lastRegisterTaskId, "task_attach_0100");
@@ -175,9 +181,10 @@ HWTEST_F(TaskAttributionManagerTest, AttachProcess_0100, TestSize.Level1)
  */
 HWTEST_F(TaskAttributionManagerTest, AttachProcess_0200, TestSize.Level1)
 {
+    int64_t attributionId = 0;
     g_mockEndpoint->registerRet = AAFwk::ERR_TASK_NOT_FOUND;
     auto ret = TaskAttributionManager::GetInstance().AttachProcess("task_attach_0200", TEST_TOOL_PID,
-        TEST_OTHER_UID);
+        TEST_OTHER_UID, attributionId);
     EXPECT_EQ(ret, AAFwk::ERR_TASK_NOT_FOUND);
     EXPECT_EQ(g_mockEndpoint->registerCalls, 1);
 }
@@ -190,9 +197,10 @@ HWTEST_F(TaskAttributionManagerTest, AttachProcess_0200, TestSize.Level1)
  */
 HWTEST_F(TaskAttributionManagerTest, AttachProcess_0300, TestSize.Level1)
 {
+    int64_t attributionId = 0;
     g_mockEndpoint->registerRet = AAFwk::ERR_TASK_NOT_FOUND;
     auto ret = TaskAttributionManager::GetInstance().AttachProcess("task_attach_0300", TEST_TOOL_PID,
-        TEST_CALLER_UID);
+        TEST_CALLER_UID, attributionId);
     EXPECT_EQ(ret, AAFwk::ERR_TASK_NOT_FOUND);
     EXPECT_EQ(g_mockEndpoint->registerCalls, 1);
 }
@@ -205,13 +213,14 @@ HWTEST_F(TaskAttributionManagerTest, AttachProcess_0300, TestSize.Level1)
  */
 HWTEST_F(TaskAttributionManagerTest, AttachProcess_0400, TestSize.Level1)
 {
+    int64_t attributionId = 0;
     std::string tooLongTaskId(TRACE_ID_MAX_LEN + 1, 'a');
     auto ret = TaskAttributionManager::GetInstance().AttachProcess(tooLongTaskId, TEST_TOOL_PID,
-        TEST_CALLER_UID);
+        TEST_CALLER_UID, attributionId);
     EXPECT_EQ(ret, AAFwk::INVALID_PARAMETERS_ERR);
-    ret = TaskAttributionManager::GetInstance().AttachProcess("", TEST_TOOL_PID, TEST_CALLER_UID);
+    ret = TaskAttributionManager::GetInstance().AttachProcess("", TEST_TOOL_PID, TEST_CALLER_UID, attributionId);
     EXPECT_EQ(ret, AAFwk::INVALID_PARAMETERS_ERR);
-    ret = TaskAttributionManager::GetInstance().AttachProcess("task_attach_0400", -1, TEST_CALLER_UID);
+    ret = TaskAttributionManager::GetInstance().AttachProcess("task_attach_0400", -1, TEST_CALLER_UID, attributionId);
     EXPECT_EQ(ret, AAFwk::INVALID_PARAMETERS_ERR);
     EXPECT_EQ(g_mockEndpoint->registerCalls, 0);
 }
@@ -223,9 +232,10 @@ HWTEST_F(TaskAttributionManagerTest, AttachProcess_0400, TestSize.Level1)
  */
 HWTEST_F(TaskAttributionManagerTest, AttachProcess_0500, TestSize.Level1)
 {
+    int64_t attributionId = 0;
     g_mockEndpoint->registerRet = AAFwk::INVALID_PARAMETERS_ERR;
     auto ret = TaskAttributionManager::GetInstance().AttachProcess("task_attach_0500", TEST_TOOL_PID,
-        TEST_CALLER_UID);
+        TEST_CALLER_UID, attributionId);
     EXPECT_EQ(ret, AAFwk::INVALID_PARAMETERS_ERR);
     EXPECT_EQ(g_mockEndpoint->registerCalls, 1);
 }
@@ -238,9 +248,10 @@ HWTEST_F(TaskAttributionManagerTest, AttachProcess_0500, TestSize.Level1)
  */
 HWTEST_F(TaskAttributionManagerTest, AttachProcess_0600, TestSize.Level1)
 {
+    int64_t attributionId = 0;
     g_mockEndpoint = nullptr;
     auto ret = TaskAttributionManager::GetInstance().AttachProcess("task_attach_0600", TEST_TOOL_PID,
-        TEST_CALLER_UID);
+        TEST_CALLER_UID, attributionId);
     EXPECT_EQ(ret, AAFwk::INNER_ERR);
 }
 
@@ -252,12 +263,12 @@ HWTEST_F(TaskAttributionManagerTest, AttachProcess_0600, TestSize.Level1)
 HWTEST_F(TaskAttributionManagerTest, DetachProcess_0100, TestSize.Level1)
 {
     g_mockEndpoint->unregisterRet = ERR_OK;
-    auto ret = TaskAttributionManager::GetInstance().DetachProcess("task_detach_0100", TEST_TOOL_PID,
+    auto ret = TaskAttributionManager::GetInstance().DetachProcess("task_detach_0100", TEST_ATTRIBUTION_ID,
         TEST_CALLER_UID);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(g_mockEndpoint->unregisterCalls, 1);
     EXPECT_EQ(g_mockEndpoint->lastUnregisterTaskId, "task_detach_0100");
-    EXPECT_EQ(g_mockEndpoint->lastUnregisterPid, static_cast<int32_t>(TEST_TOOL_PID));
+    EXPECT_EQ(g_mockEndpoint->lastUnregisterAttributionId, TEST_ATTRIBUTION_ID);
     EXPECT_EQ(g_mockEndpoint->lastUnregisterCallerUid, TEST_CALLER_UID);
 }
 
@@ -270,7 +281,7 @@ HWTEST_F(TaskAttributionManagerTest, DetachProcess_0200, TestSize.Level1)
 {
     auto ret = TaskAttributionManager::GetInstance().DetachProcess("task_detach_0200", -1, TEST_CALLER_UID);
     EXPECT_EQ(ret, ERR_OK);
-    ret = TaskAttributionManager::GetInstance().DetachProcess("", TEST_TOOL_PID, TEST_CALLER_UID);
+    ret = TaskAttributionManager::GetInstance().DetachProcess("", TEST_ATTRIBUTION_ID, TEST_CALLER_UID);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(g_mockEndpoint->unregisterCalls, 0);
 }
@@ -284,7 +295,7 @@ HWTEST_F(TaskAttributionManagerTest, DetachProcess_0200, TestSize.Level1)
 HWTEST_F(TaskAttributionManagerTest, DetachProcess_0300, TestSize.Level1)
 {
     g_mockEndpoint->unregisterRet = AAFwk::ERR_TASK_NOT_FOUND;
-    auto ret = TaskAttributionManager::GetInstance().DetachProcess("task_detach_0300", TEST_TOOL_PID,
+    auto ret = TaskAttributionManager::GetInstance().DetachProcess("task_detach_0300", TEST_ATTRIBUTION_ID,
         TEST_CALLER_UID);
     EXPECT_EQ(ret, AAFwk::ERR_TASK_NOT_FOUND);
     EXPECT_EQ(g_mockEndpoint->unregisterCalls, 1);
@@ -301,8 +312,9 @@ HWTEST_F(TaskAttributionManagerTest, AttachInAppSkillProcess_0100, TestSize.Leve
     g_mockEndpoint->inAppSkillRet = ERR_OK;
     g_mockEndpoint->resolvedPid = TEST_RESOLVED_PID;
     pid_t outPid = -1;
+    int64_t attributionId = 0;
     auto ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess("task_skill_0100",
-        "com.example.skill.host", outPid, TEST_CALLER_UID);
+        "com.example.skill.host", outPid, attributionId, TEST_CALLER_UID);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(outPid, static_cast<pid_t>(TEST_RESOLVED_PID));
     EXPECT_EQ(g_mockEndpoint->inAppSkillCalls, 1);
@@ -323,8 +335,9 @@ HWTEST_F(TaskAttributionManagerTest, AttachInAppSkillProcess_0200, TestSize.Leve
     g_mockEndpoint->inAppSkillRet = AAFwk::INNER_ERR;
     g_mockEndpoint->resolvedPid = -1;
     pid_t outPid = 0;
+    int64_t attributionId = 0;
     auto ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess("task_skill_0200",
-        "com.example.skill.host", outPid, TEST_CALLER_UID);
+        "com.example.skill.host", outPid, attributionId, TEST_CALLER_UID);
     EXPECT_EQ(ret, AAFwk::INNER_ERR);
     EXPECT_EQ(outPid, -1);
     EXPECT_EQ(g_mockEndpoint->inAppSkillCalls, 1);
@@ -339,8 +352,9 @@ HWTEST_F(TaskAttributionManagerTest, AttachInAppSkillProcess_0300, TestSize.Leve
 {
     g_mockEndpoint->inAppSkillRet = AAFwk::ERR_TASK_NOT_FOUND;
     pid_t outPid = 0;
+    int64_t attributionId = 0;
     auto ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess("task_skill_0300",
-        "com.example.skill.host", outPid, TEST_OTHER_UID);
+        "com.example.skill.host", outPid, attributionId, TEST_OTHER_UID);
     EXPECT_EQ(ret, AAFwk::ERR_TASK_NOT_FOUND);
     EXPECT_EQ(outPid, -1);
     EXPECT_EQ(g_mockEndpoint->inAppSkillCalls, 1);
@@ -355,12 +369,13 @@ HWTEST_F(TaskAttributionManagerTest, AttachInAppSkillProcess_0300, TestSize.Leve
 HWTEST_F(TaskAttributionManagerTest, AttachInAppSkillProcess_0400, TestSize.Level1)
 {
     pid_t outPid = 0;
+    int64_t attributionId = 0;
     auto ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess("", "com.example.skill.host",
-        outPid, TEST_CALLER_UID);
+        outPid, attributionId, TEST_CALLER_UID);
     EXPECT_EQ(ret, AAFwk::INVALID_PARAMETERS_ERR);
     EXPECT_EQ(outPid, -1);
     ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess("task_skill_0400", "", outPid,
-        TEST_CALLER_UID);
+        attributionId, TEST_CALLER_UID);
     EXPECT_EQ(ret, AAFwk::INVALID_PARAMETERS_ERR);
     EXPECT_EQ(outPid, -1);
     EXPECT_EQ(g_mockEndpoint->inAppSkillCalls, 0);
@@ -377,8 +392,9 @@ HWTEST_F(TaskAttributionManagerTest, AttachInAppSkillProcess_0500, TestSize.Leve
     g_mockEndpoint->inAppSkillRet = ERR_OK;
     g_mockEndpoint->resolvedPid = -1;
     pid_t outPid = 0;
+    int64_t attributionId = 0;
     auto ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess("task_skill_0500",
-        "com.example.skill.host", outPid, TEST_CALLER_UID);
+        "com.example.skill.host", outPid, attributionId, TEST_CALLER_UID);
     EXPECT_EQ(ret, AAFwk::INNER_ERR);
     EXPECT_EQ(outPid, -1);
     EXPECT_EQ(g_mockEndpoint->inAppSkillCalls, 1);
@@ -393,8 +409,9 @@ HWTEST_F(TaskAttributionManagerTest, AttachInAppSkillProcess_0600, TestSize.Leve
 {
     g_mockEndpoint = nullptr;
     pid_t outPid = 0;
+    int64_t attributionId = 0;
     auto ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess("task_skill_0600",
-        "com.example.skill.host", outPid, TEST_CALLER_UID);
+        "com.example.skill.host", outPid, attributionId, TEST_CALLER_UID);
     EXPECT_EQ(ret, AAFwk::INNER_ERR);
     EXPECT_EQ(outPid, -1);
 }
@@ -421,9 +438,9 @@ HWTEST_F(TaskAttributionManagerTest, DetachProcess_0400, TestSize.Level1)
     EXPECT_EQ(third, ERR_OK);
     EXPECT_EQ(g_mockEndpoint->unregisterCalls, 3);
     // The unregister key is stable across repeats (same task, same attributed
-    // pid, same forensic uid) — INV-3 "unregister object = attributedPid".
+    // pid, same forensic uid) — INV-3 "unregister object = attributionId".
     EXPECT_EQ(g_mockEndpoint->lastUnregisterTaskId, "task_detach_0400");
-    EXPECT_EQ(g_mockEndpoint->lastUnregisterPid, static_cast<int32_t>(TEST_TOOL_PID));
+    EXPECT_EQ(g_mockEndpoint->lastUnregisterAttributionId, TEST_ATTRIBUTION_ID);
     EXPECT_EQ(g_mockEndpoint->lastUnregisterCallerUid, TEST_CALLER_UID);
 
     // A late rejection on one of the racing detaches (e.g. the task already

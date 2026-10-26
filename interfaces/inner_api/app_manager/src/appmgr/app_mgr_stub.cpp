@@ -492,6 +492,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerNinth(uint32_t code, MessageParcel &data
             return HandleStartTask(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::FINISH_TASK):
             return HandleFinishTask(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_PROCESS_LIFECYCLE_OBSERVER):
+            return HandleRegisterProcessLifecycleObserver(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_PROCESS_LIFECYCLE_OBSERVER):
+            return HandleUnregisterProcessLifecycleObserver(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_MANAGED_PROCESS):
             return HandleRegisterManagedProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_MANAGED_PROCESS):
@@ -1241,6 +1245,7 @@ int32_t AppMgrStub::HandleScheduleAcceptWantDone(MessageParcel &data, MessagePar
     }
     auto flag = data.ReadString();
 
+    want->AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     ScheduleAcceptWantDone(recordId, *want, flag);
     delete want;
     return NO_ERROR;
@@ -1256,6 +1261,7 @@ int32_t AppMgrStub::HandleScheduleNewProcessRequestDone(MessageParcel &data, Mes
     }
     auto flag = data.ReadString();
 
+    want->AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     ScheduleNewProcessRequestDone(recordId, *want, flag);
     delete want;
     return NO_ERROR;
@@ -1876,6 +1882,36 @@ int32_t AppMgrStub::HandleUnregisterAppForegroundStateObserver(MessageParcel &da
         return ERR_INVALID_VALUE;
     }
     int32_t result = UnregisterAppForegroundStateObserver(callback);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleRegisterProcessLifecycleObserver(MessageParcel &data, MessageParcel &reply)
+{
+    auto callback = iface_cast<AppExecFwk::IProcessLifecycleObserver>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Callback is null.");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = RegisterProcessLifecycleObserver(callback);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleUnregisterProcessLifecycleObserver(MessageParcel &data, MessageParcel &reply)
+{
+    auto callback = iface_cast<AppExecFwk::IProcessLifecycleObserver>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Callback is null.");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = UnregisterProcessLifecycleObserver(callback);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result.");
         return ERR_INVALID_VALUE;
@@ -2734,9 +2770,14 @@ int32_t AppMgrStub::HandleRegisterManagedProcess(MessageParcel &data, MessagePar
     int32_t pid = data.ReadInt32();
     int32_t tool = data.ReadInt32();
     int32_t callerUid = data.ReadInt32();
-    auto result = RegisterManagedProcess(taskId, pid, tool, callerUid);
+    int64_t attributionId = 0;
+    auto result = RegisterManagedProcess(taskId, pid, tool, callerUid, attributionId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write result fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!reply.WriteInt64(attributionId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write attributionId fail");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
     return NO_ERROR;
@@ -2746,9 +2787,9 @@ int32_t AppMgrStub::HandleUnregisterManagedProcess(MessageParcel &data, MessageP
 {
     HITRACE_METER(HITRACE_TAG_APP);
     std::string taskId = Str16ToStr8(data.ReadString16());
-    int32_t pid = data.ReadInt32();
+    int64_t attributionId = data.ReadInt64();
     int32_t callerUid = data.ReadInt32();
-    auto result = UnregisterManagedProcess(taskId, pid, callerUid);
+    auto result = UnregisterManagedProcess(taskId, attributionId, callerUid);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write result fail");
         return ERR_APPEXECFWK_PARCEL_ERROR;
@@ -2763,13 +2804,18 @@ int32_t AppMgrStub::HandleRegisterInAppSkillProcess(MessageParcel &data, Message
     std::string bundleName = Str16ToStr8(data.ReadString16());
     int32_t callerUid = data.ReadInt32();
     int32_t resolvedPid = -1;
-    auto result = RegisterInAppSkillProcess(taskId, bundleName, callerUid, resolvedPid);
+    int64_t attributionId = 0;
+    auto result = RegisterInAppSkillProcess(taskId, bundleName, callerUid, resolvedPid, attributionId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write result fail");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
     if (!reply.WriteInt32(resolvedPid)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write resolvedPid fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!reply.WriteInt64(attributionId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write attributionId fail");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
     return NO_ERROR;

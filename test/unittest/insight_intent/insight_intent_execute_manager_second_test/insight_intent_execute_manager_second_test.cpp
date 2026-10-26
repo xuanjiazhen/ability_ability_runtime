@@ -19,6 +19,7 @@
 #include <chrono>
 #include <functional>
 #include <thread>
+#include <unistd.h>
 
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_callback_stub.h"
@@ -28,6 +29,7 @@
 #include "extract_insight_intent_profile.h"
 #include "mock_ability_token.h"
 #include "string_wrapper.h"
+#include "task_mgr/task_manager_service.h"
 #include "want.h"
 
 using namespace testing;
@@ -110,7 +112,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateParam_0100, TestSi
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
     auto ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
-        key, callerToken, paramPtr, callerBundleName);
+        key, callerToken, paramPtr, ExecuteParam{.callerBundleName = callerBundleName});
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
@@ -135,7 +137,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateParam_0200, TestSi
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
     auto ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
-        key, callerToken, paramPtr, callerBundleName);
+        key, callerToken, paramPtr, ExecuteParam{.callerBundleName = callerBundleName});
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
@@ -154,7 +156,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateParam_0300, TestSi
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
     auto ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
-        key, callerToken, paramPtr, callerBundleName);
+        key, callerToken, paramPtr, ExecuteParam{.callerBundleName = callerBundleName});
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
@@ -178,7 +180,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateParam_0400, TestSi
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
     auto ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
-        key, callerToken, paramPtr, callerBundleName);
+        key, callerToken, paramPtr, ExecuteParam{.callerBundleName = callerBundleName});
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
@@ -204,7 +206,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateParam_0500, TestSi
     std::string callerBundleName = "com.bundlename.test";
 
     std::shared_ptr<InsightIntentExecuteManager> manager = std::make_shared<InsightIntentExecuteManager>();
-    auto ret = manager->CheckAndUpdateParam(key, callerToken, paramPtr, callerBundleName, true);
+    auto ret = manager->CheckAndUpdateParam(key, callerToken, paramPtr,
+        ExecuteParam{.callerBundleName = callerBundleName, .ignoreAbilityName = true});
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
@@ -230,7 +233,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateParam_0600, TestSi
     std::string callerBundleName = "com.bundlename.test";
 
     auto ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
-        key, callerToken, paramPtr, callerBundleName);
+        key, callerToken, paramPtr, ExecuteParam{.callerBundleName = callerBundleName});
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
@@ -336,7 +339,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, ExecuteIntentDone_0200, TestSize
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
     DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->AddRecord(
-        key, callerToken, param.bundleName_, intentId, callerBundleName);
+        key, callerToken, param.bundleName_, intentId, ExecuteParam{.callerBundleName = callerBundleName});
     intentId = 1;
     auto ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->ExecuteIntentDone(
         intentId, resultCode, result);
@@ -515,7 +518,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, RemoteDied_0200, TestSize.Level1
     std::string bundleName = "test.bundleName";
     std::string callerBundleName = "test.callerBundleName";
     uint64_t intentId = 1;
-    manager->AddRecord(key, callToken, bundleName, intentId, callerBundleName);
+    manager->AddRecord(key, callToken, bundleName, intentId, ExecuteParam{.callerBundleName = callerBundleName});
 
     int32_t result = manager->RemoteDied(intentId);
     EXPECT_EQ(result, ERR_OK);
@@ -558,7 +561,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, GetBundleName_0200, TestSize.Lev
     std::string bundleName = "test.bundleName";
     std::string callerBundleName = "test.callerBundleName";
     uint64_t intentId = 1;
-    manager->AddRecord(key, callToken, bundleName, intentId, callerBundleName);
+    manager->AddRecord(key, callToken, bundleName, intentId, ExecuteParam{.callerBundleName = callerBundleName});
 
     std::string retBundleName;
     int32_t result = manager->GetBundleName(intentId, retBundleName);
@@ -576,8 +579,9 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0300, TestSize.Leve
 {
     TAG_LOGI(AAFwkTag::TEST, "begin.");
     AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
+    AbilityRuntime::ExtractInsightIntentInfo extractInfo;
     Want want;
-    auto ret = InsightIntentExecuteManager::GenerateWant(nullptr, decoratorInfo, want);
+    auto ret = InsightIntentExecuteManager::GenerateWant(nullptr, decoratorInfo, extractInfo, want);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
@@ -604,7 +608,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0400, TestSize.Leve
     std::string startTime = want.GetStringParam(Want::PARAM_RESV_START_TIME);
     EXPECT_TRUE(startTime.empty());
     AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
-    InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, want);
+    AbilityRuntime::ExtractInsightIntentInfo extractInfo;
+    InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, extractInfo, want);
     startTime = want.GetStringParam(Want::PARAM_RESV_START_TIME);
     EXPECT_FALSE(startTime.empty());
     TAG_LOGI(AAFwkTag::TEST, "end.");
@@ -629,8 +634,9 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0500, TestSize.Leve
     param.executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND;
     auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
     AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
+    AbilityRuntime::ExtractInsightIntentInfo extractInfo;
     Want want;
-    int32_t result = InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, want);
+    int32_t result = InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, extractInfo, want);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
@@ -1234,7 +1240,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_001, TestSize.L
     std::string bundleName = "test.bundleName";
     std::string callerBundleName = "test.callerBundleName";
     uint64_t intentId = 1;
-    manager->AddRecord(key, callToken, bundleName, intentId, callerBundleName);
+    manager->AddRecord(key, callToken, bundleName, intentId, ExecuteParam{.callerBundleName = callerBundleName});
     ASSERT_EQ(manager->records_.size(), 1);
     manager->SetTargetPid(intentId, 1234);
 
@@ -1264,9 +1270,9 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_002, TestSize.L
     sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
     ASSERT_NE(callToken, nullptr);
 
-    manager->AddRecord(key1, callToken, "test.bundle1", key1, "caller1");
-    manager->AddRecord(key2, callToken, "test.bundle2", key2, "caller2");
-    manager->AddRecord(key3, callToken, "test.bundle1", key3, "caller3");
+    manager->AddRecord(key1, callToken, "test.bundle1", key1, ExecuteParam{.callerBundleName = "caller1"});
+    manager->AddRecord(key2, callToken, "test.bundle2", key2, ExecuteParam{.callerBundleName = "caller2"});
+    manager->AddRecord(key3, callToken, "test.bundle1", key3, ExecuteParam{.callerBundleName = "caller3"});
 
     ASSERT_EQ(manager->records_.size(), 3);
     manager->SetTargetPid(key1, 1234);
@@ -1299,7 +1305,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_003, TestSize.L
     sptr<InsightIntentExecuteCallbackStubMock> callback = new InsightIntentExecuteCallbackStubMock();
     ASSERT_NE(callback, nullptr);
 
-    manager->AddRecord(key, callback, "test.bundle.callback", intentId, "caller.bundle");
+    manager->AddRecord(
+        key, callback, "test.bundle.callback", intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     ASSERT_EQ(manager->records_.size(), 1);
     manager->SetTargetPid(intentId, 1234);
 
@@ -1335,7 +1342,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_004, TestSize.L
     sptr<InsightIntentExecuteCallbackStubMock> callback = new InsightIntentExecuteCallbackStubMock();
     ASSERT_NE(callback, nullptr);
 
-    manager->AddRecord(key, callback, "test.bundle.race", intentId, "caller.bundle");
+    manager->AddRecord(key, callback, "test.bundle.race", intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     ASSERT_EQ(manager->records_.size(), 1);
     manager->SetTargetPid(intentId, 1234);
 
@@ -1379,7 +1386,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_005, TestSize.L
     sptr<InsightIntentExecuteCallbackStubMock> callback = new InsightIntentExecuteCallbackStubMock();
     ASSERT_NE(callback, nullptr);
 
-    manager->AddRecord(key, callback, "test.bundle.destroy", intentId, "caller.bundle");
+    manager->AddRecord(
+        key, callback, "test.bundle.destroy", intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     manager->SetTargetPid(intentId, 1234);
     manager->OnInsightAppDied("test.bundle.destroy", 1234);
     manager.reset();
@@ -1405,7 +1413,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_010, TestSize.L
     uint64_t intentId = 0;
     sptr<InsightIntentExecuteCallbackStubMock> callback = new InsightIntentExecuteCallbackStubMock();
     ASSERT_NE(callback, nullptr);
-    manager->AddRecord(key, callback, "test.bundle.done", intentId, "caller.bundle");
+    manager->AddRecord(key, callback, "test.bundle.done", intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     manager->SetTargetPid(intentId, 1234);
 
     AppExecFwk::InsightIntentExecuteResult result;
@@ -1462,7 +1470,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_012, TestSize.L
     uint64_t intentId = 0;
     sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
     ASSERT_NE(callToken, nullptr);
-    manager->AddRecord(key, callToken, "test.bundle.norecipient", intentId, "caller.bundle");
+    manager->AddRecord(
+        key, callToken, "test.bundle.norecipient", intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     ASSERT_EQ(manager->records_.count(intentId), 1);
     manager->records_[intentId]->deathRecipient = nullptr;
     manager->SetTargetPid(intentId, 1234);
@@ -1491,7 +1500,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_013, TestSize.L
     uint64_t intentId = 0;
     sptr<InsightIntentExecuteCallbackStubMock> callback = new InsightIntentExecuteCallbackStubMock();
     ASSERT_NE(callback, nullptr);
-    manager->AddRecord(key, callback, "test.bundle.remotedied", intentId, "caller.bundle");
+    manager->AddRecord(
+        key, callback, "test.bundle.remotedied", intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     manager->SetTargetPid(intentId, 1234);
 
     ASSERT_EQ(manager->RemoteDied(intentId), ERR_OK);
@@ -1529,9 +1539,12 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_014, TestSize.L
     ASSERT_NE(callback, nullptr);
     ASSERT_NE(otherToken, nullptr);
 
-    manager->AddRecord(40, nonCallbackToken, "test.bundle.mixed", firstIntentId, "caller.bundle");
-    manager->AddRecord(41, callback, "test.bundle.mixed", secondIntentId, "caller.bundle");
-    manager->AddRecord(42, otherToken, "test.bundle.other", thirdIntentId, "caller.bundle");
+    manager->AddRecord(
+        40, nonCallbackToken, "test.bundle.mixed", firstIntentId, ExecuteParam{.callerBundleName = "caller.bundle"});
+    manager->AddRecord(
+        41, callback, "test.bundle.mixed", secondIntentId, ExecuteParam{.callerBundleName = "caller.bundle"});
+    manager->AddRecord(
+        42, otherToken, "test.bundle.other", thirdIntentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     manager->SetTargetPid(firstIntentId, 1234);
     manager->SetTargetPid(secondIntentId, 1234);
 
@@ -1566,7 +1579,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_015, TestSize.L
     ASSERT_NE(callback, nullptr);
 
     manager->records_[nullIntentId] = nullptr;
-    manager->AddRecord(45, callback, "test.bundle.chain", callbackIntentId, "caller.bundle");
+    manager->AddRecord(
+        45, callback, "test.bundle.chain", callbackIntentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     manager->SetTargetPid(callbackIntentId, 1234);
 
     manager->OnInsightAppDied("test.bundle.chain", 1234);
@@ -1598,7 +1612,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_006, TestSize.L
     uint64_t intentId = 0;
     sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
     ASSERT_NE(callToken, nullptr);
-    manager->AddRecord(key, callToken, "test.bundle.other", intentId, "caller.bundle");
+    manager->AddRecord(
+        key, callToken, "test.bundle.other", intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     ASSERT_EQ(manager->records_.size(), 2);
 
     manager->OnInsightAppDied("test.bundle.target", 1234);
@@ -1625,7 +1640,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_007, TestSize.L
     uint64_t intentId = 0;
     sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
     ASSERT_NE(callToken, nullptr);
-    manager->AddRecord(key, callToken, "test.bundle.remove", intentId, "caller.bundle");
+    manager->AddRecord(
+        key, callToken, "test.bundle.remove", intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     manager->SetTargetPid(intentId, 1234);
 
     manager->OnInsightAppDied("test.bundle.remove", 1234);
@@ -1652,7 +1668,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_008, TestSize.L
     uint64_t intentId = 0;
     sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
     ASSERT_NE(callToken, nullptr);
-    manager->AddRecord(key, callToken, "test.bundle.null", intentId, "caller.bundle");
+    manager->AddRecord(key, callToken, "test.bundle.null", intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     manager->SetTargetPid(intentId, 1234);
 
     manager->OnInsightAppDied("test.bundle.null", 1234);
@@ -1680,7 +1696,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_009, TestSize.L
     uint64_t intentId = 0;
     sptr<InsightIntentExecuteCallbackStubMock> callback = new InsightIntentExecuteCallbackStubMock();
     ASSERT_NE(callback, nullptr);
-    manager->AddRecord(key, callback, "test.bundle.deathrecipient", intentId, "caller.bundle");
+    manager->AddRecord(
+        key, callback, "test.bundle.deathrecipient", intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     ASSERT_EQ(manager->records_.count(intentId), 1);
     manager->records_[intentId]->deathRecipient = nullptr;
     manager->SetTargetPid(intentId, 1234);
@@ -1750,13 +1767,13 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateDecoratorParams_01
     param.insightIntentName_ = "test.IntentName";
     param.executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
     auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
-    AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
-    decoratorInfo.decoratorType = AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
+    AbilityRuntime::ExtractInsightIntentInfo extractInfo;
+    extractInfo.genericInfo.decoratorType = AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
     Want want;
     
     std::shared_ptr<InsightIntentExecuteManager> manager = std::make_shared<InsightIntentExecuteManager>();
     auto ret = manager->CheckAndUpdateDecoratorParams(
-        paramPtr, decoratorInfo, want);
+        paramPtr, extractInfo, want);
     EXPECT_EQ(ret, ERR_OK);
 }
 
@@ -1785,7 +1802,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateQueryEntityParam_0
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
 
-    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr, callerBundleName);
+    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr,
+        callerBundleName);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "CheckAndUpdateQueryEntityParam_0100 end.");
@@ -1809,7 +1827,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateQueryEntityParam_0
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
 
-    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr, callerBundleName);
+    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr,
+        callerBundleName);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "CheckAndUpdateQueryEntityParam_0200 end.");
@@ -1840,7 +1859,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateQueryEntityParam_0
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
 
-    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr, callerBundleName);
+    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr,
+        callerBundleName);
     EXPECT_EQ(ret, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "CheckAndUpdateQueryEntityParam_0300 end.");
@@ -1871,7 +1891,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateQueryEntityParam_0
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
 
-    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr, callerBundleName);
+    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr,
+        callerBundleName);
     EXPECT_EQ(ret, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "CheckAndUpdateQueryEntityParam_0400 end.");
@@ -1902,7 +1923,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateQueryEntityParam_0
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
 
-    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr, callerBundleName);
+    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr,
+        callerBundleName);
     EXPECT_EQ(ret, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "CheckAndUpdateQueryEntityParam_0500 end.");
@@ -1933,7 +1955,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateQueryEntityParam_0
     uint64_t key = 1;
     std::string callerBundleName = "com.bundlename.test";
 
-    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr, callerBundleName);
+    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr,
+        callerBundleName);
     EXPECT_EQ(ret, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "CheckAndUpdateQueryEntityParam_0600 end.");
@@ -1965,7 +1988,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateQueryEntityParam_0
     uint64_t key = 1001;
     std::string callerBundleName = "com.bundlename.test";
 
-    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr, callerBundleName);
+    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr,
+        callerBundleName);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_NE(paramPtr->intentId_, 0);
 
@@ -2341,7 +2365,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckAndUpdateQueryEntityParam_0
     uint64_t key = 2001;
     std::string callerBundleName = "com.bundlename.test";
 
-    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr, callerBundleName);
+    auto ret = manager->CheckAndUpdateQueryEntityParam(key, callerToken, paramPtr,
+        callerBundleName);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_NE(paramPtr->userId_, -1);
 
@@ -2432,7 +2457,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, SetTargetPid_0100, TestSize.Leve
     sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
     ASSERT_NE(callToken, nullptr);
     std::string bundleName = "test.bundle.setpid";
-    manager->AddRecord(key, callToken, bundleName, intentId, "caller.bundle");
+    manager->AddRecord(key, callToken, bundleName, intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     ASSERT_EQ(manager->records_.count(intentId), 1);
     EXPECT_EQ(manager->records_[intentId]->targetPid, 0);
 
@@ -2480,6 +2505,67 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, SetTargetPid_0300, TestSize.Leve
 }
 
 /**
+ * @tc.name: SetTargetPid_RegisterAttribution_0100
+ * @tc.desc: Test SetTargetPid with a taskId present runs the best-effort
+ *           attribution path (direct in-process call to TaskManagerService;
+ *           no task started in UT, so RegisterManagedProcess returns
+ *           ERR_TASK_NOT_FOUND which is only logged) and still sets targetPid.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, SetTargetPid_RegisterAttribution_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_RegisterAttribution_0100 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    uint64_t key = 100;
+    uint64_t intentId = 0;
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+    std::string bundleName = "test.bundle.setpid.reattr";
+    manager->AddRecord(key, callToken, bundleName, intentId,
+        ExecuteParam{.callerBundleName = "caller.bundle"}, "ohos_task_id_setpid_reattr");
+    ASSERT_EQ(manager->records_.count(intentId), 1);
+
+    pid_t pid = 12345;
+    manager->SetTargetPid(intentId, pid);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, pid);
+    // No task registered in TaskManagerService: registration fails, id stays 0.
+    EXPECT_EQ(manager->records_[intentId]->attributionId, 0);
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_RegisterAttribution_0100 end.");
+}
+
+/**
+ * @tc.name: SetTargetPid_RegisterAttribution_0200
+ * @tc.desc: Test SetTargetPid without a taskId skips the attribution call
+ *           (guard returns early) and only sets targetPid.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, SetTargetPid_RegisterAttribution_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_RegisterAttribution_0200 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    uint64_t key = 100;
+    uint64_t intentId = 0;
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+    std::string bundleName = "test.bundle.setpid.notaskid";
+    manager->AddRecord(key, callToken, bundleName, intentId,
+        ExecuteParam{.callerBundleName = "caller.bundle"});
+    ASSERT_EQ(manager->records_.count(intentId), 1);
+
+    pid_t pid = 12345;
+    manager->SetTargetPid(intentId, pid);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, pid);
+    EXPECT_EQ(manager->records_[intentId]->attributionId, 0);
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_RegisterAttribution_0200 end.");
+}
+
+/**
  * @tc.name: OnInsightAppDied_016
  * @tc.desc: Test cleanup only removes the record whose targetPid matches the died pid.
  * @tc.type: FUNC
@@ -2497,8 +2583,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_016, TestSize.L
 
     uint64_t intentIdA = 0;
     uint64_t intentIdB = 0;
-    manager->AddRecord(100, callToken, bundleName, intentIdA, "caller.bundle");
-    manager->AddRecord(101, callToken, bundleName, intentIdB, "caller.bundle");
+    manager->AddRecord(100, callToken, bundleName, intentIdA, ExecuteParam{.callerBundleName = "caller.bundle"});
+    manager->AddRecord(101, callToken, bundleName, intentIdB, ExecuteParam{.callerBundleName = "caller.bundle"});
     ASSERT_EQ(manager->records_.size(), 2);
 
     pid_t pidA = 1000;
@@ -2533,7 +2619,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_017, TestSize.L
     ASSERT_NE(callToken, nullptr);
 
     uint64_t intentId = 0;
-    manager->AddRecord(100, callToken, bundleName, intentId, "caller.bundle");
+    manager->AddRecord(100, callToken, bundleName, intentId, ExecuteParam{.callerBundleName = "caller.bundle"});
     ASSERT_EQ(manager->records_.count(intentId), 1);
     EXPECT_EQ(manager->records_[intentId]->targetPid, 0);
 
@@ -2543,6 +2629,215 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_017, TestSize.L
     EXPECT_EQ(manager->records_.count(intentId), 1);
     EXPECT_EQ(manager->records_[intentId]->targetPid, 0);
     TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_017 end.");
+}
+
+/**
+ * @tc.name: AddRecord_WithTaskId_0100
+ * @tc.desc: Test AddRecord stores the taskId passed through the last parameter.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, AddRecord_WithTaskId_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddRecord_WithTaskId_0100 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+
+    uint64_t intentId = 0;
+    manager->AddRecord(100, callToken, "test.bundle.taskid", intentId,
+        ExecuteParam{.callerBundleName = "caller.bundle"}, "ohos_task_id_0100");
+    ASSERT_EQ(manager->records_.count(intentId), 1);
+    EXPECT_EQ(manager->records_[intentId]->taskId, "ohos_task_id_0100");
+
+    uint64_t intentIdDefault = 0;
+    manager->AddRecord(101, callToken, "test.bundle.taskid", intentIdDefault,
+        ExecuteParam{.callerBundleName = "caller.bundle"});
+    ASSERT_EQ(manager->records_.count(intentIdDefault), 1);
+    EXPECT_TRUE(manager->records_[intentIdDefault]->taskId.empty());
+    TAG_LOGI(AAFwkTag::TEST, "AddRecord_WithTaskId_0100 end.");
+}
+
+/**
+ * @tc.name: RemoveExecuteIntent_Unregister_0100
+ * @tc.desc: Test RemoveExecuteIntent removes the record even when taskId/attributionId are
+ *           absent (helper guard no-op, no crash).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, RemoveExecuteIntent_Unregister_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveExecuteIntent_Unregister_0100 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+
+    uint64_t intentId = 0;
+    manager->AddRecord(100, callToken, "test.bundle.remove", intentId,
+        ExecuteParam{.callerBundleName = "caller.bundle"}, "ohos_task_id_remove");
+    ASSERT_EQ(manager->records_.count(intentId), 1);
+
+    // No attribution registered: unregister guard skips the call, removal still happens.
+    auto ret = manager->RemoveExecuteIntent(intentId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(manager->records_.count(intentId), 0);
+
+    // Removing a non-existent intent is still safe (no record, no crash).
+    ret = manager->RemoveExecuteIntent(999999);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveExecuteIntent_Unregister_0100 end.");
+}
+
+/**
+ * @tc.name: RemoveExecuteIntent_Unregister_0200
+ * @tc.desc: Test RemoveExecuteIntent with taskId and targetPid both present: record removed and
+ *           the unregister path runs without crash (no task started in UT, the direct
+ *           in-process TaskManagerService call only logs the missing task).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, RemoveExecuteIntent_Unregister_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveExecuteIntent_Unregister_0200 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+
+    uint64_t intentId = 0;
+    manager->AddRecord(100, callToken, "test.bundle.remove2", intentId,
+        ExecuteParam{.callerBundleName = "caller.bundle"}, "ohos_task_id_remove2");
+    ASSERT_EQ(manager->records_.count(intentId), 1);
+    manager->SetTargetPid(intentId, 5678);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, 5678);
+
+    auto ret = manager->RemoveExecuteIntent(intentId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(manager->records_.count(intentId), 0);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveExecuteIntent_Unregister_0200 end.");
+}
+
+/**
+ * @tc.name: UnregisterAttributedProcess_Guard_0100
+ * @tc.desc: Test the unregister helper guard: empty taskId or non-positive attributionId
+ *           returns directly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, UnregisterAttributedProcess_Guard_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterAttributedProcess_Guard_0100 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    // Guarded cases must not touch TaskManagerService or crash.
+    manager->UnregisterAttributedProcess("", 1234);
+    manager->UnregisterAttributedProcess("ohos_task_id_guard", 0);
+    manager->UnregisterAttributedProcess("ohos_task_id_guard", -1);
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterAttributedProcess_Guard_0100 end.");
+}
+
+/**
+ * @tc.name: UnregisterAttributedProcess_Guard_0200
+ * @tc.desc: Test the unregister helper with valid inputs runs the best-effort path
+ *           (direct in-process TaskManagerService call; no task started in UT,
+ *           ERR_TASK_NOT_FOUND is only logged, no crash).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, UnregisterAttributedProcess_Guard_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterAttributedProcess_Guard_0200 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    // In UT no task was started, so TaskManagerService answers ERR_TASK_NOT_FOUND,
+    // the helper only logs and must not crash.
+    manager->UnregisterAttributedProcess("ohos_task_id_ipc", 9999);
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterAttributedProcess_Guard_0200 end.");
+}
+
+/**
+ * @tc.name: RegisterAttributedProcess_Guard_0100
+ * @tc.desc: Test the register helper guard: empty taskId or non-positive pid returns directly
+ *           and leaves attributionId 0.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, RegisterAttributedProcess_Guard_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterAttributedProcess_Guard_0100 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    // Guarded cases must not touch TaskManagerService or crash.
+    int64_t attributionId = 0;
+    manager->RegisterAttributedProcess("", 1234, attributionId);
+    EXPECT_EQ(attributionId, 0);
+    manager->RegisterAttributedProcess("ohos_task_id_guard", 0, attributionId);
+    EXPECT_EQ(attributionId, 0);
+    manager->RegisterAttributedProcess("ohos_task_id_guard", -1, attributionId);
+    EXPECT_EQ(attributionId, 0);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterAttributedProcess_Guard_0100 end.");
+}
+
+/**
+ * @tc.name: RegisterAttributedProcess_Guard_0200
+ * @tc.desc: Test the register helper with valid inputs runs the best-effort path
+ *           (direct in-process TaskManagerService call; no task started in UT,
+ *           ERR_TASK_NOT_FOUND is only logged, attributionId stays 0, no crash).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, RegisterAttributedProcess_Guard_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterAttributedProcess_Guard_0200 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    // In UT no task was started, so TaskManagerService answers ERR_TASK_NOT_FOUND,
+    // the helper only logs and must not crash.
+    int64_t attributionId = 0;
+    manager->RegisterAttributedProcess("ohos_task_id_ipc", 9999, attributionId);
+    EXPECT_EQ(attributionId, 0);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterAttributedProcess_Guard_0200 end.");
+}
+
+/**
+ * @tc.name: RegisterAttributedProcess_Positive_0100
+ * @tc.desc: Test the full attribution lifecycle against a real in-process
+ *           TaskManagerService: StartTask -> AddRecord -> SetTargetPid stores a
+ *           server-allocated attributionId; RemoveExecuteIntent unregisters it.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, RegisterAttributedProcess_Positive_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterAttributedProcess_Positive_0100 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    // A live managed process is required: use the UT process itself.
+    const std::string taskId = "ohos_task_id_positive_0100";
+    pid_t pid = static_cast<pid_t>(getpid());
+    auto &tms = AppExecFwk::TaskManagerService::GetInstance();
+    ASSERT_EQ(tms.StartTask(taskId, AppExecFwk::TASK_PRIORITY_DEFAULT), ERR_OK);
+
+    uint64_t key = 100;
+    uint64_t intentId = 0;
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+    manager->AddRecord(key, callToken, "test.bundle.positive", intentId,
+        ExecuteParam{.callerBundleName = "caller.bundle"}, taskId);
+    ASSERT_EQ(manager->records_.count(intentId), 1);
+
+    manager->SetTargetPid(intentId, pid);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, pid);
+    EXPECT_GT(manager->records_[intentId]->attributionId, 0);
+
+    // Removal unregisters exactly the stored attributionId (no crash, record gone).
+    auto ret = manager->RemoveExecuteIntent(intentId);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(manager->records_.count(intentId), 0);
+    EXPECT_EQ(tms.FinishTask(taskId), ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterAttributedProcess_Positive_0100 end.");
 }
 
 } // namespace AAFwk

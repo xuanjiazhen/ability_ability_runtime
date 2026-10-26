@@ -34,6 +34,7 @@
 #include "iconfiguration_observer.h"
 #include "image_error_handler_interface.h"
 #include "image_process_state_observer_interface.h"
+#include "process_lifecycle_observer_interface.h"
 #include "iremote_object.h"
 #include "irender_scheduler.h"
 #include "irender_state_observer.h"
@@ -255,7 +256,7 @@ public:
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
     virtual AppMgrResultCode KillApplication(const std::string &bundleName, bool clearPageStack = false,
-        int32_t appIndex = -1, const std::string &reason = "KillApplication");
+        int32_t appIndex = -1, const std::string &reason = "KillApplication", int32_t userId = -1);
 
     /**
      * Force kill the application. Restricted: the server only accepts calls from
@@ -1156,6 +1157,9 @@ public:
      */
     int32_t UnregisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer);
 
+    int32_t RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer);
+    int32_t UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer);
+
     /**
      * Register a callback to be notified when native child processes exit.
      *
@@ -1854,23 +1858,28 @@ public:
      * @param tool Tool type of the attribution (AttributionTool value).
      * @param callerUid Forensic uid of the original task creator; negative skips the
      *        ownership check.
+     * @param attributionId Outputs the server-assigned attribution id on success,
+     *        or 0 on any failure.
      * @return ERR_OK on success, server error code otherwise;
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
-    int32_t RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool, int32_t callerUid);
+    int32_t RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
+        int32_t callerUid, int64_t &attributionId);
 
     /**
-     * Remove a process from the managed set of the task (idempotent). Reserved for the
-     * trusted caller process that forwards the forensic creator uid.
+     * Remove the attribution record with the given id from the task owned by the caller
+     * (idempotent). Reserved for the trusted caller process that forwards the forensic
+     * creator uid.
      *
      * @param taskId Attribution key of the task (1~256 characters).
-     * @param pid Pid of the process to remove (> 0).
+     * @param attributionId Id returned by RegisterManagedProcess (> 0).
      * @param callerUid Forensic uid of the original task creator; negative skips the
      *        ownership check.
      * @return ERR_OK on success, server error code otherwise;
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
-    int32_t UnregisterManagedProcess(const std::string &taskId, int32_t pid, int32_t callerUid);
+    int32_t UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+        int32_t callerUid);
 
     /**
      * Attribute the main process of the running application into the task. The target
@@ -1882,11 +1891,13 @@ public:
      * @param callerUid Forensic uid of the original task creator; negative skips the
      *        ownership check.
      * @param resolvedPid Outputs the located pid on success, or -1 on any failure.
+     * @param attributionId Outputs the server-assigned attribution id on success,
+     *        or 0 on any failure.
      * @return ERR_OK on success, server error code otherwise;
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
     int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
-        int32_t callerUid, int32_t &resolvedPid);
+        int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId);
 
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);

@@ -1783,7 +1783,7 @@ HWTEST_F(AppMgrProxyTest, FinishTask_0200, TestSize.Level1)
 /**
  * @tc.name: RegisterManagedProcess_0100
  * @tc.desc: Test RegisterManagedProcess request construction (taskId, pid, tool,
- *           callerUid write order) and the errCode reply.
+ *           callerUid write order) and the errCode + attributionId reply.
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrProxyTest, RegisterManagedProcess_0100, TestSize.Level1)
@@ -1803,11 +1803,15 @@ HWTEST_F(AppMgrProxyTest, RegisterManagedProcess_0100, TestSize.Level1)
             readTool = data.ReadInt32();
             readCallerUid = data.ReadInt32();
             reply.WriteInt32(ERR_OK);
+            reply.WriteInt64(77);
             return NO_ERROR;
         });
 
-    auto ret = appMgrProxy_->RegisterManagedProcess("proxy_register_managed_0100", 4321, 2, 3099);
+    int64_t attributionId = 0;
+    auto ret = appMgrProxy_->RegisterManagedProcess("proxy_register_managed_0100", 4321, 2, 3099,
+        attributionId);
     EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(attributionId, 77);
     EXPECT_EQ(readTaskId, "proxy_register_managed_0100");
     EXPECT_EQ(readPid, 4321);
     EXPECT_EQ(readTool, 2);
@@ -1816,7 +1820,8 @@ HWTEST_F(AppMgrProxyTest, RegisterManagedProcess_0100, TestSize.Level1)
 
 /**
  * @tc.name: RegisterManagedProcess_0200
- * @tc.desc: Test RegisterManagedProcess passes the server verdict through.
+ * @tc.desc: Test RegisterManagedProcess passes the server verdict through and keeps the
+ *           attribution handle at 0 on failure.
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrProxyTest, RegisterManagedProcess_0200, TestSize.Level1)
@@ -1828,20 +1833,23 @@ HWTEST_F(AppMgrProxyTest, RegisterManagedProcess_0200, TestSize.Level1)
             return NO_ERROR;
         });
 
-    auto ret = appMgrProxy_->RegisterManagedProcess("proxy_register_managed_0200", 4321, 2, 3099);
+    int64_t attributionId = 1;
+    auto ret = appMgrProxy_->RegisterManagedProcess("proxy_register_managed_0200", 4321, 2, 3099,
+        attributionId);
     EXPECT_EQ(ret, AAFwk::ERR_TASK_NOT_FOUND);
+    EXPECT_EQ(attributionId, 0);
 }
 
 /**
  * @tc.name: UnregisterManagedProcess_0100
- * @tc.desc: Test UnregisterManagedProcess request construction (taskId, pid,
+ * @tc.desc: Test UnregisterManagedProcess request construction (taskId, attributionId,
  *           callerUid write order) and the errCode reply.
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrProxyTest, UnregisterManagedProcess_0100, TestSize.Level1)
 {
     std::string readTaskId;
-    int32_t readPid = 0;
+    int64_t readAttributionId = 0;
     int32_t readCallerUid = 0;
     EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
         .Times(1)
@@ -1850,16 +1858,16 @@ HWTEST_F(AppMgrProxyTest, UnregisterManagedProcess_0100, TestSize.Level1)
             data.RewindRead(0);
             data.ReadString16(); // interface token
             readTaskId = Str16ToStr8(data.ReadString16());
-            readPid = data.ReadInt32();
+            readAttributionId = data.ReadInt64();
             readCallerUid = data.ReadInt32();
             reply.WriteInt32(ERR_OK);
             return NO_ERROR;
         });
 
-    auto ret = appMgrProxy_->UnregisterManagedProcess("proxy_unregister_managed_0100", 4321, 3099);
+    auto ret = appMgrProxy_->UnregisterManagedProcess("proxy_unregister_managed_0100", 77, 3099);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(readTaskId, "proxy_unregister_managed_0100");
-    EXPECT_EQ(readPid, 4321);
+    EXPECT_EQ(readAttributionId, 77);
     EXPECT_EQ(readCallerUid, 3099);
 }
 
@@ -1867,7 +1875,7 @@ HWTEST_F(AppMgrProxyTest, UnregisterManagedProcess_0100, TestSize.Level1)
  * @tc.name: RegisterInAppSkillProcess_0100
  * @tc.desc: Test RegisterInAppSkillProcess request construction (taskId, bundleName,
  *           callerUid write order) and the reply layout (errCode first, then
- *           resolvedPid into the out parameter).
+ *           resolvedPid and attributionId into the out parameters).
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrProxyTest, RegisterInAppSkillProcess_0100, TestSize.Level1)
@@ -1886,14 +1894,17 @@ HWTEST_F(AppMgrProxyTest, RegisterInAppSkillProcess_0100, TestSize.Level1)
             readCallerUid = data.ReadInt32();
             reply.WriteInt32(ERR_OK);
             reply.WriteInt32(8765);
+            reply.WriteInt64(77);
             return NO_ERROR;
         });
 
     int32_t resolvedPid = -1;
+    int64_t attributionId = 0;
     auto ret = appMgrProxy_->RegisterInAppSkillProcess("proxy_in_app_skill_0100",
-        "com.example.skill.host", 3099, resolvedPid);
+        "com.example.skill.host", 3099, resolvedPid, attributionId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(resolvedPid, 8765);
+    EXPECT_EQ(attributionId, 77);
     EXPECT_EQ(readTaskId, "proxy_in_app_skill_0100");
     EXPECT_EQ(readBundleName, "com.example.skill.host");
     EXPECT_EQ(readCallerUid, 3099);

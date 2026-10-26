@@ -455,10 +455,11 @@ public:
      * @param resultCode, the resultCode of the ability to terminate.
      * @param resultWant, the Want of the ability to return.
      * @param callerRequestCode, the requestCode of caller ability.
+     * @param isBackToCallerApp, whether the request is from backToCallerAppWithResult.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
-        const Want *resultWant, int64_t callerRequestCode) override;
+        const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp = false) override;
 
     /**
      * TerminateUIServiceExtensionAbility, terminate UIServiceExtensionAbility.
@@ -737,6 +738,16 @@ public:
     virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
         const std::string& reason = "Abilityms::KillProcess") override;
 
+    /**
+     * Kill the process immediately with a specified userId.
+     *
+     * @param bundleName.
+     * @param userId The user id to kill process for, -1 means use caller's userId.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false,
+        int32_t appIndex = -1, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1) override;
+
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
      * force timeout ability.
@@ -940,7 +951,8 @@ public:
      * @param frameNum, Special frameNum for remove start window num.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override;
+    virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
+        const sptr<IAbilityConnection> &connect) override;
 
     /**
      * Start Ability, connect session with common ability.
@@ -1827,6 +1839,10 @@ public:
 
     virtual int32_t NotifyInsightIntentExecute(uint64_t intentId) override;
 
+    virtual int32_t RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback) override;
+
+    virtual int32_t UnregisterWillInsightIntentExecuteCallback() override;
+
     /**
      * Set keep-alive flag for application under a specific user.
      * @param bundleName Bundle name.
@@ -2126,6 +2142,15 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t SetGamePreLaunchCompleteTime(int32_t userId, int64_t completeTime) override;
+
+    /**
+     * @brief Extend game prelaunch timeout.
+     *
+     * @param pid Indicates the process ID of the game pre-launch ability to extend.
+     * @param extendTime The extended time in microseconds for game prelaunch.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ExtendGamePreLaunchTimeout(int32_t pid, int64_t extendTime) override;
 
     /**
      * Start Self UIAbility In Child Process.

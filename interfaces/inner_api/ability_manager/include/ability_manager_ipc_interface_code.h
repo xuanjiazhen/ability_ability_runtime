@@ -794,6 +794,18 @@ enum class AbilityManagerInterfaceCode {
 
     // notify that an insight intent execution has started
     NOTIFY_INSIGHT_INTENT_EXECUTE = 6182,
+
+    // kill process with user id
+    KILL_PROCESS_WITH_USER_ID = 6183,
+
+    // extend game prelaunch timeout
+    EXTEND_GAME_PRELAUNCH_TIMEOUT = 6184,
+
+    // register listener that an insight intent is about to be executed
+    REGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK = 6185,
+
+    // unregister listener that an insight intent is about to be executed
+    UNREGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK = 6186,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

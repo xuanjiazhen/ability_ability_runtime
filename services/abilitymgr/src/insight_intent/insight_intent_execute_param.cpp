@@ -168,6 +168,20 @@ bool InsightIntentExecuteParam::ReadFromParcel(Parcel &parcel)
     if (parcel.GetReadableBytes() > 0) {
         toolCallId_ = Str16ToStr8(parcel.ReadString16());
     }
+    // taskId_ is an optional tail field: legacy parcels without it keep the default empty value
+    if (parcel.GetReadableBytes() > 0) {
+        taskId_ = Str16ToStr8(parcel.ReadString16());
+    }
+    // caller identity is an optional tail field: legacy parcels without it keep the default empty value
+    if (parcel.GetReadableBytes() > 0) {
+        callerBundleName_ = Str16ToStr8(parcel.ReadString16());
+    }
+    if (parcel.GetReadableBytes() > 0) {
+        callerTokenId_ = Str16ToStr8(parcel.ReadString16());
+    }
+    if (parcel.GetReadableBytes() > 0) {
+        callerUid_ = parcel.ReadInt32();
+    }
     return true;
 }
 
@@ -210,6 +224,10 @@ bool InsightIntentExecuteParam::Marshalling(Parcel &parcel) const
     parcel.WriteBool(isServiceMatch_);
     parcel.WriteString16(Str8ToStr16(deviceId_));
     parcel.WriteString16(Str8ToStr16(toolCallId_));
+    parcel.WriteString16(Str8ToStr16(taskId_));
+    parcel.WriteString16(Str8ToStr16(callerBundleName_));
+    parcel.WriteString16(Str8ToStr16(callerTokenId_));
+    parcel.WriteInt32(callerUid_);
     return true;
 }
 
@@ -333,6 +351,9 @@ bool InsightIntentExecuteParam::GenerateFromWant(const AAFwk::Want &want,
     executeParam.insightIntentId_ = insightIntentId;
     executeParam.executeMode_ = wantParams.GetIntParam(INSIGHT_INTENT_EXECUTE_PARAM_MODE, 0);
     executeParam.toolCallId_ = wantParams.GetStringParam(INSIGHT_INTENT_TOOL_CALL_ID);
+    executeParam.callerBundleName_ = wantParams.GetStringParam(INSIGHT_INTENT_CALLER_BUNDLE_NAME);
+    executeParam.callerTokenId_ = wantParams.GetStringParam(INSIGHT_INTENT_CALLER_TOKEN_ID);
+    executeParam.callerUid_ = wantParams.GetIntParam(INSIGHT_INTENT_CALLER_UID, 0);
 
     auto insightIntentParam = wantParams.GetWantParams(INSIGHT_INTENT_EXECUTE_PARAM_PARAM);
     UpdateInsightIntentCallerInfo(wantParams, insightIntentParam);
@@ -361,6 +382,15 @@ bool InsightIntentExecuteParam::RemoveInsightIntent(AAFwk::Want &want)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (want.HasParameter(INSIGHT_INTENT_TOOL_CALL_ID)) {
         want.RemoveParam(INSIGHT_INTENT_TOOL_CALL_ID);
+    }
+    if (want.HasParameter(INSIGHT_INTENT_CALLER_BUNDLE_NAME)) {
+        want.RemoveParam(INSIGHT_INTENT_CALLER_BUNDLE_NAME);
+    }
+    if (want.HasParameter(INSIGHT_INTENT_CALLER_TOKEN_ID)) {
+        want.RemoveParam(INSIGHT_INTENT_CALLER_TOKEN_ID);
+    }
+    if (want.HasParameter(INSIGHT_INTENT_CALLER_UID)) {
+        want.RemoveParam(INSIGHT_INTENT_CALLER_UID);
     }
     if (want.HasParameter(INSIGHT_INTENT_EXECUTE_PARAM_NAME)) {
         want.RemoveParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME);

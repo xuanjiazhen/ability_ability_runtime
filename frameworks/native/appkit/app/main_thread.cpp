@@ -157,6 +157,7 @@ constexpr int32_t START_HIGH_SENSITIVE = 1;
 constexpr int32_t EXIT_HIGH_SENSITIVE = 2;
 constexpr int32_t UNSPECIFIED_USERID = -2;
 constexpr int32_t APP_UNVISIBLE_STATE = 4;
+constexpr int32_t APP_VISIBLE_STATE = 5;
 constexpr int32_t JS_ERROR_EXIT = -2;
 constexpr int32_t TIME_OUT = 120;
 constexpr int32_t DEFAULT_SLEEP_TIME = 100000;
@@ -273,7 +274,7 @@ void MainThread::GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &h
             "moduleName: %{public}s, isLibIsolated: %{public}d, compressNativeLibs: %{public}d.",
             hapInfo.moduleName.c_str(), hapInfo.isLibIsolated, hapInfo.compressNativeLibs);
         GetPatchNativeLibPath(hapInfo, patchNativeLibraryPath, appLibPaths);
-        GetHapSoPath(hapInfo, appLibPaths, hapInfo.hapPath.find(ABS_CODE_PATH));
+        GetHapSoPath(hapInfo, appLibPaths, hapInfo.hapPath.find(ABS_CODE_PATH) != 0u);
     }
 
     for (auto &hspInfo : hspList) {
@@ -4196,6 +4197,10 @@ int32_t MainThread::ChangeAppGcState(int32_t state, uint64_t tid)
     if (state == APP_UNVISIBLE_STATE) {
         TAG_LOGI(AAFwkTag::APPKIT, "notify application unvisible state for GC");
         runtime->NotifyApplicationState(true);
+        return NO_ERROR;
+    } else if (state == APP_VISIBLE_STATE) {
+        TAG_LOGI(AAFwkTag::APPKIT, "notify application visible state for GC");
+        runtime->NotifyApplicationState(false);
         return NO_ERROR;
     }
 

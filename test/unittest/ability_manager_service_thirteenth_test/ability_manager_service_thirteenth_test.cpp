@@ -343,6 +343,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_0
     auto &status = MyStatus::GetInstance();
     status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
     status.permPermission_ = 1;
+    status.permConnectAgentFromBackground_ = 0;
     status.amcGetProcessInfoRet_ = ERR_OK;
     status.amcProcessState_ = AppProcessState::APP_STATE_BACKGROUND;
 
@@ -371,6 +372,33 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_0
     status.permPermission_ = 1;
     status.amcGetProcessInfoRet_ = ERR_OK;
     status.amcProcessState_ = AppProcessState::APP_STATE_FOREGROUND;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    Want want;
+    want.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, true);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::AGENT;
+    auto ret = abilityMs->CheckPermissionForAgentExtension(ExtensionAbilityType::AGENT, want, abilityRequest);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckPermissionForAgentExtension_009
+ * Function: CheckPermissionForAgentExtension
+ * SubFunction: NA
+ * FunctionPoints: Verify CheckPermissionForAgentExtension allows background callers holding CONNECT_AGENT_FROM_BACKGROUND.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_009, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 1;
+    status.permConnectAgentFromBackground_ = 1;
+    status.amcGetProcessInfoRet_ = ERR_OK;
+    status.amcProcessState_ = AppProcessState::APP_STATE_BACKGROUND;
 
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
@@ -5038,7 +5066,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitInterceptor_BlockAllAppStart_0
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
     abilityMs->InitInterceptor();
-    EXPECT_NE(abilityMs->blockAllAppStartInterceptor_, nullptr);
+    EXPECT_TRUE(abilityMs->interceptorExecuter_->HasInterceptor("BlockAllAppStart"));
     status.auIsSupportBlockAllAppStart_ = true;
 }
 
@@ -5056,7 +5084,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitInterceptor_BlockAllAppStart_0
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
     abilityMs->InitInterceptor();
-    EXPECT_EQ(abilityMs->blockAllAppStartInterceptor_, nullptr);
+    EXPECT_FALSE(abilityMs->interceptorExecuter_->HasInterceptor("BlockAllAppStart"));
     status.auIsSupportBlockAllAppStart_ = true;
 }
 
@@ -5078,7 +5106,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAbilityWithResult_001,
     MyStatus::GetInstance().smhVerificationAllToken_ = false;
     sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
     Want want;
-    EXPECT_EQ(abilityMs_->BackToCallerAbilityWithResult(token, 0, &want, 0), ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityMs_->BackToCallerAbilityWithResult(token, 0, want, 0), ERR_INVALID_VALUE);
     MyStatus::GetInstance().smhVerificationAllToken_ = true;
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest BackToCallerAbilityWithResult_001 end");
@@ -5107,7 +5135,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAbilityWithResult_002,
 
     sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
     Want want;
-    EXPECT_EQ(abilityMs_->BackToCallerAbilityWithResult(token, 0, &want, 0), CHECK_PERMISSION_FAILED);
+    EXPECT_EQ(abilityMs_->BackToCallerAbilityWithResult(token, 0, want, 0), CHECK_PERMISSION_FAILED);
 
     MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
     MyStatus::GetInstance().arGetAbilityInfo_.applicationInfo.accessTokenId = 0;
@@ -5143,7 +5171,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAbilityWithResult_003,
 
     sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
     Want want;
-    EXPECT_EQ(abilityMs_->BackToCallerAbilityWithResult(token, 0, &want, 0), ERR_OK);
+    EXPECT_EQ(abilityMs_->BackToCallerAbilityWithResult(token, 0, want, 0), ERR_OK);
 
     MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
     MyStatus::GetInstance().arGetAbilityInfo_.applicationInfo.accessTokenId = 0;
@@ -5277,6 +5305,36 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartSandboxCloneAbility_ForbidSta
     SandboxCloneParams params;
     auto ret = abilityMs->StartSandboxCloneAbility(want, params);
     EXPECT_EQ(ret, INNER_ERR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: BackToCallerAppWithResult_005
+ * Function: BackToCallerAbilityWithResult
+ * SubFunction: NA
+ * FunctionPoints: BackToCallerAppWithResult forwards to the SceneBoard manager
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BackToCallerAppWithResult_005, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    auto &status = MyStatus::GetInstance();
+    auto previousStatus = status;
+    status.smhVerificationAllToken_ = true;
+    status.ipcGetCallingTokenID_ = 1;
+    status.arGetAbilityInfo_.applicationInfo.accessTokenId = 1;
+    status.arGetAbilityRecord_ = MockAbilityRecord(AbilityType::PAGE);
+    status.sbjIsSceneBoardEnabled_ = true;
+    status.smhGetUIAbilityManagerByUserId_ = true;
+    status.ualmIsBackToCallerApp_ = false;
+    abilityMs->subManagersHelper_->currentUIAbilityManager_ = std::make_shared<UIAbilityLifecycleManager>(0);
+
+    Want want;
+    auto token = MockToken(AbilityType::PAGE);
+    auto ret = abilityMs->BackToCallerAbilityWithResult(token, 100, want, 1, true);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(status.ualmIsBackToCallerApp_);
+    status = previousStatus;
 }
 
 } // namespace AAFwk

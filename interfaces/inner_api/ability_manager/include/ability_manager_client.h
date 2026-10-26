@@ -769,20 +769,21 @@ public:
     ErrCode StartSelf(sptr<IRemoteObject> token);
 
     /**
-     * Return the result to the CALLER ability and finish (terminateSelfWithResult for FA/
-     * delegated scenarios). The callerRequestCode (int64) identifies the caller's outstanding
+     * Return the result to the CALLER ability without terminating the current ability.
+     * The callerRequestCode (int64) identifies the caller's outstanding
      * request. The ability record must exist; the caller must have started this ability for
      * result, otherwise the result is dropped with an error.
      *
      * @param token The token of the ability returning the result.
      * @param resultCode Result code delivered to the caller.
-     * @param resultWant Result data delivered to the caller; may be nullptr.
+     * @param resultWant Result data delivered to the caller.
      * @param callerRequestCode The request code under which the caller awaits the result.
+     * @param isBackToCallerApp Whether the request is from backToCallerAppWithResult.
      * @return ERR_OK on success; ERR_INVALID_VALUE for unknown token; error when no caller
      *         request matches.
      */
     ErrCode BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
-        const Want *resultWant, int64_t callerRequestCode);
+        const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp = false);
 
     /**
      * Terminate a UIServiceExtensionAbility. SceneBoard callers ONLY (ERR_WRONG_INTERFACE_CALL
@@ -1203,6 +1204,21 @@ public:
     ErrCode KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
         const std::string& reason = "Abilityms::KillProcess");
 
+    /**
+     * Kill the process immediately with a specified userId.
+     *
+     * @param bundleName Bundle name of the application to kill.
+     * @param clearPageStack true to also clear mission/page-stack records of the app.
+     * @param appIndex Clone application index; 0 means the base application.
+     * @param reason Kill reason string recorded in exit statistics.
+     * @param userId The user id to kill process for, -1 means use caller's userId.
+     * @return ERR_OK on success; ERR_PERMISSION_DENIED without permission;
+     *         GET_BUNDLE_INFO_FAILED when the bundle cannot be resolved;
+     *         KILL_PROCESS_KEEP_ALIVE for persistent apps; KILL_PROCESS_FAILED on failure.
+     */
+    ErrCode KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+        const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1);
+
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
      * Force a lifecycle timeout for the named ability for testing (simulates ANR/timeout paths).
@@ -1591,11 +1607,14 @@ public:
      *
      * @param want The want of the ability to prelaunch (explicit element required).
      * @param frameNum Frame number used to remove the start window; 0 means not specified.
+     * @param connect Optional IAbilityConnection callback; when non-null, OnAbilityConnectDone
+     *        is called after prelaunch completes to return the caller object.
      * @return ERR_OK on success; RESOLVE_CALL_NO_PERMISSIONS for non-RSS callers;
      *         ERR_INVALID_VALUE for implicit want / SCB disabled; RESOLVE_CALL_ABILITY_TYPE_ERR /
      *         RESOLVE_CALL_ABILITY_VERSION_ERR for unsupported targets; interceptor errors.
      */
-    ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum = 0);
+    ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum = 0,
+        const sptr<IAbilityConnection> &connect = nullptr);
 
     /**
      * Start a sandbox-clone instance of an application (CLI-tool driven sandbox scenario).
@@ -1883,6 +1902,15 @@ public:
     ErrCode SetGamePreLaunchCompleteTime(int32_t userId, int64_t completeTime);
 
     /**
+     * @brief Extend game prelaunch timeout (reset the pre-launch foreground countdown).
+     * Internal: only game SA (GAME_SA_UID) may call.
+     * @param pid Process ID of the game pre-launch ability to extend.
+     * @param extendTime Extended time in microseconds, must be in range (30s, 4h).
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ExtendGamePreLaunchTimeout(int32_t pid, int64_t extendTime);
+
+    /**
      * @brief Query whether a UIAbility's onPrepareToTerminate allows termination.
      * SCB only (IsCallerSceneBoard); sessionInfo with valid sessionToken required.
      * @param sessionInfo Session info of the ability to terminate.
@@ -2041,7 +2069,7 @@ public:
      * @param token Ability token.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode DelegatorDoAbilityBackground(sptr<IRemoteObject> token, int32_t userId = -1);
+    ErrCode DelegatorDoAbilityBackground(sptr<IRemoteObject> token);
 
     /**
      * @brief Report ability foreground transition (internal, called by ability
@@ -3154,6 +3182,10 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode NotifyInsightIntentExecute(uint64_t intentId);
+
+    ErrCode RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback);
+
+    ErrCode UnregisterWillInsightIntentExecuteCallback();
 
     /**
      * @brief Query the type of a configured skill (e.g. UI ability vs service

@@ -48,6 +48,7 @@
 
 #include "insight_intent/insight_intent_info_for_query.h"
 #include "insight_intent/insight_intent_query_param.h"
+#include "insight_intent/insight_intent_execution_info.h"
 #include "iprepare_terminate_callback_interface.h"
 #include "irequest_start_ability_callback.h"
 #include "keep_alive_info.h"
@@ -667,10 +668,11 @@ public:
      * @param resultCode, the resultCode of the ability to terminate.
      * @param resultWant, the Want of the ability to return.
      * @param callerRequestCode, the requestCode of caller ability.·
+     * @param isBackToCallerApp, whether the request is from backToCallerAppWithResult.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
-        const Want *resultWant, int64_t callerRequestCode)
+        const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp = false)
     {
         return 0;
     };
@@ -1009,6 +1011,19 @@ public:
     virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
         const std::string& reason = "Abilityms::KillProcess") = 0;
 
+    /**
+     * Kill the process immediately with a specified userId.
+     *
+     * @param bundleName.
+     * @param userId The user id to kill process for, -1 means use caller's userId.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false,
+        int32_t appIndex = -1, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1)
+    {
+        return 0;
+    }
+
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
      * force timeout ability.
@@ -1270,9 +1285,11 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param frameNum, Special frameNum for remove start window num.
+     * @param connect, Optional IAbilityConnection callback for receiving caller object after prelaunch.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
+    virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
+        const sptr<IAbilityConnection> &connect)
     {
         return 0;
     };
@@ -1984,6 +2001,17 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual ErrCode SetGamePreLaunchCompleteTime(int32_t userId, int64_t completeTime)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Extend game prelaunch timeout. Resets the game pre-launch foreground countdown.
+     * @param pid Indicates the process ID of the game pre-launch ability to extend.
+     * @param extendTime The extended time in microseconds, must be in range (30s, 4h).
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode ExtendGamePreLaunchTimeout(int32_t pid, int64_t extendTime)
     {
         return ERR_OK;
     }
@@ -2943,6 +2971,16 @@ public:
     }
 
     virtual int32_t NotifyInsightIntentExecute(uint64_t intentId)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t UnregisterWillInsightIntentExecuteCallback()
     {
         return ERR_OK;
     }

@@ -174,7 +174,7 @@ const std::string HELP_MSG_APPDEBUG_APP_DEBUG =
     "  -c, --cancel                                let application cancel wait debug\n"
     "  -g, --get                                   get wait debug mode application bundle name and persist flag\n";
 
-const std::string HELP_MSG_FORCE_STOP = "usage: aa force-stop <bundle-name> [-p pid] [-r kill-reason]\n";
+const std::string HELP_MSG_FORCE_STOP = "usage: aa force-stop <bundle-name> [-p pid] [-r kill-reason] [-u userId]\n";
 const std::string HELP_MSG_BLOCK_ABILITY = "usage: aa block-ability <abilityrecordid>\n";
 const std::string HELP_MSG_FORCE_TIMEOUT =
     "usage: aa force-timeout <ability-name> <INITIAL|INACTIVE|COMMAND|FOREGROUND|BACKGROUND|TERMINATING>\n"
@@ -257,8 +257,6 @@ private:
     ErrCode CreateCommandMap() override;
     ErrCode init() override;
 
-    bool IsShellCall() const;
-    bool IsLocalDebugOtherAppsCall() const;
     ErrCode RunAsHelpCommand();
     ErrCode RunAsStartAbility();
     ErrCode RunAsStopService();

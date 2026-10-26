@@ -109,10 +109,10 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             break;
         }
         case 10: {
-            // HandleUnregisterManagedProcess: ReadString16, ReadInt32, ReadInt32
+            // HandleUnregisterManagedProcess: ReadString16, ReadInt64, ReadInt32
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_MANAGED_PROCESS);
             parcel.WriteString16(Str8ToStr16(fdp.ConsumeRandomLengthString()));
-            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt64(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         }

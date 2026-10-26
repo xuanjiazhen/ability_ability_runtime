@@ -495,7 +495,7 @@ HWTEST_F(AppMgrServiceModuleTest, KillApplication_001, TestSize.Level1)
 
     auto mockHandler = [&testResult, testBundleName, &sem](
         const std::string& bundleName, const bool clearPageStack = false, int32_t appIndex = 0,
-        const std::string& reason = "KillApplication") {
+        const std::string& reason = "KillApplication", int32_t userId = -1) {
         testResult = (bundleName == testBundleName);
         sem.Post();
         return 0;
@@ -504,7 +504,7 @@ HWTEST_F(AppMgrServiceModuleTest, KillApplication_001, TestSize.Level1)
     for (int i = 0; i < COUNT; ++i) {
         testResult = false;
 
-        EXPECT_CALL(*mockAppMgrServiceInner_, KillApplication(_, _, _, _)).Times(1).WillOnce(Invoke(mockHandler));
+        EXPECT_CALL(*mockAppMgrServiceInner_, KillApplication(_, _, _, _, _)).Times(1).WillOnce(Invoke(mockHandler));
 
         int ret = appMgrService_->GetAmsMgr()->KillApplication(testBundleName);
 
@@ -548,21 +548,24 @@ HWTEST_F(AppMgrServiceModuleTest, QueryServiceState_001, TestSize.Level1)
 
 /**
  * @tc.name: AppMgrService_RegisterManagedProcess_0100
- * @tc.desc: The wrapper only admits the climgr process: a non-climgr uid is rejected at
- *           the uid gate even when the caller is a system app.
+ * @tc.desc: The wrapper only admits the climgr process: any non-climgr uid is rejected
+ *           at the uid gate.
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterManagedProcess_0100, TestSize.Level1)
 {
     IPCSkeleton::SetCallingUid(3093); // any uid other than climgr (aimgr, 3092)
-    auto ret = appMgrService_->RegisterManagedProcess("ams_register_managed_0100", 4321, 2, 3099);
+    int64_t attributionId = 1;
+    auto ret = appMgrService_->RegisterManagedProcess("ams_register_managed_0100", 4321, 2, 3099,
+        attributionId);
     EXPECT_EQ(ret, AAFwk::ERR_NOT_SYSTEM_APP);
+    EXPECT_EQ(attributionId, 0);
     IPCSkeleton::SetCallingUid(-1); // restore the real process identity
 }
 
 /**
  * @tc.name: AppMgrService_RegisterManagedProcess_0200
- * @tc.desc: With the climgr calling uid the gates pass and the call is delegated to the
+ * @tc.desc: With the climgr calling uid the gate passes and the call is delegated to the
  *           task manager (an unknown task surfaces as ERR_TASK_NOT_FOUND, not as a
  *           permission rejection).
  * @tc.type: FUNC
@@ -570,9 +573,12 @@ HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterManagedProcess_0100, Tes
 HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterManagedProcess_0200, TestSize.Level1)
 {
     IPCSkeleton::SetCallingUid(3092); // climgr runs in the aimgr process (uid 3092)
-    auto ret = appMgrService_->RegisterManagedProcess("ams_register_managed_0200", 4321, 2, 3099);
+    int64_t attributionId = 1;
+    auto ret = appMgrService_->RegisterManagedProcess("ams_register_managed_0200", 4321, 2, 3099,
+        attributionId);
     EXPECT_EQ(ret, AAFwk::ERR_TASK_NOT_FOUND);
-    ret = appMgrService_->UnregisterManagedProcess("ams_register_managed_0200", 4321, 3099);
+    EXPECT_EQ(attributionId, 0);
+    ret = appMgrService_->UnregisterManagedProcess("ams_register_managed_0200", 1, 3099);
     EXPECT_EQ(ret, AAFwk::ERR_TASK_NOT_FOUND);
     IPCSkeleton::SetCallingUid(-1);
 }
@@ -588,10 +594,12 @@ HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterInAppSkillProcess_0100, 
 {
     IPCSkeleton::SetCallingUid(3092);
     int32_t resolvedPid = 0;
+    int64_t attributionId = 1;
     auto ret = appMgrService_->RegisterInAppSkillProcess("ams_in_app_skill_0100",
-        "com.example.ams.skill.host.missing", 3099, resolvedPid);
+        "com.example.ams.skill.host.missing", 3099, resolvedPid, attributionId);
     EXPECT_EQ(ret, AAFwk::INNER_ERR);
     EXPECT_EQ(resolvedPid, -1);
+    EXPECT_EQ(attributionId, 0);
     IPCSkeleton::SetCallingUid(-1);
 }
 
@@ -628,19 +636,26 @@ HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterInAppSkillProcess_0200, 
     // through the parameter, mirroring the real climgr -> appmgr chain.
     IPCSkeleton::SetCallingUid(3092);
     int32_t resolvedPid = 0;
-    auto ret = appMgrService_->RegisterInAppSkillProcess(taskId, bundleName, creatorUid, resolvedPid);
+    int64_t attributionId = 0;
+    auto ret = appMgrService_->RegisterInAppSkillProcess(taskId, bundleName, creatorUid, resolvedPid,
+        attributionId);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(resolvedPid, mainPid);
+    EXPECT_GT(attributionId, 0);
 
     // Ownership is enforced inside the registration: another uid is rejected without
     // the task being registered twice.
     int32_t otherPid = 0;
-    ret = appMgrService_->RegisterInAppSkillProcess(taskId, bundleName, creatorUid + 1, otherPid);
+    int64_t otherAttributionId = 0;
+    ret = appMgrService_->RegisterInAppSkillProcess(taskId, bundleName, creatorUid + 1, otherPid,
+        otherAttributionId);
     EXPECT_EQ(ret, AAFwk::ERR_TASK_NOT_FOUND);
     EXPECT_EQ(otherPid, -1);
+    EXPECT_EQ(otherAttributionId, 0);
 
-    // Detach through the wrapper, then clean the seeded task and record up.
-    ret = appMgrService_->UnregisterManagedProcess(taskId, mainPid, creatorUid);
+    // Detach through the wrapper by the handle handed back above, then clean the
+    // seeded task and record up.
+    ret = appMgrService_->UnregisterManagedProcess(taskId, attributionId, creatorUid);
     EXPECT_EQ(ret, ERR_OK);
     IPCSkeleton::SetCallingUid(creatorUid);
     EXPECT_EQ(TaskManagerService::GetInstance().FinishTask(taskId), ERR_OK);
@@ -658,10 +673,12 @@ HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterInAppSkillProcess_0300, 
 {
     IPCSkeleton::SetCallingUid(3093);
     int32_t resolvedPid = 0;
+    int64_t attributionId = 1;
     auto ret = appMgrService_->RegisterInAppSkillProcess("ams_in_app_skill_0300",
-        "com.example.ams.skill.host", 3099, resolvedPid);
+        "com.example.ams.skill.host", 3099, resolvedPid, attributionId);
     EXPECT_EQ(ret, AAFwk::ERR_NOT_SYSTEM_APP);
     EXPECT_EQ(resolvedPid, -1);
+    EXPECT_EQ(attributionId, 0);
     IPCSkeleton::SetCallingUid(-1);
 }
 }  // namespace AppExecFwk

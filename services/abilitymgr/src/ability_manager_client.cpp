@@ -504,12 +504,12 @@ ErrCode AbilityManagerClient::StartSelf(sptr<IRemoteObject> token)
 }
 
 ErrCode AbilityManagerClient::BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
-    const Want *resultWant, int64_t callerRequestCode)
+    const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->BackToCallerAbilityWithResult(token, resultCode, resultWant, callerRequestCode);
+    return abms->BackToCallerAbilityWithResult(token, resultCode, resultWant, callerRequestCode, isBackToCallerApp);
 }
 
 ErrCode AbilityManagerClient::TerminateUIServiceExtensionAbility(sptr<IRemoteObject> token)
@@ -871,6 +871,15 @@ ErrCode AbilityManagerClient::KillProcess(const std::string &bundleName, bool cl
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->KillProcess(bundleName, clearPageStack, appIndex, reason);
+}
+
+ErrCode AbilityManagerClient::KillProcessWithUserId(const std::string &bundleName, bool clearPageStack,
+    int32_t appIndex, const std::string& reason, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "enter");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->KillProcessWithUserId(bundleName, clearPageStack, appIndex, reason, userId);
 }
 
 #ifdef ABILITY_COMMAND_FOR_TEST
@@ -1291,14 +1300,15 @@ ErrCode AbilityManagerClient::StartAbilityByCallWithErrMsg(const Want &want, spt
         isVisible);
 }
 
-ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
+ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
+    const sptr<IAbilityConnection> &connect)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s/%{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s/%{public}s, hasConnect:%{public}d",
         want.GetBundle().c_str(),
-        want.GetElement().GetAbilityName().c_str());
-    return abms->StartAbilityForPrelaunch(want, frameNum);
+        want.GetElement().GetAbilityName().c_str(), connect != nullptr ? 1 : 0);
+    return abms->StartAbilityForPrelaunch(want, frameNum, connect);
 }
 
 ErrCode AbilityManagerClient::StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params)
@@ -1530,11 +1540,11 @@ ErrCode AbilityManagerClient::DelegatorDoAbilityForeground(sptr<IRemoteObject> t
     return abms->DelegatorDoAbilityForeground(token);
 }
 
-ErrCode AbilityManagerClient::DelegatorDoAbilityBackground(sptr<IRemoteObject> token, int32_t userId)
+ErrCode AbilityManagerClient::DelegatorDoAbilityBackground(sptr<IRemoteObject> token)
 {
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto sceneSessionManager = SessionManagerLite::GetInstance(userId).GetSceneSessionManagerLiteProxy();
+        auto sceneSessionManager = SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
         CHECK_POINTER_RETURN_INVALID_VALUE(sceneSessionManager);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, DelegatorDoAbilityBackground");
         sceneSessionManager->PendingSessionToBackgroundForDelegator(token);
@@ -2734,6 +2744,15 @@ ErrCode AbilityManagerClient::SetGamePreLaunchCompleteTime(int32_t userId, int64
     return abms->SetGamePreLaunchCompleteTime(userId, completeTime);
 }
 
+ErrCode AbilityManagerClient::ExtendGamePreLaunchTimeout(int32_t pid, int64_t extendTime)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ExtendGamePreLaunchTimeout called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->ExtendGamePreLaunchTimeout(pid, extendTime);
+}
+
 ErrCode AbilityManagerClient::StartSelfUIAbilityInChildProcess(const Want &want, const std::string &specifiedFlag,
     sptr<IRemoteObject> callerToken)
 {
@@ -2846,6 +2865,22 @@ ErrCode AbilityManagerClient::NotifyInsightIntentExecute(uint64_t intentId)
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->NotifyInsightIntentExecute(intentId);
+}
+
+ErrCode AbilityManagerClient::RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->RegisterWillInsightIntentExecuteCallback(callback);
+}
+
+ErrCode AbilityManagerClient::UnregisterWillInsightIntentExecuteCallback()
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->UnregisterWillInsightIntentExecuteCallback();
 }
 
 ErrCode AbilityManagerClient::QuerySkillType(const std::string &bundleName, const std::string &moduleName,

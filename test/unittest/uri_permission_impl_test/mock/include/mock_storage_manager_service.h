@@ -77,6 +77,12 @@ public:
         return E_OK;
     }
 
+    virtual int32_t SetDirEncryptionPolicyWithKeyDesc(const std::string &dirPath, uint32_t level,
+ 	                                                  const std::string &keyDesc) override
+    {
+        return E_OK;
+    }
+
     virtual int32_t GetBundleStats(const std::string &pkgName, BundleStats &bundleStats,
         int32_t index, uint32_t statFlag) override
     {
@@ -395,6 +401,16 @@ public:
     }
 
     virtual int32_t UMountCloudDiskFuse(int32_t userId, const std::string &path) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t MountUdmfClipFuse(int32_t userId, const std::string &path, int32_t &fuseFd) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t UMountUdmfClipFuse(int32_t userId, const std::string &path) override
     {
         return E_OK;
     }

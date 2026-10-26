@@ -1674,7 +1674,7 @@ HWTEST_F(AppMgrStubTest, HandleRegisterManagedProcess_0100, TestSize.Level1)
     data.WriteInt32(tool);
     data.WriteInt32(callerUid);
 
-    EXPECT_CALL(*mockAppMgrService_, RegisterManagedProcess(taskId, pid, tool, callerUid))
+    EXPECT_CALL(*mockAppMgrService_, RegisterManagedProcess(taskId, pid, tool, callerUid, _))
         .Times(1)
         .WillOnce(Return(AAFwk::ERR_TASK_NOT_FOUND));
 
@@ -1682,6 +1682,7 @@ HWTEST_F(AppMgrStubTest, HandleRegisterManagedProcess_0100, TestSize.Level1)
         static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_MANAGED_PROCESS), data, reply, option);
     EXPECT_EQ(ret, NO_ERROR);
     EXPECT_EQ(reply.ReadInt32(), AAFwk::ERR_TASK_NOT_FOUND);
+    EXPECT_EQ(reply.ReadInt64(), 0);
 }
 
 /**
@@ -1701,7 +1702,7 @@ HWTEST_F(AppMgrStubTest, HandleRegisterManagedProcess_0200, TestSize.Level1)
     data.WriteInt32(2);
     data.WriteInt32(3099);
 
-    EXPECT_CALL(*mockAppMgrService_, RegisterManagedProcess(_, _, _, _))
+    EXPECT_CALL(*mockAppMgrService_, RegisterManagedProcess(_, _, _, _, _))
         .Times(1)
         .WillOnce(Return(AAFwk::INVALID_PARAMETERS_ERR));
 
@@ -1724,13 +1725,13 @@ HWTEST_F(AppMgrStubTest, HandleUnregisterManagedProcess_0100, TestSize.Level1)
 
     WriteInterfaceToken(data);
     std::string taskId = "stub_unregister_managed_0100";
-    constexpr int32_t pid = 4321;
+    constexpr int64_t attributionId = 77;
     constexpr int32_t callerUid = 3099;
     data.WriteString16(Str8ToStr16(taskId));
-    data.WriteInt32(pid);
+    data.WriteInt64(attributionId);
     data.WriteInt32(callerUid);
 
-    EXPECT_CALL(*mockAppMgrService_, UnregisterManagedProcess(taskId, pid, callerUid))
+    EXPECT_CALL(*mockAppMgrService_, UnregisterManagedProcess(taskId, attributionId, callerUid))
         .Times(1)
         .WillOnce(Return(ERR_OK));
 
@@ -1757,15 +1758,18 @@ HWTEST_F(AppMgrStubTest, HandleRegisterInAppSkillProcess_0100, TestSize.Level1)
     std::string bundleName = "com.example.skill.host";
     constexpr int32_t callerUid = 3099;
     constexpr int32_t resolvedPid = 8765;
+    constexpr int64_t attributionId = 77;
     data.WriteString16(Str8ToStr16(taskId));
     data.WriteString16(Str8ToStr16(bundleName));
     data.WriteInt32(callerUid);
 
-    EXPECT_CALL(*mockAppMgrService_, RegisterInAppSkillProcess(taskId, bundleName, callerUid, _))
+    EXPECT_CALL(*mockAppMgrService_, RegisterInAppSkillProcess(taskId, bundleName, callerUid, _, _))
         .Times(1)
-        .WillOnce(Invoke([&resolvedPid](const std::string &taskId, const std::string &bundleName,
-            int32_t callerUid, int32_t &outPid) {
+        .WillOnce(Invoke([&resolvedPid, &attributionId](const std::string &taskId,
+            const std::string &bundleName, int32_t callerUid, int32_t &outPid,
+            int64_t &outAttributionId) {
             outPid = resolvedPid;
+            outAttributionId = attributionId;
             return ERR_OK;
         }));
 
@@ -1774,6 +1778,7 @@ HWTEST_F(AppMgrStubTest, HandleRegisterInAppSkillProcess_0100, TestSize.Level1)
     EXPECT_EQ(ret, NO_ERROR);
     EXPECT_EQ(reply.ReadInt32(), ERR_OK);
     EXPECT_EQ(reply.ReadInt32(), resolvedPid);
+    EXPECT_EQ(reply.ReadInt64(), attributionId);
 }
 
 /**
@@ -1793,11 +1798,12 @@ HWTEST_F(AppMgrStubTest, HandleRegisterInAppSkillProcess_0200, TestSize.Level1)
     data.WriteString16(Str8ToStr16("com.example.skill.host"));
     data.WriteInt32(3099);
 
-    EXPECT_CALL(*mockAppMgrService_, RegisterInAppSkillProcess(_, _, _, _))
+    EXPECT_CALL(*mockAppMgrService_, RegisterInAppSkillProcess(_, _, _, _, _))
         .Times(1)
         .WillOnce(Invoke([](const std::string &taskId, const std::string &bundleName,
-            int32_t callerUid, int32_t &outPid) {
+            int32_t callerUid, int32_t &outPid, int64_t &outAttributionId) {
             outPid = -1;
+            outAttributionId = 0;
             return AAFwk::INNER_ERR;
         }));
 
@@ -1806,6 +1812,7 @@ HWTEST_F(AppMgrStubTest, HandleRegisterInAppSkillProcess_0200, TestSize.Level1)
     EXPECT_EQ(ret, NO_ERROR);
     EXPECT_EQ(reply.ReadInt32(), AAFwk::INNER_ERR);
     EXPECT_EQ(reply.ReadInt32(), -1);
+    EXPECT_EQ(reply.ReadInt64(), 0);
 }
 
 /**

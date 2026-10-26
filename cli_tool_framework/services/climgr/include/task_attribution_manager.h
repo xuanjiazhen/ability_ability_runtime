@@ -53,39 +53,45 @@ public:
     TaskAttributionManager &operator=(TaskAttributionManager &&) = delete;
 
     /**
-     * @brief Attributes a tool/command child process into the task. The server performs
-     *        the ownership check (creator uid) and the liveness check atomically with the
-     *        registration, so the result only tells whether the process is attributed.
+     * @brief Attributes a tool/command child process into the task and hands back the
+     *        server-assigned attribution id. The server performs the ownership check
+     *        (creator uid) and the liveness check atomically with the registration, so
+     *        the result only tells whether the process is attributed.
      * @param taskId Indicates the attribution key carried by the options (code channel).
      * @param pid Indicates the pid returned by the successful fork (one-hop anchor).
      * @param callerUid Indicates the forensic uid read from the session record.
+     * @param attributionId Outputs the server-assigned attribution id on success,
+     *        or 0 on any failure (no attribution, no detach will fire).
      * @return Returns ERR_OK when the process is attributed; INVALID_PARAMETERS_ERR on
      *         invalid parameters; ERR_TASK_NOT_FOUND when the task does not exist or is
      *         owned by another uid (not distinguished, to prevent enumeration);
      *         INNER_ERR when appmgr is unreachable. The caller logs and continues.
      */
-    int32_t AttachProcess(const std::string &taskId, pid_t pid, int32_t callerUid);
+    int32_t AttachProcess(const std::string &taskId, pid_t pid, int32_t callerUid, int64_t &attributionId);
 
     /**
-     * @brief Removes a process from the managed set of the task; idempotent, the
-     *        unregister object is the attributed pid (SessionRecord.attributedPid).
+     * @brief Removes the attribution record with the given id from the task; idempotent,
+     *        the unregister object is the server-assigned handle
+     *        (SessionRecord.attributionId).
      * @param taskId Indicates the attribution key of the session.
-     * @param pid Indicates the attributed pid; invalid (<= 0) means "no attribution"
-     *            and is a silent no-op.
+     * @param attributionId Indicates the id returned by AttachProcess; invalid (<= 0)
+     *            means "no attribution" and is a silent no-op.
      * @param callerUid Indicates the forensic uid read from the session record.
      * @return Returns ERR_OK on success or no-op; ERR_TASK_NOT_FOUND when the task does
      *         not exist or is owned by another uid; INNER_ERR when appmgr is
      *         unreachable. The caller logs and continues.
      */
-    int32_t DetachProcess(const std::string &taskId, pid_t pid, int32_t callerUid);
+    int32_t DetachProcess(const std::string &taskId, int64_t attributionId, int32_t callerUid);
 
     /**
      * @brief In-app skill attribution: appmgr locates the target application main
      *        process by the reserved bundle name server-side and attributes it.
      * @param taskId Indicates the attribution key of the session.
      * @param bundleName Indicates the reserved parameter used only for process location.
-     * @param outPid Outputs the attributed pid on success (for the later detach), or -1
-     *               on any failure (no attribution object, no side effect).
+     * @param outPid Outputs the attributed pid on success (for logging and diagnostics),
+     *               or -1 on any failure (no attribution object, no side effect).
+     * @param attributionId Outputs the server-assigned attribution id on success,
+     *        or 0 on any failure (no attribution, no detach will fire).
      * @param callerUid Indicates the forensic uid read from the session record.
      * @return Returns ERR_OK on success; INNER_ERR when the target application is not
      *         running or its on-demand startup has not finished (known cold-start
@@ -94,7 +100,7 @@ public:
      *         and continues.
      */
     int32_t AttachInAppSkillProcess(const std::string &taskId, const std::string &bundleName, pid_t &outPid,
-        int32_t callerUid);
+        int64_t &attributionId, int32_t callerUid);
 
 private:
     TaskAttributionManager() = default;

@@ -2134,6 +2134,38 @@ int32_t AppMgrProxy::UnregisterAppForegroundStateObserver(const sptr<IAppForegro
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (observer == nullptr || !data.WriteRemoteObject(observer->AsObject())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Observer is null or Write Remote failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::REGISTER_PROCESS_LIFECYCLE_OBSERVER, data, reply, option);
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (observer == nullptr || !data.WriteRemoteObject(observer->AsObject())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Observer is null or Write Remote failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::UNREGISTER_PROCESS_LIFECYCLE_OBSERVER, data, reply, option);
+    return reply.ReadInt32();
+}
+
 int32_t AppMgrProxy::IsApplicationRunning(const std::string &bundleName, bool &isRunning)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -3287,8 +3319,9 @@ int32_t AppMgrProxy::FinishTask(const std::string &taskId)
 }
 
 int32_t AppMgrProxy::RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
-    int32_t callerUid)
+    int32_t callerUid, int64_t &attributionId)
 {
+    attributionId = 0;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -3303,10 +3336,13 @@ int32_t AppMgrProxy::RegisterManagedProcess(const std::string &taskId, int32_t p
     PARCEL_UTIL_WRITE_RET_INT(data, Int32, tool);
     PARCEL_UTIL_WRITE_RET_INT(data, Int32, callerUid);
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::REGISTER_MANAGED_PROCESS, data, reply, option);
-    return reply.ReadInt32();
+    int32_t result = reply.ReadInt32();
+    attributionId = reply.ReadInt64();
+    return result;
 }
 
-int32_t AppMgrProxy::UnregisterManagedProcess(const std::string &taskId, int32_t pid, int32_t callerUid)
+int32_t AppMgrProxy::UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+    int32_t callerUid)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -3318,15 +3354,17 @@ int32_t AppMgrProxy::UnregisterManagedProcess(const std::string &taskId, int32_t
     }
 
     PARCEL_UTIL_WRITE_RET_INT(data, String16, Str8ToStr16(taskId));
-    PARCEL_UTIL_WRITE_RET_INT(data, Int32, pid);
+    PARCEL_UTIL_WRITE_RET_INT(data, Int64, attributionId);
     PARCEL_UTIL_WRITE_RET_INT(data, Int32, callerUid);
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::UNREGISTER_MANAGED_PROCESS, data, reply, option);
     return reply.ReadInt32();
 }
 
 int32_t AppMgrProxy::RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
-    int32_t callerUid, int32_t &resolvedPid)
+    int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId)
 {
+    resolvedPid = -1;
+    attributionId = 0;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -3342,6 +3380,7 @@ int32_t AppMgrProxy::RegisterInAppSkillProcess(const std::string &taskId, const 
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::REGISTER_IN_APP_SKILL_PROCESS, data, reply, option);
     int32_t result = reply.ReadInt32();
     resolvedPid = reply.ReadInt32();
+    attributionId = reply.ReadInt64();
     return result;
 }
 

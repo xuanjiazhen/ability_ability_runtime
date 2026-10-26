@@ -17,23 +17,22 @@
 #include <charconv>
 #include <csignal>
 #include <cstdlib>
+#include <functional>
 #include <getopt.h>
 #include <iostream>
 #include <regex>
+#include <unordered_map>
 #include "ability_manager_client.h"
 #include "ability_start_with_wait_observer.h"
 #include "ability_start_with_wait_observer_utils.h"
 #include "ability_tool_convert_util.h"
-#include "accesstoken_kit.h"
 #include "app_mgr_client.h"
 #include "event_report.h"
-#include "token_setproc.h"
 #include "hilog_tag_wrapper.h"
 #include "iservice_registry.h"
 #include "mission_snapshot.h"
 #include "bool_wrapper.h"
 #include "parameters.h"
-#include "permission_constants.h"
 #include "sa_mgr_client.h"
 #include "system_ability_definition.h"
 #include "test_observer.h"
@@ -466,33 +465,9 @@ ErrCode AbilityManagerShellCommand::init()
     return AbilityManagerClient::GetInstance()->Connect();
 }
 
-bool AbilityManagerShellCommand::IsShellCall() const
-{
-    auto selfTokenId = GetSelfTokenID();
-    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(
-        static_cast<Security::AccessToken::AccessTokenID>(selfTokenId));
-    return tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL;
-}
-
-bool AbilityManagerShellCommand::IsLocalDebugOtherAppsCall() const
-{
-    if (!system::GetBoolParameter(DEVELOPERMODE_STATE, false)) {
-        return false;
-    }
-    auto selfTokenId = GetSelfTokenID();
-    return Security::AccessToken::AccessTokenKit::VerifyAccessToken(
-        static_cast<Security::AccessToken::AccessTokenID>(selfTokenId),
-        AAFwk::PermissionConstants::PERMISSION_LOCAL_DEBUG_OTHER_APPS) ==
-        Security::AccessToken::PermissionState::PERMISSION_GRANTED;
-}
 
 ErrCode AbilityManagerShellCommand::RunAsHelpCommand()
 {
-    if (!IsShellCall() && !IsLocalDebugOtherAppsCall()) {
-        resultReceiver_.append("error: permission denied. aa help requires shell identity or "
-            "developer mode with LOCAL_DEBUG_OTHER_APPS permission.\n");
-        return OHOS::ERR_PERMISSION_DENIED;
-    }
     resultReceiver_.append(HELP_MSG);
 
     return OHOS::ERR_OK;
@@ -822,27 +797,37 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     auto reason = Reason::REASON_UNKNOWN;
     std::string inputReason = "aa force-stop";
     pid_t pid = 0;
+    int32_t userId = -1;
+    std::unordered_map<std::string, std::function<void(std::string&)>> optHandlers = {
+        {"-p", [&](std::string& v) { pid = ConvertPid(v); }},
+        {"-r", [&](std::string& v) {
+            inputReason = v;
+            reason = AbilityToolConvertUtil::ConvertExitReason(v);
+        }},
+        {"-u", [&](std::string& v) {
+            if (!StrToInt(v, userId)) {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "userId stoi(%{public}s) failed", v.c_str());
+                userId = -1;
+            }
+        }},
+    };
     for (auto index = INDEX_OFFSET; index < argc_; ++index) {
         TAG_LOGD(AAFwkTag::AA_TOOL, "argv_[%{public}d]: %{public}s", index, argv_[index]);
         std::string opt = argv_[index];
-        if (opt == "-p") {
-            index++;
-            if (index < argc_) {
-                TAG_LOGD(AAFwkTag::AA_TOOL, "argv_[%{public}d]: %{public}s", index, argv_[index]);
-                std::string inputPid = argv_[index];
-                pid = ConvertPid(inputPid);
-            }
-        } else if (opt == "-r") {
-            index++;
-            if (index < argc_) {
-                TAG_LOGD(AAFwkTag::AA_TOOL, "argv_[%{public}d]: %{public}s", index, argv_[index]);
-                inputReason = argv_[index];
-                reason = AbilityToolConvertUtil::ConvertExitReason(inputReason);
-            }
+        auto it = optHandlers.find(opt);
+        if (it == optHandlers.end()) {
+            continue;
+        }
+        index++;
+        if (index < argc_) {
+            TAG_LOGD(AAFwkTag::AA_TOOL, "argv_[%{public}d]: %{public}s", index, argv_[index]);
+            std::string value = argv_[index];
+            it->second(value);
         }
     }
 
-    TAG_LOGI(AAFwkTag::AA_TOOL, "pid %{public}d, reason %{public}s", pid, inputReason.c_str());
+    TAG_LOGI(AAFwkTag::AA_TOOL, "pid %{public}d, reason %{public}s, userId %{public}d", pid, inputReason.c_str(),
+        userId);
     if (pid > 0 && reason != Reason::REASON_UNKNOWN) {
         ExitReason exitReason = {reason, "aa force-stop"};
         exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP;
@@ -852,7 +837,7 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     }
 
     ErrCode result = OHOS::ERR_OK;
-    result = AbilityManagerClient::GetInstance()->KillProcess(bundleName, false, 0, inputReason);
+    result = AbilityManagerClient::GetInstance()->KillProcessWithUserId(bundleName, false, 0, inputReason, userId);
     if (result == OHOS::ERR_OK) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_FORCE_STOP_OK.c_str());
         resultReceiver_ = STRING_FORCE_STOP_OK + "\n";

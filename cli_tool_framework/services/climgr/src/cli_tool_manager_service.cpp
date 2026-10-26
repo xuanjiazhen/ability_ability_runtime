@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
+#include <cinttypes>
 #include <csignal>
 #include <cstdio>
 #include <cstring>
@@ -404,7 +405,7 @@ void CliToolManagerService::OnStop()
     // out before the process exits is covered by the appmgr-side process-death
     // backstop / task-window close (design ADR-7 / resource ownership matrix).
     std::vector<std::string> detachTaskIds;
-    std::vector<pid_t> detachPids;
+    std::vector<int64_t> detachAttributionIds;
     std::vector<int32_t> detachUids;
     {
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
@@ -415,9 +416,9 @@ void CliToolManagerService::OnStop()
             if (record->processId > 0 && !record->HasProcessExited()) {
                 activePids.emplace_back(record->processId);
             }
-            if (!record->taskId.empty() && record->attributedPid > 0) {
+            if (!record->taskId.empty() && record->attributionId > 0) {
                 detachTaskIds.emplace_back(record->taskId);
-                detachPids.emplace_back(record->attributedPid);
+                detachAttributionIds.emplace_back(record->attributionId);
                 detachUids.emplace_back(record->callerUid);
             }
         }
@@ -428,7 +429,7 @@ void CliToolManagerService::OnStop()
     EventDispatcher::GetInstance().ClearAll();
 
     for (size_t i = 0; i < detachTaskIds.size(); ++i) {
-        PostDetachTaskAttribution(detachTaskIds[i], detachPids[i], detachUids[i]);
+        PostDetachTaskAttribution(detachTaskIds[i], detachAttributionIds[i], detachUids[i]);
     }
 
     // Stop the reaper subsystem: disarms SIGCHLD (SIG_IGN auto-reaps future exits; status discarded is fine —
@@ -526,22 +527,22 @@ void CliToolManagerService::RemoveSessionRecord(const std::string &sessionId)
     EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
     // STATE-1 teardown: snapshot the attribution inside the session-table lock,
     // then post the detach outside it (P2-3: the caller may be the reaper thread
-    // and must not run the unregister IPC inline). attributedPid = -1 (never
+    // and must not run the unregister IPC inline). attributionId = 0 (never
     // attributed or already consumed by WaitPid) is a silent no-op (INV-3).
     std::string taskId;
-    pid_t attributedPid = -1;
+    int64_t attributionId = 0;
     int32_t callerUid = -1;
     {
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
         auto it = sessionRecords_.find(sessionId);
         if (it != sessionRecords_.end() && it->second != nullptr) {
             taskId = it->second->taskId;
-            attributedPid = it->second->attributedPid;
+            attributionId = it->second->attributionId;
             callerUid = it->second->callerUid;
         }
         sessionRecords_.erase(sessionId);
     }
-    PostDetachTaskAttribution(taskId, attributedPid, callerUid);
+    PostDetachTaskAttribution(taskId, attributionId, callerUid);
 }
 
 void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record)
@@ -557,7 +558,7 @@ void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionR
     // ONCE here: the reaper (WaitPid) may invalidate record->processId at any
     // moment (waitpid reuse protection), so re-reading the member after the
     // attach IPC could observe -1 and produce an orphan server registration
-    // with no local attributedPid to detach it with.
+    // with no local attribution handle to detach it with.
     pid_t anchor = record->processId;
     if (anchor <= 0) {
         TAG_LOGW(AAFwkTag::CLI_TOOL,
@@ -567,10 +568,11 @@ void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionR
     }
     // callerUid is read from the session record, never threaded through the
     // setup signatures (P2-2); the server validates ownership with it.
+    int64_t attributionId = 0;
     int32_t ret = TaskAttributionManager::GetInstance().AttachProcess(
-        record->taskId, anchor, record->callerUid);
+        record->taskId, anchor, record->callerUid, attributionId);
     if (ret != ERR_OK) {
-        // Not attributed: keep attributedPid at -1 (no detach will fire) and drop
+        // Not attributed: keep attributionId at 0 (no detach will fire) and drop
         // the mapping residue (INV-1). The execution itself stands (ADR-2).
         TAG_LOGW(AAFwkTag::CLI_TOOL,
             "AttachTaskAttribution not attributed, ret=%{public}d, sessionId=%{public}s, taskId=%{public}s",
@@ -578,12 +580,14 @@ void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionR
         record->taskId.clear();
         return;
     }
-    // The same captured anchor keeps attributedPid consistent with what the
+    // The server-assigned handle is the sole detach key; the anchor pid stays in
+    // the log only. The captured anchor keeps the log consistent with what the
     // server registered even if the reaper invalidated processId mid-attach.
-    record->attributedPid = anchor;
+    record->attributionId = attributionId;
     TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "AttachTaskAttribution attributed, sessionId=%{public}s, pid=%{public}d, taskId=%{public}s",
-        record->sessionId.c_str(), anchor, record->taskId.c_str());
+        "AttachTaskAttribution attributed, sessionId=%{public}s, pid=%{public}d, "
+        "attributionId=%{public}" PRId64 ", taskId=%{public}s",
+        record->sessionId.c_str(), anchor, attributionId, record->taskId.c_str());
 }
 
 void CliToolManagerService::AttachSkillTaskAttribution(const std::shared_ptr<SessionRecord> &record,
@@ -599,17 +603,18 @@ void CliToolManagerService::AttachSkillTaskAttribution(const std::shared_ptr<Ses
     // The in-app skill has no forked child of its own: the anchor pid is the
     // target bundle's main process, resolved by the attribution service
     // (IPC 151, v1.4 P1-1). callerUid is read from the session record, never
-    // threaded through the setup signatures (P2-2). resolvedPid is a local
-    // out-parameter, so it is inherently race-free (no member re-read after
-    // the IPC — unlike the forked-process path, which captures its anchor
-    // into a local for the same reason).
+    // threaded through the setup signatures (P2-2). resolvedPid and the
+    // attribution handle are local out-parameters, so they are inherently
+    // race-free (no member re-read after the IPC — unlike the forked-process
+    // path, which captures its anchor into a local for the same reason).
     pid_t resolvedPid = -1;
+    int64_t attributionId = 0;
     int32_t ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess(
-        record->taskId, bundleName, resolvedPid, record->callerUid);
+        record->taskId, bundleName, resolvedPid, attributionId, record->callerUid);
     if (ret != ERR_OK || resolvedPid <= 0) {
         // Not attributed (target not running / cold-start window / task gone /
         // owned by another uid): no attribution object and no side effect
-        // (R-10/R-11) — attributedPid stays -1 (no detach will fire) and the
+        // (R-10/R-11) — attributionId stays 0 (no detach will fire) and the
         // key residue is dropped (INV-1). The skill execution itself is never
         // affected (ADR-2).
         TAG_LOGW(AAFwkTag::CLI_TOOL,
@@ -618,32 +623,34 @@ void CliToolManagerService::AttachSkillTaskAttribution(const std::shared_ptr<Ses
         record->taskId.clear();
         return;
     }
-    record->attributedPid = resolvedPid;
+    record->attributionId = attributionId;
     TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "AttachSkillTaskAttribution attributed, sessionId=%{public}s, pid=%{public}d, taskId=%{public}s",
-        record->sessionId.c_str(), resolvedPid, record->taskId.c_str());
+        "AttachSkillTaskAttribution attributed, sessionId=%{public}s, pid=%{public}d, "
+        "attributionId=%{public}" PRId64 ", taskId=%{public}s",
+        record->sessionId.c_str(), resolvedPid, attributionId, record->taskId.c_str());
 }
 
-void CliToolManagerService::PostDetachTaskAttribution(const std::string &taskId, pid_t attributedPid,
+void CliToolManagerService::PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId,
     int32_t callerUid)
 {
     // Never attributed or already consumed: no unregister call (INV-3; an attach
-    // failure session keeps attributedPid = -1 so it never produces one).
-    if (taskId.empty() || attributedPid <= 0) {
+    // failure session keeps attributionId = 0 so it never produces one).
+    if (taskId.empty() || attributionId <= 0) {
         return;
     }
     // P2-3 hard constraint: the synchronous unregister IPC must not run inline
     // on the reaper/timeout/observer thread (blocking the reaper would stall
     // child reaping). Hand it to the threaded execution environment (ffrt
     // worker) — the same facility PostExecToolTask and DelayUnloadTask use.
-    ffrt::submit([taskId, attributedPid, callerUid]() {
-        int32_t ret = TaskAttributionManager::GetInstance().DetachProcess(taskId, attributedPid, callerUid);
+    ffrt::submit([taskId, attributionId, callerUid]() {
+        int32_t ret = TaskAttributionManager::GetInstance().DetachProcess(taskId, attributionId, callerUid);
         if (ret != ERR_OK) {
             // Idempotent server semantics absorb duplicate/racing detaches
             // (e.g. process death followed by session-table cleanup); log only.
             TAG_LOGW(AAFwkTag::CLI_TOOL,
-                "PostDetachTaskAttribution detach ret=%{public}d, pid=%{public}d, taskId=%{public}s",
-                ret, attributedPid, taskId.c_str());
+                "PostDetachTaskAttribution detach ret=%{public}d, "
+                "attributionId=%{public}" PRId64 ", taskId=%{public}s",
+                ret, attributionId, taskId.c_str());
         }
     });
 }
@@ -1974,7 +1981,7 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
     // lock so exactly one detach fires per attribution even when the later
     // finalize/timeout paths run RemoveSessionRecord on the same record.
     std::string detachTaskId;
-    pid_t detachAttributedPid = -1;
+    int64_t detachAttributionId = 0;
     int32_t detachCallerUid = -1;
     {
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
@@ -1992,12 +1999,12 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
                 record = iter->second;
                 iter->second->processId = -1; // invalidate: reaped pid may be reused by kernel
                 // The attributed process died (INV-3): consume the attribution
-                // now; the unregister key is attributedPid (NOT processId, which
+                // now; the unregister key is attributionId (NOT processId, which
                 // was just invalidated).
                 detachTaskId = iter->second->taskId;
-                detachAttributedPid = iter->second->attributedPid;
+                detachAttributionId = iter->second->attributionId;
                 detachCallerUid = iter->second->callerUid;
-                iter->second->attributedPid = -1;
+                iter->second->attributionId = 0;
                 break;
             }
             ++iter;
@@ -2006,7 +2013,7 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
     AccessToken::AccessTokenKit::DeleteToolTokenByPid(pid);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "WaitPid delete tool pid:%{public}d", pid);
     // P2-3: post (never inline) — this runs on the dedicated reaper thread.
-    PostDetachTaskAttribution(detachTaskId, detachAttributedPid, detachCallerUid);
+    PostDetachTaskAttribution(detachTaskId, detachAttributionId, detachCallerUid);
 
     if (record) {
         TAG_LOGI(AAFwkTag::CLI_TOOL, "WaitPid: found record for pid=%{public}d, toolName=%{public}s",
@@ -2131,7 +2138,7 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
     // erased below WITHOUT going through RemoveSessionRecord, so the detach is
     // collected here; posted outside the lock, P2-3).
     std::vector<std::string> detachTaskIds;
-    std::vector<pid_t> detachPids;
+    std::vector<int64_t> detachAttributionIds;
     std::vector<int32_t> detachUids;
     // Iterate through sessionRecords_ to find matching SessionRecord by callerPid
     {
@@ -2157,9 +2164,9 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
             if (sessionRecord->processId > 0 && !sessionRecord->HasProcessExited()) {
                 activePids.emplace_back(sessionRecord->processId);
             }
-            if (!sessionRecord->taskId.empty() && sessionRecord->attributedPid > 0) {
+            if (!sessionRecord->taskId.empty() && sessionRecord->attributionId > 0) {
                 detachTaskIds.emplace_back(sessionRecord->taskId);
-                detachPids.emplace_back(sessionRecord->attributedPid);
+                detachAttributionIds.emplace_back(sessionRecord->attributionId);
                 detachUids.emplace_back(sessionRecord->callerUid);
             }
             removedSessionIds.emplace_back(iter->first);
@@ -2176,7 +2183,7 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
     }
 
     for (size_t i = 0; i < detachTaskIds.size(); ++i) {
-        PostDetachTaskAttribution(detachTaskIds[i], detachPids[i], detachUids[i]);
+        PostDetachTaskAttribution(detachTaskIds[i], detachAttributionIds[i], detachUids[i]);
     }
 }
 

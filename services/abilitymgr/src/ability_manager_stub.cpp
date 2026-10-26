@@ -136,6 +136,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS) {
         return KillProcessInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_USER_ID) {
+        return KillProcessWithUserIdInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::UNINSTALL_APP) {
         return UninstallAppInner(data, reply);
     }
@@ -1091,8 +1094,17 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::NOTIFY_INSIGHT_INTENT_EXECUTE) {
         return NotifyInsightIntentExecuteInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK) {
+        return RegisterWillInsightIntentExecuteCallbackInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK) {
+        return UnregisterWillInsightIntentExecuteCallbackInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::QUERY_SKILL_TYPE) {
         return QuerySkillTypeInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::EXTEND_GAME_PRELAUNCH_TIMEOUT) {
+        return ExtendGamePreLaunchTimeoutInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -1333,17 +1345,18 @@ int AbilityManagerStub::BackToCallerInner(MessageParcel &data, MessageParcel &re
         token = data.ReadRemoteObject();
     }
     int resultCode = data.ReadInt32();
-    Want *resultWant = data.ReadParcelable<Want>();
-    if (resultWant != nullptr) {
-        SanitizeWantParams(*resultWant);
-        resultWant->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
+    std::unique_ptr<Want> resultWant(data.ReadParcelable<Want>());
+    if (resultWant == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "resultWant null");
+        return ERR_INVALID_VALUE;
     }
+    SanitizeWantParams(*resultWant);
+    resultWant->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     int64_t callerRequestCode = data.ReadInt64();
-    int32_t result = BackToCallerAbilityWithResult(token, resultCode, resultWant, callerRequestCode);
+    bool isBackToCallerApp = data.ReadBool();
+    int32_t result = BackToCallerAbilityWithResult(token, resultCode, *resultWant, callerRequestCode,
+        isBackToCallerApp);
     reply.WriteInt32(result);
-    if (resultWant != nullptr) {
-        delete resultWant;
-    }
     return NO_ERROR;
 }
 
@@ -1576,6 +1589,43 @@ int AbilityManagerStub::KillProcessInner(MessageParcel &data, MessageParcel &rep
     auto appIndex = data.ReadInt32();
     std::string reason = Str16ToStr8(data.ReadString16());
     int result = KillProcess(bundleName, clearPageStack, appIndex, reason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "remove stack error");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::KillProcessWithUserIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::u16string bundleNameU16;
+    if (!data.ReadString16(bundleNameU16)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read bundleName failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::string bundleName = Str16ToStr8(bundleNameU16);
+    bool clearPageStack = false;
+    if (!data.ReadBool(clearPageStack)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read clearPageStack failed");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t appIndex = 0;
+    if (!data.ReadInt32(appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read appIndex failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::u16string reasonU16;
+    if (!data.ReadString16(reasonU16)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read reason failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::string reason = Str16ToStr8(reasonU16);
+    int32_t userId = -1;
+    if (!data.ReadInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read userId failed");
+        return ERR_INVALID_VALUE;
+    }
+    int result = KillProcessWithUserId(bundleName, clearPageStack, appIndex, reason, userId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "remove stack error");
         return ERR_INVALID_VALUE;
@@ -2877,7 +2927,18 @@ int AbilityManagerStub::StartAbilityForPrelaunchInner(MessageParcel &data, Messa
     SanitizeWantParams(*want);
     want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     int32_t frameNum = data.ReadInt32();
-    int32_t result = StartAbilityForPrelaunch(*want, frameNum);
+    sptr<IAbilityConnection> connect = nullptr;
+    bool hasConnect = data.ReadBool();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilityForPrelaunchInner hasConnect:%{public}d", hasConnect ? 1 : 0);
+    if (hasConnect) {
+        auto remoteObj = data.ReadRemoteObject();
+        if (remoteObj != nullptr) {
+            connect = iface_cast<IAbilityConnection>(remoteObj);
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "hasConnect=true but ReadRemoteObject returned null");
+        }
+    }
+    int32_t result = StartAbilityForPrelaunch(*want, frameNum, connect);
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "resolve call ability ret = %{public}d", result);
     reply.WriteInt32(result);
@@ -4378,6 +4439,18 @@ int32_t AbilityManagerStub::SetGamePreLaunchCompleteTimeInner(MessageParcel &dat
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::ExtendGamePreLaunchTimeoutInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t pid = data.ReadInt32();
+    int64_t extendTime = data.ReadInt64();
+    ErrCode result = ExtendGamePreLaunchTimeout(pid, extendTime);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int AbilityManagerStub::RegisterSessionHandlerInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> handler = data.ReadRemoteObject();
@@ -5818,7 +5891,16 @@ int32_t AbilityManagerStub::GetKioskStatusInner(MessageParcel &data, MessageParc
         return ERR_WRITE_KIOSK_STATUS_FAILED;
     }
 
-    if (kioskStatus.kioskToken_ != nullptr && !reply.WriteRemoteObject(kioskStatus.kioskToken_)) {
+    // kioskToken_ is optional: WriteRemoteObject(nullptr) always returns false without writing any
+    // byte, so an explicit bool flag is written first to tell the peer whether a binder object
+    // follows. AbilityManagerProxy::GetKioskStatus reads the flag and only calls ReadRemoteObject()
+    // when it is true. Keep this write order (flag, [token], result) in sync with the proxy side.
+    bool hasToken = (kioskStatus.kioskToken_ != nullptr);
+    if (!reply.WriteBool(hasToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write has token flag fail");
+        return ERR_WRITE_CALLER_TOKEN_FAILED;
+    }
+    if (hasToken && !reply.WriteRemoteObject(kioskStatus.kioskToken_)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
         return ERR_WRITE_CALLER_TOKEN_FAILED;
     }
@@ -6155,6 +6237,23 @@ int32_t AbilityManagerStub::NotifyInsightIntentExecuteInner(MessageParcel &data,
     TAG_LOGD(AAFwkTag::INTENT, "notify insight intent execute stub");
     uint64_t intentId = data.ReadUint64();
     int32_t ret = NotifyInsightIntentExecute(intentId);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::RegisterWillInsightIntentExecuteCallbackInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "register will insight intent execute callback stub");
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    int32_t ret = RegisterWillInsightIntentExecuteCallback(callback);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::UnregisterWillInsightIntentExecuteCallbackInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "unregister will insight intent execute callback stub");
+    int32_t ret = UnregisterWillInsightIntentExecuteCallback();
     reply.WriteInt32(ret);
     return NO_ERROR;
 }

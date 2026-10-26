@@ -12,8 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <map>
-
 #include "implicit_start_processor.h"
 #include "permission_constants.h"
 
@@ -176,11 +174,22 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate request failed");
         return ret;
     }
-    if (dialogAppInfos.size() == 1 && request.specifyTokenId > 0 && !dialogAppInfos[0].visible &&
+    if (request.specifyTokenId > 0 && !dialogAppInfos.empty() &&
         !PermissionVerification::GetInstance()->VerifyCallingPermission(
             PermissionConstants::PERMISSION_START_INVISIBLE_ABILITY, request.specifyTokenId)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Caller without permission");
-        return CHECK_PERMISSION_FAILED;
+        for (auto it = dialogAppInfos.begin(); it != dialogAppInfos.end();) {
+            if (!it->visible) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "Caller without permission, erase: %{public}s",
+                    it->bundleName.c_str());
+                it = dialogAppInfos.erase(it);
+            } else {
+                it++;
+            }
+        }
+        if (dialogAppInfos.empty()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Caller without permission");
+            return CHECK_PERMISSION_FAILED;
+        }
     }
     AbilityUtil::WantSetParameterWindowMode(request.want, windowMode);
     request.callerAccessTokenId = IPCSkeleton::GetCallingTokenID();
@@ -722,7 +731,6 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAppIndexes(int32_t userId, A
         dialogAppInfo.installSource = info.applicationInfo.installSource;
         dialogAppInfos.emplace_back(dialogAppInfo);
     }
-    FilterClonesByPreferredIndex(dialogAppInfos, userId);
     return ERR_OK;
 }
 
@@ -1236,46 +1244,29 @@ void ImplicitStartProcessor::FilterClonesByPreferredIndex(
     if (dialogAppInfos.size() <= 1) {
         return;
     }
-    std::map<std::string, int32_t> cloneCount;
-    for (const auto &info : dialogAppInfos) {
-        cloneCount[info.bundleName]++;
+    const auto &first = dialogAppInfos.front();
+    for (size_t i = 1; i < dialogAppInfos.size(); ++i) {
+        const auto &info = dialogAppInfos[i];
+        if (info.bundleName != first.bundleName || info.moduleName != first.moduleName ||
+            info.abilityName != first.abilityName) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "multiple abilities matched, skip preferred clone filter");
+            return;
+        }
     }
-    if (cloneCount.size() != 1) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "multiple apps matched, skip preferred clone filter");
-        return;
-    }
-    const auto &singleBundle = *cloneCount.begin();
-    if (singleBundle.second <= 1) {
-        return;
-    }
+    const auto &bundleName = first.bundleName;
     int32_t preferredAppIndex = 0;
-    if (!MultiAppUtils::GetPreferredAppCloneIndex(singleBundle.first, userId, preferredAppIndex) ||
-        !IsPreferredCloneExist(dialogAppInfos, singleBundle.first, preferredAppIndex)) {
+    if (!MultiAppUtils::GetPreferredAppCloneIndex(bundleName, userId, preferredAppIndex)) {
         return;
     }
-    std::vector<DialogAppInfo> result;
     for (const auto &info : dialogAppInfos) {
-        if (info.bundleName == singleBundle.first && info.appIndex == preferredAppIndex) {
-            result.push_back(info);
+        if (info.appIndex == preferredAppIndex) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "single ability matched, preferred clone: %{public}s, appIndex: %{public}d, launch directly",
+                bundleName.c_str(), preferredAppIndex);
+            dialogAppInfos = { info };
+            return;
         }
     }
-    if (!result.empty()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR,
-            "single app matched, preferred clone: %{public}s, appIndex: %{public}d, launch directly",
-            singleBundle.first.c_str(), preferredAppIndex);
-        dialogAppInfos = std::move(result);
-    }
-}
-
-bool ImplicitStartProcessor::IsPreferredCloneExist(const std::vector<DialogAppInfo> &dialogAppInfos,
-    const std::string &bundleName, int32_t preferredAppIndex)
-{
-    for (const auto &info : dialogAppInfos) {
-        if (info.bundleName == bundleName && info.appIndex == preferredAppIndex) {
-            return true;
-        }
-    }
-    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
