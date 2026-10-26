@@ -268,6 +268,7 @@ constexpr static char WANT_PARAMS_VIEW_DATA_KEY[] = "ohos.ability.params.viewDat
 constexpr const char* WANT_PARAMS_HOST_WINDOW_ID_KEY = "ohos.extra.param.key.hostwindowid";
 
 constexpr int32_t FOUNDATION_UID = 5523;
+constexpr int32_t SUBFOUNDATION_UID = 6061;
 constexpr const char* FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
 constexpr const char* FOUNDATION_PROCESS_NAME = "foundation";
 constexpr const char* RSS_PROCESS_NAME = "resource_schedule_service";
@@ -913,7 +914,8 @@ int AbilityManagerService::StartAbilityWithSpecifyTokenId(const Want &want, cons
         return INNER_ERR;
     }
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID &&
+        IPCSkeleton::GetCallingUid() != SUBFOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility with specialId, current process not foundation process");
         return CHECK_PERMISSION_FAILED;
     }
@@ -1144,7 +1146,8 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
         return INNER_ERR;
     }
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID &&
+        IPCSkeleton::GetCallingUid() != SUBFOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbility with specialId, process not foundation process");
         return CHECK_PERMISSION_FAILED;
     }
@@ -15493,7 +15496,8 @@ int32_t AbilityManagerService::ExecuteUIAbilityForegroundIntentWithSpecifyTokenI
     const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param,
     uint64_t specifiedFullTokenId)
 {
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID &&
+        IPCSkeleton::GetCallingUid() != SUBFOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::INTENT, "not foundation process, reject");
         return CHECK_PERMISSION_FAILED;
     }
