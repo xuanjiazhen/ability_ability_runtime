@@ -49,6 +49,12 @@ ErrCode OsAccountManagerWrapper::RemoveOsAccount(const int id)
     return 0;
 }
 
+ErrCode OsAccountManagerWrapper::GetForegroundOsAccountDisplayId(const int32_t userId, uint64_t& displayId)
+{
+    displayId = 0;
+    return 0;
+}
+
 int32_t OsAccountManagerWrapper::GetCurrentActiveAccountId()
 {
     return -1;

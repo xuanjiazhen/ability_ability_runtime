@@ -46,6 +46,18 @@ public:
     bool GetDisplayIdByForegroundUserId(int32_t userId, uint64_t &displayId);
     bool IsExistDisplayId(uint64_t displayId);
 
+    /**
+     * @brief Gets the display where the specified user is foreground.
+     *
+     * A DEFAULT_INVAL_VALUE userId is resolved to the IPC caller's user. Returns the
+     * default display (0) when the user is invalid, not foreground on any display,
+     * or the query fails.
+     *
+     * @param userId The target user ID.
+     * @return Returns the foreground display of the user, or the default display (0) on failure.
+     */
+    uint64_t GetUserForegroundDisplayId(int32_t userId);
+
     bool IsForegroundUser(int32_t userId);
     bool IsForegroundUser(int32_t userId, uint64_t displayId);
 
