@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H
 #define OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -34,6 +35,7 @@ public:
     static ErrCode IsOsAccountExists(const int id, bool& isOsAccountExists);
     static ErrCode CreateOsAccount(const std::string& name, int32_t& osAccountUserId);
     static ErrCode RemoveOsAccount(const int id);
+    static ErrCode GetForegroundOsAccountDisplayId(const int32_t userId, uint64_t& displayId);
     static int32_t GetCurrentActiveAccountId();
 };
 } // namespace AppExecFwk

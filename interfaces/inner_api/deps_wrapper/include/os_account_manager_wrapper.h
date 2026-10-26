@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H
 #define OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -94,6 +95,15 @@ public:
      * @return int32_t user ID
      */
     static int32_t GetCurrentActiveAccountId();
+
+    /**
+     * @brief Gets the display ID where the specified OS account is foreground.
+     *
+     * @param userId The local ID of the OS account.
+     * @param displayId The display ID where the OS account is foreground.
+     * @return error code, ERR_OK on success, others on failure.
+     */
+    static ErrCode GetForegroundOsAccountDisplayId(const int32_t userId, uint64_t &displayId);
 };
 } // namespace AppExecFwk
 } // namespace OHOS
