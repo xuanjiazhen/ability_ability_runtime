@@ -86,6 +86,24 @@ bool UserController::GetDisplayIdByForegroundUserId(int32_t userId, uint64_t &di
     return false;
 }
 
+uint64_t UserController::GetUserForegroundDisplayId(int32_t userId)
+{
+    if (userId == DEFAULT_INVAL_VALUE) {
+        userId = GetCallerUserId();
+    }
+    if (userId < 0) {
+        return DEFAULT_DISPLAY_ID;
+    }
+    uint64_t displayId = DEFAULT_DISPLAY_ID;
+    auto displayRet = AppExecFwk::OsAccountManagerWrapper::GetForegroundOsAccountDisplayId(userId, displayId);
+    if (displayRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get foreground display id failed, ret: %{public}d, userId: %{public}d",
+            displayRet, userId);
+        return DEFAULT_DISPLAY_ID;
+    }
+    return displayId;
+}
+
 bool UserController::IsForegroundUser(int32_t userId)
 {
     std::lock_guard<ffrt::mutex> guard(userLock_);

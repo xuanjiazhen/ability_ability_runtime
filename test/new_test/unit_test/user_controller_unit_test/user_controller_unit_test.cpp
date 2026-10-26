@@ -173,5 +173,65 @@ HWTEST_F(UserControllerTest, SetFreezingNewUserId_001, TestSize.Level1)
     controller->SetFreezingNewUserId(userId);
     EXPECT_EQ(controller->freezingNewUserId_, userId);
 }
+
+/**
+ * @tc.name: GetUserForegroundDisplayId_001
+ * @tc.desc: Verify GetUserForegroundDisplayId call.
+ *           Valid userId and query success, returns the foreground display.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UserControllerTest, GetUserForegroundDisplayId_001, TestSize.Level1)
+{
+    std::shared_ptr<UserController> controller = std::make_shared<UserController>();
+    int32_t userId = 100;
+    std::vector<vector<uint64_t>> expectOuter = {{7}};
+    OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
+        GetForegroundOsAccountDisplayId, const int32_t userId, uint64_t& displayId);
+    EXPECT_EQ(controller->GetUserForegroundDisplayId(userId), 7);
+}
+
+/**
+ * @tc.name: GetUserForegroundDisplayId_002
+ * @tc.desc: Verify GetUserForegroundDisplayId call.
+ *           Query failure, falls back to the default display (0).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UserControllerTest, GetUserForegroundDisplayId_002, TestSize.Level1)
+{
+    std::shared_ptr<UserController> controller = std::make_shared<UserController>();
+    int32_t userId = 100;
+    std::vector<vector<uint64_t>> expectOuter = {{7}};
+    OH_EXPECT_RET_AND_OUTPUT({1}, expectOuter, OsAccountManagerWrapper,
+        GetForegroundOsAccountDisplayId, const int32_t userId, uint64_t& displayId);
+    EXPECT_EQ(controller->GetUserForegroundDisplayId(userId), 0);
+}
+
+/**
+ * @tc.name: GetUserForegroundDisplayId_003
+ * @tc.desc: Verify GetUserForegroundDisplayId call.
+ *           Negative userId (not DEFAULT_INVAL_VALUE), returns the default display without query.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UserControllerTest, GetUserForegroundDisplayId_003, TestSize.Level1)
+{
+    std::shared_ptr<UserController> controller = std::make_shared<UserController>();
+    EXPECT_EQ(controller->GetUserForegroundDisplayId(-2), 0);
+}
+
+/**
+ * @tc.name: GetUserForegroundDisplayId_004
+ * @tc.desc: Verify GetUserForegroundDisplayId call.
+ *           DEFAULT_INVAL_VALUE resolved to the caller's user (mock uid 0 -> foreground user of display 0).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UserControllerTest, GetUserForegroundDisplayId_004, TestSize.Level1)
+{
+    std::shared_ptr<UserController> controller = std::make_shared<UserController>();
+    controller->SetForegroundUserId(100, 0);
+    std::vector<vector<uint64_t>> expectOuter = {{7}};
+    OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
+        GetForegroundOsAccountDisplayId, const int32_t userId, uint64_t& displayId);
+    EXPECT_EQ(controller->GetUserForegroundDisplayId(-1), 7);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

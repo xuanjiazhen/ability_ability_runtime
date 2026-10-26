@@ -4629,11 +4629,7 @@ int AbilityManagerService::RequestModalUIExtensionInner(Want want)
 {
     sptr<IRemoteObject> token = nullptr;
     int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
-    uint64_t displayId = 0;
-    auto displayRet = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(userId, displayId);
-    if (displayRet != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "get foreground display id failed, ret=%{public}d", displayRet);
-    }
+    uint64_t displayId = AbilityRuntime::UserController::GetInstance().GetUserForegroundDisplayId(userId);
     int ret = IN_PROCESS_CALL(GetTopAbilityInner(token, displayId, userId));
     if (ret == ERR_OK && token != nullptr) {
         // Gets the record corresponding to the current focus appliaction
@@ -12221,7 +12217,8 @@ int AbilityManagerService::FinishUserTest(
 
 int AbilityManagerService::GetTopAbility(sptr<IRemoteObject> &token, int32_t userId)
 {
-    return GetTopAbilityInner(token, 0, userId);
+    uint64_t displayId = AbilityRuntime::UserController::GetInstance().GetUserForegroundDisplayId(userId);
+    return GetTopAbilityInner(token, displayId, userId);
 }
 
 int AbilityManagerService::GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId, int32_t userId)
@@ -12783,8 +12780,8 @@ AppExecFwk::ElementName AbilityManagerService::GetTopAbility(bool isNeedLocalDev
     }
 #ifdef SUPPORT_GRAPHICS
     sptr<IRemoteObject> token;
-    uint64_t defaultDisplayId = 0;
-    int ret = IN_PROCESS_CALL(GetTopAbilityInner(token, defaultDisplayId, userId));
+    uint64_t displayId = AbilityRuntime::UserController::GetInstance().GetUserForegroundDisplayId(userId);
+    int ret = IN_PROCESS_CALL(GetTopAbilityInner(token, displayId, userId));
     if (ret) {
         return elementName;
     }

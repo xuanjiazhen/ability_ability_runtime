@@ -16,6 +16,8 @@
 #ifndef MOCK_OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H
 #define MOCK_OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H
 
+#include <cstdint>
+
 #include "errors.h"
 #include "oh_mock_utils.h"
 
@@ -27,6 +29,9 @@ public:
     {
         return 0;
     }
+
+    OH_MOCK_METHOD_WITH_DECORATOR_AND_OUTPUT_1(static, ErrCode, displayId, OsAccountManagerWrapper,
+        GetForegroundOsAccountDisplayId, const int32_t userId, uint64_t& displayId);
 
     OH_MOCK_METHOD_WITH_DECORATOR_AND_OUTPUT_1(static, ErrCode, isOsAccountExists, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
