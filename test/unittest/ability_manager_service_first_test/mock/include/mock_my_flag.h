@@ -23,6 +23,8 @@ public:
         IS_SA_CALL = 1,
         IS_SHELL_CALL,
         IS_SA_AND_SHELL_CALL,
+        IS_LOCAL_DEBUG_CALL = 4,
+        IS_CUSTOM_SANDBOX_CALL = 8,
     };
     static int flag_;
     static bool isWithNative_;

@@ -96,6 +96,7 @@ struct VerificationInfo {
     bool JudgeCallerIsAllowedToUseSystemAPIByTokenId(uint64_t specifiedFullTokenId) const;
     bool IsSystemAppCall() const;
     bool IsLocalDebugOtherAppsCall(const uint32_t specifyTokenId = 0, int32_t targetUserId = -1) const;
+    bool IsCustomSandboxCall(const uint32_t specifyTokenId = 0, int32_t targetUserId = -1) const;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
