@@ -12221,7 +12221,19 @@ int AbilityManagerService::FinishUserTest(
 
 int AbilityManagerService::GetTopAbility(sptr<IRemoteObject> &token, int32_t userId)
 {
-    return GetTopAbilityInner(token, 0, userId);
+    // Follows the RequestModalUIExtensionInner precedent: query the foreground display of the
+    // caller's user instead of assuming the default display, so multi-display focus is found.
+    // On failure the displayId stays 0 (default display), matching the previous behavior.
+    uint64_t displayId = 0;
+    int32_t validUserId = GetValidUserId(userId);
+    if (validUserId >= 0) {
+        auto displayRet = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(validUserId, displayId);
+        if (displayRet != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "get foreground display id failed, ret=%{public}d, userId=%{public}d",
+                displayRet, validUserId);
+        }
+    }
+    return GetTopAbilityInner(token, displayId, userId);
 }
 
 int AbilityManagerService::GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId, int32_t userId)
@@ -12783,8 +12795,19 @@ AppExecFwk::ElementName AbilityManagerService::GetTopAbility(bool isNeedLocalDev
     }
 #ifdef SUPPORT_GRAPHICS
     sptr<IRemoteObject> token;
-    uint64_t defaultDisplayId = 0;
-    int ret = IN_PROCESS_CALL(GetTopAbilityInner(token, defaultDisplayId, userId));
+    // Follows the RequestModalUIExtensionInner precedent: query the foreground display of the
+    // caller's user instead of assuming the default display, so multi-display focus is found.
+    // On failure the displayId stays 0 (default display), matching the previous behavior.
+    uint64_t displayId = 0;
+    int32_t validUserId = GetValidUserId(userId);
+    if (validUserId >= 0) {
+        auto displayRet = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(validUserId, displayId);
+        if (displayRet != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "get foreground display id failed, ret=%{public}d, userId=%{public}d",
+                displayRet, validUserId);
+        }
+    }
+    int ret = IN_PROCESS_CALL(GetTopAbilityInner(token, displayId, userId));
     if (ret) {
         return elementName;
     }
