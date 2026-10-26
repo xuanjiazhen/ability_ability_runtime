@@ -55,6 +55,10 @@ MockAniEnv::MockAniEnv()
     MockAniEnv::state_.arrayNewRefStatus = ANI_OK;
     MockAniEnv::state_.arraySetRefStatus = ANI_OK;
     MockAniEnv::state_.classCallStaticMethodStatus = ANI_OK;
+    MockAniEnv::state_.globalRefCreateCallCount = 0;
+    MockAniEnv::state_.globalRefCreateFailOnCall = 0;
+    MockAniEnv::state_.globalRefDeleteCount = 0;
+    MockAniEnv::state_.lastDeletedRef = nullptr;
 }
 
 ani_env *MockAniEnv::GetEnv()
@@ -178,6 +182,11 @@ ani_status MockAniEnv::ObjectSetFieldLong(ani_env *env, ani_object obj, ani_fiel
 
 ani_status MockAniEnv::GlobalReferenceCreate(ani_env *env, ani_ref ref, ani_ref *result)
 {
+    MockAniEnv::state_.globalRefCreateCallCount++;
+    if (MockAniEnv::state_.globalRefCreateFailOnCall > 0 &&
+        MockAniEnv::state_.globalRefCreateCallCount == MockAniEnv::state_.globalRefCreateFailOnCall) {
+        return ANI_ERROR;
+    }
     if (MockAniEnv::state_.globalRefCreateStatus != ANI_OK) {
         return MockAniEnv::state_.globalRefCreateStatus;
     }
@@ -187,6 +196,8 @@ ani_status MockAniEnv::GlobalReferenceCreate(ani_env *env, ani_ref ref, ani_ref 
 
 ani_status MockAniEnv::GlobalReferenceDelete(ani_env *env, ani_ref ref)
 {
+    MockAniEnv::state_.globalRefDeleteCount++;
+    MockAniEnv::state_.lastDeletedRef = ref;
     return MockAniEnv::state_.globalRefDeleteStatus;
 }
 } // namespace EtsEnv

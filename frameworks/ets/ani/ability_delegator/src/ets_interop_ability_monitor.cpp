@@ -106,6 +106,7 @@ void EtsInteropAbilityMonitor::SetEtsInteropAbilityMonitor(ani_env *env, ani_obj
     vm_ = aniVM;
     if (etsInteropMonitor_ == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null etsInteropMonitor_");
+        env->GlobalReference_Delete(objRef);
         return;
     }
     etsInteropMonitor_->aniObj = monitorObj;

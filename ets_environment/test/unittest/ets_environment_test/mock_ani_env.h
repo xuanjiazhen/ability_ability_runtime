@@ -44,6 +44,10 @@ public:
         ani_status arrayNewRefStatus { ANI_OK };
         ani_status arraySetRefStatus { ANI_OK };
         ani_status classCallStaticMethodStatus { ANI_OK };
+        int globalRefCreateCallCount { 0 };
+        int globalRefCreateFailOnCall { 0 };
+        int globalRefDeleteCount { 0 };
+        ani_ref lastDeletedRef { nullptr };
     };
 
     MockAniEnv();
