@@ -47,7 +47,8 @@ public:
     int32_t RecordProcessExtensionExitReason(
         const int32_t pid, const std::string &bundleName, const ExitReason &exitReason,
         const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg);
-    int32_t RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason, bool fromKillWithReason);
+    int32_t RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason, bool fromKillWithReason,
+        bool persistKV = true);
     int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason);
     int32_t RecordUIAbilityExitReason(const pid_t pid, const std::string &abilityName, const ExitReason &exitReason);
     int32_t RecordProcessExitReasonForTimeout(const AppExecFwk::AbilityInfo &abilityInfo, const ExitReason &exitReason,
@@ -65,7 +66,7 @@ public:
 private:
     int32_t RecordProcessExitReason(const int32_t pid, const std::string bundleName, const int32_t uid,
         const uint32_t accessTokenId, const ExitReason &exitReason,
-        const AppExecFwk::RunningProcessInfo &processInfo, bool fromKillWithReason);
+        const AppExecFwk::RunningProcessInfo &processInfo, bool fromKillWithReason, bool persistKV = true);
     void GetActiveAbilityList(int32_t uid, std::vector<std::string> &abilityLists, const int32_t pid);
     void GetActiveAbilityListFromUIAbilityManager(int32_t uid, std::vector<std::string> &abilityLists,
         const int32_t pid);
