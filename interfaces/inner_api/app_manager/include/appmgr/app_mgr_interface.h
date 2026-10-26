@@ -137,6 +137,18 @@ public:
     }
 
     /**
+     * Query whether the current process is doing snapshot initialization.
+     *
+     * @return Returns true if the current process is doing snapshot initialization,
+     *         false if the process is not making snapshot (may have completed or failed,
+     *         or is not a template process).
+     */
+    virtual bool IsHyperSnapInitializing()
+    {
+        return false;
+    }
+
+    /**
      * ApplicationForegrounded, call ApplicationForegrounded() through proxy object,
      * set the application to Foreground State.
      *

@@ -768,6 +768,14 @@ public:
     bool IsFinalAppProcess() override;
 
     /**
+     * Query whether the current process is doing snapshot initialization.
+     *
+     * @return Returns true if the current process is doing snapshot initialization,
+     *         false otherwise.
+     */
+    bool IsHyperSnapInitializing() override;
+
+    /**
      * Register render state observer.
      * @param observer Render process state observer.
      * @return Returns ERR_OK on success, others on failure.
