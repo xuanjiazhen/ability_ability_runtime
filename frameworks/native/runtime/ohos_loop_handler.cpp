@@ -45,17 +45,17 @@ void OHOSLoopHandler::OnTriggered()
     if (timeout < 0) {
         if (haveTimerTask_) {
             eventHandler->RemoveTask(TIMER_TASK);
+            haveTimerTask_ = false;
         }
         return;
     }
 
     int64_t timeStamp = static_cast<int64_t>(uv_now(uvLoop_)) + timeout;
-    // we don't check timestamp in emulator for computer clock is inaccurate
-#ifndef RUNTIME_EMULATOR
-    if (timeStamp == lastTimeStamp_) {
+    // The timer task can run before uv considers the timer due, because eventhandler and uv
+    // keep time with different precision. The deadline is then unchanged but no task is pending.
+    if (haveTimerTask_ && timeStamp == lastTimeStamp_) {
         return;
     }
-#endif
 
     if (haveTimerTask_) {
         eventHandler->RemoveTask(TIMER_TASK);

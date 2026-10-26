@@ -171,10 +171,6 @@ ohos_shared_library("runtime") {
     ]
   }
 
-  if (is_emulator) {
-    defines += [ "RUNTIME_EMULATOR" ]
-  }
-
   if (ability_runtime_graphics) {
     external_deps += [
       "ace_engine:ace_container_scope",

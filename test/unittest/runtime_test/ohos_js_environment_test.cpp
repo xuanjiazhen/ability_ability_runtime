@@ -21,6 +21,7 @@
 
 #include "hilog_tag_wrapper.h"
 #include "js_runtime.h"
+#include "ohos_loop_handler.h"
 #include "worker_info.h"
 
 using namespace testing;
@@ -257,6 +258,75 @@ HWTEST_F(OHOSJsEnvironmentTest, InitLoop_0100, TestSize.Level0)
     ASSERT_NE(runtime, nullptr);
     auto jsEngine = runtime->GetNativeEnginePointer();
     jsEnvImpl->InitLoop(jsEngine, true);
+}
+
+namespace {
+constexpr uint64_t LOOP_HANDLER_TIMER_DELAY_MS = 10000;
+
+// A uv loop with one pending timer, whose handler posts timer tasks to a runner with no thread, so the tasks only
+// run when a test simulates them.
+struct LoopHandlerFixture {
+    LoopHandlerFixture()
+    {
+        uv_loop_init(&loop);
+        // An active handle other than the timer, as a JS environment's loop has.
+        uv_async_init(&loop, &async, [](uv_async_t*) {});
+        uv_timer_init(&loop, &timer);
+        uv_timer_start(&timer, [](uv_timer_t*) {}, LOOP_HANDLER_TIMER_DELAY_MS, 0);
+        eventHandler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(false));
+        loopHandler = std::make_shared<OHOSLoopHandler>(&loop);
+        loopHandler->SetOwner(eventHandler);
+    }
+
+    ~LoopHandlerFixture()
+    {
+        eventHandler->RemoveTask(TIMER_TASK);
+        uv_close(reinterpret_cast<uv_handle_t*>(&timer), nullptr);
+        uv_close(reinterpret_cast<uv_handle_t*>(&async), nullptr);
+        uv_run(&loop, UV_RUN_DEFAULT);
+        uv_loop_close(&loop);
+    }
+
+    uv_loop_t loop;
+    uv_async_t async;
+    uv_timer_t timer;
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler;
+    std::shared_ptr<OHOSLoopHandler> loopHandler;
+};
+}  // namespace
+
+/**
+ * @tc.name: LoopHandlerOnTriggered_0100
+ * @tc.desc: A timer task that runs before uv considers the timer due posts another timer task.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHOSJsEnvironmentTest, LoopHandlerOnTriggered_0100, TestSize.Level0)
+{
+    LoopHandlerFixture fixture;
+    fixture.loopHandler->OnTriggered();
+    ASSERT_TRUE(fixture.loopHandler->haveTimerTask_);
+
+    // Run the timer task early, as its callback does: the uv timer is still pending, with the same deadline.
+    fixture.eventHandler->RemoveTask(TIMER_TASK);
+    fixture.loopHandler->haveTimerTask_ = false;
+    fixture.loopHandler->OnTriggered();
+    EXPECT_TRUE(fixture.loopHandler->haveTimerTask_);
+}
+
+/**
+ * @tc.name: LoopHandlerOnTriggered_0200
+ * @tc.desc: Removing the timer task when uv has no pending timer clears the pending state.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHOSJsEnvironmentTest, LoopHandlerOnTriggered_0200, TestSize.Level0)
+{
+    LoopHandlerFixture fixture;
+    fixture.loopHandler->OnTriggered();
+    ASSERT_TRUE(fixture.loopHandler->haveTimerTask_);
+
+    uv_timer_stop(&fixture.timer);
+    fixture.loopHandler->OnTriggered();
+    EXPECT_FALSE(fixture.loopHandler->haveTimerTask_);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
