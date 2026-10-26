@@ -8769,5 +8769,6 @@ int32_t AbilityManagerProxy::StartSandboxCloneAbility(const Want &want, const Sa
 
     return reply.ReadInt32();
 }
+
 } // namespace AAFwk
 } // namespace OHOS

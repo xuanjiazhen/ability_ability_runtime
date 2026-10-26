@@ -2713,6 +2713,7 @@ public:
 
     int32_t EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t kioskType = 0) override;
 
+
     int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
 
     int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
@@ -2967,7 +2968,7 @@ protected:
      */
     virtual int32_t StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params) override;
 
-private:
+ private:
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId, int32_t userId);
 
     /**

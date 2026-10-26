@@ -59,6 +59,11 @@ constexpr const char* PERMISSION_EXEMPT_AS_TARGET = "ohos.permission.EXEMPT_AS_T
 constexpr const char* PERMISSION_PREPARE_TERMINATE = "ohos.permission.PREPARE_APP_TERMINATE";
 constexpr const char* PERMISSION_START_RECENT_ABILITY = "ohos.permission.START_RECENT_ABILITY";
 constexpr const char* PERMISSION_MANAGE_APP_BOOT = "ohos.permission.MANAGE_APP_BOOT";
+// FEAT-DAEMON-01: register/unregister launch service (spec).
+constexpr const char* PERMISSION_RIGISTER_DAEMON_SERVICE = "ohos.permission.RIGISTER_DAEMON_SERVICE";
+// FEAT-DAEMON-03: start/stop launch service (spec).
+constexpr const char* PERMISSION_USE_DAEMON_SERVICE = "ohos.permission.USE_DAEMON_SERVICE";
+constexpr const char* PERMISSION_MANAGE_DAEMON_SERVICE = "ohos.permission.MANAGE_DAEMON_SERVICE";
 constexpr const char* PERMISSION_START_ABILITY_WITH_ANIMATION = "ohos.permission.START_ABILITY_WITH_ANIMATION";
 constexpr const char* PERMISSION_MANAGE_APP_BOOT_INTERNAL = "ohos.permission.MANAGE_APP_BOOT_INTERNAL";
 constexpr const char* PERMISSION_CONNECT_UI_EXTENSION_ABILITY = "ohos.permission.CONNECT_UI_EXTENSION_ABILITY";

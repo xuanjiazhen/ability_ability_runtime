@@ -29,6 +29,7 @@
 #ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_request.h"
 #endif // SUPPORT_CHILD_PROCESS
+#include "daemon_service_observer.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "iapp_state_callback.h"
@@ -488,6 +489,18 @@ int32_t AppMgrStub::OnRemoteRequestInnerNinth(uint32_t code, MessageParcel &data
             return HandleCancelDelayedExitTask(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_CORRESPONDING_PROCESS_ATTACH_DEBUG):
             return HandleIsCorrespondingProcessAttachDebug(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_DAEMON):
+            return HandleRegisterDaemon(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_DAEMON):
+            return HandleUnregisterDaemon(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::START_DAEMON):
+            return HandleStartDaemon(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::STOP_DAEMON):
+            return HandleStopDaemon(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_LAUNCH_SERVICE_OBSERVER):
+            return HandleRegisterLaunchServiceObserver(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_LAUNCH_SERVICE_OBSERVER):
+            return HandleUnregisterLaunchServiceObserver(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::START_TASK):
             return HandleStartTask(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::FINISH_TASK):
@@ -522,6 +535,91 @@ int32_t AppMgrStub::HandlePreloadApplication(MessageParcel &data, MessageParcel 
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
     return NO_ERROR;
+}
+
+
+namespace {
+int32_t ReadDaemonDescriptor(MessageParcel &data, AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    if (!data.ReadString(descriptor.bundleName) || !data.ReadString(descriptor.moduleName) ||
+        !data.ReadString(descriptor.serviceName) || !data.ReadInt32(descriptor.userId) ||
+        !data.ReadInt32(descriptor.appIndex)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read daemon descriptor failed");
+        return ERR_INVALID_VALUE;
+    }
+    if (descriptor.bundleName.empty() || descriptor.moduleName.empty() || descriptor.serviceName.empty() ||
+        descriptor.userId < -1 || descriptor.appIndex < 0) {
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+int32_t HandleDaemonResult(MessageParcel &reply, int32_t result)
+{
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write daemon result failed");
+        return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+} // namespace
+
+int32_t AppMgrStub::HandleRegisterDaemon(MessageParcel &data, MessageParcel &reply)
+{
+    AAFwk::LaunchServiceDescriptor descriptor;
+    auto readResult = ReadDaemonDescriptor(data, descriptor);
+    if (readResult != ERR_OK) {
+        return HandleDaemonResult(reply, readResult);
+    }
+    return HandleDaemonResult(reply, RegisterDaemon(descriptor));
+}
+
+int32_t AppMgrStub::HandleUnregisterDaemon(MessageParcel &data, MessageParcel &reply)
+{
+    AAFwk::LaunchServiceDescriptor descriptor;
+    auto readResult = ReadDaemonDescriptor(data, descriptor);
+    if (readResult != ERR_OK) {
+        return HandleDaemonResult(reply, readResult);
+    }
+    return HandleDaemonResult(reply, UnregisterDaemon(descriptor));
+}
+
+int32_t AppMgrStub::HandleStartDaemon(MessageParcel &data, MessageParcel &reply)
+{
+    AAFwk::LaunchServiceDescriptor descriptor;
+    auto readResult = ReadDaemonDescriptor(data, descriptor);
+    if (readResult != ERR_OK) {
+        return HandleDaemonResult(reply, readResult);
+    }
+    return HandleDaemonResult(reply, StartDaemon(descriptor));
+}
+
+int32_t AppMgrStub::HandleStopDaemon(MessageParcel &data, MessageParcel &reply)
+{
+    AAFwk::LaunchServiceDescriptor descriptor;
+    auto readResult = ReadDaemonDescriptor(data, descriptor);
+    if (readResult != ERR_OK) {
+        return HandleDaemonResult(reply, readResult);
+    }
+    return HandleDaemonResult(reply, StopDaemon(descriptor));
+}
+
+int32_t AppMgrStub::HandleRegisterLaunchServiceObserver(MessageParcel &data, MessageParcel &reply)
+{
+    auto observer = iface_cast<AAFwk::ILaunchServiceObserver>(data.ReadRemoteObject());
+    if (observer == nullptr) {
+        return HandleDaemonResult(reply, ERR_INVALID_VALUE);
+    }
+    return HandleDaemonResult(reply, RegisterLaunchServiceObserver(observer));
+}
+
+int32_t AppMgrStub::HandleUnregisterLaunchServiceObserver(MessageParcel &data, MessageParcel &reply)
+{
+    auto observer = iface_cast<AAFwk::ILaunchServiceObserver>(data.ReadRemoteObject());
+    if (observer == nullptr) {
+        return HandleDaemonResult(reply, ERR_INVALID_VALUE);
+    }
+    return HandleDaemonResult(reply, UnregisterLaunchServiceObserver(observer));
 }
 
 int32_t AppMgrStub::HandlePreloadModuleFinished(MessageParcel &data, MessageParcel &reply)

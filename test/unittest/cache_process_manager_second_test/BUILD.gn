@@ -54,7 +54,7 @@ ohos_unittest("cache_process_manager_second_test") {
     "${ability_runtime_services_path}/appmgr/src/app_mgr_service.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_mgr_service_event_handler.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_mgr_service_inner.cpp",
-
+    "${ability_runtime_services_path}/appmgr/src/launch_service_observer_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_query_helper.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_native_spawn_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_preloader.cpp",
@@ -165,6 +165,7 @@ ohos_unittest("cache_process_manager_second_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:session_manager_lite",
+    "user_auth_framework:userauth_client",
   ]
 
   public_external_deps = [ "kv_store:distributeddata_mgr" ]

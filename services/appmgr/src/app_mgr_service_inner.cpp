@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <cerrno>
 #include <fcntl.h>
+#include <future>
 #include <mutex>
 #include <queue>
 #include <securec.h>
@@ -68,6 +69,7 @@
 #include "hap_token_info.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "iam_common_defines.h"
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
@@ -75,6 +77,7 @@
 #include "itest_observer.h"
 #include "killing_process_manager.h"
 #include "last_exit_detail_info.h"
+#include "launch_service_observer_manager.h"
 #include "os_account_manager.h"
 #include "app_native_spawn_manager.h"
 #include "app_pidfd_manager.h"
@@ -107,6 +110,7 @@
 #ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
 #endif // SUPPORT_UPMS
+#include "user_launch_service_client.h"
 #include "user_record_manager.h"
 #ifdef APP_MGR_SERVICE_APPMS
 #include "net_conn_client.h"
@@ -501,6 +505,17 @@ std::pair<int, std::string> GetEventTypeAndMsg(int32_t eventId)
             break;
     }
     return result;
+}
+
+bool IsDaemonProcessAlive(pid_t pid)
+{
+    if (pid <= 0) {
+        return false;
+    }
+    if (kill(pid, 0) == 0) {
+        return true;
+    }
+    return errno != ESRCH;
 }
 }  // namespace
 
@@ -2462,6 +2477,655 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     AfterLoadAbility(appRecord, abilityInfo, loadParam, isProcessReuse);
 }
 
+int32_t AppMgrServiceInner::StartDaemonProcess(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t &pid)
+{
+    pid = 0;
+    if (descriptor.bundleName.empty() || descriptor.moduleName.empty() || descriptor.serviceName.empty() ||
+        descriptor.userId < 0 || descriptor.appIndex < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid daemon descriptor");
+        return ERR_INVALID_VALUE;
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    std::unique_lock<std::shared_mutex> lock(daemonProcessInfoMutex_);
+    auto key = MakeDaemonProcessKey(descriptor);
+    auto iter = daemonProcessInfoMap_.find(key);
+    if (iter != daemonProcessInfoMap_.end()) {
+        if (iter->second.IsRunning() && IsDaemonProcessAlive(iter->second.pid)) {
+            pid = iter->second.pid;
+            TAG_LOGI(AAFwkTag::APPMGR, "daemon already running, pid=%{public}d", pid);
+            return ERR_OK;
+        }
+        daemonProcessInfoMap_.erase(iter);
+    }
+
+    int32_t daemonUid = -1;
+    auto ret = SpawnDaemonProcess(descriptor, pid, daemonUid);
+    if (ret != ERR_OK || pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon failed, result=%{public}d", ret);
+        pid = 0;
+        return ret != ERR_OK ? ret : AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+
+    DaemonProcessInfo info;
+    info.bundleName = descriptor.bundleName;
+    info.moduleName = descriptor.moduleName;
+    info.serviceName = descriptor.serviceName;
+    info.uid = daemonUid;
+    info.userId = descriptor.userId;
+    info.appIndex = descriptor.appIndex;
+    info.pid = pid;
+    info.startTime = SystemTimeMillisecond();
+    info.spawnResult = ERR_OK;
+    info.flags = DAEMON_PROCESS_FLAG_START;
+    daemonProcessInfoMap_[key] = info;
+    TAG_LOGI(AAFwkTag::APPMGR, "start daemon success, bundle=%{public}s, service=%{public}s, pid=%{public}d",
+        descriptor.bundleName.c_str(), descriptor.serviceName.c_str(), pid);
+    lock.unlock();
+    NotifyLaunchServiceProcessStateChanged(descriptor, pid, AAFwk::LaunchServiceProcessState::CREATED);
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::StopDaemonProcess(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t pid)
+{
+    if (descriptor.bundleName.empty() || descriptor.moduleName.empty() || descriptor.serviceName.empty() ||
+        descriptor.userId < 0 || descriptor.appIndex < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid daemon descriptor");
+        return ERR_INVALID_VALUE;
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    std::unique_lock<std::shared_mutex> lock(daemonProcessInfoMutex_);
+    auto key = MakeDaemonProcessKey(descriptor);
+    auto iter = daemonProcessInfoMap_.find(key);
+    if (iter == daemonProcessInfoMap_.end() || !iter->second.IsRunning()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon not running, bundle=%{public}s, service=%{public}s",
+            descriptor.bundleName.c_str(), descriptor.serviceName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_RUNNING;
+    }
+    if (pid <= 0) {
+        pid = iter->second.pid;
+    }
+    if (pid != iter->second.pid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon pid mismatch, expect=%{public}d, actual=%{public}d",
+            iter->second.pid, pid);
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_RUNNING;
+    }
+
+    auto ret = kill(pid, SIGNAL_KILL);
+    if (ret != 0 && errno != ESRCH) {
+        TAG_LOGE(AAFwkTag::APPMGR, "kill daemon failed, pid=%{public}d, errno=%{public}d", pid, errno);
+        return AAFwk::INNER_ERR;
+    }
+    daemonProcessInfoMap_.erase(iter);
+    TAG_LOGI(AAFwkTag::APPMGR, "stop daemon success, bundle=%{public}s, service=%{public}s, pid=%{public}d",
+        descriptor.bundleName.c_str(), descriptor.serviceName.c_str(), pid);
+    lock.unlock();
+    NotifyLaunchServiceProcessStateChanged(descriptor, pid, AAFwk::LaunchServiceProcessState::TERMINATED);
+    return ERR_OK;
+}
+
+namespace {
+constexpr char LAUNCH_SERVICE_PC_MODE_PARAM[] = "persist.sceneboard.ispcmode";
+constexpr int32_t IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS = 1000;
+
+class IamLaunchServiceOperateCallback final : public UserIam::UserAuth::LaunchServiceOperateCallback {
+public:
+    explicit IamLaunchServiceOperateCallback(std::shared_ptr<std::promise<int32_t>> promise)
+        : promise_(std::move(promise))
+    {
+    }
+    ~IamLaunchServiceOperateCallback() override = default;
+
+    void OnResult(int32_t result) override
+    {
+        if (promise_ != nullptr) {
+            promise_->set_value(result);
+        }
+    }
+
+private:
+    std::shared_ptr<std::promise<int32_t>> promise_;
+};
+
+class IamLaunchServiceInfoCallback final : public UserIam::UserAuth::LaunchServiceInfoCallback {
+public:
+    using Result = std::pair<int32_t, UserIam::UserAuth::LaunchServiceRecord>;
+
+    explicit IamLaunchServiceInfoCallback(std::shared_ptr<std::promise<Result>> promise)
+        : promise_(std::move(promise))
+    {
+    }
+    ~IamLaunchServiceInfoCallback() override = default;
+
+    void OnResult(int32_t result, const UserIam::UserAuth::LaunchServiceRecord &service) override
+    {
+        if (promise_ != nullptr) {
+            promise_->set_value({result, service});
+        }
+    }
+
+private:
+    std::shared_ptr<std::promise<Result>> promise_;
+};
+
+int32_t GetDaemonUid(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t &uid)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon get bundle manager helper failed");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    uid = IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(
+        descriptor.bundleName, descriptor.userId, descriptor.appIndex));
+    if (uid < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon get uid failed, bundle:%{public}s, result:%{public}d",
+            descriptor.bundleName.c_str(), uid);
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
+
+UserIam::UserAuth::LaunchServiceType ToIamLaunchServiceType(LaunchServiceType type)
+{
+    if (type == LaunchServiceType::DAEMON) {
+        return UserIam::UserAuth::LaunchServiceType::PRIVILEGED_DAEMON;
+    }
+    return UserIam::UserAuth::LaunchServiceType::INVALID;
+}
+
+int32_t MapIamLaunchServiceOperateResult(int32_t result)
+{
+    switch (result) {
+        case UserIam::UserAuth::SUCCESS:
+            return ERR_OK;
+        case UserIam::UserAuth::CAPABILITY_NOT_SUPPORTED:
+            return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+        case UserIam::UserAuth::INVALID_PARAMETERS:
+            return ERR_INVALID_VALUE;
+        default:
+            TAG_LOGE(AAFwkTag::APPMGR, "iam launch service operate failed, result:%{public}d", result);
+            return AAFwk::INNER_ERR;
+    }
+}
+
+AAFwk::LaunchServiceState ConvertIamLaunchServiceState(UserIam::UserAuth::LaunchServiceState state)
+{
+    switch (state) {
+        case UserIam::UserAuth::LaunchServiceState::ACTIVATE:
+            return AAFwk::LaunchServiceState::ENABLED;
+        case UserIam::UserAuth::LaunchServiceState::DEACTIVATE:
+            return AAFwk::LaunchServiceState::DISABLED;
+        default:
+            return AAFwk::LaunchServiceState::NOT_REGISTERED;
+    }
+}
+
+int32_t QueryLaunchServiceRecord(const AAFwk::LaunchServiceDescriptor &descriptor,
+    UserIam::UserAuth::LaunchServiceRecord &record)
+{
+    int32_t uid = -1;
+    auto uidResult = GetDaemonUid(descriptor, uid);
+    if (uidResult != ERR_OK) {
+        return uidResult;
+    }
+    auto promise = std::make_shared<std::promise<IamLaunchServiceInfoCallback::Result>>();
+    auto future = promise->get_future();
+    auto callback = std::make_shared<IamLaunchServiceInfoCallback>(promise);
+    UserIam::UserAuth::LaunchServiceKey key{uid, descriptor.serviceName, descriptor.moduleName};
+    UserIam::UserAuth::UserLaunchServiceClient::GetInstance().GetLaunchServiceInfo(key, callback);
+    if (future.wait_for(std::chrono::milliseconds(IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS)) !=
+        std::future_status::ready) {
+        TAG_LOGE(AAFwkTag::APPMGR, "query launch service timeout, service:%{public}s",
+            descriptor.serviceName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    auto result = future.get();
+    if (result.first == UserIam::UserAuth::SUCCESS) {
+        record = result.second;
+        return ERR_OK;
+    }
+    if (result.first == UserIam::UserAuth::CAPABILITY_NOT_SUPPORTED) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    TAG_LOGW(AAFwkTag::APPMGR, "launch service not registered, service:%{public}s, result:%{public}d",
+        descriptor.serviceName.c_str(), result.first);
+    return AAFwk::ERR_LAUNCH_SERVICE_NOT_REGISTERED;
+}
+
+int32_t RegisterLaunchServiceToIam(const AAFwk::LaunchServiceDescriptor &descriptor,
+    const LaunchServicesResult &launchServicesResult, const LaunchService &launchService,
+    UserIam::UserAuth::LaunchServiceRecord &record)
+{
+    int32_t uid = -1;
+    auto uidResult = GetDaemonUid(descriptor, uid);
+    if (uidResult != ERR_OK) {
+        return uidResult;
+    }
+    UserIam::UserAuth::LaunchServiceRegisterInfo registerInfo;
+    registerInfo.key = UserIam::UserAuth::LaunchServiceKey{uid, descriptor.serviceName, descriptor.moduleName};
+    registerInfo.bundleInfo = UserIam::UserAuth::BundleExtInfo{
+        descriptor.bundleName, descriptor.userId, descriptor.appIndex, launchServicesResult.appIdentifier};
+    registerInfo.serviceInfo = UserIam::UserAuth::ServiceExtInfo{
+        ToIamLaunchServiceType(launchService.type), ""};
+
+    auto promise = std::make_shared<std::promise<IamLaunchServiceInfoCallback::Result>>();
+    auto future = promise->get_future();
+    auto callback = std::make_shared<IamLaunchServiceInfoCallback>(promise);
+    UserIam::UserAuth::UserLaunchServiceClient::GetInstance().RegisterLaunchService({registerInfo}, callback);
+    if (future.wait_for(std::chrono::milliseconds(IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS)) !=
+        std::future_status::ready) {
+        TAG_LOGE(AAFwkTag::APPMGR, "register launch service timeout, service:%{public}s",
+            descriptor.serviceName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    auto result = future.get();
+    if (result.first != UserIam::UserAuth::SUCCESS) {
+        return MapIamLaunchServiceOperateResult(result.first);
+    }
+    record = result.second;
+    return ERR_OK;
+}
+
+int32_t UnregisterLaunchServiceFromIam(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    int32_t uid = -1;
+    auto uidResult = GetDaemonUid(descriptor, uid);
+    if (uidResult != ERR_OK) {
+        return uidResult;
+    }
+    auto promise = std::make_shared<std::promise<int32_t>>();
+    auto future = promise->get_future();
+    auto callback = std::make_shared<IamLaunchServiceOperateCallback>(promise);
+    UserIam::UserAuth::LaunchServiceKey key{uid, descriptor.serviceName, descriptor.moduleName};
+    UserIam::UserAuth::UserLaunchServiceClient::GetInstance().UnRegisterLaunchService(key, callback);
+    if (future.wait_for(std::chrono::milliseconds(IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS)) !=
+        std::future_status::ready) {
+        TAG_LOGE(AAFwkTag::APPMGR, "unregister launch service timeout, service:%{public}s",
+            descriptor.serviceName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    return MapIamLaunchServiceOperateResult(future.get());
+}
+
+int32_t UnregisterLaunchServicesByUidFromIam(int32_t uid)
+{
+    auto promise = std::make_shared<std::promise<int32_t>>();
+    auto future = promise->get_future();
+    auto callback = std::make_shared<IamLaunchServiceOperateCallback>(promise);
+    UserIam::UserAuth::UserLaunchServiceClient::GetInstance().UnRegisterLaunchService(uid, callback);
+    if (future.wait_for(std::chrono::milliseconds(IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS)) !=
+        std::future_status::ready) {
+        TAG_LOGE(AAFwkTag::APPMGR, "unregister launch services by uid timeout, uid:%{public}d", uid);
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    return MapIamLaunchServiceOperateResult(future.get());
+}
+
+bool IsDaemonDeviceSupported()
+{
+    return system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_PARAM, false);
+}
+
+bool IsValidDaemonDescriptor(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    return !descriptor.bundleName.empty() && !descriptor.moduleName.empty() &&
+        !descriptor.serviceName.empty() && descriptor.userId >= -1 && descriptor.appIndex >= 0;
+}
+
+AAFwk::LaunchServiceDescriptor ResolveDaemonDescriptor(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    AAFwk::LaunchServiceDescriptor resolved = descriptor;
+    if (resolved.userId < 0) {
+        resolved.userId = callerUid / BASE_USER_RANGE;
+    }
+    return resolved;
+}
+
+int32_t GetDaemonLaunchService(const AAFwk::LaunchServiceDescriptor &descriptor,
+    LaunchServicesResult &result, LaunchService &service)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon declaration get bundle manager helper failed");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetLaunchServices(descriptor.bundleName,
+        descriptor.moduleName, descriptor.userId, result));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon declaration GetLaunchServices failed: %{public}d", ret);
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    for (const auto &item : result.launchServices) {
+        if (item.name == descriptor.serviceName && item.type == LaunchServiceType::DAEMON) {
+            service = item;
+            return ERR_OK;
+        }
+    }
+    TAG_LOGE(AAFwkTag::APPMGR, "daemon declaration not found, service:%{public}s",
+        descriptor.serviceName.c_str());
+    return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+}
+
+int32_t CheckDaemonCallerOwnsInstance(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    std::string callerBundleName;
+    int32_t callerAppIndex = 0;
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetNameAndIndexForUid(
+        callerUid, callerBundleName, callerAppIndex)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get caller bundle and appIndex failed");
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    if (callerBundleName != descriptor.bundleName || callerAppIndex != descriptor.appIndex) {
+        TAG_LOGE(AAFwkTag::APPMGR, "caller does not own daemon instance");
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
+
+int32_t CheckDaemonSameDeveloper(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid,
+    const std::string &targetDeveloperId)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    std::string callerBundleName;
+    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerBundleName));
+    if (ret != ERR_OK || callerBundleName.empty()) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    AppProvisionInfo callerProvisionInfo;
+    ret = IN_PROCESS_CALL(bundleMgrHelper->GetAppProvisionInfo(callerBundleName,
+        callerUid / BASE_USER_RANGE, callerProvisionInfo));
+    if (ret != ERR_OK) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    if (targetDeveloperId.empty() || callerProvisionInfo.developerId.empty() ||
+        targetDeveloperId != callerProvisionInfo.developerId) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon developer mismatch, bundle:%{public}s",
+            descriptor.bundleName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
+
+int32_t CheckDaemonSameDeveloper(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    AppProvisionInfo targetProvisionInfo;
+    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetAppProvisionInfo(descriptor.bundleName,
+        descriptor.userId, targetProvisionInfo));
+    if (ret != ERR_OK) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    return CheckDaemonSameDeveloper(descriptor, callerUid, targetProvisionInfo.developerId);
+}
+} // namespace
+
+int32_t AppMgrServiceInner::RegisterDaemon(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    if (!IsValidDaemonDescriptor(descriptor)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto resolvedDescriptor = ResolveDaemonDescriptor(descriptor, callerUid);
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    auto callerResult = CheckDaemonCallerOwnsInstance(resolvedDescriptor, callerUid);
+    if (callerResult != ERR_OK) {
+        return callerResult;
+    }
+    LaunchServicesResult launchServicesResult;
+    LaunchService launchService;
+    auto declarationResult = GetDaemonLaunchService(resolvedDescriptor, launchServicesResult, launchService);
+    if (declarationResult != ERR_OK) {
+        return declarationResult;
+    }
+
+    UserIam::UserAuth::LaunchServiceRecord record;
+    auto queryResult = QueryLaunchServiceRecord(resolvedDescriptor, record);
+    if (queryResult == ERR_OK) {
+        TAG_LOGW(AAFwkTag::APPMGR, "daemon already registered, service:%{public}s",
+            resolvedDescriptor.serviceName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_ALREADY_REGISTERED;
+    }
+    if (queryResult != AAFwk::ERR_LAUNCH_SERVICE_NOT_REGISTERED) {
+        return queryResult;
+    }
+
+    UserIam::UserAuth::LaunchServiceRecord registeredRecord;
+    auto registerResult = RegisterLaunchServiceToIam(
+        resolvedDescriptor, launchServicesResult, launchService, registeredRecord);
+    if (registerResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "register daemon to iam failed: %{public}d", registerResult);
+        return registerResult;
+    }
+    NotifyLaunchServiceStateChanged(resolvedDescriptor, ConvertIamLaunchServiceState(registeredRecord.activeState));
+
+    if (launchService.runAtLoad &&
+        registeredRecord.activeState == UserIam::UserAuth::LaunchServiceState::ACTIVATE) {
+        int32_t pid = 0;
+        auto spawnResult = StartDaemonProcess(resolvedDescriptor, pid);
+        if (spawnResult != ERR_OK) {
+            TAG_LOGW(AAFwkTag::APPMGR, "register daemon runAtLoad spawn failed: %{public}d", spawnResult);
+        }
+    }
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::UnregisterDaemon(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    if (!IsValidDaemonDescriptor(descriptor)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto resolvedDescriptor = ResolveDaemonDescriptor(descriptor, callerUid);
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    UserIam::UserAuth::LaunchServiceRecord record;
+    auto queryResult = QueryLaunchServiceRecord(resolvedDescriptor, record);
+    if (queryResult != ERR_OK) {
+        return queryResult;
+    }
+    auto unregisterResult = UnregisterLaunchServiceFromIam(resolvedDescriptor);
+    if (unregisterResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "unregister daemon from iam failed: %{public}d", unregisterResult);
+        return unregisterResult;
+    }
+    (void)StopDaemonProcess(resolvedDescriptor, 0);
+    NotifyLaunchServiceStateChanged(resolvedDescriptor, AAFwk::LaunchServiceState::NOT_REGISTERED);
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::StartDaemon(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    if (!IsValidDaemonDescriptor(descriptor)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto resolvedDescriptor = ResolveDaemonDescriptor(descriptor, callerUid);
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    LaunchServicesResult launchServicesResult;
+    LaunchService launchService;
+    auto declarationResult = GetDaemonLaunchService(resolvedDescriptor, launchServicesResult, launchService);
+    if (declarationResult != ERR_OK) {
+        return declarationResult;
+    }
+    auto developerResult = CheckDaemonSameDeveloper(
+        resolvedDescriptor, callerUid, launchServicesResult.developerId);
+    if (developerResult != ERR_OK) {
+        return developerResult;
+    }
+    UserIam::UserAuth::LaunchServiceRecord record;
+    auto queryResult = QueryLaunchServiceRecord(resolvedDescriptor, record);
+    if (queryResult != ERR_OK) {
+        return queryResult;
+    }
+    if (record.activeState != UserIam::UserAuth::LaunchServiceState::ACTIVATE || record.isForbidden) {
+        TAG_LOGW(AAFwkTag::APPMGR, "daemon is disabled or forbidden, service:%{public}s",
+            resolvedDescriptor.serviceName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_DISABLED;
+    }
+    int32_t pid = 0;
+    auto spawnResult = StartDaemonProcess(resolvedDescriptor, pid);
+    if (spawnResult != ERR_OK || pid <= 0) {
+        return spawnResult != ERR_OK ? spawnResult : AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::StopDaemon(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    if (!IsValidDaemonDescriptor(descriptor)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto resolvedDescriptor = ResolveDaemonDescriptor(descriptor, callerUid);
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    auto developerResult = CheckDaemonSameDeveloper(resolvedDescriptor, callerUid);
+    if (developerResult != ERR_OK) {
+        return developerResult;
+    }
+    UserIam::UserAuth::LaunchServiceRecord record;
+    auto queryResult = QueryLaunchServiceRecord(resolvedDescriptor, record);
+    if (queryResult != ERR_OK) {
+        return queryResult;
+    }
+    return StopDaemonProcess(resolvedDescriptor, 0);
+}
+
+int32_t AppMgrServiceInner::RegisterLaunchServiceObserver(
+    const sptr<AAFwk::ILaunchServiceObserver> &observer, int32_t callerUserId)
+{
+    return LaunchServiceObserverManager::GetInstance().RegisterObserver(observer, callerUserId);
+}
+
+int32_t AppMgrServiceInner::UnregisterLaunchServiceObserver(
+    const sptr<AAFwk::ILaunchServiceObserver> &observer)
+{
+    return LaunchServiceObserverManager::GetInstance().UnregisterObserver(observer);
+}
+
+void AppMgrServiceInner::NotifyLaunchServiceStateChanged(
+    const AAFwk::LaunchServiceDescriptor &descriptor, AAFwk::LaunchServiceState state)
+{
+    AAFwk::LaunchServiceStateData stateData;
+    stateData.descriptor = descriptor;
+    stateData.state = state;
+    LaunchServiceObserverManager::GetInstance().NotifyStatusChanged(stateData);
+}
+
+void AppMgrServiceInner::NotifyLaunchServiceProcessStateChanged(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t pid, AAFwk::LaunchServiceProcessState state)
+{
+    AAFwk::LaunchServiceProcessStateData processStateData;
+    processStateData.descriptor = descriptor;
+    processStateData.pid = pid;
+    processStateData.state = state;
+    LaunchServiceObserverManager::GetInstance().NotifyProcessStateChanged(processStateData);
+}
+
+int32_t AppMgrServiceInner::SpawnDaemonProcess(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t &pid,
+    int32_t &uid)
+{
+    pid = 0;
+    uid = -1;
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon get bundle manager helper failed");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    BundleInfo bundleInfo;
+    auto bundleFlags = static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE);
+    bool getBundleInfoResult = false;
+    if (descriptor.appIndex == 0) {
+        getBundleInfoResult = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfo(
+            descriptor.bundleName, bundleFlags, bundleInfo, descriptor.userId));
+    } else {
+        auto cloneRet = IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(
+            descriptor.bundleName, bundleFlags, descriptor.appIndex, bundleInfo, descriptor.userId));
+        getBundleInfoResult = (cloneRet == ERR_OK);
+    }
+    if (!getBundleInfoResult) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon get bundle info failed, appIndex:%{public}d",
+            descriptor.appIndex);
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    uid = bundleInfo.uid;
+
+    std::string binPath;
+    for (const auto &hapModuleInfo : bundleInfo.hapModuleInfos) {
+        if (hapModuleInfo.moduleName != descriptor.moduleName) {
+            continue;
+        }
+        for (const auto &launchService : hapModuleInfo.launchServices) {
+            if (launchService.name == descriptor.serviceName) {
+                binPath = launchService.binaryPath;
+                break;
+            }
+        }
+        if (!binPath.empty()) {
+            break;
+        }
+    }
+    if (binPath.empty() || binPath.front() != '/') {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon launch service not declared");
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    if (bundleInfo.uid < 0 || bundleInfo.gid < 0 || bundleInfo.applicationInfo.appPrivilegeLevel.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon invalid bundle info");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    uint64_t accessTokenIdEx = bundleInfo.applicationInfo.accessTokenIdEx;
+    if (accessTokenIdEx == 0) {
+        auto tokenInfo = AccessToken::AccessTokenKit::GetHapTokenIDEx(
+            descriptor.userId, descriptor.bundleName, descriptor.appIndex);
+        accessTokenIdEx = tokenInfo.tokenIDEx;
+    }
+    if (accessTokenIdEx == 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon invalid access token");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    if (!remoteClientManager_ || !remoteClientManager_->GetSpawnClient()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon get spawn client failed");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+
+    AppSpawnStartMsg startMsg{};
+    startMsg.code = MSG_SPAWN_DAEMON;
+    startMsg.uid = bundleInfo.uid;
+    startMsg.gid = bundleInfo.gid;
+    startMsg.bundleName = descriptor.bundleName;
+    startMsg.procName = descriptor.bundleName + ":" + descriptor.serviceName;
+    startMsg.bundleIndex = descriptor.appIndex;
+    startMsg.accessTokenIdEx = accessTokenIdEx;
+    startMsg.hapFlags = bundleInfo.isPreInstallApp ? 1 : 0;
+    startMsg.apl = bundleInfo.applicationInfo.appPrivilegeLevel;
+    startMsg.daemonBinPath = binPath;
+
+    auto errCode = remoteClientManager_->GetSpawnClient()->StartProcess(startMsg, pid);
+    if (errCode != ERR_OK || pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon failed, result=%{public}d, pid=%{public}d", errCode, pid);
+        pid = 0;
+        return errCode != ERR_OK ? errCode : AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    return ERR_OK;
+}
+
 void AppMgrServiceInner::ReportUIExtensionProcColdStartToRss(const std::shared_ptr<AbilityInfo>& abilityInfo,
     const std::shared_ptr<AAFwk::Want>& want, bool isPreloadUIExtension)
 {
@@ -3761,6 +4425,9 @@ int32_t AppMgrServiceInner::NotifyUninstallOrUpgradeApp(const std::string &bundl
 {
     TAG_LOGD(AAFwkTag::APPMGR,
         "bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
+    if (!isUpgrade) {
+        UnregisterLaunchServicesByUid(uid);
+    }
     std::unique_lock lock(startProcessLock_);
     std::string killReason = isUpgrade ? "UpgradeApp" : "UninstallApp";
     InsertUninstallOrUpgradeUidSet(uid);
@@ -3768,6 +4435,44 @@ int32_t AppMgrServiceInner::NotifyUninstallOrUpgradeApp(const std::string &bundl
     DestroyImageForUninstallOrUpgrade(uid);
     ClearHyperSnapError(uid);
     return ret;
+}
+
+void AppMgrServiceInner::UnregisterLaunchServicesByUid(int32_t uid)
+{
+    if (uid < 0) {
+        return;
+    }
+    auto iamResult = UnregisterLaunchServicesByUidFromIam(uid);
+    if (iamResult != ERR_OK && iamResult != AAFwk::ERR_LAUNCH_SERVICE_NOT_REGISTERED) {
+        TAG_LOGW(AAFwkTag::APPMGR, "unregister launch services from iam failed, uid:%{public}d, result:%{public}d",
+            uid, iamResult);
+    }
+    CleanupDaemonsByUid(uid);
+}
+
+void AppMgrServiceInner::CleanupDaemonsByUid(int32_t uid)
+{
+    if (uid < 0) {
+        return;
+    }
+    std::vector<DaemonProcessInfo> daemons;
+    {
+        std::shared_lock<std::shared_mutex> lock(daemonProcessInfoMutex_);
+        for (const auto &item : daemonProcessInfoMap_) {
+            if (item.second.uid == uid) {
+                daemons.emplace_back(item.second);
+            }
+        }
+    }
+    for (const auto &daemon : daemons) {
+        AAFwk::LaunchServiceDescriptor descriptor;
+        descriptor.bundleName = daemon.bundleName;
+        descriptor.moduleName = daemon.moduleName;
+        descriptor.serviceName = daemon.serviceName;
+        descriptor.userId = daemon.userId;
+        descriptor.appIndex = daemon.appIndex;
+        (void)StopDaemonProcess(descriptor, daemon.pid);
+    }
 }
 
 void AppMgrServiceInner::NotifyUninstallOrUpgradeAppEnd(int32_t uid)

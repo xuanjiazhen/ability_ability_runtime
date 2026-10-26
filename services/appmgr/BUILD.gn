@@ -74,6 +74,7 @@ ohos_shared_library("libappms") {
     "src/exit_resident_process_manager.cpp",
     "src/fork_image_info.cpp",
     "src/killing_process_manager.cpp",
+    "src/launch_service_observer_manager.cpp",
     "src/modal_system_app_freeze_uiextension.cpp",
     "src/module_running_record.cpp",
     "src/multi_user_config_mgr.cpp",
@@ -165,6 +166,7 @@ ohos_shared_library("libappms") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "user_auth_framework:userauth_client",
     "window_manager:session_manager_lite",
   ]
   public_external_deps = [ "kv_store:distributeddata_mgr" ]
