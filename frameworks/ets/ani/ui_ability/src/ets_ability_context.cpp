@@ -2558,7 +2558,6 @@ void EtsAbilityContext::OnRequestDialogService(ani_env *env, ani_object aniObj, 
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return;
     }
-    auto callbackDeleted = std::make_shared<bool>(false);
     RequestDialogResultTask task =
         [vm, callbackRef](int32_t resultCode, const AAFwk::Want &resultWant) {
         bool isAttachThread = false;
