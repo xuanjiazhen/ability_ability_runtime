@@ -126,5 +126,19 @@ HWTEST_F(OsAccountManagerWrapperTest, GetCurrentActiveAccountId_0100, TestSize.L
     int ret = OsAccountManagerWrapper::GetCurrentActiveAccountId();
     EXPECT_EQ(ret, 100);
 }
+
+/**
+ * @tc.name: GetForegroundOsAccountDisplayId_0100
+ * @tc.desc: Get the display id where the os account is foreground.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountManagerWrapperTest, GetForegroundOsAccountDisplayId_0100, TestSize.Level1)
+{
+    AAFwk::IsMockSaCall::IsMockSpecificSystemAbilityAccessPermission();
+    int32_t userId = OsAccountManagerWrapper::GetCurrentActiveAccountId();
+    uint64_t displayId = 0;
+    int32_t ret = OsAccountManagerWrapper::GetForegroundOsAccountDisplayId(userId, displayId);
+    EXPECT_EQ(ret, ERR_OK);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

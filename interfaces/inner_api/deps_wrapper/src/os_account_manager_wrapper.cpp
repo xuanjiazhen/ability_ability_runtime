@@ -127,6 +127,18 @@ ErrCode OsAccountManagerWrapper::RemoveOsAccount(const int id)
 #endif // OS_ACCOUNT_PART_ENABLED
 }
 
+ErrCode OsAccountManagerWrapper::GetForegroundOsAccountDisplayId(const int32_t userId, uint64_t &displayId)
+{
+#ifndef OS_ACCOUNT_PART_ENABLED
+    TAG_LOGD(AAFwkTag::DEFAULT, "Without os account subsystem");
+    displayId = 0;
+    return ERR_OK;
+#else // OS_ACCOUNT_PART_ENABLED
+    TAG_LOGD(AAFwkTag::DEFAULT, "os account subsystem");
+    return AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(userId, displayId);
+#endif // OS_ACCOUNT_PART_ENABLED
+}
+
 int32_t OsAccountManagerWrapper::GetCurrentActiveAccountId()
 {
     std::vector<int32_t> accountIds;
