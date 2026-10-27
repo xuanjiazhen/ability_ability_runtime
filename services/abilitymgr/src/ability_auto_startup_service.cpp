@@ -328,6 +328,10 @@ int32_t AbilityAutoStartupService::CheckAutoStartupData(const std::string &bundl
     int32_t appIndex = 0;
     AppExecFwk::BundleInfo bundleInfo;
     int32_t userId = uid / AppExecFwk::Constants::BASE_USER_RANGE;
+    int32_t result = ResetDirectBootOnBundleUpdate(bundleName, userId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "reset direct boot after update failed: %{public}d", result);
+    }
     int32_t validUserId = GetValidUserId(userId);
     if (!GetBundleInfo(bundleName, validUserId, appIndex, bundleInfo)) {
         return INNER_ERR;
@@ -335,7 +339,7 @@ int32_t AbilityAutoStartupService::CheckAutoStartupData(const std::string &bundl
     auto tokenId = bundleInfo.applicationInfo.accessTokenId;
     std::string accessTokenIdStr = std::to_string(tokenId);
     std::vector<AutoStartupInfo> infoList;
-    int32_t result = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->GetCurrentAppAutoStartupData(
+    result = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->GetCurrentAppAutoStartupData(
         bundleName, infoList, accessTokenIdStr);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "get auto startup data fail");
@@ -359,6 +363,40 @@ int32_t AbilityAutoStartupService::CheckAutoStartupData(const std::string &bundl
         TAG_LOGD(AAFwkTag::AUTO_STARTUP, "Current bundleName not found");
         return DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->DeleteAutoStartupData(bundleName,
             tokenId);
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityAutoStartupService::ResetDirectBootOnBundleUpdate(const std::string &bundleName, int32_t userId)
+{
+    auto dataManager = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance();
+    std::vector<AutoStartupInfo> infoList;
+    int32_t result = dataManager->QueryAllAutoStartupApplications(infoList, userId, false);
+    if (result != ERR_OK) {
+        return result;
+    }
+    for (const auto &info : infoList) {
+        if (info.bundleName != bundleName || info.userId != userId || !info.isDirectBoot) {
+            continue;
+        }
+        AppExecFwk::BundleInfo bundleInfo;
+        if (!GetBundleInfo(info.bundleName, info.userId, info.appCloneIndex, bundleInfo) ||
+            bundleInfo.applicationInfo.accessTokenId == Security::AccessToken::INVALID_TOKENID) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "get updated target token failed, bundle:%{public}s user:%{public}d",
+                info.bundleName.c_str(), info.userId);
+            return INNER_ERR;
+        }
+        AutoStartupInfo targetInfo(info);
+        targetInfo.accessTokenId = std::to_string(bundleInfo.applicationInfo.accessTokenId);
+        if (CheckBootAppPermission(targetInfo) == ERR_OK) {
+            continue;
+        }
+        result = dataManager->ResetAutoStartupDirectBoot(info);
+        if (result != ERR_OK) {
+            return result;
+        }
+        TAG_LOGI(AAFwkTag::AUTO_STARTUP, "reset direct boot after update, bundle:%{public}s user:%{public}d "
+            "appIndex:%{public}d", info.bundleName.c_str(), info.userId, info.appCloneIndex);
     }
     return ERR_OK;
 }
