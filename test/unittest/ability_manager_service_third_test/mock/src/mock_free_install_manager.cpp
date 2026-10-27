@@ -181,11 +181,6 @@ void FreeInstallManager::SetPreStartMissionCallStatus(const std::string& bundleN
 {
 }
 
-void FreeInstallManager::SetFreeInstallTaskSessionId(const std::string& bundleName, const std::string& abilityName,
-    const std::string& startTime, const std::string& sessionId)
-{
-}
-
 void FreeInstallManager::NotifyInsightIntentFreeInstallResult(const Want &want, int resultCode)
 {
 }

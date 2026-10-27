@@ -3084,6 +3084,7 @@ private:
     int32_t PreStartInner(const FreeInstallInfo& taskInfo);
     void ProcessPreStartOptions(AbilityRequest &abilityRequest, const FreeInstallInfo& taskInfo);
     void RemovePreStartSession(const std::string& sessionId);
+    void RemovePreStartSessionBySessionInfo(const sptr<SessionInfo> &sessionInfo);
 
     int32_t ConnectLocalAbility(
         const Want &want,

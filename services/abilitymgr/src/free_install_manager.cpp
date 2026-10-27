@@ -235,6 +235,13 @@ FreeInstallInfo FreeInstallManager::BuildFreeInstallInfo(const Want &want, int32
         TAG_LOGD(AAFwkTag::FREE_INSTALL, "set requestId:%{public}s", param->startOptions->requestId_.c_str());
         info.want.SetParam(KEY_REQUEST_ID, param->startOptions->requestId_);
     }
+    // Unify the free-install correlation key: KEY_SESSION_ID carries the same value as startTime so
+    // stage-2 (SCB callback) and stage-1 (freeInstallList_) share one identifier, replacing the former
+    // server-generated sessionId plus the SetFreeInstallTaskSessionId bridge (first-match overwrite bug).
+    std::string startTime = info.want.GetStringParam(Want::PARAM_RESV_START_TIME);
+    if (!startTime.empty()) {
+        info.want.SetParam(KEY_SESSION_ID, startTime);
+    }
     if (!param->isAsync) {
         info.promise = std::make_shared<std::promise<int32_t>>();
     }
@@ -837,21 +844,6 @@ void FreeInstallManager::SetPreStartMissionCallStatus(const std::string& bundleN
             (*it).want.GetAbilityNameRef() == abilityName &&
             (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME) == startTime) {
             (*it).isPreStartMissionCalled = preStartMissionCallStatus;
-            return;
-        }
-        it++;
-    }
-}
-
-void FreeInstallManager::SetFreeInstallTaskSessionId(const std::string& bundleName, const std::string& abilityName,
-    const std::string& startTime, const std::string& sessionId)
-{
-    std::lock_guard<ffrt::mutex> lock(freeInstallListLock_);
-    for (auto it = freeInstallList_.begin(); it != freeInstallList_.end();) {
-        if ((*it).want.GetBundleNameRef() == bundleName &&
-            (*it).want.GetAbilityNameRef() == abilityName &&
-            (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME) == startTime) {
-            (*it).want.SetParam(KEY_SESSION_ID, sessionId);
             return;
         }
         it++;

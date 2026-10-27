@@ -518,11 +518,12 @@ HWTEST_F(FreeInstallTest, FreeInstall_SetPreStartMissionCallStatus_001, TestSize
 }
 
 /**
- * @tc.number: FreeInstall_SetFreeInstallTaskSessionId_001
- * @tc.name: SetFreeInstallTaskSessionId
- * @tc.desc: Test SetFreeInstallTaskSessionId.
+ * @tc.number: FreeInstall_BuildFreeInstallInfoSessionId_001
+ * @tc.name: BuildFreeInstallInfo unifies KEY_SESSION_ID with startTime
+ * @tc.desc: Verify BuildFreeInstallInfo sets KEY_SESSION_ID = startTime so stage-2 lookup by
+ *           sessionId resolves to the same task without the SetFreeInstallTaskSessionId bridge.
  */
-HWTEST_F(FreeInstallTest, FreeInstall_SetFreeInstallTaskSessionId_001, TestSize.Level1)
+HWTEST_F(FreeInstallTest, FreeInstall_BuildFreeInstallInfoSessionId_001, TestSize.Level1)
 {
     freeInstallManager_ = std::make_shared<FreeInstallManager>();
 
@@ -537,15 +538,16 @@ HWTEST_F(FreeInstallTest, FreeInstall_SetFreeInstallTaskSessionId_001, TestSize.
     // mock callerToken
     const sptr<IRemoteObject> callerToken = MockToken();
     FreeInstallInfo info = freeInstallManager_->BuildFreeInstallInfo(want, userId, requestCode, callerToken);
+    // KEY_SESSION_ID is unified with startTime at build time (no separate server sessionId).
+    EXPECT_EQ(startTime, info.want.GetStringParam(KEY_SESSION_ID));
     {
         std::lock_guard<ffrt::mutex> lock(freeInstallManager_->freeInstallListLock_);
         freeInstallManager_->freeInstallList_.push_back(info);
     }
 
-    freeInstallManager_->SetFreeInstallTaskSessionId("com.ix.hiservcie", "ServiceAbility",
-        "2024-7-17 00:00:00", "sessionId");
+    // stage-2 lookup by the unified id (KEY_SESSION_ID == startTime) resolves to the task.
     FreeInstallInfo freeInstallInfo;
-    bool ret = freeInstallManager_->GetFreeInstallTaskInfo("sessionId", freeInstallInfo);
+    bool ret = freeInstallManager_->GetFreeInstallTaskInfo(startTime, freeInstallInfo);
     EXPECT_EQ(true, ret);
 
     freeInstallManager_->RemoveFreeInstallInfo("com.ix.hiservcie", "ServiceAbility", "2024-7-17 00:00:00");
