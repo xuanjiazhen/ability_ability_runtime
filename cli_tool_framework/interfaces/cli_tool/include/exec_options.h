@@ -34,6 +34,8 @@ public:
     int64_t timeout = 0;
     std::string toolCallId;
     std::string dmSessionId;
+    // Attribution task id: rides the serialized options tail; empty = "not provided" (R-7).
+    std::string taskId;
 
     bool Marshalling(Parcel &parcel) const;
     static ExecOptions *Unmarshalling(Parcel &parcel);

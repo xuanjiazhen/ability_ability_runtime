@@ -58,6 +58,18 @@ public:
     std::string toolCallId = "";
     std::string dmSessionId = "";
     pid_t processId = -1;
+    // STATE-1 (ADR-7): task-attribution mapping carried by the session record.
+    // taskId: the attribution key taken from the options at session-creation time
+    // (empty = not carried or entry-rejected; cleared when the server-side attach
+    // verdict rejects the attribution, INV-1).
+    // attributionId: the server-assigned handle returned by RegisterManagedProcess
+    // (0 = no attribution). It is the sole detach key: teardown paths read it under
+    // the session-table lock and skip the unregister when it is 0 (attach failure
+    // never produces a stray detach). The attributed pid itself (fork anchor for
+    // process sessions, server-resolved pid for skill sessions) stays in the attach
+    // logs and is not needed for unregistration, which is handle-keyed.
+    std::string taskId = "";
+    int64_t attributionId = 0;
     int64_t startTime = 0;
     int32_t timeoutMs = 0;
     int32_t stdinPipe[2] = {-1, -1};        // [0]=read, [1]=write

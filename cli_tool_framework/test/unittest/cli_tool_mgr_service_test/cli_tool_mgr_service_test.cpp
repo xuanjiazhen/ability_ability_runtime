@@ -38,11 +38,14 @@
 #undef protected
 
 #include "ability_manager_errors.h"
+#include "app_service_manager.h"
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
 #include "cli_tool_manager_scheduler_stub.h"
 #include "cli_tool_data_manager_mock.h"
+#include "services_appmgr_test/include/mock_app_mgr_service.h"
 #include "permission_util_mock.h"
+#include "task_attribution_manager.h"
 #include "cli_hook_interface_stub.h"
 #include "exec_cmd_param.h"
 #include "exec_result_wrap.h"
@@ -54,15 +57,18 @@
 #include "function_info.h"
 #include "ipc_skeleton.h"
 #include "io_monitor.h"
+#include "message_parcel.h"
 #include "nativetoken_kit.h"
 #include "parameters.h"
 #include "skill/skill_execute_result.h"
 #include "string_wrapper.h"
 #include "token_setproc.h"
 #include "accesstoken_kit.h"
+#include "array_wrapper.h"
 #include "tool_info.h"
 #include "tool_util.h"
 #include "want_params.h"
+#include "want_params_wrapper.h"
 #include "hilog_tag_wrapper.h"
 
 using namespace testing::ext;
@@ -119,6 +125,116 @@ private:
     bool prevExecPublicCliTool_;
     bool prevRegisterAgentHook_;
 };
+
+// =====================================================================================
+// TASK-3: task-attribution lifecycle hooks (STATE-1 / ADR-7 / INV-3)
+// =====================================================================================
+constexpr int32_t ATTR_TEST_CALLER_UID = 3099;
+constexpr pid_t ATTR_TEST_ANCHOR_PID = 4321;
+// Server-assigned attribution handle handed back by the mock register calls.
+constexpr int64_t ATTR_TEST_ATTRIBUTION_ID = 5555;
+// Anchor pid the mock appmgr resolves for the in-app skill path (IPC 151).
+constexpr int32_t ATTR_TEST_RESOLVED_PID = 8765;
+constexpr int32_t ATTR_TEST_WAIT_MS = 1000;
+
+// In-process endpoint standing in for the appmgr service (same channel as
+// task_attribution_manager_test): AppMgrClient is compiled into this binary and
+// resolves the connection through the test-side AppServiceManager::
+// GetAppMgrService below, which hands out this endpoint; the in-process
+// iface_cast fast path dispatches the attribution calls straight to the
+// overrides. The posted detaches arrive asynchronously on an ffrt worker, so
+// the unregister side is synchronized through a condition variable.
+class MockAppMgrEndpoint : public AppExecFwk::MockAppMgrService {
+public:
+    int32_t RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
+        int32_t callerUid, int64_t &attributionId) override
+    {
+        ++registerCalls;
+        lastRegisterTaskId = taskId;
+        lastRegisterPid = pid;
+        lastRegisterTool = tool;
+        lastRegisterCallerUid = callerUid;
+        attributionId = registerRet == ERR_OK ? registerAttributionId : 0;
+        return registerRet;
+    }
+
+    int32_t UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+        int32_t callerUid) override
+    {
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            ++unregisterCalls;
+            lastUnregisterTaskId = taskId;
+            lastUnregisterAttributionId = attributionId;
+            lastUnregisterCallerUid = callerUid;
+            unregisterThreadId = std::this_thread::get_id();
+        }
+        cv.notify_all();
+        return unregisterRet;
+    }
+
+    // Pre-existing AppMgrClient consumers (RegisterAppStateObserver) used to
+    // fail at ConnectAppMgrService in this binary and return early; with the
+    // endpoint installed the connect now succeeds, so this explicit failure
+    // keeps those legacy cases on the same observable "registration failed"
+    // branch (no bundleObservers_/callerPids side effects).
+    int32_t RegisterApplicationStateObserver(const sptr<AppExecFwk::IApplicationStateObserver> &observer,
+        const std::vector<std::string> &bundleNameList) override
+    {
+        return AAFwk::INNER_ERR;
+    }
+
+    // TASK-4: server-side locate for the in-app skill path (IPC 151) — the
+    // resolved main-process pid is the attribution anchor instead of a fork
+    // return value (v1.4 P1-1); the attribution handle is handed back for the
+    // later detach.
+    int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
+        int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId) override
+    {
+        ++inAppSkillCalls;
+        lastInAppSkillTaskId = taskId;
+        lastInAppSkillBundle = bundleName;
+        lastInAppSkillCallerUid = callerUid;
+        resolvedPid = inAppSkillResolvedPid;
+        attributionId = inAppSkillRet == ERR_OK ? registerAttributionId : 0;
+        return inAppSkillRet;
+    }
+
+    std::mutex mtx;
+    std::condition_variable cv;
+    std::string lastRegisterTaskId;
+    int32_t lastRegisterPid = 0;
+    int32_t lastRegisterTool = -1;
+    int32_t lastRegisterCallerUid = -1;
+    int registerCalls = 0;
+    std::string lastUnregisterTaskId;
+    int64_t lastUnregisterAttributionId = 0;
+    int32_t lastUnregisterCallerUid = -1;
+    int unregisterCalls = 0;
+    std::thread::id unregisterThreadId {};
+    int32_t registerRet = ERR_OK;
+    int32_t unregisterRet = ERR_OK;
+    int64_t registerAttributionId = ATTR_TEST_ATTRIBUTION_ID;
+    std::string lastInAppSkillTaskId;
+    std::string lastInAppSkillBundle;
+    int32_t lastInAppSkillCallerUid = -1;
+    int inAppSkillCalls = 0;
+    int32_t inAppSkillRet = ERR_OK;
+    int32_t inAppSkillResolvedPid = ATTR_TEST_RESOLVED_PID;
+};
+
+sptr<MockAppMgrEndpoint> g_mockAppMgr;
+
+// Wait until the posted detach reaches the in-process appmgr endpoint. Every
+// case that triggers a post MUST wait for its arrival before finishing: a
+// detached-but-unarrived ffrt task would otherwise leak into the next case
+// (TearDown swaps the endpoint) and pollute its counters.
+bool WaitForUnregister(int expectedCalls)
+{
+    std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
+    return g_mockAppMgr->cv.wait_for(lock, std::chrono::milliseconds(ATTR_TEST_WAIT_MS),
+        [&] { return g_mockAppMgr->unregisterCalls >= expectedCalls; });
+}
 } // namespace {
 
 class TestScheduler : public CliToolManagerSchedulerStub {
@@ -177,6 +293,9 @@ void CliToolManagerServiceTest::SetUp()
     CliToolDataManagerMock::Reset();
     CliFunctionDataManagerMock::Reset();
     EventDispatcher::GetInstance().ClearAll();
+    // Fresh in-process appmgr endpoint per case: the attribution counters must
+    // not leak between cases (see also WaitForUnregister in the TASK-3 block).
+    g_mockAppMgr = new MockAppMgrEndpoint();
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
     service_->bundleObservers_.clear();
@@ -205,6 +324,13 @@ void CliToolManagerServiceTest::TearDown()
     // ASSERT failed before its manual restore. This keeps later cases from
     // inheriting a "permission denied" verdict.
     PermissionUtilMock::Reset();
+
+    // Drop the endpoint BEFORE the shared cleanup below: a straggler posted
+    // detach that fires after this point sees a null service-manager lookup
+    // and degrades to an INNER_ERR log instead of touching the next case's
+    // counters. Cases that trigger a post are required to wait for its
+    // arrival (WaitForUnregister), so in practice nothing is in flight.
+    g_mockAppMgr = nullptr;
 
     service_->interfaceCalledCount_.store(0);
     CliToolDataManagerMock::Reset();
@@ -4263,8 +4389,12 @@ public:
         beforeCallToolCount++;
         lastBeforeToolCallId = param.options.toolCallId;
         lastBeforeDmSessionId = param.options.dmSessionId;
+        lastBeforeTaskId = param.options.taskId;
         if (modifyParam) {
             param.toolName = "modified_tool";
+        }
+        if (modifyTaskId) {
+            param.options.taskId = "hook_injected_task";
         }
         return ERR_OK;
     }
@@ -4286,6 +4416,10 @@ public:
         beforeCallCmdCount++;
         lastBeforeCmdToolCallId = param.execCmdOptions.toolCallId;
         lastBeforeCmdDmSessionId = param.execCmdOptions.dmSessionId;
+        lastBeforeCmdTaskId = param.execCmdOptions.taskId;
+        if (modifyTaskId) {
+            param.execCmdOptions.taskId = "hook_injected_task";
+        }
         if (modifyCmdIsShell) {
             param.execCmdOptions.isShellCommand = targetIsShell;
         }
@@ -4311,12 +4445,15 @@ public:
     int afterCallCmdCount = 0;
     std::string lastBeforeToolCallId;
     std::string lastBeforeDmSessionId;
+    std::string lastBeforeTaskId;
     std::string lastBeforeCmdToolCallId;
     std::string lastBeforeCmdDmSessionId;
+    std::string lastBeforeCmdTaskId;
     std::string lastWrapToolCallId;
     std::string lastWrapDmSessionId;
     bool modifyParam = false;
     bool modifyResult = false;
+    bool modifyTaskId = false;
     bool modifyCmdIsShell = false;
     bool targetIsShell = false;
     bool modifyCmdString = false;
@@ -5884,5 +6021,1050 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterFunctionHook_PermissionDenied_0100
     IPCSkeleton::Reset();
     TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_PermissionDenied_0100 end");
 }
+/**
+ * @tc.name: CliToolManagerService_StripAttributionKeys_0100
+ * @tc.desc: Reserved attribution keys are stripped from the args tree (top
+ *           level, nested WantParams, WantParams arrays) while all other
+ *           parameters are passed through unchanged (ADR-6/R-6)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, StripAttributionKeys_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_StripAttributionKeys_0100 start");
+
+    AAFwk::WantParams args;
+    args.SetParam("bundleName", AAFwk::String::Box("com.example.app").GetRefPtr());
+    args.SetParam("taskId", AAFwk::String::Box("task_sneaky").GetRefPtr());
+
+    // Nested WantParams carrying a reserved key plus a kept key.
+    AAFwk::WantParams nested;
+    nested.SetParam("taskId", AAFwk::String::Box("task_nested").GetRefPtr());
+    nested.SetParam("inner", AAFwk::String::Box("kept").GetRefPtr());
+    args.SetParam("nested", AAFwk::WantParamWrapper::Box(std::move(nested)).GetRefPtr());
+
+    // Array of WantParams: element 0 carries the reserved key, element 1 does not.
+    sptr<AAFwk::Array> array = new AAFwk::Array(2, AAFwk::g_IID_IWantParams);
+    ASSERT_NE(array, nullptr);
+    AAFwk::WantParams element0;
+    element0.SetParam("taskId", AAFwk::String::Box("task_arr0").GetRefPtr());
+    ASSERT_EQ(array->Set(0, AAFwk::WantParamWrapper::Box(std::move(element0)).GetRefPtr()), ERR_OK);
+    AAFwk::WantParams element1;
+    element1.SetParam("keep", AAFwk::String::Box("kept_arr").GetRefPtr());
+    ASSERT_EQ(array->Set(1, AAFwk::WantParamWrapper::Box(std::move(element1)).GetRefPtr()), ERR_OK);
+    // Array reaches IInterface through multiple bases; go via IArray explicitly.
+    args.SetParam("list", static_cast<AAFwk::IArray *>(array.GetRefPtr()));
+
+    service_->StripAttributionKeys(args);
+
+    // Top level: reserved key gone, everything else intact.
+    EXPECT_FALSE(args.HasParam("taskId"));
+    EXPECT_TRUE(args.HasParam("bundleName"));
+    EXPECT_EQ(args.GetStringParam("bundleName"), "com.example.app");
+
+    // Nested: reserved key stripped, kept key intact.
+    AAFwk::WantParams nestedOut = args.GetWantParams("nested");
+    EXPECT_FALSE(nestedOut.HasParam("taskId"));
+    EXPECT_TRUE(nestedOut.HasParam("inner"));
+    EXPECT_EQ(nestedOut.GetStringParam("inner"), "kept");
+
+    // Array elements: reserved key stripped in element 0, element 1 intact.
+    sptr<AAFwk::IInterface> listValue = args.GetParam("list");
+    ASSERT_NE(listValue, nullptr);
+    AAFwk::IArray *outArray = AAFwk::IArray::Query(listValue.GetRefPtr());
+    ASSERT_NE(outArray, nullptr);
+    long length = 0;
+    ASSERT_EQ(outArray->GetLength(length), ERR_OK);
+    ASSERT_EQ(length, 2);
+    sptr<AAFwk::IInterface> outElement0;
+    ASSERT_EQ(outArray->Get(0, outElement0), ERR_OK);
+    ASSERT_NE(outElement0, nullptr);
+    AAFwk::IWantParams *element0Params = AAFwk::IWantParams::Query(outElement0.GetRefPtr());
+    ASSERT_NE(element0Params, nullptr);
+    AAFwk::WantParams element0Copy;
+    ASSERT_EQ(element0Params->GetValue(element0Copy), ERR_OK);
+    EXPECT_FALSE(element0Copy.HasParam("taskId"));
+    sptr<AAFwk::IInterface> outElement1;
+    ASSERT_EQ(outArray->Get(1, outElement1), ERR_OK);
+    ASSERT_NE(outElement1, nullptr);
+    AAFwk::IWantParams *element1Params = AAFwk::IWantParams::Query(outElement1.GetRefPtr());
+    ASSERT_NE(element1Params, nullptr);
+    AAFwk::WantParams element1Copy;
+    ASSERT_EQ(element1Params->GetValue(element1Copy), ERR_OK);
+    EXPECT_EQ(element1Copy.GetStringParam("keep"), "kept_arr");
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_StripAttributionKeys_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_TaskIdHookScenario_0100
+ * @tc.desc: With a registered before-hook the serialized options carry the
+ *           taskId across the real InvokeHookAsync round-trip: the hook SEES
+ *           the attribution key (S2 serialized tail), and the call is not
+ *           blocked (v2.0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_TaskIdHookScenario_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_TaskIdHookScenario_0100 start");
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    ASSERT_NE(hook, nullptr);
+    service_->isDeveloperMode_ = true;
+    service_->cliHook_ = hook;
+    service_->cliHookActiveMethods_ = 0;
+
+    ExecToolParam param;
+    param.toolName = "hook_task_tool";
+    param.options.taskId = "task_hook-001";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t result = service_->ExecTool(param, "event_hook_task", scheduler);
+
+    // The before-hook fired through the real InvokeHookAsync round-trip...
+    EXPECT_EQ(hook->beforeCallToolCount, 1);
+    // ...and saw the taskId: the serialized options tail crosses the [inout] hook message.
+    EXPECT_EQ(hook->lastBeforeTaskId, "task_hook-001");
+    // The call itself is not blocked by the taskId or the hook.
+    EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
+
+    service_->cliHook_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_TaskIdHookScenario_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_TaskIdHookModifyIgnored_0100
+ * @tc.desc: The hook face is read-only: the before-hook saw the authoritative
+ *           taskId, then tried to inject its own — the server re-asserts the
+ *           authoritative value after the round-trip, and the call is not
+ *           blocked by the modification (v2.0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_TaskIdHookModifyIgnored_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_TaskIdHookModifyIgnored_0100 start");
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    ASSERT_NE(hook, nullptr);
+    service_->isDeveloperMode_ = true;
+    service_->cliHook_ = hook;
+    service_->cliHookActiveMethods_ = 0;
+    hook->modifyTaskId = true;
+
+    ExecToolParam param;
+    param.toolName = "hook_modify_task_tool";
+    param.options.taskId = "task_hook-003";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t result = service_->ExecTool(param, "event_hook_modify_task", scheduler);
+
+    // The hook saw the authoritative IPC value at entry...
+    EXPECT_EQ(hook->beforeCallToolCount, 1);
+    EXPECT_EQ(hook->lastBeforeTaskId, "task_hook-003");
+    // ...and the injected value cannot take effect (server re-asserts the authoritative taskId).
+    EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
+
+    service_->cliHook_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_TaskIdHookModifyIgnored_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_TaskIdHookScenario_0100
+ * @tc.desc: Same S2 discipline on ExecCmd: the serialized options carry the
+ *           taskId across the before-hook round-trip (the hook sees it) and
+ *           the call is not blocked (v2.0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_TaskIdHookScenario_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_TaskIdHookScenario_0100 start");
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    ASSERT_NE(hook, nullptr);
+    service_->isDeveloperMode_ = true;
+    service_->cliHook_ = hook;
+    service_->cliHookActiveMethods_ = 0;
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    param.execCmdOptions.taskId = "task_hook-002";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t result = service_->ExecCmd(param, "event_hook_cmd_task", scheduler, "sub_hook_task");
+
+    EXPECT_EQ(hook->beforeCallCmdCount, 1);
+    EXPECT_EQ(hook->lastBeforeCmdTaskId, "task_hook-002");
+    EXPECT_TRUE(result == ERR_NO_INIT || result == ERR_NOT_HAP || result == ERR_INVALID_PARAM ||
+        result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
+
+    service_->cliHook_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_TaskIdHookScenario_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_TaskIdInvalid_0100
+ * @tc.desc: An invalid-format taskId is treated as "not provided": the call
+ *           completes with the same result as a not-carried taskId (no new
+ *           error code, no block; R-4/R-5 discipline)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_TaskIdInvalid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_TaskIdInvalid_0100 start");
+
+    ExecToolParam param;
+    param.toolName = "invalid_task_tool";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t notCarried = service_->ExecTool(param, "event_no_task", scheduler);
+    std::string tooLong(TRACE_ID_MAX_LEN + 1, 'a');
+    std::string illegal = "task;rm -rf";
+    param.options.taskId = tooLong;
+    int32_t overlongResult = service_->ExecTool(param, "event_long_task", scheduler);
+    param.options.taskId = illegal;
+    int32_t illegalResult = service_->ExecTool(param, "event_bad_task", scheduler);
+
+    EXPECT_EQ(notCarried, overlongResult);
+    EXPECT_EQ(notCarried, illegalResult);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_TaskIdInvalid_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_TaskIdInvalid_0100
+ * @tc.desc: Same treat-as-not-provided discipline on ExecCmd
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_TaskIdInvalid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_TaskIdInvalid_0100 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t notCarried = service_->ExecCmd(param, "event_cmd_no_task", scheduler, "sub_invalid");
+    std::string tooLong(TRACE_ID_MAX_LEN + 1, 'a');
+    std::string illegal = "task;rm -rf";
+    param.execCmdOptions.taskId = tooLong;
+    int32_t overlongResult = service_->ExecCmd(param, "event_cmd_long_task", scheduler, "sub_invalid");
+    param.execCmdOptions.taskId = illegal;
+    int32_t illegalResult = service_->ExecCmd(param, "event_cmd_bad_task", scheduler, "sub_invalid");
+
+    EXPECT_EQ(notCarried, overlongResult);
+    EXPECT_EQ(notCarried, illegalResult);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_TaskIdInvalid_0100 end");
+}
+
+// Captures the options-serialized taskId dispatched by the REAL generated stub.
+class TaskIdCaptureStub : public CliToolManagerStub {
+public:
+    ErrCode ExecTool(const ExecToolParam &param, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &) override
+    {
+        lastEventId = eventId;
+        lastExecToolTaskId = param.options.taskId;
+        return ERR_OK;
+    }
+
+    ErrCode ExecCmd(const ExecCmdParam &param, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &, const std::string &) override
+    {
+        lastEventId = eventId;
+        lastExecCmdTaskId = param.execCmdOptions.taskId;
+        return ERR_OK;
+    }
+
+    ErrCode GetAllToolSummaries(std::vector<ToolSummary> &) override { return ERR_OK; }
+    ErrCode GetToolInfoByName(const std::string &, ToolInfo &) override { return ERR_OK; }
+    ErrCode GetAllToolInfos(ToolsRawData &) override { return ERR_OK; }
+    ErrCode SubscribeSession(const std::string &, const std::string &,
+        const sptr<ICliToolManagerScheduler> &) override { return ERR_OK; }
+    ErrCode UnsubscribeSession(const std::string &, const std::string &) override { return ERR_OK; }
+    ErrCode ClearSession(const std::string &) override { return ERR_OK; }
+    ErrCode QuerySession(const std::string &, CliSessionInfo &) override { return ERR_OK; }
+    ErrCode SendMessage(const std::string &, const std::string &, const std::string &,
+        const sptr<ICliToolManagerScheduler> &) override { return ERR_OK; }
+    ErrCode BatchQueryPermissionBySubCommand(const std::vector<Command> &,
+        std::vector<CommandPermission> &) override { return ERR_OK; }
+    ErrCode RegisterFunction(const FunctionInfo &) override { return ERR_OK; }
+    ErrCode BatchRegisterFunctions(const FunctionsRawData &, int32_t &) override { return ERR_OK; }
+    ErrCode GetFunctionInfo(const std::string &, const std::string &, FunctionInfo &) override
+    {
+        return ERR_OK;
+    }
+    ErrCode UnregisterFunction(int32_t, const std::string &, const std::string &) override
+    {
+        return ERR_OK;
+    }
+    ErrCode UnregisterIntentFunctionsByNamespace(int32_t, const std::string &) override
+    {
+        return ERR_OK;
+    }
+    ErrCode ResetNamespaceFunctions(int32_t, const std::string &, const FunctionsRawData &,
+        int32_t &) override { return ERR_OK; }
+    ErrCode GetAllFunctions(FunctionsRawData &) override { return ERR_OK; }
+    ErrCode BatchRegisterFunctionsAsync(const FunctionsRawData &) override { return ERR_OK; }
+    ErrCode UnregisterIntentFunctionsByNamespaceAsync(int32_t, const std::string &) override
+    {
+        return ERR_OK;
+    }
+    ErrCode ResetNamespaceFunctionsAsync(int32_t, const std::string &, const FunctionsRawData &) override
+    {
+        return ERR_OK;
+    }
+    ErrCode RegisterCliHook(const sptr<ICliHookInterface> &, int32_t) override { return ERR_OK; }
+    ErrCode UnregisterCliHook(const sptr<ICliHookInterface> &) override { return ERR_OK; }
+    ErrCode RegisterFunctionHook(const sptr<IFunctionHookInterface> &, int32_t) override
+    {
+        return ERR_OK;
+    }
+    ErrCode UnregisterFunctionHook(const sptr<IFunctionHookInterface> &) override { return ERR_OK; }
+    ErrCode BeforeInvokeFunction(InvokeFunctionParam &) override { return ERR_OK; }
+    ErrCode AfterInvokeFunction(FunctionResultWrap &) override { return ERR_OK; }
+
+    std::string lastEventId;
+    std::string lastExecToolTaskId;
+    std::string lastExecCmdTaskId;
+};
+
+/**
+ * @tc.name: CliToolManagerService_MixedDeploy_OldWriteNewRead_0100
+ * @tc.desc: An old-format ExecOptions parcelable (five pre-taskId fields, no
+ *           tail) fed to the new Unmarshalling reads an empty taskId (lenient
+ *           tail read; the mixed-deployment guarantee, ADR-8 v2.0) and leaves
+ *           earlier fields intact
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, MixedDeploy_OldWriteNewRead_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_MixedDeploy_OldWriteNewRead_0100 start");
+
+    // Old-format options: the five pre-taskId fields, no taskId tail.
+    MessageParcel data;
+    ASSERT_TRUE(data.WriteBool(false));
+    ASSERT_TRUE(data.WriteInt64(0));
+    ASSERT_TRUE(data.WriteInt64(30000));
+    ASSERT_TRUE(data.WriteString("tc_mixed_old"));
+    ASSERT_TRUE(data.WriteString("dm_mixed_old"));
+
+    auto *read = ExecOptions::Unmarshalling(data);
+    ASSERT_NE(read, nullptr);
+    // The missing tail field is read leniently: empty = "not provided".
+    EXPECT_TRUE(read->taskId.empty());
+    // Pre-taskId fields are unaffected (zero misalignment).
+    EXPECT_FALSE(read->background);
+    EXPECT_EQ(read->timeout, 30000);
+    EXPECT_EQ(read->toolCallId, "tc_mixed_old");
+    EXPECT_EQ(read->dmSessionId, "dm_mixed_old");
+    delete read;
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_MixedDeploy_OldWriteNewRead_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_MixedDeploy_NewWriteOldRead_0100
+ * @tc.desc: A new-format ExecOptions parcelable (taskId tail present) read
+ *           with the pre-taskId field order keeps all fields aligned; the
+ *           tail bytes are simply left unread by the old reader (ADR-8 v2.0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, MixedDeploy_NewWriteOldRead_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_MixedDeploy_NewWriteOldRead_0100 start");
+
+    // New-format write: the full ExecOptions::Marshalling including the taskId tail.
+    ExecOptions options;
+    options.timeout = 30000;
+    options.toolCallId = "tc_mixed_new";
+    options.taskId = "task_mixed-788";
+    MessageParcel data;
+    ASSERT_TRUE(options.Marshalling(data));
+
+    // Old-reader simulation: sequential reads as the pre-taskId Unmarshalling (stops at dmSessionId).
+    bool background = true;
+    int64_t yieldMs = 0;
+    int64_t timeout = 0;
+    std::string toolCallId;
+    std::string dmSessionId;
+    ASSERT_TRUE(data.ReadBool(background));
+    ASSERT_TRUE(data.ReadInt64(yieldMs));
+    ASSERT_TRUE(data.ReadInt64(timeout));
+    ASSERT_TRUE(data.ReadString(toolCallId));
+    ASSERT_TRUE(data.ReadString(dmSessionId));
+    // All pre-taskId fields stay aligned for the old reader.
+    EXPECT_EQ(timeout, 30000);
+    EXPECT_EQ(toolCallId, "tc_mixed_new");
+    // The taskId tail is left unread: it sits strictly after the legacy layout.
+    std::string leftover;
+    EXPECT_TRUE(data.ReadString(leftover));
+    EXPECT_EQ(leftover, "task_mixed-788");
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_MixedDeploy_NewWriteOldRead_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_MixedDeploy_NewWriteNewRead_0100
+ * @tc.desc: A new-format message (taskId inside the serialized ExecCmdParam)
+ *           dispatched by the REAL generated stub delivers the carried value
+ *           to the override (ADR-8 v2.0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, MixedDeploy_NewWriteNewRead_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_MixedDeploy_NewWriteNewRead_0100 start");
+
+    sptr<TaskIdCaptureStub> stub = sptr<TaskIdCaptureStub>::MakeSptr();
+    ASSERT_NE(stub, nullptr);
+
+    MessageParcel data;
+    ASSERT_TRUE(data.WriteInterfaceToken(ICliToolManager::GetDescriptor()));
+    ExecCmdParam param;
+    param.cmd = "echo mixed_new";
+    param.execCmdOptions.taskId = "task_mixed-789";
+    ASSERT_TRUE(data.WriteParcelable(&param));
+    ASSERT_TRUE(data.WriteString16(u"event_mixed_new"));
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    ASSERT_NE(scheduler, nullptr);
+    ASSERT_TRUE(data.WriteRemoteObject(scheduler->AsObject()));
+    ASSERT_TRUE(data.WriteString16(u"sub_mixed_new"));
+
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_EQ(stub->OnRemoteRequest(
+        static_cast<uint32_t>(ICliToolManagerIpcCode::COMMAND_EXEC_CMD), data, reply, option), ERR_NONE);
+    EXPECT_EQ(stub->lastExecCmdTaskId, "task_mixed-789");
+    EXPECT_EQ(stub->lastEventId, "event_mixed_new");
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_MixedDeploy_NewWriteNewRead_0100 end");
+}
+
+// =====================================================================================
+// TASK-3: task-attribution lifecycle hooks (STATE-1 / ADR-7 / INV-3)
+// =====================================================================================
+
+/**
+ * @tc.name: CliToolManagerService_AttachTaskAttribution_0100
+ * @tc.desc: STATE-1 attach hook, accepted verdict: the one-hop anchor pid is
+ *           registered with the CLI tool contract and the forensic uid from
+ *           the session record; attributionId becomes the server-assigned handle and the
+ *           mapping key survives (P2-2, ADR-3 v1.5).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0100 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "attach_attrib_session";
+    record->taskId = "task_attach_attrib_0100";
+    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+
+    service_->AttachTaskAttribution(record);
+
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastRegisterTaskId, "task_attach_attrib_0100");
+    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_ANCHOR_PID));
+    EXPECT_EQ(g_mockAppMgr->lastRegisterTool, ATTRIBUTION_TOOL_CLI);
+    EXPECT_EQ(g_mockAppMgr->lastRegisterCallerUid, ATTR_TEST_CALLER_UID);
+    EXPECT_EQ(record->attributionId, ATTR_TEST_ATTRIBUTION_ID);
+    EXPECT_EQ(record->taskId, "task_attach_attrib_0100");
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_AttachTaskAttribution_0200
+ * @tc.desc: STATE-1 attach hook, taskId not carried: zero attribution side
+ *           effects — no IPC, no attributionId (AC-4 not-carried baseline).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0200 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "attach_empty_session";
+    record->taskId = "";
+    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+
+    service_->AttachTaskAttribution(record);
+
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+    EXPECT_EQ(record->attributionId, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_AttachTaskAttribution_0300
+ * @tc.desc: STATE-1 attach hook, rejected verdict (spoofed/unknown task): no
+ *           attribution object — attributionId stays 0 and the mapping
+ *           residue is cleared (INV-1) so no teardown path ever produces a
+ *           stray unregister.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0300 start");
+
+    g_mockAppMgr->registerRet = AAFwk::ERR_TASK_NOT_FOUND;
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "attach_reject_session";
+    record->taskId = "task_attach_attrib_0300";
+    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+
+    service_->AttachTaskAttribution(record);
+
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
+    EXPECT_TRUE(record->taskId.empty());
+    EXPECT_EQ(record->attributionId, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_AttachTaskAttribution_0400
+ * @tc.desc: STATE-1 attach hook, invalid anchor pid (e.g. the reaper already
+ *           invalidated processId before the hook ran): no IPC is attempted.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0400 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "attach_invalid_pid_session";
+    record->taskId = "task_attach_attrib_0400";
+    record->processId = -1;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+
+    service_->AttachTaskAttribution(record);
+
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+    EXPECT_EQ(record->attributionId, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0400 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CreateSessionRecord_TaskId_0100
+ * @tc.desc: STATE-1 key write on the CreateSessionRecord path (shared by the
+ *           SetupAndStartSession and SetupCmdSession setup points): the
+ *           carried taskId lands on the record; not carried stays empty
+ *           (v1.8 review note 3 — the shell path writes it explicitly).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CreateSessionRecord_TaskId_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CreateSessionRecord_TaskId_0100 start");
+
+    ExecToolParam param;
+    param.toolName = "taskid_carry_tool";
+    param.options.taskId = "task_create_record_0100";
+    auto record = service_->CreateSessionRecord(param, "event_taskid_carry");
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(record->taskId, "task_create_record_0100");
+    EXPECT_EQ(record->attributionId, 0);
+
+    ExecToolParam notCarried;
+    notCarried.toolName = "taskid_absent_tool";
+    auto bare = service_->CreateSessionRecord(notCarried, "event_taskid_absent");
+    ASSERT_NE(bare, nullptr);
+    EXPECT_TRUE(bare->taskId.empty());
+    EXPECT_EQ(bare->attributionId, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CreateSessionRecord_TaskId_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_RemoveSessionRecord_Detach_0100
+ * @tc.desc: STATE-1 unified teardown entry: RemoveSessionRecord snapshots the
+ *           attribution inside the session-table lock and posts the detach —
+ *           the unregister object is attributionId (NOT processId) with the
+ *           forensic uid from the record (INV-3 / P2-3).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RemoveSessionRecord_Detach_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_RemoveSessionRecord_Detach_0100 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "remove_detach_session";
+    record->taskId = "task_remove_detach_0100";
+    record->processId = 6666;
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    service_->RemoveSessionRecord(record->sessionId);
+
+    EXPECT_TRUE(WaitForUnregister(1));
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_remove_detach_0100");
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
+    EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_RemoveSessionRecord_Detach_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_RemoveSessionRecord_Detach_0200
+ * @tc.desc: STATE-1 teardown with no attribution (never carried, attach
+ *           rejected, or already consumed): RemoveSessionRecord produces no
+ *           unregister call at all (AC-4: no stray side effects).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RemoveSessionRecord_Detach_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_RemoveSessionRecord_Detach_0200 start");
+
+    auto noKey = std::make_shared<SessionRecord>();
+    noKey->sessionId = "remove_nokey_session";
+    noKey->attributionId = 0;
+    service_->AddSessionRecord(noKey);
+
+    auto noAttribution = std::make_shared<SessionRecord>();
+    noAttribution->sessionId = "remove_noattr_session";
+    noAttribution->taskId = "task_remove_detach_0200";
+    noAttribution->attributionId = 0;
+    service_->AddSessionRecord(noAttribution);
+
+    service_->RemoveSessionRecord(noKey->sessionId);
+    service_->RemoveSessionRecord(noAttribution->sessionId);
+
+    // Synchronous no-op check: nothing was posted, so nothing can arrive.
+    std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_RemoveSessionRecord_Detach_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_WaitPid_Detach_0100
+ * @tc.desc: STATE-1 process-death teardown: WaitPid consumes the attribution
+ *           inside the lock (attributionId reset to 0), posts the detach with
+ *           attributionId as the unregister key, and the IPC runs on an ffrt
+ *           worker — NOT inline on the WaitPid caller (reaper) thread (P2-3).
+ *           The later finalize/RemoveSessionRecord pass stays a no-op thanks
+ *           to the consumption (single detach per attribution, INV-3).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, WaitPid_Detach_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_WaitPid_Detach_0100 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "waitpid_detach_session";
+    record->taskId = "task_waitpid_detach_0100";
+    record->processId = 7777;
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    record->MarkStdoutClosed();
+    record->MarkStderrClosed();
+    service_->AddSessionRecord(record);
+
+    auto reaperThreadId = std::this_thread::get_id();
+    service_->WaitPid(record->processId, 0, 0);
+
+    EXPECT_TRUE(WaitForUnregister(1));
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_waitpid_detach_0100");
+    // The unregister key is the attributed pid, not the invalidated processId.
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
+    // P2-3: posted execution — the IPC ran on a worker thread, not inline here.
+    EXPECT_NE(g_mockAppMgr->unregisterThreadId, reaperThreadId);
+    // Consumption: the record now reads as "no attribution"...
+    EXPECT_EQ(record->attributionId, 0);
+    // ...so the finalize pass (WaitPid drained -> FinalizeBackgroundSession ->
+    // RemoveSessionRecord) does not post a second detach.
+    service_->FinalizeBackgroundSession(record);
+    {
+        std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
+        EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_WaitPid_Detach_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_OnProcessDied_Detach_0100
+ * @tc.desc: STATE-1 caller-death teardown: OnProcessDied erases the caller's
+ *           sessions without going through RemoveSessionRecord, so it posts
+ *           their detaches itself (snapshot under the table lock, post
+ *           outside, P2-3).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnProcessDied_Detach_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnProcessDied_Detach_0100 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "died_detach_session";
+    record->callerPid = 2001;
+    // processId stays -1: no active child to Killpg in the test environment.
+    record->processId = -1;
+    record->taskId = "task_died_detach_0100";
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    auto otherRecord = std::make_shared<SessionRecord>();
+    otherRecord->sessionId = "died_other_session";
+    otherRecord->callerPid = 2002;
+    otherRecord->taskId = "task_died_other_0100";
+    otherRecord->attributionId = 4444;
+    otherRecord->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(otherRecord);
+
+    service_->OnProcessDied("test.bundle", record->callerPid);
+
+    EXPECT_TRUE(WaitForUnregister(1));
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_died_detach_0100");
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
+    // Only the dead caller's session was torn down.
+    EXPECT_EQ(service_->GetSessionRecord(otherRecord->sessionId), otherRecord);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnProcessDied_Detach_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_HandleProcessTimeout_NoDetach_0100
+ * @tc.desc: STATE-1 timeout path: HandleProcessTimeout kills the process and
+ *           reports the timeout but does NOT detach by itself — the detach
+ *           belongs to the process-death collection (WaitPid), and the task
+ *           window itself is refreshed by the attach (600s semantics live on
+ *           the appmgr side; INV-3 "the task does not end with the tool").
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, HandleProcessTimeout_NoDetach_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_HandleProcessTimeout_NoDetach_0100 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "timeout_no_detach_session";
+    record->taskId = "task_timeout_0100";
+    record->processId = 999999; // not a live pid: Killpg fails harmlessly
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    record->SetBackground(true); // already background: avoid the reply dispatch branch
+    service_->AddSessionRecord(record);
+
+    service_->HandleProcessTimeout(record->sessionId);
+
+    // The timeout path itself posts no unregister (synchronous check)...
+    {
+        std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
+        EXPECT_EQ(g_mockAppMgr->unregisterCalls, 0);
+    }
+    // ...the detach for this attribution is posted by WaitPid when the
+    // (killed) process is reaped. Consume it here so it cannot leak into the
+    // next case.
+    service_->WaitPid(record->processId, 0, SIGCHLD);
+    EXPECT_TRUE(WaitForUnregister(1));
+    {
+        std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
+        EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
+        EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_timeout_0100");
+        EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
+    }
+    EXPECT_TRUE(record->Timeout());
+    EXPECT_EQ(record->GetState(), SessionState::CANCELLING);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_HandleProcessTimeout_NoDetach_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_NotCarried_NoAttribution_0100
+ * @tc.desc: AC-4 full-entry baseline: an ExecTool call without a taskId
+ *           (empty options field) never reaches the attribution face,
+ *           regardless of where the environment gates stop it.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_NotCarried_NoAttribution_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_NotCarried_NoAttribution_0100 start");
+
+    ExecToolParam param;
+    param.toolName = "not_carried_tool";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+
+    int32_t result = service_->ExecTool(param, "event_not_carried", scheduler);
+
+    EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || result == ERR_NO_INIT || result == ERR_NOT_HAP ||
+        IsPermissionGateResult(result));
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_NotCarried_NoAttribution_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_OnStop_Detach_0100
+ * @tc.desc: STATE-1 service-stop teardown: OnStop clears the session table
+ *           without going through RemoveSessionRecord, so it collects the
+ *           attribution snapshots and posts best-effort detaches before the
+ *           shutdown continues (the appmgr-side backstop covers what does
+ *           not get out).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnStop_Detach_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnStop_Detach_0100 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "stop_detach_session";
+    record->taskId = "task_stop_detach_0100";
+    // processId stays -1: no active child to Killpg/WaitPid in OnStop.
+    record->processId = -1;
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    service_->OnStop();
+
+    EXPECT_TRUE(WaitForUnregister(1));
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_stop_detach_0100");
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnStop_Detach_0100 end");
+}
+
+// =====================================================================================
+// TASK-4: in-app skill attribution (server-side locate, IPC 151 / v1.4 P1-1)
+// =====================================================================================
+
+/**
+ * @tc.name: CliToolManagerService_AttachSkillTaskAttribution_0100
+ * @tc.desc: In-app skill attach, locate pass: the target bundle's main-process
+ *           pid is registered through IPC 151 with the forensic uid from the
+ *           record (P2-2) and attributionId becomes the server-assigned handle — the
+ *           anchor is server-located, not a fork return value (v1.4 P1-1).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0100 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "skill_attach_session";
+    record->taskId = "task_skill_attach_0100";
+    record->callerUid = ATTR_TEST_CALLER_UID;
+
+    service_->AttachSkillTaskAttribution(record, "com.example.skill.host");
+
+    EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastInAppSkillTaskId, "task_skill_attach_0100");
+    EXPECT_EQ(g_mockAppMgr->lastInAppSkillBundle, "com.example.skill.host");
+    EXPECT_EQ(g_mockAppMgr->lastInAppSkillCallerUid, ATTR_TEST_CALLER_UID);
+    EXPECT_EQ(record->attributionId, ATTR_TEST_ATTRIBUTION_ID);
+    EXPECT_EQ(record->taskId, "task_skill_attach_0100");
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_AttachSkillTaskAttribution_0200
+ * @tc.desc: In-app skill attach, locate rejection (target application not
+ *           running / on-demand startup not finished — the known cold-start
+ *           boundary): no attribution object, no side effects (R-10/R-11) —
+ *           attributionId stays 0 and the key residue is cleared (INV-1) so
+ *           no teardown path ever produces a stray unregister.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0200 start");
+
+    g_mockAppMgr->inAppSkillRet = AAFwk::INNER_ERR;
+    g_mockAppMgr->inAppSkillResolvedPid = -1;
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "skill_locate_fail_session";
+    record->taskId = "task_skill_attach_0200";
+    record->callerUid = ATTR_TEST_CALLER_UID;
+
+    service_->AttachSkillTaskAttribution(record, "com.example.skill.host");
+
+    EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 1);
+    EXPECT_TRUE(record->taskId.empty());
+    EXPECT_EQ(record->attributionId, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_AttachSkillTaskAttribution_0300
+ * @tc.desc: In-app skill attach, inconsistent server reply (ERR_OK without a
+ *           usable resolved pid): treated as a locate failure — not attributed,
+ *           residue cleared (defensive slice mirroring the manager-side
+ *           contract).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0300 start");
+
+    g_mockAppMgr->inAppSkillRet = ERR_OK;
+    g_mockAppMgr->inAppSkillResolvedPid = -1;
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "skill_inconsistent_session";
+    record->taskId = "task_skill_attach_0300";
+    record->callerUid = ATTR_TEST_CALLER_UID;
+
+    service_->AttachSkillTaskAttribution(record, "com.example.skill.host");
+
+    EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 1);
+    EXPECT_TRUE(record->taskId.empty());
+    EXPECT_EQ(record->attributionId, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_AttachSkillTaskAttribution_0400
+ * @tc.desc: In-app skill attach, taskId not carried (or normalized to empty at
+ *           the entry gate): zero attribution side effects — the locate IPC is
+ *           never attempted (AC-4 not-carried baseline on the skill path).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0400 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "skill_not_carried_session";
+    record->taskId = "";
+    record->callerUid = ATTR_TEST_CALLER_UID;
+
+    service_->AttachSkillTaskAttribution(record, "com.example.skill.host");
+    service_->AttachSkillTaskAttribution(nullptr, "com.example.skill.host");
+
+    EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 0);
+    EXPECT_EQ(record->attributionId, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0400 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_SetupAndStartSkillSession_DispatchFail_0100
+ * @tc.desc: Skill setup point ordering: the attach hook runs only AFTER the
+ *           dispatch to the target application succeeds — a failed dispatch
+ *           (AMS unreachable in this environment) rolls the record back with
+ *           zero attribution side effects: no locate IPC, no unregister post
+ *           (the hook is after every rollback-able failure path, ADR-2).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, SetupAndStartSkillSession_DispatchFail_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_SetupAndStartSkillSession_DispatchFail_0100 start");
+
+    ExecToolParam param;
+    param.toolName = "ohos-arkTSScript";
+    param.args.SetParam("bundleName", AAFwk::String::Box("com.example.skill.host"));
+    param.args.SetParam("skillName", AAFwk::String::Box("testSkill"));
+    param.options.taskId = "task_skill_dispatch_0100";
+    ToolInfo toolInfo;
+
+    auto ret = service_->SetupAndStartSkillSession(param, "event_skill_dispatch", toolInfo);
+
+    EXPECT_NE(ret, ERR_OK);
+    EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 0);
+    EXPECT_TRUE(service_->GetSessionRecords().empty());
+    // Synchronous no-op check: nothing was posted, so nothing can arrive.
+    std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_SetupAndStartSkillSession_DispatchFail_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_HandleSkillSessionTimeout_Detach_0100
+ * @tc.desc: Skill session exit (timeout) unified detach: the TASK-3
+ *           RemoveSessionRecord entry posts the unregister for an attributed
+ *           skill session — the unregister object is the server-located
+ *           attributionId (NOT processId, which stays -1 for skill sessions)
+ *           with the forensic uid from the record (INV-3 / P2-2 / P2-3).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, HandleSkillSessionTimeout_Detach_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_HandleSkillSessionTimeout_Detach_0100 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "skill_timeout_detach_session";
+    record->eventId = "skill_timeout_detach_event";
+    record->taskId = "task_skill_timeout_0100";
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    record->sessionType = SessionType::SKILL;
+    service_->AddSessionRecord(record);
+
+    service_->HandleSkillSessionTimeout(record->sessionId);
+
+    EXPECT_TRUE(WaitForUnregister(1));
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_skill_timeout_0100");
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
+    EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_HandleSkillSessionTimeout_Detach_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ClearSession_SKILL_Detach_0100
+ * @tc.desc: Skill session cancel (ClearSession SKILL branch) rides the same
+ *           unified teardown: an attributed skill session produces exactly one
+ *           posted unregister with the attributed anchor (INV-3).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ClearSession_SKILL_Detach_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ClearSession_SKILL_Detach_0100 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "skill_clear_detach_session";
+    record->taskId = "task_skill_clear_0100";
+    record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    record->sessionType = SessionType::SKILL;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    auto ret = service_->ClearSession(record->sessionId);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(WaitForUnregister(1));
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_skill_clear_0100");
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
+    EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ClearSession_SKILL_Detach_0100 end");
+}
 } // namespace CliTool
+} // namespace OHOS
+
+namespace OHOS {
+namespace AppExecFwk {
+// Test-side replacement of the service-manager lookup (same channel as
+// task_attribution_manager_test): the AppMgrClient compiled into this binary
+// connects to the in-process mock endpoint instead of samgr.
+sptr<IRemoteObject> AppServiceManager::GetAppMgrService() const
+{
+    if (OHOS::CliTool::g_mockAppMgr == nullptr) {
+        return nullptr;
+    }
+    return OHOS::CliTool::g_mockAppMgr->AsObject();
+}
+} // namespace AppExecFwk
 } // namespace OHOS

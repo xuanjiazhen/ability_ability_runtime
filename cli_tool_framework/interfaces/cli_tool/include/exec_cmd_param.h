@@ -55,6 +55,8 @@ public:
     // Trace identifiers for log correlation; empty means "not provided".
     std::string toolCallId;
     std::string dmSessionId;
+    // Attribution task id: rides the serialized options tail; empty = "not provided" (R-7).
+    std::string taskId;
 
     bool Marshalling(Parcel &parcel) const;
     static ExecCmdOptions *Unmarshalling(Parcel &parcel);
@@ -72,6 +74,7 @@ public:
         o.timeout = timeout;
         o.toolCallId = toolCallId;
         o.dmSessionId = dmSessionId;
+        o.taskId = taskId;
         return o;
     }
 };

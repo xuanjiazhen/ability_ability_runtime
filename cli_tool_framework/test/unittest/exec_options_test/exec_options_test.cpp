@@ -180,5 +180,38 @@ HWTEST_F(ExecOptionsTest, ExecOptions_Unmarshalling_0300, TestSize.Level1)
     missingDmParcel.RewindRead(0);
     EXPECT_EQ(ExecOptions::Unmarshalling(missingDmParcel), nullptr);
 }
+
+/**
+ * @tc.name: ExecOptions_TaskId_SerializedTail_0100
+ * @tc.desc: taskId rides the serialized options tail (ADR-8 v2.0): a round
+ *           trip preserves it, and the legacy field order stays intact in
+ *           front of it
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExecOptionsTest, ExecOptions_TaskId_SerializedTail_0100, TestSize.Level1)
+{
+    ExecOptions options;
+    options.background = true;
+    options.yieldMs = TEST_YIELD_MS;
+    options.timeout = TEST_TIMEOUT;
+    options.toolCallId = TEST_TOOL_CALL_ID;
+    options.dmSessionId = TEST_DM_SESSION_ID;
+    options.taskId = "task_round_trip";
+
+    Parcel parcel;
+    ASSERT_TRUE(options.Marshalling(parcel));
+    parcel.RewindRead(0);
+
+    std::unique_ptr<ExecOptions> result(ExecOptions::Unmarshalling(parcel));
+    ASSERT_NE(result, nullptr);
+    // Serialized fields keep their values...
+    EXPECT_TRUE(result->background);
+    EXPECT_EQ(result->yieldMs, TEST_YIELD_MS);
+    EXPECT_EQ(result->timeout, TEST_TIMEOUT);
+    EXPECT_EQ(result->toolCallId, TEST_TOOL_CALL_ID);
+    EXPECT_EQ(result->dmSessionId, TEST_DM_SESSION_ID);
+    // ...and taskId crosses the wire as the lenient tail field.
+    EXPECT_EQ(result->taskId, "task_round_trip");
+}
 } // namespace CliTool
 } // namespace OHOS
