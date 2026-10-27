@@ -920,10 +920,11 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_004, TestSize.Level1)
     EXPECT_NE(appMgrServiceInner, nullptr);
     BundleInfo bundleInfo;
     std::string processName = "AppMgrServiceInnerTest";
+    int32_t killId = 4000;
     std::shared_ptr<AppRunningRecord> appRecord =
         appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
     EXPECT_NE(appRecord, nullptr);
-    appRecord->SetKillId(HiviewDFX::ProcessKillReason::KillEventId::REASON_OOM_KILLER);
+    appRecord->SetKillId(killId);
     appRecord->SetKillMsg("OOM kill");
     appRecord->SetInnerMsg("");
     appMgrServiceInner->SendProcessKillEvent(appRecord);
