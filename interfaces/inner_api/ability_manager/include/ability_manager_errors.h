@@ -1216,6 +1216,11 @@ enum {
     ERR_ATTRIBUTION_NOT_FOUND = 2099503,
 
     /**
+     * Result(2099504) for query disposed rule failed.
+     */
+    ERR_CHECK_CHILD_PROCESS_FAILED = 2099504,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,
