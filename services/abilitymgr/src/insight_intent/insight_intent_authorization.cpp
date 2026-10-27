@@ -16,14 +16,10 @@
 #include "insight_intent_authorization.h"
 
 #include "hilog_tag_wrapper.h"
-#include "parameters.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *DEVICE_TYPE_PC = "2in1";
-constexpr const char *DEVICE_TYPE_TABLET = "tablet";
-
 /**
  * DRAFT(SPEC-20260816098661): 骨架阶段的默认 backend，所有入口一律拒绝（fail-closed）。
  * O-1 / O-2 / O-5 接口定义关闭后，用真实对接实现替换本类即可，编排层无需改动。
@@ -53,6 +49,12 @@ public:
             "target: %{public}s", identity.callerBundleName.c_str(), identity.targetBundleName.c_str());
         return AuthorizationResult::DENIED;
     }
+
+    bool IsPopupSupported() const override
+    {
+        // DRAFT(SPEC-20260816098661): 真实实现按 GetDeviceType() 判 2in1/tablet 后才返回 true。
+        return false;
+    }
 };
 } // namespace
 
@@ -70,11 +72,15 @@ bool InsightIntentAuthorization::IsPopupAuthorizationSupported()
 {
     // SPEC-20260816098661 R-4：设备形态判断在权限检查入口完成，手机短路返回 ERR_NOT_SYSTEM_APP。
     // 智慧屏等其他形态不在本需求范围，默认不启用弹框授权（维持拒绝）。
-    const std::string deviceType = OHOS::system::GetDeviceType();
-    bool supported = (deviceType == DEVICE_TYPE_PC) || (deviceType == DEVICE_TYPE_TABLET);
-    TAG_LOGD(AAFwkTag::INTENT, "deviceType: %{public}s, popup authorization supported: %{public}d",
-        deviceType.c_str(), static_cast<int32_t>(supported));
+    bool supported = GetInstance().IsPopupSupportedByBackend();
+    TAG_LOGD(AAFwkTag::INTENT, "popup authorization supported: %{public}d", static_cast<int32_t>(supported));
     return supported;
+}
+
+bool InsightIntentAuthorization::IsPopupSupportedByBackend()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return (backend_ != nullptr) && backend_->IsPopupSupported();
 }
 
 AuthorizationResult InsightIntentAuthorization::AuthorizeThirdPartyCall(const CallerIdentity &identity)

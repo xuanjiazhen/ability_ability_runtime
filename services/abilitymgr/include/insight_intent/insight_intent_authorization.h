@@ -63,6 +63,15 @@ public:
 
     // O-2 弹框触发：返回用户决定；异步语义（O-3）未定期间按「未确认」处理
     virtual AuthorizationResult RequestUserAuthorization(const CallerIdentity &identity) = 0;
+
+    /**
+     * DRAFT(SPEC-20260816098661): 设备形态门槛由 backend 提供，编排层不直接依赖设备参数。
+     * 默认不支持（fail-closed）；真实实现按 GetDeviceType() 判 2in1/tablet（AC-1.3）。
+     */
+    virtual bool IsPopupSupported() const
+    {
+        return false;
+    }
 };
 
 class InsightIntentAuthorization {
@@ -87,6 +96,8 @@ public:
 
 private:
     InsightIntentAuthorization();
+
+    bool IsPopupSupportedByBackend();
 
     std::mutex mutex_;
     std::shared_ptr<IInsightIntentAuthorizationBackend> backend_;
