@@ -48,10 +48,21 @@ struct ObserverNode {
     std::string permission_;
     int32_t pid_ = 0;
     int64_t nodeId_ = -1;
+    std::string filterKey_;
+    std::string filterValue_;
     static inline std::atomic<int64_t> nextNodeId_ = 1;
 
     ObserverNode(sptr<IDataAbilityObserver> observer, int32_t userId, uint32_t tokenId, int32_t pid)
         : observer_(observer), userId_(userId), tokenId_(tokenId), pid_(pid)
+    {
+        // nextNodeId_ increased by 1
+        nodeId_ = nextNodeId_.fetch_add(1);
+    }
+
+    ObserverNode(sptr<IDataAbilityObserver> observer, int32_t userId, uint32_t tokenId, int32_t pid,
+        std::string filterKey, std::string filterValue)
+        : observer_(observer), userId_(userId), tokenId_(tokenId), pid_(pid),
+          filterKey_(std::move(filterKey)), filterValue_(std::move(filterValue))
     {
         // nextNodeId_ increased by 1
         nodeId_ = nextNodeId_.fetch_add(1);
