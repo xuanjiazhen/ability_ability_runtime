@@ -40,6 +40,22 @@ public:
         return 0;
     }
 
+    // Write a valid reply (Parcelable + Int32 result) for the proxy read-back assertions
+    int InvokeUIExtensionHostInfoReply(uint32_t code, MessageParcel& data, MessageParcel& reply,
+        MessageOption& option)
+    {
+        code_ = code;
+        UIExtensionHostInfo info;
+        info.elementName_.SetBundleName("com.proxy.reply");
+        info.elementName_.SetAbilityName("ReplyAbility");
+        info.elementName_.SetModuleName("entry");
+        info.sessionName = "session_proxy";
+        info.persistentId_ = 88;
+        reply.WriteParcelable(&info);
+        reply.WriteInt32(0);
+        return 0;
+    }
+
     int InvokeKioskModeSendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
     {
         code_ = code;

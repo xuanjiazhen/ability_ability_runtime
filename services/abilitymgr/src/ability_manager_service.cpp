@@ -17010,6 +17010,87 @@ std::shared_ptr<AbilityRecord> AbilityManagerService::GetUIExtensionRootCaller(c
     return callerRecord;
 }
 
+int32_t AbilityManagerService::GetUIExtensionHostInfoById(int32_t abilityRecordId,
+    UIExtensionHostInfo &hostInfo)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Get ui extension host info by id: %{public}d.", abilityRecordId);
+    if (abilityRecordId <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityRecordId");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Caller restriction: native SA only.
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission deny");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    auto recordId = static_cast<int64_t>(abilityRecordId);
+    auto connectManager = GetUIExtensionAbilityManagerByAbilityRecordId(recordId);
+    if (connectManager == nullptr) {
+        // Invalid / destroyed / non-UI-extension record all return ERR_INVALID_VALUE.
+        // The id may belong to a common (non-UI) extension manager. Distinguish it from
+        // "not found" in the log so a misuse is easy to identify, without changing behavior.
+        if (IsCommonExtensionRecord(recordId)) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "record is not ui extension, id: %{public}d", abilityRecordId);
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "record not found, id: %{public}d", abilityRecordId);
+        }
+        return ERR_INVALID_VALUE;
+    }
+
+    auto extensionRecord = connectManager->GetExtensionByIdFromServiceMap(recordId);
+    if (extensionRecord == nullptr) {
+        extensionRecord = connectManager->GetExtensionByIdFromTerminatingMap(recordId);
+        if (extensionRecord != nullptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "record %{public}d found in terminating map", abilityRecordId);
+        }
+    }
+    if (extensionRecord == nullptr || extensionRecord->GetToken() == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "extension record not found, id: %{public}d", abilityRecordId);
+        return ERR_INVALID_VALUE;
+    }
+
+    auto hostRecord = connectManager->GetUIExtensionRootHostInfo(extensionRecord->GetToken());
+    if (hostRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "root host record not found, id: %{public}d", abilityRecordId);
+        return ERR_INVALID_VALUE;
+    }
+
+    hostInfo.elementName_ = hostRecord->GetElementName();
+    // Save the original moduleName for in-process consumers; Marshalling carries it from
+    // elementName_ via the standalone slot, ReadFromParcel backfills it after the round trip.
+    hostInfo.moduleName = hostInfo.elementName_.GetModuleName();
+    auto sessionInfo = hostRecord->GetSessionInfo();
+    if (sessionInfo != nullptr) {
+        hostInfo.sessionName = sessionInfo->sessionName;
+        hostInfo.persistentId_ = sessionInfo->persistentId;
+    }
+    return ERR_OK;
+}
+
+bool AbilityManagerService::IsCommonExtensionRecord(int64_t abilityRecordId)
+{
+    if (subManagersHelper_ == nullptr) {
+        return false;
+    }
+    auto commonManagers = subManagersHelper_->GetCommonExtensionManagers();
+    for (auto &item : commonManagers) {
+        if (item.second == nullptr) {
+            continue;
+        }
+        if (item.second->GetExtensionByIdFromServiceMap(abilityRecordId) != nullptr) {
+            return true;
+        }
+        if (item.second->GetExtensionByIdFromTerminatingMap(abilityRecordId) != nullptr) {
+            return true;
+        }
+    }
+    return false;
+}
+
 int32_t AbilityManagerService::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
     UIExtensionSessionInfo &uiExtensionSessionInfo, int32_t userId)
 {
