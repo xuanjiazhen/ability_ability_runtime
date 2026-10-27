@@ -32,6 +32,8 @@ public:
     ~PermissionVerification() = default;
 
     bool VerifyUpdateConfigurationPerm() const;
+    bool CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const;
+    bool VerifyPreloadApplicationPermission() const;
 };
 } // namespace AAFwk
 } // namespace OHOS

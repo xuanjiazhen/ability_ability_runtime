@@ -22,6 +22,7 @@
 #include "app_utils.h"
 #include "render_record.h"
 #undef private
+#include "meminfo.h"
 #include "user_record_manager.h"
 #include "mock_my_status.h"
 #include "ability_manager_errors.h"
@@ -234,6 +235,99 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_003, Test
     int32_t ret = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_003 end");
+}
+
+/**
+ * @tc.name: UpdateApplicationInfoInstalled_004
+ * @tc.desc: test UpdateApplicationInfoInstalled when GetNameAndIndexForUid fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_INVALID_OPERATION;
+
+    std::string bundleName = "com.test.app";
+    int uid = 10000;
+    std::string moduleName = "test_module";
+    bool isPlugin = false;
+    int32_t ret = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_004 end");
+}
+
+/**
+ * @tc.name: UpdateApplicationInfoInstalled_005
+ * @tc.desc: test UpdateApplicationInfoInstalled when GetApplicationInfoWithAppIndex fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = false;
+
+    std::string bundleName = "com.test.app";
+    int uid = 10000;
+    std::string moduleName = "test_module";
+    bool isPlugin = false;
+    int32_t ret = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_005 end");
+}
+
+/**
+ * @tc.name: UpdateApplicationInfoInstalled_006
+ * @tc.desc: test UpdateApplicationInfoInstalled when ProcessUpdateApplicationInfoInstalled fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = true;
+    AAFwk::MyStatus::GetInstance().processUpdate_ = ERR_INVALID_STATE;
+
+    std::string bundleName = "com.test.app";
+    int uid = 10000;
+    std::string moduleName = "test_module";
+    bool isPlugin = false;
+    int32_t ret = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
+    EXPECT_EQ(ret, ERR_INVALID_STATE);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_006 end");
+}
+
+/**
+ * @tc.name: UpdateApplicationInfoInstalled_007
+ * @tc.desc: test UpdateApplicationInfoInstalled when all steps succeed
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_007 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = true;
+    AAFwk::MyStatus::GetInstance().processUpdate_ = ERR_OK;
+
+    std::string bundleName = "com.test.app";
+    int uid = 10000;
+    std::string moduleName = "test_module";
+    bool isPlugin = false;
+    int32_t ret = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_007 end");
 }
 
 /**
@@ -616,7 +710,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 0;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_001 end");
 }
@@ -631,6 +726,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_002 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
     AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
     AAFwk::MyStatus::GetInstance().getApplicationInfo_ = true;
@@ -641,7 +737,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 0;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_002 end");
 }
@@ -664,7 +761,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 0;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_MULTI_INSTANCE_NOT_SUPPORTED);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_003 end");
 }
@@ -690,7 +788,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 0;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_004 end");
 }
@@ -720,7 +819,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 0;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_005 end");
 }
@@ -750,7 +850,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 100;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_006 end");
 }
@@ -835,6 +936,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessRunningInformation_001, TestSi
     TAG_LOGI(AAFwkTag::TEST, "GetProcessRunningInformation_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
 
     RunningProcessInfo info;
     int32_t ret = appMgrServiceInner->GetProcessRunningInformation(info);
@@ -1034,7 +1136,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRunningProcesses_001, TestSize.Level1
     AAFwk::MyStatus::GetInstance().getAppIndex_ = 0;
 
     std::vector<RunningProcessInfo> info;
-    appMgrServiceInner->GetRunningProcesses(appRecord, info);
+    appMgrServiceInner->appQueryHelper_.GetRunningProcesses(appRecord, info);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppIndex_, 0);
     TAG_LOGI(AAFwkTag::TEST, "GetRunningProcesses_001 end");
 }
@@ -1058,7 +1160,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRunningProcesses_002, TestSize.Level1
     AAFwk::MyStatus::GetInstance().getAppIndex_ = 0;
 
     std::vector<RunningProcessInfo> info;
-    appMgrServiceInner->GetRunningProcesses(appRecord, info);
+    appMgrServiceInner->appQueryHelper_.GetRunningProcesses(appRecord, info);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppIndex_, 0);
     TAG_LOGI(AAFwkTag::TEST, "GetRunningProcesses_002 end");
 }
@@ -1082,7 +1184,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRunningProcesses_003, TestSize.Level1
     AAFwk::MyStatus::GetInstance().getAppIndex_ = 0;
 
     std::vector<RunningProcessInfo> info;
-    appMgrServiceInner->GetRunningProcesses(appRecord, info);
+    appMgrServiceInner->appQueryHelper_.GetRunningProcesses(appRecord, info);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppIndex_, 1);
     TAG_LOGI(AAFwkTag::TEST, "GetRunningProcesses_003 end");
 }
@@ -1113,7 +1215,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRenderProcesses_001, TestSize.Level1)
     renderRecord->SetPid(1);
     appRecord->renderRecordMap_.insert(std::pair<int32_t, std::shared_ptr<RenderRecord>>(1, renderRecord));
     std::vector<RenderProcessInfo> info;
-    appMgrServiceInner->GetRenderProcesses(appRecord, info);
+    appMgrServiceInner->appQueryHelper_.GetRenderProcesses(appRecord, info);
     EXPECT_EQ(info.size(), 1);
     TAG_LOGI(AAFwkTag::TEST, "GetRenderProcesses_001 end");
 }
@@ -1330,7 +1432,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, CheckGetRunningInfoPermission_001, TestS
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().verifyRunningInfoPerm_ = false;
     
-    auto ret = appMgrServiceInner->CheckGetRunningInfoPermission();
+    auto ret = appMgrServiceInner->appQueryHelper_.CheckGetRunningInfoPermission();
     EXPECT_EQ(ret, false);
     TAG_LOGI(AAFwkTag::TEST, "CheckGetRunningInfoPermission_001 end");
 }
@@ -2089,6 +2191,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetConfiguration_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "GetConfiguration_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->multiUserConfigurationMgr_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.multiUserConfigurationMgr_ = nullptr;
 
     auto ret = appMgrServiceInner->GetConfiguration();
     EXPECT_EQ(ret, nullptr);
@@ -2319,6 +2422,75 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_007, T
     auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
     TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_007 end");
+}
+
+/**
+* @tc.name: VerifyKillProcessPermissionCommon_008
+* @tc.desc: test VerifyKillProcessPermissionCommon_008 when caller is treated as shell by
+*     LOCAL_DEBUG_OTHER_APPS permission in developer mode
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_008, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_008 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
+    AAFwk::MyStatus::GetInstance().isSACall_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = false;
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
+
+    auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
+    EXPECT_EQ(ret, ERR_OK);
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_008 end");
+}
+
+/**
+* @tc.name: NotifyProcMemoryLevel_002
+* @tc.desc: test NotifyProcMemoryLevel_002 when caller is treated as shell by
+*     LOCAL_DEBUG_OTHER_APPS permission in developer mode
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().checkSpecific_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().getBoolParameter_ = true;
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
+    AAFwk::MyStatus::GetInstance().notifyProcMemory_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().notifyProcMemoryShellCall_ = 0;
+
+    const std::map<pid_t, MemoryLevel> procLevelMap;
+    int32_t ret = appMgrServiceInner->NotifyProcMemoryLevel(procLevelMap);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().notifyProcMemoryShellCall_, 1);
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
+    AAFwk::MyStatus::GetInstance().getBoolParameter_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_002 end");
+}
+
+/**
+* @tc.name: NotifyProcMemoryLevel_003
+* @tc.desc: test NotifyProcMemoryLevel_003 when caller is not memmgr, not shell call, not developer mode
+*     and has no LOCAL_DEBUG_OTHER_APPS permission
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().checkSpecific_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().getBoolParameter_ = false;
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
+
+    const std::map<pid_t, MemoryLevel> procLevelMap;
+    int32_t ret = appMgrServiceInner->NotifyProcMemoryLevel(procLevelMap);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_003 end");
 }
 
 /**
@@ -3372,6 +3544,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, CheckAppProvisionType_0200, TestSize.Lev
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = false;
 
     const std::string bundleName = "";
     int32_t callerUid = BASE_USER_RANGE;
@@ -3404,6 +3577,86 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, CheckAppProvisionType_0300, TestSize.Lev
     AAFwk::MyStatus::GetInstance().applicationInfo_.appProvisionType = "debug";
     ret = appMgrServiceInner->CheckAppProvisionType(bundleName, callerUid, appCloneIndex, userId);
     EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: GetProcessMemoryByPid_Overflow_001
+ * @tc.desc: Test GetProcessMemoryByPid when PSS exceeds INT32_MAX, verify memorySize is set to -1.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessMemoryByPid_Overflow_001, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = true;
+
+    OHOS::g_mockPssByPid = static_cast<uint64_t>(INT32_MAX) + 1;
+    int32_t memorySize = 0;
+    int32_t ret = appMgrServiceInner->GetProcessMemoryByPid(1, memorySize);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(memorySize, -1);
+
+    OHOS::g_mockPssByPid = 0;
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = false;
+}
+
+/**
+ * @tc.name: GetProcessMemoryByPid_Overflow_002
+ * @tc.desc: Test GetProcessMemoryByPid with PSS exactly at INT32_MAX boundary, verify normal cast.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessMemoryByPid_Overflow_002, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = true;
+
+    OHOS::g_mockPssByPid = static_cast<uint64_t>(INT32_MAX);
+    int32_t memorySize = -1;
+    int32_t ret = appMgrServiceInner->GetProcessMemoryByPid(1, memorySize);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(memorySize, INT32_MAX);
+
+    OHOS::g_mockPssByPid = 0;
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = false;
+}
+
+/**
+ * @tc.name: GetProcessMemoryByPid_Overflow_003
+ * @tc.desc: Test GetProcessMemoryByPid with normal PSS value, verify memorySize is set correctly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessMemoryByPid_Overflow_003, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = true;
+
+    const uint64_t normalPss = 102400;
+    OHOS::g_mockPssByPid = normalPss;
+    int32_t memorySize = -1;
+    int32_t ret = appMgrServiceInner->GetProcessMemoryByPid(1, memorySize);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(memorySize, static_cast<int32_t>(normalPss));
+
+    OHOS::g_mockPssByPid = 0;
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = false;
+}
+
+/**
+ * @tc.name: GetProcessMemoryByPid_Overflow_004
+ * @tc.desc: Test GetProcessMemoryByPid without system app permission, verify permission denied.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessMemoryByPid_Overflow_004, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = false;
+
+    int32_t memorySize = -1;
+    int32_t ret = appMgrServiceInner->GetProcessMemoryByPid(1, memorySize);
+    EXPECT_EQ(ret, AAFwk::ERR_NOT_SYSTEM_APP);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

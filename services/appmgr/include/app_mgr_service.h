@@ -27,6 +27,7 @@
 #include "app_mgr_constants.h"
 #include "app_mgr_service_event_handler.h"
 #include "app_mgr_service_inner.h"
+#include "hyper_snap_error_record.h"
 #include "app_mgr_stub.h"
 #include "app_record_id.h"
 #include "app_running_record.h"
@@ -87,10 +88,12 @@ public:
         AppExecFwk::PreloadMode preloadMode, int32_t appIndex) override;
 
     virtual int32_t MakeImage(const AAFwk::Want &want, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0,
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1,
         sptr<IImageErrorHandler> errorHandler = nullptr) override;
 
     virtual int32_t DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler = nullptr) override;
+
+    virtual int32_t GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecord &record) override;
 
     virtual int32_t NotifyTemplateProcessDeepFrozen(int32_t pid) override;
 
@@ -223,6 +226,15 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) override;
+
+    /**
+     * GetSelfChildrenProcesses, call GetSelfChildrenProcesses() through proxy project.
+     * Obtains information about children processes that are running for the calling application.
+     *
+     * @param info, child process info.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int GetSelfChildrenProcesses(std::vector<ChildProcessInfo> &info) override;
 
     /**
      * IsTerminatingByPid, call IsTerminatingByPid() through proxy project.
@@ -407,6 +419,21 @@ public:
     int Dump(int fd, const std::vector<std::u16string>& args) override;
 
     /**
+     * @brief Starts a task with the specified task id and priority.
+     * @param taskId Indicates the attribution key of the task.
+     * @param priority Indicates the task priority.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t StartTask(const std::string &taskId, int32_t priority) override;
+
+    /**
+     * @brief Finishes the task with the specified task id.
+     * @param taskId Indicates the attribution key of the task.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t FinishTask(const std::string &taskId) override;
+
+    /**
      * @brief called when the abilityStage's onAcceptWant lifecycle completed.
      * @param recordId record id of the ability.
      * @param want want has been accepted.
@@ -519,7 +546,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
-        int32_t appIndex = 0) override;
+        int32_t appIndex = -1) override;
 
     /**
      * @brief register a configuration observer which will receive notifies when updated.
@@ -755,6 +782,9 @@ public:
      */
     int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer) override;
 
+    int32_t RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer) override;
+    int32_t UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer) override;
+
 #ifdef SUPPORT_CHILD_PROCESS
     /**
      * Start child process, called by ChildProcessManager.
@@ -932,6 +962,13 @@ public:
 #endif // SUPPORT_CHILD_PROCESS
 
     /**
+     * Get all UIAbility child processes of the calling application.
+     * @param infos Output vector of child process info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetSelfUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos) override;
+
+    /**
      * Register callback to notify native child exit.
      * @param notify, callback to notify
      * @return Returns ERR_OK on success, others on failure.
@@ -1105,6 +1142,7 @@ private:
 
     int Dump(const std::vector<std::u16string>& args, std::string& result);
     int ShowHelp(const std::vector<std::u16string>& args, std::string& result);
+    int DumpTask(const std::vector<std::u16string>& args, std::string& result);
     int DumpIpc(const std::vector<std::u16string>& args, std::string& result);
     int DumpIpcAllStart(std::string& result);
     int DumpIpcAllStop(std::string& result);

@@ -60,8 +60,49 @@ std::mutex ContextImpl::getAllUIAbilitiesCallbackMutex_;
 GetAllUIAbilitiesCallback ContextImpl::getAllUIAbilitiesCallback_ = nullptr;
 #endif
 using namespace OHOS::AbilityBase::Constants;
+using ExtractorUtil = AbilityBase::ExtractorUtil;
 
-const std::string PATTERN_VERSION = std::string(FILE_SEPARATOR) + "v\\d+" + FILE_SEPARATOR;
+namespace {
+    std::string GetSandboxPath(const std::string& path, const std::string& sandboxRoot, const std::string& bundleName)
+    {
+        std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
+        if (path.find(absPrefix) != 0) {
+            return path;
+        }
+        std::string remaining = path.substr(absPrefix.length());
+        size_t slashPos = remaining.find(std::string(FILE_SEPARATOR));
+        std::string rest;
+        if (slashPos != std::string::npos) {
+            rest = remaining.substr(slashPos);
+        }
+        if (bundleName.empty() || bundleName.find("..") != std::string::npos ||
+            bundleName.find("/") != std::string::npos || sandboxRoot.empty()) {
+            return path;
+        }
+        std::string result = sandboxRoot + std::string(FILE_SEPARATOR) + bundleName + rest;
+        return result;
+    }
+
+    std::string GetHspSandboxPath(const std::string& path, const std::string& hspSandbox)
+    {
+        std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
+        if (path.find(absPrefix) != 0) {
+            return path;
+        }
+        std::string remaining = path.substr(absPrefix.length());
+        size_t firstSlash = remaining.find(std::string(FILE_SEPARATOR));
+        if (firstSlash == std::string::npos) {
+            return path;
+        }
+        std::string afterBundle = remaining.substr(firstSlash + 1);
+        size_t secondSlash = afterBundle.find(std::string(FILE_SEPARATOR));
+        if (secondSlash == std::string::npos) {
+            return path;
+        }
+        std::string result = hspSandbox + afterBundle.substr(secondSlash + 1);
+        return result;
+    }
+} // namespace
 
 const size_t Context::CONTEXT_TYPE_ID(std::hash<const char*> {} ("Context"));
 const int64_t ContextImpl::CONTEXT_CREATE_BY_SYSTEM_APP(0x00000001);
@@ -155,7 +196,7 @@ std::string ContextImpl::GetBundleCodeDir()
 
     std::string dir;
     if (IsCreateBySystemApp()) {
-        dir = std::regex_replace(appInfo->codePath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
+        dir = GetSandboxPath(appInfo->codePath, LOCAL_BUNDLES, appInfo->bundleName);
     } else {
         dir = LOCAL_CODE_PATH;
     }
@@ -542,9 +583,7 @@ std::shared_ptr<Context> ContextImpl::WrapContext(const std::string &pluginBundl
             continue;
         }
         if (inputContext->GetBundleName() == hostBundleName) {
-            std::regex pattern(
-                std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + inputContext->GetBundleName());
-            loadPath = std::regex_replace(loadPath, pattern, LOCAL_CODE_PATH);
+            loadPath = ExtractorUtil::GetLoadFilePath(loadPath);
             bool newCreate = false;
             std::shared_ptr<AbilityBase::Extractor> extractor =
                 AbilityBase::ExtractorUtil::GetExtractor(loadPath, newCreate, true);
@@ -553,8 +592,7 @@ std::shared_ptr<Context> ContextImpl::WrapContext(const std::string &pluginBundl
                 return nullptr;
             }
         } else {
-            std::regex pattern(ABS_CODE_PATH);
-            loadPath = std::regex_replace(loadPath, pattern, LOCAL_BUNDLES);
+            loadPath = GetSandboxPath(loadPath, LOCAL_BUNDLES, pluginBundleName);
         }
         TAG_LOGD(AAFwkTag::APPKIT, "loadPath: %{public}s", loadPath.c_str());
         if (!resourceManager->AddResource(loadPath.c_str())) {
@@ -991,8 +1029,7 @@ void ContextImpl::InitResourceManager(const AppExecFwk::BundleInfo &bundleInfo,
                     TAG_LOGE(AAFwkTag::APPKIT, "empty loadPath");
                     break;
                 }
-                std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleInfo.name);
-                loadPath = std::regex_replace(loadPath, pattern, std::string(LOCAL_CODE_PATH));
+                loadPath = ExtractorUtil::GetLoadFilePath(loadPath);
                 if (!resourceManager->AddResource(loadPath.c_str())) {
                     TAG_LOGE(AAFwkTag::APPKIT, "AddResource failed");
                 }
@@ -1046,11 +1083,8 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
     }
     if (!moduleName.empty() || !bundleInfo.applicationInfo.multiProjects) {
         TAG_LOGD(AAFwkTag::APPKIT, "hapModuleInfos count: %{public}zu", bundleInfo.hapModuleInfos.size());
-        std::regex inner_pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR)
-            + GetBundleNameWithContext(inputContext));
-        std::regex outer_pattern(ABS_CODE_PATH);
-        std::regex hsp_pattern(std::string(ABS_CODE_PATH) + FILE_SEPARATOR + bundleInfo.name + PATTERN_VERSION);
-        std::string hsp_sandbox = std::string(LOCAL_CODE_PATH) + FILE_SEPARATOR + bundleInfo.name + FILE_SEPARATOR;
+        std::string hspSandbox = std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR)
+            + bundleInfo.name + std::string(FILE_SEPARATOR);
         {
             HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "for (auto hapModuleInfo : bundleInfo.hapModuleInfos)");
             for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
@@ -1069,13 +1103,12 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
                     *deduplicate |= hapModuleInfo.deduplicateHar;
                 }
                 if (currentBundle) {
-                    loadPath = std::regex_replace(loadPath, inner_pattern, LOCAL_CODE_PATH);
-                } else if (bundleInfo.applicationInfo.bundleType == AppExecFwk::BundleType::SHARED) {
-                    loadPath = std::regex_replace(loadPath, hsp_pattern, hsp_sandbox);
-                } else if (bundleInfo.applicationInfo.bundleType == AppExecFwk::BundleType::APP_SERVICE_FWK) {
-                    loadPath = std::regex_replace(loadPath, hsp_pattern, hsp_sandbox);
+                    loadPath = ExtractorUtil::GetLoadFilePath(loadPath);
+                } else if (bundleInfo.applicationInfo.bundleType == AppExecFwk::BundleType::SHARED
+                    || bundleInfo.applicationInfo.bundleType == AppExecFwk::BundleType::APP_SERVICE_FWK) {
+                    loadPath = GetHspSandboxPath(loadPath, hspSandbox);
                 } else {
-                    loadPath = std::regex_replace(loadPath, outer_pattern, LOCAL_BUNDLES);
+                    loadPath = GetSandboxPath(loadPath, LOCAL_BUNDLES,  bundleInfo.name);
                 }
 
                 TAG_LOGD(AAFwkTag::APPKIT, "loadPath: %{private}s", loadPath.c_str());
@@ -1092,10 +1125,8 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
 void ContextImpl::AddPatchResource(std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
     const std::string &loadPath, const std::string &hqfPath, bool isDebug, std::shared_ptr<Context> inputContext)
 {
-    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR)
-        + GetBundleNameWithContext(inputContext));
     if (!hqfPath.empty() && isDebug) {
-        std::string realHqfPath = std::regex_replace(hqfPath, pattern, LOCAL_CODE_PATH);
+        std::string realHqfPath = ExtractorUtil::GetLoadFilePath(hqfPath);
         TAG_LOGI(AAFwkTag::APPKIT, "AddPatchResource hapPath:%{public}s, patchPath:%{public}s",
             loadPath.c_str(), realHqfPath.c_str());
         if (!resourceManager->AddPatchResource(loadPath.c_str(), realHqfPath.c_str())) {
@@ -1128,8 +1159,7 @@ void ContextImpl::GetOverlayPath(std::shared_ptr<Global::Resource::ResourceManag
                 TAG_LOGE(AAFwkTag::APPKIT, "hapPath: %{private}s", it.hapPath.c_str());
             }
             if (isMatched) {
-                it.hapPath = std::regex_replace(it.hapPath, std::regex(std::string(ABS_CODE_PATH) +
-                    std::string(FILE_SEPARATOR) + GetBundleNameWithContext(inputContext)), LOCAL_CODE_PATH);
+                it.hapPath = ExtractorUtil::GetLoadFilePath(it.hapPath);
             } else {
                 it.hapPath = std::regex_replace(it.hapPath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
             }
@@ -1496,6 +1526,18 @@ int32_t ContextImpl::GetProcessRunningInformation(AppExecFwk::RunningProcessInfo
     return result;
 }
 
+int32_t ContextImpl::GetUIAbilityChildProcessInfos(std::vector<AppExecFwk::ChildProcessInfo> &infos)
+{
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null appMgrClient");
+        return ERR_INVALID_VALUE;
+    }
+    auto result = appMgrClient->GetSelfUIAbilityChildProcesses(infos);
+    TAG_LOGD(AAFwkTag::APPKIT, "result is %{public}d", result);
+    return result;
+}
+
 int32_t ContextImpl::GetAllRunningInstanceKeys(std::vector<std::string> &instanceKeys)
 {
     auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
@@ -1698,7 +1740,6 @@ void ContextImpl::OnOverlayChanged(const EventFwk::CommonEventData &data,
 
 void ContextImpl::ChangeToLocalPath(const std::string& bundleName, const std::string& sourceDir, std::string& localPath)
 {
-    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleName);
     if (sourceDir.empty()) {
         return;
     }
@@ -1710,7 +1751,7 @@ void ContextImpl::ChangeToLocalPath(const std::string& bundleName, const std::st
             localPath.c_str(), bundleName.c_str());
     }
     if (isExist) {
-        localPath = std::regex_replace(localPath, pattern, std::string(LOCAL_CODE_PATH));
+        localPath = ExtractorUtil::GetLoadFilePath(localPath);
     } else {
         localPath = std::regex_replace(localPath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
     }

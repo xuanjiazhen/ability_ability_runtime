@@ -22,6 +22,8 @@
 
 #include "ability_manager_client.h"
 #include "ability_manager_errors.h"
+#include "accesstoken_kit.h"
+#include "hap_token_info.h"
 #include "agent_bundle_event_callback.h"
 #include "agent_connect_manager.h"
 #include "agent_utils.h"
@@ -38,6 +40,7 @@
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "parameters.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
 #include "system_ability_definition.h"
@@ -61,6 +64,20 @@ bool IsLowCodeTargetMatched(const AAFwk::Want &want, const AgentCard &card)
         return false;
     }
     return true;
+}
+
+constexpr char OHOS_AGENT_CLI_ENABLED[] = "const.product.ohos_agent_cli.enabled";
+
+// ADR-5(revised): IsCliToolToken + CCM is a FEATURE GATE only ("is CLI-driven agent connect supported on
+// this device"), NOT a security bypass. The CLI tool process (TOKEN_SHELL) lacks app A's HAP identity,
+// so app A's real permission/foreground is validated on app A's token via the ForCli interfaces
+// (callerIdentity from cliMgr). Non-CLI callers never reach the ForCli path.
+bool IsOhosAgentCliEnabled()
+{
+    if (!system::GetBoolParameter(OHOS_AGENT_CLI_ENABLED, false)) {
+        return false;
+    }
+    return Security::AccessToken::AccessTokenKit::IsCliToolToken(IPCSkeleton::GetCallingTokenID());
 }
 }
 
@@ -110,12 +127,22 @@ void AgentManagerService::OnStart() noexcept
     if (!addBundleMgr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "addBundleMgr failed");
     }
+    // Backfill needs both BMS and accountmgr online; subscribe to both since startup order varies.
+    bool addAccountMgr = AddSystemAbilityListener(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
+    if (!addAccountMgr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "addAccountMgr failed");
+    }
 }
 
 void AgentManagerService::OnStop() noexcept
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr stop");
     AgentConnectManager::GetInstance().Clear();
+    // Service is stopping: reset the one-shot backfill state so a restart re-listens and re-backfills.
+    std::lock_guard<std::mutex> lock(backfillState_.mutex);
+    backfillState_.bmsReady = false;
+    backfillState_.accountReady = false;
+    backfillState_.triggered = false;
 }
 
 void AgentManagerService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) noexcept
@@ -125,18 +152,43 @@ void AgentManagerService::OnAddSystemAbility(int32_t systemAbilityId, const std:
         std::string identity = IPCSkeleton::ResetCallingIdentity();
         RegisterBundleEventCallback();
         IPCSkeleton::SetCallingIdentity(identity);
-        // BMS just became ready. BMS completes its bundle scan/load (OnBmsStarting) before it
-        // registers as a SA (AfterBmsStart::RegisterService), so pre-installed apps are already
-        // queryable now. Backfill AgentCards for pre-installed apps whose install events fired
-        // before RegisterBundleEventCallback was registered. Idempotent; offloaded to ffrt so the
-        // samgr listener thread is not blocked by per-bundle BMS + DB work.
-        AgentCardMgr::BackfillPreInstallCards();
+        // BMS completes its bundle scan/load before registering as a SA, so pre-installed apps
+        // are queryable now. Backfill covers pre-installed apps whose install events fired before
+        // RegisterBundleEventCallback was registered.
+        {
+            std::lock_guard<std::mutex> lock(backfillState_.mutex);
+            backfillState_.bmsReady = true;
+        }
+        TryBackfillPreInstallCards();
+    } else if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
+        // accountmgr ready; backfill runs once both SAs are online.
+        {
+            std::lock_guard<std::mutex> lock(backfillState_.mutex);
+            backfillState_.accountReady = true;
+        }
+        TryBackfillPreInstallCards();
     }
 }
 
 void AgentManagerService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) noexcept
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "remove sysAbilityId %{public}d", systemAbilityId);
+}
+
+void AgentManagerService::TryBackfillPreInstallCards()
+{
+    // Fire once, after both BMS and accountmgr report ready.
+    bool shouldTrigger = false;
+    {
+        std::lock_guard<std::mutex> lock(backfillState_.mutex);
+        if (backfillState_.bmsReady && backfillState_.accountReady && !backfillState_.triggered) {
+            backfillState_.triggered = true;
+            shouldTrigger = true;
+        }
+    }
+    if (shouldTrigger) {
+        AgentCardMgr::BackfillPreInstallCards();
+    }
 }
 
 void AgentManagerService::RegisterBundleEventCallback()
@@ -303,6 +355,7 @@ int32_t AgentManagerService::DeleteAgentCard(const std::string &bundleName, cons
 int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connection)
 {
+    want.AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     // Step 1: validate caller state before classifying the agent connect request.
     int32_t callerUid = 0;
     auto ret = ValidateConnectAgentRequest(connection, callerUid);
@@ -343,8 +396,122 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
     return ConnectStandardAgentExtensionAbility(connectWant, agentId, card, connection, callerUid);
 }
 
+// ---- CLI-only connect/disconnect: propagate app A's real identity ----
+// IsCliToolToken+CCM is a FEATURE GATE only (not a bypass). The CLI tool process (TOKEN_SHELL) lacks
+// app A's HAP identity, so the end-to-end ability-level auth at AbilityMgr (CheckCallPermission
+// + visibility) would see the wrong token. cliMgr captures app A's identity string
+// (ResetCallingIdentity, where app A is the cliMgr caller) + passes it (env -> ohos-agent ->
+// callerIdentity param). Here we SetCallingIdentity(app A) so the connect's :438 capture + the
+// AbilityMgr restore propagate app A -> B-side sees app A's real perms. Anti-spoof: the
+// callerIdentity's token must belong to the CLI tool's uid (= app A's uid, unforgeable via
+// claw_sandbox setresuid + cap-drop).
+int32_t AgentManagerService::ConnectAgentExtensionAbilityForCli(const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connection, const std::string &callerIdentity)
+{
+    want.AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
+    if (!IsOhosAgentCliEnabled()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli connect: not enabled (CCM off or not CLI tool)");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli connect: invalid connection");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t cliToolUid = IPCSkeleton::GetCallingUid();  // app A's uid (claw_sandbox setresuid), unforgeable
+    std::string savedIdentity = IPCSkeleton::ResetCallingIdentity();
+    std::string identity = callerIdentity;
+    if (!IPCSkeleton::SetCallingIdentity(identity)) {
+        // A malformed identity string leaves the thread identity unchanged; fail closed.
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli connect: invalid callerIdentity");
+        IPCSkeleton::SetCallingIdentity(savedIdentity);
+        return ERR_PERMISSION_DENIED;
+    }
+    int32_t ret = ERR_OK;
+    do {
+        // anti-spoof: the uid carried in callerIdentity (now the calling uid after SetCallingIdentity)
+        // must equal the CLI tool's real process uid (captured above before SetCallingIdentity; unforgeable
+        // via binder). GetHapTokenInfo().uid is deliberately NOT used here: for bin/instance HAP tokens it
+        // resolves to the parent (bundle-level) token whose uid is 0, never the instance process uid, so
+        // comparing it would always fail for legitimate callers.
+        if (IPCSkeleton::GetCallingUid() != cliToolUid) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli: callerIdentity uid mismatch (spoof)");
+            ret = ERR_PERMISSION_DENIED;
+            break;
+        }
+        // resolve + enforce APP type (CLI path: APP only; replaces preflight type-validation)
+        AAFwk::Want connectWant;
+        std::string agentId;
+        AgentCard card;
+        int32_t callerUid = IPCSkeleton::GetCallingUid();  // app A's real process uid (from callerIdentity)
+        ret = ResolveConnectAgentTarget(want, connectWant, agentId, card, callerUid);
+        if (ret != ERR_OK) {
+            break;
+        }
+        if (card.type != AgentCardType::APP) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli: only APP agent type allowed for CLI connect");
+            ret = AAFwk::ERR_WRONG_INTERFACE_CALL;
+            break;
+        }
+        connectWant.SetParam(AGENT_CARD_TYPE_KEY, static_cast<int32_t>(card.type));
+        // entry auth on app A's real token (no bypass)
+        if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+            AAFwk::PermissionConstants::PERMISSION_CONNECT_AGENT)) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli: app A lacks CONNECT_AGENT");
+            ret = ERR_PERMISSION_DENIED;
+            break;
+        }
+        if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli: app A not system-app");
+            ret = AAFwk::ERR_NOT_SYSTEM_APP;
+            break;
+        }
+        ret = ValidateConnectCallerForeground();  // GetCallingPid = app A's pid (from callerIdentity)
+        if (ret != ERR_OK) {
+            break;
+        }
+        // connect: :438 captures originalIdentity = app A -> AbilityMgr restores app A -> B-side sees app A
+        ret = ConnectStandardAgentExtensionAbility(connectWant, agentId, card, connection, callerUid);
+    } while (false);
+    IPCSkeleton::SetCallingIdentity(savedIdentity);
+    return ret;
+}
+
+int32_t AgentManagerService::DisconnectAgentExtensionAbilityForCli(
+    const sptr<AAFwk::IAbilityConnection> &connection, const std::string &callerIdentity)
+{
+    if (!IsOhosAgentCliEnabled()) {
+        return ERR_PERMISSION_DENIED;
+    }
+    if (connection == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    int32_t cliToolUid = IPCSkeleton::GetCallingUid();
+    std::string savedIdentity = IPCSkeleton::ResetCallingIdentity();
+    std::string identity = callerIdentity;
+    if (!IPCSkeleton::SetCallingIdentity(identity)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli disconnect: invalid callerIdentity");
+        IPCSkeleton::SetCallingIdentity(savedIdentity);
+        return ERR_PERMISSION_DENIED;
+    }
+    int32_t ret = ERR_OK;
+    do {
+        // anti-spoof (symmetric to connect): callerIdentity uid must equal the CLI tool's real
+        // process uid. See ConnectAgentExtensionAbilityForCli for why GetHapTokenInfo().uid is not used.
+        if (IPCSkeleton::GetCallingUid() != cliToolUid) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli disconnect: callerIdentity uid mismatch (spoof)");
+            ret = ERR_PERMISSION_DENIED;
+            break;
+        }
+        // delegate: ValidateDisconnectAgentRequest checks app A's token now (via SetCallingIdentity)
+        ret = DisconnectAgentExtensionAbility(connection);
+    } while (false);
+    IPCSkeleton::SetCallingIdentity(savedIdentity);
+    return ret;
+}
+
 int32_t AgentManagerService::GetAgentCardTypeForConnect(AAFwk::Want &want, int32_t &cardType)
 {
+    want.AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     int32_t callerUid = 0;
     auto ret = ValidateConnectAgentCaller(callerUid);
     if (ret != ERR_OK) {
@@ -429,6 +596,7 @@ int32_t AgentManagerService::ConnectServiceExtensionAbility(const sptr<IRemoteOb
     const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connection)
 {
+    want.AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     auto ret = ValidateConnectServiceRequest(callerToken, connection);
     if (ret != ERR_OK) {
         return ret;
@@ -564,8 +732,11 @@ int32_t AgentManagerService::ValidateConnectCallerForeground() const
         return ret;
     }
     if (processInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "not foreground app");
-        return AAFwk::NOT_TOP_ABILITY;
+        if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+            AAFwk::PermissionConstants::PERMISSION_CONNECT_AGENT_FROM_BACKGROUND)) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "not foreground app");
+            return AAFwk::NOT_TOP_ABILITY;
+        }
     }
     return ERR_OK;
 }
@@ -989,6 +1160,7 @@ int32_t AgentManagerService::DisconnectServiceExtensionAbility(const sptr<IRemot
 int32_t AgentManagerService::VerifyAgentConnectRequest(const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
 {
+    want.AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
         FOUNDATION_PROCESS_NAME)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "non-foundation AMS confirmation caller");
@@ -1008,6 +1180,9 @@ int32_t AgentManagerService::VerifyAgentConnectRequest(const AAFwk::Want &want,
 int32_t AgentManagerService::VerifyAgentDisconnectRequests(const std::vector<AAFwk::Want> &wants,
     const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
 {
+    for (const auto &want : wants) {
+        want.AdoptAllLegacyFd(AAFwk::FdTraversalMode::RECURSIVE);
+    }
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
         FOUNDATION_PROCESS_NAME)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "non-foundation AMS confirmation caller");

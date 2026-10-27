@@ -222,6 +222,11 @@ int32_t UIAbilityLifecycleManager::SetGamePreLaunchCompleteTime(int64_t complete
     return 0;
 }
 
+int32_t UIAbilityLifecycleManager::ExtendGamePreLaunchTimeout(int32_t pid, int64_t extendTime)
+{
+    return 0;
+}
+
 int32_t UIAbilityLifecycleManager::NotifyCancelGamePreLaunch(const sptr<IRemoteObject> callerToken)
 {
     return 0;
@@ -252,7 +257,7 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
     return 0;
 }
 
-bool UIAbilityLifecycleManager::IsAbilityStarted(AbilityRequest &abilityRequest,
+bool UIAbilityLifecycleManager::IsAbilityStarted(const AbilityRequest &abilityRequest,
     std::shared_ptr<AbilityRecord> &targetRecord)
 {
     return false;
@@ -310,8 +315,9 @@ void UIAbilityLifecycleManager::CompleteBackground(const UIAbilityRecordPtr &abi
 }
 
 int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
-    int resultCode, const Want *resultWant, int64_t callerRequestCode)
+    int resultCode, const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp)
 {
+    MyStatus::GetInstance().ualmIsBackToCallerApp_ = isBackToCallerApp;
     return ERR_OK;
 }
 
@@ -674,6 +680,10 @@ void UIAbilityLifecycleManager::SignRestartAppFlag(int32_t uid, const std::strin
 {
 }
 
+void UIAbilityLifecycleManager::SignRestartProcess(int32_t pid)
+{
+}
+
 void UIAbilityLifecycleManager::CompleteFirstFrameDrawing(int32_t sessionId) const
 {
 }
@@ -797,6 +807,32 @@ ErrCode UIAbilityLifecycleManager::QueryCallerTokenIdForAnco(const std::string &
 int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRecord)
 {
     return ERR_OK;
+}
+
+void UIAbilityLifecycleManager::StoreAbilitySessionInfo(int32_t requestId, const AbilitySessionInfo &info)
+{
+    std::lock_guard<ffrt::mutex> guard(abilitySessionInfoMapLock_);
+    abilitySessionInfoMap_[requestId] = info;
+}
+
+bool UIAbilityLifecycleManager::GetAbilitySessionInfo(int32_t requestId, AbilitySessionInfo &info) const
+{
+    std::lock_guard<ffrt::mutex> guard(abilitySessionInfoMapLock_);
+    auto it = abilitySessionInfoMap_.find(requestId);
+    if (it == abilitySessionInfoMap_.end()) {
+        return false;
+    }
+    info = it->second;
+    return true;
+}
+
+void UIAbilityLifecycleManager::RemoveAbilitySessionInfo(int32_t requestId)
+{
+    std::lock_guard<ffrt::mutex> guard(abilitySessionInfoMapLock_);
+    auto it = abilitySessionInfoMap_.find(requestId);
+    if (it != abilitySessionInfoMap_.end()) {
+        abilitySessionInfoMap_.erase(it);
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS

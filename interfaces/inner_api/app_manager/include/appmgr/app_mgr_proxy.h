@@ -54,7 +54,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0) override;
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1) override;
 
     /**
      * Launch Application Finished
@@ -63,9 +63,11 @@ public:
     virtual void PreloadModuleFinished(const int32_t recordId) override;
 
     virtual int32_t MakeImage(const AAFwk::Want &want, int32_t userId, AppExecFwk::PreloadMode preloadMode,
-        int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr) override;
+        int32_t appIndex = -1, sptr<IImageErrorHandler> errorHandler = nullptr) override;
 
     virtual int32_t DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler = nullptr) override;
+
+    virtual int32_t GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecord &record) override;
 
     virtual int32_t NotifyTemplateProcessDeepFrozen(int32_t pid) override;
 
@@ -204,6 +206,15 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) override;
+
+    /**
+     * GetSelfChildrenProcesses, call GetSelfChildrenProcesses() through proxy project.
+     * Obtains information about children processes that are running for the calling application.
+     *
+     * @param info, child process info.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int GetSelfChildrenProcesses(std::vector<ChildProcessInfo> &info) override;
 
     /**
      * IsTerminatingByPid, call IsTerminatingByPid() through proxy project.
@@ -507,7 +518,7 @@ public:
         const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1) override;
 
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
-        int32_t appIndex = 0) override;
+        int32_t appIndex = -1) override;
 
     virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer,
         const int32_t userId = -1) override;
@@ -672,6 +683,9 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer) override;
+
+    int32_t RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer) override;
+    int32_t UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer) override;
 
     /**
      * Check whether the bundle is running.
@@ -889,6 +903,8 @@ public:
         const sptr<IRemoteObject> &callback, const ChildProcessRequest &request) override;
 #endif // SUPPORT_CHILD_PROCESS
 
+    int32_t GetSelfUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos) override;
+
     /**
      * Notify that the process depends on web by itself.
      */
@@ -1019,6 +1035,8 @@ public:
      */
     int32_t EnableDelayedProcessExit(bool enabled) override;
     void CancelDelayedExitTask(int32_t pid) override;
+    int32_t StartTask(const std::string &taskId, int32_t priority) override;
+    int32_t FinishTask(const std::string &taskId) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

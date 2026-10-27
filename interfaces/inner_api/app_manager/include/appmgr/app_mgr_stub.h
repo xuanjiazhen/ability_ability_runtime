@@ -85,8 +85,10 @@ private:
     int32_t HandleNotifyTemplateProcessDeepFrozen(MessageParcel &data, MessageParcel &reply);
     int32_t HandlePreTemplateProcessDeepFrozen(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyTemplateProcessReadyDone(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetHyperSnapLastError(MessageParcel &data, MessageParcel &reply);
 #ifdef SUPPORT_CHILD_PROCESS
     int32_t HandleGetAllChildrenProcesses(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetSelfChildrenProcesses(MessageParcel &data, MessageParcel &reply);
 #endif  // SUPPORT_CHILD_PROCESS
     int32_t HandleRegisterNativeChildExitNotify(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUnregisterNativeChildExitNotify(MessageParcel &data, MessageParcel &reply);
@@ -158,6 +160,10 @@ private:
     int32_t HandleUnregisterAppRunningStatusListener(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRegisterAppForegroundStateObserver(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUnregisterAppForegroundStateObserver(MessageParcel &data, MessageParcel &reply);
+
+    int32_t HandleRegisterProcessLifecycleObserver(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUnregisterProcessLifecycleObserver(MessageParcel &data, MessageParcel &reply);
+
     int32_t HandleIsApplicationRunning(MessageParcel &data, MessageParcel &reply);
 #ifdef SUPPORT_CHILD_PROCESS
     int32_t HandleStartChildProcess(MessageParcel &data, MessageParcel &reply);
@@ -190,6 +196,7 @@ private:
 #ifdef SUPPORT_CHILD_PROCESS
     int32_t HandleCreateNativeChildProcess(MessageParcel &data, MessageParcel &reply);
 #endif // SUPPORT_CHILD_PROCESS
+    int32_t HandleGetSelfUIAbilityChildProcesses(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRestartResidentProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);
@@ -232,6 +239,8 @@ private:
     int32_t HandleGetAllAbilityInfos(MessageParcel &data, MessageParcel &reply);
     int32_t HandleEnableDelayedProcessExit(MessageParcel &data, MessageParcel &reply);
     int32_t HandleCancelDelayedExitTask(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleStartTask(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleFinishTask(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

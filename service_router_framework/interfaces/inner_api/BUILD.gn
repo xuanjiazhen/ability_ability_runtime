@@ -26,7 +26,6 @@ config("srms_fwk_config") {
   include_dirs = [
     "include",
     "${target_gen_dir}",
-    "${ability_runtime_services_path}/common/include",
     "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
   ]
 }
@@ -108,6 +107,8 @@ ohos_shared_library("srms_fwk") {
 
   public_configs = [ ":srms_fwk_config" ]
 
+  include_dirs = [ "${ability_runtime_services_path}/common/include" ]
+
   deps = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager" ]
   deps += [ ":service_router_mgr_interface" ]
 
@@ -125,4 +126,5 @@ ohos_shared_library("srms_fwk") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }

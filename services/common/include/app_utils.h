@@ -142,6 +142,13 @@ public:
     bool IsStartOptionsWithAnimation();
 
     /**
+     * IsSupportBlockAllAppStart, check whether the BlockAllAppStart interceptor is supported.
+     *
+     * @return Whether the BlockAllAppStart interceptor is supported.
+     */
+    bool IsSupportBlockAllAppStart();
+
+    /**
      * IsSupportStartAbilities, check whether the StartUIAbilities API is supported.
      *
      * @return Whether the StartUIAbilities API is supported.
@@ -213,6 +220,12 @@ public:
      * @return Whether it allows native child process.
      */
     bool IsAllowNativeChildProcess(const std::string &appIdentifier);
+
+    /**
+     * ReloadAllowNativeChildProcessApps, reload allow native child process apps from the local param path,
+     * falling back to CCM if the local param is absent. Thread-safe.
+     */
+    void ReloadAllowNativeChildProcessApps();
 
     /**
      * GetLimitMaximumExtensionsPerProc, get limit max extensions per proc.
@@ -395,6 +408,21 @@ private:
     void LoadAllowNativeChildProcessApps();
 
     /**
+     * LoadAllowNativeChildProcessAppsLocal, load allow native child process apps from the local param path,
+     * falling back to LoadAllowNativeChildProcessApps (CCM) if local is absent. Caller must hold lock.
+     */
+    void LoadAllowNativeChildProcessAppsLocal();
+
+    /**
+     * ParseAllowAppsJsonFromPath, parse allow native child process app identifiers from a direct file path.
+     *
+     * @param path The direct file path.
+     * @param out The parsed identifiers, only modified on success.
+     * @return Whether parsing succeeded.
+     */
+    static bool ParseAllowAppsJsonFromPath(const std::string &path, std::vector<std::string> &out);
+
+    /**
      * IsCacheAbilityEnabled, check cache ability parameter switch.
      *
      */
@@ -452,6 +480,7 @@ private:
     volatile DeviceConfiguration<bool> isLimitMaximumOfRenderProcess_ = {false, true};
     volatile DeviceConfiguration<bool> isGrantPersistUriPermission_ = {false, false};
     volatile DeviceConfiguration<bool> isStartOptionsWithAnimation_ = {false, false};
+    volatile DeviceConfiguration<bool> isSupportBlockAllAppStart_ = {false, false};
     volatile DeviceConfiguration<bool> isMultiProcessModel_ = {false, false};
     volatile DeviceConfiguration<bool> allowChildProcessInMultiProcessFeatureApp_ = {false, false};
     volatile DeviceConfiguration<bool> isStartOptionsWithProcessOptions_ = {false, false};

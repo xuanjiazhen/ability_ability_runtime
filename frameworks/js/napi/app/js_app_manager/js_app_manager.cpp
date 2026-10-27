@@ -15,8 +15,10 @@
 
 #include "js_app_manager.h"
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <mutex>
 
 #include "ability_business_error.h"
@@ -265,7 +267,8 @@ private:
     sptr<JSAppStateObserver> observer_ = nullptr;
     sptr<JSAppStateObserver> observerSync_ = nullptr;
     sptr<JSAppForegroundStateObserver> observerForeground_ = nullptr;
-    int32_t serialNumber_ = 0;
+    std::atomic<uint32_t> serialNumber_ = 0;
+    std::shared_ptr<std::mutex> observerMtx_ = std::make_shared<std::mutex>();
 
     napi_value OnOn(napi_env env, size_t argc, napi_value* argv)
     {
@@ -309,7 +312,13 @@ private:
         std::vector<std::string> bundleNameList;
         // unwarp observer
         if (observer_ == nullptr) {
-            observer_ = new JSAppStateObserver(env);
+            observer_ = new (std::nothrow) JSAppStateObserver(env);
+        }
+        if (observer_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null observer_");
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
+            return CreateJsUndefined(env);
         }
         OHOS::AppExecFwk::AppStateFilter appStateFilter = OHOS::AppExecFwk::AppStateFilter();
         bool isUsingFilter = false;
@@ -336,24 +345,23 @@ private:
                 isUsingFilter = true;
             }
         }
-        if (observer_->GetJsObserverMapSize() == 0) {
-            int32_t ret = appManager_->RegisterApplicationStateObserverWithFilter(observer_,
-                bundleNameList, appStateFilter, isUsingFilter);
+        int64_t observerId = serialNumber_.fetch_add(1, std::memory_order_relaxed);
+        int32_t ret = 0;
+        {
+            std::lock_guard<std::mutex> lock(*observerMtx_);
+            if (observer_->GetJsObserverMapSize() == 0) {
+                ret = appManager_->RegisterApplicationStateObserverWithFilter(observer_,
+                    bundleNameList, appStateFilter, isUsingFilter);
+            }
             if (ret == 0) {
-                TAG_LOGD(AAFwkTag::APPMGR, "success");
-            } else {
-                TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
-                napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
-                    GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
-                return CreateJsUndefined(env);
+                observer_->AddJsObserverObject(observerId, argv[INDEX_ONE]);
             }
         }
-        int64_t observerId = serialNumber_;
-        observer_->AddJsObserverObject(observerId, argv[INDEX_ONE]);
-        if (serialNumber_ < INT32_MAX) {
-            serialNumber_++;
-        } else {
-            serialNumber_ = 0;
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
+            napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
+            return CreateJsUndefined(env);
         }
         return CreateJsValue(env, observerId);
     }
@@ -503,7 +511,7 @@ private:
     }
 #endif
     static void OnOffOldInner(sptr<OHOS::AppExecFwk::IAppMgr> appManager, sptr<JSAppStateObserver> observer,
-        int64_t observerId, napi_env env, NapiAsyncTask *task)
+        int32_t observerId, napi_env env, NapiAsyncTask *task, std::shared_ptr<std::mutex> mtx)
     {
         HandleScope handleScope(env);
         if (observer == nullptr || appManager == nullptr) {
@@ -513,15 +521,19 @@ private:
                 GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
             return;
         }
-        observer->RemoveJsObserverObject(observerId);
-        if (observer->GetJsObserverMapSize() == 0) {
-            int32_t ret = appManager->UnregisterApplicationStateObserver(observer);
-            if (ret != 0) {
-                TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
-                task->Reject(env, CreateJsErrorByNativeErr(env, ret, "",
-                    GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
-                return;
+        int32_t ret = 0;
+        {
+            std::lock_guard<std::mutex> lock(*mtx);
+            observer->RemoveJsObserverObject(observerId);
+            if (observer->GetJsObserverMapSize() == 0) {
+                ret = appManager->UnregisterApplicationStateObserver(observer);
             }
+        }
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
+            task->Reject(env, CreateJsErrorByNativeErr(env, ret, "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+            return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "unregister success size:%{public}zu", observer->GetJsObserverMapSize());
         task->ResolveWithNoError(env, CreateJsUndefined(env));
@@ -541,25 +553,30 @@ private:
             return CreateJsUndefined(env);
         }
 
-        int64_t observerId = -1;
-        napi_get_value_int64(env, argv[INDEX_ONE], &observerId);
+        int32_t observerId = -1;
+        napi_get_value_int32(env, argv[INDEX_ONE], &observerId);
         if (observer_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null observer_");
             ThrowInvalidParamError(env, "observer is nullptr, please register first.");
             return CreateJsUndefined(env);
         }
-        if (!observer_->FindObserverByObserverId(observerId)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "not find observer:%{public}d", static_cast<int32_t>(observerId));
+        bool isExist = false;
+        {
+            std::lock_guard<std::mutex> lock(*observerMtx_);
+            isExist = observer_->FindObserverByObserverId(observerId);
+        }
+        if (!isExist) {
+            TAG_LOGE(AAFwkTag::APPMGR, "not find observer:%{public}d", observerId);
             ThrowInvalidParamError(env, "not find observerId.");
             return CreateJsUndefined(env);
         }
-        TAG_LOGD(AAFwkTag::APPMGR, "find observer exist:%{public}d", static_cast<int32_t>(observerId));
+        TAG_LOGD(AAFwkTag::APPMGR, "find observer exist:%{public}d", observerId);
         napi_value lastParam = (argc > ARGC_TWO) ? argv[INDEX_TWO] : nullptr;
         napi_value result = nullptr;
         std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
         auto asyncTask = [appManager = appManager_, observer = observer_, observerId,
-            env, task = napiAsyncTask.get()]() {
-            OnOffOldInner(appManager, observer, observerId, env, task);
+            env, task = napiAsyncTask.get(), mtx = observerMtx_]() {
+            OnOffOldInner(appManager, observer, observerId, env, task, mtx);
             delete task;
         };
         if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high)) {
@@ -844,7 +861,7 @@ private:
         if (argc > ARGC_ONE && ConvertFromJsValue(env, argv[INDEX_ONE], clearPageStack)) {
             hasClearPageStack = true;
         }
-        int32_t appIndex = 0;
+        int32_t appIndex = -1;
         if (hasClearPageStack && argc == ARGC_THREE && !ConvertFromJsValue(env, argv[INDEX_TWO], appIndex)) {
             TAG_LOGE(AAFwkTag::APPMGR, "get appIndex failed");
             ThrowInvalidParamError(env, "Parse param appIndex failed, must be a number.");
@@ -1087,7 +1104,7 @@ private:
         if (argc > ARGC_TWO && ConvertFromJsValue(env, argv[INDEX_TWO], clearPageStack)) {
             hasClearPageStack = true;
         }
-        int32_t appIndex = 0;
+        int32_t appIndex = -1;
         if (hasClearPageStack && argc == ARGC_FOUR && !ConvertFromJsValue(env, argv[INDEX_THREE], appIndex)) {
             ThrowInvalidParamError(env, "Parse param appIndex failed, must be a number.");
             return CreateJsUndefined(env);
@@ -1250,7 +1267,12 @@ private:
             }
             int32_t memSize = 0;
             int32_t ret = appManager->GetProcessMemoryByPid(pid, memSize);
-            if (ret == 0) {
+            if (ret == 0 && memSize == -1) {
+                TAG_LOGE(AAFwkTag::APPMGR, "memory size overflow, pid:%{public}d", pid);
+                task->Reject(env, CreateJsError(env,
+                    static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    "Memory size overflow."));
+            } else if (ret == 0) {
                 task->ResolveWithNoError(env, CreateJsValue(env, memSize));
             } else {
                 task->Reject(env, CreateJsErrorByNativeErr(env, ret));

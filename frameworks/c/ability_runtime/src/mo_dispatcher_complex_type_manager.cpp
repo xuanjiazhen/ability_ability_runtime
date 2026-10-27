@@ -30,6 +30,8 @@ std::mutex g_structMetaMutex;
 std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<MoTypeInfo>>> g_structFieldTypes;
 std::unordered_map<std::string, std::vector<std::string>> g_structFieldOrder;
 
+constexpr uint32_t MAX_CONTAINER_SIZE = 100000;
+
 bool IsVariantHandleValid(const OH_AbilityRuntime_ModObjDispatcher_Variant* value)
 {
     switch (value->vt) {
@@ -496,7 +498,11 @@ MoVariantStorage CreateDefaultVariantStorage(OH_AbilityRuntime_ModObjDispatcher_
 AbilityRuntime_ErrorCode DeepCopyStorage(const MoVariantStorage& src, MoVariantStorage& dst,
     std::unordered_set<const void*>& visited)
 {
-    dst.value = src.value;
+    // Copy only the type tag — do NOT shallow-copy heap pointers from src.
+    // Container pointers are assigned to dst only after a successful deep copy,
+    // so any failure leaves dst with null pointers (no dangling references).
+    (void)memset_s(&dst.value, sizeof(dst.value), 0, sizeof(dst.value));
+    dst.value.vt = src.value.vt;
     dst.stringStorage.clear();
     if (src.value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING) {
         dst.stringStorage = src.stringStorage;
@@ -627,6 +633,10 @@ AbilityRuntime_ErrorCode DeepCopyStorage(const MoVariantStorage& src, MoVariantS
             newStruct->fields[field.first] = std::move(fieldCopy);
         }
         dst.value.u.pstructVal = newStruct;
+    } else {
+        // Simple scalar types (bool, i32, f64, enum, etc.) or null container handles —
+        // no owned heap pointers, safe to copy the union directly.
+        dst.value.u = src.value.u;
     }
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
@@ -642,6 +652,10 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::ArrayCreate(
     }
     if (!IsValidValueTypeForCreate(elementType->vt)) {
         TAG_LOGE(AAFwkTag::EXT, "ArrayCreate: invalid vt=%{public}d", static_cast<int32_t>(elementType->vt));
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    if (size > MAX_CONTAINER_SIZE) {
+        TAG_LOGE(AAFwkTag::EXT, "ArrayCreate: size too large, size=%{public}u", size);
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     auto typeInfo = MoTypeInfo::FromCTypeInfo(elementType);
@@ -1357,7 +1371,11 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StoreVariant(
         delete dst->value.u.pstructVal;
         dst->value.u.pstructVal = nullptr;
     }
-    dst->value = *src;
+    // Copy only the type tag — do NOT shallow-copy heap pointers from src.
+    // Container pointers are assigned to dst only after a successful deep copy,
+    // so any failure leaves dst with null pointers (no dangling references).
+    (void)memset_s(&dst->value, sizeof(dst->value), 0, sizeof(dst->value));
+    dst->value.vt = src->vt;
     dst->stringStorage.clear();
     std::unordered_set<const void*> visited;
     if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING) {
@@ -1489,6 +1507,10 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StoreVariant(
             newStruct->fields[field.first] = std::move(fieldCopy);
         }
         dst->value.u.pstructVal = newStruct;
+    } else {
+        // Simple scalar types (bool, i32, f64, enum, etc.) or null container handles —
+        // no owned heap pointers, safe to copy the union directly.
+        dst->value.u = src->u;
     }
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }

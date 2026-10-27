@@ -17,6 +17,8 @@
 
 #define private public
 #include "app_mgr_service_inner.h"
+#include "appfreeze_manager.h"
+#include "app_preloader.h"
 #include "app_running_record.h"
 #include "remote_client_manager.h"
 #undef private
@@ -1404,6 +1406,30 @@ HWTEST_F(AppMgrServiceInnerTest, ClearUpApplicationData_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ClearUpApplicationData_002
+ * @tc.desc: clear up application data across users should be rejected.
+ * @tc.type: FUNC
+ * @tc.require: issue16399
+ */
+HWTEST_F(AppMgrServiceInnerTest, ClearUpApplicationData_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ClearUpApplicationData_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    int32_t callerUid = 100 * 200000; // 100 * BASE_USER_RANGE
+    std::string bundleName = "test_bundleName";
+    auto ret = appMgrServiceInner->ClearUpApplicationData(bundleName, callerUid, 1, 0, 0);
+    EXPECT_EQ(ret, AAFwk::CHECK_PERMISSION_FAILED);
+    ret = appMgrServiceInner->ClearUpApplicationData(bundleName, callerUid, 1, 0, 101);
+    EXPECT_EQ(ret, AAFwk::CHECK_PERMISSION_FAILED);
+    ret = appMgrServiceInner->ClearUpApplicationData(bundleName, callerUid, 1, 0, 100);
+    EXPECT_NE(ret, AAFwk::CHECK_PERMISSION_FAILED);
+
+    TAG_LOGI(AAFwkTag::TEST, "ClearUpApplicationData_002 end");
+}
+
+/**
  * @tc.name: ClearUpApplicationDataByUserId_001
  * @tc.desc: clear up application data by user id.
  * @tc.type: FUNC
@@ -2139,6 +2165,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetAppRunningRecordByAbilityToken_001, TestSize
     appMgrServiceInner->GetAppRunningRecordByAbilityToken(token);
 
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     appMgrServiceInner->GetAppRunningRecordByAbilityToken(token);
 
     TAG_LOGI(AAFwkTag::TEST, "GetAppRunningRecordByAbilityToken_001 end");
@@ -2511,6 +2538,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetRunningProcessInfoByToken_001, TestSize.Leve
     appMgrServiceInner->GetRunningProcessInfoByToken(nullptr, info);
 
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     appMgrServiceInner->GetRunningProcessInfoByToken(nullptr, info);
 
     TAG_LOGI(AAFwkTag::TEST, "GetRunningProcessInfoByToken_001 end");
@@ -2532,6 +2560,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetRunningProcessInfoByPid_001, TestSize.Level2
     appMgrServiceInner->GetRunningProcessInfoByPid(0, info);
 
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     appMgrServiceInner->GetRunningProcessInfoByPid(0, info);
 
     TAG_LOGI(AAFwkTag::TEST, "GetRunningProcessInfoByPid_001 end");
@@ -2549,10 +2578,10 @@ HWTEST_F(AppMgrServiceInnerTest, CheckGetRunningInfoPermission_001, TestSize.Lev
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
 
-    appMgrServiceInner->CheckGetRunningInfoPermission();
+    appMgrServiceInner->appQueryHelper_.CheckGetRunningInfoPermission();
 
     appMgrServiceInner->appRunningManager_ = nullptr;
-    appMgrServiceInner->CheckGetRunningInfoPermission();
+    appMgrServiceInner->appQueryHelper_.CheckGetRunningInfoPermission();
 
     TAG_LOGI(AAFwkTag::TEST, "CheckGetRunningInfoPermission_001 end");
 }
@@ -2572,6 +2601,7 @@ HWTEST_F(AppMgrServiceInnerTest, IsMemorySizeSufficient_001, TestSize.Level2)
     appMgrServiceInner->IsMemorySizeSufficient();
 
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     appMgrServiceInner->IsMemorySizeSufficient();
 
     TAG_LOGI(AAFwkTag::TEST, "IsMemorySizeSufficient_001 end");
@@ -4625,6 +4655,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetAppRunningStateByBundleName_001, TestSize.Le
     appMgrServiceInner->GetAppRunningStateByBundleName(bundleName);
 
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     appMgrServiceInner->GetAppRunningStateByBundleName(bundleName);
 
     TAG_LOGI(AAFwkTag::TEST, "GetAppRunningStateByBundleName_001 end");
@@ -4731,7 +4762,7 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyUnLoadRepairPatch_001, TestSize.Level2)
 
 /**
  * @tc.name: GetProcessMemoryByPid_001
- * @tc.desc: Get memorySize by pid.
+ * @tc.desc: Get memorySize by self pid, verify normal path returns ERR_OK and non-negative memorySize.
  * @tc.type: FUNC
  * @tc.require: issueI76JBF
  */
@@ -4741,10 +4772,11 @@ HWTEST_F(AppMgrServiceInnerTest, GetProcessMemoryByPid_001, TestSize.Level2)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
 
-    int32_t pid = 0;
-    int32_t memorySize = 0;
+    int32_t pid = getpid();
+    int32_t memorySize = -1;
     int32_t ret = appMgrServiceInner->GetProcessMemoryByPid(pid, memorySize);
     EXPECT_EQ(ret, ERR_OK);
+    EXPECT_GE(memorySize, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "GetProcessMemoryByPid_001 end");
 }
@@ -4768,10 +4800,12 @@ HWTEST_F(AppMgrServiceInnerTest, GetRunningProcessInformation_001, TestSize.Leve
     EXPECT_EQ(ret, ERR_OK);
 
     appMgrServiceInner->remoteClientManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.remoteClientManager_ = nullptr;
     ret = appMgrServiceInner->GetRunningProcessInformation(bundleName, userId, info);
     EXPECT_EQ(ret, ERR_NO_INIT);
 
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     ret = appMgrServiceInner->GetRunningProcessInformation(bundleName, userId, info);
     EXPECT_EQ(ret, ERR_NO_INIT);
 
@@ -4881,6 +4915,90 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyAppFault_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NotifyAppFault_002
+ * @tc.desc: Test NotifyAppFault when asanEnabled is true, should return ERR_OK directory.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, NotifyAppFault_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppFault_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->asanEnabled = true;
+    appInfo->hwasanEnabled = false;
+    appInfo->tsanEnabled = false;
+    appInfo->bundleName = "asan_bundle";
+    int32_t recordId = 1;
+    std::string processName = "asan_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    appRecord->priorityObject_->pid_ = pid;
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordId, appRecord);
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    int32_t ret = appMgrServiceInner->NotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.erase(recordId);
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppFault_002 end");
+}
+
+/**
+ * @tc.name: TransformedNotifyAppFault_002
+ * @tc.desc: Test TransformedNotifyAppFault when asanEnabled is true, should return ERR_OK directory.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, TransformedNotifyAppFault_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "TransformedNotifyAppFault_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->asanEnabled = true;
+    appInfo->hwasanEnabled = false;
+    appInfo->tsanEnabled = false;
+    appInfo->bundleName = "asan_bundle";
+    int32_t recordId = 2;
+    std::string processName = "asan_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    int32_t pid = 12346;
+    appRecord->priorityObject_->pid_ = pid;
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordId, appRecord);
+    AppFaultDataBySA faultData;
+    faultData.pid = pid;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    int32_t ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.erase(recordId);
+    TAG_LOGI(AAFwkTag::TEST, "TransformedNotifyAppFault_002 end");
+}
+
+/**
+ * @tc.name: IsAsanEnabled_001
+ * @tc.desc: Test IsAsanEnabled when applicationInfo is nullptr, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, IsAsanEnabled_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsAsanEnabled_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    int32_t recordId = 1;
+    std::string processName = "asan_test_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(nullptr, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    bool ret = appMgrServiceInner->IsAsanEnabled(appRecord);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsAsanEnabled_001 end");
+}
+
+/**
  * @tc.name: TimeoutNotifyApp_001
  * @tc.desc: Timeout Notify App.
  * @tc.type: FUNC
@@ -4893,14 +5011,11 @@ HWTEST_F(AppMgrServiceInnerTest, TimeoutNotifyApp_001, TestSize.Level1)
     std::shared_ptr<MockTaskHandlerWrap> taskHandler = MockTaskHandlerWrap::CreateQueueHandler("app_mgr_task_queue");
     appMgrServiceInner->SetTaskHandler(taskHandler);
 
-    int32_t pid = 0;
-    int32_t uid = 0;
-    std::string bundleName = "test_processName";
-    std::string processName = "test_processName";
     FaultData faultData;
     faultData.errorObject.name = "1234";
     faultData.faultType = FaultDataType::APP_FREEZE;
-    appMgrServiceInner->TimeoutNotifyApp(pid, uid, bundleName, processName, faultData, -1);
+    AppfreezeManager::GetInstance()->TimeoutNotifyApp(faultData, appMgrServiceInner->GetAppfreezeAppInfo(nullptr),
+        appMgrServiceInner->dfxTaskHandler_);
     EXPECT_NE(taskHandler, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "TimeoutNotifyApp_001 end");
 }
@@ -6178,10 +6293,12 @@ HWTEST_F(AppMgrServiceInnerTest, GetAllRunningInstanceKeysBySelf_001, TestSize.L
     EXPECT_NE(ret, ERR_OK);
 
     appMgrServiceInner->remoteClientManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.remoteClientManager_ = nullptr;
     ret = appMgrServiceInner->GetAllRunningInstanceKeysBySelf(instanceKeys);
     EXPECT_EQ(ret, ERR_NO_INIT);
 
     appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
+    appMgrServiceInner->appQueryHelper_.remoteClientManager_ = appMgrServiceInner->remoteClientManager_;
     ret = appMgrServiceInner->GetAllRunningInstanceKeysBySelf(instanceKeys);
     EXPECT_NE(ret, ERR_NO_INIT);
 
@@ -6303,6 +6420,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetSupportedProcessCachePids_001, TestSize.Leve
     EXPECT_EQ(ret, ERR_OK);
 
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     ret = appMgrServiceInner->GetSupportedProcessCachePids(bundleName, pidList);
     EXPECT_NE(ret, ERR_OK);
 
@@ -6427,6 +6545,7 @@ HWTEST_F(AppMgrServiceInnerTest, IsProcessCacheSupported_001, TestSize.Level2)
     EXPECT_EQ(appMgrServiceInner->IsProcessCacheSupported(pid, isSupport), AAFwk::ERR_NO_APP_RECORD);
 
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     EXPECT_EQ(appMgrServiceInner->IsProcessCacheSupported(pid, isSupport), AAFwk::ERR_NULL_APP_RUNNING_MANAGER);
 }
 
@@ -6813,6 +6932,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetAllAbilityInfos_0001, TestSize.Level1)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
 
     std::vector<AppExecFwk::AbilityStateData> infos;
     auto ret = appMgrServiceInner->GetAllAbilityInfos(-1, infos);
@@ -6831,6 +6951,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetAllAbilityInfos_0002, TestSize.Level1)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = std::make_shared<AppRunningManager>();
 
     std::vector<AppExecFwk::AbilityStateData> infos;
     auto ret = appMgrServiceInner->GetAllAbilityInfos(-1, infos);
@@ -6849,6 +6970,7 @@ HWTEST_F(AppMgrServiceInnerTest, GetAllAbilityInfos_0003, TestSize.Level1)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = std::make_shared<AppRunningManager>();
 
     std::vector<AppExecFwk::AbilityStateData> infos;
     int32_t pid = 1001;
@@ -7473,5 +7595,195 @@ HWTEST_F(AppMgrServiceInnerTest, SendDestroyImageEvent_001, TestSize.Level1)
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
+
+/**
+ * @tc.name: ChangeAppGcState_003
+ * @tc.desc: Test ChangeAppGcState with permission denied
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ChangeAppGcState_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(serviceInner, nullptr);
+    int32_t pid = 1;
+    int32_t state = 0;
+    MyFlag::flag_ = 0;
+    int32_t ret = serviceInner->ChangeAppGcState(pid, state);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: ChangeAppGcState_004
+ * @tc.desc: Test ChangeAppGcState with permission denied
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ChangeAppGcState_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(serviceInner, nullptr);
+    int32_t pid = 1;
+    int32_t state = 0;
+    MyFlag::flag_ = 1;
+    int32_t ret = serviceInner->ChangeAppGcState(pid, state);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: PreloadApplication_AppIndexOutOfRange_1001
+ * @tc.desc: Test appIndex=1001 exceeds MAX_APP_CLONE_INDEX, should return ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadApplication
+ */
+HWTEST_F(AppMgrServiceInnerTest, PreloadApplication_AppIndexOutOfRange_1001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_AppIndexOutOfRange_1001 start");
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    MyFlag::flag_ = 1;
+    auto appMgrServiceInner = std::make_shared<AppExecFwk::AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "com.acts.preloadtest";
+    int32_t userId = 100;
+    AppExecFwk::PreloadMode preloadMode = AppExecFwk::PreloadMode::PRE_MAKE;
+    int32_t appIndex = 1001;
+    int32_t ret = appMgrServiceInner->PreloadApplication(bundleName, userId, preloadMode, appIndex);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    AAFwk::MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_AppIndexOutOfRange_1001 end");
+}
+
+/**
+ * @tc.name: PreloadApplication_AppIndexOutOfRange_5000
+ * @tc.desc: Test appIndex=5000 exceeds MAX_APP_CLONE_INDEX and is not PC_TABLET_INDEX.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadApplication
+ */
+HWTEST_F(AppMgrServiceInnerTest, PreloadApplication_AppIndexOutOfRange_5000, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_AppIndexOutOfRange_5000 start");
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    MyFlag::flag_ = 1;
+    auto appMgrServiceInner = std::make_shared<AppExecFwk::AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "com.acts.preloadtest";
+    int32_t userId = 100;
+    AppExecFwk::PreloadMode preloadMode = AppExecFwk::PreloadMode::PRE_MAKE;
+    int32_t appIndex = 5000;
+    int32_t ret = appMgrServiceInner->PreloadApplication(bundleName, userId, preloadMode, appIndex);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    AAFwk::MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_AppIndexOutOfRange_5000 end");
+}
+
+/**
+ * @tc.name: PreloadApplication_AppIndexOutOfRange_NegativeTwo
+ * @tc.desc: Test appIndex=-2 (not -1 dual mode) should return ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadApplication
+ */
+HWTEST_F(AppMgrServiceInnerTest, PreloadApplication_AppIndexOutOfRange_NegativeTwo, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_AppIndexOutOfRange_NegativeTwo start");
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    MyFlag::flag_ = 1;
+    auto appMgrServiceInner = std::make_shared<AppExecFwk::AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "com.acts.preloadtest";
+    int32_t userId = 100;
+    AppExecFwk::PreloadMode preloadMode = AppExecFwk::PreloadMode::PRE_MAKE;
+    int32_t appIndex = -2;
+    int32_t ret = appMgrServiceInner->PreloadApplication(bundleName, userId, preloadMode, appIndex);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    AAFwk::MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_AppIndexOutOfRange_NegativeTwo end");
+}
+
+/**
+ * @tc.name: PreloadApplication_CloneAppIndex_PassesRangeCheck
+ * @tc.desc: Test appIndex=1 passes range check (not ERR_INVALID_VALUE from range check),
+ *           reaches preload flow (returns bundle not exist due to null BMS mock).
+ * @tc.type: FUNC
+ * @tc.Function: PreloadApplication
+ */
+HWTEST_F(AppMgrServiceInnerTest, PreloadApplication_CloneAppIndex_PassesRangeCheck, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_CloneAppIndex_PassesRangeCheck start");
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    MyFlag::flag_ = 1;
+    auto appMgrServiceInner = std::make_shared<AppExecFwk::AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    appMgrServiceInner->appPreloader_ = std::make_shared<AppExecFwk::AppPreloader>(nullptr);
+
+    std::string bundleName = "com.acts.preloadtest";
+    int32_t userId = 100;
+    AppExecFwk::PreloadMode preloadMode = AppExecFwk::PreloadMode::PRE_MAKE;
+    int32_t appIndex = 1;
+    int32_t ret = appMgrServiceInner->PreloadApplication(bundleName, userId, preloadMode, appIndex);
+    EXPECT_NE(ret, ERR_PERMISSION_DENIED);
+    EXPECT_NE(ret, ERR_INVALID_VALUE);
+    AAFwk::MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_CloneAppIndex_PassesRangeCheck end");
+}
+
+/**
+ * @tc.name: PreloadApplication_AppIndex0_PassesRangeCheck
+ * @tc.desc: Test appIndex=0 passes range check (regression — behavior unchanged).
+ * @tc.type: FUNC
+ * @tc.Function: PreloadApplication
+ */
+HWTEST_F(AppMgrServiceInnerTest, PreloadApplication_AppIndex0_PassesRangeCheck, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_AppIndex0_PassesRangeCheck start");
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    MyFlag::flag_ = 1;
+    auto appMgrServiceInner = std::make_shared<AppExecFwk::AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    appMgrServiceInner->appPreloader_ = std::make_shared<AppExecFwk::AppPreloader>(nullptr);
+
+    std::string bundleName = "com.acts.preloadtest";
+    int32_t userId = 100;
+    AppExecFwk::PreloadMode preloadMode = AppExecFwk::PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+    int32_t ret = appMgrServiceInner->PreloadApplication(bundleName, userId, preloadMode, appIndex);
+    EXPECT_NE(ret, ERR_PERMISSION_DENIED);
+    EXPECT_NE(ret, ERR_INVALID_VALUE);
+    AAFwk::MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_AppIndex0_PassesRangeCheck end");
+}
+
+/**
+ * @tc.name: PreloadApplication_PCTabletIndex_PassesRangeCheck
+ * @tc.desc: Test appIndex=PC_TABLET_INDEX(10000) passes range check.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadApplication
+ */
+HWTEST_F(AppMgrServiceInnerTest, PreloadApplication_PCTabletIndex_PassesRangeCheck, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_PCTabletIndex_PassesRangeCheck start");
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    MyFlag::flag_ = 1;
+    auto appMgrServiceInner = std::make_shared<AppExecFwk::AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    appMgrServiceInner->appPreloader_ = std::make_shared<AppExecFwk::AppPreloader>(nullptr);
+
+    std::string bundleName = "com.acts.preloadtest";
+    int32_t userId = 100;
+    AppExecFwk::PreloadMode preloadMode = AppExecFwk::PreloadMode::PRE_MAKE;
+    int32_t appIndex = 10000;
+    int32_t ret = appMgrServiceInner->PreloadApplication(bundleName, userId, preloadMode, appIndex);
+    EXPECT_NE(ret, ERR_PERMISSION_DENIED);
+    EXPECT_NE(ret, ERR_INVALID_VALUE);
+    AAFwk::MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "PreloadApplication_PCTabletIndex_PassesRangeCheck end");
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

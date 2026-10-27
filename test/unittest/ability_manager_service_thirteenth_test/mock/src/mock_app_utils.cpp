@@ -85,6 +85,11 @@ bool AppUtils::IsStartOptionsWithAnimation()
     return true;
 }
 
+bool AppUtils::IsSupportBlockAllAppStart()
+{
+    return MyStatus::GetInstance().auIsSupportBlockAllAppStart_;
+}
+
 bool AppUtils::IsMultiProcessModel()
 {
     return true;
@@ -251,7 +256,7 @@ bool AppUtils::IsPreloadApplicationEnabled()
 
 bool AppUtils::IsForbidStart()
 {
-    return false;
+    return MyStatus::GetInstance().auIsForbidStart_;
 }
 
 bool AppUtils::IsSupportDelayedProcessExit()

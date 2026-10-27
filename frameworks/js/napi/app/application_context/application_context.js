@@ -302,6 +302,10 @@ class ApplicationContext {
     return this.__context_impl__.getProcessRunningInformation(callback);
   }
 
+  getUIAbilityChildProcessInfos() {
+    return this.__context_impl__.getUIAbilityChildProcessInfos();
+  }
+
   setColorMode(colorMode) {
     return this.__context_impl__.setColorMode(colorMode);
   }
@@ -314,12 +318,25 @@ class ApplicationContext {
     return this.__context_impl__.offSystemConfigurationUpdated(colorMode);
   }
 
+  onAppProcessStateChange(observer) {
+    return this.__context_impl__.onAppProcessStateChange(observer);
+  }
+
+  offAppProcessStateChange(observer) {
+    return arguments.length === 0
+      ? this.__context_impl__.offAppProcessStateChange()
+      : this.__context_impl__.offAppProcessStateChange(observer);
+  }
+
   setLanguage(language) {
     return this.__context_impl__.setLanguage(language);
   }
 
-  setFont(font) {
-    return this.__context_impl__.setFont(font);
+  setFont(font, enableAnimation) {
+    if (enableAnimation === undefined) {
+      return this.__context_impl__.setFont(font);
+    }
+    return this.__context_impl__.setFont(font, enableAnimation);
   }
 
   setFontSizeScale(fontSizeScale) {

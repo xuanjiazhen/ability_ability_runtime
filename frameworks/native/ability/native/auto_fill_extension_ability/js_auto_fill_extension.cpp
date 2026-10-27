@@ -525,13 +525,14 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
         option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
         option->SetDensity(sessionInfo->density);
-        option->SetIsDensityFollowHost(sessionInfo->isDensityFollowHost);
+        option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
         option->SetDisplayId(sessionInfo->displayId);
         if (context->isNotAllow != -1) {
             bool isNotAllow = context->isNotAllow == 1 ? true : false;
             TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "isNotAllow: %{public}d", isNotAllow);
             option->SetConstrainedModal(isNotAllow);
         }
+        option->SetCallerPid(want.GetIntParam(AAFwk::Want::PARAM_RESV_CALLER_PID, -1));
         sptr<Rosen::Window> uiWindow;
         {
             HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");

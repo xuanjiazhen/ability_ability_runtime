@@ -38,6 +38,7 @@
 #include "histogram_plugin_macros.h"
 #endif
 
+#include <atomic>
 #include <mutex>
 
 namespace OHOS {
@@ -54,6 +55,33 @@ constexpr size_t ARGC_FOUR = 4;
 constexpr const char *DISTRIBUTE_LIBNAME = "libhmos_distribute.z.so";
 using Distribute = void(*)(InsightIntentExecuteParam&);
 Distribute g_distributeFunc = nullptr;
+std::mutex g_distributeMutex;
+std::atomic<bool> g_distributeResolved{false};
+
+Distribute GetDistributeFunc()
+{
+    if (g_distributeResolved.load(std::memory_order_acquire)) {
+        return g_distributeFunc;
+    }
+    std::lock_guard<std::mutex> lock(g_distributeMutex);
+    if (!g_distributeResolved.load(std::memory_order_relaxed)) {
+        auto handle = dlopen(DISTRIBUTE_LIBNAME, RTLD_LAZY);
+        if (handle == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "dlopen %{public}s error: %{public}s",
+                DISTRIBUTE_LIBNAME, dlerror());
+            return nullptr;
+        }
+        auto symbol = dlsym(handle, "Distribute");
+        if (symbol == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "dlsym error: %{public}s", dlerror());
+            dlclose(handle);
+            return nullptr;
+        }
+        g_distributeFunc = reinterpret_cast<Distribute>(symbol);
+        g_distributeResolved.store(true, std::memory_order_release);
+    }
+    return g_distributeFunc;
+}
 }
 class JsInsightIntentExecuteCallbackClient : public InsightIntentExecuteCallbackInterface,
     public std::enable_shared_from_this<JsInsightIntentExecuteCallbackClient> {
@@ -136,23 +164,10 @@ public:
 private:
     void ParseParam(InsightIntentExecuteParam &param)
     {
-        if (g_distributeFunc == nullptr) {
-            auto handle = dlopen(DISTRIBUTE_LIBNAME, RTLD_LAZY);
-            if (handle == nullptr) {
-                TAG_LOGE(AAFwkTag::INTENT, "dlopen %{public}s error: %{public}s", DISTRIBUTE_LIBNAME, dlerror());
-                return;
-            }
-            auto symbol = dlsym(handle, "Distribute");
-            if (symbol == nullptr) {
-                TAG_LOGE(AAFwkTag::INTENT, "dlsym error: %{public}s", dlerror());
-                dlclose(handle);
-                return;
-            }
-
-            g_distributeFunc = reinterpret_cast<Distribute>(symbol);
+        Distribute func = GetDistributeFunc();
+        if (func != nullptr) {
+            func(param);
         }
-
-        g_distributeFunc(param);
     }
 
     std::shared_ptr<AbilityContext> GetAbilityContext(napi_env env, napi_value object)
@@ -621,6 +636,18 @@ static napi_value InitIntentDevelopTypeObject(napi_env env)
     return handleEscape.Escape(napiObject);
 }
 
+static napi_value InitExecuteModeForConfigurationObject(napi_env env)
+{
+    HandleEscape handleEscape(env);
+    napi_value napiObject;
+    NAPI_CALL(env, napi_create_object(env, &napiObject));
+
+    NAPI_CALL(env, SetEnumItem(env, napiObject, "FOREGROUND", 0));
+    NAPI_CALL(env, SetEnumItem(env, napiObject, "BACKGROUND", 1));
+
+    return handleEscape.Escape(napiObject);
+}
+
 napi_value JsInsightIntentDriverInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
@@ -651,11 +678,15 @@ napi_value JsInsightIntentDriverInit(napi_env env, napi_value exportObj)
     NAPI_ASSERT(env, insightIntentType != nullptr, "failed to create insightIntent type flag object");
     napi_value intentDevelopType = InitIntentDevelopTypeObject(env);
     NAPI_ASSERT(env, intentDevelopType != nullptr, "failed to create develop type object");
+    napi_value executeModeForConfiguration = InitExecuteModeForConfigurationObject(env);
+    NAPI_ASSERT(env, executeModeForConfiguration != nullptr,
+        "failed to create execute mode for configuration object");
 
     napi_property_descriptor exportObjs[] = {
         DECLARE_NAPI_PROPERTY("GetInsightIntentFlag", getInsightIntentFlag),
         DECLARE_NAPI_PROPERTY("InsightIntentType", insightIntentType),
         DECLARE_NAPI_PROPERTY("DevelopType", intentDevelopType),
+        DECLARE_NAPI_PROPERTY("ExecuteModeForConfiguration", executeModeForConfiguration),
     };
     napi_status status = napi_define_properties(env, exportObj, sizeof(exportObjs) / sizeof(exportObjs[0]), exportObjs);
     NAPI_ASSERT(env, status == napi_ok, "failed to define properties for exportObj");

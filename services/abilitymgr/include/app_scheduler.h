@@ -19,6 +19,7 @@
 #include <memory>
 #include <unordered_set>
 
+#include "ui_ability_last_caller_info.h"
 #include "ability_debug_response_interface.h"
 #include "ability_info.h"
 #include "ability_manager_client.h"
@@ -267,8 +268,9 @@ public:
      * move ability to foreground.
      *
      * @param token, the token of ability.
+     * @param callerInfo, the caller info including uid and bundle name.
      */
-    void MoveToForeground(const sptr<IRemoteObject> &token);
+    void MoveToForeground(const sptr<IRemoteObject> &token, const AppExecFwk::UiAbilityLastCallerInfo &callerInfo = {});
 
     /**
      * move ability to background.
@@ -360,8 +362,8 @@ public:
      *
      * @param bundleName.
      */
-    int KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
-        const std::string &reason = "KillApplication");
+    int KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+        const std::string &reason = "KillApplication", int32_t userId = -1);
 
     /**
      * ForceKillApplication, force kill the application.
@@ -372,7 +374,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     int ForceKillApplication(const std::string &bundleName, const int userId = -1,
-        const int appIndex = 0);
+        const int appIndex = -1);
 
     /**
      * KillApplicationWithUserId, kill designated user application.
@@ -382,7 +384,7 @@ public:
      * @param  appIndex, appIndex.
      * @return ERR_OK, return back success, others fail.
      */
-    int KillApplicationWithUserId(const std::string &bundleName, const int userId = -1, const int appIndex = 0);
+    int KillApplicationWithUserId(const std::string &bundleName, const int userId = -1, const int appIndex = -1);
 
     /**
      * KillProcessesByAccessTokenId.
@@ -591,7 +593,8 @@ public:
     virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg);
 
     virtual int32_t NotifyAppMgrRecordExitReasonCompability(
-        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason);
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg,
+        int32_t reason, int32_t callerPid);
 
     /**
      * Set enable start process flag by userId

@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -47,6 +48,9 @@ public:
     ExecToolParam CreateTestParam(const std::string &toolName, const std::string &subcommand = "");
     ExecCmdParam CreateTestCmdParam(const std::string &cmd);
     ToolInfo CreateTestToolInfo(const std::string &toolName);
+
+private:
+    const char *savedSandboxPath_ = nullptr;
 };
 
 void ProcessManagerTest::SetUpTestCase(void)
@@ -61,12 +65,17 @@ void ProcessManagerTest::TearDownTestCase(void)
 
 void ProcessManagerTest::SetUp()
 {
-    // Reset state before each test
+    // Override sandbox path to a non-existent binary so execvp fails and the child
+    // reaches _exit(EXIT_FAILURE). On a real device /system/bin/claw_sandbox exists
+    // (built by sandbox_manager), which would make execvp succeed and the child exit
+    // with claw_sandbox's own code instead of EXIT_FAILURE.
+    savedSandboxPath_ = ProcessManager::clawSandboxPath_;
+    ProcessManager::clawSandboxPath_ = "/nonexistent/binary_for_unit_test";
 }
 
 void ProcessManagerTest::TearDown()
 {
-    // Cleanup after each test
+    ProcessManager::clawSandboxPath_ = savedSandboxPath_;
 }
 
 ExecToolParam ProcessManagerTest::CreateTestParam(const std::string &toolName, const std::string &subcommand)
@@ -82,7 +91,7 @@ ExecCmdParam ProcessManagerTest::CreateTestCmdParam(const std::string &cmd)
 {
     ExecCmdParam param;
     param.cmd = cmd;
-    param.options.timeout = TIMEOUT;
+    param.execCmdOptions.timeout = TIMEOUT;
     return param;
 }
 
@@ -692,25 +701,74 @@ HWTEST_F(ProcessManagerTest, CreateShellProcess_0900, TestSize.Level1)
     GTEST_LOG_(INFO) << "ProcessManager_CreateShellProcess_0900 end";
 }
 
-// ==================== SetParentHapTokenId Tests ====================
+// ==================== Child Lifecycle (async-signal-safe exit) Tests ====================
+// These verify the post-fork child block reaches execvp/_exit without hanging. Before
+// Patch B the child called malloc/HiLog between fork and execvp, risking deadlock when
+// another thread held the lock at fork time. The child block is now async-signal-safe;
+// these waitpid-based tests guard against regressions that could make the child hang.
 
 /**
- * @tc.name: ProcessManager_SetParentHapTokenId_0100
- * @tc.desc: Test SetParentHapTokenId returns false when access_token_id device is available
+ * @tc.name: ProcessManager_CreateChildProcess_ChildExitsOnExecvpFailure_0100
+ * @tc.desc: CreateChildProcess child reaches execvp and _exit(EXIT_FAILURE) without hanging
  * @tc.type: FUNC
  */
-HWTEST_F(ProcessManagerTest, SetParentHapTokenId_0100, TestSize.Level1)
+HWTEST_F(ProcessManagerTest, CreateChildProcess_ChildExitsOnExecvpFailure_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "ProcessManager_SetParentHapTokenId_0100 start";
+    GTEST_LOG_(INFO) << "ProcessManager_CreateChildProcess_ChildExitsOnExecvpFailure_0100 start";
 
-    const auto& manager = ProcessManager::GetInstance();
+    auto& manager = ProcessManager::GetInstance();
+    ExecToolParam param = CreateTestParam("exit_test");
+    std::string sandboxConfig = "/etc/claw/test_config.json";
+    ToolInfo toolInfo = CreateTestToolInfo("exit_test");
 
-    // In test environment /dev/access_token_id does not exist, open fails and returns false.
-    // On a real OpenHarmony device with the access_token_id driver, this may return true.
-    bool result = manager.SetParentHapTokenId(12345);
-    EXPECT_TRUE(result);
+    auto record = std::make_shared<SessionRecord>();
+    ASSERT_NE(record, nullptr);
+    record->sessionId = "exit_test";
+    record->toolName = "exit_test";
 
-    GTEST_LOG_(INFO) << "ProcessManager_SetParentHapTokenId_0100 end";
+    ASSERT_EQ(manager.CreateChildProcess(param, sandboxConfig, toolInfo, record), ERR_OK);
+    ASSERT_GT(record->processId, 0);
+
+    // SetUp overrides clawSandboxPath_ to a non-existent binary, so the child's execvp
+    // fails and it must reach _exit(EXIT_FAILURE) via the async-signal-safe path
+    // (write + _exit). waitpid succeeding + WIFEXITED proves the child block did not hang.
+    int status = 0;
+    ASSERT_EQ(waitpid(record->processId, &status, 0), record->processId);
+    EXPECT_TRUE(WIFEXITED(status)) << "child did not exit cleanly (hung or signaled)";
+    EXPECT_EQ(WEXITSTATUS(status), EXIT_FAILURE);
+
+    GTEST_LOG_(INFO) << "ProcessManager_CreateChildProcess_ChildExitsOnExecvpFailure_0100 end";
+}
+
+/**
+ * @tc.name: ProcessManager_CreateShellProcess_ChildExitsOnExecvpFailure_0100
+ * @tc.desc: CreateShellProcess child reaches execvp and _exit(EXIT_FAILURE) without hanging
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, CreateShellProcess_ChildExitsOnExecvpFailure_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_CreateShellProcess_ChildExitsOnExecvpFailure_0100 start";
+
+    auto& manager = ProcessManager::GetInstance();
+    ExecCmdParam param = CreateTestCmdParam("echo hi");
+    std::string sandboxConfig = "/etc/claw/test_config.json";
+
+    auto record = std::make_shared<SessionRecord>();
+    ASSERT_NE(record, nullptr);
+    record->sessionId = "shell_exit_test";
+
+    ASSERT_EQ(manager.CreateShellProcess(param, sandboxConfig, record), ERR_OK);
+    ASSERT_GT(record->processId, 0);
+
+    // SetUp overrides clawSandboxPath_ to a non-existent binary. The child first opens
+    // /dev/access_token_id (absent in test env -> open fails, skipped), then reaches
+    // execvp which fails (non-existent path) -> _exit(EXIT_FAILURE).
+    int status = 0;
+    ASSERT_EQ(waitpid(record->processId, &status, 0), record->processId);
+    EXPECT_TRUE(WIFEXITED(status)) << "child did not exit cleanly (hung or signaled)";
+    EXPECT_EQ(WEXITSTATUS(status), EXIT_FAILURE);
+
+    GTEST_LOG_(INFO) << "ProcessManager_CreateShellProcess_ChildExitsOnExecvpFailure_0100 end";
 }
 
 // ==================== CloseNonStdFds Tests ====================
@@ -788,6 +846,80 @@ HWTEST_F(ProcessManagerTest, CloseNonStdFds_PreservesStdio_0100, TestSize.Level1
     EXPECT_EQ(WEXITSTATUS(status), 0);
 
     GTEST_LOG_(INFO) << "ProcessManager_CloseNonStdFds_PreservesStdio_0100 end";
+}
+
+// ==================== Child Env Trace Id Tests ====================
+// BuildChildEnv injects TOOL_CALL_ID from the record and filters stale inherited entries.
+
+/**
+ * @tc.name: ProcessManager_CreateShellProcess_ChildEnvTraceIds_0100
+ * @tc.desc: The child environment keeps TOOL_CALL_ID from the session record and a
+ *           stale inherited parent TOOL_CALL_ID is filtered out.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, CreateShellProcess_ChildEnvTraceIds_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_CreateShellProcess_ChildEnvTraceIds_0100 start";
+
+    // A tiny probe script reports the TOOL_CALL_ID visible in its env.
+    const std::string probePath = "/data/local/tmp/cli_tool_env_probe_test.sh";
+    const std::string probeScript =
+        "#!/bin/sh\n"
+        "echo TC=$TOOL_CALL_ID\n";
+    int probeFd = open(probePath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0700);
+    if (probeFd < 0) {
+        GTEST_SKIP() << "cannot create env probe script at " << probePath;
+    }
+    ASSERT_EQ(write(probeFd, probeScript.data(), probeScript.size()),
+        static_cast<ssize_t>(probeScript.size()));
+    close(probeFd);
+    ASSERT_EQ(chmod(probePath.c_str(), 0700), 0);
+
+    // A stale parent-side TOOL_CALL_ID must be dropped from the child env.
+    ASSERT_EQ(setenv("TOOL_CALL_ID", "stale-tc-filtered", 1), 0);
+
+    auto& manager = ProcessManager::GetInstance();
+    ProcessManager::clawSandboxPath_ = probePath.c_str();
+
+    ExecCmdParam param = CreateTestCmdParam("echo env_probe");
+    std::string sandboxConfig = "/etc/claw/env_probe_config.json";
+
+    auto record = std::make_shared<SessionRecord>();
+    ASSERT_NE(record, nullptr);
+    record->sessionId = "env_probe_session";
+    record->toolName = "shell";
+    record->toolCallId = "record-tc-injected";    // injected into the child env
+
+    ASSERT_EQ(manager.CreateShellProcess(param, sandboxConfig, record), ERR_OK);
+    ASSERT_GT(record->processId, 0);
+
+    // Drain the child's stdout until EOF (the probe exits right after printing).
+    std::string output;
+    char buf[512];
+    ssize_t n = 0;
+    while ((n = read(record->stdoutPipe[0], buf, sizeof(buf))) > 0) {
+        output.append(buf, static_cast<size_t>(n));
+    }
+
+    int status = 0;
+    ASSERT_EQ(waitpid(record->processId, &status, 0), record->processId);
+    manager.CloseAllPipes(*record);
+
+    if (output.empty()) {
+        // exec of the probe failed (e.g. noexec mount): nothing observable to assert.
+        unsetenv("TOOL_CALL_ID");
+        unlink(probePath.c_str());
+        GTEST_SKIP() << "env probe produced no output; exec environment unavailable";
+    }
+
+    // TOOL_CALL_ID: stale parent value filtered, record value injected.
+    EXPECT_NE(output.find("TC=record-tc-injected"), std::string::npos);
+    EXPECT_EQ(output.find("stale-tc-filtered"), std::string::npos);
+
+    unsetenv("TOOL_CALL_ID");
+    unlink(probePath.c_str());
+
+    GTEST_LOG_(INFO) << "ProcessManager_CreateShellProcess_ChildEnvTraceIds_0100 end";
 }
 
 } // namespace CliTool

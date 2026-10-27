@@ -175,6 +175,7 @@ public:
     void SetColorMode(int32_t colorMode);
     void SetLanguage(const std::string &language);
     void SetFont(const std::string &font);
+    void SetFont(const std::string &font, bool enableAnimation);
     bool SetFontSizeScale(double fontSizeScale);
     void SetMcc(const std::string &mcc);
     void SetMnc(const std::string &mnc);
@@ -188,6 +189,7 @@ public:
     Global::Resource::DeviceType GetDeviceType() const override;
     void KillProcessBySelf(const bool clearPageStack = false);
     int32_t GetProcessRunningInformation(AppExecFwk::RunningProcessInfo &info);
+    int32_t GetUIAbilityChildProcessInfos(std::vector<AppExecFwk::ChildProcessInfo> &infos);
     int32_t RestartApp(const AAFwk::Want& want);
     int32_t EnableDelayedProcessExit();
     int32_t DisableDelayedProcessExit();

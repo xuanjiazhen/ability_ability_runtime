@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 struct PreloadRequest {
-    int32_t appIndex = 0; // not used
+    int32_t appIndex = -1; // not used
     AppExecFwk::PreloadMode preloadMode;
     std::shared_ptr<AbilityInfo> abilityInfo = nullptr;
     std::shared_ptr<ApplicationInfo> appInfo = nullptr;
@@ -56,12 +56,13 @@ public:
 private:
     bool GetLaunchWant(const std::string &bundleName, int32_t userId, AAFwk::Want &want);
 
-    bool GetLaunchAbilityInfo(const AAFwk::Want &want, int32_t userId, AbilityInfo &abilityInfo);
+    bool GetLaunchAbilityInfo(const AAFwk::Want &want, int32_t userId, int32_t appIndex,
+        AbilityInfo &abilityInfo);
 
     bool GetAbilityInfo(const AAFwk::Want &want, int32_t userId, int32_t appIndex,
         PreloadRequest &request, AbilityInfo &abilityInfo);
 
-    bool GetBundleAndHapInfo(const std::string &bundleName, int32_t userId,
+    bool GetBundleAndHapInfo(const std::string &bundleName, int32_t userId, int32_t appIndex,
         const AbilityInfo &abilityInfo, BundleInfo &bundleInfo, HapModuleInfo &hapModuleInfo);
 
     bool CheckPreloadConditions(const AbilityInfo &abilityInfo);

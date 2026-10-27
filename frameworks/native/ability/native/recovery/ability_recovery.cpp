@@ -42,6 +42,7 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
 constexpr size_t DEFAULT_RECOVERY_MAX_RESTORE_SIZE = 400 * 1024;
+constexpr size_t READ_RECOVERY_MAX_RESTORE_SIZE = 2 * 400 * 1024;
 constexpr int32_t CALL_BACK_ERROR = -1;
 
 // Report APP_RECOVERY hisysevent on ScheduleRestoreAbilityState success.
@@ -225,6 +226,7 @@ bool AbilityRecovery::SerializeDataToFile(int32_t savedStateId, WantParams& para
         return false;
     }
     Parcel parcel;
+    parcel.SetMaxCapacity(DEFAULT_RECOVERY_MAX_RESTORE_SIZE);
     if (!params.Marshalling(parcel)) {
         TAG_LOGE(AAFwkTag::RECOVERY, "Marshalling want param failed");
         return false;
@@ -284,6 +286,14 @@ bool AbilityRecovery::ReadSerializeDataFromFile(int32_t savedStateId, WantParams
     int fd = fileno(fileF);
     struct stat statbuf;
     if (fstat(fd, &statbuf) < 0) {
+        fclose(fileF);
+        remove(path);
+        return false;
+    }
+
+    if (statbuf.st_size <= 0 || statbuf.st_size > READ_RECOVERY_MAX_RESTORE_SIZE) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "invalid file size: %{public}lld",
+            static_cast<long long>(statbuf.st_size));
         fclose(fileF);
         remove(path);
         return false;

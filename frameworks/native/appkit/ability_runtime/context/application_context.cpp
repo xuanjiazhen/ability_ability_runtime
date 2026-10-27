@@ -1128,6 +1128,11 @@ int32_t ApplicationContext::GetProcessRunningInformation(AppExecFwk::RunningProc
     return (contextImpl_ != nullptr) ? contextImpl_->GetProcessRunningInformation(info) : -1;
 }
 
+int32_t ApplicationContext::GetUIAbilityChildProcessInfos(std::vector<AppExecFwk::ChildProcessInfo> &infos)
+{
+    return (contextImpl_ != nullptr) ? contextImpl_->GetUIAbilityChildProcessInfos(infos) : ERR_INVALID_VALUE;
+}
+
 #ifdef SUPPORT_SCREEN
 void ApplicationContext::GetAllUIAbilities(std::vector<std::shared_ptr<UIAbility>> &uiAbility)
 {
@@ -1377,11 +1382,18 @@ void ApplicationContext::SetLanguage(const std::string &language)
 
 void ApplicationContext::SetFont(const std::string &font)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "font:%{public}s", font.c_str());
+    SetFont(font, true);
+}
+
+void ApplicationContext::SetFont(const std::string &font, bool enableAnimation)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "font:%{public}s, enableAnimation:%{public}s",
+        font.c_str(), enableAnimation ? "true" : "false");
     #ifdef SUPPORT_GRAPHICS
     // Notify Window
     AppExecFwk::Configuration config;
     config.AddItem(AppExecFwk::ConfigurationInner::APPLICATION_FONT, font);
+    config.AddItem(AppExecFwk::ConfigurationInner::APPLICATION_FONT_ANIMATION, enableAnimation ? "true" : "false");
     if (appFontCallback_ != nullptr) {
         appFontCallback_(config);
     }
@@ -1589,7 +1601,16 @@ std::string ApplicationContext::GetDataDir()
     std::lock_guard<std::mutex> lock(dataDirMutex_);
     if (dataDir_.empty()) {
         auto bundleManagerHelper = AAFwk::AbilityUtil::GetBundleManagerHelper();
-        dataDir_ = bundleManagerHelper->GetDataDir(GetBundleName(), appIndex_);
+        if (bundleManagerHelper == nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "bundleManagerHelper null");
+            return "";
+        }
+        auto bundleName = GetBundleName();
+        if (bundleName.empty()) {
+            TAG_LOGD(AAFwkTag::APPKIT, "bundleName is invalid");
+            return "";
+        }
+        dataDir_ = bundleManagerHelper->GetDataDir(bundleName, appIndex_);
         if (dataDir_.empty()) {
             TAG_LOGE(AAFwkTag::APPKIT, "dataDir is empty");
             return "";

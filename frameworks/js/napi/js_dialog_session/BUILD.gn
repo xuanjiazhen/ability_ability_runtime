@@ -51,6 +51,8 @@ ohos_shared_library("dialogsession_napi") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
+    "node:node_header_notice",
+    "libuv:uv",
     "samgr:samgr_proxy",
     "window_manager:libwm",
   ]
@@ -64,4 +66,5 @@ ohos_shared_library("dialogsession_napi") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }

@@ -64,10 +64,11 @@ public:
      * @param token, the unique identification to update the ability.
      * @param state, ability status that needs to be updated.
      * @param isFromScreenOffBackground Whether from screen off background.
+     * @param callerInfo The caller info including uid and bundle name.
      * @return
      */
     virtual void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-        bool isFromScreenOffBackground = false) override;
+        bool isFromScreenOffBackground = false, const UiAbilityLastCallerInfo &callerInfo = {}) override;
 
     /**
      * UpdateExtensionState, call UpdateExtensionState() through the proxy object, update the extension status.
@@ -145,7 +146,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillProcessWithAccount(const std::string &bundleName, const int accountId,
-        const bool clearPageStack = false, int32_t appIndex = 0) override;
+        const bool clearPageStack = false, int32_t appIndex = -1) override;
 
     /**
      * KillProcessesInBatch, kill processes in batch, call KillProcessesInBatch() through proxy object;
@@ -174,7 +175,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillApplication(const std::string &bundleName, bool clearPageStack = false,
-        int32_t appIndex = 0, const std::string &reason = "KillApplication") override;
+        int32_t appIndex = -1, const std::string &reason = "KillApplication", int32_t userId = -1) override;
 
     /**
      * ForceKillApplication, call ForceKillApplication() through proxy object, force kill the application.
@@ -185,7 +186,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int ForceKillApplication(const std::string &bundleName, const int userId = -1,
-        const int appIndex = 0) override;
+        const int appIndex = -1) override;
 
     /**
      * KillApplicationWithUserId, call KillApplicationWithUserId() through proxy object, kill the application.
@@ -196,7 +197,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int KillApplicationWithUserId(const std::string &bundleName, const int userId = -1,
-        const int appIndex = 0) override;
+        const int appIndex = -1) override;
 
     /**
      * KillProcessesByAccessTokenId, call KillProcessesByAccessTokenId() through proxy object,
@@ -255,7 +256,8 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t NotifyAppMgrRecordExitReasonCompability(
-        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason) override;
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg,
+        int32_t reason, int32_t callerPid) override;
 
     /**
      * Ability attach timeout. If start ability encounter failure, attach timeout to terminate.

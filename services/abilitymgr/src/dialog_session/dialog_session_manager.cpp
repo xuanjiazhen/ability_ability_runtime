@@ -517,9 +517,10 @@ int DialogSessionManager::CreateModalDialogCommon(const Want &replaceWant, sptr<
     sptr<IRemoteObject> token;
     bool isParent = false;
     int32_t ret = ERR_INVALID_VALUE;
+    int32_t userId = callerRecord->GetOwnerMissionUserId();
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(userId).GetSceneSessionManagerLiteProxy();
         if (sceneSessionManager == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneSessionManager null");
             return ERR_INVALID_VALUE;
@@ -545,7 +546,7 @@ int DialogSessionManager::CreateModalDialogCommon(const Want &replaceWant, sptr<
     TAG_LOGD(AAFwkTag::ABILITYMGR, "create modal ui extension for system");
     (const_cast<Want &>(replaceWant)).SetParam(UIEXTENSION_MODAL_TYPE, 1);
     (const_cast<Want &>(replaceWant)).SetParam(SUPPORT_CLOSE_ON_BLUR, true);
-    return IN_PROCESS_CALL(connection->CreateModalUIExtension(replaceWant)) ? ERR_OK : INNER_ERR;
+    return IN_PROCESS_CALL(connection->CreateModalUIExtension(replaceWant, userId)) ? ERR_OK : INNER_ERR;
 }
 
 int DialogSessionManager::HandleErmsResult(AbilityRequest &abilityRequest, int32_t userId,
@@ -553,6 +554,7 @@ int DialogSessionManager::HandleErmsResult(AbilityRequest &abilityRequest, int32
 {
     std::string bundleName = abilityRequest.abilityInfo.bundleName;
     if (StartAbilityUtils::ermsResultCode < ERMS_ISALLOW_RESULTCODE ||
+        abilityRequest.want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY) ||
         !IsCreateCloneSelectorDialog(bundleName, userId)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "create jump modal dialog");
         return CreateJumpModalDialog(abilityRequest, userId, replaceWant);
