@@ -171,6 +171,8 @@ enum class AppMgrInterfaceCode {
     GET_HYPER_SNAP_LAST_ERROR = 146,
     START_TASK = 147,
     FINISH_TASK = 148,
+    PRECHECK_TASK_FOR_A2A = 149,
+    ATTRIBUTE_TASK_FOR_A2A = 150,
 };
 } // AppExecFwk
 } // OHOS

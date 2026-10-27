@@ -3213,6 +3213,21 @@ private:
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(
         const sptr<IRemoteObject> &token, const AppExecFwk::ExtensionAbilityType type);
 
+    /**
+     * @brief FEAT-AI-TASK-MGR-001 / 20260914692194: best-effort post-connect
+     *        attribution of the target Agent process into the task claimed via
+     *        Want.parameters[ohos.task.id]. Called after ConnectLocalAbility
+     *        returns ERR_OK. Resolves the target Agent pid from the connect
+     *        record, then calls AppMgrClient::AttributeTaskForA2A. Failure here
+     *        does NOT fail the connect result (AC-4.1: "调用结果不受纳管影响").
+     * @param connect Indicates the IAbilityConnection used in the connect call.
+     * @param want Indicates the (caller-side) want, used to derive userId and
+     *        extension type for connect-manager lookup.
+     * @param taskId Indicates the task id parsed from Want.parameters earlier.
+     */
+    void TryAttributeTargetAgentForA2A(const sptr<IAbilityConnection> &connect,
+        const Want &want, const std::string &taskId);
+
     std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> GetUIExtensionAbilityManagers();
     std::shared_ptr<UIExtensionAbilityManager> GetCurrentUIExtensionAbilityManager();
     std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByToken(const sptr<IRemoteObject> &token);

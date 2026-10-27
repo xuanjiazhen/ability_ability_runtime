@@ -349,6 +349,10 @@ enum class AbilityErrorCode {
     // agent task manager: the task does not exist.
     ERROR_CODE_TASK_NOT_FOUND = 16000302,
 
+    // agent task manager: the task attribution is invalid (A2A connect carries a
+    // taskId that fails ownership or alive-state verification — spoofing/replay).
+    ERROR_CODE_TASK_ATTR_INVALID = 16000303,
+
     ERROR_CODE_BUNDLE_NAME_INVALID = 18500001,
 };
 
