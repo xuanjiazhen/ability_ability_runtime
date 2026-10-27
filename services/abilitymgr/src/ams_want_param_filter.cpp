@@ -75,6 +75,10 @@ const std::map<std::string, std::string> THIRD_PARTY_PARAMS_TO_STRIP = {
     { "specifyTokenId", "specify token id" },
     { Want::PARAM_RESV_CALLER_APP_ID, "caller app id" },
     { Want::PARAM_RESV_CALLER_APP_IDENTIFIER, "caller app identifier" },
+
+    // Task-attribution reserved key: a system-app-only capability, stripped from
+    // third-party callers here. Single source: Want::PARAM_RESV_TASK_ID (ability_base).
+    { Want::PARAM_RESV_TASK_ID, "task attribution task id" },
 };
 
 // Dynamic system-internal params (e.g. skill args / src entries) are constructed
@@ -107,6 +111,8 @@ void AMSWantParamFilter::OnDeserialized(WantParams &params)
         return;
     }
     // System callers pass through untouched; only third-party callers are stripped.
+    // This relies on WantParams being unmarshalled in the IPC stub thread, where
+    // GetCallingPid() is valid; stubs must not defer deserialization to another thread.
     if (PermissionVerification::GetInstance()->IsSACall() ||
         PermissionVerification::GetInstance()->IsSystemAppCall()) {
         return;
