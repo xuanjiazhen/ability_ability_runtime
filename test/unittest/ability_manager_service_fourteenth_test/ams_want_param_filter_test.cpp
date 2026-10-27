@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "ams_want_param_filter.h"
+#include "insight_intent_execute_param.h"
 #include "int_wrapper.h"
 #include "mock_my_status.h"
 #include "skill_execute_param.h"
@@ -90,7 +91,7 @@ HWTEST_F(AMSWantParamFilterTest, AMSWantParamFilter_ThirdParty_StripsCallerAppId
 }
 
 /**
- * @tc.number: AMSWantParamFilter_ThirdParty_CallerAppIdentifier
+ * @tc.number: AMSWantParamFilter_ThirdParty_StripsCallerAppIdentifier
  * @tc.name: third-party caller strips callerAppIdentifier
  * @tc.desc: a cross-process third-party caller has callerAppIdentifier stripped.
  */
@@ -100,6 +101,34 @@ HWTEST_F(AMSWantParamFilterTest, AMSWantParamFilter_ThirdParty_CallerAppIdentifi
     params.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER, String::Box("forged"));
     AMSWantParamFilter::GetInstance()->OnDeserialized(params);
     EXPECT_FALSE(params.HasParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER));
+}
+
+/**
+ * @tc.number: AMSWantParamFilter_ThirdParty_StripsInsightIntentTaskId
+ * @tc.name: third-party caller strips insight intent task id
+ * @tc.desc: a cross-process third-party caller has the ohos.task.id attribution param stripped.
+ */
+HWTEST_F(AMSWantParamFilterTest, AMSWantParamFilter_ThirdParty_StripsInsightIntentTaskId,
+    Function | MediumTest | Level1)
+{
+    WantParams params;
+    params.SetParam(AppExecFwk::INSIGHT_INTENT_TASK_ID, String::Box("forged-task-id"));
+    AMSWantParamFilter::GetInstance()->OnDeserialized(params);
+    EXPECT_FALSE(params.HasParam(AppExecFwk::INSIGHT_INTENT_TASK_ID));
+}
+
+/**
+ * @tc.number: AMSWantParamFilter_ThirdParty_StripsInsightIntentVerifyCallerBundleName
+ * @tc.name: third-party caller strips insight intent verify caller bundle name
+ * @tc.desc: a cross-process third-party caller has the verifyCallerBundleName param stripped.
+ */
+HWTEST_F(AMSWantParamFilterTest, AMSWantParamFilter_ThirdParty_StripsInsightIntentVerifyCallerBundleName,
+    Function | MediumTest | Level1)
+{
+    WantParams params;
+    params.SetParam(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME, String::Box("forged.bundle"));
+    AMSWantParamFilter::GetInstance()->OnDeserialized(params);
+    EXPECT_FALSE(params.HasParam(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME));
 }
 
 /**

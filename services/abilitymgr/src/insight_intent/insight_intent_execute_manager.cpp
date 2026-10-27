@@ -154,6 +154,11 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     if (result != ERR_OK) {
         return result;
     }
+    result = VerifyCallerBundleName(param, execParam.callerBundleName);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "verify caller bundle name failed: %{public}d", result);
+        return result;
+    }
     if (!execParam.isDistributed && callerToken == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null callerToken");
         return ERR_INVALID_VALUE;
@@ -823,6 +828,34 @@ std::string InsightIntentExecuteManager::GetCallerBundleNameByUid()
         IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, bundleName));
     }
     return bundleName;
+}
+
+int32_t InsightIntentExecuteManager::VerifyCallerBundleName(
+    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
+    const std::string &callerBundleName)
+{
+    if (param == nullptr || param->insightIntentParam_ == nullptr) {
+        return ERR_OK;
+    }
+    auto &insightIntentParam = *(param->insightIntentParam_);
+    std::string declaredBundleName = insightIntentParam.GetStringParam(
+        AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME);
+    insightIntentParam.Remove(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME);
+    if (declaredBundleName.empty()) {
+        return ERR_OK;
+    }
+    if (PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGD(AAFwkTag::INTENT, "shell caller, skip verify caller bundle name");
+        return ERR_OK;
+    }
+    if (declaredBundleName != callerBundleName) {
+        TAG_LOGE(AAFwkTag::INTENT,
+            "verify caller bundle name mismatch, declared: %{public}s, real: %{public}s",
+            declaredBundleName.c_str(), callerBundleName.c_str());
+        return ERR_PERMISSION_DENIED;
+    }
+    TAG_LOGD(AAFwkTag::INTENT, "verify caller bundle name matched");
+    return ERR_OK;
 }
 
 int32_t InsightIntentExecuteManager::CheckGetInsightIntenInfoPermission(

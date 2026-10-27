@@ -23,6 +23,7 @@
 #include "function_info.h"
 #include "function_result_wrap.h"
 #include "hilog_tag_wrapper.h"
+#include "insight_intent/insight_intent_execute_param.h"
 #include "intent_client.h"
 #include "invoke_function_callback_client.h"
 #include "invoke_function_param.h"
@@ -111,7 +112,7 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
     // Capture post-before-hook ids; invalid hook values are dropped.
     std::string toolCallId = GetWantParamString(hookParams, "ohos.insightIntent.toolCallId");
     std::string dmSessionId = GetWantParamString(hookParams, "ohos.insightIntent.dmSessionId");
-    std::string taskId = GetWantParamString(hookParams, "ohos.task.id");
+    std::string taskId = GetWantParamString(hookParams, AppExecFwk::INSIGHT_INTENT_TASK_ID);
     if (!IsValidTraceId(toolCallId) || !IsValidTraceId(dmSessionId)) {
         TAG_LOGW(AAFwkTag::CLI_TOOL,
             "invokeFunction execute: invalid hook-modified trace id dropped, length: %{public}zu/%{public}zu",
@@ -157,7 +158,7 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
         execParam.wantParam.SetParam("ohos.insightIntent.dmSessionId", AAFwk::String::Box(dmSessionId));
     }
     if (!taskId.empty()) {
-        execParam.wantParam.SetParam("ohos.task.id", AAFwk::String::Box(taskId));
+        execParam.wantParam.SetParam(AppExecFwk::INSIGHT_INTENT_TASK_ID, AAFwk::String::Box(taskId));
     }
     execParam.callback = client;
 

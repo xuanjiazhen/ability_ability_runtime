@@ -486,5 +486,12 @@ void InsightIntentExecuteParam::UpdateInsightIntentCallerInfo(const WantParams &
     insightIntentParam.SetParam(AAFwk::Want::PARAM_RESV_CALLER_BUNDLE_NAME,
         AAFwk::String::Box(wantParams.GetStringParam(AAFwk::Want::PARAM_RESV_CALLER_BUNDLE_NAME)));
 }
+
+void InsightIntentExecuteParam::SetVerifyCallerBundleName(WantParams &wantParams,
+    const std::string &bundleName)
+{
+    wantParams.Remove(INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME);
+    wantParams.SetParam(INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME, AAFwk::String::Box(bundleName));
+}
 } // namespace AppExecFwk
 } // namespace OHOS

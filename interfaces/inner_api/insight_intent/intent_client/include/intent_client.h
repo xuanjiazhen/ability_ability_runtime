@@ -32,6 +32,7 @@ struct ExecuteIntentParam {
     std::string bundleName;
     std::string intentName;
     WantParams wantParam;
+    std::string verifyCallerBundleName;
     std::shared_ptr<AbilityRuntime::InsightIntentExecuteCallbackInterface> callback;
 };
 

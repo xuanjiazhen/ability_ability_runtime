@@ -17,9 +17,11 @@
 
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_host_client.h"
+#include "insight_intent_execute_param.h"
 #include "iservice_registry.h"
 #include "message_parcel.h"
 #include "string_ex.h"
+#include "string_wrapper.h"
 #include "system_ability_definition.h"
 
 #include "ability_manager_errors.h"
@@ -133,7 +135,13 @@ int32_t IntentClient::ExecuteIntentByFunctionCall(const ExecuteIntentParam &para
     auto hostClient = AbilityRuntime::InsightIntentHostClient::GetInstance();
     uint64_t key = hostClient->AddInsightIntentExecute(param.callback);
 
-    int32_t err = SendExecuteRequest(key, hostClient, param.bundleName, param.intentName, param.wantParam);
+    // Send a copy so the verify key (a system-internal param) is injected only into the request.
+    WantParams wantParam = param.wantParam;
+    if (!param.verifyCallerBundleName.empty()) {
+        wantParam.SetParam(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME,
+            AAFwk::String::Box(param.verifyCallerBundleName));
+    }
+    int32_t err = SendExecuteRequest(key, hostClient, param.bundleName, param.intentName, wantParam);
     if (err != ERR_OK) {
         hostClient->RemoveInsightIntentExecute(key);
     }

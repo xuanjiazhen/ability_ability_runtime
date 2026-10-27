@@ -138,6 +138,17 @@ public:
 
     static std::string GetCallerBundleNameByUid();
 
+    /**
+     * @brief Verify that the real caller bundle name (obtained from IPC identity by AMS) matches
+     *        the bundle name declared by the caller via INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME.
+     *        The declared key is removed from insightIntentParam_ before comparison, so it never
+     *        flows into the target Want. Fail-closed: a mismatch returns ERR_PERMISSION_DENIED.
+     *        An empty or absent declaration is allowed for backward compatibility.
+     */
+    static int32_t VerifyCallerBundleName(
+        const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
+        const std::string &callerBundleName);
+
     void OnInsightAppDied(const std::string &bundleName, pid_t pid = 0);
 
     void SetTargetPid(uint64_t intentId, pid_t pid);

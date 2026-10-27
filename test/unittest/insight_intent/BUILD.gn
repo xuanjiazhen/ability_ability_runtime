@@ -16,6 +16,7 @@ group("unittest") {
 
   deps = [
     "ets_insight_intent_tool_call_id_test:unittest",
+    "ets_insight_intent_verify_caller_test:unittest",
     "function_call_convert_test:unittest",
     "insight_intent_execute_callback_stub_test:unittest",
     "insight_intent_execute_manager_second_test:unittest",

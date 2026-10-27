@@ -2660,6 +2660,106 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, AddRecord_WithTaskId_0100, TestS
 }
 
 /**
+ * @tc.name: VerifyCallerBundleName_0100
+ * @tc.desc: No declared verify key: verification passes (backward compatible).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, VerifyCallerBundleName_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallerBundleName_0100 begin.");
+    auto param = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    ASSERT_NE(param, nullptr);
+    param->insightIntentParam_ = std::make_shared<WantParams>();
+    ASSERT_NE(param->insightIntentParam_, nullptr);
+
+    int32_t ret = InsightIntentExecuteManager::VerifyCallerBundleName(param, "real.bundle");
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(param->insightIntentParam_->HasParam(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME));
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallerBundleName_0100 end.");
+}
+
+/**
+ * @tc.name: VerifyCallerBundleName_0200
+ * @tc.desc: Declared bundle name matches the real caller: passes and the key is removed.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, VerifyCallerBundleName_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallerBundleName_0200 begin.");
+    auto param = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    ASSERT_NE(param, nullptr);
+    param->insightIntentParam_ = std::make_shared<WantParams>();
+    ASSERT_NE(param->insightIntentParam_, nullptr);
+    param->insightIntentParam_->SetParam(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME,
+        String::Box("real.bundle"));
+
+    int32_t ret = InsightIntentExecuteManager::VerifyCallerBundleName(param, "real.bundle");
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(param->insightIntentParam_->HasParam(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME));
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallerBundleName_0200 end.");
+}
+
+/**
+ * @tc.name: VerifyCallerBundleName_0300
+ * @tc.desc: Declared bundle name mismatches the real caller: rejected (fail-closed) and the
+ *           key is still removed so it never flows into the target Want.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, VerifyCallerBundleName_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallerBundleName_0300 begin.");
+    auto param = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    ASSERT_NE(param, nullptr);
+    param->insightIntentParam_ = std::make_shared<WantParams>();
+    ASSERT_NE(param->insightIntentParam_, nullptr);
+    param->insightIntentParam_->SetParam(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME,
+        String::Box("forged.bundle"));
+
+    int32_t ret = InsightIntentExecuteManager::VerifyCallerBundleName(param, "real.bundle");
+    EXPECT_NE(ret, ERR_OK);
+    EXPECT_FALSE(param->insightIntentParam_->HasParam(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME));
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallerBundleName_0300 end.");
+}
+
+/**
+ * @tc.name: VerifyCallerBundleName_0400
+ * @tc.desc: Empty declared value: treated as unspecified and passes.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, VerifyCallerBundleName_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallerBundleName_0400 begin.");
+    auto param = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    ASSERT_NE(param, nullptr);
+    param->insightIntentParam_ = std::make_shared<WantParams>();
+    ASSERT_NE(param->insightIntentParam_, nullptr);
+    param->insightIntentParam_->SetParam(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME, String::Box(""));
+
+    int32_t ret = InsightIntentExecuteManager::VerifyCallerBundleName(param, "real.bundle");
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_FALSE(param->insightIntentParam_->HasParam(AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME));
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallerBundleName_0400 end.");
+}
+
+/**
+ * @tc.name: VerifyCallerBundleName_0500
+ * @tc.desc: Null param or null insightIntentParam_: no crash, passes.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, VerifyCallerBundleName_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallerBundleName_0500 begin.");
+    int32_t ret = InsightIntentExecuteManager::VerifyCallerBundleName(nullptr, "real.bundle");
+    EXPECT_EQ(ret, ERR_OK);
+
+    auto param = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    ASSERT_NE(param, nullptr);
+    ret = InsightIntentExecuteManager::VerifyCallerBundleName(param, "real.bundle");
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "VerifyCallerBundleName_0500 end.");
+}
+
+/**
  * @tc.name: RemoveExecuteIntent_Unregister_0100
  * @tc.desc: Test RemoveExecuteIntent removes the record even when taskId/attributionId are
  *           absent (helper guard no-op, no crash).

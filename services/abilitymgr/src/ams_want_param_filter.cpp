@@ -74,6 +74,8 @@ const std::map<std::string, std::string> THIRD_PARTY_PARAMS_TO_STRIP = {
     { AppExecFwk::INSIGHT_INTENT_QUERY_TYPE, "insight intent query type" },
     { AppExecFwk::INSIGHT_INTENT_QUERY_ENTITY_PARAM_PARAM, "insight intent query entity param" },
     { AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID, "insight intent param user id" },
+    { AppExecFwk::INSIGHT_INTENT_TASK_ID, "insight intent task attribution id" },
+    { AppExecFwk::INSIGHT_INTENT_VERIFY_CALLER_BUNDLE_NAME, "insight intent verify caller bundle name" },
     { "ohos.insightIntent.bundleName", "insight intent bundle name" },
     { "ohos.insightIntent.moduleName", "insight intent module name" },
     { "ohos.insightIntent.hapPath", "insight intent hap path" },

@@ -91,6 +91,18 @@ bool UnwrapExecuteParam(napi_env env, napi_value param, InsightIntentExecutePara
     }
     executeParam.insightIntentParam_ = wp;
 
+    // verifyCallerBundleName is an optional parameter: a non-string value is treated as unspecified.
+    if (IsExistsByPropertyName(env, param, "verifyCallerBundleName")) {
+        std::string verifyCallerBundleName {""};
+        if (UnwrapStringByPropertyName(env, param, "verifyCallerBundleName", verifyCallerBundleName) &&
+            !verifyCallerBundleName.empty()) {
+            TAG_LOGI(AAFwkTag::JSNAPI, "verifyCallerBundleName %{public}s", verifyCallerBundleName.c_str());
+            AppExecFwk::InsightIntentExecuteParam::SetVerifyCallerBundleName(*wp, verifyCallerBundleName);
+        } else {
+            TAG_LOGW(AAFwkTag::JSNAPI, "verifyCallerBundleName is invalid, ignored");
+        }
+    }
+
     int32_t executeMode = 0;
     if (!UnwrapInt32ByPropertyName(env, param, "executeMode", executeMode)) {
         TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type executeMode");

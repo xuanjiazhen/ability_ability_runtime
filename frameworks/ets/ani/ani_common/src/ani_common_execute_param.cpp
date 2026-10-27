@@ -94,6 +94,18 @@ bool UnwrapExecuteParam(ani_env *env, ani_object param, AppExecFwk::InsightInten
     }
     executeParam.insightIntentParam_ = wp;
 
+    // Keep the optional parameter consistent with the JS entry: ignore non-string values.
+    if (IsExistsProperty(env, param, "verifyCallerBundleName")) {
+        std::string verifyCallerBundleName;
+        if (GetStringProperty(env, param, "verifyCallerBundleName", verifyCallerBundleName) &&
+            !verifyCallerBundleName.empty()) {
+            TAG_LOGI(AAFwkTag::INTENT, "verifyCallerBundleName %{public}s", verifyCallerBundleName.c_str());
+            AppExecFwk::InsightIntentExecuteParam::SetVerifyCallerBundleName(*wp, verifyCallerBundleName);
+        } else {
+            TAG_LOGW(AAFwkTag::INTENT, "verifyCallerBundleName is invalid, ignored");
+        }
+    }
+
     int32_t executeMode = 0;
     ani_ref executeModeRef = nullptr;
     if (!GetRefProperty(env, param, "executeMode", executeModeRef) != ANI_OK) {
