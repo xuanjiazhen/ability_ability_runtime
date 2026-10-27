@@ -806,6 +806,9 @@ enum class AbilityManagerInterfaceCode {
 
     // unregister listener that an insight intent is about to be executed
     UNREGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK = 6186,
+
+    // ipc id for get ui extension host info by ability record id
+    GET_UI_EXTENSION_HOST_INFO_BY_ID = 6187,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
