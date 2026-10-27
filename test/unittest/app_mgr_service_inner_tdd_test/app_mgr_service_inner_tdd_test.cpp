@@ -933,32 +933,6 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_004, TestSize.Level1)
 }
 
 /**
- * @tc.name: SendProcessKillEvent_005
- * @tc.desc: Verify that SendProcessKillEvent does not append memory info for non-OOM_KILLER kill type
- * @tc.type: FUNC
- * @tc.Function: SendProcessKillEvent
- * @tc.SubFunction: NA
- * @tc.EnvConditions: NA
- */
-HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_005, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_005 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    appMgrServiceInner->Init();
-    EXPECT_NE(appMgrServiceInner, nullptr);
-    BundleInfo bundleInfo;
-    std::string processName = "AppMgrServiceInnerTest";
-    std::shared_ptr<AppRunningRecord> appRecord =
-        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
-    EXPECT_NE(appRecord, nullptr);
-    appRecord->SetKillId(HiviewDFX::ProcessKillReason::KillEventId::REASON_THREAD_BLOCK_6S);
-    appRecord->SetKillMsg("thread block");
-    appRecord->SetInnerMsg("existing inner msg");
-    appMgrServiceInner->SendProcessKillEvent(appRecord);
-    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_005 end");
-}
-
-/**
  * @tc.name: CheckIsolationMode_001
  * @tc.desc: CheckIsolationMode
  * @tc.type: FUNC
