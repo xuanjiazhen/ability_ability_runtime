@@ -49,6 +49,7 @@ ohos_unittest("js_auto_fill_extension_test") {
     "ability_base:session_info",
     "ability_base:view_data",
     "ability_base:want",
+    "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

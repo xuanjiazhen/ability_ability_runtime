@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "auto_fill_extension_context.h"
+#include "js_ui_extension_context.h"
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
@@ -31,6 +32,8 @@ public:
 
     static void Finalizer(napi_env env, void *data, void *hint);
     static napi_value ReloadInModal(napi_env env, napi_callback_info info);
+    static napi_value ConnectAbility(napi_env env, napi_callback_info info);
+    static napi_value DisconnectAbility(napi_env env, napi_callback_info info);
     static napi_value CreateJsAutoFillExtensionContext(
         napi_env env, const std::shared_ptr<AutoFillExtensionContext> &context);
     std::shared_ptr<AutoFillExtensionContext> GetAutoFillExtensionContext()
@@ -40,8 +43,17 @@ public:
 
 private:
     napi_value OnReloadInModal(napi_env env, NapiCallbackInfo &info);
+    napi_value OnConnectAbility(napi_env env, NapiCallbackInfo &info);
+    napi_value OnDisconnectAbility(napi_env env, NapiCallbackInfo &info);
     std::weak_ptr<AutoFillExtensionContext> context_;
 };
+
+class JSAutoFillExtensionConnection : public JSUIExtensionConnection {
+public:
+    explicit JSAutoFillExtensionConnection(napi_env env) : JSUIExtensionConnection(env) {}
+    void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+};
+
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_AUTO_FILL_EXTENSION_CONTEXT_H
