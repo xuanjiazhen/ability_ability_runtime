@@ -21,6 +21,7 @@
 #define protected public
 #include "ability_manager_service.h"
 #include "extract_insight_intent_profile.h"
+#include "insight_intent_execute_manager.h"
 #include "session_info.h"
 #include "sub_managers_helper.h"
 #include "insight_intent_query_param.h"
@@ -855,6 +856,157 @@ HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0200, TestSize.Level
     Want want;
     want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("invalid"));
     EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, ""));
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0300
+ * @tc.desc: Want with a nonexistent intent id returns false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0300, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("999999999"));
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, "com.test.target"));
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0400
+ * @tc.desc: Record without captured caller identity is rejected even if bundle matches.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0400, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    uint64_t intentId = 0;
+    InsightIntentExecuteManager::ExecuteParam execParam;
+    EXPECT_EQ(executeManager->AddRecord(0, nullptr, "com.test.target", intentId, execParam), ERR_OK);
+    ASSERT_NE(intentId, 0U);
+    Want want;
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
+    // No caller identity was captured for this record: fail closed.
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, "com.test.target"));
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0500
+ * @tc.desc: Bundle name mismatch between the want and the record returns false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0500, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    uint64_t intentId = 0;
+    InsightIntentExecuteManager::ExecuteParam execParam;
+    EXPECT_EQ(executeManager->AddRecord(0, nullptr, "com.test.other", intentId, execParam, "", 12345, 67890),
+        ERR_OK);
+    ASSERT_NE(intentId, 0U);
+    Want want;
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, "com.test.target"));
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0600
+ * @tc.desc: Caller with a mismatching token id is rejected.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0600, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    uint64_t intentId = 0;
+    InsightIntentExecuteManager::ExecuteParam execParam;
+    // Record owned by a caller whose token id cannot match the test process caller.
+    EXPECT_EQ(executeManager->AddRecord(0, nullptr, "com.test.target", intentId, execParam, "", 12345, 67890),
+        ERR_OK);
+    ASSERT_NE(intentId, 0U);
+    Want want;
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, "com.test.target"));
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0700
+ * @tc.desc: Distributed record skips the caller identity check and passes bundle match.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0700, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    uint64_t intentId = 0;
+    InsightIntentExecuteManager::ExecuteParam execParam;
+    execParam.isDistributed = true;
+    EXPECT_EQ(executeManager->AddRecord(0, nullptr, "com.test.target", intentId, execParam), ERR_OK);
+    ASSERT_NE(intentId, 0U);
+    Want want;
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
+    // Distributed intent: the caller identity belongs to a remote device, the local
+    // side relies on PERMISSION_EXECUTE_DISTRIBUTED_INTENT instead.
+    EXPECT_TRUE(abilityMs->IsInsightIntentCall(want, "com.test.target"));
+}
+
+/**
+ * @tc.name: GetRecordCallerInfo_0100
+ * @tc.desc: GetRecordCallerInfo returns the identity captured at record creation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, GetRecordCallerInfo_0100, TestSize.Level1)
+{
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    uint64_t intentId = 0;
+    InsightIntentExecuteManager::ExecuteParam execParam;
+    EXPECT_EQ(executeManager->AddRecord(0, nullptr, "com.test.callerinfo", intentId, execParam, "", 4321, 8765),
+        ERR_OK);
+    ASSERT_NE(intentId, 0U);
+    std::string bundleName;
+    int32_t callerUid = 0;
+    uint32_t callerTokenId = 0;
+    bool isDistributed = true;
+    EXPECT_EQ(executeManager->GetRecordCallerInfo(intentId, bundleName, callerUid, callerTokenId, isDistributed),
+        ERR_OK);
+    EXPECT_EQ(bundleName, "com.test.callerinfo");
+    EXPECT_EQ(callerUid, 4321);
+    EXPECT_EQ(callerTokenId, 8765U);
+    EXPECT_FALSE(isDistributed);
+}
+
+/**
+ * @tc.name: GetRecordCallerInfo_0200
+ * @tc.desc: GetRecordCallerInfo returns ERR_INVALID_VALUE for a missing record.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, GetRecordCallerInfo_0200, TestSize.Level1)
+{
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    std::string bundleName;
+    int32_t callerUid = 0;
+    uint32_t callerTokenId = 0;
+    bool isDistributed = false;
+    EXPECT_EQ(executeManager->GetRecordCallerInfo(999999999, bundleName, callerUid, callerTokenId, isDistributed),
+        ERR_INVALID_VALUE);
 }
 }
 }

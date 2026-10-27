@@ -47,6 +47,10 @@ struct InsightIntentExecuteRecord {
     uint64_t key = 0;
     std::string bundleName;
     std::string callerBundleName;
+    // Identity of the caller that created the record, captured from the IPC context
+    // at record creation time. Used to reject intentId enumeration by other callers.
+    int32_t callerUid = 0;
+    uint32_t callerTokenId = 0;
     AppExecFwk::InsightIntentExecutionInfo executionInfo;
     pid_t targetPid = 0;
     InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
@@ -116,6 +120,22 @@ public:
 
     int32_t GetBundleName(uint64_t intentId, std::string &bundleName) const;
 
+    /**
+     * Query the target bundle name and captured caller identity of an insight intent
+     * execution record. The identity is captured from the IPC context at record
+     * creation time and is used by AbilityManagerService::IsInsightIntentCall to
+     * reject intentId enumeration by callers other than the record owner.
+     *
+     * @param intentId, indicate the intent id.
+     * @param bundleName, output the target bundle name of the record.
+     * @param callerUid, output the caller uid captured at record creation.
+     * @param callerTokenId, output the caller token id captured at record creation.
+     * @param isDistributed, output whether the record is a distributed intent.
+     * @return Returns ERR_OK if the record is found, otherwise ERR_INVALID_VALUE.
+     */
+    int32_t GetRecordCallerInfo(uint64_t intentId, std::string &bundleName, int32_t &callerUid,
+        uint32_t &callerTokenId, bool &isDistributed) const;
+
     int32_t GetCallerBundleName(uint64_t intentId, std::string &callerBundleName) const;
 
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
@@ -179,7 +199,8 @@ private:
     std::map<pid_t, sptr<IInsightIntentWillExecuteCallback>> insightIntentWillExecuteCallbacks_;
 
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
-        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "");
+        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "",
+        int32_t callerUid = 0, uint32_t callerTokenId = 0);
 
     static int32_t IsValidCall(const Want &want);
 

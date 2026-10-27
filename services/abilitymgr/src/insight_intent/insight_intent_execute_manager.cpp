@@ -169,7 +169,8 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
         return ERR_INVALID_VALUE;
     }
     uint64_t intentId = 0;
-    result = AddRecord(key, callerToken, param->bundleName_, intentId, execParam, param->taskId_);
+    result = AddRecord(key, callerToken, param->bundleName_, intentId, execParam, param->taskId_,
+        IPCSkeleton::GetCallingUid(), static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID()));
     if (result != ERR_OK) {
         return result;
     }
@@ -197,7 +198,8 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
     ElementName elementName = want.GetElement();
     ExecuteParam execParam;
     execParam.callerBundleName = callerBundleName;
-    result = AddRecord(0, nullptr, want.GetBundleNameRef(), intentId, execParam);
+    result = AddRecord(0, nullptr, want.GetBundleNameRef(), intentId, execParam, "",
+        IPCSkeleton::GetCallingUid(), static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID()));
     if (result != ERR_OK) {
         return result;
     }
@@ -259,7 +261,8 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
 }
 
 int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, uint64_t &intentId, const ExecuteParam &execParam, const std::string &taskId)
+    const std::string &bundleName, uint64_t &intentId, const ExecuteParam &execParam, const std::string &taskId,
+    int32_t callerUid, uint32_t callerTokenId)
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
     intentId = ++intentIdCount_;
@@ -269,6 +272,8 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->callerToken = callerToken;
     record->bundleName = bundleName;
     record->callerBundleName = execParam.callerBundleName;
+    record->callerUid = callerUid;
+    record->callerTokenId = callerTokenId;
     record->isDistributed = execParam.isDistributed;
     record->deviceId = execParam.srcDeviceId;
     record->requestCode = execParam.requestCode;
@@ -435,6 +440,26 @@ int32_t InsightIntentExecuteManager::GetBundleName(uint64_t intentId, std::strin
         return ERR_INVALID_VALUE;
     }
     bundleName = result->second->bundleName;
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::GetRecordCallerInfo(uint64_t intentId, std::string &bundleName,
+    int32_t &callerUid, uint32_t &callerTokenId, bool &isDistributed) const
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto result = records_.find(intentId);
+    if (result == records_.end()) {
+        TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    if (result->second == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null intent record,id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    bundleName = result->second->bundleName;
+    callerUid = result->second->callerUid;
+    callerTokenId = result->second->callerTokenId;
+    isDistributed = result->second->isDistributed;
     return ERR_OK;
 }
 

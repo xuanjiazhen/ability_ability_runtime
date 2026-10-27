@@ -5339,7 +5339,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(abilityRequest.want, parentToken);
     }
 
-    result = JudgeAbilityVisibleControl(abilityInfo);
+    result = JudgeAbilityVisibleControl(extensionSessionInfo->want, abilityInfo);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "judgeAbilityVisibleControl error");
         return result;
@@ -11115,6 +11115,15 @@ int AbilityManagerService::JudgeAbilityVisibleControl(const AppExecFwk::AbilityI
     return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
 }
 
+int AbilityManagerService::JudgeAbilityVisibleControl(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    if (IsInsightIntentCall(want, abilityInfo.bundleName)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "insight intent call, skip ability visible control");
+        return ERR_OK;
+    }
+    return JudgeAbilityVisibleControl(abilityInfo);
+}
+
 int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback, bool isAppRecovery)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "startUser in service:%{public}d, displayId:%{public}" PRIu64"", userId, displayId);
@@ -13551,6 +13560,11 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
         }
     }
 
+    if (IsInsightIntentCall(abilityRequest.want, abilityRequest.abilityInfo.bundleName)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "insight intent call, skip service extension permission check");
+        return ERR_OK;
+    }
+
     int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceExtensionPermission(verificationInfo);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "without start serviceExtension or sataShareExtension permission");
@@ -13964,6 +13978,11 @@ int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abil
     } else if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall, isSelector,
             specifyTokenId) != ERR_OK) {
         return ERR_CHECK_CALL_FROM_BACKGROUND_FAILED;
+    }
+
+    if (IsInsightIntentCall(abilityRequest.want, abilityRequest.abilityInfo.bundleName)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "insight intent call, skip call ability permission check");
+        return ERR_OK;
     }
 
     int result = AAFwk::PermissionVerification::GetInstance()->CheckCallAbilityPermission(
@@ -16041,6 +16060,13 @@ int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &w
     auto missionListMgr = GetMissionListManagerByUserId(oriValidUserId);
     if (IsAbilityStarted(abilityRequest, targetRecord, oriValidUserId)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability has already started");
+        // Hardening: the already-started branch used to call OnExecuteIntent without
+        // any permission or exported check. Re-validate that the want carries a valid
+        // insight intent execution record owned by the current caller before delivery.
+        if (!IsInsightIntentCall(abilityRequest.want, abilityRequest.abilityInfo.bundleName)) {
+            TAG_LOGE(AAFwkTag::INTENT, "insight intent check failed for already started ability");
+            return ERR_INVALID_VALUE;
+        }
         UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
         result = OnExecuteIntent(abilityRequest, targetRecord);
     }  else {
@@ -18201,13 +18227,44 @@ bool AbilityManagerService::IsInsightIntentCall(const Want &want, const std::str
         return false;
     }
     std::string bundleName;
-    if (executeManager->GetBundleName(intentId, bundleName) != ERR_OK) {
+    int32_t recordCallerUid = 0;
+    uint32_t recordCallerTokenId = 0;
+    bool isDistributed = false;
+    if (executeManager->GetRecordCallerInfo(intentId, bundleName, recordCallerUid, recordCallerTokenId,
+        isDistributed) != ERR_OK) {
         TAG_LOGW(AAFwkTag::INTENT, "insight intent record not found, intentId: %{public}" PRIu64, intentId);
         return false;
     }
     if (bundleName != targetBundleName) {
         TAG_LOGW(AAFwkTag::INTENT, "insight intent id bundle mismatch, target:%{public}s", targetBundleName.c_str());
         return false;
+    }
+    // Hardening: the caller requesting the bypass must be the one that created the
+    // execution record. Intent ids are sequential and enumerable, so without this
+    // identity check any caller able to forge a want could start exported=false
+    // components of other apps. Distributed intents are exempt: the caller identity
+    // belongs to a remote device and the local side already enforces
+    // PERMISSION_EXECUTE_DISTRIBUTED_INTENT for that path.
+    if (!isDistributed) {
+        auto callingTokenId = static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID());
+        if (recordCallerTokenId != 0) {
+            if (callingTokenId != recordCallerTokenId) {
+                TAG_LOGW(AAFwkTag::INTENT, "insight intent caller token mismatch, intentId: %{public}" PRIu64,
+                    intentId);
+                return false;
+            }
+        } else if (recordCallerUid != 0) {
+            if (IPCSkeleton::GetCallingUid() != recordCallerUid) {
+                TAG_LOGW(AAFwkTag::INTENT, "insight intent caller uid mismatch, intentId: %{public}" PRIu64,
+                    intentId);
+                return false;
+            }
+        } else {
+            // No identity captured for this record: fail closed.
+            TAG_LOGW(AAFwkTag::INTENT, "insight intent record without caller identity, intentId: %{public}" PRIu64,
+                intentId);
+            return false;
+        }
     }
     return true;
 }

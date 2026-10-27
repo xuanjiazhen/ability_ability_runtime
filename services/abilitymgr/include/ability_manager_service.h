@@ -1858,6 +1858,17 @@ public:
     int JudgeAbilityVisibleControl(const AppExecFwk::AbilityInfo &abilityInfo);
 
     /**
+     * Judge whether the caller can start an ability with visible=false, with an
+     * insight intent bypass: if the want carries a valid insight intent execution
+     * record owned by the current caller, the exported check is skipped.
+     *
+     * @param want, indicate the want of the ability request.
+     * @param abilityInfo, indicate the ability info of the target ability.
+     * @return Returns ERR_OK if the operation is permitted, otherwise an error code.
+     */
+    int JudgeAbilityVisibleControl(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo);
+
+    /**
      * Called to update mission snapshot.
      * @param token The target ability.
      * @param pixelMap The snapshot.
