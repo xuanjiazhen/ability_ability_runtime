@@ -124,7 +124,7 @@ DataObsServiceRunningState DataObsMgrService::QueryServiceState() const
 }
 
 std::pair<bool, struct ObserverNode> DataObsMgrService::ConstructObserverNode(sptr<IDataAbilityObserver> dataObserver,
-    int32_t userId, uint32_t tokenId, int32_t pid)
+    int32_t userId, uint32_t tokenId, int32_t pid, const std::string& filterKey, const std::string& filterValue)
 {
     if (userId == -1) {
         userId = GetCallingUserId(tokenId);
@@ -133,7 +133,7 @@ std::pair<bool, struct ObserverNode> DataObsMgrService::ConstructObserverNode(sp
         // return false, tokenId default 0
         return std::make_pair(false, ObserverNode(dataObserver, userId, 0, pid));
     }
-    return std::make_pair(true, ObserverNode(dataObserver, userId, tokenId, pid));
+    return std::make_pair(true, ObserverNode(dataObserver, userId, tokenId, pid, filterKey, filterValue));
 }
 
 int32_t DataObsMgrService::GetCallingUserId(uint32_t tokenId)
@@ -381,9 +381,9 @@ Status DataObsMgrService::VerifyDataSharePermissionInner(Uri &uri, bool isRead, 
 }
 
 int32_t DataObsMgrService::ConstructRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
-    uint32_t token, int32_t userId, int32_t pid)
+    uint32_t token, int32_t userId, int32_t pid, const std::string& filterKey, const std::string& filterValue)
 {
-    auto [success, observerNode] = ConstructObserverNode(dataObserver, userId, token, pid);
+    auto [success, observerNode] = ConstructObserverNode(dataObserver, userId, token, pid, filterKey, filterValue);
     if (!success) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "ConstructObserverNode fail, uri:%{public}s, userId:%{public}d",
             CommonUtils::Anonymous(uri.ToString()).c_str(), userId);
@@ -425,6 +425,11 @@ int32_t DataObsMgrService::RegisterObserverInner(const Uri &uri, sptr<IDataAbili
         LOG_ERROR("uri invalid, uri:%{public}s", CommonUtils::Anonymous(uri.ToString()).c_str());
         return DATAOBS_INVALID_URI;
     }
+    std::string filterKey;
+    std::string filterValue;
+    if (!DataObsMgrInner::DecodeSettingDataFilter(uriInner, filterKey, filterValue)) {
+        return DATAOBS_INVALID_URI;
+    }
     int status;
     if (opt.IsDataShare() || isDataShareUri) {
         // when calling from provider, check origininal caller's token not provider's token
@@ -439,7 +444,7 @@ int32_t DataObsMgrService::RegisterObserverInner(const Uri &uri, sptr<IDataAbili
         }
     }
     CheckAndReportUriSizeFault(uri, token, __FUNCTION__);
-    status = ConstructRegisterObserver(uri, dataObserver, token, userId, pid);
+    status = ConstructRegisterObserver(uri, dataObserver, token, userId, pid, filterKey, filterValue);
     if (status != NO_ERROR) {
         LOG_ERROR("register failed:%{public}d,uri:%{public}s", status, CommonUtils::Anonymous(uri.ToString()).c_str());
     }
@@ -806,7 +811,7 @@ Status DataObsMgrService::NotifyChangeExt(const ChangeInfo &changeInfo, DataObsO
         int32_t count = 0;
         for (auto &uri : changes.uris_) {
             dataObsMgrInner_->HandleNotifyChange(uri, userId, info[count].readPermission,
-                info[count].isSilentUri, tokenId);
+                info[count].isSilentUri, tokenId, changes.valueBuckets_);
             count++;
         }
         delete [] static_cast<uint8_t *>(changes.data_);

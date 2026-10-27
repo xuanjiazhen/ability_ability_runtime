@@ -53,6 +53,14 @@ void DataObsMgrInnerTest::TearDown() {}
 
 static constexpr int64_t USER_TEST = 100;
 
+static ChangeInfo::VBucket MakeValueBucket(const std::string &keyword,
+                                           const std::string &value) {
+  ChangeInfo::VBucket bucket;
+  bucket["KEYWORD"] = keyword;
+  bucket["VALUE"] = value;
+  return bucket;
+}
+
 /*
  * Feature: DataObsMgrInner
  * Function: Register and unregister function test
@@ -268,6 +276,195 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_0100, TestSize.
     const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
     dataObsMgrInner_->HandleRegisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0));
     dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 1);
+}
+
+/*
+ * Feature: DataObsMgrInner
+ * Function: Decode settingsData query filter
+ * SubFunction: DecodeSettingDataFilter
+ */
+HWTEST_F(DataObsMgrInnerTest, DecodeSettingDataFilter_001, TestSize.Level1) {
+  Uri uri("datashare:///com.ohos.settingsdata/entry/settingsdata/"
+          "SETTINGSDATA?key=K1&value=V1");
+  std::string filterKey;
+  std::string filterValue;
+  EXPECT_TRUE(
+      DataObsMgrInner::DecodeSettingDataFilter(uri, filterKey, filterValue));
+  EXPECT_EQ(filterKey, "K1");
+  EXPECT_EQ(filterValue, "V1");
+}
+
+HWTEST_F(DataObsMgrInnerTest, DecodeSettingDataFilter_002, TestSize.Level1) {
+  Uri uri("datashare:///com.ohos.settingsdata/entry/settingsdata/"
+          "SETTINGSDATA?key=K1");
+  std::string filterKey;
+  std::string filterValue;
+  EXPECT_TRUE(
+      DataObsMgrInner::DecodeSettingDataFilter(uri, filterKey, filterValue));
+  EXPECT_EQ(filterKey, "K1");
+  EXPECT_TRUE(filterValue.empty());
+}
+
+HWTEST_F(DataObsMgrInnerTest, DecodeSettingDataFilter_003, TestSize.Level1) {
+  Uri uri("datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA");
+  std::string filterKey;
+  std::string filterValue;
+  EXPECT_TRUE(
+      DataObsMgrInner::DecodeSettingDataFilter(uri, filterKey, filterValue));
+  EXPECT_TRUE(filterKey.empty());
+  EXPECT_TRUE(filterValue.empty());
+}
+
+HWTEST_F(DataObsMgrInnerTest, DecodeSettingDataFilter_004, TestSize.Level1) {
+  Uri uri("dataability:///com.ohos.settingsdata/entry/settingsdata/"
+          "SETTINGSDATA?key=K1&value=V1");
+  std::string filterKey;
+  std::string filterValue;
+  EXPECT_TRUE(
+      DataObsMgrInner::DecodeSettingDataFilter(uri, filterKey, filterValue));
+  EXPECT_TRUE(filterKey.empty());
+  EXPECT_TRUE(filterValue.empty());
+}
+
+HWTEST_F(DataObsMgrInnerTest, DecodeSettingDataFilter_005, TestSize.Level1) {
+  Uri uri("datashare:///com.ohos.settingsdata/entry/settingsdata/"
+          "SETTINGSDATA?key=%zz");
+  std::string filterKey;
+  std::string filterValue;
+  EXPECT_FALSE(
+      DataObsMgrInner::DecodeSettingDataFilter(uri, filterKey, filterValue));
+}
+
+HWTEST_F(DataObsMgrInnerTest, DecodeSettingDataFilter_006, TestSize.Level1) {
+  Uri uri("datashare:///com.ohos.settingsdata/entry/settingsdata/"
+          "SETTINGSDATA?Proxy=true&key=K1&value=V1");
+  std::string filterKey;
+  std::string filterValue;
+  EXPECT_TRUE(
+      DataObsMgrInner::DecodeSettingDataFilter(uri, filterKey, filterValue));
+  EXPECT_EQ(filterKey, "K1");
+  EXPECT_EQ(filterValue, "V1");
+}
+
+HWTEST_F(DataObsMgrInnerTest, NotifyChangeExtKeyValueFilter_001,
+         TestSize.Level1) {
+  Uri uri("dataability:///com.ohos.settingsdata/entry/settingsdata/"
+          "SETTINGSDATA?key=K1&value=V1");
+  sptr<MockDataAbilityObserverStub> observer(new (std::nothrow)
+                                                 MockDataAbilityObserverStub());
+  EXPECT_CALL(*observer, OnChange()).Times(1);
+  const sptr<IDataAbilityObserver> callback(
+      new (std::nothrow) DataAbilityObserverProxy(observer));
+  dataObsMgrInner_->HandleRegisterObserver(
+      uri, ObserverNode(callback, USER_TEST, 0, 0, "K1", "V1"));
+  ChangeInfo::VBuckets buckets;
+  buckets.push_back(MakeValueBucket("K1", "V1"));
+  dataObsMgrInner_->HandleNotifyChange(
+      uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 0, buckets);
+}
+
+HWTEST_F(DataObsMgrInnerTest, NotifyChangeExtKeyValueFilter_002,
+         TestSize.Level1) {
+  Uri uri("dataability:///com.ohos.settingsdata/entry/settingsdata/"
+          "SETTINGSDATA?key=K1&value=V1");
+  sptr<MockDataAbilityObserverStub> observer(new (std::nothrow)
+                                                 MockDataAbilityObserverStub());
+  EXPECT_CALL(*observer, OnChange()).Times(0);
+  const sptr<IDataAbilityObserver> callback(
+      new (std::nothrow) DataAbilityObserverProxy(observer));
+  dataObsMgrInner_->HandleRegisterObserver(
+      uri, ObserverNode(callback, USER_TEST, 0, 0, "K1", "V1"));
+  ChangeInfo::VBuckets buckets;
+  buckets.push_back(MakeValueBucket("K1", "V2"));
+  dataObsMgrInner_->HandleNotifyChange(
+      uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 0, buckets);
+}
+
+HWTEST_F(DataObsMgrInnerTest, NotifyChangeExtKeyValueFilter_003,
+         TestSize.Level1) {
+  Uri uri("dataability:///com.ohos.settingsdata/entry/settingsdata/"
+          "SETTINGSDATA?key=K1&value=V1");
+  sptr<MockDataAbilityObserverStub> observer(new (std::nothrow)
+                                                 MockDataAbilityObserverStub());
+  EXPECT_CALL(*observer, OnChange()).Times(0);
+  const sptr<IDataAbilityObserver> callback(
+      new (std::nothrow) DataAbilityObserverProxy(observer));
+  dataObsMgrInner_->HandleRegisterObserver(
+      uri, ObserverNode(callback, USER_TEST, 0, 0, "K1", "V1"));
+  ChangeInfo::VBuckets buckets;
+  buckets.push_back(MakeValueBucket("K2", "V1"));
+  dataObsMgrInner_->HandleNotifyChange(
+      uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 0, buckets);
+}
+
+HWTEST_F(DataObsMgrInnerTest, NotifyChangeExtKeyValueFilter_004,
+         TestSize.Level1) {
+  Uri uri("dataability:///com.ohos.settingsdata/entry/settingsdata/"
+          "SETTINGSDATA?key=K1");
+  sptr<MockDataAbilityObserverStub> observer(new (std::nothrow)
+                                                 MockDataAbilityObserverStub());
+  EXPECT_CALL(*observer, OnChange()).Times(1);
+  const sptr<IDataAbilityObserver> callback(
+      new (std::nothrow) DataAbilityObserverProxy(observer));
+  dataObsMgrInner_->HandleRegisterObserver(
+      uri, ObserverNode(callback, USER_TEST, 0, 0, "K1", ""));
+  ChangeInfo::VBuckets buckets;
+  buckets.push_back(MakeValueBucket("K1", "AnyValue"));
+  dataObsMgrInner_->HandleNotifyChange(
+      uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 0, buckets);
+}
+
+HWTEST_F(DataObsMgrInnerTest, NotifyChangeExtKeyValueFilter_005,
+         TestSize.Level1) {
+  Uri uri(
+      "dataability:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA");
+  sptr<MockDataAbilityObserverStub> observer(new (std::nothrow)
+                                                 MockDataAbilityObserverStub());
+  EXPECT_CALL(*observer, OnChange()).Times(1);
+  const sptr<IDataAbilityObserver> callback(
+      new (std::nothrow) DataAbilityObserverProxy(observer));
+  dataObsMgrInner_->HandleRegisterObserver(
+      uri, ObserverNode(callback, USER_TEST, 0, 0));
+  dataObsMgrInner_->HandleNotifyChange(
+      uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 0, {});
+}
+
+HWTEST_F(DataObsMgrInnerTest, GenericUriUserSettingData_001, TestSize.Level1) {
+  Uri registerUri(
+      "dataability:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA");
+  Uri notifyUri("dataability:///com.ohos.settingsdata/entry/settingsdata/"
+                "USER_SETTINGDATA_100");
+  sptr<MockDataAbilityObserverStub> observer(new (std::nothrow)
+                                                 MockDataAbilityObserverStub());
+  EXPECT_CALL(*observer, OnChange()).Times(1);
+  const sptr<IDataAbilityObserver> callback(
+      new (std::nothrow) DataAbilityObserverProxy(observer));
+  dataObsMgrInner_->HandleRegisterObserver(
+      registerUri, ObserverNode(callback, USER_TEST, 0, 0, "K1", ""));
+  ChangeInfo::VBuckets buckets;
+  buckets.push_back(MakeValueBucket("K1", "V1"));
+  dataObsMgrInner_->HandleNotifyChange(notifyUri, USER_TEST,
+                                       DataSharePermission::NO_PERMISSION,
+                                       false, 0, buckets);
+}
+
+HWTEST_F(DataObsMgrInnerTest, KeyNormalization_001, TestSize.Level1) {
+  Uri registerUri("dataability:///com.ohos.settingsdata/entry/settingsdata/"
+                  "SETTINGSDATA?Proxy=true&key=K1");
+  Uri notifyUri("dataability:///com.ohos.settingsdata/entry/settingsdata/"
+                "SETTINGSDATA?appIndex=0");
+  sptr<MockDataAbilityObserverStub> observer(new (std::nothrow)
+                                                 MockDataAbilityObserverStub());
+  EXPECT_CALL(*observer, OnChange()).Times(1);
+  const sptr<IDataAbilityObserver> callback(
+      new (std::nothrow) DataAbilityObserverProxy(observer));
+  dataObsMgrInner_->HandleRegisterObserver(
+      registerUri, ObserverNode(callback, USER_TEST, 0, 0, "K1", ""));
+  ChangeInfo::VBuckets buckets;
+  buckets.push_back(MakeValueBucket("K1", "V1"));
+  dataObsMgrInner_->HandleNotifyChange(notifyUri, USER_TEST,
+                                       DataSharePermission::NO_PERMISSION,
+                                       false, 0, buckets);
 }
 
 /*

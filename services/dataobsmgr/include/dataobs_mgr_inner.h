@@ -25,6 +25,7 @@
 #include "cpp/mutex.h"
 
 #include "data_ability_observer_interface.h"
+#include "dataobs_mgr_changeinfo.h"
 #include "dataobs_mgr_inner_common.h"
 
 namespace OHOS {
@@ -40,8 +41,11 @@ public:
     int HandleRegisterObserver(const Uri &uri, struct ObserverNode observerNode);
     int HandleUnregisterObserver(const Uri &uri, struct ObserverNode observerNode);
     int HandleNotifyChange(const Uri &uri, int32_t userId, std::string readPermission,
-        bool isSilentUri, uint32_t token);
+        bool isSilentUri, uint32_t token, const ChangeInfo::VBuckets& valueBuckets = {});
     void OnCallBackDied(const wptr<IRemoteObject> &remote);
+
+    static std::string NormalizeUri(const Uri& uri);
+    static bool DecodeSettingDataFilter(const Uri& uri, std::string& filterKey, std::string& filterValue);
 
 private:
     void AddObsDeathRecipient(sptr<IDataAbilityObserver> dataObserver);
