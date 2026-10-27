@@ -1343,6 +1343,47 @@ public:
     {
         return ERR_OK;
     }
+
+    /**
+     * @brief Pre-checks an A2A connect attribution request without registering the
+     *        managed process. Verifies task alive-state and caller ownership
+     *        (callerTokenId == TaskRecord.creatorTokenId). Fail-closed: any failure
+     *        returns ERR_TASK_ATTR_INVALID without disclosing task existence.
+     *
+     *        The callerTokenId is captured by the convergence point (AMS) from the
+     *        IPC framework inside AgentCallerIdentityScope and is passed explicitly
+     *        through the IPC parcel — it is NOT re-captured on the AppMgr side,
+     *        because the immediate caller here is AMS (foundation), not the app.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId Indicates the app's token id captured at the convergence point.
+     * @return Returns ERR_OK if the task is alive and the caller is its creator;
+     *         ERR_TASK_ATTR_INVALID on any failure (not found / mismatch).
+     */
+    virtual int32_t PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Attributes the target Agent process into the task after a successful
+     *        A2A connect. Performs the same ownership + alive-state verification,
+     *        then registers an AttributionRecord with AttributionTool::A2A. This is
+     *        the post-connect best-effort path — a failure here is logged but does
+     *        NOT fail the connect result (AC-4.1: "调用结果不受纳管影响").
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId Indicates the app's token id captured at the convergence point.
+     * @param targetPid Indicates the target Agent process pid (resolved post-connect).
+     * @param attributionId Indicates the server-assigned attribution id handed back.
+     * @return Returns ERR_OK on success; ERR_TASK_ATTR_INVALID on ownership/alive
+     *         failure; ERR_INVALID_PID if the target pid is not a live managed
+     *         process; ERR_TASK_NOT_FOUND if the task disappeared; ERR_INVALID_OPERATION
+     *         if the per-task attribution ceiling is reached.
+     */
+    virtual int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, int64_t &attributionId)
+    {
+        return ERR_OK;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

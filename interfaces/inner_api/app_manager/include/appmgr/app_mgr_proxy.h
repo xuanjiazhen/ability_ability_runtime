@@ -1037,6 +1037,9 @@ public:
     void CancelDelayedExitTask(int32_t pid) override;
     int32_t StartTask(const std::string &taskId, int32_t priority) override;
     int32_t FinishTask(const std::string &taskId) override;
+    int32_t PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId) override;
+    int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, int64_t &attributionId) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

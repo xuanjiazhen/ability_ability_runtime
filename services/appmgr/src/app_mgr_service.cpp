@@ -190,6 +190,24 @@ int32_t AppMgrService::FinishTask(const std::string &taskId)
     return TaskManagerService::GetInstance().FinishTask(taskId);
 }
 
+int32_t AppMgrService::PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId)
+{
+    // No system-app gate here: the immediate caller is AMS (foundation), which is
+    // a trusted in-process SA client. The ownership check is performed against
+    // the callerTokenId parameter, which AMS captured from the IPC framework
+    // inside AgentCallerIdentityScope (so it cannot be forged via Want params).
+    return TaskManagerService::GetInstance().PrecheckTaskForA2A(taskId, callerTokenId);
+}
+
+int32_t AppMgrService::AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+    pid_t targetPid, int64_t &attributionId)
+{
+    // Same rationale as PrecheckTaskForA2A: the caller is AMS (foundation).
+    attributionId = 0;
+    return TaskManagerService::GetInstance().AttributeTaskForA2A(
+        taskId, callerTokenId, targetPid, attributionId);
+}
+
 AppMgrServiceState AppMgrService::QueryServiceState()
 {
     if (appMgrServiceInner_) {

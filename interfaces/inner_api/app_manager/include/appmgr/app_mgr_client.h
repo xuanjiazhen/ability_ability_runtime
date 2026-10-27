@@ -1849,6 +1849,40 @@ public:
      */
     int32_t FinishTask(const std::string &taskId);
 
+    /**
+     * Pre-check an A2A connect attribution request without registering the
+     * managed process. Verifies task alive-state and caller ownership
+     * (callerTokenId == TaskRecord.creatorTokenId). Fail-closed: any failure
+     * returns ERR_TASK_ATTR_INVALID.
+     *
+     * The callerTokenId is captured by the convergence point (AMS) from the IPC
+     * framework inside AgentCallerIdentityScope and is passed explicitly here.
+     *
+     * @param taskId Task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId App's token id captured at the convergence point.
+     * @return ERR_OK if the task is alive and the caller is its creator;
+     *         ERR_TASK_ATTR_INVALID on any failure;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId);
+
+    /**
+     * Attribute the target Agent process into the task after a successful A2A
+     * connect. Best-effort: a failure here does NOT fail the connect result
+     * (AC-4.1).
+     *
+     * @param taskId Task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId App's token id captured at the convergence point.
+     * @param targetPid Target Agent process pid (resolved post-connect).
+     * @param attributionId Server-assigned attribution id handed back.
+     * @return ERR_OK on success; ERR_TASK_ATTR_INVALID on ownership/alive
+     *         failure; ERR_INVALID_PID / ERR_TASK_NOT_FOUND / ERR_INVALID_OPERATION
+     *         on other failures; ERROR_SERVICE_NOT_CONNECTED when the service
+     *         is unavailable.
+     */
+    int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, int64_t &attributionId);
+
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);
     /**

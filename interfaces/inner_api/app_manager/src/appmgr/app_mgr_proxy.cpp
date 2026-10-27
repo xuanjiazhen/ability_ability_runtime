@@ -3318,5 +3318,45 @@ int32_t AppMgrProxy::FinishTask(const std::string &taskId)
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return IPC_PROXY_ERR;
+    }
+
+    PARCEL_UTIL_WRITE_RET_INT(data, String16, Str8ToStr16(taskId));
+    PARCEL_UTIL_WRITE_RET_INT(data, Uint32, callerTokenId);
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::PRECHECK_TASK_FOR_A2A, data, reply, option);
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+    pid_t targetPid, int64_t &attributionId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return IPC_PROXY_ERR;
+    }
+
+    PARCEL_UTIL_WRITE_RET_INT(data, String16, Str8ToStr16(taskId));
+    PARCEL_UTIL_WRITE_RET_INT(data, Uint32, callerTokenId);
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, targetPid);
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::ATTRIBUTE_TASK_FOR_A2A, data, reply, option);
+    int32_t result = reply.ReadInt32();
+    if (result == NO_ERROR) {
+        attributionId = reply.ReadInt64();
+    }
+    return result;
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS
