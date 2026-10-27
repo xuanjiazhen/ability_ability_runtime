@@ -220,7 +220,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReasonForTimeout(const AppExecFwk:
 }
 
 int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason,
-    bool fromKillWithReason)
+    bool fromKillWithReason, bool persistKV)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AppExecFwk::ApplicationInfo application;
@@ -237,14 +237,16 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const Ex
         DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(
             static_cast<pid_t>(pid), processInfo);
     }
-    int32_t resultCode = RecordProcessExtensionExitReason(pid, bundleName, exitReason, processInfo,
-        fromKillWithReason);
-    if (resultCode != ERR_OK) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "not record extension reason: %{public}d", resultCode);
+    if (persistKV) {
+        int32_t resultCode = RecordProcessExtensionExitReason(pid, bundleName, exitReason, processInfo,
+            fromKillWithReason);
+        if (resultCode != ERR_OK) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "not record extension reason: %{public}d", resultCode);
+        }
     }
 
     return RecordProcessExitReason(pid, bundleName, application.uid, application.accessTokenId, exitReason,
-        processInfo, fromKillWithReason);
+        processInfo, fromKillWithReason, persistKV);
 }
 
 int32_t AppExitReasonHelper::RecordAppExitReason(const std::string &bundleName, int32_t uid, int32_t appIndex,
@@ -280,7 +282,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(int32_t pid, int32_t uid, c
 
 int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const std::string bundleName,
     const int32_t uid, const uint32_t accessTokenId, const ExitReason &exitReason,
-    const AppExecFwk::RunningProcessInfo &processInfo, bool fromKillWithReason)
+    const AppExecFwk::RunningProcessInfo &processInfo, bool fromKillWithReason, bool persistKV)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!IsExitReasonValid(exitReason)) {
@@ -322,6 +324,14 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const st
     if (abilityLists.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "active abilityLists empty");
         return ERR_GET_ACTIVE_ABILITY_LIST_EMPTY;
+    }
+    if (!persistKV) {
+        // killId-only / invalid-combo scenarios keep the exit reason records unchanged: neither
+        // the UIExtension KV (RecordProcessExtensionExitReason is gated by persistKV) nor the app
+        // lastExitReason KV is written (aligned with the legacy pre-register gate), attribution
+        // goes through the PROCESS_KILL event killId stamped above and the process record
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "exit reason KV write skipped");
+        return ERR_OK;
     }
     return DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->SetAppExitReason(bundleName,
         accessTokenId, abilityLists, exitReason, processInfo, fromKillWithReason);
