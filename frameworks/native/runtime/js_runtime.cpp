@@ -15,6 +15,7 @@
 
 #include "js_runtime.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <climits>
 #include <cstdint>
@@ -94,6 +95,10 @@ constexpr const char* PERMISSION_RUN_ANY_CODE = "ohos.permission.RUN_ANY_CODE";
 constexpr const char* PERMISSION_LOAD_INDEPENDENT_LIBRARY = "ohos.permission.kernel.LOAD_INDEPENDENT_LIBRARY";
 constexpr const char* PERMISSION_LOAD_CERTSIGN_LIBRARY_FOR_WEB = "ohos.permission.kernel.LOAD_CERTSIGN_LIBRARY_FOR_WEB";
 constexpr const char* PERMISSION_LOAD_CERTSIGN_LIBRARY = "ohos.permission.kernel.LOAD_CERTSIGN_LIBRARY";
+constexpr const char* PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY = "ohos.permission.kernel.ALLOW_EXECUTABLE_FORT_MEMORY";
+constexpr const char* PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY_FOR_ARKTS =
+    "ohos.permission.kernel.ALLOW_EXECUTABLE_FORT_MEMORY_FOR_ARKTS";
+constexpr int32_t ATM_KIT_RET_SUCCESS = 0;
 
 const std::string CONFIG_PATH = "/etc/system_kits_config.json";
 const std::string SYSTEM_KITS_CONFIG_PATH = "/system/etc/system_kits_config.json";
@@ -116,6 +121,33 @@ static auto PermissionCheckFunc = []() {
         return false;
     }
 };
+
+bool IsJitAllowed(bool requested)
+{
+    static const std::vector<std::string> arktsJitPermList = {
+        PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY,
+        PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY_FOR_ARKTS
+    };
+    Security::AccessToken::AccessTokenID tokenId = IPCSkeleton::GetSelfTokenID();
+    int permissionState = Security::AccessToken::PERMISSION_DENIED;
+    if (tokenId != Security::AccessToken::INVALID_TOKENID) {
+        std::vector<int32_t> permStateList;
+        int ret = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+            tokenId, arktsJitPermList, permStateList, true);
+        if (ret == 0 && !arktsJitPermList.empty() &&
+            permStateList.size() == arktsJitPermList.size() &&
+            std::all_of(permStateList.begin(), permStateList.end(), [](int32_t state) {
+                return state == Security::AccessToken::PERMISSION_GRANTED;
+            })) {
+            permissionState = Security::AccessToken::PERMISSION_GRANTED;
+        }
+    }
+    bool jitEnabled = requested && permissionState == Security::AccessToken::PERMISSION_GRANTED;
+    TAG_LOGI(AAFwkTag::JSRUNTIME,
+        "JIT ACL check: token=%{public}u, state=%{public}d, requested=%{public}d, enabled=%{public}d",
+        tokenId, permissionState, requested, jitEnabled);
+    return jitEnabled;
+}
 
 int32_t PrintVmLog(int32_t, int32_t, const char*, const char*, const char* message)
 {
@@ -668,8 +700,7 @@ void JsRuntime::PostPreload(const Options& options)
     }
     bool profileEnabled = OHOS::system::GetBoolParameter("ark.profile", false);
     postOption.SetEnableProfile(profileEnabled);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "ASMM JIT Verify PostFork, jitEnabled: %{public}d", options.jitEnabled);
-    postOption.SetEnableJIT(options.jitEnabled);
+    postOption.SetEnableJIT(IsJitAllowed(options.jitEnabled));
     postOption.SetAOTCompileStatusMap(options.aotCompileStatusMap);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "SmartGC: set options enableWarmStartupSmartGC to RuntimeOption");
     postOption.SetEnableWarmStartupSmartGC(options.enableWarmStartupSmartGC);
@@ -846,8 +877,11 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     std::string asmOpcodeDisableRange = OHOS::system::GetParameter("persist.ark.asmopcodedisablerange", "");
     pandaOption.SetEnableAsmInterpreter(asmInterpreterEnabled);
     pandaOption.SetAsmOpcodeDisableRange(asmOpcodeDisableRange);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "ASMM JIT Verify CreateJsEnv, jitEnabled: %{public}d", options.jitEnabled);
-    pandaOption.SetEnableJIT(options.jitEnabled);
+    bool jitEnabled = options.jitEnabled;
+    if (!options.preload) {
+        jitEnabled = IsJitAllowed(options.jitEnabled);
+    }
+    pandaOption.SetEnableJIT(jitEnabled);
 
     if (options.isMultiThread) {
         TAG_LOGD(AAFwkTag::JSRUNTIME, "Start Multi Thread Mode: %{public}d", options.isMultiThread);
