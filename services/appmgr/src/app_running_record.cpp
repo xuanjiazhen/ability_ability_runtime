@@ -2699,12 +2699,12 @@ bool AppRunningRecord::IsPreloaded() const
 
 void AppRunningRecord::SetMakeImageState(MakeImageState state)
 {
-    makeImageState_ = state;
+    makeImageState_.store(state);
 }
 
 MakeImageState AppRunningRecord::GetMakeImageState() const
 {
-    return makeImageState_;
+    return makeImageState_.load();
 }
 
 void AppRunningRecord::SetIsCreateFromImage(bool flag)
