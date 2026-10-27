@@ -31,6 +31,7 @@
 #include "in_process_call_wrapper.h"
 #include "insight_intent_execute_callback_interface.h"
 #include "insight_intent_db_cache.h"
+#include "insight_intent_authorization.h"
 #include "insight_intent_utils.h"
 #include "permission_verification.h"
 #include "task_mgr/task_manager_service.h"
@@ -799,8 +800,10 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
         return ERR_OK;
     }
     if (!isSystemAppCall) {
-        TAG_LOGE(AAFwkTag::INTENT, "system-api cannot use");
-        return ERR_NOT_SYSTEM_APP;
+        // DRAFT(SPEC-20260816098661): 原行为为直接拒绝，现改为按设备形态与授权编排判定。
+        // 手机维持 ERR_NOT_SYSTEM_APP（AC-1.3），PC/平板进入弹框授权流程（AC-1.1 / AC-1.2）。
+        TAG_LOGD(AAFwkTag::INTENT, "non-system caller, enter third-party authorization flow");
+        return CheckThirdPartyCallerAuthorization(callerBundleName, targetBundleName);
     }
 
     bool isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(
@@ -811,6 +814,37 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
             EXECUTE_INSIGHT_INTENT_PERMISSION);
         return ERR_PERMISSION_DENIED;
     }
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::CheckThirdPartyCallerAuthorization(const std::string &callerBundleName,
+    const std::string &targetBundleName)
+{
+    // DRAFT(SPEC-20260816098661): 三方 Agent 执行意图的授权编排入口，全链路 fail-closed。
+    // 步骤 1：设备形态 —— 弹框授权仅 PC/平板生效，手机维持 ERR_NOT_SYSTEM_APP（AC-1.3 / R-4）。
+    if (!AbilityRuntime::InsightIntentAuthorization::IsPopupAuthorizationSupported()) {
+        TAG_LOGE(AAFwkTag::INTENT, "popup authorization not supported on this device, rejected");
+        return ERR_NOT_SYSTEM_APP;
+    }
+
+    // 步骤 2~4 的编排（篡改校验 → ATM 查询 → 弹框）由 InsightIntentAuthorization 统一完成。
+    // 调用方身份取自 IPC 上下文与实际调用方，不以 want 中自报的 bundleName 为准（AC-3.1 / R-2）。
+    AbilityRuntime::CallerIdentity identity;
+    identity.callerUid = IPCSkeleton::GetCallingUid();
+    identity.callerTokenId = static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID());
+    identity.callerBundleName = callerBundleName;
+    identity.targetBundleName = targetBundleName;
+
+    AbilityRuntime::AuthorizationResult result =
+        AbilityRuntime::InsightIntentAuthorization::GetInstance().AuthorizeThirdPartyCall(identity);
+    if (result != AbilityRuntime::AuthorizationResult::APPROVED) {
+        // 用户拒绝、弹框未确认、身份校验失败、ATM 查询异常统一返回 ERR_PERMISSION_DENIED（1）
+        TAG_LOGE(AAFwkTag::INTENT, "third-party authorization denied, caller: %{public}s, target: %{public}s",
+            callerBundleName.c_str(), targetBundleName.c_str());
+        return ERR_PERMISSION_DENIED;
+    }
+    TAG_LOGI(AAFwkTag::INTENT, "third-party authorization granted, caller: %{public}s, target: %{public}s",
+        callerBundleName.c_str(), targetBundleName.c_str());
     return ERR_OK;
 }
 

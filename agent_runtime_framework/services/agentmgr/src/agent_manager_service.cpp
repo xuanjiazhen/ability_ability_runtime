@@ -708,13 +708,20 @@ int64_t AgentManagerService::GetConnectPreflightCleanupDelayMillis(AgentPrefligh
 
 int32_t AgentManagerService::ValidateConnectAgentPermission(int32_t &callerUid) const
 {
-    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "caller no system-app, can not use system-api");
-        return AAFwk::ERR_NOT_SYSTEM_APP;
-    }
-    if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
-        AAFwk::PermissionConstants::PERMISSION_CONNECT_AGENT)) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "Permission verification failed");
+    // DRAFT(SPEC-20260816098661) R-6：判定顺序固定为「先按连接权限放行，未持有时再按调用方身份给具名码」。
+    // - 持 ohos.permission.CONNECT_AGENT：系统应用与三方应用均放行（AC-5.1）；
+    // - 未持有时：非系统应用返回 ERR_NOT_SYSTEM_APP（2097209，AC-5.2），系统应用返回
+    //   ERR_PERMISSION_DENIED（1，AC-5.3）。
+    // fail-closed：验权接口异常一律按未持权限处理，不因异常放行。
+    bool hasConnectAgentPermission = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_CONNECT_AGENT);
+    if (!hasConnectAgentPermission) {
+        if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "caller has no connect-agent permission and is not system-app");
+            return AAFwk::ERR_NOT_SYSTEM_APP;
+        }
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "permission %{public}s verification failed",
+            AAFwk::PermissionConstants::PERMISSION_CONNECT_AGENT);
         return ERR_PERMISSION_DENIED;
     }
     callerUid = IPCSkeleton::GetCallingUid();

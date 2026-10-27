@@ -133,6 +133,12 @@ public:
         const std::string &callerBundleName = "",
         const std::string &targetBundleName = "");
 
+    // DRAFT(SPEC-20260816098661): 三方调用方的授权编排入口（CheckCallerPermission 非系统调用者分支）。
+    // 手机返回 ERR_NOT_SYSTEM_APP；PC/平板走「篡改校验 → ATM 查询 → 弹框」编排，任一环节不确定即拒绝。
+    // 独立成函数便于单测注入 mock backend（VM-1 ~ VM-5）。
+    static int32_t CheckThirdPartyCallerAuthorization(const std::string &callerBundleName,
+        const std::string &targetBundleName);
+
     static int32_t CheckGetInsightIntenInfoPermission(
         const std::string &targetBundleName = "");
 
