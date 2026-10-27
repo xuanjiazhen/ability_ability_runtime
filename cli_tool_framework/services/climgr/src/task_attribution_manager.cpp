@@ -32,6 +32,11 @@ TaskAttributionManager &TaskAttributionManager::GetInstance()
     return instance;
 }
 
+void TaskAttributionManager::ResetConnection()
+{
+    appMgrClient_ = std::make_unique<AppExecFwk::AppMgrClient>();
+}
+
 int32_t TaskAttributionManager::AttachProcess(const std::string &taskId, pid_t pid, int32_t callerUid,
     int64_t &attributionId)
 {
@@ -40,13 +45,13 @@ int32_t TaskAttributionManager::AttachProcess(const std::string &taskId, pid_t p
         TAG_LOGW(AAFwkTag::CLI_TOOL, "attach skipped: invalid taskId or pid: %{public}d", pid);
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
-    AppExecFwk::AppMgrClient appMgrClient;
-    if (appMgrClient.ConnectAppMgrService() != AppExecFwk::AppMgrResultCode::RESULT_OK) {
+    AppExecFwk::AppMgrClient *appMgrClient = appMgrClient_.get();
+    if (appMgrClient->ConnectAppMgrService() != AppExecFwk::AppMgrResultCode::RESULT_OK) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "attach failed: appmgr unreachable, taskId: %{public}s",
             taskId.c_str());
         return AAFwk::INNER_ERR;
     }
-    int32_t result = appMgrClient.RegisterManagedProcess(taskId, static_cast<int32_t>(pid),
+    int32_t result = appMgrClient->RegisterManagedProcess(taskId, static_cast<int32_t>(pid),
         ATTRIBUTION_TOOL_CLI, callerUid, attributionId);
     if (result != ERR_OK) {
         attributionId = 0;
@@ -62,13 +67,13 @@ int32_t TaskAttributionManager::DetachProcess(const std::string &taskId, int64_t
     if (taskId.empty() || attributionId <= 0) {
         return ERR_OK;
     }
-    AppExecFwk::AppMgrClient appMgrClient;
-    if (appMgrClient.ConnectAppMgrService() != AppExecFwk::AppMgrResultCode::RESULT_OK) {
+    AppExecFwk::AppMgrClient *appMgrClient = appMgrClient_.get();
+    if (appMgrClient->ConnectAppMgrService() != AppExecFwk::AppMgrResultCode::RESULT_OK) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "detach failed: appmgr unreachable, taskId: %{public}s",
             taskId.c_str());
         return AAFwk::INNER_ERR;
     }
-    int32_t result = appMgrClient.UnregisterManagedProcess(taskId, attributionId, callerUid);
+    int32_t result = appMgrClient->UnregisterManagedProcess(taskId, attributionId, callerUid);
     if (result != ERR_OK) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "detach rejected by appmgr, taskId: %{public}s, "
             "attributionId: %{public}" PRId64 ", ret: %{public}d", taskId.c_str(), attributionId, result);
@@ -85,14 +90,14 @@ int32_t TaskAttributionManager::AttachInAppSkillProcess(const std::string &taskI
         TAG_LOGW(AAFwkTag::CLI_TOOL, "in-app skill attach skipped: invalid taskId or empty bundleName");
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
-    AppExecFwk::AppMgrClient appMgrClient;
-    if (appMgrClient.ConnectAppMgrService() != AppExecFwk::AppMgrResultCode::RESULT_OK) {
+    AppExecFwk::AppMgrClient *appMgrClient = appMgrClient_.get();
+    if (appMgrClient->ConnectAppMgrService() != AppExecFwk::AppMgrResultCode::RESULT_OK) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "in-app skill attach failed: appmgr unreachable, taskId: %{public}s",
             taskId.c_str());
         return AAFwk::INNER_ERR;
     }
     int32_t resolvedPid = -1;
-    int32_t result = appMgrClient.RegisterInAppSkillProcess(taskId, bundleName, callerUid, resolvedPid,
+    int32_t result = appMgrClient->RegisterInAppSkillProcess(taskId, bundleName, callerUid, resolvedPid,
         attributionId);
     if (result != ERR_OK || resolvedPid <= 0) {
         attributionId = 0;

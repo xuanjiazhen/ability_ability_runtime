@@ -227,7 +227,7 @@ int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t
     AttributionRecord attribution;
     attribution.pid = pid;
     attribution.tool = static_cast<AttributionTool>(tool);
-    return TaskManagerService::GetInstance().RegisterManagedProcess(taskId, attribution, callerUid,
+    return TaskManagerService::GetInstance().RegisterManagedProcessForCaller(taskId, attribution, callerUid,
         attributionId);
 }
 
@@ -244,7 +244,8 @@ int32_t AppMgrService::UnregisterManagedProcess(const std::string &taskId, int64
             "attributionId: %{public}" PRId64, taskId.size(), attributionId);
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
-    return TaskManagerService::GetInstance().UnregisterManagedProcess(taskId, attributionId, callerUid);
+    return TaskManagerService::GetInstance().UnregisterManagedProcessForCaller(taskId, attributionId,
+        callerUid);
 }
 
 int32_t AppMgrService::RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
@@ -274,7 +275,7 @@ int32_t AppMgrService::RegisterInAppSkillProcess(const std::string &taskId, cons
     AttributionRecord attribution;
     attribution.pid = targetPid;
     attribution.tool = AttributionTool::CLI;
-    int32_t result = TaskManagerService::GetInstance().RegisterManagedProcess(taskId, attribution,
+    int32_t result = TaskManagerService::GetInstance().RegisterManagedProcessForCaller(taskId, attribution,
         callerUid, attributionId);
     if (result == ERR_OK) {
         resolvedPid = static_cast<int32_t>(targetPid);

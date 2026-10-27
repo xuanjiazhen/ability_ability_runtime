@@ -102,23 +102,13 @@ public:
         AttributionId &attributionId);
 
     /**
-     * @brief Attributes a process into the task owned by the given caller and restarts
-     *        its inactivity timeout window. Same as the three-parameter overload, plus
-     *        the creator-ownership check.
-     * @param taskId Indicates the attribution key of the task.
-     * @param attribution Indicates the attribution record (tool and pid required; the
-     *        pid must be a live appmgr-managed process; the attribution time is
-     *        stamped here).
-     * @param callerUid Indicates the forensic uid of the task creator; a negative value
-     *        (SYSTEM_INITIATED_UID) skips the ownership check.
-     * @param attributionId Indicates the server-assigned id of the created record,
-     *        handed back to the caller as the handle for later operations.
-     * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters;
-     *         ERR_INVALID_PID if the pid is not a live appmgr-managed process;
-     *         ERR_TASK_NOT_FOUND if the task does not exist or is owned by another uid;
-     *         ERR_INVALID_OPERATION if the per-task attribution ceiling is reached.
+     * @brief Registers a process into the task owned by the caller (CLI channel):
+     *        creator-ownership check, then the shared registration kernel. Skips
+     *        the pid-liveness check: the reporter is uid-gated to climgr and the
+     *        pid is climgr's fork child.
+     * @param callerUid Indicates the task creator's uid; negative skips the check.
      */
-    int32_t RegisterManagedProcess(const std::string &taskId, const AttributionRecord &attribution,
+    int32_t RegisterManagedProcessForCaller(const std::string &taskId, const AttributionRecord &attribution,
         int32_t callerUid, AttributionId &attributionId);
 
     /**
@@ -141,18 +131,13 @@ public:
     void SetPidValidator(std::function<bool(pid_t)> validator);
 
     /**
-     * @brief Removes the attribution record with the given id from the task owned by
-     *        the given caller; the inactivity timeout window is left running untouched.
-     *        Same as the two-parameter overload, plus the creator-ownership check.
-     * @param taskId Indicates the attribution key of the task.
-     * @param attributionId Indicates the id returned by RegisterManagedProcess.
-     * @param callerUid Indicates the forensic uid of the task creator; a negative value
-     *        (SYSTEM_INITIATED_UID) skips the ownership check.
-     * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters;
-     *         ERR_TASK_NOT_FOUND if the task does not exist or is owned by another uid;
-     *         ERR_ATTRIBUTION_NOT_FOUND if the attribution record does not exist.
+     * @brief Removes the attribution record from the task owned by the caller (CLI
+     *        channel): creator-ownership check, then delegation to the
+     *        shared UnregisterManagedProcess.
+     * @param callerUid Indicates the task creator's uid; negative skips the check.
      */
-    int32_t UnregisterManagedProcess(const std::string &taskId, AttributionId attributionId, int32_t callerUid);
+    int32_t UnregisterManagedProcessForCaller(const std::string &taskId, AttributionId attributionId,
+        int32_t callerUid);
 
     /**
      * @brief Notifies that a task has ended, reserved for the resource-schedule control to
@@ -256,15 +241,13 @@ private:
      * @param taskId Indicates the attribution key of the task.
      * @param attribution Indicates the attribution record; the attribution time is
      *        stamped server-side.
-     * @param callerUid Indicates the forensic uid of the task creator; a negative value
-     *        (SYSTEM_INITIATED_UID) skips the ownership check.
      * @param attributionId Indicates the server-assigned id of the created record.
      * @return Returns ERR_OK on success; ERR_TASK_NOT_FOUND if the task does not
-     *         exist or is owned by another uid; ERR_INVALID_OPERATION if the
-     *         per-task attribution ceiling is reached.
+     *         exist; ERR_INVALID_OPERATION if the per-task attribution ceiling is
+     *         reached.
      */
     int32_t RegisterManagedProcessInner(const std::string &taskId, const AttributionRecord &attribution,
-        int32_t callerUid, AttributionId &attributionId);
+        AttributionId &attributionId);
 
     /**
      * @brief Removes the attribution record with the given id from the task; locks
@@ -275,8 +258,7 @@ private:
      * @return Returns ERR_OK on success; ERR_TASK_NOT_FOUND if the task does not exist;
      *         ERR_ATTRIBUTION_NOT_FOUND if the attribution record does not exist.
      */
-    int32_t UnregisterManagedProcessInner(const std::string &taskId, AttributionId attributionId,
-        int32_t callerUid);
+    int32_t UnregisterManagedProcessInner(const std::string &taskId, AttributionId attributionId);
 
     /**
      * @brief Restarts the inactivity window of the task: posts a new one-shot timer for

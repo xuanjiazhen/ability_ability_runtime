@@ -17,8 +17,11 @@
 #define OHOS_ABILITY_RUNTIME_TASK_ATTRIBUTION_MANAGER_H
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <sys/types.h>
+
+#include "app_mgr_client.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -44,9 +47,14 @@ public:
     int32_t AttachInAppSkillProcess(const std::string &taskId, const std::string &bundleName, pid_t &outPid,
         int64_t &attributionId, int32_t callerUid);
 
+    // Test seam only: drop the cached appmgr connection; production never calls.
+    void ResetConnection();
+
 private:
     TaskAttributionManager() = default;
     ~TaskAttributionManager() = default;
+
+    std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient_ = std::make_unique<AppExecFwk::AppMgrClient>();
 };
 } // namespace CliTool
 } // namespace OHOS

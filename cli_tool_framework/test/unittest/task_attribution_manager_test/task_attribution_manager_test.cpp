@@ -128,6 +128,7 @@ public:
     static void TearDownTestCase(void) {}
     void SetUp() override
     {
+        TaskAttributionManager::GetInstance().ResetConnection();
         g_mockEndpoint = new MockAppMgrEndpoint();
     }
     void TearDown() override
@@ -451,6 +452,71 @@ HWTEST_F(TaskAttributionManagerTest, DetachProcess_0400, TestSize.Level1)
 HWTEST_F(TaskAttributionManagerTest, AttributionToolContract_0100, TestSize.Level1)
 {
     EXPECT_EQ(ATTRIBUTION_TOOL_CLI, static_cast<int32_t>(AppExecFwk::AttributionTool::CLI));
+}
+
+/**
+ * @tc.name: AttachProcess_ConnectionCached_0100
+ * @tc.desc: The remote is cached after the first connect: a later call with no
+ *           resolvable endpoint still reaches the cached one.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TaskAttributionManagerTest, AttachProcess_ConnectionCached_0100, TestSize.Level1)
+{
+    int64_t attributionId = 0;
+    g_mockEndpoint->registerRet = ERR_OK;
+    EXPECT_EQ(TaskAttributionManager::GetInstance().AttachProcess("task_cache_0100", TEST_TOOL_PID,
+        TEST_CALLER_UID, attributionId), ERR_OK);
+
+    auto cachedEndpoint = g_mockEndpoint;
+    g_mockEndpoint = nullptr;
+    EXPECT_EQ(TaskAttributionManager::GetInstance().AttachProcess("task_cache_0100_b", TEST_TOOL_PID,
+        TEST_CALLER_UID, attributionId), ERR_OK);
+    EXPECT_EQ(cachedEndpoint->registerCalls, 2);
+    EXPECT_EQ(cachedEndpoint->lastRegisterTaskId, "task_cache_0100_b");
+}
+
+/**
+ * @tc.name: AttachProcess_ReconnectAfterReset_0100
+ * @tc.desc: ResetConnection drops the cached remote: the next call resolves the
+ *           new endpoint and the old one is untouched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TaskAttributionManagerTest, AttachProcess_ReconnectAfterReset_0100, TestSize.Level1)
+{
+    int64_t attributionId = 0;
+    g_mockEndpoint->registerRet = ERR_OK;
+    auto first = g_mockEndpoint;
+    EXPECT_EQ(TaskAttributionManager::GetInstance().AttachProcess("task_reconnect_0100", TEST_TOOL_PID,
+        TEST_CALLER_UID, attributionId), ERR_OK);
+    EXPECT_EQ(first->registerCalls, 1);
+
+    TaskAttributionManager::GetInstance().ResetConnection();
+    g_mockEndpoint = new MockAppMgrEndpoint();
+    EXPECT_EQ(TaskAttributionManager::GetInstance().AttachProcess("task_reconnect_0200", TEST_TOOL_PID,
+        TEST_CALLER_UID, attributionId), ERR_OK);
+    EXPECT_EQ(g_mockEndpoint->registerCalls, 1);
+    EXPECT_EQ(g_mockEndpoint->lastRegisterTaskId, "task_reconnect_0200");
+    EXPECT_EQ(first->registerCalls, 1);
+}
+
+/**
+ * @tc.name: DetachProcess_ConnectionCached_0100
+ * @tc.desc: The detach path (ffrt worker side) shares the same cached connection.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TaskAttributionManagerTest, DetachProcess_ConnectionCached_0100, TestSize.Level1)
+{
+    int64_t attributionId = 0;
+    g_mockEndpoint->registerRet = ERR_OK;
+    EXPECT_EQ(TaskAttributionManager::GetInstance().AttachProcess("task_detach_cache_0100", TEST_TOOL_PID,
+        TEST_CALLER_UID, attributionId), ERR_OK);
+
+    auto cachedEndpoint = g_mockEndpoint;
+    g_mockEndpoint = nullptr;
+    EXPECT_EQ(TaskAttributionManager::GetInstance().DetachProcess("task_detach_cache_0100",
+        attributionId, TEST_CALLER_UID), ERR_OK);
+    EXPECT_EQ(cachedEndpoint->unregisterCalls, 1);
+    EXPECT_EQ(cachedEndpoint->lastUnregisterTaskId, "task_detach_cache_0100");
 }
 } // namespace CliTool
 } // namespace OHOS
