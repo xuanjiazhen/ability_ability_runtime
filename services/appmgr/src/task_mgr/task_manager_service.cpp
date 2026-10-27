@@ -323,6 +323,56 @@ int32_t TaskManagerService::UnregisterManagedProcess(const std::string &taskId,
     return UnregisterManagedProcessInner(taskId, attributionId);
 }
 
+int32_t TaskManagerService::PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN) {
+        TAG_LOGW(AAFwkTag::APPMGR, "A2A precheck invalid taskId size: %{public}zu", taskId.size());
+        return ERR_TASK_ATTR_INVALID;
+    }
+    std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+    auto it = tasks_.find(taskId);
+    if (it == tasks_.end()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "A2A precheck task not found, taskId: %{public}s", taskId.c_str());
+        return ERR_TASK_ATTR_INVALID;
+    }
+    const TaskRecord &record = it->second;
+    if (record.creatorTokenId != callerTokenId) {
+        TAG_LOGW(AAFwkTag::APPMGR,
+            "A2A precheck ownership mismatch, taskId: %{public}s, "
+            "creator tokenId: %{public}u, caller tokenId: %{public}u",
+            taskId.c_str(), record.creatorTokenId, callerTokenId);
+        return ERR_TASK_ATTR_INVALID;
+    }
+    return ERR_OK;
+}
+
+int32_t TaskManagerService::AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+    pid_t targetPid, AttributionId &outAttributionId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called, taskId: %{public}s, targetPid: %{public}d",
+        taskId.c_str(), targetPid);
+    if (taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN || targetPid <= 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "A2A attribute invalid param, taskId size: %{public}zu, "
+            "targetPid: %{public}d", taskId.size(), targetPid);
+        return ERR_TASK_ATTR_INVALID;
+    }
+    int32_t precheck = PrecheckTaskForA2A(taskId, callerTokenId);
+    if (precheck != ERR_OK) {
+        return precheck;
+    }
+    if (!IsLiveManagedProcess(targetPid)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "A2A attribute target pid not live managed process, "
+            "taskId: %{public}s, targetPid: %{public}d", taskId.c_str(), targetPid);
+        return ERR_INVALID_PID;
+    }
+    AttributionRecord attribution;
+    attribution.pid = targetPid;
+    attribution.tool = AttributionTool::A2A;
+    return RegisterManagedProcessInner(taskId, attribution, outAttributionId);
+}
+
 int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskId,
     const AttributionRecord &attribution, AttributionId &attributionId)
 {

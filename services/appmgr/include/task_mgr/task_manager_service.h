@@ -113,6 +113,29 @@ public:
     int32_t UnregisterManagedProcess(const std::string &taskId, AttributionId attributionId);
 
     /**
+     * @brief Attributes the target Agent process into the task after the A2A connect
+     *        succeeds. Performs ownership + alive-state verification (merged
+     *        PrecheckTaskForA2A), and on success registers an AttributionRecord with
+     *        AttributionTool::A2A via RegisterManagedProcessInner. The pid must be a
+     *        live appmgr-managed process (validated by the wired pid validator).
+     *
+     *        This is the post-connect best-effort path: a failure here is logged but
+     *        does NOT fail the connect result.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId Indicates the caller token id captured from the IPC
+     *        framework at the convergence point.
+     * @param targetPid Indicates the target Agent process pid (resolved post-connect).
+     * @param outAttributionId Indicates the server-assigned attribution id handed
+     *        back to the caller as the handle for later unregister / cleanup.
+     * @return Returns ERR_OK on success; ERR_TASK_ATTR_INVALID on ownership/alive
+     *         failure; ERR_INVALID_PID if the target pid is not a live managed
+     *         process; ERR_INVALID_OPERATION if the per-task attribution ceiling
+     *         is reached.
+     */
+    int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, AttributionId &outAttributionId);
+
+    /**
      * @brief Wires the pid validator used by RegisterManagedProcess to reject pids
      *        that are not live appmgr-managed processes; called when the app manager
      *        service assembles. An unwired validator skips the check.
@@ -167,6 +190,17 @@ public:
 private:
     TaskManagerService();
     ~TaskManagerService();
+
+    /**
+     * @brief Verifies task alive-state and caller ownership
+     *        (callerTokenId == TaskRecord.creatorTokenId). Called internally by
+     *        AttributeTaskForA2A before registering the managed process.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId Indicates the caller token id.
+     * @return Returns ERR_OK if the task is alive and the caller is its creator;
+     *         ERR_TASK_ATTR_INVALID on any failure (not found / mismatch).
+     */
+    int32_t PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId);
 
     /**
      * @brief Creates the task record and starts its timeout timer; locks tasksMutex_

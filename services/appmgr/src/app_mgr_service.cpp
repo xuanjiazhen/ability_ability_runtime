@@ -190,6 +190,16 @@ int32_t AppMgrService::FinishTask(const std::string &taskId)
     return TaskManagerService::GetInstance().FinishTask(taskId);
 }
 
+int32_t AppMgrService::AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+    pid_t targetPid, int64_t &attributionId)
+{
+    // The caller is AMS (foundation), a trusted in-process SA client.
+    // The ownership check is performed by TaskManagerService::AttributeTaskForA2A.
+    attributionId = 0;
+    return TaskManagerService::GetInstance().AttributeTaskForA2A(
+        taskId, callerTokenId, targetPid, attributionId);
+}
+
 AppMgrServiceState AppMgrService::QueryServiceState()
 {
     if (appMgrServiceInner_) {

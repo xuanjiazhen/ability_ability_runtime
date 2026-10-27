@@ -266,6 +266,7 @@ constexpr size_t INDEX_FOUR = 4;
 constexpr int32_t DEFAULT_KILL_ID = -1;
 constexpr static char WANT_PARAMS_VIEW_DATA_KEY[] = "ohos.ability.params.viewData";
 constexpr const char* WANT_PARAMS_HOST_WINDOW_ID_KEY = "ohos.extra.param.key.hostwindowid";
+constexpr const char* WANT_PARAMS_TASK_ID_KEY = "ohos.task.id";
 
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr const char* FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
@@ -6445,6 +6446,59 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
     return eventInfo->errCode;
 }
 
+void AbilityManagerService::TryAttributeTargetAgentForA2A(const sptr<IRemoteObject> &token)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (token == nullptr) {
+        return;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    if (abilityRecord == nullptr) {
+        return;
+    }
+    const auto &abilityInfo = abilityRecord->GetAbilityInfo();
+    if (!AgentAbilityUtil::IsAgentExtensionType(abilityInfo.extensionAbilityType)) {
+        return;
+    }
+    std::string taskId = abilityRecord->GetWant().GetStringParam(WANT_PARAMS_TASK_ID_KEY);
+    if (taskId.empty()) {
+        return;
+    }
+    pid_t targetPid = abilityRecord->GetPid();
+    if (targetPid <= 0) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER,
+            "A2A target pid not resolved, skipping attribution, taskId: %{public}s", taskId.c_str());
+        return;
+    }
+    uint32_t callerTokenId = 0;
+    auto extensionRecord = BaseExtensionRecord::TransferToExtensionRecordBase(abilityRecord);
+    if (extensionRecord != nullptr) {
+        auto connectRecordList = extensionRecord->GetConnectRecordList();
+        if (!connectRecordList.empty()) {
+            callerTokenId = connectRecordList.front()->GetCallerTokenId();
+        }
+    }
+    if (callerTokenId == 0) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER,
+            "A2A callerTokenId not resolved, skipping attribution, taskId: %{public}s", taskId.c_str());
+        return;
+    }
+    int64_t attributionId = 0;
+    int32_t ret = IN_PROCESS_CALL(
+        DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->AttributeTaskForA2A(
+            taskId, callerTokenId, targetPid, attributionId));
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER,
+            "A2A target attribution failed (best-effort), taskId: %{public}s, "
+            "targetPid: %{public}d, ret: %{public}d", taskId.c_str(), targetPid, ret);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER,
+        "A2A_TASK_ATTACHED taskId=%{public}s attributionId=%{public}" PRId64
+        " targetPid=%{public}d callerTokenId=%{public}u",
+        taskId.c_str(), attributionId, targetPid, callerTokenId);
+}
+
 int AbilityManagerService::ConnectUIExtensionAbility(const Want &want, const sptr<IAbilityConnection> &connect,
     const sptr<SessionInfo> &sessionInfo, int32_t userId, sptr<UIExtensionAbilityConnectInfo> connectInfo)
 {
@@ -8887,7 +8941,11 @@ int AbilityManagerService::ScheduleConnectAbilityDone(
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "connectManager null userId=%{public}d", userId);
         return ERR_INVALID_VALUE;
     }
-    return connectManager->ScheduleConnectAbilityDoneLocked(token, remoteObject);
+    int32_t result = connectManager->ScheduleConnectAbilityDoneLocked(token, remoteObject);
+    if (result == ERR_OK) {
+        TryAttributeTargetAgentForA2A(token);
+    }
+    return result;
 }
 
 int AbilityManagerService::ScheduleDisconnectAbilityDone(const sptr<IRemoteObject> &token)
