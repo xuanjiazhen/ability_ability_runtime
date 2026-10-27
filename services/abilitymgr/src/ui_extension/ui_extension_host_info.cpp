@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,15 @@ bool UIExtensionHostInfo::ReadFromParcel(Parcel &parcel)
 
     elementName_ = *abilityInfo;
     sessionName = parcel.ReadString();
+    if (!parcel.ReadInt32(persistentId_)) {
+        persistentId_ = 0;
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "read persistentId failed, use default value");
+    }
+    if (!parcel.ReadString(moduleName)) {
+        moduleName.clear();
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "read moduleName failed, use default value");
+    }
+    elementName_.SetModuleName(moduleName);
     return true;
 }
 
@@ -56,6 +65,16 @@ bool UIExtensionHostInfo::Marshalling(Parcel &parcel) const
 
     if (!parcel.WriteString(sessionName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write sessionName failed");
+        return false;
+    }
+
+    if (!parcel.WriteInt32(persistentId_)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write persistentId failed");
+        return false;
+    }
+
+    if (!parcel.WriteString(elementName_.GetModuleName())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write moduleName failed");
         return false;
     }
 

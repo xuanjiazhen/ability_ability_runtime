@@ -17010,6 +17010,58 @@ std::shared_ptr<AbilityRecord> AbilityManagerService::GetUIExtensionRootCaller(c
     return callerRecord;
 }
 
+int32_t AbilityManagerService::GetUIExtensionRootHostInfoById(int32_t abilityRecordId,
+    UIExtensionHostInfo &hostInfo)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Get ui extension host info by id: %{public}d.", abilityRecordId);
+    if (abilityRecordId <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityRecordId");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission deny");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    auto recordId = static_cast<int64_t>(abilityRecordId);
+    auto connectManager = GetUIExtensionAbilityManagerByAbilityRecordId(recordId);
+    if (connectManager == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "record not found or not a ui extension, id: %{public}d",
+            abilityRecordId);
+        return ERR_INVALID_VALUE;
+    }
+
+    auto extensionRecord = connectManager->GetExtensionByIdFromServiceMap(recordId);
+    if (extensionRecord == nullptr) {
+        extensionRecord = connectManager->GetExtensionByIdFromTerminatingMap(recordId);
+        if (extensionRecord != nullptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "record %{public}d found in terminating map", abilityRecordId);
+        }
+    }
+    if (extensionRecord == nullptr || extensionRecord->GetToken() == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "extension record not found, id: %{public}d", abilityRecordId);
+        return ERR_INVALID_VALUE;
+    }
+
+    auto hostRecord = connectManager->GetUIExtensionRootHostInfo(extensionRecord->GetToken());
+    if (hostRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "root host record not found, id: %{public}d", abilityRecordId);
+        return ERR_INVALID_VALUE;
+    }
+
+    hostInfo.elementName_ = hostRecord->GetElementName();
+    hostInfo.moduleName = hostInfo.elementName_.GetModuleName();
+    auto sessionInfo = hostRecord->GetSessionInfo();
+    if (sessionInfo != nullptr) {
+        hostInfo.sessionName = sessionInfo->sessionName;
+        hostInfo.persistentId_ = sessionInfo->persistentId;
+    }
+    return ERR_OK;
+}
+
 int32_t AbilityManagerService::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
     UIExtensionSessionInfo &uiExtensionSessionInfo, int32_t userId)
 {
