@@ -657,5 +657,43 @@ HWTEST_F(UIAbilityRecordTest, NotifyCallersOnPrelaunchTimeout_0100, TestSize.Lev
     EXPECT_CALL(*callContainer, NotifyDisconnectOnTimeout(_)).Times(1);
     abilityRecord->NotifyCallersOnPrelaunchTimeout();
 }
+/**
+ * @tc.name: TaskAttributionBookkeeping_0001
+ * @tc.desc: AddTaskAttribution ignores an exact duplicate (taskId, handle) pair.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0001, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-1", 42);
+    abilityRecord->AddTaskAttribution("task-1", 42);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(1));
+    EXPECT_EQ(attributions.front().first, "task-1");
+    EXPECT_EQ(attributions.front().second, 42);
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0002
+ * @tc.desc: Distinct (taskId, handle) pairs coexist in the bookkeeping vector.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0002, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-1", 42);
+    abilityRecord->AddTaskAttribution("task-1", 43);
+    abilityRecord->AddTaskAttribution("task-2", 42);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    EXPECT_EQ(attributions.size(), static_cast<size_t>(3));
+}
 }  // namespace AAFwk
 }  // namespace OHOS
