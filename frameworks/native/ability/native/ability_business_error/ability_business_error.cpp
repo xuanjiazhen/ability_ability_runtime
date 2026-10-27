@@ -357,6 +357,9 @@ constexpr const char* ERROR_MSG_EVICT_CONFIG_PARSE_ERROR =
 constexpr const char* ERROR_MSG_INVALID_EXTENSION_TYPE = "Internal error. Invalid extension ability type.";
 constexpr const char* ERROR_MSG_TASK_ALREADY_EXISTS = "Task already exists.";
 constexpr const char* ERROR_MSG_TASK_NOT_FOUND = "Task not found.";
+constexpr const char* ERROR_MSG_TASK_ATTR_INVALID =
+    "Task attribution invalid. The taskId carried by the A2A connect failed ownership "
+    "or alive-state verification (spoofing or replay).";
 
 static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_OK, ERROR_MSG_OK },
@@ -369,6 +372,7 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_EVICT_CONFIG_PARSE_ERROR, ERROR_MSG_EVICT_CONFIG_PARSE_ERROR },
     { AbilityErrorCode::ERROR_CODE_TASK_ALREADY_EXISTS, ERROR_MSG_TASK_ALREADY_EXISTS },
     { AbilityErrorCode::ERROR_CODE_TASK_NOT_FOUND, ERROR_MSG_TASK_NOT_FOUND },
+    { AbilityErrorCode::ERROR_CODE_TASK_ATTR_INVALID, ERROR_MSG_TASK_ATTR_INVALID },
     { AbilityErrorCode::ERROR_CODE_RESOLVE_ABILITY, ERROR_MSG_RESOLVE_ABILITY },
     { AbilityErrorCode::ERROR_CODE_INVALID_ABILITY_TYPE, ERROR_MSG_INVALID_ABILITY_TYPE },
     { AbilityErrorCode::ERROR_CODE_INVALID_ID, ERROR_MSG_INVALID_ID },
@@ -497,6 +501,7 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_EVICT_CONFIG_PARSE, AbilityErrorCode::ERROR_CODE_EVICT_CONFIG_PARSE_ERROR},
     {ERR_TASK_ALREADY_EXISTS, AbilityErrorCode::ERROR_CODE_TASK_ALREADY_EXISTS},
     {ERR_TASK_NOT_FOUND, AbilityErrorCode::ERROR_CODE_TASK_NOT_FOUND},
+    {ERR_TASK_ATTR_INVALID, AbilityErrorCode::ERROR_CODE_TASK_ATTR_INVALID},
     {RESOLVE_ABILITY_ERR, AbilityErrorCode::ERROR_CODE_RESOLVE_ABILITY},
     {ERR_WRONG_INTERFACE_CALL, AbilityErrorCode::ERROR_CODE_INVALID_ABILITY_TYPE},
     {TARGET_ABILITY_NOT_SERVICE, AbilityErrorCode::ERROR_CODE_INVALID_ABILITY_TYPE},

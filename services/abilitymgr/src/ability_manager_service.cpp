@@ -266,6 +266,9 @@ constexpr size_t INDEX_FOUR = 4;
 constexpr int32_t DEFAULT_KILL_ID = -1;
 constexpr static char WANT_PARAMS_VIEW_DATA_KEY[] = "ohos.ability.params.viewData";
 constexpr const char* WANT_PARAMS_HOST_WINDOW_ID_KEY = "ohos.extra.param.key.hostwindowid";
+// FEAT-AI-TASK-MGR-001 / 20260914692194: A2A 归因系统保留键。Want.parameters
+// 中此键的 value 是 startTask 声明的 taskId。归因逻辑只读此键，其它键忽略。
+constexpr const char* WANT_PARAMS_TASK_ID_KEY = "ohos.task.id";
 
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr const char* FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
@@ -6305,6 +6308,35 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
     if (result != ERR_OK) {
         return result;
     }
+    // FEAT-AI-TASK-MGR-001 / 20260914692194: A2A taskId attribution pre-check.
+    // Only engages for Agent extension types and only when the caller carried
+    // the system-reserved key ohos.task.id in Want.parameters. Missing key is
+    // the AC-4.3 zero-overhead baseline path.
+    std::string a2aTaskId;
+    if (AgentAbilityUtil::IsAgentExtensionType(extensionType)) {
+        a2aTaskId = checkedWant.GetStringParam(WANT_PARAMS_TASK_ID_KEY);
+        if (!a2aTaskId.empty()) {
+            // IPCSkeleton::GetCallingTokenID() here returns the app-A token,
+            // because AgentCallerIdentityScope.ApplyIfNeeded above has reset
+            // the binder-thread identity to app A's tokenId (unforgeable via
+            // Want params).
+            uint32_t callerTokenId = IPCSkeleton::GetCallingTokenID();
+            int32_t precheck = IN_PROCESS_CALL(
+                DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->PrecheckTaskForA2A(
+                    a2aTaskId, callerTokenId));
+            if (precheck != ERR_OK) {
+                // AC-4.2 fail-closed: spoofing / replay / not found / mismatch.
+                // The inner code does not disclose which one (anti-enumeration),
+                // so we log a single "spoofing" reason.
+                TAG_LOGW(AAFwkTag::SER_ROUTER,
+                    "A2A_TASK_ATTR_BLOCKED taskId=%{public}s callerUid=%{public}d "
+                    "callerTokenId=%{public}u reason=%{public}s targetBundle=%{public}s",
+                    a2aTaskId.c_str(), IPCSkeleton::GetCallingUid(), callerTokenId,
+                    "spoofing", checkedWant.GetBundleNameRef().c_str());
+                return ERR_TASK_ATTR_INVALID;
+            }
+        }
+    }
     CheckExtensionRateLimit(checkedWant);
     if (extensionType == AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         auto ret = ModularObjectUtils::CheckRateLimit();
@@ -6441,8 +6473,75 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         } else {
             EventReport::SendExtensionEvent(EventName::CONNECT_SERVICE_ERROR, HISYSEVENT_FAULT, *eventInfo);
         }
+    } else if (!a2aTaskId.empty() && AgentAbilityUtil::IsAgentExtensionType(extensionType)) {
+        // FEAT-AI-TASK-MGR-001: post-connect best-effort attribution (AC-4.1).
+        // The connect succeeded; the target Agent process is now spawned. The
+        // attribution registers the target pid into the task with
+        // AttributionTool::A2A. Failure here does NOT fail the connect result
+        // (AC-4.1: "调用结果不受纳管影响"); we only log + emit a HiSysEvent.
+        TryAttributeTargetAgentForA2A(connect, abilityWant, a2aTaskId);
     }
     return eventInfo->errCode;
+}
+
+void AbilityManagerService::TryAttributeTargetAgentForA2A(const sptr<IAbilityConnection> &connect,
+    const Want &want, const std::string &taskId)
+{
+    // FEAT-AI-TASK-MGR-001: best-effort post-connect attribution. Failure here
+    // does NOT propagate to the caller (AC-4.1: "调用结果不受纳管影响").
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (connect == nullptr || taskId.empty()) {
+        return;
+    }
+    // Capture caller identity now — still inside AgentCallerIdentityScope.
+    uint32_t callerTokenId = IPCSkeleton::GetCallingTokenID();
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    // Resolve target Agent pid via the connect record. The AgentExtension is
+    // hosted by the Agent connect manager (per-user, AGENT type). We use the
+    // connect callback's IAbilityConnection to look up the ConnectionRecord.
+    pid_t targetPid = -1;
+    auto connectManager = GetConnectManagerByUserId(
+        GetValidUserId(DEFAULT_INVAL_VALUE), AppExecFwk::ExtensionAbilityType::AGENT);
+    if (connectManager != nullptr) {
+        auto connectRecords = connectManager->GetConnectRecordListByCallback(connect);
+        if (!connectRecords.empty()) {
+            auto record = connectRecords.front();
+            if (record != nullptr) {
+                auto abilityRecord = record->GetAbilityRecord();
+                if (abilityRecord != nullptr) {
+                    targetPid = abilityRecord->GetPid();
+                }
+            }
+        }
+    }
+    if (targetPid <= 0) {
+        // Target pid not yet resolved (e.g. Agent spawn still in flight, or
+        // the record has not yet been registered in the connect map). Best-effort:
+        // log and skip attribution — the task remains without attribution for
+        // this pid. This is recorded as OQ-3 in the implementation plan.
+        TAG_LOGW(AAFwkTag::SER_ROUTER,
+            "A2A target pid not resolved, skipping attribution, taskId: %{public}s",
+            taskId.c_str());
+        return;
+    }
+    int64_t attributionId = 0;
+    int32_t ret = IN_PROCESS_CALL(
+        DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->AttributeTaskForA2A(
+            taskId, callerTokenId, targetPid, attributionId));
+    if (ret != ERR_OK) {
+        // Best-effort: log the failure but do NOT fail the connect. The task
+        // may have timed out between pre-check and attribution, the pid may
+        // not yet be live managed, or the per-task ceiling may be reached.
+        TAG_LOGW(AAFwkTag::SER_ROUTER,
+            "A2A target attribution failed (best-effort, not failing connect), "
+            "taskId: %{public}s, targetPid: %{public}d, ret: %{public}d",
+            taskId.c_str(), targetPid, ret);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER,
+        "A2A_TASK_ATTACHED taskId=%{public}s attributionId=%{public}" PRId64
+        " targetPid=%{public}d callerUid=%{public}d",
+        taskId.c_str(), attributionId, targetPid, callerUid);
 }
 
 int AbilityManagerService::ConnectUIExtensionAbility(const Want &want, const sptr<IAbilityConnection> &connect,

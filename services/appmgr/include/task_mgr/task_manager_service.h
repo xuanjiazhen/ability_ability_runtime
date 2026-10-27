@@ -113,6 +113,53 @@ public:
     int32_t UnregisterManagedProcess(const std::string &taskId, AttributionId attributionId);
 
     /**
+     * @brief Pre-checks an A2A connect attribution request without registering the
+     *        managed process. Verifies that the taskId exists (alive-state, covers
+     *        EX-2 replay) and that the caller's tokenId matches the task creator's
+     *        tokenId (ownership, covers EX-1 spoofing). The check is fail-closed:
+     *        any failure returns ERR_TASK_ATTR_INVALID without disclosing whether the
+     *        task exists or who its creator is (anti-enumeration).
+     *
+     *        This method is called by the Agent connect convergence point
+     *        (AbilityManagerService::ConnectAbilityCommon) before proceeding with the
+     *        connect, so a spoofing/replay request is rejected with 16000303 + a
+     *        security HiSysEvent (A2A_TASK_ATTR_BLOCKED). The tokenId is captured by
+     *        the caller from the IPC framework inside the AgentCallerIdentityScope,
+     *        so it cannot be forged by Want parameters.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId Indicates the caller token id captured from the IPC
+     *        framework at the convergence point (after AgentCallerIdentityScope).
+     * @return Returns ERR_OK if the task is alive and the caller is its creator;
+     *         ERR_TASK_ATTR_INVALID on any failure (not found / mismatch).
+     */
+    int32_t PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId);
+
+    /**
+     * @brief Attributes the target Agent process into the task after the A2A connect
+     *        succeeds. Performs the same ownership + alive-state verification as
+     *        PrecheckTaskForA2A, and on success registers an AttributionRecord with
+     *        AttributionTool::A2A via RegisterManagedProcessInner. The pid must be a
+     *        live appmgr-managed process (validated by the wired pid validator).
+     *
+     *        This is the post-connect best-effort path: a failure here is logged but
+     *        does NOT fail the connect result (AC-4.1: "调用结果不受纳管影响").
+     *        The pre-connect fail-closed gate is handled by PrecheckTaskForA2A.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId Indicates the caller token id captured from the IPC
+     *        framework at the convergence point.
+     * @param targetPid Indicates the target Agent process pid (resolved post-connect).
+     * @param outAttributionId Indicates the server-assigned attribution id handed
+     *        back to the caller as the handle for later unregister / cleanup.
+     * @return Returns ERR_OK on success; ERR_TASK_ATTR_INVALID on ownership/alive
+     *         failure; ERR_INVALID_PID if the target pid is not a live managed
+     *         process; ERR_TASK_NOT_FOUND if the task disappeared between pre-check
+     *         and registration (race with timeout/finish); ERR_INVALID_OPERATION if
+     *         the per-task attribution ceiling is reached.
+     */
+    int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, AttributionId &outAttributionId);
+
+    /**
      * @brief Wires the pid validator used by RegisterManagedProcess to reject pids
      *        that are not live appmgr-managed processes; called when the app manager
      *        service assembles. An unwired validator skips the check.

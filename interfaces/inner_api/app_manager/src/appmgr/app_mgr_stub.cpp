@@ -500,6 +500,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerNinth(uint32_t code, MessageParcel &data
             return HandleRegisterFocusedApplicationObserver(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_FOCUSED_APPLICATION_OBSERVER):
             return HandleUnregisterFocusedApplicationObserver(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::PRECHECK_TASK_FOR_A2A):
+            return HandlePrecheckTaskForA2A(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::ATTRIBUTE_TASK_FOR_A2A):
+            return HandleAttributeTaskForA2A(data, reply);
     }
     return INVALID_FD;
 }
@@ -2786,6 +2790,38 @@ int32_t AppMgrStub::HandleFinishTask(MessageParcel &data, MessageParcel &reply)
     auto result = FinishTask(taskId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write result fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandlePrecheckTaskForA2A(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::string taskId = Str16ToStr8(data.ReadString16());
+    uint32_t callerTokenId = static_cast<uint32_t>(data.ReadUint32());
+    auto result = PrecheckTaskForA2A(taskId, callerTokenId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleAttributeTaskForA2A(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::string taskId = Str16ToStr8(data.ReadString16());
+    uint32_t callerTokenId = static_cast<uint32_t>(data.ReadUint32());
+    pid_t targetPid = data.ReadInt32();
+    int64_t attributionId = 0;
+    auto result = AttributeTaskForA2A(taskId, callerTokenId, targetPid, attributionId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result fail");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (!reply.WriteInt64(attributionId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write attributionId fail");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
     return NO_ERROR;

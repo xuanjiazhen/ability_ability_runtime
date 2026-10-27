@@ -434,6 +434,32 @@ public:
     int32_t FinishTask(const std::string &taskId) override;
 
     /**
+     * @brief Pre-checks an A2A connect attribution request without registering
+     *        the managed process. Called by AMS (foundation) at the Agent connect
+     *        convergence point. The callerTokenId is captured by AMS from the
+     *        IPC framework inside AgentCallerIdentityScope (unforgeable via Want
+     *        params) and is passed explicitly through the IPC parcel.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId Indicates the app's token id captured at the convergence.
+     * @return Returns ERR_OK if the task is alive and the caller is its creator;
+     *         ERR_TASK_ATTR_INVALID on any failure (not found / mismatch).
+     */
+    int32_t PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId) override;
+
+    /**
+     * @brief Attributes the target Agent process into the task after a successful
+     *        A2A connect. Best-effort: a failure does NOT fail the connect result.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId Indicates the app's token id captured at the convergence.
+     * @param targetPid Indicates the target Agent process pid (resolved post-connect).
+     * @param attributionId Indicates the server-assigned attribution id handed back.
+     * @return Returns ERR_OK on success; others on failure (see
+     *         TaskManagerService::AttributeTaskForA2A).
+     */
+    int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, int64_t &attributionId) override;
+
+    /**
      * @brief called when the abilityStage's onAcceptWant lifecycle completed.
      * @param recordId record id of the ability.
      * @param want want has been accepted.

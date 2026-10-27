@@ -383,6 +383,12 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
     }
     connectWant.SetParam(AGENT_CARD_TYPE_KEY, static_cast<int32_t>(card.type));
 
+    // FEAT-AI-TASK-MGR-001 / 20260914692194: A2A taskId 归因走系统保留键
+    // ohos.task.id，由下游 AMS ConnectAbilityCommon 显式读取该保留键做归属
+    // 校验。Want.parameters 中其他任何键（包括形似任务标识的 peer 报文键）
+    // 均不会被归因逻辑消费——"取用时指定保留键"即等价于通道隔离，故此处
+    // 不做剥离（spec BR-4/EX-4 简化决策：以保留键独占读取替代报文剥离）。
+
     // Step 3: low-code agents use dedicated shared-host session management.
     if (card.type == AgentCardType::LOW_CODE) {
         int32_t hostUid = 0;

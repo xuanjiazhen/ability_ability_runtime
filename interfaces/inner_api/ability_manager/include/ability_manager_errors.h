@@ -1216,6 +1216,13 @@ enum {
     ERR_ATTRIBUTION_NOT_FOUND = 2099503,
 
     /**
+     * Result(2099504) for task manager: the task attribution is invalid (A2A connect
+     * carries a taskId that fails the ownership or alive-state check — spoofing or
+     * replay). Surfaced to the caller as ERROR_CODE_TASK_ATTR_INVALID (16000303).
+     */
+    ERR_TASK_ATTR_INVALID = 2099504,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,
