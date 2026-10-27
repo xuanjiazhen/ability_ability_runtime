@@ -207,6 +207,7 @@ HWTEST_F(ExecCmdParamTest, ExecCmdParam_AsExecOptions_0100, TestSize.Level1)
     options.challenge = TEST_CHALLENGE;
     options.toolCallId = TEST_TOOL_CALL_ID;
     options.dmSessionId = TEST_DM_SESSION_ID;
+    options.taskId = "task_view-777";
 
     ExecOptions view = options.AsExecOptions();
     EXPECT_TRUE(view.background);
@@ -214,6 +215,7 @@ HWTEST_F(ExecCmdParamTest, ExecCmdParam_AsExecOptions_0100, TestSize.Level1)
     EXPECT_EQ(view.timeout, TEST_TIMEOUT);
     EXPECT_EQ(view.toolCallId, TEST_TOOL_CALL_ID);
     EXPECT_EQ(view.dmSessionId, TEST_DM_SESSION_ID);
+    EXPECT_EQ(view.taskId, "task_view-777");
 
     // Default-constructed options map to an all-default view.
     ExecCmdOptions defaults;
@@ -223,6 +225,32 @@ HWTEST_F(ExecCmdParamTest, ExecCmdParam_AsExecOptions_0100, TestSize.Level1)
     EXPECT_EQ(defaultsView.timeout, 0);
     EXPECT_TRUE(defaultsView.toolCallId.empty());
     EXPECT_TRUE(defaultsView.dmSessionId.empty());
+    EXPECT_TRUE(defaultsView.taskId.empty());
+}
+
+/**
+ * @tc.name: ExecCmdParam_TaskId_NotSerialized_0100
+ * @tc.desc: ExecCmdOptions.taskId is never serialized (ADR-8): a round trip
+ *           yields an empty taskId with the legacy field order intact
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExecCmdParamTest, ExecCmdParam_TaskId_NotSerialized_0100, TestSize.Level1)
+{
+    ExecCmdParam param;
+    param.cmd = "echo task";
+    param.execCmdOptions.toolCallId = TEST_TOOL_CALL_ID;
+    param.execCmdOptions.dmSessionId = TEST_DM_SESSION_ID;
+    param.execCmdOptions.taskId = "task_should_not_serialize";
+
+    Parcel parcel;
+    ASSERT_TRUE(param.Marshalling(parcel));
+    parcel.RewindRead(0);
+    std::unique_ptr<ExecCmdParam> result(ExecCmdParam::Unmarshalling(parcel));
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->cmd, "echo task");
+    EXPECT_EQ(result->execCmdOptions.toolCallId, TEST_TOOL_CALL_ID);
+    EXPECT_EQ(result->execCmdOptions.dmSessionId, TEST_DM_SESSION_ID);
+    EXPECT_TRUE(result->execCmdOptions.taskId.empty());
 }
 
 /**

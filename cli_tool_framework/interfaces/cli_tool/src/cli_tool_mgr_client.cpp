@@ -63,7 +63,7 @@ ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param, const ExecToolRep
                 cb(result.code, sessionInfo);
             }
         });
-    ret = proxy->ExecTool(param, eventId, schedulerStub_);
+    ret = proxy->ExecTool(param, eventId, schedulerStub_, param.options.taskId);
     if (ret != ERR_OK) {
         CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
     } else {
@@ -110,7 +110,7 @@ ErrCode CliToolMGRClient::ExecCmd(const ExecCmdParam &param,
                 sessionEventCallback->OnToolEvent(sessionId, subscriptionId, event);
             }
         });
-    ret = proxy->ExecCmd(param, eventId, schedulerStub_, subscriptionId);
+    ret = proxy->ExecCmd(param, eventId, schedulerStub_, subscriptionId, param.execCmdOptions.taskId);
     if (ret != ERR_OK) {
         CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
         CliSessionSubscriptionManager::GetInstance().RemoveSubscription(subscriptionId);

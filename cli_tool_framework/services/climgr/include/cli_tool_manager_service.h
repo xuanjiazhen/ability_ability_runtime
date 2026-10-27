@@ -86,13 +86,15 @@ public:
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
      * @param objectCallback The callback RemoteObject.
+     * @param taskId Attribution task id (trailing IPC parameter; empty = not provided).
      * @return Returns ERR_OK on success, error code otherwise.
      */
     int32_t ExecTool(const ExecToolParam &param, const std::string &eventId,
-        const sptr<ICliToolManagerScheduler> &scheduler) override;
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &taskId = "") override;
 
     int32_t ExecCmd(const ExecCmdParam &param, const std::string &eventId,
-        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId) override;
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId,
+        const std::string &taskId = "") override;
 
     int32_t ClearSession(const std::string &sessionId) override;
     int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
@@ -273,6 +275,42 @@ private:
     std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
     std::vector<std::shared_ptr<SessionRecord>> GetSessionRecords();
     void RemoveSessionRecord(const std::string &sessionId);
+
+    /**
+     * @brief STATE-1 attach hook: attribute the forked process into the caller's
+     *        task after a session is fully established (one-hop anchor =
+     *        record->processId, the fork return value, ADR-3 v1.5). Reads the
+     *        attribution key and the forensic uid from the session record
+     *        (P2-2). Non-blocking on any failure: a rejected verdict clears
+     *        record->taskId and leaves attributionId at 0 (INV-1/ADR-2).
+     */
+    void AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record);
+
+    /**
+     * @brief STATE-1 attach hook for the in-app skill path (ADR-5 / v1.4 P1-1):
+     *        the skill runs inside the target application's main process, so
+     *        the anchor pid is resolved server-side by bundle name through the
+     *        attribution service (IPC 151) instead of a fork return value. On
+     *        success attributionId becomes the server-assigned handle; a locate
+     *        rejection (target not running / cold-start window / task gone) is
+     *        non-blocking with no side effects — attributionId stays 0 and the
+     *        key residue is cleared (INV-1), the execution itself stands
+     *        (ADR-2/R-10).
+     */
+    void AttachSkillTaskAttribution(const std::shared_ptr<SessionRecord> &record, const std::string &bundleName);
+
+    /**
+     * @brief STATE-1 detach post: schedule the unregister IPC on the threaded
+     *        execution environment (ffrt worker, the same facility
+     *        PostExecToolTask/DelayUnloadTask rely on). Callers read
+     *        taskId/attributionId/callerUid under the session-table lock and
+     *        invoke this OUTSIDE the lock; the synchronous IPC must never run
+     *        inline on the reaper/timeout thread (P2-3). attributionId <= 0 or
+     *        an empty taskId is a silent no-op (never attributed / already
+     *        consumed, INV-3).
+     */
+    void PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId, int32_t callerUid);
+
     bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
 
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecOptions &options);
@@ -358,6 +396,11 @@ private:
     void InvokeBeforeCallTool(ExecToolParam &param);
     void InvokeAfterCallTool(CliSessionInfo &session, const SessionRecord &record);
     void InvokeBeforeCallCmd(ExecCmdParam &param);
+    // Strips reserved attribution keys from the model-rendered args tree,
+    // recursing into nested WantParams and WantParams arrays (ADR-6/R-6).
+    // The key set is defined by RESERVED_ATTRIBUTION_KEYS (single source of
+    // truth); other parameters are passed through unchanged.
+    void StripAttributionKeys(AAFwk::WantParams &args, int32_t depth = 0);
 
     bool initialized_ = false;
     bool isDeveloperMode_ = false;

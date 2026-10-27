@@ -61,10 +61,13 @@ public:
         const std::string &functionNamespace) = 0;
     virtual int32_t ResetNamespaceFunctionsAsync(int32_t userId, const std::string &functionNamespace,
         const FunctionsRawData &functions) = 0;
+    // Keep in sync with the regenerated interface from ICliToolManager.idl:
+    // ExecTool/ExecCmd carry the attribution taskId as the trailing parameter.
     virtual int32_t ExecTool(const ExecToolParam &param, const std::string &eventId,
-        const sptr<ICliToolManagerScheduler> &scheduler) = 0;
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &taskId) = 0;
     virtual int32_t ExecCmd(const ExecCmdParam &param, const std::string &eventId,
-        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId) = 0;
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId,
+        const std::string &taskId) = 0;
     virtual int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
         const sptr<ICliToolManagerScheduler> &scheduler) = 0;
     virtual int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) = 0;

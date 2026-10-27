@@ -18,9 +18,11 @@
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
+#include <cinttypes>
 #include <csignal>
 #include <cstdio>
 #include <cstring>
+#include <set>
 #include <fcntl.h>
 #include <poll.h>
 #include <sys/types.h>
@@ -32,6 +34,7 @@
 #include "ability_manager_errors.h"
 #include "accesstoken_kit.h"
 #include "app_mgr_client.h"
+#include "base_interfaces.h"
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_event_report.h"
@@ -51,7 +54,10 @@
 #include "permission_util.h"
 #include "process_manager.h"
 #include "session_record.h"
+#include "task_attribution_manager.h"
 #include "tool_util.h"
+#include "want_params.h"
+#include "want_params_wrapper.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -75,6 +81,13 @@ void SanitizeTraceIds(OptionsT &options)
         options.dmSessionId.clear();
     }
 }
+
+// Reserved attribution keys stripped from the model-rendered args tree (ADR-6/R-6).
+// Single source of truth (C1): taskId is the attribution key carried only via
+// the options object / trailing IPC parameter (INV-2), so a key of the same
+// name injected by the model into args is stripped. Extend this set explicitly
+// when a new reserved key is ever required.
+const std::set<std::string> RESERVED_ATTRIBUTION_KEYS = { "taskId" };
 
 constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
 constexpr const char* PERMISSION_EXEC_PUBLIC_CLI_TOOL = "ohos.permission.EXEC_PUBLIC_CLI_TOOL";
@@ -386,11 +399,27 @@ void CliToolManagerService::OnStop()
 
     // Collect active PIDs before clearing sessions.
     std::vector<pid_t> activePids;
+    // STATE-1 teardown snapshots: the table is cleared below WITHOUT going
+    // through RemoveSessionRecord, so collect the attributions here. The posted
+    // detaches are best-effort on this shutdown path — whatever does not get
+    // out before the process exits is covered by the appmgr-side process-death
+    // backstop / task-window close (design ADR-7 / resource ownership matrix).
+    std::vector<std::string> detachTaskIds;
+    std::vector<int64_t> detachAttributionIds;
+    std::vector<int32_t> detachUids;
     {
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
         for (const auto &[sessionId, record] : sessionRecords_) {
-            if (record != nullptr && record->processId > 0 && !record->HasProcessExited()) {
+            if (record == nullptr) {
+                continue;
+            }
+            if (record->processId > 0 && !record->HasProcessExited()) {
                 activePids.emplace_back(record->processId);
+            }
+            if (!record->taskId.empty() && record->attributionId > 0) {
+                detachTaskIds.emplace_back(record->taskId);
+                detachAttributionIds.emplace_back(record->attributionId);
+                detachUids.emplace_back(record->callerUid);
             }
         }
         sessionRecords_.clear();
@@ -398,6 +427,10 @@ void CliToolManagerService::OnStop()
 
     // Clear event dispatcher
     EventDispatcher::GetInstance().ClearAll();
+
+    for (size_t i = 0; i < detachTaskIds.size(); ++i) {
+        PostDetachTaskAttribution(detachTaskIds[i], detachAttributionIds[i], detachUids[i]);
+    }
 
     // Stop the reaper subsystem: disarms SIGCHLD (SIG_IGN auto-reaps future exits; status discarded is fine —
     // sessions are already cleared so no FinalizeBackgroundSession is needed), stops the loop, joins it, and
@@ -492,8 +525,134 @@ std::vector<std::shared_ptr<SessionRecord>> CliToolManagerService::GetSessionRec
 void CliToolManagerService::RemoveSessionRecord(const std::string &sessionId)
 {
     EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
-    std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
-    sessionRecords_.erase(sessionId);
+    // STATE-1 teardown: snapshot the attribution inside the session-table lock,
+    // then post the detach outside it (P2-3: the caller may be the reaper thread
+    // and must not run the unregister IPC inline). attributionId = 0 (never
+    // attributed or already consumed by WaitPid) is a silent no-op (INV-3).
+    std::string taskId;
+    int64_t attributionId = 0;
+    int32_t callerUid = -1;
+    {
+        std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
+        auto it = sessionRecords_.find(sessionId);
+        if (it != sessionRecords_.end() && it->second != nullptr) {
+            taskId = it->second->taskId;
+            attributionId = it->second->attributionId;
+            callerUid = it->second->callerUid;
+        }
+        sessionRecords_.erase(sessionId);
+    }
+    PostDetachTaskAttribution(taskId, attributionId, callerUid);
+}
+
+void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record)
+{
+    if (record == nullptr) {
+        return;
+    }
+    // Not carried (or rejected at the entry gate): zero attribution side effects (R-7/INV-1).
+    if (record->taskId.empty()) {
+        return;
+    }
+    // One-hop anchor = the pid forked for THIS session (ADR-3 v1.5). Capture it
+    // ONCE here: the reaper (WaitPid) may invalidate record->processId at any
+    // moment (waitpid reuse protection), so re-reading the member after the
+    // attach IPC could observe -1 and produce an orphan server registration
+    // with no local attribution handle to detach it with.
+    pid_t anchor = record->processId;
+    if (anchor <= 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL,
+            "AttachTaskAttribution skipped: invalid anchor pid, sessionId=%{public}s, taskId=%{public}s",
+            record->sessionId.c_str(), record->taskId.c_str());
+        return;
+    }
+    // callerUid is read from the session record, never threaded through the
+    // setup signatures (P2-2); the server validates ownership with it.
+    int64_t attributionId = 0;
+    int32_t ret = TaskAttributionManager::GetInstance().AttachProcess(
+        record->taskId, anchor, record->callerUid, attributionId);
+    if (ret != ERR_OK) {
+        // Not attributed: keep attributionId at 0 (no detach will fire) and drop
+        // the mapping residue (INV-1). The execution itself stands (ADR-2).
+        TAG_LOGW(AAFwkTag::CLI_TOOL,
+            "AttachTaskAttribution not attributed, ret=%{public}d, sessionId=%{public}s, taskId=%{public}s",
+            ret, record->sessionId.c_str(), record->taskId.c_str());
+        record->taskId.clear();
+        return;
+    }
+    // The server-assigned handle is the sole detach key; the anchor pid stays in
+    // the log only. The captured anchor keeps the log consistent with what the
+    // server registered even if the reaper invalidated processId mid-attach.
+    record->attributionId = attributionId;
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "AttachTaskAttribution attributed, sessionId=%{public}s, pid=%{public}d, "
+        "attributionId=%{public}" PRId64 ", taskId=%{public}s",
+        record->sessionId.c_str(), anchor, attributionId, record->taskId.c_str());
+}
+
+void CliToolManagerService::AttachSkillTaskAttribution(const std::shared_ptr<SessionRecord> &record,
+    const std::string &bundleName)
+{
+    if (record == nullptr) {
+        return;
+    }
+    // Not carried (or rejected at the entry gate): zero attribution side effects (R-7/INV-1).
+    if (record->taskId.empty()) {
+        return;
+    }
+    // The in-app skill has no forked child of its own: the anchor pid is the
+    // target bundle's main process, resolved by the attribution service
+    // (IPC 151, v1.4 P1-1). callerUid is read from the session record, never
+    // threaded through the setup signatures (P2-2). resolvedPid and the
+    // attribution handle are local out-parameters, so they are inherently
+    // race-free (no member re-read after the IPC — unlike the forked-process
+    // path, which captures its anchor into a local for the same reason).
+    pid_t resolvedPid = -1;
+    int64_t attributionId = 0;
+    int32_t ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess(
+        record->taskId, bundleName, resolvedPid, attributionId, record->callerUid);
+    if (ret != ERR_OK || resolvedPid <= 0) {
+        // Not attributed (target not running / cold-start window / task gone /
+        // owned by another uid): no attribution object and no side effect
+        // (R-10/R-11) — attributionId stays 0 (no detach will fire) and the
+        // key residue is dropped (INV-1). The skill execution itself is never
+        // affected (ADR-2).
+        TAG_LOGW(AAFwkTag::CLI_TOOL,
+            "AttachSkillTaskAttribution not attributed, ret=%{public}d, sessionId=%{public}s, taskId=%{public}s",
+            ret, record->sessionId.c_str(), record->taskId.c_str());
+        record->taskId.clear();
+        return;
+    }
+    record->attributionId = attributionId;
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "AttachSkillTaskAttribution attributed, sessionId=%{public}s, pid=%{public}d, "
+        "attributionId=%{public}" PRId64 ", taskId=%{public}s",
+        record->sessionId.c_str(), resolvedPid, attributionId, record->taskId.c_str());
+}
+
+void CliToolManagerService::PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId,
+    int32_t callerUid)
+{
+    // Never attributed or already consumed: no unregister call (INV-3; an attach
+    // failure session keeps attributionId = 0 so it never produces one).
+    if (taskId.empty() || attributionId <= 0) {
+        return;
+    }
+    // P2-3 hard constraint: the synchronous unregister IPC must not run inline
+    // on the reaper/timeout/observer thread (blocking the reaper would stall
+    // child reaping). Hand it to the threaded execution environment (ffrt
+    // worker) — the same facility PostExecToolTask and DelayUnloadTask use.
+    ffrt::submit([taskId, attributionId, callerUid]() {
+        int32_t ret = TaskAttributionManager::GetInstance().DetachProcess(taskId, attributionId, callerUid);
+        if (ret != ERR_OK) {
+            // Idempotent server semantics absorb duplicate/racing detaches
+            // (e.g. process death followed by session-table cleanup); log only.
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "PostDetachTaskAttribution detach ret=%{public}d, "
+                "attributionId=%{public}" PRId64 ", taskId=%{public}s",
+                ret, attributionId, taskId.c_str());
+        }
+    });
 }
 
 bool CliToolManagerService::IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const
@@ -1090,6 +1249,13 @@ int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, 
         return ERR_NO_INIT;
     }
 
+    // STATE-1 attach hook (one of the three process-session setup points,
+    // ADR-3 v1.5): the session is fully established, attribute the forked
+    // process into the caller's task. Attached here — after every
+    // rollback-able failure path — so a failed setup never leaves an
+    // unbalanced registration. Non-blocking on any verdict (ADR-2).
+    AttachTaskAttribution(record);
+
     if (!bundleName.empty()) {
         RegisterAppStateObserver(bundleName, record->callerPid);
     }
@@ -1398,8 +1564,68 @@ int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &para
     return ret;
 }
 
+// Strips reserved attribution keys (RESERVED_ATTRIBUTION_KEYS) from the args tree.
+// The walk covers the current level, nested WantParams values (unboxed, stripped
+// and re-boxed — the wrapper stores the value by copy) and WantParams arrays.
+// The depth bound only guards against pathological IPC-crafted trees; regular
+// NAPI input is flat (nested JS args are flattened to arg_NNN keys at NAPI).
+void CliToolManagerService::StripAttributionKeys(AAFwk::WantParams &args, int32_t depth)
+{
+    constexpr int32_t MAX_STRIP_DEPTH = 16;
+    if (depth > MAX_STRIP_DEPTH) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "args attribution strip depth limit reached: %{public}d", depth);
+        return;
+    }
+    for (const auto &reserved : RESERVED_ATTRIBUTION_KEYS) {
+        if (args.HasParam(reserved)) {
+            args.Remove(reserved);
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "reserved attribution key stripped from args: key=%{public}s, depth=%{public}d",
+                reserved.c_str(), depth);
+        }
+    }
+    for (const auto &entry : args.GetParams()) {
+        if (entry.second == nullptr) {
+            continue;
+        }
+        AAFwk::IInterface *iface = entry.second.GetRefPtr();
+        AAFwk::IWantParams *nested = AAFwk::IWantParams::Query(iface);
+        if (nested != nullptr) {
+            AAFwk::WantParams nestedCopy;
+            if (nested->GetValue(nestedCopy) == ERR_OK) {
+                StripAttributionKeys(nestedCopy, depth + 1);
+                args.SetParam(entry.first, AAFwk::WantParamWrapper::Box(std::move(nestedCopy)).GetRefPtr());
+            }
+            continue;
+        }
+        AAFwk::IArray *array = AAFwk::IArray::Query(iface);
+        if (array == nullptr) {
+            continue;
+        }
+        long length = 0;
+        if (array->GetLength(length) != ERR_OK) {
+            continue;
+        }
+        for (long i = 0; i < length; ++i) {
+            sptr<AAFwk::IInterface> element;
+            if (array->Get(i, element) != ERR_OK || element == nullptr) {
+                continue;
+            }
+            AAFwk::IWantParams *elementParams = AAFwk::IWantParams::Query(element.GetRefPtr());
+            if (elementParams == nullptr) {
+                continue;
+            }
+            AAFwk::WantParams elementCopy;
+            if (elementParams->GetValue(elementCopy) == ERR_OK) {
+                StripAttributionKeys(elementCopy, depth + 1);
+                array->Set(i, AAFwk::WantParamWrapper::Box(std::move(elementCopy)).GetRefPtr());
+            }
+        }
+    }
+}
+
 int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::string &eventId,
-    const sptr<ICliToolManagerScheduler> &scheduler)
+    const sptr<ICliToolManagerScheduler> &scheduler, const std::string &taskId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
@@ -1434,6 +1660,22 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
             "ExecTool trace ids: toolCallId=%{public}s, dmSessionId=%{public}s",
             actualParam.options.toolCallId.c_str(), actualParam.options.dmSessionId.c_str());
     }
+    // taskId (attribution key) rides the trailing IPC parameter and is backfilled
+    // into the working copy AFTER the before-hook round-trip: the [inout] hook
+    // message does not carry taskId (parcelables are unchanged), and
+    // InvokeHookAsync overwrites the param with the round-tripped copy
+    // (param = *paramCopy), so an earlier backfill would be silently wiped.
+    // An invalid format means "not provided": no attribution, no rejection.
+    if (!IsValidTraceId(taskId)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ExecTool taskId invalid, treated as not provided, length: %{public}zu",
+            taskId.length());
+        actualParam.options.taskId.clear();
+    } else {
+        actualParam.options.taskId = taskId;
+    }
+    // Channel isolation (ADR-6/R-6): reserved attribution keys injected into the
+    // model-rendered args tree are stripped recursively; other keys are untouched.
+    StripAttributionKeys(actualParam.args);
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
@@ -1473,7 +1715,8 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
 }
 
 int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::string &eventId,
-    const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId)
+    const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId,
+    const std::string &taskId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{private}s", param.cmd.c_str());
@@ -1518,6 +1761,18 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     // Defense in depth (see ExecTool): drop hook-supplied identifiers that fail
     // validation so unvalidated data never reaches logs or the child env.
     SanitizeTraceIds(actualParam.execCmdOptions);
+    // taskId backfill with the same discipline as ExecTool: after the before-hook
+    // round-trip (taskId is not in the hook message; an earlier backfill would be
+    // wiped by the param = *paramCopy write-back) and before all consumers
+    // (ValidateAndPrepareCmd / shell path / ExecCmdToolMode). Invalid format
+    // means "not provided": no attribution, no rejection.
+    if (!IsValidTraceId(taskId)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ExecCmd taskId invalid, treated as not provided, length: %{public}zu",
+            taskId.length());
+        actualParam.execCmdOptions.taskId.clear();
+    } else {
+        actualParam.execCmdOptions.taskId = taskId;
+    }
 
     // Tool command mode
     if (!actualParam.execCmdOptions.isShellCommand) {
@@ -1548,6 +1803,11 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     record->sessionType = SessionType::CLI_CMD;
     record->toolCallId = actualParam.execCmdOptions.toolCallId;
     record->dmSessionId = actualParam.execCmdOptions.dmSessionId;
+    // STATE-1: this path builds the SessionRecord by hand (not via
+    // CreateSessionRecord), so the attribution key must be written explicitly
+    // (v1.8 review note 3) — otherwise the attach hook below would read an
+    // empty taskId and the attribution would be silently lost.
+    record->taskId = actualParam.execCmdOptions.taskId;
     record->timeoutMs = actualParam.execCmdOptions.timeout * COEFFICIENT;
     record->SetState(SessionState::RUNNING);
     record->SetBackground(actualParam.execCmdOptions.background);
@@ -1575,6 +1835,9 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
         RemoveSessionRecord(record->sessionId);
         return ERR_NO_INIT;
     }
+    // STATE-1 attach hook (shell-command setup point, ADR-3 v1.5): after every
+    // rollback-able failure path; non-blocking on any verdict (ADR-2).
+    AttachTaskAttribution(record);
     if (!bundleName.empty()) {
         RegisterAppStateObserver(bundleName, record->callerPid);
     }
@@ -1680,6 +1943,10 @@ int32_t CliToolManagerService::SetupCmdSession(const ExecToolParam &toolParam, c
         return ERR_NO_INIT;
     }
 
+    // STATE-1 attach hook (tool-command setup point, ADR-3 v1.5): after every
+    // rollback-able failure path; non-blocking on any verdict (ADR-2).
+    AttachTaskAttribution(record);
+
     if (!context.callerBundleName.empty()) {
         RegisterAppStateObserver(context.callerBundleName, record->callerPid);
     }
@@ -1710,6 +1977,12 @@ void CliToolManagerService::PostExecToolTask(int64_t time, const std::string &se
 void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
 {
     std::shared_ptr<SessionRecord> record = nullptr;
+    // STATE-1 teardown snapshot: read (and consume) the attribution inside the
+    // lock so exactly one detach fires per attribution even when the later
+    // finalize/timeout paths run RemoveSessionRecord on the same record.
+    std::string detachTaskId;
+    int64_t detachAttributionId = 0;
+    int32_t detachCallerUid = -1;
     {
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
         for (auto iter = sessionRecords_.begin(); iter != sessionRecords_.end();) {
@@ -1725,6 +1998,13 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
             if (pid == iter->second->processId) {
                 record = iter->second;
                 iter->second->processId = -1; // invalidate: reaped pid may be reused by kernel
+                // The attributed process died (INV-3): consume the attribution
+                // now; the unregister key is attributionId (NOT processId, which
+                // was just invalidated).
+                detachTaskId = iter->second->taskId;
+                detachAttributionId = iter->second->attributionId;
+                detachCallerUid = iter->second->callerUid;
+                iter->second->attributionId = 0;
                 break;
             }
             ++iter;
@@ -1732,6 +2012,8 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
     }
     AccessToken::AccessTokenKit::DeleteToolTokenByPid(pid);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "WaitPid delete tool pid:%{public}d", pid);
+    // P2-3: post (never inline) — this runs on the dedicated reaper thread.
+    PostDetachTaskAttribution(detachTaskId, detachAttributionId, detachCallerUid);
 
     if (record) {
         TAG_LOGI(AAFwkTag::CLI_TOOL, "WaitPid: found record for pid=%{public}d, toolName=%{public}s",
@@ -1852,6 +2134,12 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
     }
     std::vector<pid_t> activePids;
     std::vector<std::string> removedSessionIds;
+    // STATE-1 teardown snapshots for this caller-death sweep (the sessions are
+    // erased below WITHOUT going through RemoveSessionRecord, so the detach is
+    // collected here; posted outside the lock, P2-3).
+    std::vector<std::string> detachTaskIds;
+    std::vector<int64_t> detachAttributionIds;
+    std::vector<int32_t> detachUids;
     // Iterate through sessionRecords_ to find matching SessionRecord by callerPid
     {
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
@@ -1876,6 +2164,11 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
             if (sessionRecord->processId > 0 && !sessionRecord->HasProcessExited()) {
                 activePids.emplace_back(sessionRecord->processId);
             }
+            if (!sessionRecord->taskId.empty() && sessionRecord->attributionId > 0) {
+                detachTaskIds.emplace_back(sessionRecord->taskId);
+                detachAttributionIds.emplace_back(sessionRecord->attributionId);
+                detachUids.emplace_back(sessionRecord->callerUid);
+            }
             removedSessionIds.emplace_back(iter->first);
             iter = sessionRecords_.erase(iter);
         }
@@ -1887,6 +2180,10 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
 
     for (pid_t pid : activePids) {
         ProcessManager::GetInstance().Killpg(pid);
+    }
+
+    for (size_t i = 0; i < detachTaskIds.size(); ++i) {
+        PostDetachTaskAttribution(detachTaskIds[i], detachAttributionIds[i], detachUids[i]);
     }
 }
 
@@ -1952,6 +2249,12 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
     record->toolName = param.toolName;
     record->toolCallId = param.options.toolCallId;
     record->dmSessionId = param.options.dmSessionId;
+    // STATE-1: carry the attribution key into the session record. Written here
+    // for both CreateSessionRecord-based setup paths (SetupAndStartSession /
+    // SetupCmdSession); the ExecCmd shell path builds the record by hand and
+    // writes it explicitly (v1.8 review note 3). The entry gate has already
+    // normalized an invalid format to empty (= not carried).
+    record->taskId = param.options.taskId;
     record->timeoutMs = param.options.timeout * COEFFICIENT;
     record->SetState(SessionState::RUNNING);
     record->SetBackground(param.options.background);
@@ -2274,6 +2577,16 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
         RemoveSessionRecord(record->sessionId);
         return ret;
     }
+
+    // STATE-1 attach hook (in-app skill setup point, ADR-5 / v1.4 P1-1): the
+    // skill executes inside the target application's main process, so the
+    // anchor pid is resolved server-side by bundle name (IPC 151) rather than
+    // taken from a fork return value. Attached here — after the dispatch
+    // succeeded and before the background reply — so a failed dispatch rolls
+    // the record back above with zero attribution side effects. A locate
+    // rejection (cold-start window, target not running) is non-blocking: the
+    // execution itself stands (ADR-2/R-10).
+    AttachSkillTaskAttribution(record, bundleName);
 
     if (param.options.background) {
         HandleBackgroundSessionReply(record, eventId);
