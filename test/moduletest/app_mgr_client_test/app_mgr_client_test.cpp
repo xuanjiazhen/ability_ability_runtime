@@ -275,8 +275,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterManagedProcess_0100, TestSize.Le
     int64_t attributionId = 1;
     int32_t ret = appMgrClient->RegisterManagedProcess("client_register_managed_0100", 4321, 2, 3099,
         attributionId);
-    // The test process is not climgr (aimgr uid 3092), so the wrapper rejects the call;
-    // the full chain (client -> proxy -> stub -> wrapper gate) is exercised.
+    // This process is not climgr (uid 3092): the wrapper gate rejects the full chain.
     EXPECT_EQ(ret, AAFwk::ERR_NOT_SYSTEM_APP);
     EXPECT_EQ(attributionId, 0);
 

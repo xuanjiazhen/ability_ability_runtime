@@ -307,8 +307,6 @@ bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options, std::
     if (!UnwrapOptionalTraceId(env, obj, "dmSessionId", options.dmSessionId, msg)) {
         return false;
     }
-
-    // Attribution task id: optional, same trace-id rule; empty = "not provided" (R-7).
     if (!UnwrapOptionalTraceId(env, obj, "taskId", options.taskId, msg)) {
         return false;
     }
@@ -351,7 +349,6 @@ bool UnwrapExecCmdOptions(napi_env env, napi_value obj, ExecCmdOptions &options,
     UnwrapStringProperty(env, obj, "challenge", options.challenge);
     // Optional trace identifiers: absent / undefined / null means not provided;
     // a present value must satisfy the shared trace-id rule (1~256 [A-Za-z0-9_-]).
-    // taskId (attribution key) follows the same rule; empty = "not provided" (R-7).
     std::string traceMsg;
     if (!UnwrapOptionalTraceId(env, obj, "toolCallId", options.toolCallId, traceMsg) ||
         !UnwrapOptionalTraceId(env, obj, "dmSessionId", options.dmSessionId, traceMsg) ||

@@ -183,7 +183,7 @@ HWTEST_F(ExecOptionsTest, ExecOptions_Unmarshalling_0300, TestSize.Level1)
 
 /**
  * @tc.name: ExecOptions_TaskId_SerializedTail_0100
- * @tc.desc: taskId rides the serialized options tail (ADR-8 v2.0): a round
+ * @tc.desc: taskId rides the serialized options tail: a round
  *           trip preserves it, and the legacy field order stays intact in
  *           front of it
  * @tc.type: FUNC
@@ -204,13 +204,11 @@ HWTEST_F(ExecOptionsTest, ExecOptions_TaskId_SerializedTail_0100, TestSize.Level
 
     std::unique_ptr<ExecOptions> result(ExecOptions::Unmarshalling(parcel));
     ASSERT_NE(result, nullptr);
-    // Serialized fields keep their values...
     EXPECT_TRUE(result->background);
     EXPECT_EQ(result->yieldMs, TEST_YIELD_MS);
     EXPECT_EQ(result->timeout, TEST_TIMEOUT);
     EXPECT_EQ(result->toolCallId, TEST_TOOL_CALL_ID);
     EXPECT_EQ(result->dmSessionId, TEST_DM_SESSION_ID);
-    // ...and taskId crosses the wire as the lenient tail field.
     EXPECT_EQ(result->taskId, "task_round_trip");
 }
 } // namespace CliTool

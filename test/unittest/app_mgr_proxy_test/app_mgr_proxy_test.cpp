@@ -1922,14 +1922,17 @@ HWTEST_F(AppMgrProxyTest, RegisterInAppSkillProcess_0200, TestSize.Level1)
         .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
             reply.WriteInt32(AAFwk::INNER_ERR);
             reply.WriteInt32(-1);
+            reply.WriteInt64(0);
             return NO_ERROR;
         });
 
     int32_t resolvedPid = 0;
+    int64_t attributionId = 0;
     auto ret = appMgrProxy_->RegisterInAppSkillProcess("proxy_in_app_skill_0200",
-        "com.example.skill.host", 3099, resolvedPid);
+        "com.example.skill.host", 3099, resolvedPid, attributionId);
     EXPECT_EQ(ret, AAFwk::INNER_ERR);
     EXPECT_EQ(resolvedPid, -1);
+    EXPECT_EQ(attributionId, 0);
 }
 
 /**

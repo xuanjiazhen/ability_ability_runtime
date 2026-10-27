@@ -100,7 +100,6 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             break;
         }
         case 9: {
-            // HandleRegisterManagedProcess: ReadString16, ReadInt32, ReadInt32, ReadInt32
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_MANAGED_PROCESS);
             parcel.WriteString16(Str8ToStr16(fdp.ConsumeRandomLengthString()));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
@@ -109,7 +108,6 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             break;
         }
         case 10: {
-            // HandleUnregisterManagedProcess: ReadString16, ReadInt64, ReadInt32
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_MANAGED_PROCESS);
             parcel.WriteString16(Str8ToStr16(fdp.ConsumeRandomLengthString()));
             parcel.WriteInt64(FuzzUtil::BuildIntegerOverflow(fdp));
@@ -117,7 +115,6 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             break;
         }
         case 11: {
-            // HandleRegisterInAppSkillProcess: ReadString16, ReadString16, ReadInt32
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_IN_APP_SKILL_PROCESS);
             parcel.WriteString16(Str8ToStr16(fdp.ConsumeRandomLengthString()));
             parcel.WriteString16(Str8ToStr16(fdp.ConsumeRandomLengthString()));

@@ -21,9 +21,7 @@
 
 namespace OHOS {
 namespace {
-// -1 / 0 keep the real process identity (direct-call context), so the existing cases of
-// this suite observe the same values as with the unmocked skeleton. Tests override the
-// calling uid / token per case only.
+// Defaults -1/0 keep the real process identity so existing cases see unmocked values.
 pid_t g_mockCallingUid = -1;
 uint64_t g_mockFullTokenId = 0;
 } // namespace
@@ -51,8 +49,7 @@ uint32_t IPCSkeleton::SetCallingTokenID(pid_t tokenId)
 
 uint64_t IPCSkeleton::GetCallingFullTokenID()
 {
-    // 0 keeps the self token (set by MockNativeToken), so token-based permission checks
-    // such as IsSystemAppCall stay intact by default.
+    // 0 keeps the self token (MockNativeToken), so IsSystemAppCall stays intact by default.
     return g_mockFullTokenId != 0 ? g_mockFullTokenId : GetSelfTokenID();
 }
 

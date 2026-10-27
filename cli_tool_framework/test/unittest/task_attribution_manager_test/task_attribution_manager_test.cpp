@@ -29,11 +29,8 @@
 
 using namespace testing::ext;
 
-// IPC value-contract guard (review finding): the tool field crosses the
-// attribution IPC boundary as a raw int32_t, so the climgr-side constant and
-// the appmgr-side enum must stay numerically equal — a future enum insertion
-// would otherwise misroute silently. Compile-time check: any drift breaks
-// this binary's build (mirrored at run time by AttributionToolContract_0100).
+// Value contract: the tool field crosses IPC as raw int32_t; climgr constant and
+// appmgr enum must stay equal (mirrored at run time by AttributionToolContract_0100).
 static_assert(OHOS::CliTool::ATTRIBUTION_TOOL_CLI ==
     static_cast<int32_t>(OHOS::AppExecFwk::AttributionTool::CLI),
     "ATTRIBUTION_TOOL_CLI drifted from AppExecFwk::AttributionTool::CLI");
@@ -47,12 +44,8 @@ constexpr pid_t TEST_TOOL_PID = 4321;
 constexpr int32_t TEST_RESOLVED_PID = 8765;
 constexpr int64_t TEST_ATTRIBUTION_ID = 77;
 
-// In-process endpoint standing in for the appmgr service. It derives from the shared
-// MockAppMgrService (a complete AppMgrStub mock) and overrides the three
-// task-attribution methods to drive each server verdict (ownership mismatch, task not
-// found, invalid parameters, locate failure) deterministically. AppMgrClient reaches it
-// via the test-side AppServiceManager::GetAppMgrService definition below, and the
-// in-process iface_cast fast path dispatches the calls straight to these overrides.
+// In-process appmgr endpoint overriding the three attribution methods; AppMgrClient
+// reaches it via the test-side GetAppMgrService below.
 class MockAppMgrEndpoint : public AppExecFwk::MockAppMgrService {
 public:
     std::string lastRegisterTaskId;
@@ -116,8 +109,7 @@ sptr<MockAppMgrEndpoint> g_mockEndpoint;
 
 namespace OHOS {
 namespace AppExecFwk {
-// Test-side replacement of the service-manager lookup: the AppMgrClient compiled into
-// this binary connects to the in-process mock endpoint instead of samgr.
+// Test-side samgr replacement: AppMgrClient connects to the in-process mock endpoint.
 sptr<IRemoteObject> AppServiceManager::GetAppMgrService() const
 {
     if (OHOS::CliTool::g_mockEndpoint == nullptr) {
@@ -437,15 +429,10 @@ HWTEST_F(TaskAttributionManagerTest, DetachProcess_0400, TestSize.Level1)
     EXPECT_EQ(second, ERR_OK);
     EXPECT_EQ(third, ERR_OK);
     EXPECT_EQ(g_mockEndpoint->unregisterCalls, 3);
-    // The unregister key is stable across repeats (same task, same attributed
-    // pid, same forensic uid) — INV-3 "unregister object = attributionId".
     EXPECT_EQ(g_mockEndpoint->lastUnregisterTaskId, "task_detach_0400");
     EXPECT_EQ(g_mockEndpoint->lastUnregisterAttributionId, TEST_ATTRIBUTION_ID);
     EXPECT_EQ(g_mockEndpoint->lastUnregisterCallerUid, TEST_CALLER_UID);
 
-    // A late rejection on one of the racing detaches (e.g. the task already
-    // closed server-side) is reported, not propagated as a failure to the
-    // teardown caller.
     g_mockEndpoint->unregisterRet = AAFwk::ERR_TASK_NOT_FOUND;
     auto late = TaskAttributionManager::GetInstance().DetachProcess("task_detach_0400",
         TEST_TOOL_PID, TEST_CALLER_UID);

@@ -67,10 +67,9 @@ constexpr size_t INDEX_TWO = 2;
 constexpr size_t INDEX_THREE = 3;
 constexpr size_t INDEX_FOUR = 4;
 const int32_t HIDUMPER_SERVICE_UID = 1212;
-// The climgr SA (186) runs in the aimgr process and is the only caller allowed on the
-// managed-process attribution IPC face. Numeric authority: base/startup/init/services/
-// etc/passwd:183 ("aimgr:x:3092:3092"); symbolic declaration: cli_tool_framework/etc/
-// profile/aimgr.cfg:15 ("uid":"aimgr"). Keep both sources in sync when the value changes.
+// climgr (SA 186) runs in the aimgr process and is the sole allowed caller of the
+// attribution IPC face; uid 3092 per base/startup/init/services/etc/passwd:183 and
+// cli_tool_framework/etc/profile/aimgr.cfg — keep both in sync.
 const int32_t AIMGR_SERVICE_UID = 3092;
 constexpr int32_t RESOURCE_MANAGER_UID = 1096;
 constexpr const int INDEX_PID = 1;
@@ -199,9 +198,6 @@ int32_t AppMgrService::FinishTask(const std::string &taskId)
 }
 
 namespace {
-// Aligned with the IsTaskIdValidForAttribution semantics of the upcoming startAbility
-// attribution change (20752): length bound plus control-character rejection, so a
-// task id can never forge log/audit lines. Consume the shared helper once it lands.
 bool IsTaskIdSanitized(const std::string &taskId)
 {
     if (taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN) {
@@ -217,8 +213,7 @@ int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t
     int32_t callerUid, int64_t &attributionId)
 {
     attributionId = 0;
-    // The native climgr token never carries the system-app flag, so the check is the
-    // aimgr uid alone (same shape as the hidumper service call gate).
+    // The native climgr token never carries the system-app flag: gate on the aimgr uid alone.
     if (IPCSkeleton::GetCallingUid() != AIMGR_SERVICE_UID) {
         TAG_LOGW(AAFwkTag::APPMGR, "caller is not climgr process, rejected, calling uid: %{public}d",
             IPCSkeleton::GetCallingUid());
@@ -273,8 +268,6 @@ int32_t AppMgrService::RegisterInAppSkillProcess(const std::string &taskId, cons
     }
     pid_t targetPid = appMgrServiceInner_->ResolveMainProcessPidByBundleName(bundleName);
     if (targetPid <= 0) {
-        // The target application is not running or its on-demand startup has not
-        // finished yet; no attribution object is created and no side effect is left.
         TAG_LOGW(AAFwkTag::APPMGR, "main process not found, bundle: %{public}s", bundleName.c_str());
         return AAFwk::INNER_ERR;
     }

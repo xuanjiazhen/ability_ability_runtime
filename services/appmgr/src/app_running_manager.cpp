@@ -426,10 +426,7 @@ pid_t AppRunningManager::GetMainProcessPidByBundleName(const std::string &bundle
     auto appRunningMap = GetAppRunningRecordMap();
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
-        // Main-process records only: clone-app records carry appIndex > 0; a record whose
-        // process is not forked yet (pid <= 0, e.g. during on-demand startup) or that is
-        // restarting does not identify a running main process. The map is ordered by
-        // record id, so the first match is deterministic.
+        // Main-process records only (appIndex 0, forked pid, not restarting); first match is deterministic.
         if (appRecord && appRecord->GetBundleName() == bundleName && !(appRecord->GetRestartAppFlag()) &&
             appRecord->GetAppIndex() == MAIN_APP_INDEX && appRecord->GetPid() > 0) {
             return appRecord->GetPid();

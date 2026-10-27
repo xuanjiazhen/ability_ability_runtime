@@ -617,11 +617,9 @@ HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterInAppSkillProcess_0200, 
     const std::string taskId = "ams_in_app_skill_0200";
     const std::string bundleName = "com.example.ams.skill.host";
 
-    // Seed the task with the creator uid, as the real StartTask chain would do.
     IPCSkeleton::SetCallingUid(creatorUid);
     ASSERT_EQ(TaskManagerService::GetInstance().StartTask(taskId, 200), ERR_OK);
 
-    // Seed a running main-process record for the target bundle.
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = bundleName;
     BundleInfo bundleInfo;
@@ -632,8 +630,7 @@ HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterInAppSkillProcess_0200, 
     appRecord->GetPriorityObject()->SetPid(mainPid);
     int32_t recordId = appRecord->GetRecordId();
 
-    // The IPC caller is climgr (uid 3092) while the forensic creator uid is forwarded
-    // through the parameter, mirroring the real climgr -> appmgr chain.
+    // The IPC caller is climgr (3092); the forensic creator uid travels in the parameter, as in production.
     IPCSkeleton::SetCallingUid(3092);
     int32_t resolvedPid = 0;
     int64_t attributionId = 0;
@@ -643,8 +640,6 @@ HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterInAppSkillProcess_0200, 
     EXPECT_EQ(resolvedPid, mainPid);
     EXPECT_GT(attributionId, 0);
 
-    // Ownership is enforced inside the registration: another uid is rejected without
-    // the task being registered twice.
     int32_t otherPid = 0;
     int64_t otherAttributionId = 0;
     ret = appMgrService_->RegisterInAppSkillProcess(taskId, bundleName, creatorUid + 1, otherPid,
@@ -653,8 +648,6 @@ HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterInAppSkillProcess_0200, 
     EXPECT_EQ(otherPid, -1);
     EXPECT_EQ(otherAttributionId, 0);
 
-    // Detach through the wrapper by the handle handed back above, then clean the
-    // seeded task and record up.
     ret = appMgrService_->UnregisterManagedProcess(taskId, attributionId, creatorUid);
     EXPECT_EQ(ret, ERR_OK);
     IPCSkeleton::SetCallingUid(creatorUid);

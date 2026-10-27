@@ -55,7 +55,7 @@ public:
     // Trace identifiers for log correlation; empty means "not provided".
     std::string toolCallId;
     std::string dmSessionId;
-    // Attribution task id: rides the serialized options tail; empty = "not provided" (R-7).
+    // Attribution task id: rides the serialized options tail; empty = "not provided".
     std::string taskId;
 
     bool Marshalling(Parcel &parcel) const;

@@ -66,8 +66,6 @@ public:
     static sptr<IRemoteObject> cliToolMgr;
     static std::string lastEventId;
     static std::string lastSubscriptionId;
-    // Trailing taskId parameter received via the generated proxy/stub chain
-    // (write-side pass-through assertion; empty string = not provided).
     static std::string lastTaskId;
     static std::vector<ToolInfo> toolInfos;
     static std::vector<FunctionInfo> functionInfos;

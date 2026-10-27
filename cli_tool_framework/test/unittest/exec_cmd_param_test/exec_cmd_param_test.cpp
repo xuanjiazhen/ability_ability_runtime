@@ -230,9 +230,8 @@ HWTEST_F(ExecCmdParamTest, ExecCmdParam_AsExecOptions_0100, TestSize.Level1)
 
 /**
  * @tc.name: ExecCmdParam_TaskId_SerializedTail_0100
- * @tc.desc: ExecCmdOptions.taskId rides the serialized options tail
- *           (ADR-8 v2.0): a round trip preserves it with the legacy field
- *           order intact in front of it
+ * @tc.desc: ExecCmdOptions.taskId rides the serialized options tail:
+ *           a round trip preserves it with the legacy field order intact in front of it
  * @tc.type: FUNC
  */
 HWTEST_F(ExecCmdParamTest, ExecCmdParam_TaskId_SerializedTail_0100, TestSize.Level1)

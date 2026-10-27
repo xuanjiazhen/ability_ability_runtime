@@ -49,9 +49,6 @@ int32_t TaskAttributionManager::AttachProcess(const std::string &taskId, pid_t p
     int32_t result = appMgrClient.RegisterManagedProcess(taskId, static_cast<int32_t>(pid),
         ATTRIBUTION_TOOL_CLI, callerUid, attributionId);
     if (result != ERR_OK) {
-        // Not attributed and no side effect; the execution result of the tool/command is
-        // never affected (ADR-2). The failure reasons are not distinguished to the
-        // caller to prevent task enumeration.
         attributionId = 0;
         TAG_LOGW(AAFwkTag::CLI_TOOL, "attach rejected by appmgr, taskId: %{public}s, pid: %{public}d, "
             "ret: %{public}d", taskId.c_str(), pid, result);
@@ -62,7 +59,6 @@ int32_t TaskAttributionManager::AttachProcess(const std::string &taskId, pid_t p
 int32_t TaskAttributionManager::DetachProcess(const std::string &taskId, int64_t attributionId,
     int32_t callerUid)
 {
-    // Idempotent no-op when there is nothing to unregister (no attribution happened).
     if (taskId.empty() || attributionId <= 0) {
         return ERR_OK;
     }
@@ -74,8 +70,6 @@ int32_t TaskAttributionManager::DetachProcess(const std::string &taskId, int64_t
     }
     int32_t result = appMgrClient.UnregisterManagedProcess(taskId, attributionId, callerUid);
     if (result != ERR_OK) {
-        // ERR_TASK_NOT_FOUND also covers the already-detached case (idempotent); the
-        // teardown path only logs and continues.
         TAG_LOGW(AAFwkTag::CLI_TOOL, "detach rejected by appmgr, taskId: %{public}s, "
             "attributionId: %{public}" PRId64 ", ret: %{public}d", taskId.c_str(), attributionId, result);
     }
@@ -101,10 +95,6 @@ int32_t TaskAttributionManager::AttachInAppSkillProcess(const std::string &taskI
     int32_t result = appMgrClient.RegisterInAppSkillProcess(taskId, bundleName, callerUid, resolvedPid,
         attributionId);
     if (result != ERR_OK || resolvedPid <= 0) {
-        // No attribution object and no side effect: the target application is not
-        // running or its on-demand startup has not finished (known cold-start
-        // boundary), or the task is gone / owned by another uid. The skill execution
-        // itself is never affected (ADR-2 / R-10).
         attributionId = 0;
         TAG_LOGW(AAFwkTag::CLI_TOOL, "in-app skill attach rejected, taskId: %{public}s, "
             "bundle: %{public}s, ret: %{public}d", taskId.c_str(), bundleName.c_str(), result);

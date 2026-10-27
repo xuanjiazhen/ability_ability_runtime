@@ -1272,7 +1272,6 @@ HWTEST_F(CliToolMGRClientTest, ExecTool_TaskIdPassThrough_0100, TestSize.Level1)
 
     EXPECT_EQ(CliToolMGRClient::GetInstance().ExecTool(param,
         [](int32_t code, const CliSessionInfo &) {}), ERR_OK);
-    // The mock records what the generated stub dispatched to the override.
     EXPECT_EQ(CliToolMgrClientFlag::lastTaskId, "task_abc-123");
 }
 
@@ -1339,7 +1338,6 @@ HWTEST_F(CliToolMGRClientTest, ExecCmd_TaskIdPassThrough_0200, TestSize.Level1)
  */
 HWTEST_F(CliToolMGRClientTest, ExecCmd_MixedDeploy_NewWriteOldRead_0100, TestSize.Level1)
 {
-    // New-format write: the full ExecCmdOptions::Marshalling including the taskId tail.
     ExecCmdOptions options;
     options.workDir = "/data";
     options.challenge = "chal";
@@ -1347,7 +1345,6 @@ HWTEST_F(CliToolMGRClientTest, ExecCmd_MixedDeploy_NewWriteOldRead_0100, TestSiz
     MessageParcel data;
     ASSERT_TRUE(options.Marshalling(data));
 
-    // Old-reader simulation: sequential reads as the pre-taskId Unmarshalling (stops at dmSessionId).
     std::string workDir;
     std::string env;
     std::string policy;
@@ -1368,10 +1365,8 @@ HWTEST_F(CliToolMGRClientTest, ExecCmd_MixedDeploy_NewWriteOldRead_0100, TestSiz
     ASSERT_TRUE(data.ReadString(challenge));
     ASSERT_TRUE(data.ReadString(toolCallId));
     ASSERT_TRUE(data.ReadString(dmSessionId));
-    // All pre-taskId fields stay aligned for the old reader.
     EXPECT_EQ(workDir, "/data");
     EXPECT_EQ(challenge, "chal");
-    // The taskId tail is left unread: it sits strictly after the legacy layout.
     std::string leftover;
     EXPECT_TRUE(data.ReadString(leftover));
     EXPECT_EQ(leftover, "task_mixed-789");
