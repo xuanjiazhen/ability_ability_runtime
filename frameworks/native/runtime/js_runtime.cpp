@@ -94,6 +94,10 @@ constexpr const char* PERMISSION_RUN_ANY_CODE = "ohos.permission.RUN_ANY_CODE";
 constexpr const char* PERMISSION_LOAD_INDEPENDENT_LIBRARY = "ohos.permission.kernel.LOAD_INDEPENDENT_LIBRARY";
 constexpr const char* PERMISSION_LOAD_CERTSIGN_LIBRARY_FOR_WEB = "ohos.permission.kernel.LOAD_CERTSIGN_LIBRARY_FOR_WEB";
 constexpr const char* PERMISSION_LOAD_CERTSIGN_LIBRARY = "ohos.permission.kernel.LOAD_CERTSIGN_LIBRARY";
+constexpr const char* PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY = "ohos.permission.kernel.ALLOW_EXECUTABLE_FORT_MEMORY";
+constexpr const char* PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY_FOR_ARKTS =
+    "ohos.permission.kernel.ALLOW_EXECUTABLE_FORT_MEMORY_FOR_ARKTS";
+constexpr int32_t ATM_KIT_RET_SUCCESS = 0;
 
 const std::string CONFIG_PATH = "/etc/system_kits_config.json";
 const std::string SYSTEM_KITS_CONFIG_PATH = "/system/etc/system_kits_config.json";
@@ -670,6 +674,20 @@ void JsRuntime::PostPreload(const Options& options)
     postOption.SetEnableProfile(profileEnabled);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "ASMM JIT Verify PostFork, jitEnabled: %{public}d", options.jitEnabled);
     postOption.SetEnableJIT(options.jitEnabled);
+    std::vector<std::string> arktsJitPermList = {PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY,
+                                                 PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY_FOR_ARKTS};
+    std::vector<int32_t> arktsJitPermStates;
+    bool arktsJitEnabled = false;
+    Security::AccessToken::AccessTokenID selfTokenId = IPCSkeleton::GetSelfTokenID();
+    int32_t verifyResult = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+        selfTokenId, arktsJitPermList, arktsJitPermStates);
+    if (verifyResult == ATM_KIT_RET_SUCCESS && arktsJitPermStates.size() == arktsJitPermList.size()) {
+        arktsJitEnabled =
+            arktsJitPermStates[0] == Security::AccessToken::PermissionState::PERMISSION_GRANTED &&
+            arktsJitPermStates[1] == Security::AccessToken::PermissionState::PERMISSION_GRANTED;
+    }
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "ArkTS JIT permission gate enabled: %{public}d", arktsJitEnabled);
+    postOption.SetArktsJitEnabled(arktsJitEnabled);
     postOption.SetAOTCompileStatusMap(options.aotCompileStatusMap);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "SmartGC: set options enableWarmStartupSmartGC to RuntimeOption");
     postOption.SetEnableWarmStartupSmartGC(options.enableWarmStartupSmartGC);
