@@ -666,7 +666,6 @@ void JsRuntime::PostPreload(const Options& options)
     bool profileEnabled = OHOS::system::GetBoolParameter("ark.profile", false);
     postOption.SetEnableProfile(profileEnabled);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "ASMM JIT Verify PostFork, jitEnabled: %{public}d", options.jitEnabled);
-    postOption.SetEnableJIT(options.jitEnabled);
     std::vector<std::string> arktsJitPermList = {PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY,
                                                  PERMISSION_ALLOW_EXECUTABLE_FORT_MEMORY_FOR_ARKTS};
     std::vector<int32_t> arktsJitPermStates;
@@ -680,7 +679,7 @@ void JsRuntime::PostPreload(const Options& options)
             arktsJitPermStates[1] == Security::AccessToken::PermissionState::PERMISSION_GRANTED;
     }
     TAG_LOGD(AAFwkTag::JSRUNTIME, "ArkTS JIT permission gate enabled: %{public}d", arktsJitEnabled);
-    postOption.SetArktsJitEnabled(arktsJitEnabled);
+    postOption.SetEnableJIT(options.jitEnabled && arktsJitEnabled);
     postOption.SetAOTCompileStatusMap(options.aotCompileStatusMap);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "SmartGC: set options enableWarmStartupSmartGC to RuntimeOption");
     postOption.SetEnableWarmStartupSmartGC(options.enableWarmStartupSmartGC);
