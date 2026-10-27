@@ -180,5 +180,38 @@ HWTEST_F(ExecOptionsTest, ExecOptions_Unmarshalling_0300, TestSize.Level1)
     missingDmParcel.RewindRead(0);
     EXPECT_EQ(ExecOptions::Unmarshalling(missingDmParcel), nullptr);
 }
+
+/**
+ * @tc.name: ExecOptions_TaskId_NotSerialized_0100
+ * @tc.desc: taskId is an in-process attribution member only: it is never
+ *           serialized by ExecOptions (ADR-8), so a round trip always yields
+ *           an empty taskId and leaves the legacy field order intact
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExecOptionsTest, ExecOptions_TaskId_NotSerialized_0100, TestSize.Level1)
+{
+    ExecOptions options;
+    options.background = true;
+    options.yieldMs = TEST_YIELD_MS;
+    options.timeout = TEST_TIMEOUT;
+    options.toolCallId = TEST_TOOL_CALL_ID;
+    options.dmSessionId = TEST_DM_SESSION_ID;
+    options.taskId = "task_should_not_serialize";
+
+    Parcel parcel;
+    ASSERT_TRUE(options.Marshalling(parcel));
+    parcel.RewindRead(0);
+
+    std::unique_ptr<ExecOptions> result(ExecOptions::Unmarshalling(parcel));
+    ASSERT_NE(result, nullptr);
+    // Serialized fields keep their values...
+    EXPECT_TRUE(result->background);
+    EXPECT_EQ(result->yieldMs, TEST_YIELD_MS);
+    EXPECT_EQ(result->timeout, TEST_TIMEOUT);
+    EXPECT_EQ(result->toolCallId, TEST_TOOL_CALL_ID);
+    EXPECT_EQ(result->dmSessionId, TEST_DM_SESSION_ID);
+    // ...and taskId never crosses the wire (trailing IPC parameter instead).
+    EXPECT_TRUE(result->taskId.empty());
+}
 } // namespace CliTool
 } // namespace OHOS
