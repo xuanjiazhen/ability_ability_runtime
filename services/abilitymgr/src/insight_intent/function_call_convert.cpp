@@ -82,8 +82,9 @@ struct RegisterSortKey {
 };
 
 // Returns true when the Entry executeMode contains a BG UIAbility or SE, filling outAbility.
-bool IsQualifiedEntry(const AbilityRuntime::ExtractInsightIntentGenericInfo &generic, std::string &outAbility)
+bool IsQualifiedEntry(const AbilityRuntime::ExtractInsightIntentInfo &info, std::string &outAbility)
 {
+    const auto &generic = info.genericInfo;
     if (generic.currentType != AbilityRuntime::InfoType::Entry) {
         return false;
     }
@@ -94,6 +95,13 @@ bool IsQualifiedEntry(const AbilityRuntime::ExtractInsightIntentGenericInfo &gen
             outAbility = entry.abilityName;
             return true;
         }
+    }
+    // DRAFT(SPEC-20260816098334): Entry(FG) 为注册增量，仅当 exported=thirdParty 时放行（AC-4.1 / AC-4.2）。
+    if (info.exported == AbilityRuntime::INSIGHT_INTENT_EXPORTED_THIRD_PARTY &&
+        std::find(entry.executeMode.begin(), entry.executeMode.end(),
+            AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND) != entry.executeMode.end()) {
+        outAbility = entry.abilityName;
+        return true;
     }
     return false;
 }
@@ -160,6 +168,8 @@ bool ConvertFromExtractIntentInfo(const std::vector<AbilityRuntime::ExtractInsig
         func.inputSchema = GetInputSchemaFromGeneric(info);
         func.outputSchema = info.result;
         func.functionType = FunctionType::INTENT_FUNCTION;
+        // DRAFT(SPEC-20260816098334): 三方可见标识随注册信息下发 CLI Manager（AC-1.1 / R-1）
+        func.exported = info.exported;
         AddInsightIntentOptions(func, MakeDefaultsFromGeneric(info));
         functions.emplace_back(std::move(func));
     }
@@ -180,6 +190,8 @@ bool ConvertFromConfigIntent(const std::vector<AbilityRuntime::InsightIntentInfo
         func.functionNamespace = info.bundleName;
         func.description = info.displayDescription;
         func.functionType = FunctionType::INTENT_FUNCTION;
+        // DRAFT(SPEC-20260816098334): 配置意图的三方可见标识同样随注册信息下发
+        func.exported = info.exported;
 
         if (!info.inputParams.empty()) {
             nlohmann::json inputSchema;
@@ -281,18 +293,27 @@ void IntentFilterUtil::FilterConfig(std::vector<AbilityRuntime::InsightIntentInf
         const auto &ui = info.uiAbilityIntentInfo;
         const auto &se = info.serviceExtensionIntentInfo;
         RegisterSortKey key { info.moduleName, "" };
+        const bool isThirdPartyExported = info.exported == AbilityRuntime::INSIGHT_INTENT_EXPORTED_THIRD_PARTY;
         bool isBgUiAbility = !ui.abilityName.empty() &&
             std::find(ui.supportExecuteMode.begin(), ui.supportExecuteMode.end(),
                 AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND) != ui.supportExecuteMode.end();
+        // DRAFT(SPEC-20260816098334): FG UIAbility 为注册增量，仅当 exported=thirdParty 时放行（AC-3.1 / AC-3.2）。
+        // BG/SE 组合保持原行为，不受 exported 影响。
+        bool isFgUiAbility = isThirdPartyExported && !ui.abilityName.empty() &&
+            std::find(ui.supportExecuteMode.begin(), ui.supportExecuteMode.end(),
+                AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND) != ui.supportExecuteMode.end();
         if (isBgUiAbility) {
+            key.abilityName = ui.abilityName;
+        } else if (isFgUiAbility) {
             key.abilityName = ui.abilityName;
         } else if (!se.abilityName.empty()) {
             key.abilityName = se.abilityName;
         } else {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "config intent dropped: not BG UIAbility or SE, "
-                "intentName:%{public}s moduleName:%{public}s uiAbility:%{public}s seAbility:%{public}s",
+                "intentName:%{public}s moduleName:%{public}s uiAbility:%{public}s seAbility:%{public}s "
+                "exported:%{public}s",
                 info.intentName.c_str(), info.moduleName.c_str(),
-                ui.abilityName.c_str(), se.abilityName.c_str());
+                ui.abilityName.c_str(), se.abilityName.c_str(), info.exported.c_str());
             continue;
         }
         qualified.emplace_back(std::move(key), std::move(info));
@@ -323,10 +344,11 @@ void IntentFilterUtil::FilterGeneric(std::vector<AbilityRuntime::ExtractInsightI
         if (generic.currentType != AbilityRuntime::InfoType::Function &&
             generic.currentType != AbilityRuntime::InfoType::Page &&
             generic.currentType != AbilityRuntime::InfoType::Link &&
-            !IsQualifiedEntry(generic, key.abilityName)) {
+            !IsQualifiedEntry(info, key.abilityName)) {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "generic intent dropped: not Function/Page/Link or qualified Entry, "
-                "intentName:%{public}s moduleName:%{public}s decoratorType:%{public}s",
-                generic.intentName.c_str(), generic.moduleName.c_str(), generic.decoratorType.c_str());
+                "intentName:%{public}s moduleName:%{public}s decoratorType:%{public}s exported:%{public}s",
+                generic.intentName.c_str(), generic.moduleName.c_str(), generic.decoratorType.c_str(),
+                info.exported.c_str());
             continue;
         }
         qualified.emplace_back(std::move(key), std::move(info));

@@ -33,6 +33,11 @@ const std::string INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY = "@InsightIntentEntry";
 const std::string INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION = "@InsightIntentFunctionMethod";
 const std::string INSIGHT_INTENTS_DECORATOR_TYPE_FORM = "@InsightIntentForm";
 
+// DRAFT(SPEC-20260816098334): exported 取值，见 spec.md「接口规格 → exported 配置」。
+// 仅接受这两个取值；缺省与枚举外取值统一收敛为 systemOnly（fail-closed，不回退 thirdParty）。
+const std::string INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY = "systemOnly";
+const std::string INSIGHT_INTENT_EXPORTED_THIRD_PARTY = "thirdParty";
+
 struct LinkIntentParamMapping {
     std::string paramName;
     std::string paramMappingName;
@@ -182,6 +187,9 @@ struct ExtractInsightIntentInfo {
     std::string result;
     std::string example;
     std::string arkTSMode;
+    // DRAFT(SPEC-20260816098334): 意图对三方 Agent 的可见范围，随意图数据入库并下发 CLI Manager。
+    // 卡片意图与绑定 UIExtension 的意图不支持该字段，解析阶段即跳过（恒为 systemOnly）。
+    std::string exported = INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY;
 
     ExtractInsightIntentInfo() = default;
 };
@@ -226,6 +234,9 @@ struct ExtractInsightIntentProfileInfo {
     std::string functionReturnType;
     std::string formName;
     std::string arkTSMode;
+    // DRAFT(SPEC-20260816098334): insight_intent.json 中 exported 的原始取值，
+    // 由 ProfileInfoFormat 归一化后再写入 ExtractInsightIntentInfo::exported。
+    std::string exported;
 };
 
 struct ExtractInsightIntentProfileInfoVec {

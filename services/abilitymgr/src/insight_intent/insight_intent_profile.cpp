@@ -52,6 +52,11 @@ const std::string INSIGHT_INTENT_DOMAIN = "domain";
 const std::string INSIGHT_INTENT_VERSION = "intentVersion";
 const std::string INSIGHT_INTENT_SRC_ENTRY = "srcEntry";
 const std::string INSIGHT_INTENT_ARKTS_MODE = "arkTSMode";
+// DRAFT(SPEC-20260816098334): 配置意图（insight_intent.json）中的 exported 字段名
+const std::string INSIGHT_INTENT_EXPORTED = "exported";
+// DRAFT(SPEC-20260816098334): exported 枚举取值（本文件独立定义，避免与解析侧头文件强耦合）
+const std::string EXPORTED_SYSTEM_ONLY = "systemOnly";
+const std::string EXPORTED_THIRD_PARTY = "thirdParty";
 const std::string INSIGHT_INTENT_UI_ABILITY = "uiAbility";
 const std::string INSIGHT_INTENT_UI_EXTENSION = "uiExtension";
 const std::string INSIGHT_INTENT_SERVICE_EXTENSION = "serviceExtension";
@@ -113,6 +118,8 @@ struct InsightIntentProfileInfo {
     UIExtensionProfileInfo uiExtensionProfileInfo;
     ServiceExtensionProfileInfo serviceExtensionProfileInfo;
     FormProfileInfo formProfileInfo;
+    // DRAFT(SPEC-20260816098334): 配置意图的 exported 原始取值（systemOnly / thirdParty）
+    std::string exported;
 };
 
 struct InsightIntentProfileInfoVec {
@@ -275,6 +282,18 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
         insightIntentInfo.arkTSMode,
         false,
         g_parseResult);
+    // DRAFT(SPEC-20260816098334): exported 为可选字段，缺失/类型错误都不置解析失败，
+    // 由 TransformToInsightIntentInfo 统一归一化为 systemOnly（AC-1.2 / AC-5.3）。
+    if (jsonObject.find(INSIGHT_INTENT_EXPORTED) != jsonObjectEnd) {
+        const auto &exportedValue = jsonObject.at(INSIGHT_INTENT_EXPORTED);
+        if (exportedValue.is_string()) {
+            insightIntentInfo.exported = exportedValue.get<std::string>();
+        } else {
+            TAG_LOGW(AAFwkTag::INTENT, "exported is not string, fallback to systemOnly, intentName: %{public}s",
+                insightIntentInfo.intentName.c_str());
+            insightIntentInfo.exported.clear();
+        }
+    }
     AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_DISPLAY_NAME,
@@ -394,6 +413,25 @@ bool TransformToInsightIntentInfo(const InsightIntentProfileInfo &insightIntent,
     info.intentVersion = insightIntent.intentVersion;
     info.srcEntry = insightIntent.srcEntry;
     info.arkTSMode = insightIntent.arkTSMode;
+    // DRAFT(SPEC-20260816098334): 卡片意图与绑定 UIExtension 的配置意图不支持 exported，配置后忽略（AC-5.1）；
+    // 其余类型仅 thirdParty 生效，缺省与非法取值一律 systemOnly（AC-1.2 / AC-5.3，fail-closed）。
+    const bool exportedSupported = insightIntent.formProfileInfo.abilityName.empty() &&
+        insightIntent.uiExtensionProfileInfo.abilityName.empty();
+    if (!exportedSupported) {
+        if (!insightIntent.exported.empty()) {
+            TAG_LOGW(AAFwkTag::INTENT, "exported is not supported for this config intent type, ignored, "
+                "intentName: %{public}s", insightIntent.intentName.c_str());
+        }
+        info.exported = EXPORTED_SYSTEM_ONLY;
+    } else if (insightIntent.exported == EXPORTED_THIRD_PARTY) {
+        info.exported = EXPORTED_THIRD_PARTY;
+    } else {
+        if (!insightIntent.exported.empty() && insightIntent.exported != EXPORTED_SYSTEM_ONLY) {
+            TAG_LOGW(AAFwkTag::INTENT, "invalid exported: %{public}s, fallback to systemOnly, intentName: %{public}s",
+                insightIntent.exported.c_str(), insightIntent.intentName.c_str());
+        }
+        info.exported = EXPORTED_SYSTEM_ONLY;
+    }
     info.inputParams.assign(insightIntent.inputParams.begin(), insightIntent.inputParams.end());
     info.outputParams.assign(insightIntent.outputParams.begin(), insightIntent.outputParams.end());
     info.displayName = insightIntent.displayName;
@@ -533,7 +571,8 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentInfo& info)
         {INSIGHT_INTENT_UI_ABILITY, info.uiAbilityIntentInfo},
         {INSIGHT_INTENT_UI_EXTENSION, info.uiExtensionIntentInfo},
         {INSIGHT_INTENT_SERVICE_EXTENSION, info.serviceExtensionIntentInfo},
-        {INSIGHT_INTENT_FORM, info.formIntentInfo}
+        {INSIGHT_INTENT_FORM, info.formIntentInfo},
+        {INSIGHT_INTENT_EXPORTED, info.exported}
     };
     AddJsonStringArray(jsonObject, INSIGHT_INTENT_INPUT_PARAMS, info.inputParams);
     AddJsonStringArray(jsonObject, INSIGHT_INTENT_OUTPUT_PARAMS, info.outputParams);

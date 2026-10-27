@@ -64,6 +64,9 @@ struct InsightIntentInfo {
     std::string displayDescription;
     std::string bundleName;
     std::string moduleName;
+    // DRAFT(SPEC-20260816098334): 配置意图对三方 Agent 的可见范围（systemOnly / thirdParty），
+    // 缺省为 systemOnly；仅 thirdParty 会被注册到 CLI Manager。
+    std::string exported = "systemOnly";
 };
 
 class InsightIntentProfile {

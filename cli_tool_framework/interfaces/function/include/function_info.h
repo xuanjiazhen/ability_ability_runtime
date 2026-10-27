@@ -44,6 +44,9 @@ public:
     std::string outputSchema;
     FunctionType functionType;
     int32_t userId;
+    // DRAFT(SPEC-20260816098334): 意图的三方可见范围，随注册信息下发并在查询侧过滤；
+    // 缺省与非法取值统一为 systemOnly（fail-closed）。旧注册数据无该字段时按 systemOnly 读取。
+    std::string exported {"systemOnly"};
 
     FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION), userId(-1) {}
     ~FunctionInfo() override = default;

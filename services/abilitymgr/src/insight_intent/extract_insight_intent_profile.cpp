@@ -73,6 +73,8 @@ const std::string INSIGHT_INTENT_ENTITY_CATEGORY = "entityCategory";
 const std::string INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME = "parentClassName";
 const std::string INSIGHT_INTENT_ENTITY_PARAMETERS = "parameters";
 const std::string INSIGHT_INTENT_ARKTS_MODE = "arkTSMode";
+// DRAFT(SPEC-20260816098334): insight_intent.json 中 exported 的字段名
+const std::string INSIGHT_INTENT_EXPORTED = "exported";
 const std::string INSIGHT_INTENT_ENTITY_SUPPORTED_QUERY_PROPERTIES = "supportedQueryProperties";
 
 enum DecoratorType {
@@ -103,6 +105,37 @@ const std::map<std::string, ExecuteMode> executeModeMap = {
     {"uiextension", ExecuteMode::UI_EXTENSION_ABILITY},
     {"serviceextension", ExecuteMode::SERVICE_EXTENSION_ABILITY}
 };
+
+// DRAFT(SPEC-20260816098334): exported 归一化。缺省、空串与枚举外取值一律收敛为 systemOnly，
+// 非法取值只记日志、不报错、不回退为 thirdParty（AC-5.3 / R-8）。
+std::string NormalizeExported(const std::string &rawValue, const std::string &intentName)
+{
+    if (rawValue.empty() || rawValue == INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY) {
+        return INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY;
+    }
+    if (rawValue == INSIGHT_INTENT_EXPORTED_THIRD_PARTY) {
+        return INSIGHT_INTENT_EXPORTED_THIRD_PARTY;
+    }
+    TAG_LOGW(AAFwkTag::INTENT, "invalid exported: %{public}s, fallback to systemOnly, intentName: %{public}s",
+        rawValue.c_str(), intentName.c_str());
+    return INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY;
+}
+
+// DRAFT(SPEC-20260816098334): 卡片意图（@InsightIntentForm）与绑定 UIExtension 的意图不支持 exported，
+// 解析阶段直接跳过，字段不进入过滤与存储（AC-5.1 / ADR-4）。
+bool IsExportedSupported(const ExtractInsightIntentProfileInfo &insightIntent)
+{
+    if (StringToEnum(insightIntent.decoratorType) == DecoratorType::DECORATOR_FORM) {
+        return false;
+    }
+    for (const auto &mode : insightIntent.executeMode) {
+        auto it = executeModeMap.find(mode);
+        if (it != executeModeMap.end() && it->second == ExecuteMode::UI_EXTENSION_ABILITY) {
+            return false;
+        }
+    }
+    return true;
+}
 
 bool SetJsonFieldIfNotEmpty(nlohmann::json &jsonObject, const std::string &key, const std::string &value,
     const std::string &logMsg)
@@ -420,6 +453,18 @@ void from_json(const nlohmann::json &jsonObject, ExtractInsightIntentProfileInfo
         insightIntentInfo.arkTSMode,
         false,
         g_extraParseResult);
+    // DRAFT(SPEC-20260816098334): exported 为可选字段，缺失走默认值；类型错误不置解析失败，
+    // 交由 NormalizeExported 统一收敛为 systemOnly（AC-1.2 / AC-5.3）。
+    if (jsonObject.find(INSIGHT_INTENT_EXPORTED) != jsonObjectEnd) {
+        const auto &exportedValue = jsonObject.at(INSIGHT_INTENT_EXPORTED);
+        if (exportedValue.is_string()) {
+            insightIntentInfo.exported = exportedValue.get<std::string>();
+        } else {
+            TAG_LOGW(AAFwkTag::INTENT, "exported is not string, fallback to systemOnly, intentName: %{public}s",
+                insightIntentInfo.intentName.c_str());
+            insightIntentInfo.exported.clear();
+        }
+    }
 
     if (jsonObject.find(INSIGHT_INTENT_PARAMETERS) != jsonObjectEnd) {
         if (jsonObject.at(INSIGHT_INTENT_PARAMETERS).is_object()) {
@@ -521,7 +566,8 @@ void to_json(nlohmann::json& jsonObject, const ExtractInsightIntentProfileInfo& 
         {INSIGHT_INTENT_FUNCTION_PARAMS, info.functionParams},
         {INSIGHT_INTENT_FORM_NAME, info.formName},
         {INSIGHT_INTENT_ENTITES, info.entities},
-        {INSIGHT_INTENT_ARKTS_MODE, info.arkTSMode}
+        {INSIGHT_INTENT_ARKTS_MODE, info.arkTSMode},
+        {INSIGHT_INTENT_EXPORTED, info.exported}
     };
 
     if (!SetJsonFieldIfNotEmpty(jsonObject, INSIGHT_INTENT_PARAMETERS, info.parameters, "discarded parameters")) {
@@ -760,6 +806,18 @@ bool ExtractInsightIntentProfile::ProfileInfoFormat(const ExtractInsightIntentPr
     info.keywords.assign(insightIntent.keywords.begin(), insightIntent.keywords.end());
     info.permissions.assign(insightIntent.permissions.begin(), insightIntent.permissions.end());
     info.arkTSMode = insightIntent.arkTSMode;
+    // DRAFT(SPEC-20260816098334): exported 在此统一收敛。卡片意图与绑定 UIExtension 的意图配置后忽略
+    // （AC-5.1）；其余类型缺省与非法取值一律为 systemOnly（AC-1.2 / AC-5.3）。
+    if (!IsExportedSupported(insightIntent)) {
+        if (!insightIntent.exported.empty()) {
+            TAG_LOGW(AAFwkTag::INTENT, "exported is not supported for this intent type, ignored, "
+                "intentName: %{public}s, decoratorType: %{public}s",
+                insightIntent.intentName.c_str(), insightIntent.decoratorType.c_str());
+        }
+        info.exported = INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY;
+    } else {
+        info.exported = NormalizeExported(insightIntent.exported, insightIntent.intentName);
+    }
     info.entities = insightIntent.entities;
     TAG_LOGD(AAFwkTag::INTENT, "entities size: %{public}zu", info.entities.size());
     for (auto iter = info.entities.begin(); iter != info.entities.end(); iter++) {

@@ -920,6 +920,18 @@ int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
         return ret;
     }
 
+    // DRAFT(SPEC-20260816098334): 三方 Agent 只能看到 exported=thirdParty 的意图（AC-1.1 / AC-2.1），
+    // 系统应用/系统 SA 路径不受影响；旧注册数据无该字段时按 systemOnly 处理（fail-closed）。
+    // 注意：当前入口 PermissionUtil::CheckSystemAndPermission 只放行系统应用/SA，三方 Agent 的
+    // 查询入口开放由需求 SR20260812039071 承载；本过滤作为查询侧的兜底约束先落地。
+    if (!PermissionUtil::IsSystemApp() && !PermissionUtil::IsSystemSA()) {
+        const size_t inputCount = functionList.size();
+        functionList.erase(std::remove_if(functionList.begin(), functionList.end(),
+            [](const FunctionInfo &func) { return func.exported != "thirdParty"; }), functionList.end());
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "third-party query filtered by exported: input=%{public}zu output=%{public}zu",
+            inputCount, functionList.size());
+    }
+
     ret = FunctionsRawData::FromFunctionInfoVec(functionList, functions);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "FromFunctionInfoVec failed: %{public}d", ret);

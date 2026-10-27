@@ -159,6 +159,28 @@ bool ParseUserId(const nlohmann::json &json, int32_t &output)
     return true;
 }
 
+// DRAFT(SPEC-20260816098334): exported 容错解析。字段缺失（旧注册数据）、类型错误与枚举外取值
+// 一律收敛为 systemOnly，不置解析失败（AC-1.2 / AC-5.3，fail-closed）。
+bool ParseExported(const nlohmann::json &json, std::string &output)
+{
+    if (!json.contains("exported")) {
+        output = "systemOnly";
+        return true;
+    }
+    const auto &value = json["exported"];
+    if (!value.is_string()) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "exported is not string, fallback to systemOnly");
+        output = "systemOnly";
+        return true;
+    }
+    output = value.get<std::string>();
+    if (output != "systemOnly" && output != "thirdParty") {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "invalid exported: %{public}s, fallback to systemOnly", output.c_str());
+        output = "systemOnly";
+    }
+    return true;
+}
+
 } // namespace
 
 bool FunctionInfo::Marshalling(Parcel &parcel) const
@@ -194,6 +216,11 @@ bool FunctionInfo::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteInt32(userId)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write userId failed");
+        return false;
+    }
+    // DRAFT(SPEC-20260816098334): 追加在末尾，保持既有字段顺序不变
+    if (!parcel.WriteString(exported)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write exported failed");
         return false;
     }
     return true;
@@ -244,6 +271,13 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Read userId failed");
         return nullptr;
     }
+    // DRAFT(SPEC-20260816098334): 兼容不含 exported 的旧 parcel —— 读取失败或取值非法时按 systemOnly 处理
+    std::string exported;
+    if (!parcel.ReadString(exported) || (exported != "systemOnly" && exported != "thirdParty")) {
+        function->exported = "systemOnly";
+    } else {
+        function->exported = exported;
+    }
     return function.release();
 }
 
@@ -256,7 +290,8 @@ bool FunctionInfo::ParseFromJson(const nlohmann::json &json, FunctionInfo &funct
            ParseInputSchema(json, function.inputSchema) &&
            ParseOutputSchema(json, function.outputSchema) &&
            ParseFunctionType(json, function.functionType) &&
-           ParseUserId(json, function.userId);
+           ParseUserId(json, function.userId) &&
+           ParseExported(json, function.exported);
 }
 
 nlohmann::json FunctionInfo::ParseToJson() const
@@ -277,6 +312,11 @@ nlohmann::json FunctionInfo::ParseToJson() const
     }
 
     j["functionType"] = static_cast<int32_t>(functionType);
+    // DRAFT(SPEC-20260816098334): 三方可见标识随注册信息持久化（KVStore JSON blob），
+    // 查询侧据此对三方 Agent 过滤（AC-1.1 / AC-5.2）。
+    if (!exported.empty()) {
+        j["exported"] = exported;
+    }
     // -1 is the unset sentinel; ParseUserId rejects explicit negatives, so omit the field
     // to keep the raw-data round trip lossless for default-constructed FunctionInfo
     if (userId >= 0) {
