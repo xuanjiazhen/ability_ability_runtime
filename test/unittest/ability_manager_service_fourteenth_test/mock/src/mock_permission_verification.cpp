@@ -136,5 +136,9 @@ bool PermissionVerification::IsLocalDebugOtherAppsCall(const uint32_t specifyTok
 {
     return false;
 }
+bool PermissionVerification::IsCustomSandboxCall(const uint32_t specifyTokenId, int32_t targetUserId) const
+{
+    return false;
+}
 } // namespace AAFwk
 } // namespace OHOS

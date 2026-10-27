@@ -806,6 +806,9 @@ enum class AbilityManagerInterfaceCode {
 
     // unregister listener that an insight intent is about to be executed
     UNREGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK = 6186,
+
+    // force stop process with kill id for cli tool
+    FORCE_STOP_PROCESS = 6187,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

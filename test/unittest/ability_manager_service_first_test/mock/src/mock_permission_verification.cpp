@@ -330,12 +330,12 @@ bool PermissionVerification::VerifySupportCrossAppEmbedForOaPermission() const
 
 bool PermissionVerification::IsLocalDebugOtherAppsCall(const uint32_t specifyTokenId, int32_t targetUserId) const
 {
-    return false;
+    return !!(MyFlag::flag_ & MyFlag::FLAG::IS_LOCAL_DEBUG_CALL);
 }
 
 bool PermissionVerification::IsCustomSandboxCall(const uint32_t specifyTokenId, int32_t targetUserId) const
 {
-    return false;
+    return !!(MyFlag::flag_ & MyFlag::FLAG::IS_CUSTOM_SANDBOX_CALL);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
