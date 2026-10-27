@@ -17862,9 +17862,6 @@ int32_t AbilityManagerService::PreStartInner(const FreeInstallInfo& taskInfo)
     // sceneboard
     abilityRequest.userId = oriValidUserId;
     abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
-    std::string sessionId = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count());
-    abilityRequest.want.SetParam(KEY_SESSION_ID, sessionId);
     auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
     sptr<SessionInfo> sessionInfo = nullptr;
@@ -17874,10 +17871,6 @@ int32_t AbilityManagerService::PreStartInner(const FreeInstallInfo& taskInfo)
         return errCode;
     }
     CHECK_POINTER_AND_RETURN(freeInstallManager_, ERR_INVALID_VALUE);
-    freeInstallManager_->SetFreeInstallTaskSessionId(taskInfo.want.GetBundleNameRef(),
-        taskInfo.want.GetAbilityNameRef(),
-        taskInfo.want.GetStringParam(Want::PARAM_RESV_START_TIME), sessionId);
-
     freeInstallManager_->SetPreStartMissionCallStatus(taskInfo.want.GetBundleNameRef(),
         taskInfo.want.GetAbilityNameRef(),
         taskInfo.want.GetStringParam(Want::PARAM_RESV_START_TIME),
@@ -17968,6 +17961,7 @@ int32_t AbilityManagerService::StartUIAbilityByPreInstall(const FreeInstallInfo 
 
     if (sessionInfo->isMinimizedDuringFreeInstall) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability is already minimized");
+        RemovePreStartSession(sessionId);
         return ATOMIC_SERVICE_MINIMIZED;
     }
 

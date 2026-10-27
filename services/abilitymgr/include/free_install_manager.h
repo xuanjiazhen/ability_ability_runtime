@@ -188,17 +188,6 @@ public:
     void SetPreStartMissionCallStatus(const std::string& bundleName, const std::string& abilityName,
         const std::string& startTime, bool preStartMissionCallStatus);
 
-    /**
-     * Set the sessionId of the given free install task.
-     *
-     * @param bundleName, the bundle name of the task.
-     * @param abilityName, the abilitu name of the task.
-     * @param startTime, the start time of the task.
-     * @param sessionId, the sessionId of the free install task.
-    */
-    void SetFreeInstallTaskSessionId(const std::string& bundleName, const std::string& abilityName,
-        const std::string& startTime, const std::string& sessionId);
-
 private:
     std::vector<FreeInstallInfo> freeInstallList_;
     std::vector<FreeInstallInfo> dmsFreeInstallCbs_;
