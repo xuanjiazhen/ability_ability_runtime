@@ -38,7 +38,7 @@ struct AbilitySessionInfo {
     int32_t callerAppCloneIndex = 0;
     // Snapshot of the insight intent identity params taken from the sanitized Want before the
     // SCB relay; verified against the Want when SCB calls back into AMS.
-    AAFwk::WantParams insightIntentParams;
+    OHOS::AAFwk::WantParams insightIntentParams;
     bool hasInsightIntent = false;
 };
 
