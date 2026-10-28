@@ -30,6 +30,7 @@
 #include "hitrace_meter.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_manager.h"
+#include "int_wrapper.h"
 #include "ipc_skeleton.h"
 #include "global_constant.h"
 #include "exec_options.h"
