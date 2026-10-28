@@ -32,26 +32,32 @@ using namespace DataShare;
 namespace {
 constexpr char KEYWORD_FIELD[] = "KEYWORD";
 constexpr char VALUE_FIELD[] = "VALUE";
+constexpr size_t HEX_DIGIT_COUNT = 2;
+constexpr int HEX_BASE = 16;
+constexpr uint32_t MAX_BYTE_VALUE = 0xFF;
 
 bool UrlDecode(const std::string &input, std::string &output)
 {
     output.clear();
-    for (size_t index = 0; index < input.size(); index++) {
+    size_t index = 0;
+    while (index < input.size()) {
         if (input[index] != '%') {
             output.push_back(input[index]);
+            index++;
             continue;
         }
-        if (index + 2 >= input.size()) {
+        if (index + HEX_DIGIT_COUNT >= input.size()) {
             return false;
         }
-        std::string hex = input.substr(index + 1, 2);
+        std::string hex = input.substr(index + 1, HEX_DIGIT_COUNT);
         uint32_t value = 0;
-        auto result = std::from_chars(hex.data(), hex.data() + hex.size(), value, 16);
-        if (result.ec != std::errc() || result.ptr != hex.data() + hex.size() || value > 0xFF) {
+        auto result = std::from_chars(hex.data(), hex.data() + hex.size(), value, HEX_BASE);
+        if (result.ec != std::errc() || result.ptr != hex.data() + hex.size() ||
+            value > MAX_BYTE_VALUE) {
             return false;
         }
         output.push_back(static_cast<char>(value));
-        index += 2;
+        index += HEX_DIGIT_COUNT;
     }
     return true;
 }
@@ -77,6 +83,29 @@ bool MatchValueBuckets(const ObserverNode &observer, const ChangeInfo::VBuckets 
         }
     }
     return false;
+}
+
+bool VerifyObserverPermission(Uri &uri, int32_t userId, std::string &readPermission, bool isSilentUri,
+    uint32_t tokenId, const ObserverNode &observer, std::string &uriStr, const std::string &functionName)
+{
+    uint32_t token = observer.tokenId_;
+    if (uri.GetScheme() == ObsPermissionVerifier::RELATIONAL_STORE) {
+        return ObsPermissionVerifier::GetInstance().VerifyPermission(token, userId, uri, tokenId);
+    }
+    if (!DataSharePermission::IsSingletonTrustUri(uri) && observer.userId_ != 0 && userId != 0 &&
+        observer.userId_ != userId) {
+        TAG_LOGW(AAFwkTag::DBOBSMGR, "Not allow across user notify, %{public}d to %{public}d, %{public}s",
+            userId, observer.userId_, CommonUtils::Anonymous(uriStr).c_str());
+        return false;
+    }
+    if (!DataShare::DataSharePermission::VerifyPermission(uri, token, readPermission, isSilentUri)) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "Verify denied, token %{public}d permission %{public}s uri %{public}s "
+            "pid %{public}d", token, readPermission.c_str(), CommonUtils::Anonymous(uriStr).c_str(), observer.pid_);
+        std::string businessType = functionName;
+        DataSharePermission::ReportExtensionFault(E_DATASHARE_PERMISSION_DENIED, token, uriStr, businessType);
+        return false;
+    }
+    return true;
 }
 } // namespace
 
@@ -194,26 +223,9 @@ int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::str
         if (!obs.filterKey_.empty() && !valueBuckets.empty() && !MatchValueBuckets(obs, valueBuckets)) {
             continue;
         }
-        uint32_t token = obs.tokenId_;
-        if (uriTemp.GetScheme() == ObsPermissionVerifier::RELATIONAL_STORE) {
-            if (!ObsPermissionVerifier::GetInstance().VerifyPermission(token, userId, uriTemp, tokenId)) {
-                continue;
-            }
-        } else {
-            if (!DataSharePermission::IsSingletonTrustUri(uri) &&
-                obs.userId_ != 0 && userId != 0 && obs.userId_ != userId) {
-                TAG_LOGW(AAFwkTag::DBOBSMGR, "Not allow across user notify, %{public}d to %{public}d, %{public}s",
-                    userId, obs.userId_, CommonUtils::Anonymous(uriStr).c_str());
-                continue;
-            }
-            if (!DataShare::DataSharePermission::VerifyPermission(uriTemp, token, readPermission, isSilentUri)) {
-                TAG_LOGE(AAFwkTag::DBOBSMGR, "Verify denied, token %{public}d permission %{public}s uri %{public}s "
-                    "pid %{public}d", token, readPermission.c_str(), CommonUtils::Anonymous(uriStr).c_str(), obs.pid_);
-                // just hisysevent now
-                std::string msg = __FUNCTION__;
-                DataSharePermission::ReportExtensionFault(E_DATASHARE_PERMISSION_DENIED, token, uriStr, msg);
-                continue;
-            }
+        if (!VerifyObserverPermission(uriTemp, userId, readPermission, isSilentUri, tokenId, obs, uriStr,
+            __FUNCTION__)) {
+            continue;
         }
         obs.observer_->OnChange();
         obsStr += "p:" + std::to_string(obs.pid_) + "Id:" + std::to_string(obs.nodeId_) + ",";
