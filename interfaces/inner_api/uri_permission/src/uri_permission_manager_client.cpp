@@ -29,10 +29,16 @@ const int MAX_URI_COUNT = 200000;
 constexpr size_t MAX_IPC_RAW_DATA_SIZE = 128 * 1024 * 1024; // 128M
 constexpr int32_t BROKER_UID = 5557;
 
+// RM.009 temporary stub. Replace the legacy source when the process-appuid API is available.
+auto GetSelfAppUid()
+{
+    return getuid();
+}
+
 bool CheckUseRawData()
 {
     // broker can't use raw data
-    auto selfUID = getuid();
+    auto selfUID = GetSelfAppUid();
     return selfUID != BROKER_UID;
 }
 } // namespace
