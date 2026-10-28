@@ -29,6 +29,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "insight_intent_execute_param.h"
+#include "insight_intent_execute_manager.h"
 #include "ipc_skeleton.h"
 #include "global_constant.h"
 #include "exec_options.h"
@@ -469,24 +470,44 @@ void UpdateCallerInfoUtil::RestoreCallerInfoToWant(Want &want, const AbilitySess
 
 void UpdateCallerInfoUtil::CacheInsightIntentParams(const AbilityRequest &abilityRequest, AbilitySessionInfo &info)
 {
-    if (!abilityRequest.isInsightIntentExecute) {
-        // Not an intent execute entry: mark absent so the verify step strips any intent identity
-        // params injected into the Want before or during the SCB relay.
-        info.hasInsightIntent = false;
-        return;
-    }
-    const Want &want = abilityRequest.want;
-    info.hasInsightIntent = true;
-    for (const auto &entry : INTENT_IDENTITY_KEYS) {
-        if (!want.HasParameter(entry.key)) {
-            continue;
+    // Same judgment as AbilityManagerService::IsInsightIntentCall: the Want must carry a valid
+    // insightIntentId whose execute-manager record target bundle matches the requested ability.
+    // This is evaluated while the original caller IPC context is still alive (before
+    // PendingSessionActivation hands the session to SCB), so the result is trusted and cached
+    // into AbilitySessionInfo; the SCB return path must not re-judge it.
+    std::string intentIdStr = abilityRequest.want.GetStringParam(
+        AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID);
+    if (!intentIdStr.empty()) {
+        uint64_t intentId = 0;
+        try {
+            intentId = std::stoull(intentIdStr);
+        } catch (...) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid insight intent id: %{public}s", intentIdStr.c_str());
+            intentIdStr.clear();
         }
-        if (entry.isInt) {
-            info.insightIntentParams.SetParam(entry.key, AAFwk::Integer::Box(want.GetIntParam(entry.key, 0)));
-        } else {
-            info.insightIntentParams.SetParam(entry.key, AAFwk::String::Box(want.GetStringParam(entry.key)));
+        auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+        std::string recordBundle;
+        if (!intentIdStr.empty() && executeManager != nullptr &&
+            executeManager->GetBundleName(intentId, recordBundle) == ERR_OK &&
+            recordBundle == abilityRequest.abilityInfo.bundleName) {
+            const Want &want = abilityRequest.want;
+            info.hasInsightIntent = true;
+            for (const auto &entry : INTENT_IDENTITY_KEYS) {
+                if (!want.HasParameter(entry.key)) {
+                    continue;
+                }
+                if (entry.isInt) {
+                    info.insightIntentParams.SetParam(entry.key, AAFwk::Integer::Box(want.GetIntParam(entry.key, 0)));
+                } else {
+                    info.insightIntentParams.SetParam(entry.key, AAFwk::String::Box(want.GetStringParam(entry.key)));
+                }
+            }
+            return;
         }
     }
+    // Not an intent execute start: mark absent so the verify step strips any intent identity
+    // params injected into the Want before or during the SCB relay.
+    info.hasInsightIntent = false;
 }
 
 void UpdateCallerInfoUtil::VerifyInsightIntentParams(Want &want, const AbilitySessionInfo &info, bool hasCachedInfo)

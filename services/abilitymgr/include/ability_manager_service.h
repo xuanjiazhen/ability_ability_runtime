@@ -3779,7 +3779,7 @@ private:
     int32_t UpdateApplicationKeepAlive(int32_t userId) const;
 
     int32_t OpenLinkInner(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode,
-        bool removeInsightIntentFlag, bool hideFailureTipDialog = false, bool isInsightIntentExecute = false);
+        bool removeInsightIntentFlag, bool hideFailureTipDialog = false);
     int32_t KillProcessWithReasonInner(int32_t pid, const ExitReason &reason, bool isKillPrecedeStart);
 
     int32_t ProcessUdmfKey(
