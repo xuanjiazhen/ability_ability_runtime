@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "ams_want_param_filter.h"
+#include "insight_intent_execute_param.h"
 #include "int_wrapper.h"
 #include "mock_my_status.h"
 #include "skill_execute_param.h"
@@ -114,6 +115,34 @@ HWTEST_F(AMSWantParamFilterTest, AMSWantParamFilter_SystemApp_KeepsParam, Functi
     params.SetParam(AppExecFwk::SKILL_EXECUTE_PARAM_SKILL_NAME, String::Box("forged"));
     AMSWantParamFilter::GetInstance()->OnDeserialized(params);
     EXPECT_TRUE(params.HasParam(AppExecFwk::SKILL_EXECUTE_PARAM_SKILL_NAME));
+}
+
+/**
+ * @tc.number: AMSWantParamFilter_ThirdParty_StripsTaskId
+ * @tc.name: third-party caller strips the task attribution id
+ * @tc.desc: a cross-process third-party caller has the forged task attribution id stripped.
+ */
+HWTEST_F(AMSWantParamFilterTest, AMSWantParamFilter_ThirdParty_StripsTaskId, Function | MediumTest | Level1)
+{
+    WantParams params;
+    params.SetParam(AppExecFwk::INSIGHT_INTENT_TASK_ID, String::Box("forged-task-id"));
+    AMSWantParamFilter::GetInstance()->OnDeserialized(params);
+    EXPECT_FALSE(params.HasParam(AppExecFwk::INSIGHT_INTENT_TASK_ID));
+}
+
+/**
+ * @tc.number: AMSWantParamFilter_SystemApp_KeepsTaskId
+ * @tc.name: system app caller keeps the task attribution id
+ * @tc.desc: a system app caller keeps the task attribution id so the system
+ *           attribution chain (CLI tool / AI assistant) is not broken.
+ */
+HWTEST_F(AMSWantParamFilterTest, AMSWantParamFilter_SystemApp_KeepsTaskId, Function | MediumTest | Level1)
+{
+    MyStatus::GetInstance().isSystemAppCall_ = true;
+    WantParams params;
+    params.SetParam(AppExecFwk::INSIGHT_INTENT_TASK_ID, String::Box("system-task-id"));
+    AMSWantParamFilter::GetInstance()->OnDeserialized(params);
+    EXPECT_TRUE(params.HasParam(AppExecFwk::INSIGHT_INTENT_TASK_ID));
 }
 
 /**

@@ -74,6 +74,9 @@ const std::map<std::string, std::string> THIRD_PARTY_PARAMS_TO_STRIP = {
     { AppExecFwk::INSIGHT_INTENT_QUERY_TYPE, "insight intent query type" },
     { AppExecFwk::INSIGHT_INTENT_QUERY_ENTITY_PARAM_PARAM, "insight intent query entity param" },
     { AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID, "insight intent param user id" },
+    // Task attribution id is injected by the system (CLI tool / AI assistant)
+    // only; a third-party app must not forge it.
+    { AppExecFwk::INSIGHT_INTENT_TASK_ID, "insight intent task attribution id" },
     { "ohos.insightIntent.bundleName", "insight intent bundle name" },
     { "ohos.insightIntent.moduleName", "insight intent module name" },
     { "ohos.insightIntent.hapPath", "insight intent hap path" },
