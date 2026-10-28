@@ -34,6 +34,7 @@ bool GetDirectBootBundleInfo(const std::string &bundleName, AppExecFwk::BundleIn
     ability.name = "EntryAbility";
     ability.visible = true;
     ability.type = AppExecFwk::AbilityType::PAGE;
+    bundleInfo.abilityInfos.push_back(ability);
     AppExecFwk::HapModuleInfo module;
     module.abilityInfos.push_back(ability);
     bundleInfo.hapModuleInfos.push_back(module);
