@@ -1058,13 +1058,13 @@ std::shared_ptr<ChildProcessRecord> AppRunningRecord::GetChildProcessRecordByPid
 
 std::map<int32_t, std::shared_ptr<ChildProcessRecord>> AppRunningRecord::GetChildProcessRecordMap()
 {
-    std::lock_guard lock(childProcessRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     return childProcessRecordMap_;
 }
 
 int32_t AppRunningRecord::GetChildProcessCount()
 {
-    std::lock_guard lock(childProcessRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     return 0;
 }
 

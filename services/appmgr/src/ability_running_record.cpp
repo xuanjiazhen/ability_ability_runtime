@@ -32,6 +32,50 @@ AbilityRunningRecord::AbilityRunningRecord(std::shared_ptr<AbilityInfo> info,
 AbilityRunningRecord::~AbilityRunningRecord()
 {}
 
+void AbilityRunningRecord::ClearPayloadAfterLoad()
+{
+    if (payloadCleared_ || !info_) {
+        return;
+    }
+    payloadCleared_ = true;
+    std::vector<AppExecFwk::Metadata>().swap(info_->metadata);
+    std::vector<std::string>().swap(info_->deviceTypes);
+    std::vector<std::string>().swap(info_->deviceCapabilities);
+    std::vector<std::string>().swap(info_->permissions);
+    std::vector<std::string>().swap(info_->configChanges);
+    std::vector<std::string>().swap(info_->supportExtNames);
+    std::vector<std::string>().swap(info_->supportMimeTypes);
+    std::vector<std::string>().swap(info_->continueType);
+    std::unordered_set<std::string>().swap(info_->continueBundleNames);
+    for (auto &s : {&info_->uri, &info_->readPermission, &info_->writePermission,
+        &info_->label, &info_->description, &info_->iconPath, &info_->targetAbility,
+        &info_->srcPath, &info_->srcEntrance, &info_->package, &info_->codePath,
+        &info_->className, &info_->originalClassName, &info_->versionName,
+        &info_->privacyUrl, &info_->privacyName, &info_->downloadUrl,
+        &info_->uriPermissionMode, &info_->uriPermissionPath, &info_->libPath,
+        &info_->theme, &info_->kind, &info_->originalBundleName, &info_->appName,
+        &info_->startWindow, &info_->startWindowIcon, &info_->startWindowBackground,
+        &info_->preferMultiWindowOrientation, &info_->srcLanguage, &info_->arkTSMode,
+        &info_->resourcePath, &info_->hapPath}) {
+        s->clear();
+        s->shrink_to_fit();
+    }
+    info_->startWindowResource = AppExecFwk::StartWindowResource();
+    std::vector<AppExecFwk::ModuleInfo>().swap(info_->applicationInfo.moduleInfos);
+    std::vector<std::string>().swap(info_->applicationInfo.moduleSourceDirs);
+    std::vector<std::string>().swap(info_->applicationInfo.permissions);
+    std::vector<std::string>().swap(info_->applicationInfo.targetBundleList);
+    std::vector<AppExecFwk::ApplicationEnvironment>().swap(info_->applicationInfo.appEnvironments);
+    std::vector<AppExecFwk::AlternateIcon>().swap(info_->applicationInfo.alternateIcons);
+    std::vector<std::string>().swap(info_->applicationInfo.assetAccessGroups);
+    std::vector<std::string>().swap(info_->applicationInfo.allowCommonEvent);
+    std::vector<std::string>().swap(info_->applicationInfo.allowListenBundleChangedEvent);
+    std::vector<int32_t>().swap(info_->applicationInfo.resourcesApply);
+    info_->applicationInfo.metaData.clear();
+    info_->applicationInfo.metadata.clear();
+    info_->applicationInfo.hnpPackages.clear();
+}
+
 const std::string &AbilityRunningRecord::GetName() const
 {
     if (info_ == nullptr) {
