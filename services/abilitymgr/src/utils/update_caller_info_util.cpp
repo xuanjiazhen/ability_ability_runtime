@@ -15,9 +15,12 @@
 
 #include "utils/update_caller_info_util.h"
 
+#include <vector>
+
 #include "ability_event_util.h"
 #include "ability_util.h"
 #include "ability_record.h"
+#include "ability_record/ability_request.h"
 #include "accesstoken_kit.h"
 #include "app_scheduler.h"
 #include "ams_configuration_parameter.h"
@@ -25,6 +28,7 @@
 #include "dialog_session_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "insight_intent_execute_param.h"
 #include "ipc_skeleton.h"
 #include "global_constant.h"
 #include "exec_options.h"
@@ -32,6 +36,7 @@
 #include "scene_board_judgement.h"
 #include "start_ability_utils.h"
 #include "startup_util.h"
+#include "string_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -53,6 +58,25 @@ constexpr const char* UIEXTENSION_TYPE_KEY = "ability.want.params.uiExtensionTyp
 const std::string HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
 constexpr int32_t DEFAULT_HIDE_SENSITIVE_TYPE = 4;
 constexpr int32_t BROKER_UID = 5557;
+
+// Identity params of an insight intent execution that must survive the SCB relay unchanged.
+// Scalar keys only: the insightIntentParam payload itself is business data, not identity.
+// Keep in sync with the intent section of AMSWantParamFilter's THIRD_PARTY_PARAMS_TO_STRIP.
+constexpr const char* INTENT_PARAM_USER_ID = "ohos.insightIntent.userId";  // AbilityRuntime::INTENT_USER_ID
+struct IntentIdentityKey {
+    const char *key;
+    bool isInt;
+};
+const std::vector<IntentIdentityKey> INTENT_IDENTITY_KEYS = {
+    { AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, false },
+    { AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, false },
+    { AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, true },
+    { AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG, true },
+    { AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME, false },
+    { AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID, false },
+    { AppExecFwk::INSIGHT_INTENT_CALLER_UID, true },
+    { INTENT_PARAM_USER_ID, true },
+};
 }
 
 UpdateCallerInfoUtil &UpdateCallerInfoUtil::GetInstance()
@@ -441,6 +465,85 @@ void UpdateCallerInfoUtil::RestoreCallerInfoToWant(Want &want, const AbilitySess
     want.SetParam(Want::PARAM_RESV_CALLER_APP_ID, info.callerAppId);
     want.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER, info.callerAppIdentifier);
     want.SetParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, info.callerAppCloneIndex);
+}
+
+void UpdateCallerInfoUtil::CacheInsightIntentParams(const AbilityRequest &abilityRequest, AbilitySessionInfo &info)
+{
+    if (!abilityRequest.isInsightIntentExecute) {
+        // Not an intent execute entry: mark absent so the verify step strips any intent identity
+        // params injected into the Want before or during the SCB relay.
+        info.hasInsightIntent = false;
+        return;
+    }
+    const Want &want = abilityRequest.want;
+    info.hasInsightIntent = true;
+    for (const auto &entry : INTENT_IDENTITY_KEYS) {
+        if (!want.HasParameter(entry.key)) {
+            continue;
+        }
+        if (entry.isInt) {
+            info.insightIntentParams.SetParam(entry.key, AAFwk::Integer::Box(want.GetIntParam(entry.key, 0)));
+        } else {
+            info.insightIntentParams.SetParam(entry.key, AAFwk::String::Box(want.GetStringParam(entry.key)));
+        }
+    }
+}
+
+void UpdateCallerInfoUtil::VerifyInsightIntentParams(Want &want, const AbilitySessionInfo &info, bool hasCachedInfo)
+{
+    // No cached session info (miss or requestId == -1) or the start was not an intent execute:
+    // fail closed, the Want must not carry intent identity params across the SCB relay.
+    if (!hasCachedInfo || !info.hasInsightIntent) {
+        for (const auto &entry : INTENT_IDENTITY_KEYS) {
+            if (want.HasParameter(entry.key)) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR,
+                    "remove insight intent identity param without trusted cache: %{public}s", entry.key);
+                want.RemoveParam(entry.key);
+            }
+        }
+        return;
+    }
+    bool mismatch = false;
+    for (const auto &entry : INTENT_IDENTITY_KEYS) {
+        bool cachedHas = info.insightIntentParams.HasParam(entry.key);
+        bool currentHas = want.HasParameter(entry.key);
+        if (cachedHas != currentHas) {
+            mismatch = true;
+            break;
+        }
+        if (!cachedHas) {
+            continue;
+        }
+        if (entry.isInt) {
+            if (info.insightIntentParams.GetIntParam(entry.key, 0) != want.GetIntParam(entry.key, 0)) {
+                mismatch = true;
+                break;
+            }
+        } else {
+            if (info.insightIntentParams.GetStringParam(entry.key) != want.GetStringParam(entry.key)) {
+                mismatch = true;
+                break;
+            }
+        }
+    }
+    if (!mismatch) {
+        return;
+    }
+    // The params returned by SCB differ from the snapshot cached before the relay; the snapshot
+    // was taken from the sanitized Want, so rewrite it into the Want as the authoritative value.
+    TAG_LOGW(AAFwkTag::ABILITYMGR,
+        "insight intent identity params mismatch after SCB relay, restore from cached snapshot");
+    for (const auto &entry : INTENT_IDENTITY_KEYS) {
+        want.RemoveParam(entry.key);
+        if (!info.insightIntentParams.HasParam(entry.key)) {
+            continue;
+        }
+        if (entry.isInt) {
+            want.SetParam(entry.key, info.insightIntentParams.GetIntParam(entry.key, 0));
+        } else {
+            want.SetParam(entry.key, info.insightIntentParams.GetStringParam(entry.key));
+        }
+    }
 }
 
 void UpdateCallerInfoUtil::ClearProtectedWantParam(Want &want)

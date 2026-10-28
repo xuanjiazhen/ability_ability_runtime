@@ -118,6 +118,10 @@ struct AbilityRequest {
     bool isFromOpenLink = false;
     bool isStartByOEExt = false;
     bool isPrelaunch = false;
+    // True only for starts entering through an AMS insight-intent execute entry; used to decide
+    // whether the intent identity params may be snapshotted into AbilitySessionInfo before the
+    // SCB relay (see UpdateCallerInfoUtil::CacheInsightIntentParams).
+    bool isInsightIntentExecute = false;
     std::pair<bool, LaunchReason> IsContinuation() const;
 
     bool IsAcquireShareData() const
