@@ -72,6 +72,7 @@ bool GetDirectBootBundleInfo(const std::string &bundleName, AppExecFwk::BundleIn
 
 class DirectBootTestStore : public MockSingleKvStore {
 public:
+    DistributedKv::Status Get(const DistributedKv::Key &key, DistributedKv::Value &value) override;
     DistributedKv::Status GetEntries(const DistributedKv::Key &prefix,
         std::vector<DistributedKv::Entry> &entries) const override;
     DistributedKv::Status Put(const DistributedKv::Key &key, const DistributedKv::Value &value) override;
@@ -79,6 +80,7 @@ public:
 
     std::vector<DistributedKv::Entry> entries;
     DistributedKv::Status readResult = DistributedKv::Status::SUCCESS;
+    DistributedKv::Status writeResult = DistributedKv::Status::SUCCESS;
     int32_t writes = 0;
 };
 
