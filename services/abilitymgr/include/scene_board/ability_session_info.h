@@ -19,8 +19,6 @@
 #include <cstdint>
 #include <string>
 
-#include "want_params.h"
-
 struct AbilitySessionInfo {
     std::string callerBundleName;
     uint32_t callerTokenId = 0;
@@ -37,9 +35,22 @@ struct AbilitySessionInfo {
     std::string callerAppIdentifier;
     int32_t callerAppCloneIndex = 0;
     // Snapshot of the insight intent identity params taken from the sanitized Want before the
-    // SCB relay; verified against the Want when SCB calls back into AMS.
-    OHOS::AAFwk::WantParams insightIntentParams;
+    // SCB relay; verified against the Want and rewritten when SCB calls back into AMS. The
+    // has* flags record conditional param presence so the restore reproduces the Want exactly
+    // (name and id are always present for an intent execute start).
     bool hasInsightIntent = false;
+    std::string insightIntentName;
+    std::string insightIntentId;
+    int32_t insightIntentMode = 0;
+    bool hasInsightIntentMode = false;
+    int32_t insightIntentOpenLinkFlag = 0;
+    bool hasInsightIntentOpenLinkFlag = false;
+    std::string insightIntentCallerBundleName;
+    std::string insightIntentCallerTokenId;
+    int32_t insightIntentCallerUid = 0;
+    bool hasInsightIntentCallerInfo = false;
+    int32_t insightIntentUserId = 0;
+    bool hasInsightIntentUserId = false;
 };
 
 #endif // OHOS_ABILITY_RUNTIME_ABILITY_SESSION_INFO_H

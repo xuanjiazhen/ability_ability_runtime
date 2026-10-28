@@ -814,7 +814,6 @@ void UIAbilityLifecycleManager::CacheAbilitySessionInfo(sptr<SessionInfo> &sessi
         info.callerBundleName = abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
         info.callerTokenId = static_cast<uint32_t>(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
     }
-    UpdateCallerInfoUtil::GetInstance().CacheInsightIntentParams(abilityRequest, info);
     StoreAbilitySessionInfo(sessionInfo->requestId, info);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilitySessionInfo cached: bundle = %{public}s, tokenId = %{public}u, "
         "isWebSandBoxClone = %{public}d, sandBoxCloneIndex = %{public}d, creatorBundleName = %{public}s, "
@@ -4830,7 +4829,6 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
                 info.callerBundleName = request.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
                 info.callerTokenId = static_cast<uint32_t>(request.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
             }
-            UpdateCallerInfoUtil::GetInstance().CacheInsightIntentParams(request, info);
             StoreAbilitySessionInfo(specifiedRequest.requestId, info);
             AbilityRuntime::StartSpecifiedParam specifiedParam;
             BuildStartSpecifiedParam(request, specifiedRequest.requestId, specifiedParam);

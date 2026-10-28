@@ -3635,13 +3635,13 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         uiAbilityManager->RemoveAbilitySessionInfo(sessionInfo->requestId);
     }
     // Restore cached caller info to want so SCB-returned IPC values don't override the originals.
+    // RestoreCallerInfoToWant also verifies the insight intent identity snapshot cached before
+    // the SCB relay; without a cache, fail closed and strip any intent identity params.
     if (hasCachedInfo) {
         UpdateCallerInfoUtil::GetInstance().RestoreCallerInfoToWant(sessionInfo->want, abilitySessionInfo);
+    } else {
+        UpdateCallerInfoUtil::GetInstance().RemoveInsightIntentParams(sessionInfo->want);
     }
-    // Verify insight intent identity params against the snapshot cached before the SCB relay.
-    // Fail-closed: params are removed when there is no cache or the start was not an intent execute.
-    UpdateCallerInfoUtil::GetInstance().VerifyInsightIntentParams(sessionInfo->want, abilitySessionInfo,
-        hasCachedInfo);
     if (abilitySessionInfo.isWebSandBoxClone) {
         sessionInfo->want.RemoveParam(AbilityRuntime::ServerConstant::DLP_INDEX);
         sessionInfo->want.RemoveParam(Want::PARAM_APP_CLONE_INDEX_KEY);

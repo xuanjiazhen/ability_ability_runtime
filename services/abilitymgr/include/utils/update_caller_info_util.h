@@ -24,8 +24,6 @@
 
 namespace OHOS {
 namespace AAFwk {
-struct AbilityRequest;
-
 class UpdateCallerInfoUtil {
 public:
     static UpdateCallerInfoUtil &GetInstance();
@@ -42,8 +40,9 @@ public:
     void UpdateDmsCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken);
     void CacheCallerInfoFromWant(const Want &want, AbilitySessionInfo &info);
     void RestoreCallerInfoToWant(Want &want, const AbilitySessionInfo &info);
-    void CacheInsightIntentParams(const AbilityRequest &abilityRequest, AbilitySessionInfo &info);
-    void VerifyInsightIntentParams(Want &want, const AbilitySessionInfo &info, bool hasCachedInfo);
+    // Fail-closed cleanup for the SCB return path when no trusted session info was cached:
+    // the Want must not carry insight intent identity params across the relay.
+    void RemoveInsightIntentParams(Want &want);
 
 private:
     UpdateCallerInfoUtil() = default;
@@ -55,6 +54,8 @@ private:
     void UpdateCallerAbilityName(Want& want, const std::string &abilityName);
     void UpdateCallerAppCloneIndex(Want& want, int32_t appIndex);
     void ClearProtectedWantParam(Want &want);
+    void CacheInsightIntentParams(const Want &want, AbilitySessionInfo &info);
+    void RestoreInsightIntentParams(Want &want, const AbilitySessionInfo &info);
 
     DISALLOW_COPY_AND_MOVE(UpdateCallerInfoUtil);
 };
