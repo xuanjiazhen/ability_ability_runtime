@@ -205,8 +205,9 @@ OHOS::AppExecFwk::FormProviderInfo JsFormExtension::OnCreate(const OHOS::AAFwk::
     }
     AppExecFwk::FormProviderData formData = AppExecFwk::FormProviderData(formDataStr);
 
-    formProviderInfo.SetFormData(formData);
     formProviderInfo.SetSupportMoreImages(GetIsSupportMoreImages(env, nativeResult));
+
+    formProviderInfo.SetFormData(formData);
 
     napi_value nativeProxies = nullptr;
     napi_get_named_property(env, nativeResult, "proxies", &nativeProxies);
