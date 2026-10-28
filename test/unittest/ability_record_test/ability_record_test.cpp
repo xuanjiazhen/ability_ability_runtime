@@ -1641,10 +1641,13 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_DumpAbilityInfoDone_001, TestSize.Leve
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     EXPECT_NE(abilityRecord, nullptr);
     std::vector<std::string> infos;
-    abilityRecord->isDumpTimeout_ = true;
+    infos.push_back("test");
     abilityRecord->DumpAbilityInfoDone(infos);
-    abilityRecord->isDumpTimeout_ = false;
+    auto ctx = std::make_shared<AbilityRecord::DumpContext>();
+    abilityRecord->dumpCtx_ = ctx;
     abilityRecord->DumpAbilityInfoDone(infos);
+    EXPECT_EQ(ctx->infos.size(), 1);
+    abilityRecord->dumpCtx_.reset();
 }
 
 /*

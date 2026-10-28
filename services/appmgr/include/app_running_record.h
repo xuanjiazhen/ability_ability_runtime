@@ -1208,7 +1208,7 @@ public:
 
     inline void SetKillReason(std::string killReason)
     {
-        std::lock_guard<ffrt::mutex> lock(killReasonLock_);
+        std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
         if (killReason_ == "") {
             killReason_ = killReason;
         }
@@ -1216,7 +1216,7 @@ public:
 
     inline std::string GetKillReason() const
     {
-        std::lock_guard<ffrt::mutex> lock(killReasonLock_);
+        std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
         return killReason_;
     }
 
@@ -1420,6 +1420,8 @@ private:
         }
     };
 
+    void ClearAppInfoPayload();
+
     /**
      * @brief Generate a globally unique running ID
      * @return uint64_t A 64-bit random number
@@ -1440,16 +1442,16 @@ private:
     std::map<std::string, std::vector<std::shared_ptr<ModuleRunningRecord>>> hapModules_;
     std::map<int32_t, std::shared_ptr<RenderRecord>> renderRecordMap_; // render record
     std::map<pid_t, std::weak_ptr<AppRunningRecord>> childAppRecordMap_;
-    mutable ffrt::mutex childAppRecordMapLock_;
+    mutable ffrt::mutex childRecordLock_;
     std::unordered_set<sptr<IRemoteObject>, RemoteObjHash> foregroundingAbilityTokens_;
     std::set<pid_t> renderPidSet_; // Contains all render pid added, whether died or not
     std::set<uint32_t> windowIds_;
 #ifdef SUPPORT_CHILD_PROCESS
     std::map<pid_t, std::shared_ptr<ChildProcessRecord>> childProcessRecordMap_;
-    ffrt::mutex childProcessRecordMapLock_;
 #endif //SUPPORT_CHILD_PROCESS
 
     std::shared_ptr<ApplicationInfo> appInfo_ = nullptr;  // application's info of this process
+    bool appInfoPayloadCleared_ = false;
     std::shared_ptr<PriorityObject> priorityObject_;
     std::shared_ptr<AppLifeCycleDeal> appLifeCycleDeal_ = nullptr;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
@@ -1466,7 +1468,7 @@ private:
 
     // Structs and Optional Types
     AppSpawnStartMsg startMsg_; // render record
-    std::optional<bool> supportMultiProcessDeviceFeature_ = std::nullopt;
+    std::atomic<int8_t> supportMultiProcessDeviceFeature_ = {0}; // 0=unset, 1=true, 2=false
 
     // Atomic Variables
     std::atomic<ApplicationState> curState_ = ApplicationState::APP_STATE_CREATE;  // current state of this process
@@ -1515,10 +1517,9 @@ private:
     int32_t callerTokenId_ = -1;
     int32_t callerUid_ = -1;
     std::string callerBundleName_;
-    mutable ffrt::mutex callerBundleNameLock_;
+    mutable ffrt::mutex callerInfoLock_;
     int32_t lastUIAbilityCallerUid_ = -1;
     std::string lastUIAbilityCallerName_;
-    mutable ffrt::mutex lastUIAbilityCallerLock_;
     int32_t exitReason_ = 0;
     std::atomic_int32_t pssValue_ = 0;
     std::atomic<bool> isUIExtensionPreload_ = false;
@@ -1592,19 +1593,10 @@ private:
     bool reasonExist_ = false;
     bool isFromScreenOffBackground_ = false;
 
-    ffrt::mutex appInfosLock_;
-    ffrt::mutex renderRecordMapLock_; // render record lock
-    ffrt::mutex renderPidSetLock_; // render pid set lock
-    ffrt::mutex windowIdsLock_;
+    mutable ffrt::mutex appInfoLock_; // protects appInfos_ and hapModules_
+    ffrt::mutex renderLock_; // protects renderRecordMap_, renderPidSet_ and windowIds_
     ffrt::mutex startupTaskDataLock_;
-    mutable ffrt::mutex killReasonLock_;
-    mutable ffrt::mutex exitReasonLock_;
-    mutable ffrt::mutex exitMsgLock_;
-    mutable ffrt::mutex killInfoLock_; // protects killId_ and killMsg_
-    mutable ffrt::mutex innerMsgLock_;
-    mutable ffrt::mutex killCallerLock_;
-    mutable ffrt::mutex supportMultiProcessDeviceFeatureLock_;
-    mutable ffrt::mutex hapModulesLock_;
+    mutable ffrt::mutex exitInfoLock_; // protects killReason_/exitReason_/exitMsg_/killId_/killMsg_/innerMsg_/killCallerPid_/killCallerProcessName_
     mutable std::mutex specifiedMutex_;
     mutable std::shared_mutex processTypeLock_;
 };

@@ -154,10 +154,13 @@ public:
 
     void SetUIExtensionBindAbilityId(const int32_t uiExtensionBindAbilityId);
     int32_t GetUIExtensionBindAbilityId() const;
+
+    void ClearPayloadAfterLoad();
 private:
     int32_t abilityRecordId_ = 0;
     int32_t uiExtensionAbilityId_ = 0;
     std::shared_ptr<AbilityInfo> info_;
+    bool payloadCleared_ = false;
     sptr<IRemoteObject> token_;
     sptr<IRemoteObject> preToken_;
     std::shared_ptr<AAFwk::Want> want_ = nullptr;

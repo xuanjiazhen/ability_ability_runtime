@@ -32,6 +32,14 @@ AbilityRunningRecord::AbilityRunningRecord(std::shared_ptr<AbilityInfo> info,
 AbilityRunningRecord::~AbilityRunningRecord()
 {}
 
+void AbilityRunningRecord::ClearPayloadAfterLoad()
+{
+    if (payloadCleared_ || !info_) {
+        return;
+    }
+    payloadCleared_ = true;
+}
+
 const std::string &AbilityRunningRecord::GetName() const
 {
     if (info_ == nullptr) {
