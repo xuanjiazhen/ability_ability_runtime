@@ -1378,12 +1378,14 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<BaseExtensionRecor
     SetExtensionLoadParam(loadParam, abilityRecord);
     AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(loadParam.token, "AbilityConnectManager::LoadAbility");
     HandleLoadAbilityOrStartSpecifiedProcess(loadParam, abilityRecord);
+    abilityRecord->ClearPayloadAfterLoad();
 }
 
 void AbilityConnectManager::HandleLoadAbilityOrStartSpecifiedProcess(
     const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     TAG_LOGD(AAFwkTag::EXT, "LoadAbility");
+    abilityRecord->ReplenishPayloadFromBMS();
     DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
         loadParam, abilityRecord->GetAbilityInfo(), abilityRecord->GetApplicationInfo(), abilityRecord->GetWant());
 }

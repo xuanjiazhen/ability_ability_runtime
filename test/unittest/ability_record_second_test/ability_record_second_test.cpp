@@ -584,9 +584,12 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DumpAbilityInfoDone_001, TestSiz
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     std::vector<std::string> infos;
     infos.push_back("test");
-    abilityRecord->isDumpTimeout_ = false;
     abilityRecord->DumpAbilityInfoDone(infos);
-    EXPECT_EQ(abilityRecord->dumpInfos_.size(), 1);
+    auto ctx = std::make_shared<AbilityRecord::DumpContext>();
+    abilityRecord->dumpCtx_ = ctx;
+    abilityRecord->DumpAbilityInfoDone(infos);
+    EXPECT_EQ(ctx->infos.size(), 1);
+    abilityRecord->dumpCtx_.reset();
 }
 
 #ifdef SUPPORT_UPMS

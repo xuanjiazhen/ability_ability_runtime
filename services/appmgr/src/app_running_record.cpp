@@ -128,7 +128,7 @@ void AppRunningRecord::SetCallerUid(int32_t uid)
 {
     callerUid_ = uid;
     {
-        std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+        std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
         callerBundleName_ = "";
     }
     if (uid >= 0) {
@@ -136,7 +136,7 @@ void AppRunningRecord::SetCallerUid(int32_t uid)
         std::string bundleName;
         if (bundleMgrHelper != nullptr &&
             IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(uid, bundleName)) == ERR_OK) {
-            std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+            std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
             callerBundleName_ = bundleName;
         }
     }
@@ -144,13 +144,13 @@ void AppRunningRecord::SetCallerUid(int32_t uid)
 
 std::string AppRunningRecord::GetCallerBundleName() const
 {
-    std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     return callerBundleName_;
 }
 
 void AppRunningRecord::SetCallerBundleName(const std::string &name)
 {
-    std::lock_guard<ffrt::mutex> lock(callerBundleNameLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     callerBundleName_ = name;
 }
 
@@ -166,25 +166,25 @@ void AppRunningRecord::SetCallerTokenId(int32_t tokenId)
 
 int32_t AppRunningRecord::GetLastUIAbilityCallerUid() const
 {
-    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     return lastUIAbilityCallerUid_;
 }
 
 void AppRunningRecord::SetLastUIAbilityCallerUid(int32_t uid)
 {
-    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     lastUIAbilityCallerUid_ = uid;
 }
 
 std::string AppRunningRecord::GetLastUIAbilityCallerName() const
 {
-    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     return lastUIAbilityCallerName_;
 }
 
 void AppRunningRecord::SetLastUIAbilityCallerName(const std::string &name)
 {
-    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
     lastUIAbilityCallerName_ = name;
 }
 
@@ -306,7 +306,7 @@ void AppRunningRecord::SetRestartTimeMillis(const int64_t restartTimeMillis)
 const std::list<std::shared_ptr<ApplicationInfo>> AppRunningRecord::GetAppInfoList()
 {
     std::list<std::shared_ptr<ApplicationInfo>> appInfoList;
-    std::lock_guard<ffrt::mutex> appInfosLock(appInfosLock_);
+    std::lock_guard<ffrt::mutex> appInfoLock(appInfoLock_);
     for (const auto &item : appInfos_) {
         appInfoList.push_back(item.second);
     }
@@ -389,7 +389,7 @@ void AppRunningRecord::RemoveModuleRecord(
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
 
-    std::lock_guard<ffrt::mutex> hapModulesLock(hapModulesLock_);
+    std::lock_guard<ffrt::mutex> appInfoLock(appInfoLock_);
     for (auto &item : hapModules_) {
         auto iter = std::find_if(item.second.begin(),
             item.second.end(),
@@ -398,11 +398,8 @@ void AppRunningRecord::RemoveModuleRecord(
             TAG_LOGD(AAFwkTag::APPMGR, "Removed a record.");
             iter = item.second.erase(iter);
             if (item.second.empty() && !isExtensionDebug) {
-                {
-                    std::lock_guard<ffrt::mutex> appInfosLock(appInfosLock_);
-                    TAG_LOGD(AAFwkTag::APPMGR, "Removed an appInfo.");
-                    appInfos_.erase(item.first);
-                }
+                TAG_LOGD(AAFwkTag::APPMGR, "Removed an appInfo.");
+                appInfos_.erase(item.first);
                 hapModules_.erase(item.first);
             }
             return;
@@ -425,7 +422,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     }
     AppLaunchData launchData;
     {
-        std::lock_guard<ffrt::mutex> appInfosLock(appInfosLock_);
+        std::lock_guard<ffrt::mutex> appInfoLock(appInfoLock_);
         auto moduleRecords = appInfos_.find(mainBundleName_);
         if (moduleRecords != appInfos_.end()) {
             launchData.SetApplicationInfo(*(moduleRecords->second));
@@ -549,6 +546,7 @@ void AppRunningRecord::AddAbilityStageBySpecifiedProcess(const std::string &bund
 void AppRunningRecord::AddAbilityStageDone()
 {
     TAG_LOGI(AAFwkTag::APPMGR, "bundle %{public}s", mainBundleName_.c_str());
+    ClearAppInfoPayload();
     RemoveEvent(AMSEventHandler::START_PROCESS_SPECIFIED_ABILITY_TIMEOUT_MSG);
     RemoveEvent(AMSEventHandler::START_PROCESS_SPECIFIED_ABILITY_HALF_TIMEOUT_MSG);
     RemoveEvent(AMSEventHandler::ADD_ABILITY_STAGE_INFO_TIMEOUT_MSG);
@@ -568,6 +566,27 @@ void AppRunningRecord::AddAbilityStageDone()
     }
 
     AddAbilityStage();
+}
+
+void AppRunningRecord::ClearAppInfoPayload()
+{
+    if (appInfoPayloadCleared_ || !appInfo_) {
+        return;
+    }
+    appInfoPayloadCleared_ = true;
+    std::vector<AppExecFwk::ModuleInfo>().swap(appInfo_->moduleInfos);
+    std::vector<std::string>().swap(appInfo_->moduleSourceDirs);
+    std::vector<std::string>().swap(appInfo_->permissions);
+    std::vector<std::string>().swap(appInfo_->targetBundleList);
+    std::vector<AppExecFwk::ApplicationEnvironment>().swap(appInfo_->appEnvironments);
+    std::vector<AppExecFwk::AlternateIcon>().swap(appInfo_->alternateIcons);
+    std::vector<std::string>().swap(appInfo_->assetAccessGroups);
+    std::vector<std::string>().swap(appInfo_->allowCommonEvent);
+    std::vector<std::string>().swap(appInfo_->allowListenBundleChangedEvent);
+    std::vector<int32_t>().swap(appInfo_->resourcesApply);
+    appInfo_->metaData.clear();
+    appInfo_->metadata.clear();
+    appInfo_->hnpPackages.clear();
 }
 
 void AppRunningRecord::SetModuleLoaded(const std::string &moduleName) const
@@ -782,7 +801,7 @@ void AppRunningRecord::AddModule(std::shared_ptr<ApplicationInfo> appInfo,
     }
 
     std::shared_ptr<ModuleRunningRecord> moduleRecord;
-    std::lock_guard<ffrt::mutex> hapModulesLock(hapModulesLock_);
+    std::lock_guard<ffrt::mutex> appInfoLock(appInfoLock_);
     const auto &iter = hapModules_.find(appInfo->bundleName);
     if (iter != hapModules_.end()) {
         moduleRecord = GetModuleRecordByModuleName(appInfo->bundleName, hapModuleInfo.moduleName);
@@ -796,10 +815,7 @@ void AppRunningRecord::AddModule(std::shared_ptr<ApplicationInfo> appInfo,
         std::vector<std::shared_ptr<ModuleRunningRecord>> moduleList;
         moduleList.push_back(moduleRecord);
         hapModules_.emplace(appInfo->bundleName, moduleList);
-        {
-            std::lock_guard<ffrt::mutex> appInfosLock(appInfosLock_);
-            appInfos_.emplace(appInfo->bundleName, appInfo);
-        }
+        appInfos_.emplace(appInfo->bundleName, appInfo);
         moduleRecord->Init(hapModuleInfo, appIndex_, appMgrServiceInner_, appLifeCycleDeal_);
     }
 
@@ -879,7 +895,7 @@ AbilityStateData AppRunningRecord::BuildAbilityStateData(
         abilityStateData.callerPid = ability->GetWant()->GetIntParam(Want::PARAM_RESV_CALLER_PID, -1);
     }
     {
-        std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+        std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
         abilityStateData.lastUIAbilityCallerUid = lastUIAbilityCallerUid_;
         abilityStateData.lastUIAbilityCallerName = lastUIAbilityCallerName_;
     }
@@ -1042,7 +1058,7 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
     TAG_LOGI(AAFwkTag::APPMGR, "AbilityForeground set caller info, callerUid:%{public}d, "
         "callerBundleName:%{public}s", callerInfo.callerUid, callerInfo.callerBundleName.c_str());
     {
-        std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+        std::lock_guard<ffrt::mutex> lock(callerInfoLock_);
         lastUIAbilityCallerUid_ = callerInfo.callerUid;
         lastUIAbilityCallerName_ = callerInfo.callerBundleName;
     }
@@ -1316,7 +1332,7 @@ void AppRunningRecord::ScheduleTerminateByDelayed(bool isLastUIAbility)
 std::list<std::shared_ptr<ModuleRunningRecord>> AppRunningRecord::GetAllModuleRecord() const
 {
     std::list<std::shared_ptr<ModuleRunningRecord>> moduleRecordList;
-    std::lock_guard<ffrt::mutex> hapModulesLock(hapModulesLock_);
+    std::lock_guard<ffrt::mutex> appInfoLock(appInfoLock_);
     for (const auto &item : hapModules_) {
         for (const auto &list : item.second) {
             moduleRecordList.push_back(list);
@@ -1665,7 +1681,7 @@ void AppRunningRecord::SetStageModelState(bool isStageBasedModel)
 bool AppRunningRecord::GetTheModuleInfoNeedToUpdated(const std::string bundleName, HapModuleInfo &info)
 {
     bool result = false;
-    std::lock_guard<ffrt::mutex> hapModulesLock(hapModulesLock_);
+    std::lock_guard<ffrt::mutex> appInfoLock(appInfoLock_);
     auto moduleInfoVectorIter = hapModules_.find(bundleName);
     if (moduleInfoVectorIter == hapModules_.end() || moduleInfoVectorIter->second.empty()) {
         return result;
@@ -1719,7 +1735,7 @@ bool AppRunningRecord::CanRestartResidentProc()
 
 void AppRunningRecord::GetBundleNames(std::vector<std::string> &bundleNames)
 {
-    std::lock_guard<ffrt::mutex> appInfosLock(appInfosLock_);
+    std::lock_guard<ffrt::mutex> appInfoLock(appInfoLock_);
     for (auto &app : appInfos_) {
         bundleNames.emplace_back(app.first);
     }
@@ -1865,7 +1881,7 @@ void AppRunningRecord::SchedulePrepareTerminate(const std::string &moduleName)
     }
     bool found = false;
     {
-        std::lock_guard<ffrt::mutex> hapModulesLock(hapModulesLock_);
+        std::lock_guard<ffrt::mutex> appInfoLock(appInfoLock_);
         for (const auto &iter : hapModules_) {
             for (const auto &moduleRecord : iter.second) {
                 if (moduleRecord != nullptr && moduleName == moduleRecord->GetModuleName()) {
@@ -1982,10 +1998,10 @@ void AppRunningRecord::AddRenderRecord(const std::shared_ptr<RenderRecord> &reco
         return;
     }
     {
-        std::lock_guard renderPidSetLock(renderPidSetLock_);
+        std::lock_guard renderPidSetLock(renderLock_);
         renderPidSet_.insert(record->GetPid());
     }
-    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    std::lock_guard renderRecordMapLock(renderLock_);
     renderRecordMap_.emplace(record->GetUid(), record);
 }
 
@@ -1995,19 +2011,19 @@ void AppRunningRecord::RemoveRenderRecord(const std::shared_ptr<RenderRecord> &r
         TAG_LOGD(AAFwkTag::APPMGR, "RemoveRenderRecord: record null");
         return;
     }
-    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    std::lock_guard renderRecordMapLock(renderLock_);
     renderRecordMap_.erase(record->GetUid());
 }
 
 void AppRunningRecord::RemoveRenderPid(pid_t renderPid)
 {
-    std::lock_guard renderPidSetLock(renderPidSetLock_);
+    std::lock_guard renderPidSetLock(renderLock_);
     renderPidSet_.erase(renderPid);
 }
 
 void AppRunningRecord::GetRenderProcessInfos(std::list<SimpleProcessInfo> &processInfos)
 {
-    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    std::lock_guard renderRecordMapLock(renderLock_);
     for (auto &item : renderRecordMap_) {
         auto renderRecord = item.second;
         if (renderRecord && renderRecord->GetPid() > 0) {
@@ -2019,13 +2035,13 @@ void AppRunningRecord::GetRenderProcessInfos(std::list<SimpleProcessInfo> &proce
 
 bool AppRunningRecord::ConstainsRenderPid(pid_t renderPid)
 {
-    std::lock_guard renderPidSetLock(renderPidSetLock_);
+    std::lock_guard renderPidSetLock(renderLock_);
     return renderPidSet_.find(renderPid) != renderPidSet_.end();
 }
 
 std::shared_ptr<RenderRecord> AppRunningRecord::GetRenderRecordByPid(const pid_t pid)
 {
-    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    std::lock_guard renderRecordMapLock(renderLock_);
     if (renderRecordMap_.empty()) {
         return nullptr;
     }
@@ -2040,7 +2056,7 @@ std::shared_ptr<RenderRecord> AppRunningRecord::GetRenderRecordByPid(const pid_t
 
 std::map<int32_t, std::shared_ptr<RenderRecord>> AppRunningRecord::GetRenderRecordMap()
 {
-    std::lock_guard renderRecordMapLock(renderRecordMapLock_);
+    std::lock_guard renderRecordMapLock(renderLock_);
     return renderRecordMap_;
 }
 
@@ -2258,7 +2274,7 @@ int32_t AppRunningRecord::PreTemplateProcessDeepFrozen()
 
 bool AppRunningRecord::IsAbilitiesBackground()
 {
-    std::lock_guard<ffrt::mutex> hapModulesLock(hapModulesLock_);
+    std::lock_guard<ffrt::mutex> appInfoLock(appInfoLock_);
     for (const auto &iter : hapModules_) {
         for (const auto &moduleRecord : iter.second) {
             if (moduleRecord == nullptr) {
@@ -2290,7 +2306,7 @@ void AppRunningRecord::ChangeWindowVisibility(const sptr<OHOS::Rosen::WindowVisi
         return;
     }
 
-    std::lock_guard windowIdsLock(windowIdsLock_);
+    std::lock_guard renderLock(renderLock_);
     auto iter = windowIds_.find(info->windowId_);
     if (iter != windowIds_.end() &&
         info->visibilityState_ == OHOS::Rosen::WindowVisibilityState::WINDOW_VISIBILITY_STATE_TOTALLY_OCCUSION) {
@@ -2319,7 +2335,7 @@ void AppRunningRecord::OnWindowVisibilityChanged(
             TAG_LOGD(AAFwkTag::APPMGR, "null info or info pid is not matched");
             continue;
         }
-        std::lock_guard windowIdsLock(windowIdsLock_);
+        std::lock_guard renderLock(renderLock_);
         auto iter = windowIds_.find(info->windowId_);
         if (iter != windowIds_.end() &&
             info->visibilityState_ == OHOS::Rosen::WindowVisibilityState::WINDOW_VISIBILITY_STATE_TOTALLY_OCCUSION) {
@@ -2371,7 +2387,7 @@ void AppRunningRecord::OnWindowVisibilityChangedWithPendingState()
 
 bool AppRunningRecord::IsWindowIdsEmpty()
 {
-    std::lock_guard windowIdsLock(windowIdsLock_);
+    std::lock_guard renderLock(renderLock_);
     return windowIds_.empty();
 }
 
@@ -2472,25 +2488,25 @@ ProcessType AppRunningRecord::GetProcessType() const
 
 std::map<pid_t, std::weak_ptr<AppRunningRecord>> AppRunningRecord::GetChildAppRecordMap() const
 {
-    std::lock_guard lock(childAppRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     return childAppRecordMap_;
 }
 
 void AppRunningRecord::AddChildAppRecord(pid_t pid, std::shared_ptr<AppRunningRecord> appRecord)
 {
-    std::lock_guard lock(childAppRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     childAppRecordMap_[pid] = appRecord;
 }
 
 void AppRunningRecord::RemoveChildAppRecord(pid_t pid)
 {
-    std::lock_guard lock(childAppRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     childAppRecordMap_.erase(pid);
 }
 
 void AppRunningRecord::ClearChildAppRecordMap()
 {
-    std::lock_guard lock(childAppRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     childAppRecordMap_.clear();
 }
 
@@ -2569,7 +2585,7 @@ void AppRunningRecord::AddChildProcessRecord(pid_t pid, std::shared_ptr<ChildPro
         TAG_LOGE(AAFwkTag::APPMGR, "pid <= 0");
         return;
     }
-    std::lock_guard lock(childProcessRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     childProcessRecordMap_.emplace(pid, record);
 }
 
@@ -2585,13 +2601,13 @@ void AppRunningRecord::RemoveChildProcessRecord(std::shared_ptr<ChildProcessReco
         TAG_LOGE(AAFwkTag::APPMGR, "pid <= 0");
         return;
     }
-    std::lock_guard lock(childProcessRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     childProcessRecordMap_.erase(pid);
 }
 
 std::shared_ptr<ChildProcessRecord> AppRunningRecord::GetChildProcessRecordByPid(pid_t pid)
 {
-    std::lock_guard lock(childProcessRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     auto iter = childProcessRecordMap_.find(pid);
     if (iter == childProcessRecordMap_.end()) {
         return nullptr;
@@ -2601,19 +2617,19 @@ std::shared_ptr<ChildProcessRecord> AppRunningRecord::GetChildProcessRecordByPid
 
 std::map<int32_t, std::shared_ptr<ChildProcessRecord>> AppRunningRecord::GetChildProcessRecordMap()
 {
-    std::lock_guard lock(childProcessRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     return childProcessRecordMap_;
 }
 
 int32_t AppRunningRecord::GetChildProcessCount()
 {
-    std::lock_guard lock(childProcessRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     return childProcessRecordMap_.size();
 }
 
 void AppRunningRecord::GetChildProcessInfos(std::list<SimpleProcessInfo> &processInfos)
 {
-    std::lock_guard lock(childProcessRecordMapLock_);
+    std::lock_guard lock(childRecordLock_);
     for (auto &iter : childProcessRecordMap_) {
         auto childRecord = iter.second;
         if (childRecord && childRecord->GetPid() > 0) {
@@ -2791,55 +2807,55 @@ bool AppRunningRecord::isNativeStart() const
 
 void AppRunningRecord::SetExitReason(int32_t reason)
 {
-    std::lock_guard<ffrt::mutex> lock(exitReasonLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     exitReason_ = reason;
 }
 
 int32_t AppRunningRecord::GetExitReason() const
 {
-    std::lock_guard<ffrt::mutex> lock(exitReasonLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return exitReason_;
 }
 
 void AppRunningRecord::SetExitMsg(const std::string &exitMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(exitMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     exitMsg_ = exitMsg;
 }
 
 std::string AppRunningRecord::GetExitMsg() const
 {
-    std::lock_guard<ffrt::mutex> lock(exitMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return exitMsg_;
 }
 
 void AppRunningRecord::SetKillId(int32_t killId)
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     killId_ = killId;
 }
 
 int32_t AppRunningRecord::GetKillId() const
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return killId_;
 }
 
 void AppRunningRecord::SetKillMsg(const std::string &killMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     killMsg_ = killMsg;
 }
 
 std::string AppRunningRecord::GetKillMsg() const
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return killMsg_;
 }
 
 bool AppRunningRecord::SetKillReasonIfAbsent(int32_t killId, const std::string &killMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     if (killId_ != DEFAULT_KILL_ID) {
         TAG_LOGD(AAFwkTag::APPMGR,
             "SetKillReasonIfAbsent refused, killId already set: %{public}d, incoming: %{public}d",
@@ -2853,32 +2869,32 @@ bool AppRunningRecord::SetKillReasonIfAbsent(int32_t killId, const std::string &
 
 void AppRunningRecord::SetInnerMsg(const std::string &innerMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(innerMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     innerMsg_ = innerMsg;
 }
 
 std::string AppRunningRecord::GetInnerMsg() const
 {
-    std::lock_guard<ffrt::mutex> lock(innerMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return innerMsg_;
 }
 
 void AppRunningRecord::SetKillCallerInfo(int32_t killCallerPid, const std::string &killCallerProcessName)
 {
-    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     killCallerPid_ = killCallerPid;
     killCallerProcessName_ = killCallerProcessName;
 }
 
 int32_t AppRunningRecord::GetKillCallerPid() const
 {
-    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return killCallerPid_;
 }
 
 std::string AppRunningRecord::GetKillCallerProcessName() const
 {
-    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(exitInfoLock_);
     return killCallerProcessName_;
 }
 
@@ -3067,7 +3083,7 @@ bool AppRunningRecord::GetProcessCacheLocked()
 
 bool AppRunningRecord::IsAllAbilityReadyToCleanedByUserRequest()
 {
-    std::lock_guard<ffrt::mutex> lock(hapModulesLock_);
+    std::lock_guard<ffrt::mutex> lock(appInfoLock_);
     for (const auto &iter : hapModules_) {
         for (const auto &moduleRecord : iter.second) {
             if (moduleRecord == nullptr) {
@@ -3202,14 +3218,16 @@ void AppRunningRecord::SetDebugFromLocal(bool isDebugFromLocal)
 
 std::optional<bool> AppRunningRecord::IsSupportMultiProcessDeviceFeature() const
 {
-    std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
-    return supportMultiProcessDeviceFeature_;
+    auto v = supportMultiProcessDeviceFeature_.load(std::memory_order_acquire);
+    if (v == 0) {
+        return std::nullopt;
+    }
+    return v == 1;
 }
 
 void AppRunningRecord::SetSupportMultiProcessDeviceFeature(bool support)
 {
-    std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
-    supportMultiProcessDeviceFeature_ = support;
+    supportMultiProcessDeviceFeature_.store(support ? 1 : 2, std::memory_order_release);
 }
 
 void AppRunningRecord::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos)

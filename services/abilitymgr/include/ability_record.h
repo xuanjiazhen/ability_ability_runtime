@@ -561,6 +561,7 @@ public:
 
     void SetStartSetting(const std::shared_ptr<AbilityStartSetting> &setting);
     std::shared_ptr<AbilityStartSetting> GetStartSetting() const;
+    void ConsumeStartSetting();
 
     void SetSandboxCloneParams(const std::shared_ptr<SandboxCloneParams> &params);
     std::shared_ptr<SandboxCloneParams> GetSandboxCloneParams() const;
@@ -579,6 +580,8 @@ public:
     {
         return keepAliveBundle_;
     }
+    void ClearPayloadAfterLoad();
+    void ReplenishPayloadFromBMS();
     bool IsAbilityDiedHandled();
     void SetLoading(bool status);
     bool IsLoading() const;
@@ -997,6 +1000,7 @@ protected:
     bool isHook_ = false;
     bool isPluginAbility_ = false;
     bool isPrelaunch_ = false;
+    std::atomic<bool> payloadCleared_ = false;
     std::atomic<bool> isGameSAPreLaunch_ = false;
     std::shared_ptr<SandboxCloneParams> sandboxCloneParams_ = nullptr;
 
@@ -1005,8 +1009,7 @@ protected:
     pid_t pid_ = 0;
     int32_t missionId_ = -1;
     int32_t ownerMissionUserId_ = -1;
-    int32_t scbUid_ = -1;
-    mutable ffrt::mutex scbUidLock_;
+    std::atomic_int32_t scbUid_ = -1;
     uint32_t extensionProcessMode_ = 0;       // new version
     int32_t appIndex_ = 0;          // new version
     int32_t restartCount_ = -1;
@@ -1024,7 +1027,6 @@ protected:
     std::list<std::shared_ptr<CallerRecord>> callerList_ = {};
     std::map<uint64_t, AbilityWindowState> abilityWindowStateMap_;
     PacMap stateDatas_;             // ability saved ability state data
-    std::vector<std::string> dumpInfos_;
     
     sptr<IAbilityScheduler> scheduler_ = {};       // kit scheduler
     sptr<IRemoteObject::DeathRecipient> schedulerDeathRecipient_ = {};  // scheduler binderDied Recipient
@@ -1065,12 +1067,17 @@ protected:
     std::string firstCallerBundleName_ = "";
 
     mutable ffrt::mutex callerListLock_;
-    mutable ffrt::mutex dumpInfoLock_;
-    mutable ffrt::mutex dumpLock_;
     mutable ffrt::mutex resultLock_;
     mutable ffrt::mutex wantLock_;
     mutable ffrt::mutex sessionLock_;
-    mutable ffrt::condition_variable dumpCondition_;
+    struct DumpContext {
+        ffrt::mutex lock;
+        ffrt::condition_variable cv;
+        std::vector<std::string> infos;
+        bool timeout = false;
+    };
+    mutable std::shared_ptr<DumpContext> dumpCtx_;
+    mutable ffrt::mutex dumpCtxLock_;
     ffrt::mutex lock_;
     ffrt::mutex connectWantLock_;
     std::mutex collaborateWantLock_;
@@ -1082,9 +1089,9 @@ protected:
     std::list<std::weak_ptr<AbilityRecord>> pluginAbilityList_;
 
     bool isKillForPermissionUpdate_ = false;
-    mutable bool isDumpTimeout_ = false;
     bool isPrepareTerminate_ = false;
     bool hasRecoverInfo_ = false;
+    bool settingConsumed_ = false;
 
 #ifdef SUPPORT_SCREEN
     bool isStartingWindow_ = false;
