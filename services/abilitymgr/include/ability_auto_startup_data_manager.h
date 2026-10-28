@@ -105,6 +105,9 @@ public:
     int32_t GetCurrentAppAutoStartupData(const std::string &bundleName,
         std::vector<AutoStartupInfo> &infoList, const std::string &accessTokenId);
 
+    // Preserve the record key and every stored value except isDirectBoot.
+    int32_t ResetAutoStartupDirectBoot(const AutoStartupInfo &info);
+
     int32_t GetAutoStartupStatusForSelf(uint32_t callerTokenId, bool &isAutoStartEnabled);
 
     /**

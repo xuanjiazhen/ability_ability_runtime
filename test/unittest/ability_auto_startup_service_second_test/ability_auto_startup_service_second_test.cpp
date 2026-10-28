@@ -1473,5 +1473,257 @@ HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_BootAppPermissionReject
     }
     EXPECT_EQ(GetDirectBootTestState().permissionQueries, 0);
 }
+
+/*
+ * Feature: AbilityAutoStartupService
+ * Function: CheckAutoStartupData
+ * FunctionPoints: Removing permission on update preserves the registration and all other stored fields.
+ */
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_UpdateResetsOnlyDirectBootFlag, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto info = context.Target("direct.updated");
+    info.setterUserId = DIRECT_BOOT_TEST_USER + 1;
+    info.setterType = AutoStartupSetterType::SYSTEM;
+    info.isHiddenStart = true;
+    context.Register(info);
+    auto &entry = context.store_->entries.front();
+    const auto originalKey = entry.key;
+    auto expected = nlohmann::json::parse(entry.value.ToString());
+    expected["isEdmForce"] = true;
+    expected["preservedField"] = "preservedValue";
+    entry.value = DistributedKv::Value(expected.dump());
+    GetDirectBootTestState().targets[info.bundleName].allowDirectBoot = false;
+
+    ASSERT_EQ(context.service_->CheckAutoStartupData(info.bundleName, DIRECT_BOOT_TEST_UID), ERR_OK);
+
+    ASSERT_EQ(context.store_->entries.size(), 1);
+    EXPECT_EQ(context.store_->entries.front().key, originalKey);
+    expected["isDirectBoot"] = false;
+    EXPECT_EQ(nlohmann::json::parse(context.store_->entries.front().value.ToString()), expected);
+    std::vector<AutoStartupInfo> infos;
+    ASSERT_EQ(context.service_->QueryAllAutoStartupApplicationsWithoutPermission(infos, info.userId), ERR_OK);
+    ASSERT_EQ(infos.size(), 1);
+    EXPECT_FALSE(infos.front().isDirectBoot);
+    EXPECT_EQ(GetDirectBootTestState().windowPermissionQueries, 0);
+}
+
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_UpdateRetainsGrantedPermission, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto info = context.Target("direct.retained");
+    context.Register(info);
+    const auto original = context.store_->entries.front().value.ToString();
+    const auto writes = context.store_->writes;
+    GetDirectBootTestState().targets[info.bundleName].allowWindow = false;
+
+    ASSERT_EQ(context.service_->CheckAutoStartupData(info.bundleName, DIRECT_BOOT_TEST_UID), ERR_OK);
+
+    ASSERT_EQ(context.store_->entries.size(), 1);
+    EXPECT_EQ(context.store_->entries.front().value.ToString(), original);
+    EXPECT_EQ(context.store_->writes, writes);
+    EXPECT_GT(GetDirectBootTestState().permissionQueries, 0);
+    EXPECT_EQ(GetDirectBootTestState().windowPermissionQueries, 0);
+}
+
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_UpdateSkipsOrdinaryAndDisabledRecords, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto ordinary = context.Target("direct.ordinary", false);
+    auto disabled = context.Target("direct.disabled");
+    context.Register(ordinary);
+    context.Register(disabled, false);
+    GetDirectBootTestState().targets[ordinary.bundleName].allowDirectBoot = false;
+    GetDirectBootTestState().targets[disabled.bundleName].allowDirectBoot = false;
+    const auto writes = context.store_->writes;
+    const auto ordinaryValue = context.store_->entries[0].value.ToString();
+    const auto disabledValue = context.store_->entries[1].value.ToString();
+
+    EXPECT_EQ(context.service_->CheckAutoStartupData(ordinary.bundleName, DIRECT_BOOT_TEST_UID), ERR_OK);
+    EXPECT_EQ(context.service_->CheckAutoStartupData(disabled.bundleName, DIRECT_BOOT_TEST_UID), ERR_OK);
+
+    ASSERT_EQ(context.store_->entries.size(), 2);
+    EXPECT_EQ(context.store_->entries[0].value.ToString(), ordinaryValue);
+    EXPECT_EQ(context.store_->entries[1].value.ToString(), disabledValue);
+    EXPECT_EQ(context.store_->writes, writes);
+    EXPECT_EQ(GetDirectBootTestState().permissionQueries, 0);
+}
+
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_UpdateFiltersBundleAndExactUser, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto info = context.Target("direct.filtered");
+    context.Register(info);
+    for (const auto userId : {0, 1, DIRECT_BOOT_TEST_USER + 1}) {
+        auto otherUser = info;
+        otherUser.userId = userId;
+        otherUser.accessTokenId = std::to_string(DIRECT_BOOT_TEST_TOKEN_BASE + userId);
+        context.Register(otherUser);
+    }
+    context.Register(context.Target("direct.otherBundle"));
+    GetDirectBootTestState().targets[info.bundleName].allowDirectBoot = false;
+
+    ASSERT_EQ(context.service_->ResetDirectBootOnBundleUpdate(info.bundleName, info.userId), ERR_OK);
+
+    ASSERT_EQ(context.store_->entries.size(), 5);
+    EXPECT_FALSE(nlohmann::json::parse(context.store_->entries.front().value.ToString())["isDirectBoot"].get<bool>());
+    for (size_t index = 1; index < context.store_->entries.size(); ++index) {
+        EXPECT_TRUE(nlohmann::json::parse(context.store_->entries[index].value.ToString())["isDirectBoot"].get<bool>());
+    }
+    EXPECT_EQ(GetDirectBootTestState().permissionQueries, 1);
+}
+
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_UpdateUsesCurrentTokenAndOriginalKey, TestSize.Level1)
+{
+    for (const auto granted : {false, true}) {
+        SCOPED_TRACE(granted);
+        DirectBootServiceTestContext context;
+        auto info = context.Target("direct.changedToken");
+        context.Register(info);
+        const auto originalKey = context.store_->entries.front().key;
+        auto &target = GetDirectBootTestState().targets[info.bundleName];
+        target.tokenId += DIRECT_BOOT_TEST_TOKEN_BASE;
+        target.allowDirectBoot = granted;
+
+        ASSERT_EQ(context.service_->CheckAutoStartupData(info.bundleName, DIRECT_BOOT_TEST_UID), ERR_OK);
+
+        ASSERT_EQ(context.store_->entries.size(), 1);
+        EXPECT_EQ(context.store_->entries.front().key, originalKey);
+        EXPECT_EQ(nlohmann::json::parse(context.store_->entries.front().value.ToString())["isDirectBoot"].get<bool>(), granted);
+        EXPECT_EQ(GetDirectBootTestState().permissionQueries, 1);
+        EXPECT_EQ(GetDirectBootTestState().tokenQueries, 0);
+    }
+}
+
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_UpdateChecksCloneInstance, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto info = context.Target("direct.cloneUpdate");
+    info.appCloneIndex = 1;
+    context.Register(info);
+    auto &target = GetDirectBootTestState().targets[info.bundleName];
+    target.appIndex = info.appCloneIndex;
+    target.tokenId += DIRECT_BOOT_TEST_TOKEN_BASE;
+    target.allowDirectBoot = false;
+    const auto originalKey = context.store_->entries.front().key;
+
+    ASSERT_EQ(context.service_->ResetDirectBootOnBundleUpdate(info.bundleName, info.userId), ERR_OK);
+
+    ASSERT_EQ(context.store_->entries.size(), 1);
+    EXPECT_EQ(context.store_->entries.front().key, originalKey);
+    EXPECT_FALSE(nlohmann::json::parse(context.store_->entries.front().value.ToString())["isDirectBoot"].get<bool>());
+    EXPECT_EQ(GetDirectBootTestState().permissionQueries, 1);
+}
+
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_UpdateInvalidTargetDoesNotRewrite, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto info = context.Target("direct.unresolvedUpdate");
+    context.Register(info);
+    const auto original = context.store_->entries.front().value.ToString();
+    const auto writes = context.store_->writes;
+    auto &state = GetDirectBootTestState();
+    state.bundleAvailable = false;
+    EXPECT_EQ(context.service_->ResetDirectBootOnBundleUpdate(info.bundleName, info.userId), INNER_ERR);
+    state.bundleAvailable = true;
+    state.targets[info.bundleName].tokenId = 0;
+    EXPECT_EQ(context.service_->ResetDirectBootOnBundleUpdate(info.bundleName, info.userId), INNER_ERR);
+    EXPECT_EQ(context.store_->entries.front().value.ToString(), original);
+    EXPECT_EQ(context.store_->writes, writes);
+    EXPECT_EQ(state.permissionQueries, 0);
+}
+
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_UpdateQueryFailureDoesNotRewrite, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto info = context.Target("direct.queryFailure");
+    context.Register(info);
+    const auto original = context.store_->entries.front().value.ToString();
+    const auto writes = context.store_->writes;
+    context.store_->readResult = DistributedKv::Status::ERROR;
+
+    EXPECT_EQ(context.service_->ResetDirectBootOnBundleUpdate(info.bundleName, info.userId), ERR_INVALID_OPERATION);
+
+    EXPECT_EQ(context.store_->entries.front().value.ToString(), original);
+    EXPECT_EQ(context.store_->writes, writes);
+    EXPECT_EQ(GetDirectBootTestState().permissionQueries, 0);
+}
+
+/*
+ * Feature: AbilityAutoStartupDataManager
+ * Function: ResetAutoStartupDirectBoot
+ * FunctionPoints: Invalid input, cancelled records and storage failures do not create or replace registrations.
+ */
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_ResetRejectsInvalidIdentity, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    const auto info = context.Target("direct.invalidReset");
+    auto manager = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance();
+    auto invalid = info;
+    invalid.bundleName.clear();
+    EXPECT_EQ(manager->ResetAutoStartupDirectBoot(invalid), ERR_INVALID_VALUE);
+    invalid = info;
+    invalid.abilityName.clear();
+    EXPECT_EQ(manager->ResetAutoStartupDirectBoot(invalid), ERR_INVALID_VALUE);
+    invalid = info;
+    invalid.accessTokenId.clear();
+    EXPECT_EQ(manager->ResetAutoStartupDirectBoot(invalid), ERR_INVALID_VALUE);
+    invalid = info;
+    invalid.userId = -1;
+    EXPECT_EQ(manager->ResetAutoStartupDirectBoot(invalid), ERR_INVALID_VALUE);
+    EXPECT_TRUE(context.store_->entries.empty());
+    EXPECT_EQ(context.store_->writes, 0);
+}
+
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_ResetDoesNotRecreateCancelledRecord, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto info = context.Target("direct.cancelledUpdate");
+    context.Register(info);
+    ASSERT_EQ(context.store_->Delete(context.store_->entries.front().key), DistributedKv::Status::SUCCESS);
+    const auto writes = context.store_->writes;
+
+    EXPECT_EQ(DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->ResetAutoStartupDirectBoot(info), ERR_OK);
+
+    EXPECT_TRUE(context.store_->entries.empty());
+    EXPECT_EQ(context.store_->writes, writes);
+}
+
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_ResetPreservesLegacyAndInvalidValues, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto info = context.Target("direct.legacyUpdate");
+    context.Register(info);
+    const auto writes = context.store_->writes;
+    auto manager = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance();
+    for (const auto *value : {"{", "[]"}) {
+        SCOPED_TRACE(value);
+        context.store_->entries.front().value = DistributedKv::Value(value);
+        EXPECT_EQ(manager->ResetAutoStartupDirectBoot(info), ERR_INVALID_VALUE);
+        EXPECT_EQ(context.store_->entries.front().value.ToString(), value);
+    }
+    for (const auto *value : {"{}", R"({"isDirectBoot":false})", R"({"isDirectBoot":"true"})"}) {
+        SCOPED_TRACE(value);
+        context.store_->entries.front().value = DistributedKv::Value(value);
+        EXPECT_EQ(manager->ResetAutoStartupDirectBoot(info), ERR_OK);
+        EXPECT_EQ(context.store_->entries.front().value.ToString(), value);
+    }
+    EXPECT_EQ(context.store_->writes, writes);
+}
+
+HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_ResetStorageFailureKeepsOriginalValue, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto info = context.Target("direct.storageFailure");
+    context.Register(info);
+    const auto original = context.store_->entries.front().value.ToString();
+    auto manager = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance();
+    context.store_->readResult = DistributedKv::Status::ERROR;
+    EXPECT_EQ(manager->ResetAutoStartupDirectBoot(info), ERR_INVALID_OPERATION);
+    context.store_->readResult = DistributedKv::Status::SUCCESS;
+    context.store_->writeResult = DistributedKv::Status::ERROR;
+    EXPECT_EQ(manager->ResetAutoStartupDirectBoot(info), ERR_INVALID_OPERATION);
+    EXPECT_EQ(context.store_->entries.front().value.ToString(), original);
+}
 } // namespace AAFwk
 } // namespace OHOS
