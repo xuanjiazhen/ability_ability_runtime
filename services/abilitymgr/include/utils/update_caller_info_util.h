@@ -24,6 +24,8 @@
 
 namespace OHOS {
 namespace AAFwk {
+struct AbilityRequest;
+
 class UpdateCallerInfoUtil {
 public:
     static UpdateCallerInfoUtil &GetInstance();
@@ -40,6 +42,8 @@ public:
     void UpdateDmsCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken);
     void CacheCallerInfoFromWant(const Want &want, AbilitySessionInfo &info);
     void RestoreCallerInfoToWant(Want &want, const AbilitySessionInfo &info);
+    void CacheInsightIntentParams(const AbilityRequest &abilityRequest, AbilitySessionInfo &info);
+    void VerifyInsightIntentParams(Want &want, const AbilitySessionInfo &info, bool hasCachedInfo);
 
 private:
     UpdateCallerInfoUtil() = default;
