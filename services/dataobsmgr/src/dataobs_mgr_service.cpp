@@ -124,7 +124,7 @@ DataObsServiceRunningState DataObsMgrService::QueryServiceState() const
 }
 
 std::pair<bool, struct ObserverNode> DataObsMgrService::ConstructObserverNode(sptr<IDataAbilityObserver> dataObserver,
-    int32_t userId, uint32_t tokenId, int32_t pid, const std::string& filterKey, const std::string& filterValue)
+    int32_t userId, uint32_t tokenId, int32_t pid, const std::string &filterKey, const std::string &filterValue)
 {
     if (userId == -1) {
         userId = GetCallingUserId(tokenId);
@@ -381,7 +381,7 @@ Status DataObsMgrService::VerifyDataSharePermissionInner(Uri &uri, bool isRead, 
 }
 
 int32_t DataObsMgrService::ConstructRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
-    uint32_t token, int32_t userId, int32_t pid, const std::string& filterKey, const std::string& filterValue)
+    uint32_t token, int32_t userId, int32_t pid, const std::string &filterKey, const std::string &filterValue)
 {
     auto [success, observerNode] = ConstructObserverNode(dataObserver, userId, token, pid, filterKey, filterValue);
     if (!success) {
@@ -810,8 +810,8 @@ Status DataObsMgrService::NotifyChangeExt(const ChangeInfo &changeInfo, DataObsO
         dataObsMgrInnerExt_->HandleNotifyChange(changes, userId, info);
         int32_t count = 0;
         for (auto &uri : changes.uris_) {
-            dataObsMgrInner_->HandleNotifyChange(uri, userId, info[count].readPermission,
-                info[count].isSilentUri, tokenId, changes.valueBuckets_);
+            dataObsMgrInner_->HandleNotifyChange(
+                uri, userId, info[count].readPermission, info[count].isSilentUri, tokenId, changes.valueBuckets_);
             count++;
         }
         delete [] static_cast<uint8_t *>(changes.data_);

@@ -14,22 +14,26 @@
  */
 #include "dataobs_mgr_inner.h"
 
+#include <charconv>
+#include <string>
+#include <variant>
+
+#include "common_utils.h"
 #include "data_ability_observer_stub.h"
 #include "data_share_permission.h"
 #include "dataobs_mgr_errors.h"
 #include "datashare_errno.h"
 #include "hilog_tag_wrapper.h"
-#include "common_utils.h"
 #include "obs_permission_verifier.h"
-#include <cstdlib>
-#include <string>
-#include <variant>
 namespace OHOS {
 namespace AAFwk {
 using namespace DataShare;
 
 namespace {
-bool UrlDecode(const std::string& input, std::string& output)
+constexpr char KEYWORD_FIELD[] = "KEYWORD";
+constexpr char VALUE_FIELD[] = "VALUE";
+
+bool UrlDecode(const std::string &input, std::string &output)
 {
     output.clear();
     for (size_t index = 0; index < input.size(); index++) {
@@ -41,9 +45,9 @@ bool UrlDecode(const std::string& input, std::string& output)
             return false;
         }
         std::string hex = input.substr(index + 1, 2);
-        char* end = nullptr;
-        unsigned long value = std::strtoul(hex.c_str(), &end, 16);
-        if (end != hex.c_str() + hex.size() || value > 0xFF) {
+        uint32_t value = 0;
+        auto result = std::from_chars(hex.data(), hex.data() + hex.size(), value, 16);
+        if (result.ec != std::errc() || result.ptr != hex.data() + hex.size() || value > 0xFF) {
             return false;
         }
         output.push_back(static_cast<char>(value));
@@ -52,29 +56,29 @@ bool UrlDecode(const std::string& input, std::string& output)
     return true;
 }
 
-std::string GetBucketString(const ChangeInfo::VBucket& bucket, const std::string& key)
+std::string GetBucketString(const ChangeInfo::VBucket &bucket, const std::string &key)
 {
     auto it = bucket.find(key);
     if (it == bucket.end()) {
         return "";
     }
-    const std::string* value = std::get_if<std::string>(&(it->second));
+    const std::string *value = std::get_if<std::string>(&(it->second));
     return value == nullptr ? "" : *value;
 }
 
-bool MatchValueBuckets(const ObserverNode& observer, const ChangeInfo::VBuckets& valueBuckets)
+bool MatchValueBuckets(const ObserverNode &observer, const ChangeInfo::VBuckets &valueBuckets)
 {
-    for (auto& bucket : valueBuckets) {
-        if (GetBucketString(bucket, "KEYWORD") != observer.filterKey_) {
+    for (auto &bucket : valueBuckets) {
+        if (GetBucketString(bucket, KEYWORD_FIELD) != observer.filterKey_) {
             continue;
         }
-        if (observer.filterValue_.empty() || GetBucketString(bucket, "VALUE") == observer.filterValue_) {
+        if (observer.filterValue_.empty() || GetBucketString(bucket, VALUE_FIELD) == observer.filterValue_) {
             return true;
         }
     }
     return false;
 }
-}
+} // namespace
 
 DataObsMgrInner::DataObsMgrInner() {}
 
@@ -87,17 +91,14 @@ int DataObsMgrInner::HandleRegisterObserver(const Uri &uri, struct ObserverNode 
     const std::string uriKey = NormalizeUri(uri);
     auto [obsPair, flag] = observers_.try_emplace(uriKey, std::list<struct ObserverNode>());
     if (!flag && obsPair->second.size() >= OBS_ALL_NUM_MAX) {
-        TAG_LOGE(AAFwkTag::DBOBSMGR,
-            "subscribers num:%{public}s maxed",
-            CommonUtils::Anonymous(uriKey).c_str());
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "subscribers num:%{public}s maxed", CommonUtils::Anonymous(uriKey).c_str());
         return DATAOBS_SERVICE_OBS_LIMMIT;
     }
 
     uint32_t tokenCount = 0;
     for (auto obs = obsPair->second.begin(); obs != obsPair->second.end(); obs++) {
         if ((*obs).observer_->AsObject() == observerNode.observer_->AsObject()) {
-            TAG_LOGE(AAFwkTag::DBOBSMGR, "obs registered:%{public}s",
-                CommonUtils::Anonymous(uriKey).c_str());
+            TAG_LOGE(AAFwkTag::DBOBSMGR, "obs registered:%{public}s", CommonUtils::Anonymous(uriKey).c_str());
             return OBS_EXIST;
         }
         if ((*obs).tokenId_ == observerNode.tokenId_) {
@@ -157,8 +158,8 @@ int DataObsMgrInner::HandleUnregisterObserver(const Uri &uri, struct ObserverNod
     return NO_ERROR;
 }
 
-int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::string readPermission,
-    bool isSilentUri, uint32_t tokenId, const ChangeInfo::VBuckets& valueBuckets)
+int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::string readPermission, bool isSilentUri,
+    uint32_t tokenId, const ChangeInfo::VBuckets &valueBuckets)
 {
     std::string uriStr = uri.ToString();
     const std::string uriKey = NormalizeUri(uri);
@@ -171,7 +172,9 @@ int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::str
             size_t userTablePos = genericUriKey.find("USER_SETTINGDATA_");
             if (userTablePos != std::string::npos) {
                 size_t tableEnd = genericUriKey.find('/', userTablePos);
-                genericUriKey.replace(userTablePos, tableEnd - userTablePos, "SETTINGSDATA");
+                size_t replaceLength = tableEnd == std::string::npos ? genericUriKey.size() - userTablePos
+                                                                     : tableEnd - userTablePos;
+                genericUriKey.replace(userTablePos, replaceLength, "SETTINGSDATA");
                 obsPair = observers_.find(genericUriKey);
             }
         }
@@ -188,7 +191,7 @@ int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::str
         if (obs.observer_ == nullptr) {
             continue;
         }
-        if (!obs.filterKey_.empty() && !MatchValueBuckets(obs, valueBuckets)) {
+        if (!obs.filterKey_.empty() && !valueBuckets.empty() && !MatchValueBuckets(obs, valueBuckets)) {
             continue;
         }
         uint32_t token = obs.tokenId_;
@@ -225,7 +228,7 @@ int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::str
     return NO_ERROR;
 }
 
-std::string DataObsMgrInner::NormalizeUri(const Uri& uri)
+std::string DataObsMgrInner::NormalizeUri(const Uri &uri)
 {
     std::string uriStr = uri.ToString();
     size_t queryPos = uriStr.find('?');
@@ -235,10 +238,10 @@ std::string DataObsMgrInner::NormalizeUri(const Uri& uri)
     return uriStr.substr(0, queryPos);
 }
 
-bool DataObsMgrInner::DecodeSettingDataFilter(const Uri& uri, std::string& filterKey,
-    std::string& filterValue)
+bool DataObsMgrInner::DecodeSettingDataFilter(Uri &uri, std::string &filterKey, std::string &filterValue)
 {
-    if (const_cast<Uri&>(uri).GetScheme() != "datashare") {
+    const std::string scheme = uri.GetScheme();
+    if (scheme != "datashare" && scheme != "dataability") {
         return true;
     }
     std::string uriStr = uri.ToString();
@@ -248,16 +251,15 @@ bool DataObsMgrInner::DecodeSettingDataFilter(const Uri& uri, std::string& filte
     }
     std::string query = uriStr.substr(queryPos + 1);
     size_t pairStart = 0;
-    while (pairStart <= query.size()) {
+    while (pairStart < query.size()) {
         size_t pairEnd = query.find('&', pairStart);
-        std::string pair = query.substr(pairStart, pairEnd == std::string::npos ?
-            std::string::npos : pairEnd - pairStart);
+        std::string pair =
+            query.substr(pairStart, pairEnd == std::string::npos ? std::string::npos : pairEnd - pairStart);
         size_t equalPos = pair.find('=');
         if (equalPos != std::string::npos) {
             std::string key;
             std::string value;
-            if (!UrlDecode(pair.substr(0, equalPos), key) ||
-                !UrlDecode(pair.substr(equalPos + 1), value)) {
+            if (!UrlDecode(pair.substr(0, equalPos), key) || !UrlDecode(pair.substr(equalPos + 1), value)) {
                 return false;
             }
             if (key == "key") {

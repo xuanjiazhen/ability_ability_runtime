@@ -18,6 +18,7 @@
 
 #include <atomic>
 #include <string>
+#include <utility>
 
 #include "data_ability_observer_interface.h"
 
@@ -61,11 +62,10 @@ struct ObserverNode {
 
     ObserverNode(sptr<IDataAbilityObserver> observer, int32_t userId, uint32_t tokenId, int32_t pid,
         std::string filterKey, std::string filterValue)
-        : observer_(observer), userId_(userId), tokenId_(tokenId), pid_(pid),
-          filterKey_(std::move(filterKey)), filterValue_(std::move(filterValue))
+        : ObserverNode(observer, userId, tokenId, pid)
     {
-        // nextNodeId_ increased by 1
-        nodeId_ = nextNodeId_.fetch_add(1);
+        filterKey_ = std::move(filterKey);
+        filterValue_ = std::move(filterValue);
     }
 
     bool operator==(struct ObserverNode other) const
@@ -86,4 +86,4 @@ struct NotifyInfo {
 
 }  // namespace AAFwk
 }  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_DATAOBS_MGR_INNER_COMMON_H
+#endif // OHOS_ABILITY_RUNTIME_DATAOBS_MGR_INNER_COMMON_H

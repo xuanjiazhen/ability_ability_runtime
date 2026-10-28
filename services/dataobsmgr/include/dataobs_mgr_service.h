@@ -55,9 +55,8 @@ public:
     void OnStop() override;
     DataObsServiceRunningState QueryServiceState() const;
 
-    std::pair<bool, struct ObserverNode> ConstructObserverNode(sptr<IDataAbilityObserver> dataObserver,
-        int32_t userId, uint32_t tokenId, int32_t pid, const std::string& filterKey = "",
-        const std::string& filterValue = "");
+    std::pair<bool, struct ObserverNode> ConstructObserverNode(sptr<IDataAbilityObserver> dataObserver, int32_t userId,
+        uint32_t tokenId, int32_t pid, const std::string &filterKey = "", const std::string &filterValue = "");
     virtual int RegisterObserver(const Uri &uri,
         sptr<IDataAbilityObserver> dataObserver, int32_t userId = DATAOBS_DEFAULT_CURRENT_USER,
         DataObsOption opt = DataObsOption()) override;
@@ -115,9 +114,8 @@ private:
     std::pair<Status, std::string> GetUriPermission(Uri &uri, bool isRead, ObserverInfo &info);
     int32_t VerifyDataShareExtension(Uri &uri, ObserverInfo &info);
     int32_t VerifyDataSharePermission(Uri &uri, bool isRead, ObserverInfo &info);
-    int32_t ConstructRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
-        uint32_t token, int32_t userId, int32_t pid, const std::string& filterKey = "",
-        const std::string& filterValue = "");
+    int32_t ConstructRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, uint32_t token,
+        int32_t userId, int32_t pid, const std::string &filterKey = "", const std::string &filterValue = "");
     Status VerifyDataSharePermissionInner(Uri &uri, bool isRead, ObserverInfo &info);
     int32_t NotifyChangeInner(Uri &uri, int32_t userId,
         DataObsOption opt, bool isExtension);
