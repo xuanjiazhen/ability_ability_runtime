@@ -3634,10 +3634,10 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         hasCachedInfo = uiAbilityManager->GetAbilitySessionInfo(sessionInfo->requestId, abilitySessionInfo);
         uiAbilityManager->RemoveAbilitySessionInfo(sessionInfo->requestId);
     }
-    // Restore cached caller info to want so SCB-returned IPC values don't override the originals.
-    if (hasCachedInfo) {
-        UpdateCallerInfoUtil::GetInstance().RestoreCallerInfoToWant(sessionInfo->want, abilitySessionInfo);
-    }
+    // Restore cached caller info and the insight intent identity snapshot; without a cache the
+    // intent identity params are removed (fail closed).
+    UpdateCallerInfoUtil::GetInstance().RestoreCallerInfoToWant(sessionInfo->want, abilitySessionInfo,
+        hasCachedInfo);
     if (abilitySessionInfo.isWebSandBoxClone) {
         sessionInfo->want.RemoveParam(AbilityRuntime::ServerConstant::DLP_INDEX);
         sessionInfo->want.RemoveParam(Want::PARAM_APP_CLONE_INDEX_KEY);
@@ -18338,12 +18338,13 @@ ErrCode AbilityManagerService::IntentOpenLinkInner(const std::shared_ptr<AppExec
         want.SetParam(APP_LINKING_ONLY, false);
     }
     want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, param->insightIntentName_);
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(param->insightIntentId_));
     want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG, 1);
     if (!want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
         want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
     }
 
-    auto resultCode = OpenLinkInner(want, nullptr, userId, DEFAULT_INVAL_VALUE, false);
+    auto resultCode = OpenLinkInner(want, nullptr, userId, DEFAULT_INVAL_VALUE, false, false);
     if (resultCode == ERR_OK || resultCode == ERR_OPEN_LINK_START_ABILITY_DEFAULT_OK) {
         TAG_LOGD(AAFwkTag::INTENT, "Intent OpenLink success");
         InsightIntentExecuteResult result;

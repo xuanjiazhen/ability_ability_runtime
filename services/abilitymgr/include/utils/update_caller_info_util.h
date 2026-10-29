@@ -39,7 +39,7 @@ public:
     void UpdateCallerInfoFromToken(Want& want, const sptr<IRemoteObject> &token);
     void UpdateDmsCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken);
     void CacheCallerInfoFromWant(const Want &want, AbilitySessionInfo &info);
-    void RestoreCallerInfoToWant(Want &want, const AbilitySessionInfo &info);
+    void RestoreCallerInfoToWant(Want &want, const AbilitySessionInfo &info, bool hasCachedInfo = true);
 
 private:
     UpdateCallerInfoUtil() = default;
@@ -51,6 +51,9 @@ private:
     void UpdateCallerAbilityName(Want& want, const std::string &abilityName);
     void UpdateCallerAppCloneIndex(Want& want, int32_t appIndex);
     void ClearProtectedWantParam(Want &want);
+    void RemoveIntentIdentityParams(Want &want, bool needLog);
+    void CacheInsightIntentParams(const Want &want, AbilitySessionInfo &info);
+    void RestoreInsightIntentParams(Want &want, const AbilitySessionInfo &info);
 
     DISALLOW_COPY_AND_MOVE(UpdateCallerInfoUtil);
 };
