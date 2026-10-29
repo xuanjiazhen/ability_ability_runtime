@@ -1949,6 +1949,24 @@ int32_t AbilityManagerService::StartAbilityForAppCloneSelector(StartAbilityWrapP
     std::string callerBundleName = callerRecord ? callerRecord->GetAbilityInfo().bundleName : "";
     auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
     CollaboratorUtil::UpdateTargetIfNeed(collaborator, param.want, callerBundleName);
+    std::string dialogSessionId = param.want.GetStringParam("dialogSessionId");
+    bool isSendDialogResult = false;
+#ifdef SUPPORT_SCREEN
+    auto dialogCallerInfo = DialogSessionManager::GetInstance().GetDialogCallerInfo(dialogSessionId);
+    if (!dialogSessionId.empty() && dialogCallerInfo != nullptr) {
+        isSendDialogResult = true;
+    }
+    if (callerBundleName == BUNDLE_NAME_DIALOG ||
+        (isSendDialogResult && param.want.GetBoolParam("isSelector", false))) {
+        CHECK_POINTER_AND_RETURN(implicitStartProcessor_, ERR_IMPLICIT_START_ABILITY_FAIL);
+        int32_t flag = false;
+        if (callerBundleName == BUNDLE_NAME_DIALOG) {
+            flag = true;
+        }
+        implicitStartProcessor_->ResetCallingIdentityAsCaller(
+            param.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0), flag);
+    }
+#endif // SUPPORT_SCREEN
 
     // Use StartAbilityInfoWrap for RAII protection
     StartAbilityInfoWrap threadLocalInfo(param.want, validUserId, appCloneIndex, param.callerToken);
