@@ -126,6 +126,7 @@
 #include "support_system_ability_permission.h"
 #include "time_util.h"
 #include "tokenid_kit.h"
+#include "ui_extension_utils.h"
 #include "ui_extension_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
 #include "unlock_screen_manager.h"
@@ -6576,7 +6577,13 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
     StartAbilityInfoWrap threadLocalInfo;
     AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
-    if (!CheckCrossUser(userId, extensionType)) {
+    Security::AccessToken::HapTokenInfo callerInfo;
+    const bool isEdmAppServiceProxy = IPCSkeleton::GetCallingUid() == EDM_SA_UID &&
+        indirectCallerInfo != nullptr && extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE;
+    if (isEdmAppServiceProxy && !ValidateAppServiceIndirectCaller(*indirectCallerInfo, callerInfo)) {
+        return ERR_INVALID_CALLER;
+    }
+    if (!isEdmAppServiceProxy && !CheckCrossUser(userId, extensionType)) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "multi-user non-concurrent unsatisfied");
         return ERR_CROSS_USER;
     }
@@ -6619,6 +6626,10 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
 
     const auto &abilityInfo = abilityRequest.abilityInfo;
     threadLocalInfo.SetStartAbilityInfo(abilityInfo);
+    if (isEdmAppServiceProxy && abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "EDM AppService target type mismatch");
+        return ERR_WRONG_INTERFACE_CALL;
+    }
     if (abilityInfo.isStageBasedModel) {
         bool isService = (abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE);
         if (isService && extensionType != AppExecFwk::ExtensionAbilityType::SERVICE) {
@@ -6649,7 +6660,14 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
         validUserId, static_cast<int>(abilityInfo.applicationInfo.singleton));
 
     abilityRequest.specifiedFullTokenId = specifiedFullTokenId;
-    result = CheckStaticCfgPermission(abilityRequest, false, -1);
+    if (isEdmAppServiceProxy) {
+        result = AppExecFwk::Constants::PERMISSION_GRANTED;
+        if (callerInfo.tokenID != abilityInfo.applicationInfo.accessTokenId) {
+            result = CheckStaticCfgPermissionForAbility(abilityInfo, callerInfo.tokenID);
+        }
+    } else {
+        result = CheckStaticCfgPermission(abilityRequest, false, -1);
+    }
     if (result != AppExecFwk::Constants::PERMISSION_GRANTED) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "checkStaticCfgPermission error, result=%{public}d", result);
         return ERR_STATIC_CFG_PERMISSION;
@@ -6713,7 +6731,8 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
 
     if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
         auto targetService = connectManager->GetServiceRecordByAbilityRequest(abilityRequest);
-        result = CheckCallAppServiceExtensionPermission(abilityRequest, targetService, true);
+        result = CheckCallAppServiceExtensionPermission(abilityRequest, targetService, true,
+            isEdmAppServiceProxy ? &callerInfo : nullptr);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "CheckCallAppServiceExtensionPermission result: %{public}d", result);
     } else {
         result = CheckCallServicePermission(abilityRequest);
@@ -13415,15 +13434,35 @@ AAFwk::PermissionVerification::VerificationInfo AbilityManagerService::CreateVer
     return verificationInfo;
 }
 
-int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
-    std::shared_ptr<BaseExtensionRecord> targetService, bool isFromConnect)
+bool AbilityManagerService::ValidateAppServiceIndirectCaller(const IndirectCallerInfo &indirectCallerInfo,
+    Security::AccessToken::HapTokenInfo &callerInfo)
 {
-    int32_t result = CheckCallServiceExtensionPermission(abilityRequest);
+    if (indirectCallerInfo.callerPid < 0) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid indirect caller pid");
+        return false;
+    }
+    auto result = AccessTokenKit::GetHapTokenInfo(indirectCallerInfo.tokenId, callerInfo);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "get indirect caller HAP token info failed: %{public}d", result);
+        return false;
+    }
+    // EDM supplies the original IPC identity; HapTokenInfo IPC does not return uid.
+    callerInfo.tokenID = indirectCallerInfo.tokenId;
+    callerInfo.uid = indirectCallerInfo.callerUid;
+    return true;
+}
+
+int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
+    std::shared_ptr<BaseExtensionRecord> targetService, bool isFromConnect,
+    const Security::AccessToken::HapTokenInfo *indirectCaller)
+{
+    int32_t result = CheckCallServiceExtensionPermission(abilityRequest, indirectCaller);
     if (result != ERR_OK) {
         return result;
     }
     uint32_t specifyTokenId = static_cast<uint32_t>(abilityRequest.specifiedFullTokenId);
-    if (AAFwk::PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId)) {
+    if (indirectCaller == nullptr &&
+        AAFwk::PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId)) {
         return ERR_OK;
     }
     if (!AppUtils::GetInstance().IsSupportAppServiceExtension()) {
@@ -13433,14 +13472,19 @@ int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const Abil
     if (targetService != nullptr && targetService->IsAbilityState(AbilityState::ACTIVE)) {
         isVerifyAppIdentifierAllowList = false;
     }
-    if (isVerifyAppIdentifierAllowList && !VerifySameAppOrAppIdentifierAllowListPermission(abilityRequest)) {
+    if (isVerifyAppIdentifierAllowList &&
+        !VerifySameAppOrAppIdentifierAllowListPermission(abilityRequest, indirectCaller)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "caller not allowed to start AppService extension");
         if (isFromConnect) {
             return ERR_TARGET_NOT_STARTED;
         }
         return ERR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST;
     }
     if (!PermissionVerification::GetInstance()->VerifyPermissionByTokenId(abilityRequest.appInfo.accessTokenId,
-        PermissionConstants::PERMISSION_SUPPORT_APP_SERVICE_EXTENSION)) {
+        PermissionConstants::PERMISSION_SUPPORT_APP_SERVICE_EXTENSION) &&
+        !PermissionVerification::GetInstance()->VerifyPermissionByTokenId(abilityRequest.appInfo.accessTokenId,
+        PermissionConstants::PERMISSION_SUPPORT_APP_SERVICE_EXTENSION_ADVANCED)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "target lacks AppService extension permission");
         return TARGET_ABILITY_NOT_SERVICE;
     }
     return ERR_OK;
@@ -13514,7 +13558,8 @@ int32_t AbilityManagerService::CheckPermissionForAgentExtension(AppExecFwk::Exte
     return ERR_OK;
 }
 
-int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest)
+int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest,
+    const Security::AccessToken::HapTokenInfo *indirectCaller)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "begin");
 
@@ -13530,6 +13575,9 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
         static_cast<uint32_t>(abilityRequest.specifiedFullTokenId) :
         static_cast<uint32_t>(abilityRequest.specifyTokenId);
     verificationInfo.skillCallerTokenId = abilityRequest.skillCallerTokenId;
+    if (indirectCaller != nullptr) {
+        verificationInfo.specifyTokenId = indirectCaller->tokenID;
+    }
     if (isParamStartAbilityEnable_) {
         bool stopContinuousTaskFlag = ShouldPreventStartAbility(abilityRequest);
         if (stopContinuousTaskFlag) {
@@ -13959,7 +14007,8 @@ int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abil
         }
     }
     if (isFreeInstallFromService || (callerAbilityRecord != nullptr &&
-        callerAbilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::APP_SERVICE)) {
+        callerAbilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::APP_SERVICE &&
+        AppUtils::GetInstance().IsAppServiceFullCapability())) {
         verificationInfo.isBackgroundCall = false;
     } else if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall, isSelector,
             specifyTokenId) != ERR_OK) {
@@ -16717,11 +16766,12 @@ int32_t AbilityManagerService::CheckDebugAssertPermission()
     return ERR_OK;
 }
 
-bool AbilityManagerService::VerifySameAppOrAppIdentifierAllowListPermission(const AbilityRequest &abilityRequest)
+bool AbilityManagerService::VerifySameAppOrAppIdentifierAllowListPermission(const AbilityRequest &abilityRequest,
+    const Security::AccessToken::HapTokenInfo *indirectCaller)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     std::string targetBundleName = abilityRequest.abilityInfo.bundleName;
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = indirectCaller != nullptr ? indirectCaller->uid : IPCSkeleton::GetCallingUid();
     int32_t targetUid = abilityRequest.uid;
     if (callerUid == targetUid) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "same app");
@@ -16734,10 +16784,12 @@ bool AbilityManagerService::VerifySameAppOrAppIdentifierAllowListPermission(cons
     // The Want parameter is client-controlled and must never be trusted here.
     AppExecFwk::SignatureInfo signatureInfo;
     auto abilityRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-    if (abilityRecord == nullptr) {
+    if (indirectCaller == nullptr && abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller ability record not found");
         return false;
     }
-    std::string callerBundleName = abilityRecord->GetApplicationInfo().bundleName;
+    std::string callerBundleName = indirectCaller != nullptr ? indirectCaller->bundleName :
+        abilityRecord->GetApplicationInfo().bundleName;
     if (IN_PROCESS_CALL(bms->GetSignatureInfoByBundleName(callerBundleName,
         signatureInfo)) != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR,

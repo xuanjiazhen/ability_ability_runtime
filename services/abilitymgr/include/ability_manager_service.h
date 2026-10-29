@@ -54,6 +54,7 @@
 #include "deeplink_reserve/deeplink_reserve_config.h"
 #include "event_report.h"
 #include "free_install_manager.h"
+#include "hap_token_info.h"
 #include "iacquire_share_data_callback_interface.h"
 #include "interceptor/ability_interceptor_executer.h"
 #include "interceptor/block_all_app_start_interceptor.h"
@@ -2895,7 +2896,11 @@ protected:
      * @return Returns whether the caller is allowed to start AppServiceExtension.
      */
     int32_t CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
-        std::shared_ptr<BaseExtensionRecord> targetService, bool isFromConnect);
+        std::shared_ptr<BaseExtensionRecord> targetService, bool isFromConnect,
+        const Security::AccessToken::HapTokenInfo *indirectCaller = nullptr);
+
+    bool ValidateAppServiceIndirectCaller(const IndirectCallerInfo &indirectCallerInfo,
+        Security::AccessToken::HapTokenInfo &callerInfo);
 
     static void HandleAutoStartupReadyCallback(const char *key, const char *value, void *context);
 
@@ -3344,7 +3349,8 @@ private:
      * @param abilityRequest, abilityRequest.
      * @return Returns whether the caller is allowed to start ServiceExtension.
      */
-    int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest);
+    int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest,
+        const Security::AccessToken::HapTokenInfo *indirectCaller = nullptr);
 
 #ifdef SUPPORT_AUTO_FILL
     /**
@@ -3562,7 +3568,8 @@ private:
     int32_t CheckRestartAppWant(const AppExecFwk::ElementName &elementName, int32_t appIndex, int32_t userId);
 
     int32_t CheckDebugAssertPermission();
-    bool VerifySameAppOrAppIdentifierAllowListPermission(const AbilityRequest &abilityRequest);
+    bool VerifySameAppOrAppIdentifierAllowListPermission(const AbilityRequest &abilityRequest,
+        const Security::AccessToken::HapTokenInfo *indirectCaller = nullptr);
     std::shared_ptr<AbilityDebugDeal> ConnectInitAbilityDebugDeal();
 
     int32_t SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,

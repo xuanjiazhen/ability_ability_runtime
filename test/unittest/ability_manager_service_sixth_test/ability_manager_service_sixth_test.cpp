@@ -856,6 +856,13 @@ HWTEST_F(AbilityManagerServiceSixthTest, SetMinimizedDuringFreeInstall_001, Test
 HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_001 start");
+    const auto oldFlag = MyFlag::flag_;
+    MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
+    auto &crossUserConfig = AppUtils::GetInstance().isConnectSupportCrossUser_;
+    const bool oldCrossUserLoaded = crossUserConfig.isLoaded;
+    const bool oldCrossUserValue = crossUserConfig.value;
+    crossUserConfig.isLoaded = true;
+    crossUserConfig.value = false;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     auto impl = sptr<InsightIntentExecuteConnection>::MakeSptr();
     AppExecFwk::AbilityInfo abilityInfo;
@@ -875,7 +882,6 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_001, TestSize.Leve
     EXPECT_EQ(ret, ERR_WRONG_INTERFACE_CALL);
     want.RemoveParam(UISERVICEHOSTPROXY_KEY);
     MyFlag::systemAppFlag_ = 1;
-    // refactor deleted early interceptorExecuter_ null-check; DLP check now fires first (flag_=0)
     ret = abilityMs->ConnectAbilityCommon(want, impl, token, ExtensionAbilityType::SERVICE,
         INT_MAX, false);
     // userId=INT_MAX => ConnectLocalAbility => CheckCrossUser(INT_MAX)=false => ERR_CROSS_USER
@@ -893,6 +899,9 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_001, TestSize.Leve
     ret = abilityMs->ConnectAbilityCommon(want, impl, token, AppExecFwk::ExtensionAbilityType::UI_SERVICE,
         INT_MAX, false);
     EXPECT_EQ(ret, ERR_CROSS_USER);
+    crossUserConfig.isLoaded = oldCrossUserLoaded;
+    crossUserConfig.value = oldCrossUserValue;
+    MyFlag::flag_ = oldFlag;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_001 end");
 }
 
@@ -905,6 +914,8 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_001, TestSize.Leve
 HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_002, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_002 start");
+    const auto oldFlag = MyFlag::flag_;
+    MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
     AppExecFwk::AbilityInfo abilityInfo;
@@ -944,6 +955,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_002, TestSize.Leve
         -1, false);
     Mock::VerifyAndClear(mockBundleMgr);
     bundleMgrHelper_->bundleMgr_ = nullptr;
+    MyFlag::flag_ = oldFlag;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_002 end");
 }
 
@@ -1825,6 +1837,11 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityByPreInstallInner_001, Te
 HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityByPreInstallInner_002, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartUIAbilityByPreInstallInner_002 start");
+    auto &utils = AppUtils::GetInstance();
+    const auto oldAncoLoaded = utils.isSupportAncoApp_.isLoaded;
+    const auto oldAncoValue = utils.isSupportAncoApp_.value;
+    utils.isSupportAncoApp_.isLoaded = true;
+    utils.isSupportAncoApp_.value = false;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
     // Pin the leaked PermissionVerification flag so the CheckCallPermission mock result is deterministic.
@@ -1874,6 +1891,8 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityByPreInstallInner_002, Te
     EXPECT_EQ(ret, 1);
     Mock::VerifyAndClear(mockBundleMgr);
     bundleMgrHelper_->bundleMgr_ = nullptr;
+    utils.isSupportAncoApp_.isLoaded = oldAncoLoaded;
+    utils.isSupportAncoApp_.value = oldAncoValue;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartUIAbilityByPreInstallInner_002 end");
 }
 
@@ -1945,6 +1964,8 @@ HWTEST_F(AbilityManagerServiceSixthTest, SendStartAbilityOtherExtensionEvent_001
 HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_003, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_003 start");
+    const auto oldFlag = MyFlag::flag_;
+    MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
     auto impl = sptr<InsightIntentExecuteConnection>::MakeSptr();
@@ -1959,6 +1980,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_003, TestSize.Leve
         INT_MAX, false);
     // userId=INT_MAX => ConnectLocalAbility => CheckCrossUser(INT_MAX, UI_SERVICE)=false => ERR_CROSS_USER
     EXPECT_EQ(ret, ERR_CROSS_USER);
+    MyFlag::flag_ = oldFlag;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_003 end");
 }
 
@@ -1971,6 +1993,8 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_003, TestSize.Leve
 HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_004, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_004 start");
+    const auto oldFlag = MyFlag::flag_;
+    MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
     abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
@@ -2010,6 +2034,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_004, TestSize.Leve
         -1, false);
     Mock::VerifyAndClear(mockBundleMgr);
     bundleMgrHelper_->bundleMgr_ = nullptr;
+    MyFlag::flag_ = oldFlag;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_004 end");
 }
 
@@ -2022,6 +2047,8 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_004, TestSize.Leve
 HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_005, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_005 start");
+    const auto oldFlag = MyFlag::flag_;
+    MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
     abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
@@ -2035,6 +2062,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_005, TestSize.Leve
     auto ret = abilityMs->ConnectAbilityCommon(want, impl, token, ExtensionAbilityType::UI_SERVICE,
         -1, false);
     EXPECT_EQ(ret, RESOLVE_ABILITY_ERR);
+    MyFlag::flag_ = oldFlag;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_005 end");
 }
 
@@ -2047,6 +2075,8 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_005, TestSize.Leve
 HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_006, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_006 start");
+    const auto oldFlag = MyFlag::flag_;
+    MyFlag::flag_ = MyFlag::IS_SHELL_CALL;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
     abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
@@ -2062,6 +2092,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectAbilityCommon_006, TestSize.Leve
     auto ret = abilityMs->ConnectAbilityCommon(want, impl, token, ExtensionAbilityType::UI_SERVICE,
         -1, false, specifiedFullTokenId);
     EXPECT_EQ(ret, RESOLVE_ABILITY_ERR);
+    MyFlag::flag_ = oldFlag;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest ConnectAbilityCommon_006 end");
 }
 

@@ -31,6 +31,7 @@
 #define protected public
 #include "ability_auto_startup_data_manager.h"
 #include "ability_auto_startup_service.h"
+#include "bundle_mgr_helper.h"
 #include "ability_manager_event_subscriber.h"
 #include "ability_manager_service.h"
 #include "sub_managers_helper.h"
@@ -57,6 +58,7 @@
 #include "mock_ability_controller.h"
 #include "mock_ability_manager_collaborator.h"
 #include "mock_ability_token.h"
+#include "mock_bundle_manager_proxy.h"
 #include "mock_app_debug_listener_stub.h"
 #include "mock_prepare_terminate_callback.h"
 #include "mock_sa_call.h"
@@ -4261,7 +4263,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, ResolvePickerByTargetType_0100, TestSiz
 
 /**
  * @tc.name: AbilityManagerServiceFirstTest_ResolvePickerByTargetType_0200
- * @tc.desc: Test ResolvePickerByTargetType with targetType in pickerMap but bms unavailable
+ * @tc.desc: Test ResolvePickerByTargetType when the configured picker cannot be queried
  * @tc.type: FUNC
  */
 HWTEST_F(AbilityManagerServiceFirstTest, ResolvePickerByTargetType_0200, TestSize.Level1)
@@ -4274,9 +4276,15 @@ HWTEST_F(AbilityManagerServiceFirstTest, ResolvePickerByTargetType_0200, TestSiz
     pickerMap[targetType] = "picker_test";
     sptr<SessionInfo> sessionInfo = new (std::nothrow) SessionInfo();
     ASSERT_NE(sessionInfo, nullptr);
+    auto helper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    ASSERT_NE(helper, nullptr);
+    auto oldBundleMgr = helper->bundleMgr_;
+    // A proxy with no remote makes the query fail without depending on the device BMS.
+    helper->bundleMgr_ = sptr<MockBundleManagerProxy>::MakeSptr(nullptr);
     int32_t userId = USER_ID_U100;
     auto ret = abilityMs->ResolvePickerByTargetType(sessionInfo, targetType, userId);
-    EXPECT_EQ(ret, ABILITY_SERVICE_NOT_CONNECTED);
+    EXPECT_EQ(ret, RESOLVE_ABILITY_ERR);
+    helper->bundleMgr_ = oldBundleMgr;
     pickerMap.erase(targetType);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolvePickerByTargetType_0200 end");
 }

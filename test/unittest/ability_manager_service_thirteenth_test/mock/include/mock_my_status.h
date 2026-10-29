@@ -68,6 +68,7 @@ public:
     int32_t fimConnectExtensionType_ = -1;
     std::string fimConnectLocalDeviceId_;
     int32_t softbusGetLocalNodeDeviceInfo_ = ERR_OK;
+    bool auIsAppServiceFullCapability_ = true;
     bool auIsSupportDelayedProcessExit_ = false;
     bool auIsSupportBlockAllAppStart_ = true;
     int32_t oeuValidateCallerResult_ = ERR_OK;

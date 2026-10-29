@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2026 Huawei Device Co., Ltd. Licensed under Apache-2.0. -->
+<configuration ver="2.0">
+  <target name="app_service_proxy_test">
+    <preparer>
+      <option name="push" value="app_service_caller.hap -> /data/test/app_service/resource/" src="res"/>
+      <option name="push" value="app_service_denied.hap -> /data/test/app_service/resource/" src="res"/>
+      <option name="push" value="app_service_provider.hap -> /data/test/app_service/resource/" src="res"/>
+      <option name="push" value="app_service_unlicensed.hap -> /data/test/app_service/resource/" src="res"/>
+    </preparer>
+  </target>
+</configuration>
