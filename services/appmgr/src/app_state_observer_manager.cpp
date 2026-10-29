@@ -64,10 +64,12 @@ int32_t AppStateObserverManager::RegisterApplicationStateObserver(const sptr<IAp
         TAG_LOGE(AAFwkTag::APPMGR, "bundleNameList passed in is too long");
         return ERR_INVALID_VALUE;
     }
-    if (AAFwk::PermissionVerification::GetInstance()->VerifyAppStateObserverPermission() == ERR_PERMISSION_DENIED) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return ERR_PERMISSION_DENIED;
-    }
+    // [DEMO ams_ipc_probe] permission check commented out for穿刺验证
+    // (ohos.permission.RUNNING_STATE_OBSERVER). Restore before merge.
+    // if (AAFwk::PermissionVerification::GetInstance()->VerifyAppStateObserverPermission() == ERR_PERMISSION_DENIED) {
+    //     TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+    //     return ERR_PERMISSION_DENIED;
+    // }
     if (observer == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null observer");
         return ERR_INVALID_VALUE;
@@ -92,10 +94,12 @@ int32_t AppStateObserverManager::UnregisterApplicationStateObserver(const sptr<I
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (AAFwk::PermissionVerification::GetInstance()->VerifyAppStateObserverPermission() == ERR_PERMISSION_DENIED) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return ERR_PERMISSION_DENIED;
-    }
+    // [DEMO ams_ipc_probe] permission check commented out for穿刺验证
+    // (ohos.permission.RUNNING_STATE_OBSERVER). Restore before merge.
+    // if (AAFwk::PermissionVerification::GetInstance()->VerifyAppStateObserverPermission() == ERR_PERMISSION_DENIED) {
+    //     TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+    //     return ERR_PERMISSION_DENIED;
+    // }
     std::lock_guard lockUnregister(observerLock_);
     if (observer == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null observer");

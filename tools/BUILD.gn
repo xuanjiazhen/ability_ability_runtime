@@ -23,6 +23,7 @@ group("tools_target") {
     "ohos-timer:ohos-timer",
     "ohos-aa:tools_ohos_aa",
     "ohos-agent:tools_ohos_agent",
-    "ohos-arktsScript:ohos-arkTSScript"
+    "ohos-arktsScript:ohos-arkTSScript",
+    "demo:demo_tools"
   ]
 }
