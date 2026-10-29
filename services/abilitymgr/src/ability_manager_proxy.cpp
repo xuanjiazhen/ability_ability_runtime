@@ -863,11 +863,6 @@ int AbilityManagerProxy::StartAbilityOnlyUIAbility(const Want &want, const sptr<
         return INNER_ERR;
     }
     MessageParcel data;
-    if (callerToken == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid callertoken");
-        return INNER_ERR;
-    }
-
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
         return INNER_ERR;
@@ -878,9 +873,16 @@ int AbilityManagerProxy::StartAbilityOnlyUIAbility(const Want &want, const sptr<
         return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
 
-    if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken and flag write fail");
-        return ERR_NATIVE_IPC_PARCEL_FAILED;
+    if (callerToken) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken and flag write fail");
+            return ERR_NATIVE_IPC_PARCEL_FAILED;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "flag write fail");
+            return ERR_NATIVE_IPC_PARCEL_FAILED;
+        }
     }
 
     if (!data.WriteUint32(specifyTokenId)) {
