@@ -323,6 +323,59 @@ int32_t TaskManagerService::UnregisterManagedProcess(const std::string &taskId,
     return UnregisterManagedProcessInner(taskId, attributionId);
 }
 
+bool TaskManagerService::PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN) {
+        TAG_LOGE(AAFwkTag::APPMGR, "A2A precheck invalid taskId size: %{public}zu", taskId.size());
+        return false;
+    }
+    std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+    auto it = tasks_.find(taskId);
+    if (it == tasks_.end()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "A2A precheck task not found, taskId: %{public}s", taskId.c_str());
+        return false;
+    }
+    const TaskRecord &record = it->second;
+    if (record.creatorTokenId != callerTokenId) {
+        TAG_LOGE(AAFwkTag::APPMGR,
+            "A2A precheck ownership mismatch, taskId: %{public}s, "
+            "creator tokenId: %{public}u, caller tokenId: %{public}u",
+            taskId.c_str(), record.creatorTokenId, callerTokenId);
+        return false;
+    }
+    return true;
+}
+
+void TaskManagerService::AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+    pid_t targetPid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called, taskId: %{public}s, targetPid: %{public}d",
+        taskId.c_str(), targetPid);
+    if (targetPid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "A2A attribute invalid targetPid: %{public}d", targetPid);
+        return;
+    }
+    if (!PrecheckTaskForA2A(taskId, callerTokenId)) {
+        return;
+    }
+    if (!IsLiveManagedProcess(targetPid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "A2A attribute target pid not live managed process, "
+            "taskId: %{public}s, targetPid: %{public}d", taskId.c_str(), targetPid);
+        return;
+    }
+    AttributionRecord attribution;
+    attribution.pid = targetPid;
+    attribution.tool = AttributionTool::A2A;
+    AttributionId attributionId = 0;
+    int32_t ret = RegisterManagedProcessInner(taskId, attribution, attributionId);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "A2A attribute register failed, taskId: %{public}s, ret: %{public}d",
+            taskId.c_str(), ret);
+    }
+}
+
 int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskId,
     const AttributionRecord &attribution, AttributionId &attributionId)
 {

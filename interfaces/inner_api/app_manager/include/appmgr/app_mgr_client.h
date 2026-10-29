@@ -1849,6 +1849,16 @@ public:
      */
     int32_t FinishTask(const std::string &taskId);
 
+    /**
+     * Attribute the target Agent process into the task after a successful A2A
+     * connect. Best-effort: failures are logged and do NOT fail the connect result.
+     *
+     * @param taskId Task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId App's token id captured at the convergence point.
+     * @param targetPid Target Agent process pid (resolved post-connect).
+     */
+    void AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId, pid_t targetPid);
+
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);
     /**
