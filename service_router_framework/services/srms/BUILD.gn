@@ -27,6 +27,7 @@ config("srms_config") {
 }
 
 ohos_shared_library("libsrms") {
+  version_script = "libsrms.map"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
