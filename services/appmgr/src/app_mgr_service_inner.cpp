@@ -3943,11 +3943,33 @@ int32_t AppMgrServiceInner::KillApplicationByUserId(
         return ERR_PERMISSION_DENIED;
     }
 
-    KillProcessConfig config{clearPageStack, true, reason};
-    if(appCloneIndex == -1) {
-        auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
-        bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appCloneIndex);
+    int32_t collaboratorType = 0;
+    auto bundleMgrHelper = remoteClientManager_ != nullptr
+        ? remoteClientManager_->GetBundleManagerHelper() : nullptr;
+    if (bundleMgrHelper != nullptr) {
+        if (appCloneIndex == -1) {
+            bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appCloneIndex);
+        }
+        AppExecFwk::BundleInfo bundleInfo;
+        if (IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+            bundleInfo, userId)) == ERR_OK) {
+            const std::string &codePath = bundleInfo.applicationInfo.codePath;
+            constexpr int32_t collaboratorReserveType = 1;
+            constexpr int32_t collaboratorOthersType = 2;
+            if (codePath == std::to_string(collaboratorReserveType)) {
+                collaboratorType = collaboratorReserveType;
+            } else if (codePath == std::to_string(collaboratorOthersType)) {
+                collaboratorType = collaboratorOthersType;
+            }
+        }
     }
+    if (collaboratorType != 0) {
+        TAG_LOGI(AAFwkTag::APPMGR, "collaborator type detected, delegate to KillProcessWithUserId");
+        return AbilityManagerClient::GetInstance()->KillProcessWithUserId(
+            bundleName, clearPageStack, appCloneIndex, reason, userId);
+    }
+    KillProcessConfig config{clearPageStack, true, reason};
     return KillApplicationByUserIdLocked(bundleName, appCloneIndex, userId, config);
 }
 

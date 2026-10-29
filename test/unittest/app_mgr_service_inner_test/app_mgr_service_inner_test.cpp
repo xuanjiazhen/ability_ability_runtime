@@ -1357,6 +1357,68 @@ HWTEST_F(AppMgrServiceInnerTest, KillApplicationByUserId_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: KillApplicationByUserId_Collaborator_001
+ * @tc.desc: Test null remoteClientManager returns GET_BUNDLE_INFO_FAILED (AC-1.3).
+ * @tc.type: FUNC
+ * @tc.require: REQ-killprocess-account-collaborator
+ */
+HWTEST_F(AppMgrServiceInnerTest, KillApplicationByUserId_Collaborator_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillApplicationByUserId_Collaborator_001 start");
+    AAFwk::IsMockSaCall::IsMockSpecificSystemAbilityAccessPermission();
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "test_collaborator_bundle";
+    appMgrServiceInner->remoteClientManager_ = nullptr;
+    int result = appMgrServiceInner->KillApplicationByUserId(bundleName, 0, 0);
+    EXPECT_EQ(result, ERR_NO_INIT);
+
+    TAG_LOGI(AAFwkTag::TEST, "KillApplicationByUserId_Collaborator_001 end");
+}
+
+/**
+ * @tc.name: KillApplicationByUserId_Collaborator_002
+ * @tc.desc: Test null bundleMgrHelper returns GET_BUNDLE_INFO_FAILED (AC-1.3).
+ * @tc.type: FUNC
+ * @tc.require: REQ-killprocess-account-collaborator
+ */
+HWTEST_F(AppMgrServiceInnerTest, KillApplicationByUserId_Collaborator_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillApplicationByUserId_Collaborator_002 start");
+    AAFwk::IsMockSaCall::IsMockSpecificSystemAbilityAccessPermission();
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "test_collaborator_bundle";
+    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
+    int result = appMgrServiceInner->KillApplicationByUserId(bundleName, 0, 0);
+    EXPECT_EQ(result, ERR_NO_INIT);
+
+    TAG_LOGI(AAFwkTag::TEST, "KillApplicationByUserId_Collaborator_002 end");
+}
+
+/**
+ * @tc.name: KillApplicationByUserId_Collaborator_003
+ * @tc.desc: Test GetBundleInfoV9 failure returns GET_BUNDLE_INFO_FAILED in test env (AC-1.3).
+ * @tc.type: FUNC
+ * @tc.require: REQ-killprocess-account-collaborator
+ */
+HWTEST_F(AppMgrServiceInnerTest, KillApplicationByUserId_Collaborator_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillApplicationByUserId_Collaborator_003 start");
+    AAFwk::IsMockSaCall::IsMockSpecificSystemAbilityAccessPermission();
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "test_collaborator_bundle";
+    int result = appMgrServiceInner->KillApplicationByUserId(bundleName, 0, 0);
+    EXPECT_NE(result, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "KillApplicationByUserId_Collaborator_003 end");
+}
+
+/**
  * @tc.name: KillApplicationByUserIdLocked_001
  * @tc.desc: kill application by user id locked.
  * @tc.type: FUNC
