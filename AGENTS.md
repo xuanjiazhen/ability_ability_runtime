@@ -213,32 +213,15 @@
 
 ## 5. 代码检视
 
-当用户表达"检视一下代码""帮我审一下""做一次 code review""深度扫描""安全审计""查高危 bug""接口审计"等检视意图时，**不要凭记忆审查**——从代码检视工作台出发：
+用户表达代码检视、PR review、安全/输入/接口审计意图时，从 [skills/codecheck/README.md](skills/codecheck/README.md) 进入；先读公约，再执行 orchestrator 中的九阶段统一流程；专项请求调整检查重点。
 
-**入口**：[`skills/codecheck/README.md`](skills/codecheck/README.md)
-
-该 README 是检视的导航与编排中枢，按以下顺序使用：
-
-1. **先读 README**：了解每个子 skill 的检视维度、触发场景、输出格式，以及按场景选择的 skill 组合表。
-2. **界定范围**：明确目标路径或 Kit、检视重点（通用/安全/高危 bug/API/外部输入）。未明确时向用户确认。
-3. **调用子 skill**：读对应子目录的 `SKILL.md` 按其工作流执行。通用检视默认走 `deep-scan {path}`（一次拿 bug+logic+security 三维度）；接口/SDK 变更补 `api-audit`；服务侧 IPC/持久化密集区补 `external-input-audit`。
-4. **合并报告**：把各 skill 产出汇总为一份 `codecheck_report_<scope>_<YYYYMMDD>.md`，跨维度去重后按 P0/P1/P1 排序。报告结构见 README 的 Step 4。
-
-### 检视维度速查
-
-| 维度 | 子 skill | 何时用 |
-|------|---------|--------|
-| 高影响缺陷（崩溃/挂死/OOM/UAF/死锁/泄漏） | `high-impact-bug-audit` | 通用检视、合入前排查 |
-| 逻辑影响与一致性 | `logic_analyzer` | 变更影响评估、状态机/边界 |
-| 安全/商用前审查 | `security_review` | 安全专项、商用前 |
-| 外部输入→持久化健壮性 | `external-input-audit` | 服务侧、IPC/DB/文件密集区 |
-| 对外 API 一致性 | `api-audit` | 接口/SDK 变更、Kit 级审计 |
-| 三层编排（bug+logic+security） | `deep-scan` | 通用深度扫描的默认入口 |
-
-### 检视约束
-
-- **双模审查**：Mode A 真实漏洞审查（假设-验证管线，P0/P1 只能诞生于此且必须附验证状态 Reproduced/Reasoned）+ Mode B 静态编码审查（static-checklist，封顶 P2、hygiene 独立计数）。未指定时默认 A+B 并行；路由与流程见 `skills/codecheck/README.md`。
-- **验证先于定级**：仓内代码阅读得出的高危疑似项一律是"假设"；定级前必须过部署面分诊（systemapi/模式开关/攻击者能力），必要时跨仓拉源（gitcode，仓名映射见 `skills/codecheck/verification-playbook.md` §1）+ harness/UT 复现。推翻 Reproduced 结论需执行级证据。
-- **静态语言实现默认排除**（`frameworks/ets/ani/`、`frameworks/ets/ets/`、`frameworks/cj/ffi/`、`ets_*.cpp`、`cj_*.cpp`），除非用户明确要求包含。
-- **证据要求**：每条发现可追溯到 `file:line` + 触发路径，不收无证据的代码气味项。
-- **检视阶段不改源码**：只产出报告与建议；修复由用户确认后另起任务，并回到本 AGENTS.md 的 Constraints/Verification 章节执行。
+- 保留九个处理步骤。对候选问题从两个方向核实：一方面检查既有防护、触发条件和实际后果，排除误报及影响夸大；另一方面沿调用链检查被遗漏或低估的影响，以及多个已证实环节能否共同造成更严重的后果。只有证据充分才维持、撤回或调整问题等级。
+- 四个 scanner 整合为同一影响链中的按需检查视角，共享候选、证据与历史。旧维度名称仅用于原报告兼容，不代表独立扫描任务。
+- 先固定实际 head/base，获取 PR 与关联 Issue 意图及既有契约，再沿全仓调用/状态/生命周期影响链取证；有边界证据才扩搜，不强制全仓逐文件审计。
+- 技术规则从用户指定 standards 固定版本按需查询，入口见 `skills/codecheck/patterns/INDEX.md`，不依赖旧模式目录或 API 路径快照。
+- 发现必须有完整契约、触发条件、后果与必要修复证据。允许零发现；Tier/热点只用于调查优先级与深度，不自动升降级。
+- 默认一轮定向验证、至多一次补充；最多两轮集中 refute。按根因与稳定点位合并，同一问题最多交付提醒两次，第三次未变化默认接受；明确接受即时生效，所有等级适用。
+- 已接受点位不进入原始清单、refute 附件、报告或评分；仅实质新证据/新增点位或用户要求可重开。
+- 原六节报告、五要素、表列和 YAML schema 1.0 不变；评分公式不变，P0 阻断、否则缺维度 insufficient、否则 P1 conditional、其余 approve，P2/P3 不累计阻断。
+- 静态语言实现默认排除，用户指定包含时遵从；共享 native 与 dynamic 接口测试按实际调用关系判断。
+- 检视默认只读源码，格式按项目配置 check-only 并记录在原第 5 节；修复/格式写入遵循用户已有授权及本文件开发约束。

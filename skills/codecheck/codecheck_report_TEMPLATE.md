@@ -65,12 +65,11 @@ codecheck_report:
 
 ## 3. 必须立即处理（P0/P1）
 
-| ID | 优先级 | 验证状态 | 问题 | file:line | 触发路径 | 影响 |
+| ID | 优先级 | Scanner | 问题 | file:line | 触发路径 | 影响 |
 |---|---|---|---|---|---|---|
 {p0p1_table_rows}
 
 > 无 P0/P1 项时固定写法：**无。**　详情见第 6 节。
-> P0/P1 仅来自 Mode A（假设-验证管线），验证状态 ∈ {Reproduced, Reasoned-conditional}（conventions §7.4）；Reasoned 项须在"验证状态"列注明待验证环节与所在仓。
 
 ---
 
@@ -88,8 +87,6 @@ codecheck_report:
 |---|---|---|
 {dimension_table_rows}
 
-> 双模架构下本节固定包含：Mode A 各假设透镜一行（含假设数/Reproduced/Reasoned/Refuted 计数）+ Mode B 一行（hygiene 总数按 LOG/ERR/INP/RES/CONC/NUM/API 类别聚合，**不计入 findings_total 与评分**）+ 升格项说明（B→A 转假设的数量与去向）。
-
 ---
 
 ## 6. 关键发现详情
@@ -102,5 +99,4 @@ codecheck_report:
 - **触发路径**：{trigger_path}
 - **影响**：{impact}
 - **证据**：{evidence}
-- **验证状态**：{verification_status}｜验证包：{verification_pack_path}（P0/P1 必填；Mode B hygiene 项免填）
 - **建议**：{recommendation}
