@@ -1960,6 +1960,24 @@ int32_t AbilityManagerService::StartAbilityForAppCloneSelector(StartAbilityWrapP
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ret, "InitializeAppCloneRequest failed");
         return ret;
     }
+        std::string dialogSessionId = param.want.GetStringParam("dialogSessionId");
+    bool isSendDialogResult = false;
+#ifdef SUPPORT_SCREEN
+    auto dialogCallerInfo = DialogSessionManager::GetInstance().GetDialogCallerInfo(dialogSessionId);
+    if (!dialogSessionId.empty() && dialogCallerInfo != nullptr) {
+        isSendDialogResult = true;
+    }
+    if (callerBundleName == BUNDLE_NAME_DIALOG ||
+        (isSendDialogResult && param.want.GetBoolParam("isSelector", false))) {
+        CHECK_POINTER_AND_RETURN(implicitStartProcessor_, ERR_IMPLICIT_START_ABILITY_FAIL);
+        int32_t flag = false;
+        if (callerBundleName == BUNDLE_NAME_DIALOG) {
+            flag = true;
+        }
+        implicitStartProcessor_->ResetCallingIdentityAsCaller(
+            abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0), flag);
+    }
+#endif // SUPPORT_SCREEN
 
     // Only allow UIAbility type
     if (abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
