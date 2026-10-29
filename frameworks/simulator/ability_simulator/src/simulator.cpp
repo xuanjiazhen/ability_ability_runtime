@@ -958,6 +958,11 @@ std::shared_ptr<Simulator> Simulator::Create(const Options &options)
     return nullptr;
 }
 
+std::string Simulator::TranslateErrorStack(const std::string &errorStack)
+{
+    return DFXJSNApi::SourceMapTranslateBySourceMap(errorStack, false);
+}
+
 void SimulatorImpl::SetHostResolveBufferTracker(ResolveBufferTrackerCallback cb)
 {
     if (vm_ == nullptr || cb == nullptr) {
@@ -1097,7 +1102,7 @@ void SimulatorImpl::ReportJsError(napi_value obj)
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "errorStack empty");
         return;
     }
-    auto newErrorStack = DFXJSNApi::SourceMapTranslateBySourceMap(errorStack);
+    auto newErrorStack = Simulator::TranslateErrorStack(errorStack);
     summary += "Stacktrace:\n" + newErrorStack;
 
     std::stringstream summaryBody(summary);

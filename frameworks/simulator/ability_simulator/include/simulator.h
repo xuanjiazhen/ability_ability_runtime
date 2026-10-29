@@ -45,6 +45,16 @@ public:
      */
     static std::shared_ptr<Simulator> Create(const Options &options);
 
+    /**
+     * Translate a JS error stack string to readable source locations.
+     *
+     * Skips InitStatus-based parsing and maps the stack directly via the source map.
+     *
+     * @param errorStack The JS error stack string.
+     * @return The translated stack string.
+     */
+    static std::string TranslateErrorStack(const std::string &errorStack);
+
     virtual ~Simulator() = default;
 
     virtual int64_t StartAbility(
