@@ -34,7 +34,7 @@ description: >
 
 ---
 
-> **Path B 声明**：本 scanner 直接被调用时，除产出下述原始发现清单（发现模板 + Excel）外，必须按 [`conventions.md`](../../conventions.md) §5–§13 规程生成符合 `codecheck_report_TEMPLATE.md` 的统一报告。严重等级五档（9-10/7-8/5-6/3-4/1-2）按 conventions §7.2 归一化到 P0–P3。P0 项必须做 refute（见 conventions §13.2）。
+> **Path B 声明**：本 scanner 直接被调用时，除产出下述原始发现清单（发现模板 + Excel）外，必须按 [`conventions.md`](../../conventions.md) §5–§13 规程生成符合 `codecheck_report_TEMPLATE.md` 的统一报告。严重等级五档（9-10/7-8/5-6/3-4/1-2）按 conventions §7.2 归一化到 P0–P3。P0 项及 T1/crown-jewel 的 P2/P3 必须做 refute（见 conventions §13.2）。
 
 ## 工作流
 
@@ -115,6 +115,8 @@ description: >
 ```text
 Priority = 影响严重程度 * 可触发性 * 影响范围
 ```
+
+> **Tier 二次调整（强制）**：按上式得到 base 优先级后，必须按 [`conventions.md`](../../conventions.md) §7.5 的可达性 tier（T1–T4）+ crown-jewel 加成做二次调整——T1 可达的 P2 可升 P1、触及 crown-jewel 资产 +1 级、T4 测试代码的 P2/P3 不进入报告。finding 卡片须标注 `tier` 与 `crown_jewel`。未做 tier 调整的发现会被 refute 第四层（[`refute-rules.md`](../../orchestrator/refute-rules.md) §2.4）以"tier 未应用"为由升级。tier 升级不得突破 §7.4 验证状态定级上限。
 
 **证据等级**：
 

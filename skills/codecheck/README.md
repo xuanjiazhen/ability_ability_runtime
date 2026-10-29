@@ -142,12 +142,13 @@ orchestrator 自动探测路径特征：
 读对应目录的 `SKILL.md`，按其工作流执行。每个 scanner 加载 `patterns/` 下相关 pattern 文件。保留各 scanner 原始产出（md/csv/excel），不要在中间改写。
 
 ### Step 4：Refute — 对抗性验证 🔥 新增
-orchestrator 对每条发现执行三层质疑：
+orchestrator 对每条发现执行四层质疑（前三层只降不升，第四层反向升级复审，使 refute **双向**）：
 1. **触发路径证伪**：上游有防护吗？真的可达吗？
 2. **影响夸大证伪**：后果真的这么严重吗？
 3. **跨 scanner 根因去重**：两条发现本质同一个根因吗？
+4. **严重度低估复审**（新增）：T1 可达/crown-jewel 的 P2/P3 是不是被低估了？可升级或成链合并升至 P0
 
-产出 `refute_log.md`，记录每条发现的判定：✅ 维持 | ⬇️ 降级 | ❌ 推翻 | 🔀 合并。详见 [`orchestrator/refute-rules.md`](orchestrator/refute-rules.md)。
+产出 `refute_log.md`，记录每条发现的判定：✅ 维持 | ⬇️ 降级 | ❌ 推翻 | 🔀 合并 | ⬆️ 升级。详见 [`orchestrator/refute-rules.md`](orchestrator/refute-rules.md)。
 
 ### Step 5：合并为统一报告
 基于 `refute_log.md` 过滤后的发现列表，按 [`codecheck_report_TEMPLATE.md`](codecheck_report_TEMPLATE.md) 生成 `codecheck_report_<scope>_<YYYYMMDD>.md`。

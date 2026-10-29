@@ -21,6 +21,24 @@
 - 引用代码使用格式：`path/to/file.cpp:123`。
 - 无证据项不得计入 P0/P1。
 
+### 2.1 硬性"不报告"清单（新增）
+
+> codecheck 检视的是**缺陷与风险**，不是代码风格。下列项属 linter/静态分析工具职责，**默认不报告**；仅在发现点位于 §7.5 定义的 T1 路径上时例外（此时作为 P3 观察项登记，不计入 `findings_total` 扣分）。
+
+| 类别 | 典型示例 | 不报告理由 |
+|------|---------|-----------|
+| 日志风格 | 日志标签不一致、日志级别选型、TAG 命名 | clang-tidy/HILOG 规范职责 |
+| 注释/文档占位符 | `@tc.require: issue` 占位、TODO/FIXME、注释拼写 | 需求追溯工具职责 |
+| 代码风格 | 命名规范、缩进、空行、括号位置、行长度 | clang-format 职责 |
+| 静态分析可捕项 | 未使用变量、未使用 include、shadow 变量、`-Wunused` 系列 | cppcheck/clang-tidy 职责 |
+| 测试质量元项 | 测试用例命名、断言数量、mock 充分度 | 测试评审职责（但"测试恒走假分支使覆盖无效"属逻辑缺陷，按 LOG 报告） |
+
+**执行要求**：
+
+- scanner 命中上述类别时直接丢弃，不进入原始发现清单，不进入 refute_log。
+- 仅当某风格项本身**掩盖了真实缺陷**时（如日志级别选错导致敏感信息走 INFO 落盘 → 归 AUTH-002；日志标签导致敏感数据路由到公开日志域 → 归 AUTH-002），按对应缺陷维度报告，不按风格报告。
+- T1 例外：T1 路径上的风格项允许作为 P3 观察项登记在第 4 节"建议跟进"，但 `findings_total` 与评分不计入（即 `findings_by_severity` 的 P3 计数不含此类），仅作可观测性提示。
+
 ---
 
 ## 3. 不动代码
@@ -136,6 +154,31 @@ echo "$(git log -1 --format='%b' | grep -o 'Change-Id: I[0-9a-f]\{40\}' || git r
 - P0/P1 **只能来自 Mode A**（假设-验证管线）且验证状态 ∈ {Reproduced, Reasoned-conditional}；**纯仓内阅读不得推翻 Reproduced 项**。
 - Mode B（static-checklist）产出封顶 P2、单独 hygiene 计数，不计入 `findings_by_severity` 与评分；升格项走 Mode A 后按本表定级。
 - P0/P1 卡片必填 `verification_status` + 验证包路径（harness/runlog/忠实度声明），见 verification-playbook.md §4-§5。
+
+### 7.5 可达性 Tier 严重度乘数（新增）
+
+> 与 §7.4 互补：§7.4 按验证状态决定定级**上限**（能否到 P0/P1），本节按可达性决定定级**微调**（在上限内按谁够得着调整）。严重度不只取决于"是什么缺陷"，更取决于"谁够得着它"。所有 scanner 在按 §7.2 归一化 + §7.4 验证状态门禁得到 base 等级后，**必须**按发现点的可达性 tier 做二次调整。本节解决"IPC 可达的 P2 与测试 helper 的 P2 同权"的失真问题。
+
+**Tier 定义**（以发现点所在函数沿调用链向上找到的**最浅外部入口**为准，而非发现点自身语法）：
+
+| Tier | 发现点最浅入口特征 | 乘数 | 升降规则 |
+|------|------------------|------|---------|
+| T1 | 不可信调用方可达：`OnRemoteRequest`/Stub 分发、NAPI/ANI 导出、对外 C-API（`interfaces/kits/`）、CLI 入口（`argv`/`getopt`）、网络/socket 读 | ×1.0 | base=P2 可升 P1；base=P3 最多升 P2（不直升 P1） |
+| T2 | 仅 foundation/system 进程内部可达（同进程族 IPC、`IN_PROCESS_CALL`、系统 SA 互调） | ×0.7 | 维持 base；不可上调 |
+| T3 | 内部 helper，只被 T1/T2 间接调用，无独立外部入口 | ×0.5 | 维持 base；base=P2 可降 P3 |
+| T4 | 测试代码、`*_fuzzer.cpp`、`#ifdef DEBUG`、utility/示例 | ×0.3 | base=P2/P3 不进入统一报告正文（仅记 refute_log 观察）；base=P0/P1 维持（测试代码亦可能暴露真实缺陷） |
+
+**Crown-Jewel 资产加成**：
+
+- 触及 [`patterns/known-defect-patterns/hotspot-modules.md`](patterns/known-defect-patterns/hotspot-modules.md) 所列 crown-jewel 资产（want/wantagent 族、amsdialog、appmgrservice、abilitymgr、uri_permission_manager、ui_appearance、form_fwk、service_router_mgr、ability_record/lifecycle_manager、installs/installd 文件原语、包管理反序列化等）的发现，在 tier 乘数后再 **+1 级**（封顶 P0）。
+- `hotspot-modules.md` 自本节起升格为 **crown-jewel 资产登记表**：scanner 命中其列出模块时必须引用本规则做加成，并在 finding 卡片标注 `crown_jewel: true`。
+
+**操作要求**：
+
+1. 每条发现进入统一报告时，YAML `findings_by_severity` 与第 6 节 finding 卡片 severity 必须是 **§7.4 验证状态门禁 + tier + crown-jewel 调整后**的最终等级；卡片需注明 `verification_status`（§7.4）、`tier: T1/T2/T3/T4` 与是否命中 crown-jewel。
+2. tier 升级不得突破 §7.4 验证状态定级上限（如 Unverified 不得因 T1 升至 P1）；升级上限：单次最多升 1 级（P3→P2 或 P2→P1），禁止 P3 直升 P0；crown-jewel 加成可叠加但合计封顶 P0。
+3. 降级不适用于 P0（P0 不因 tier 降级，只由 refute 推翻）；降级不适用于 T1（T1 只升不降）。
+4. tier 判定冲突时取**更宽松可达**的 tier（即对发现更不利、对防护更保守的那个），偏向不降级。
 
 ---
 
@@ -302,21 +345,25 @@ codecheck_report:
 
 ## 13. Refute 公约
 
-> 单 scanner 场景的 refute 义务见 §13.2（仅 P0）；orchestrator 场景见 §13.1（不变）。
+> 单 scanner 场景的 refute 义务见 §13.2（P0 + T1/crown-jewel 升级复审）；orchestrator 场景见 §13.1。
+> 自本版起 refute 为**双向**：前三层证伪（推翻/降级/合并），第四层升级复审（升级/成链），详见 [`orchestrator/refute-rules.md`](orchestrator/refute-rules.md) §2.4–§2.5。
 
 ### 13.1 经 orchestrator 调度时（不变）
 
 - **只质疑，不发现**：refuter 不能新增任何 scanner 未报告的发现
 - **质疑必须有代码证据**：推翻或降级必须引用具体 file:line
+- **升级同样必须有代码证据**：升级（⬆️）必须引用具体 file:line 说明后果/可达性被低估的依据
 - **P0 推翻需更严格证据**：不能仅凭"极难触发"推翻 P0，必须是"确认不可达"
 - **refute_log.md 与最终报告一并交付**
-- 审查范围与三层质疑规则详见 [`orchestrator/refute-rules.md`](orchestrator/refute-rules.md)
+- 审查范围与四层质疑规则（含第四层升级复审与漏洞链组合）详见 [`orchestrator/refute-rules.md`](orchestrator/refute-rules.md)
 
 ### 13.2 单 scanner 直接产出时（Path B 新增）
 
 - **跨 scanner 根因去重（第三层）跳过**：单 scanner 无跨维度去重需求
-- **仅 P0 必须做 refute**：所有 P0 项必须经第一层（触发路径证伪）+ 第二层（影响夸大证伪）自审，产出 `refute_log.md` 与统一报告一并交付
-- **P1/P2/P3 跳过 refute**：不强制自审，直接进入统一报告
+- **P0 必须做 refute**：所有 P0 项必须经第一层（触发路径证伪）+ 第二层（影响夸大证伪）自审
+- **T1/crown-jewel 的 P2/P3 必须做升级复审（第四层）**：凡 base=P2/P3 且发现点经 §7.5 判定为 T1 可达，或触及 crown-jewel 资产的发现，必须经第四层"被低估了吗"复审，不得跳过；其余 P1/P2/P3 跳过 refute
+- **漏洞链组合（§2.5）适用**：单 scanner 内若 ≥2 条发现构成因果链，按 §2.5 合并升级
 - **P0 推翻需"确认不可达"级证据**：不能仅凭"极难触发"推翻 P0，必须是上游硬 guard 或编译器保证
 - 用户可显式要求"P1 也做 refute"，此时按 §13.1 orchestrator 标准（P0/P1 全审）执行
-- 单 scanner 的 `refute_log.md` 可精简：仅记录 P0 项审查结论（✅ 维持 / ⬇️ 降级 / ❌ 推翻），无需第三层去重
+- 单 scanner 的 `refute_log.md` 记录：P0 项审查结论（✅ 维持 / ⬇️ 降级 / ❌ 推翻）+ T1/crown-jewel P2/P3 升级复审结论（⬆️ 升级 / ✅ 维持），无需第三层去重
+- 产出 `refute_log.md` 与统一报告一并交付

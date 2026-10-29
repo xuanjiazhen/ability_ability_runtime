@@ -109,9 +109,15 @@ P0/P1 交付必附**验证包**：证据链 file:line + harness 路径 + 运行�
 - 评分（conventions §9 双车道制）：`score = max(0, 100 − (30×P0v + 12×P1v + 5×P2a))`，仅计 Mode A 验证项（P0v/P1v）与 Mode A P2；**Mode B 不计分**，以独立 hygiene 计数呈现
 - 门禁：存在 Reproduced P0 → block；P1（Reproduced 或 Reasoned-conditional）→ conditional；其余按 score
 
-## Refute 公约（保留，权限收紧）
+## Refute 公约（保留，权限收紧 + 双向升级）
 
-[`refute-rules.md`](refute-rules.md) 三层质疑继续适用于 Mode A 假设与 Mode B 升格项；新增约束：**仓内代码阅读只能把 P1 降到 Unverified/P2-hypothesis，推翻 P1 必须有跨仓源码或执行级证据**；Reproduced 项不可被纯阅读推翻。
+[`refute-rules.md`](refute-rules.md) **四层质疑**继续适用于 Mode A 假设与 Mode B 升格项：前三层证伪（触发路径证伪 / 影响夸大证伪 / 跨 scanner 根因去重）只降不升，**第四层升级复审（§2.4）反向质疑"是不是被低估了"**，使 refute **双向**。
+
+**升级复审范围**：base=P2/P3 且发现点经 conventions §7.5 判定为 T1 可达，或触及 crown-jewel 资产的发现——**全量复审，不得跳过**；可升至 P1，漏洞链组合（§2.5）可升至 P0。升级必须有代码证据（引用 file:line 说明后果/可达性被低估），与证伪对称。
+
+**verdict 集**：✅ 维持 | ⬇️ 降级 | ❌ 推翻 | 🔀 合并 | ⬆️ 升级。
+
+**既有约束（保留）**：仓内代码阅读只能把 P1 降到 Unverified/P2-hypothesis，推翻 P1 必须有跨仓源码或执行级证据；Reproduced 项不可被纯阅读推翻。**升级同样不得凭仓内阅读越权**——升至 P0/P1 须满足 §7.4 验证状态门禁（Reproduced 或 Reasoned-conditional），tier 升级不得突破验证状态定级上限。
 
 ## 不动代码
 

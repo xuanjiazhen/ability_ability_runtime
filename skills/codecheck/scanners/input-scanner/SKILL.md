@@ -28,7 +28,7 @@ description: >
 
 ---
 
-> **Path B 声明**：本 scanner 直接被调用时，除产出下述原始 Excel 风险清单外，必须按 [`conventions.md`](../../conventions.md) §5–§13 规程生成符合 `codecheck_report_TEMPLATE.md` 的统一报告。严重等级已对齐 P0–P3（恒等映射，见 conventions §7.2）。P0 项必须做 refute（见 conventions §13.2）。
+> **Path B 声明**：本 scanner 直接被调用时，除产出下述原始 Excel 风险清单外，必须按 [`conventions.md`](../../conventions.md) §5–§13 规程生成符合 `codecheck_report_TEMPLATE.md` 的统一报告。严重等级已对齐 P0–P3（恒等映射，见 conventions §7.2）。P0 项及 T1/crown-jewel 的 P2/P3 必须做 refute（见 conventions §13.2）。
 
 ## 核心原则
 

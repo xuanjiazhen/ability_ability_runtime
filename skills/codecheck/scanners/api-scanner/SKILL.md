@@ -24,7 +24,7 @@ description: |
 
 两种格式同步生成，数据等价，仅呈现方式不同。
 
-> **Path B 声明**：本 scanner 直接被调用时，除产出下述 `<kit>_api_audit.md` + `<kit>_api_audit.csv` 双格式原始产出外，必须按 [`conventions.md`](../../conventions.md) §5–§13 规程生成符合 `codecheck_report_TEMPLATE.md` 的统一报告。审计标记 ❌/⚠️/✅ 按 conventions §7.2 归一化到 P0–P3：❌（含 E4 描述与实现不符、安全绕过）→ P0，❌（其他致调用失败、版本/错误码不一致）→ P1，⚠️（E5/E6/E7 不导致误用）→ P2，✅ 不报告。P0 项必须做 refute（见 conventions §13.2）。
+> **Path B 声明**：本 scanner 直接被调用时，除产出下述 `<kit>_api_audit.md` + `<kit>_api_audit.csv` 双格式原始产出外，必须按 [`conventions.md`](../../conventions.md) §5–§13 规程生成符合 `codecheck_report_TEMPLATE.md` 的统一报告。审计标记 ❌/⚠️/✅ 按 conventions §7.2 归一化到 P0–P3：❌（含 E4 描述与实现不符、安全绕过）→ P0，❌（其他致调用失败、版本/错误码不一致）→ P1，⚠️（E5/E6/E7 不导致误用）→ P2，✅ 不报告。P0 项及 T1/crown-jewel 的 P2/P3 必须做 refute（见 conventions §13.2）。
 
 ---
 
