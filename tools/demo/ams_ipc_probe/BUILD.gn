@@ -41,9 +41,26 @@ config("ams_ipc_probe_rev_config") {
 ohos_executable("ams_ipc_probe_rev") {
   branch_protector_ret = "pac_ret"
 
+  # Sanitize config: ability_runtime is in the product's cfi-check list, so
+  # every ohos_* target in this part must fully enable cfi (cfi +
+  # cfi_cross_dso + !debug) -- see build/config/sanitizers/sanitizers.gni
+  # ohos_sanitizer_check. Mirrors the app_manager inner_api sanitize block.
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
+    debug = false
+  }
+
   sources = [ "ams_ipc_probe_rev.cpp" ]
 
   configs = [ ":ams_ipc_probe_rev_config" ]
+
+  use_exceptions = true
 
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
