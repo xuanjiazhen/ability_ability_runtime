@@ -55,6 +55,7 @@
 #include "appspawn_util.h"
 #include "bundle_constants.h"
 #include "bundle_mgr_helper.h"
+#include "child_process_state_observer_manager.h"
 #include "common_event.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
@@ -534,6 +535,7 @@ void AppMgrServiceInner::Init()
     ParseServiceExtMultiProcessWhiteList();
     DelayedSingleton<AppStateObserverManager>::GetInstance()->Init();
     DelayedSingleton<RenderStateObserverManager>::GetInstance()->Init();
+    DelayedSingleton<ChildProcessStateObserverManager>::GetInstance()->Init();
     dfxTaskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler(
         "dfx_freeze_task_queue", DFX_TASKWORKER_NUM, AAFwk::TaskQoS::USER_INITIATED);
     dfxTaskHandler_->SetPrintTaskLog(true);
@@ -11371,6 +11373,26 @@ int32_t AppMgrServiceInner::UnregisterRenderStateObserver(const sptr<IRenderStat
     return DelayedSingleton<RenderStateObserverManager>::GetInstance()->UnregisterRenderStateObserver(observer);
 }
 
+int32_t AppMgrServiceInner::RegisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer)
+{
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "observer null");
+        return ERR_INVALID_VALUE;
+    }
+    return DelayedSingleton<ChildProcessStateObserverManager>::GetInstance()->RegisterChildProcessStateObserver(
+        observer);
+}
+
+int32_t AppMgrServiceInner::UnregisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer)
+{
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "observer null");
+        return ERR_INVALID_VALUE;
+    }
+    return DelayedSingleton<ChildProcessStateObserverManager>::GetInstance()->UnregisterChildProcessStateObserver(
+        observer);
+}
+
 void AppMgrServiceInner::SetAppAssertionPauseState(bool flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -12871,6 +12893,31 @@ void AppMgrServiceInner::HandleForegroundAbilityDied(
 int32_t AppMgrServiceInner::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
 {
     return appQueryHelper_.GetAllAbilityInfos(pid, infos);
+}
+
+int32_t AppMgrServiceInner::NotifyChildProcessState(int32_t pid, int32_t state)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "NotifyChildProcessState called, pid: %{public}d, state: %{public}d", pid, state);
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ is nullptr");
+        return ERR_NO_INIT;
+    }
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingAppRecord = GetAppRunningRecordByPid(callingPid);
+    if (callingAppRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "callingAppRecord is nullptr, callingPid: %{public}d", callingPid);
+        return AAFwk::ERR_CHECK_CHILD_PROCESS_FAILED;
+    }
+    auto childProcessRecord = callingAppRecord->GetChildProcessRecordByPid(pid);
+    if (childProcessRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR,
+            "child process does not exist or is not created by current application, pid: %{public}d", pid);
+        return AAFwk::ERR_CHECK_CHILD_PROCESS_FAILED;
+    }
+    auto uid = childProcessRecord->GetUid();
+    return DelayedSingleton<ChildProcessStateObserverManager>::GetInstance()->OnChildProcessStateChanged(
+        pid, uid, callingPid, callingUid, state);
 }
 
 int32_t AppMgrServiceInner::EnableDelayedProcessExit(int32_t pid, bool enabled)
