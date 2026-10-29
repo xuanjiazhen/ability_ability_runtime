@@ -54,6 +54,7 @@ private:
     void UpdateCallerAbilityName(Want& want, const std::string &abilityName);
     void UpdateCallerAppCloneIndex(Want& want, int32_t appIndex);
     void ClearProtectedWantParam(Want &want);
+    void RemoveIntentIdentityParams(Want &want);
     void CacheInsightIntentParams(const Want &want, AbilitySessionInfo &info);
     void RestoreInsightIntentParams(Want &want, const AbilitySessionInfo &info);
 

@@ -509,15 +509,22 @@ void UpdateCallerInfoUtil::CacheInsightIntentParams(const Want &want, AbilitySes
     info.insightIntentUserId = want.GetIntParam(INTENT_PARAM_USER_ID, 0);
 }
 
+void UpdateCallerInfoUtil::RemoveIntentIdentityParams(Want &want)
+{
+    for (const auto &key : INTENT_IDENTITY_KEYS) {
+        want.RemoveParam(key);
+    }
+}
+
 void UpdateCallerInfoUtil::RemoveInsightIntentParams(Want &want)
 {
     for (const auto &key : INTENT_IDENTITY_KEYS) {
         if (want.HasParameter(key)) {
             TAG_LOGW(AAFwkTag::ABILITYMGR,
                 "remove insight intent identity param without trusted cache: %{public}s", key);
-            want.RemoveParam(key);
         }
     }
+    RemoveIntentIdentityParams(want);
 }
 
 void UpdateCallerInfoUtil::RestoreInsightIntentParams(Want &want, const AbilitySessionInfo &info)
@@ -528,39 +535,20 @@ void UpdateCallerInfoUtil::RestoreInsightIntentParams(Want &want, const AbilityS
         RemoveInsightIntentParams(want);
         return;
     }
-    // Compare the SCB-returned identity params against the snapshot taken from the sanitized
-    // Want before the relay; rewrite the snapshot back on any difference.
-    bool mismatch =
-        want.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME) != info.insightIntentName ||
-        want.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID) != info.insightIntentId ||
+    // Lightweight tamper check: the id anchors the intent identity and the conditional params
+    // must survive the relay with unchanged presence. The restore below is unconditional, so
+    // this comparison only feeds the warning log.
+    if (want.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID) != info.insightIntentId ||
         want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE) != info.hasInsightIntentMode ||
-        (info.hasInsightIntentMode &&
-            want.GetIntParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, 0) != info.insightIntentMode) ||
-        want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG) != info.hasInsightIntentOpenLinkFlag ||
-        (info.hasInsightIntentOpenLinkFlag &&
-            want.GetIntParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG, 0) !=
-                info.insightIntentOpenLinkFlag) ||
-        // The caller identity trio is written atomically by the intent execute manager, so
-        // presence of each key must match hasInsightIntentCallerInfo.
+        want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG) !=
+            info.hasInsightIntentOpenLinkFlag ||
         want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME) != info.hasInsightIntentCallerInfo ||
-        want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID) != info.hasInsightIntentCallerInfo ||
-        want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_UID) != info.hasInsightIntentCallerInfo ||
-        (info.hasInsightIntentCallerInfo &&
-            want.GetStringParam(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME) !=
-                info.insightIntentCallerBundleName) ||
-        (info.hasInsightIntentCallerInfo &&
-            want.GetStringParam(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID) !=
-                info.insightIntentCallerTokenId) ||
-        (info.hasInsightIntentCallerInfo &&
-            want.GetIntParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, 0) != info.insightIntentCallerUid) ||
-        want.HasParameter(INTENT_PARAM_USER_ID) != info.hasInsightIntentUserId ||
-        (info.hasInsightIntentUserId && want.GetIntParam(INTENT_PARAM_USER_ID, 0) != info.insightIntentUserId);
-    if (!mismatch) {
-        return;
+        want.HasParameter(INTENT_PARAM_USER_ID) != info.hasInsightIntentUserId) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "insight intent identity params tampered during SCB relay");
     }
-    TAG_LOGW(AAFwkTag::ABILITYMGR,
-        "insight intent identity params mismatch after SCB relay, restore from cached snapshot");
-    RemoveInsightIntentParams(want);
+    // The snapshot was taken from the sanitized Want before the relay and is authoritative;
+    // unconditionally rewrite it, matching the caller-info restore behavior above.
+    RemoveIntentIdentityParams(want);
     want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, info.insightIntentName);
     want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, info.insightIntentId);
     if (info.hasInsightIntentMode) {
