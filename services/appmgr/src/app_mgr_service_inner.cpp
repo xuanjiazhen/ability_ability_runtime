@@ -5732,6 +5732,10 @@ void AppMgrServiceInner::SetAppInfo(const BundleInfo &bundleInfo, AppSpawnStartM
     StartProcessVerifyPermission(bundleInfo, hasAccessBundleDirReq, setAllowInternet, allowInternet, gids);
     startMsg.uid = bundleInfo.uid;
     startMsg.gid = bundleInfo.gid;
+    startMsg.appId = bundleInfo.appUid;
+    if (bundleInfo.isShareUid) {
+        startMsg.flags |= (1ULL << StartFlags::SHAREUID_ENABLED);
+    }
     startMsg.hapFlags = bundleInfo.isPreInstallApp ? 1 : 0;
     startMsg.accessTokenId = bundleInfo.applicationInfo.accessTokenId;
     startMsg.accessTokenIdEx = bundleInfo.applicationInfo.accessTokenIdEx;

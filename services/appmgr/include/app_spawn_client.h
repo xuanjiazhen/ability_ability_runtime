@@ -74,6 +74,7 @@ struct AppSpawnStartMsg {
     uint32_t apiTargetVersion = 0;
     int32_t uid;
     int32_t gid;
+    int32_t appId;
     int32_t pid;
     int32_t code = 0; // 0: default, MSG_APP_SPAWN; 1: MSG_SPAWN_NATIVE_PROCESS; 2: MSG_GET_RENDER_TERMINATION_STATUS
     int32_t bundleIndex;   // when dlp launch another app used, default is 0
@@ -124,6 +125,7 @@ struct StartFlags {
     static const int DLP_MANAGER_READ_ONLY = 38;
     static const int CLOUD_FILE_SYNC_ENABLED = 39;
     static const int APP_FLAGS_DEBUGSERVER = 44;
+    static const int SHAREUID_ENABLED = 48;
 };
 
 struct CreateStartMsgParam {
