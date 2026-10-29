@@ -345,7 +345,14 @@ int32_t JsRuntime::JsperfProfilerCommandParse(const std::string &command, int32_
         return defaultValue;
     }
 
-    return std::stoi(interval);
+    errno = 0;
+    char *endPtr = nullptr;
+    long val = strtol(interval.c_str(), &endPtr, 10);
+    if (errno != 0 || val > INT_MAX || endPtr == interval.c_str()) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "interval out of range: %{public}s", interval.c_str());
+        return defaultValue;
+    }
+    return static_cast<int32_t>(val);
 }
 
 void JsRuntime::StartProfiler(const DebugOption dOption)
