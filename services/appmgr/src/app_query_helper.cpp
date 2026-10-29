@@ -425,6 +425,31 @@ int AppQueryHelper::GetSelfChildrenProcesses(std::vector<ChildProcessInfo> &info
     }
     return ERR_OK;
 }
+
+bool AppQueryHelper::QueryIsSelfChildrenProcesses(int32_t pid, int32_t &uid)
+{
+    auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+    for (const auto &item : appRunningManager_->GetAppRunningRecordMap()) {
+        const auto &appRecord = item.second;
+        if (!appRecord) {
+            continue;
+        }
+        auto applicationInfo = appRecord->GetApplicationInfo();
+        if (!applicationInfo) {
+            continue;
+        }
+        if (callingTokenId != applicationInfo->accessTokenId) {
+            continue;
+        }
+        auto childProcessRecord = appRecord->GetChildProcessRecordByPid(pid);
+        if (childProcessRecord == nullptr) {
+            return false;
+        }
+        uid = childProcessRecord->GetUid();
+        return true;
+    }
+    return false;
+}
 #endif // SUPPORT_CHILD_PROCESS
 
 void AppQueryHelper::GetRunningProcesses(const std::shared_ptr<AppRunningRecord> &appRecord,
