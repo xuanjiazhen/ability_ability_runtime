@@ -123,7 +123,6 @@ private:
             formId = -1;
         }
 
-        AppExecFwk::FormProviderData formProviderData;
         std::string formDataStr = "{}";
         if (CheckTypeForNapiValue(env, info.argv[1], napi_object)) {
             napi_value nativeDataValue = nullptr;
