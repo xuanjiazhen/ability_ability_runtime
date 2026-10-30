@@ -32,12 +32,19 @@ int AccessTokenKit::GetNativeTokenInfo(AccessTokenID tokenID, NativeTokenInfo &n
 
 int AccessTokenKit::GetHapTokenInfo(AccessTokenID tokenID, HapTokenInfo &hapInfo)
 {
-    return -1;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.atkQueriedTokenId_ = tokenID;
+    if (status.atkGetHapTokenInfo_ == 0) {
+        hapInfo = status.atkHapTokenInfo_;
+    }
+    return status.atkGetHapTokenInfo_;
 }
 
 int AccessTokenKit::VerifyAccessToken(AccessTokenID tokenID, const std::string &permissionName, bool crossIpc)
 {
-    return -1;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.atkVerifiedTokenId_ = tokenID;
+    return status.atkVerifyAccessToken_;
 }
 
 void AccessTokenKit::GetPermissionManagerInfo(PermissionGrantInfo &info)
