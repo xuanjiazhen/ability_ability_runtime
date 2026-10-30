@@ -3927,6 +3927,23 @@ int32_t AppMgrServiceInner::KillApplicationByBundleName(
         TAG_LOGE(AAFwkTag::APPMGR, "process corresponding to the package name did not start");
         return result;
     }
+    if (AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall() ||
+        AAFwk::PermissionVerification::GetInstance()->IsCustomSandboxCall()) {
+        auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+        pids.remove_if([this, callingTokenId](pid_t pid) {
+            auto appRecord = appRunningManager_->GetAppRunningRecordByPid(pid);
+            if (appRecord == nullptr) {
+                TAG_LOGW(AAFwkTag::APPMGR, "localDebug/customSandbox filter: pid:%{public}d appRecord null", pid);
+                return true;
+            }
+            auto applicationInfo = appRecord->GetApplicationInfo();
+            if (applicationInfo == nullptr || applicationInfo->accessTokenId != callingTokenId) {
+                TAG_LOGW(AAFwkTag::APPMGR, "localDebug/customSandbox filter: pid:%{public}d not same app", pid);
+                return true;
+            }
+            return false;
+        });
+    }
     result = WaitProcessesExitAndKill(pids, startTime, reason);
     NotifyAppStatus(bundleName, appIndex, EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_RESTARTED);
     return result;
@@ -4359,6 +4376,26 @@ int32_t AppMgrServiceInner::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLe
     }
     bool isShellOrLocalDebug = isShellCall || isLocalDebugOtherAppsCall;
     TAG_LOGD(AAFwkTag::APPMGR, "isShellCall %{public}d", isShellCall);
+    if (isLocalDebugOtherAppsCall) {
+        auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+        std::map<pid_t, MemoryLevel> filteredMap;
+        for (const auto &item : procLevelMap) {
+            auto appRecord = appRunningManager_->GetAppRunningRecordByPid(item.first);
+            if (appRecord == nullptr) {
+                TAG_LOGW(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall filter: pid:%{public}d appRecord null",
+                    item.first);
+                continue;
+            }
+            auto applicationInfo = appRecord->GetApplicationInfo();
+            if (applicationInfo == nullptr || applicationInfo->accessTokenId != callingTokenId) {
+                TAG_LOGW(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall filter: pid:%{public}d not same app",
+                    item.first);
+                continue;
+            }
+            filteredMap.emplace(item.first, item.second);
+        }
+        return appRunningManager_->NotifyProcMemoryLevel(filteredMap, isShellOrLocalDebug);
+    }
     return appRunningManager_->NotifyProcMemoryLevel(procLevelMap, isShellOrLocalDebug);
 }
 

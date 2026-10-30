@@ -992,6 +992,19 @@ int32_t AppQueryHelper::GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRu
         TAG_LOGE(AAFwkTag::APPMGR, "GetAppRunningUniqueIdByPid not SA call or verification failed");
         return ERR_PERMISSION_DENIED;
     }
+    if (isLocalDebugOtherAppsCall) {
+        auto appRecord = GetAppRunningRecordByPid(pid);
+        if (appRecord == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall appRecord null, pid:%{public}d", pid);
+            return ERR_PERMISSION_DENIED;
+        }
+        auto applicationInfo = appRecord->GetApplicationInfo();
+        if (applicationInfo == nullptr ||
+            applicationInfo->accessTokenId != IPCSkeleton::GetCallingTokenID()) {
+            TAG_LOGE(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall not same app, permission denied");
+            return ERR_PERMISSION_DENIED;
+        }
+    }
     return appRunningManager_->GetAppRunningUniqueIdByPid(pid, appRunningUniqueId);
 }
 
