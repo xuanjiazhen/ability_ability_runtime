@@ -32,11 +32,12 @@ skills/codecheck/
 │       ├── G01_xxx.md ... G16_xxx.md       #   每模式一文件：信号特征 + grep 线索 + 历史案例 + 检查点
 │       └── hotspot-modules.md             #   热区模块清单
 │
-├── scanners/                              # 第二层：检视扫描器（4 个薄层）
+├── scanners/                              # 第二层：检视扫描器（5 个薄层）
 │   ├── security-scanner/SKILL.md          #   高影响缺陷 + 安全审查（合并版）
 │   ├── logic-scanner/SKILL.md             #   逻辑变更分析
 │   ├── input-scanner/SKILL.md             #   外部输入全链路审计
-│   └── api-scanner/SKILL.md               #   API 一致性审计
+│   ├── api-scanner/SKILL.md               #   API 一致性审计
+│   └── divergence-scanner/SKILL.md        #   蓝黄代码差异风险扫描（含 references/ 词典）
 │
 └── orchestrator/                          # 第三层：调度与报告
     ├── SKILL.md                           #   唯一编排器（调度 + refute + 合并报告）
@@ -61,6 +62,7 @@ skills/codecheck/
 | [`logic-scanner`](scanners/logic-scanner/SKILL.md) | 逻辑影响：修改的波及路径、逻辑一致性、状态机转换、边界条件、错误处理 | "逻辑分析""这段改动会影响什么""状态机/数据流/控制流检查" | 逻辑影响范围 + 不一致/边界遗漏清单 |
 | [`input-scanner`](scanners/input-scanner/SKILL.md) | "外部输入 → 持久化"全链路健壮性：IPC/HTTP/CLI/配置/网络 → DB/文件/缓存/日志 | "外部输入排查""输入接口审计""持久化安全检查""接口健壮性" | 按 P0/P1/P2 排序的 Excel 风险清单（写入侧+读取侧双维度） |
 | [`api-scanner`](scanners/api-scanner/SKILL.md) | 对外 API 全量一致性：资料文档×接口定义×框架实现×测试用例完备度，三轮扫描 | "接口审计""API 一致性""测试用例完备度""扫一下 xxxKit" | `<kit>_api_audit.md` + `<kit>_api_audit.csv` 双格式 |
+| [`divergence-scanner`](scanners/divergence-scanner/SKILL.md) | 蓝黄代码差异风险分级：以开源基线为参照，把 diff hunk 套到 9 层 68 个差异点模式词典，对 IPC Stub/Proxy、接口签名、权限校验等高风险差异做配对校验 | "蓝黄差异""分支差异扫描""代码差异风险""divergence scan""开源基线对比" | 按 P0/P1/P2 排序的差异风险清单 + 统一报告 |
 
 > **Path B 统一合约**：任一 scanner 直接被调用时，除上表"输出"列的原始发现清单外，必须按 [`conventions.md`](conventions.md) §5–§13 额外生成符合 [`codecheck_report_TEMPLATE.md`](codecheck_report_TEMPLATE.md) 的统一报告（双产出）。经 orchestrator 调度时只产原始发现清单，由 orchestrator 合并生成统一报告。
 
