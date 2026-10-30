@@ -16,6 +16,7 @@
 #ifndef OHOS_AGENT_RUNTIME_AGENT_CARD_MGR_H
 #define OHOS_AGENT_RUNTIME_AGENT_CARD_MGR_H
 
+#include <functional>
 #include <mutex>
 #include <vector>
 
@@ -45,6 +46,16 @@ public:
 
     int32_t HandlePreInstallBackfill(int32_t userId);
 
+    // Migrates dynamic (API-source) agent cards from the old KV store (accessible via AMS)
+    // into the current KV store. Called once during the migration flow.
+    int32_t MigrateDynamicAgentCards(const std::string &jsonStr);
+
+    // Backfills AgentCards for ALL installed apps (pre-installed + non-pre-installed).
+    // Used during the one-time migration flow to reconstruct static card data.
+    static void BackfillAllCards();
+
+    int32_t HandleAllInstallBackfill(int32_t userId);
+
     int32_t GetAllAgentCards(AgentCardsRawData &cards);
 
     int32_t GetAgentCardsByBundleName(const std::string &bundleName, std::vector<AgentCard> &cards);
@@ -58,6 +69,10 @@ public:
     int32_t DeleteAgentCard(const std::string &bundleName, const std::string &agentId);
 
 private:
+    // Enumerates all created OS accounts and fans out one ffrt task per user,
+    // invoking handler(userId) on each. Shared by BackfillPreInstallCards and BackfillAllCards.
+    static void BackfillCardsByUser(const std::function<void(int32_t)> &handler);
+
     // Merge + persist core; caller supplies the BundleInfo so the pre-install backfill can reuse
     // the already-fetched (EXCLUDE_CLONE) list instead of re-fetching per bundle by name.
     int32_t HandleBundleInstall(const std::string &bundleName, const AppExecFwk::BundleInfo &bundleInfo,
