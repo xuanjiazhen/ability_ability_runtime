@@ -104,7 +104,7 @@ int32_t AgentCardMgr::HandlePreInstallBackfill(int32_t userId)
     return ERR_OK;
 }
 
-void AgentCardMgr::BackfillPreInstallCards()
+void AgentCardMgr::BackfillCards()
 {
     MyFlag::backfillPreInstallCardsCallCount++;
 }
