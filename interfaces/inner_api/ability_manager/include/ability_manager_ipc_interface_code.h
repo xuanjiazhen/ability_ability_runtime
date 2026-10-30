@@ -809,6 +809,9 @@ enum class AbilityManagerInterfaceCode {
 
     // get pid by call stub (RSS only)
     GET_PID_BY_CALL_STUB = 6187,
+
+    // ipc id for get ui extension host info by ability record id
+    GET_UI_EXTENSION_HOST_INFO_BY_ID = 6188,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
