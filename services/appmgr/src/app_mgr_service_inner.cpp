@@ -63,6 +63,7 @@
 #include "distributed_data_mgr.h"
 #include "extension_ability_info.h"
 #include "ffrt.h"
+#include "focused_application_info.h"
 #include "freeze_util.h"
 #include "global_constant.h"
 #include "hap_token_info.h"
@@ -393,6 +394,7 @@ constexpr const char* AGENT_EXTENSION_TYPE = "agent";
 
 // kill resaon
 constexpr int32_t PROCESS_KILL_PARAM = 26; // PROCESS_KILL params
+constexpr int32_t PROCESS_KILL_EXIT_PARAM = 10; // PROCESS_KILL exit params
 
 constexpr int32_t FORK_ALL_LIVING_BEGIN = 0;
 constexpr int32_t FORK_ALL_LIVING_END = 1;
@@ -4533,10 +4535,13 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     int32_t killId = appRecord->GetKillId() == DEFAULT_KILL_ID ?
         HiviewDFX::ProcessKillReason::KillEventId::REASON_APP_EXIT : appRecord->GetKillId();
     std::string newReason = appRecord->GetKillReason().empty() ? defaultReason : appRecord->GetKillReason();
+    int32_t callingPid = appRecord->GetKillCallerPid();
+    std::string callingProcessName = appRecord->GetKillCallerProcessName();
+    std::string bundleName = appRecord->GetBundleName();
     bool foreground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
         appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
     AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HISYSEVENT_BEHAVIOR, eventInfo);
-    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(6);
+    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(PROCESS_KILL_EXIT_PARAM);
     hisyseventReport->InsertParam(EVENT_KEY_PID, std::to_string(eventInfo.pid));
     hisyseventReport->InsertParam(EVENT_KEY_PROCESS_NAME, eventInfo.processName);
     hisyseventReport->InsertParam(EVENT_KEY_MESSAGE, newReason);
@@ -4544,11 +4549,17 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     hisyseventReport->InsertParam(EVENT_KEY_FOREGROUND, foreground);
     hisyseventReport->InsertParam("APP_RUNNING_UNIQUE_ID", appRunningUniqueId);
     hisyseventReport->InsertParam(EVENT_KEY_KILL_ID, killId);
+    hisyseventReport->InsertParam(EVENT_KEY_CALLING_PID, callingPid);
+    hisyseventReport->InsertParam(EVENT_KEY_CALLING_PROCESS_NAME, callingProcessName);
+    hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, bundleName);
     int result = hisyseventReport->Report("FRAMEWORK", "PROCESS_KILL", HISYSEVENT_FAULT);
     TAG_LOGW(AAFwkTag::APPMGR, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], pid="
         "%{public}d, processName=%{public}s, msg=%{public}s, reason=%{public}s, FOREGROUND=%{public}d,"
-        " appRunningUniqueId=%{public}s, killId=%{public}d", result, eventInfo.pid, eventInfo.processName.c_str(),
-        newReason.c_str(), newReason.c_str(), foreground, appRunningUniqueId.c_str(), killId);
+        " appRunningUniqueId=%{public}s, killId=%{public}d, callingPid=%{public}d, callingProcessName=%{public}s,"
+        " bundleName=%{public}s",
+        result, eventInfo.pid, eventInfo.processName.c_str(),
+        newReason.c_str(), newReason.c_str(), foreground, appRunningUniqueId.c_str(), killId,
+        callingPid, callingProcessName.c_str(), bundleName.c_str());
 }
 
 int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::string& reason,
@@ -7089,6 +7100,16 @@ int32_t AppMgrServiceInner::UnregisterProcessLifecycleObserver(const sptr<IProce
     return DelayedSingleton<AppStateObserverManager>::GetInstance()->UnregisterProcessLifecycleObserver(observer);
 }
 
+int32_t AppMgrServiceInner::RegisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+{
+    return DelayedSingleton<AppStateObserverManager>::GetInstance()->RegisterFocusedApplicationObserver(observer);
+}
+
+int32_t AppMgrServiceInner::UnregisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+{
+    return DelayedSingleton<AppStateObserverManager>::GetInstance()->UnregisterFocusedApplicationObserver(observer);
+}
+
 int32_t AppMgrServiceInner::RegisterAbilityForegroundStateObserver(
     const sptr<IAbilityForegroundStateObserver> &observer)
 {
@@ -8754,6 +8775,9 @@ void AppMgrServiceInner::HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> 
         return;
     }
 
+    NotifyFocusedApplicationChanged(focusChangeInfo->uid_, focusChangeInfo->otherUid_,
+        focusChangeInfo->displayGroupId_, appRecord);
+
     if (!appRecord->UpdateAbilityFocusState(focusChangeInfo->abilityToken_, true)) {
         TAG_LOGD(
             AAFwkTag::APPMGR, "only change ability focus state, do not change process or application focus state.");
@@ -8765,6 +8789,35 @@ void AppMgrServiceInner::HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> 
         OnAppStateChanged(appRecord, ApplicationState::APP_STATE_FOREGROUND, needNotifyApp, true, false);
     }
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord, true);
+}
+
+void AppMgrServiceInner::NotifyFocusedApplicationChanged(int32_t focusedUid, int32_t unfocusedUid,
+    OHOS::Rosen::DisplayGroupId displayGroupId, const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (displayGroupId == OHOS::Rosen::DISPLAY_GROUP_ID_INVALID) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid displayGroupId, skip notify");
+        return;
+    }
+    if (displayGroupId != OHOS::Rosen::DISPLAY_GROUP_ID_DEFAULT) {
+        TAG_LOGI(AAFwkTag::APPMGR, "non-main display group, displayGroupId:%{public}" PRIu64 ", "
+            "focusedUid:%{public}d, unfocusedUid:%{public}d, focusedBundleName:%{public}s, skip notify",
+            displayGroupId, focusedUid, unfocusedUid,
+            appRecord ? appRecord->GetBundleName().c_str() : "");
+        return;
+    }
+    if (focusedUid == unfocusedUid) {
+        TAG_LOGI(AAFwkTag::APPMGR, "same uid focus change, skip notify");
+        return;
+    }
+    FocusedApplicationInfo data;
+    data.focusedUid = focusedUid;
+    if (appRecord) {
+        data.focusedBundleName = appRecord->GetBundleName();
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "NotifyFocusedApplicationChanged focusedUid:%{public}d, unfocusedUid:%{public}d, "
+        "focusedBundleName:%{public}s",
+        focusedUid, unfocusedUid, data.focusedBundleName.c_str());
+    DelayedSingleton<AppStateObserverManager>::GetInstance()->NotifyFocusedApplicationChanged(data);
 }
 
 void AppMgrServiceInner::HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo)
@@ -9107,6 +9160,10 @@ void AppMgrServiceInner::ParseInfoToAppfreeze(const FaultData &faultData, int32_
     const std::string &bundleName, const std::string &processName, const bool isOccurException)
 {
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
+        if (!ValidateFreezeTargetSnapshot(pid, uid, bundleName)) {
+            TAG_LOGE(AAFwkTag::APPDFR, "invalid freeze target snapshot, skip appfreeze report, pid:%{public}d", pid);
+            return;
+        }
         bool isFrozen = AbilityRuntime::FreezeUtil::GetInstance().IsFrozen(pid);
         AppfreezeManager::AppInfo info = {
             .isOccurException = isOccurException,
@@ -9229,6 +9286,10 @@ void AppMgrServiceInner::HandleFaultDisposition(const FaultData& faultData,
     const int32_t pid = record->GetPid();
     const int32_t recordId = record->GetRecordId();
     const std::string bundleName = record->GetBundleName();
+    if (!ValidateFreezeTargetSnapshot(pid, record->GetUid(), bundleName)) {
+        TAG_LOGE(AAFwkTag::APPDFR, "invalid freeze target snapshot, stop notify and kill, pid:%{public}d", pid);
+        return;
+    }
     const bool isExit = AppfreezeManager::GetInstance()->CheckProcessExit(record->GetProcessName(),
         faultData.errorObject.name, faultData.isInForeground);
     if (faultData.faultType == FaultDataType::APP_FREEZE && isExit && faultData.waitSaveState) {
@@ -9357,14 +9418,28 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     TAG_LOGI(AAFwkTag::APPMGR, "call");
     int32_t pid = IPCSkeleton::GetCallingPid();
     int32_t uid = IPCSkeleton::GetCallingUid();
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid calling pid:%{public}d", pid);
+        return ERR_INVALID_VALUE;
+    }
     auto appRecord = GetAppRunningRecordByPid(pid);
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "no appRecord, pid:%{public}d", pid);
         return ERR_INVALID_VALUE;
     }
+    if (appRecord->GetUid() != uid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "calling uid:%{public}d does not own record pid:%{public}d, recordUid:%{public}d",
+            uid, pid, appRecord->GetUid());
+        return ERR_INVALID_VALUE;
+    }
     std::string eventName = faultData.errorObject.name;
     if (!AppExecFwk::AppfreezeManager::GetInstance()->IsValidFreezeTypeName(eventName)) {
         TAG_LOGE(AAFwkTag::APPDFR, "called failed, invalid freeze name: %{public}s", eventName.c_str());
+        return ERR_INVALID_VALUE;
+    }
+    if (faultData.faultType == FaultDataType::APP_FREEZE && eventName == AppFreezeType::APP_INPUT_BLOCK &&
+        faultData.timeoutMarkers.empty()) {
+        TAG_LOGE(AAFwkTag::APPDFR, "APP_INPUT_BLOCK feedback without server-issued marker, pid:%{public}d", pid);
         return ERR_INVALID_VALUE;
     }
     if (appRecord->GetState() == ApplicationState::APP_STATE_TERMINATED ||
@@ -9424,6 +9499,34 @@ int64_t AppMgrServiceInner::GetAppFaultNotifyLatency(const std::string& marker, 
         return -1;
     }
     return receiveTime - startTime;
+}
+
+bool AppMgrServiceInner::ValidateFreezeTargetSnapshot(int32_t pid, int32_t uid, const std::string &bundleName)
+{
+    if (pid <= 0 || uid <= 0 || bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::APPDFR, "invalid freeze target, pid:%{public}d, uid:%{public}d, bundle:%{public}s",
+            pid, uid, bundleName.c_str());
+        return false;
+    }
+    if (remoteClientManager_ == nullptr) {
+        return true;
+    }
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        return true;
+    }
+    std::string uidBundleName;
+    // Only a positive BMS mismatch blocks the report; a failed lookup must not.
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(uid, uidBundleName)) != ERR_OK || uidBundleName.empty()) {
+        TAG_LOGW(AAFwkTag::APPDFR, "BMS lookup unavailable, fail-open for uid:%{public}d", uid);
+        return true;
+    }
+    if (uidBundleName != bundleName) {
+        TAG_LOGE(AAFwkTag::APPDFR, "freeze target uid/bundle mismatch, uid:%{public}d, bundle:%{public}s, "
+            "resolved:%{public}s", uid, bundleName.c_str(), uidBundleName.c_str());
+        return false;
+    }
+    return true;
 }
 
 bool AppMgrServiceInner::CheckAppFault(const std::shared_ptr<AppRunningRecord> &appRecord, const FaultData &faultData)
@@ -9494,9 +9597,18 @@ struct AppFaultCtx {
 
 int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &faultData)
 {
+    if (faultData.pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid target pid:%{public}d", faultData.pid);
+        return ERR_INVALID_VALUE;
+    }
     auto record = GetAppRunningRecordByPid(faultData.pid);
     if (record == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "no such AppRunningRecord");
+        return ERR_INVALID_VALUE;
+    }
+    if (record->GetUid() <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "record uid not ready, pid:%{public}d, uid:%{public}d", faultData.pid,
+            record->GetUid());
         return ERR_INVALID_VALUE;
     }
     FaultData transformedFaultData = ConvertDataTypes(faultData);

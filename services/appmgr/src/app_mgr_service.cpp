@@ -1029,11 +1029,21 @@ int AppMgrService::StartUserTestProcess(const AAFwk::Want &want, const sptr<IRem
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    if (!AAFwk::PermissionVerification::GetInstance()->IsShellCall() &&
-        !AAFwk::PermissionVerification::GetInstance()->IsAllowLocalDebugOtherApps(
-            want.GetBoolParam("ohos.param.debugFrom", false))) {
+    auto perm = AAFwk::PermissionVerification::GetInstance();
+    bool isShellCall = perm->IsShellCall();
+    bool isSACall = perm->IsSACall();
+    bool isAllowLocalDebug = perm->IsAllowLocalDebugOtherApps(
+        want.GetBoolParam("ohos.param.debugFrom", false));
+    if (!isShellCall && !isSACall && !isAllowLocalDebug) {
         TAG_LOGE(AAFwkTag::APPMGR, "StartUserTestProcess is not shell call");
         return ERR_INVALID_OPERATION;
+    }
+    if (!isShellCall && !isSACall && isAllowLocalDebug) {
+        int32_t callingUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        if (callingUserId > 1 && userId != callingUserId) {
+            TAG_LOGE(AAFwkTag::APPMGR, "cross-user StartUserTestProcess not allowed");
+            return ERR_INVALID_OPERATION;
+        }
     }
     std::function<void()> startUserTestProcessFunc = [appMgrServiceInner = appMgrServiceInner_,
         want, observer, bundleInfo, userId]() {
@@ -1992,6 +2002,26 @@ int32_t AppMgrService::UnregisterProcessLifecycleObserver(const sptr<IProcessLif
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->UnregisterProcessLifecycleObserver(observer);
+}
+
+int32_t AppMgrService::RegisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->RegisterFocusedApplicationObserver(observer);
+}
+ 
+int32_t AppMgrService::UnregisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->UnregisterFocusedApplicationObserver(observer);
 }
 
 int32_t AppMgrService::IsApplicationRunning(const std::string &bundleName, bool &isRunning)
