@@ -3353,5 +3353,34 @@ int32_t AppMgrProxy::FinishTask(const std::string &taskId)
     return reply.ReadInt32();
 }
 
+void AppMgrProxy::AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+    pid_t targetPid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return;
+    }
+    if (!data.WriteString16(Str8ToStr16(taskId))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write taskId failed.");
+        return;
+    }
+    if (!data.WriteUint32(callerTokenId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write callerTokenId failed.");
+        return;
+    }
+    if (!data.WriteInt32(targetPid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write targetPid failed.");
+        return;
+    }
+    int32_t err = SendRequest(AppMgrInterfaceCode::ATTRIBUTE_TASK_FOR_A2A, data, reply, option);
+    if (err != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AttributeTaskForA2A send request failed: %{public}d", err);
+    }
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

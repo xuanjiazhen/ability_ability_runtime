@@ -2200,5 +2200,20 @@ int32_t AppMgrClient::FinishTask(const std::string &taskId)
     return service->FinishTask(taskId);
 }
 
+void AppMgrClient::AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+    pid_t targetPid)
+{
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return;
+    }
+    service->AttributeTaskForA2A(taskId, callerTokenId, targetPid);
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

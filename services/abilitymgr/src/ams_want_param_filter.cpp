@@ -100,6 +100,7 @@ const std::map<std::string, std::string> THIRD_PARTY_PARAMS_TO_STRIP = {
     { "ohos.ability.params.uiExtensionTargetUserId", "uiextension target user id" },
     { "ohos.param.isCallerEmbeddableUIExtension", "is caller embeddable uiextension" },
     { "ohos.param.uiExtension.rootHostToken", "uiextension root host token" },
+    { "ohos.aafwk.param.taskId", "task attribution task id" },
 };
 
 // Dynamic system-internal params (e.g. skill args / src entries) are constructed
