@@ -13,12 +13,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """
-Generic security-scanner Excel report generator.
+Security findings Excel export for the unified codecheck workflow.
 
-Reads a JSON file containing consolidated findings from the security-scanner
+Reads a JSON file containing final findings from the unified review
 (bug + security merged) and produces a styled .xlsx workbook that strictly
 follows the template defined in
-.claude/skills/security-scanner/SKILL.md.
+skills/codecheck/export-formats.md.
 
 Usage:
     python3 generate_report.py \
@@ -59,7 +59,7 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
 
-# ---------- Template constants (must match security-scanner/SKILL.md) ----------
+# ---------- Template constants (existing security export layout) ----------
 HEADERS = ["文件路径", "行号", "问题概述", "问题详细描述", "问题类型", "风险等级"]
 COLUMN_WIDTHS = {1: 55, 2: 18, 3: 40, 4: 90, 5: 18, 6: 12}
 
@@ -119,7 +119,7 @@ HEADER_ROW_HEIGHT = 28
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate a security-scanner Excel report from findings JSON."
+        description="Generate a security findings Excel report from findings JSON."
     )
     parser.add_argument(
         "--module-name", "-m", required=True,
@@ -249,6 +249,9 @@ def build_workbook(module_name: str, findings: list[dict], output_path: Path) ->
         ]
         for col_idx, value in enumerate(values, 1):
             cell = ws.cell(row=row_idx, column=col_idx, value=value)
+            if isinstance(value, str):
+                # Code, paths and review text are data, never spreadsheet formulas.
+                cell.data_type = "s"
             cell.border = THIN_BORDER
             if col_idx == 6:  # 风险等级 column
                 level = finding["risk_level"]
@@ -272,6 +275,10 @@ def main() -> None:
         print("Error: --module-name must be a non-empty string", file=sys.stderr)
         sys.exit(1)
 
+    if module_name in (".", "..") or any(c in module_name for c in '/\\:*?[]'):
+        print("Error: --module-name must be a filename and worksheet-safe label", file=sys.stderr)
+        sys.exit(1)
+
     raw_findings = load_findings(args.input)
     normalized_findings = [_normalize_finding_keys(rf) for rf in raw_findings]
     valid_findings = [
@@ -283,6 +290,10 @@ def main() -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / f"{module_name}_deep_scan_issues.xlsx"
+
+    if output_path.exists():
+        print(f"Error: Refusing to overwrite existing report: {output_path}", file=sys.stderr)
+        sys.exit(1)
 
     build_workbook(module_name, sorted_findings, output_path)
 
