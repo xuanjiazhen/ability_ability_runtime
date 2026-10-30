@@ -45,6 +45,16 @@ public:
 
     int32_t HandlePreInstallBackfill(int32_t userId);
 
+    // Migrates dynamic (API-source) agent cards from the old KV store (accessible via AMS)
+    // into the current KV store. Called once during the migration flow.
+    int32_t MigrateDynamicAgentCards(const std::string &jsonStr);
+
+    // Backfills AgentCards for ALL installed apps (pre-installed + non-pre-installed).
+    // Used during the one-time migration flow to reconstruct static card data.
+    static void BackfillAllCards();
+
+    int32_t HandleAllInstallBackfill(int32_t userId);
+
     int32_t GetAllAgentCards(AgentCardsRawData &cards);
 
     int32_t GetAgentCardsByBundleName(const std::string &bundleName, std::vector<AgentCard> &cards);

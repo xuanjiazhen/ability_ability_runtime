@@ -271,6 +271,127 @@ int32_t AgentCardMgr::HandlePreInstallBackfill(int32_t userId)
     return ERR_OK;
 }
 
+int32_t AgentCardMgr::MigrateDynamicAgentCards(const std::string &jsonStr)
+{
+    if (jsonStr.empty()) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "empty migration json, nothing to migrate");
+        return ERR_OK;
+    }
+    if (!nlohmann::json::accept(jsonStr, true)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "migration json is not valid json");
+        return AAFwk::INNER_ERR;
+    }
+    nlohmann::json root = nlohmann::json::parse(jsonStr, nullptr, false, true);
+    if (root.is_discarded() || !root.is_array()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "migration json is not an array");
+        return AAFwk::INNER_ERR;
+    }
+
+    int32_t migratedCount = 0;
+    for (const auto &bundleEntry : root) {
+        if (!bundleEntry.is_object() || !bundleEntry.contains("bundleName") ||
+            !bundleEntry.contains("userId") || !bundleEntry.contains("cards")) {
+            continue;
+        }
+        std::string bundleName = bundleEntry.at("bundleName").get<std::string>();
+        int32_t userId = bundleEntry.at("userId").get<int32_t>();
+        const auto &cardsArray = bundleEntry.at("cards");
+        if (!cardsArray.is_array() || cardsArray.empty()) {
+            continue;
+        }
+
+        std::vector<StoredAgentCardEntry> entries;
+        std::lock_guard<std::mutex> lock(cardDataMutex_);
+        int32_t ret = AgentCardDbMgr::GetInstance().QueryData(bundleName, userId, entries);
+        if (ret != ERR_OK && ret != ERR_NAME_NOT_FOUND) {
+            TAG_LOGW(AAFwkTag::SER_ROUTER, "query existing cards for %{public}s failed: %{public}d",
+                bundleName.c_str(), ret);
+            continue;
+        }
+
+        std::unordered_map<std::string, size_t> existingIndex;
+        for (size_t i = 0; i < entries.size(); ++i) {
+            existingIndex.emplace(entries[i].card.agentId, i);
+        }
+
+        for (const auto &cardJson : cardsArray) {
+            AgentCard card;
+            if (!AgentCard::FromJson(cardJson, card)) {
+                TAG_LOGW(AAFwkTag::SER_ROUTER, "FromJson failed during migration, skip one card");
+                continue;
+            }
+            auto existingIt = existingIndex.find(card.agentId);
+            if (existingIt != existingIndex.end()) {
+                entries[existingIt->second].card = card;
+                entries[existingIt->second].updateSource = AgentCardUpdateSource::API;
+            } else {
+                entries.push_back({card, AgentCardUpdateSource::API});
+                existingIndex.emplace(card.agentId, entries.size() - 1);
+            }
+            ++migratedCount;
+        }
+
+        if (!entries.empty()) {
+            AgentCardDbMgr::GetInstance().InsertData(bundleName, userId, entries);
+        }
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "dynamic agent card migration done, migrated %{public}d cards", migratedCount);
+    return ERR_OK;
+}
+
+void AgentCardMgr::BackfillAllCards()
+{
+    std::vector<int32_t> userIds;
+    ErrCode ret = OHOS::AppExecFwk::OsAccountManagerWrapper::QueryAllCreatedOsAccounts(userIds);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "QueryAllCreatedOsAccounts failed: %{public}d, skip backfill", ret);
+        return;
+    }
+    if (userIds.empty()) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "no created OS account, skip backfill");
+        return;
+    }
+    for (int32_t userId : userIds) {
+        ffrt::submit([userId] {
+            AgentCardMgr::GetInstance().HandleAllInstallBackfill(userId);
+        });
+    }
+}
+
+int32_t AgentCardMgr::HandleAllInstallBackfill(int32_t userId)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "bundleMgrHelper is null");
+        return AAFwk::INNER_ERR;
+    }
+    uint32_t flags = GET_AGENT_EXTENSION_BUNDLE_INFO_FLAGS |
+        static_cast<uint32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_EXCLUDE_CLONE);
+    std::vector<BundleInfo> bundleInfos;
+    ErrCode result = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfosV9(static_cast<int32_t>(flags),
+        bundleInfos, userId));
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "GetBundleInfosV9 failed: %{public}d", result);
+        return result;
+    }
+    int32_t installedCount = 0;
+    for (const auto &bundleInfo : bundleInfos) {
+        if (bundleInfo.uid / BASE_USER_RANGE != userId) {
+            continue;
+        }
+        int32_t ret = HandleBundleInstall(bundleInfo.name, bundleInfo, userId);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::SER_ROUTER, "install bundle %{public}s failed: %{public}d",
+                bundleInfo.name.c_str(), ret);
+            continue;
+        }
+        ++installedCount;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "all-install backfill done, userId=%{public}d, installed=%{public}d",
+        userId, installedCount);
+    return ERR_OK;
+}
+
 int32_t AgentCardMgr::GetAllAgentCards(AgentCardsRawData &cards)
 {
     std::vector<StoredAgentCardEntry> entries;

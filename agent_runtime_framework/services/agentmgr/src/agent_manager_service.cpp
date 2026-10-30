@@ -29,12 +29,14 @@
 #include "agent_utils.h"
 #include "agent_manager_caller_identity.h"
 #include "agent_card_mgr.h"
+#include "agent_card_db_mgr.h"
 #include "agent_card_utils.h"
 #include "agent_config.h"
 #include "agent_extension_connection_constants.h"
 #include "agent_service_connection.h"
 #include "app_mgr_client.h"
 #include "bundle_mgr_helper.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "in_process_call_wrapper.h"
@@ -177,7 +179,6 @@ void AgentManagerService::OnRemoveSystemAbility(int32_t systemAbilityId, const s
 
 void AgentManagerService::TryBackfillPreInstallCards()
 {
-    // Fire once, after both BMS and accountmgr report ready.
     bool shouldTrigger = false;
     {
         std::lock_guard<std::mutex> lock(backfillState_.mutex);
@@ -187,7 +188,24 @@ void AgentManagerService::TryBackfillPreInstallCards()
         }
     }
     if (shouldTrigger) {
-        AgentCardMgr::BackfillPreInstallCards();
+        ffrt::submit([] {
+            AgentCardMgr &mgr = AgentCardMgr::GetInstance();
+            if (!AgentCardDbMgr::GetInstance().IsMigrationCompleted()) {
+                TAG_LOGI(AAFwkTag::SER_ROUTER, "agent_card migration: starting one-time migration");
+                std::string jsonStr;
+                auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetDynamicAgentCardsForMigration(jsonStr);
+                if (ret == ERR_OK) {
+                    mgr.MigrateDynamicAgentCards(jsonStr);
+                } else {
+                    TAG_LOGW(AAFwkTag::SER_ROUTER, "GetDynamicAgentCardsForMigration failed: %{public}d", ret);
+                }
+                AgentCardMgr::BackfillAllCards();
+                AgentCardDbMgr::GetInstance().MarkMigrationCompleted();
+                TAG_LOGI(AAFwkTag::SER_ROUTER, "agent_card migration: completed");
+            } else {
+                AgentCardMgr::BackfillPreInstallCards();
+            }
+        });
     }
 }
 
