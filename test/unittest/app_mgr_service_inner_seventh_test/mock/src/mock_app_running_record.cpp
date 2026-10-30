@@ -141,7 +141,7 @@ const std::string &AppRunningRecord::GetCustomProcessFlag() const
 
 int32_t AppRunningRecord::GetUid() const
 {
-    return 0;
+    return mainUid_;
 }
 
 void AppRunningRecord::SetUid(const int32_t uid)
