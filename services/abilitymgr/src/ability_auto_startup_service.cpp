@@ -193,6 +193,9 @@ int32_t AbilityAutoStartupService::InnerSetApplicationAutoStartup(const AutoStar
             DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->InsertAutoStartupData(info, true, false);
         if (result == ERR_OK) {
             ExecuteCallbacks(true, info);
+        } else {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "InsertAutoStartupData failed, bundleName: %{public}s, ret: %{public}d",
+                info.bundleName.c_str(), result);
         }
         return result;
     }
@@ -205,6 +208,9 @@ int32_t AbilityAutoStartupService::InnerSetApplicationAutoStartup(const AutoStar
         GetInstance()->UpdateAutoStartupData(info, originKey, true, false);
     if (result == ERR_OK) {
         ExecuteCallbacks(true, info);
+    } else {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "UpdateAutoStartupData failed, bundleName: %{public}s, ret: %{public}d",
+            info.bundleName.c_str(), result);
     }
     return result;
 }
@@ -271,6 +277,9 @@ int32_t AbilityAutoStartupService::InnerCancelApplicationAutoStartup(const AutoS
             GetInstance()->DeleteAutoStartupData(info, originKey);
         if (result == ERR_OK) {
             ExecuteCallbacks(false, info);
+        } else {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "DeleteAutoStartupData failed, bundleName: %{public}s, ret: %{public}d",
+                info.bundleName.c_str(), result);
         }
         return result;
     }
