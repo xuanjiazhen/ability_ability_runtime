@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3880,6 +3880,7 @@ void AbilityManagerService::AppUpgradeCompleted(int32_t uid, int32_t installType
 {
     auto userId = uid / BASE_USER_RANGE;
     if (!VerifyPermissionAndUserForUpgrade(uid, userId)) {
+        HandleUpgradeCompletedForBackgroundUser(uid, userId);
         return;
     }
 
@@ -3944,6 +3945,18 @@ bool AbilityManagerService::VerifyPermissionAndUserForUpgrade(int32_t uid, int32
     }
 
     return true;
+}
+
+void AbilityManagerService::HandleUpgradeCompletedForBackgroundUser(int32_t uid, int32_t userId)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "upgrade restart rejected for background user:%{public}d, uid:%{public}d",
+        userId, uid);
+    if (KeepAliveProcessManager::GetInstance().KeepAliveCheckNeedRestartAfterUpgrade(uid)) {
+        KeepAliveProcessManager::GetInstance().AddNeedRestartKeepAliveUid(uid);
+    }
 }
 
 int32_t AbilityManagerService::RecordAppExitReason(const ExitReason &exitReason)
@@ -10278,7 +10291,8 @@ bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart
 
 void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart, bool isDirectBoot)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAutoStartupApps called");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "try StartAutoStartupApps user:%{public}d isEDMStart:%{public}d "
+        "isDirectBoot:%{public}d", userId, isEDMStart, isDirectBoot);
     if (!IsAutoStartupAllowed(userId, isEDMStart, isDirectBoot)) {
         return;
     }
@@ -10352,9 +10366,14 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
             result = StartAbility(want, userId);
         }
     }
-    if ((result != ERR_OK) && (info.retryCount > 0)) {
-        info.retryCount--;
-        infoQueue.push(info);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAutoStartupApps failed, bundleName: %{public}s, "
+            "abilityName: %{public}s, userId: %{public}d, ret: %{public}d, retryCount: %{public}d",
+            info.bundleName.c_str(), info.abilityName.c_str(), userId, result, info.retryCount);
+        if (info.retryCount > 0) {
+            info.retryCount--;
+            infoQueue.push(info);
+        }
     }
     auto nextStartAutoStartupAppsTask = [aams = weak_from_this(), infoQueue, userId]() {
         auto obj = aams.lock();
@@ -15002,6 +15021,8 @@ int32_t AbilityManagerService::UnregisterAutoStartupSystemCallback(const sptr<IR
 
 int32_t AbilityManagerService::SetApplicationAutoStartup(const AutoStartupInfo &info)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetApplicationAutoStartup called, bundleName: %{public}s, "
+        "abilityName: %{public}s, userId: %{public}d", info.bundleName.c_str(), info.abilityName.c_str(), info.userId);
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
@@ -15011,6 +15032,8 @@ int32_t AbilityManagerService::SetApplicationAutoStartup(const AutoStartupInfo &
 
 int32_t AbilityManagerService::CancelApplicationAutoStartup(const AutoStartupInfo &info)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CancelApplicationAutoStartup called, bundleName: %{public}s, "
+        "abilityName: %{public}s, userId: %{public}d", info.bundleName.c_str(), info.abilityName.c_str(), info.userId);
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
@@ -16418,6 +16441,9 @@ int32_t AbilityManagerService::QuerySkillType(const std::string &bundleName, con
 int32_t AbilityManagerService::SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag,
     bool isHiddenStart)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetApplicationAutoStartupByEDM called, bundleName: %{public}s, "
+        "abilityName: %{public}s, flag: %{public}d, isHiddenStart: %{public}d",
+        info.bundleName.c_str(), info.abilityName.c_str(), flag, isHiddenStart);
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
@@ -16427,6 +16453,9 @@ int32_t AbilityManagerService::SetApplicationAutoStartupByEDM(const AutoStartupI
 
 int32_t AbilityManagerService::CancelApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CancelApplicationAutoStartupByEDM called, bundleName: %{public}s, "
+        "abilityName: %{public}s, flag: %{public}d",
+        info.bundleName.c_str(), info.abilityName.c_str(), flag);
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
@@ -16539,16 +16568,20 @@ void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::
         return;
     }
 
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "NotifyStartKeepAliveProcess called, diedPid: %{public}d, size: %{public}zu",
+        diedPid, bundleInfos.size());
     auto userId =
         AbilityRuntime::UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
     std::map<int32_t, std::vector<AppExecFwk::BundleInfo>> bundleInfosMap;
     std::vector<AppExecFwk::BundleInfo> bundleInfosForU1;
     for (const auto &item: bundleInfos) {
-        if (KeepAliveProcessManager::GetInstance().KeepAliveIsRestartAfterUpdate(item.uid)) {
-            TAG_LOGI(AAFwkTag::APPMGR, "KeepAliveIsRestartAfterUpdate uid: %{public}d", item.uid);
-            return;
-        }
         auto user = item.uid / BASE_USER_RANGE;
+        if (KeepAliveProcessManager::GetInstance().KeepAliveIsRestartAfterUpdate(item.uid) &&
+            (user == U1_USER_ID ||
+            AbilityRuntime::UserController::GetInstance().IsForegroundUser(user))) {
+            TAG_LOGI(AAFwkTag::APPMGR, "KeepAliveIsRestartAfterUpdate uid: %{public}d", item.uid);
+            continue;
+        }
         if (user == U1_USER_ID) {
             bundleInfosForU1.push_back(item);
         } else if (AbilityRuntime::UserController::GetInstance().IsForegroundUser(user)) {
@@ -18762,6 +18795,8 @@ bool AbilityManagerService::IsSupportStatusBarByUserId(int32_t userId)
 
 int32_t AbilityManagerService::SetApplicationKeepAlive(const std::string &bundleName, int32_t userId, bool flag)
 {
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "SetApplicationKeepAlive called, bundleName: %{public}s, "
+        "userId: %{public}d, flag: %{public}d", bundleName.c_str(), userId, flag);
     return KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(
         bundleName, userId, flag, false, false);
 }
@@ -18769,6 +18804,8 @@ int32_t AbilityManagerService::SetApplicationKeepAlive(const std::string &bundle
 int32_t AbilityManagerService::QueryKeepAliveApplications(int32_t appType, int32_t userId,
     std::vector<KeepAliveInfo> &list)
 {
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "QueryKeepAliveApplications called, appType: %{public}d, userId: %{public}d",
+        appType, userId);
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveApplications(
         appType, userId, list, false);
 }
@@ -18776,7 +18813,11 @@ int32_t AbilityManagerService::QueryKeepAliveApplications(int32_t appType, int32
 int32_t AbilityManagerService::SetApplicationKeepAliveByEDM(const std::string &bundleName, int32_t userId,
     bool flag, bool isAllowUserToCancel)
 {
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "SetApplicationKeepAliveByEDM called, bundleName: %{public}s, "
+        "userId: %{public}d, flag: %{public}d, isAllowUserToCancel: %{public}d",
+        bundleName.c_str(), userId, flag, isAllowUserToCancel);
     if (userId != U1_USER_ID && isAllowUserToCancel) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "isAllowUserToCancel only support u1, userId: %{public}d", userId);
         return ERR_CAPABILITY_NOT_SUPPORT;
     }
 
@@ -18800,6 +18841,8 @@ int32_t AbilityManagerService::SetApplicationKeepAliveByEDM(const std::string &b
 int32_t AbilityManagerService::QueryKeepAliveApplicationsByEDM(int32_t appType, int32_t userId,
     std::vector<KeepAliveInfo> &list)
 {
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "QueryKeepAliveApplicationsByEDM called, appType: %{public}d, userId: %{public}d",
+        appType, userId);
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveApplications(
         appType, userId, list, true);
 }
@@ -19739,12 +19782,15 @@ int AbilityManagerService::ResumeExtensionAbility(sptr<IAbilityConnection> conne
 
 int32_t AbilityManagerService::SetAppServiceExtensionKeepAlive(const std::string &bundleName, bool flag)
 {
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "SetAppServiceExtensionKeepAlive called, bundleName: %{public}s, flag: %{public}d",
+        bundleName.c_str(), flag);
     return KeepAliveProcessManager::GetInstance().SetAppServiceExtensionKeepAlive(
         bundleName, flag, false, false);
 }
 
 int32_t AbilityManagerService::QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list)
 {
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "QueryKeepAliveAppServiceExtensions called");
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveAppServiceExtensions(list, false);
 }
 

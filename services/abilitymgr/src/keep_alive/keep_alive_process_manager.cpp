@@ -296,6 +296,8 @@ int32_t KeepAliveProcessManager::SetApplicationKeepAlive(const std::string &bund
         std::vector<AppExecFwk::BundleInfo> bundleInfos{ bundleInfo };
         KeepAliveUtils::NotifyDisableKeepAliveProcesses(bundleInfos, userId);
     }
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "SetApplicationKeepAlive success, bundleName: %{public}s, "
+        "userId: %{public}d, updateEnable: %{public}d", bundleName.c_str(), userId, updateEnable);
     return ERR_OK;
 }
 
@@ -453,6 +455,8 @@ int32_t KeepAliveProcessManager::SetAppServiceExtensionKeepAlive(const std::stri
     result = AbilityKeepAliveService::GetInstance().SetAppServiceExtensionKeepAlive(info, updateEnable);
     CHECK_RET_RETURN_RET(result, "set keep-alive failed");
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveAppService(bundleName, updateEnable, bundleInfo.uid));
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "SetAppServiceExtensionKeepAlive success, bundleName: %{public}s, "
+        "updateEnable: %{public}d, setterId: %{public}d", bundleName.c_str(), updateEnable, info.setterId);
     return ERR_OK;
 }
 
@@ -530,7 +534,10 @@ int32_t KeepAliveProcessManager::ClearKeepAliveAppServiceExtension(int32_t userI
 {
     KeepAliveInfo info;
     info.setterId = userId;
-    return AbilityKeepAliveService::GetInstance().ClearKeepAliveAppServiceExtension(info);
+    int32_t ret = AbilityKeepAliveService::GetInstance().ClearKeepAliveAppServiceExtension(info);
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "ClearKeepAliveAppServiceExtension finished, userId: %{public}d, ret: %{public}d",
+        userId, ret);
+    return ret;
 }
 
 int32_t KeepAliveProcessManager::CheckPermission()
@@ -594,6 +601,7 @@ void KeepAliveProcessManager::SaveAppServiceRestartAfterUpgrade(const std::strin
     for (const auto& info : infos) {
         if (info.uid_ == uid && info.isKeepAliveAppService) {
             restartAfterUpgradeList_.insert(uid);
+            TAG_LOGI(AAFwkTag::KEEP_ALIVE, "save app service restart after upgrade, uid: %{public}d", uid);
             IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveAppService(bundleName, false, uid));
         }
     }
