@@ -58,6 +58,10 @@ public:
     std::string toolCallId = "";
     std::string dmSessionId = "";
     pid_t processId = -1;
+    // taskId = attribution key (empty = not attributed); attributionId = server-assigned handle,
+    // sole detach key (0 = not attributed, no unregister fires).
+    std::string taskId = "";
+    int64_t attributionId = 0;
     int64_t startTime = 0;
     int32_t timeoutMs = 0;
     int32_t stdinPipe[2] = {-1, -1};        // [0]=read, [1]=write

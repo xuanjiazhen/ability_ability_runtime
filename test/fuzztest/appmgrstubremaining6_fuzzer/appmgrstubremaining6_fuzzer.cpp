@@ -39,7 +39,7 @@ class AppMgrStubRemaining6Fuzz : public AppMgrStubFuzzBase {};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    switch (code % 9) {
+    switch (code % 12) {
         case 0: {
             // HandleUpdateFreezeExcludedPid: ReadBool, ReadInt32, ReadInt32
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_FREEZE_EXCLUDED_PID);
@@ -97,6 +97,28 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
         case 8: {
             // HandleNotifyTemplateProcessReadyDone: no input field
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::NOTIFY_TEMPLATE_PROCESS_READY_DONE);
+            break;
+        }
+        case 9: {
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_MANAGED_PROCESS);
+            parcel.WriteString16(Str8ToStr16(fdp.ConsumeRandomLengthString()));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 10: {
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_MANAGED_PROCESS);
+            parcel.WriteString16(Str8ToStr16(fdp.ConsumeRandomLengthString()));
+            parcel.WriteInt64(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 11: {
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_IN_APP_SKILL_PROCESS);
+            parcel.WriteString16(Str8ToStr16(fdp.ConsumeRandomLengthString()));
+            parcel.WriteString16(Str8ToStr16(fdp.ConsumeRandomLengthString()));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         }
         default:
