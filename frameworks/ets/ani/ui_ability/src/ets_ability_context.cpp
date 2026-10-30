@@ -21,7 +21,10 @@
 #include "ani_common_ability_result.h"
 #include "ani_common_configuration.h"
 #include "ani_common_start_options.h"
+#include "ani_common_util.h"
+#include "ani_window_animation_utils.h"
 #include "ani_common_want.h"
+#include "wm_animation_common.h"
 #include "ani_enum_convert.h"
 #include "ani_task.h"
 #include "remote_object_taihe_ani.h"
@@ -2413,7 +2416,7 @@ void EtsAbilityContext::NativeOnSetRestoreEnabled(ani_env *env, ani_object aniOb
 }
 
 void EtsAbilityContext::NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj,
-    ani_boolean isShow, ani_object callbackObj)
+    ani_boolean isShow, ani_object paramsObj, ani_object callbackObj)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "ChangeAbilityVisibility");
     if (env == nullptr) {
@@ -2433,7 +2436,18 @@ void EtsAbilityContext::NativeChangeAbilityVisibility(ani_env *env, ani_object a
         return;
     }
     bool showFlag = static_cast<bool>(isShow);
-    ErrCode errCode = context->ChangeAbilityVisibility(showFlag);
+    std::shared_ptr<Rosen::WindowShowParams> params;
+    if (paramsObj != nullptr) {
+        ani_ref windowShowParamsRef = nullptr;
+        if (GetFieldRefByName(env, paramsObj, "windowShowParams", windowShowParamsRef)) {
+            Rosen::WindowShowParams paramsTmp;
+            if (Rosen::ConvertWindowShowParamsFromAniValue(
+                env, static_cast<ani_object>(windowShowParamsRef), paramsTmp)) {
+                params = std::make_shared<Rosen::WindowShowParams>(paramsTmp);
+            }
+        }
+    }
+    ErrCode errCode = context->ChangeAbilityVisibility(showFlag, params);
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "failed, errCode: %{public}d", errCode);
         AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
@@ -3299,7 +3313,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeStartServiceExtensionAbilityWithAccount",
                 "C{@ohos.app.ability.Want.Want}iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::StartServiceExtensionAbilityWithAccount) },
-            ani_native_function { "nativeChangeAbilityVisibility", "zC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            ani_native_function { "nativeChangeAbilityVisibility",
+                "zC{@ohos.app.ability.ShowOptions.ShowParams}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::NativeChangeAbilityVisibility) },
             ani_native_function { "nativeConnectAppServiceExtensionAbility", SIGNATURE_CONNECT_SERVICE_EXTENSION,
                 reinterpret_cast<void *>(EtsAbilityContext::ConnectAppServiceExtensionAbility) },
