@@ -728,11 +728,11 @@ ohos_shared_library("abilityms_insight") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+  defines = []
   if (ability_runtime_dsoftbus_enable) {
     external_deps += [ "dsoftbus:softbus_client" ]
-    defines = [ "SUPPORT_RECORDER_DSOFTBUS" ]
+    defines += [ "SUPPORT_RECORDER_DSOFTBUS" ]
   }
-  defines = []
   cflags_cc = [ "-fexceptions" ]
   version_script = "libabilityms_insight.map"
   subsystem_name = "ability"
