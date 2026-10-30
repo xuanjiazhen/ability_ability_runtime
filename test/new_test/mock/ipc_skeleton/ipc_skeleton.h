@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_IPC_SKELETON_H
 #define OHOS_ABILITY_RUNTIME_IPC_SKELETON_H
 
+#include <sys/types.h>
 #include "refbase.h"
 
 namespace OHOS {
@@ -23,6 +24,11 @@ class IPCSkeleton {
 public:
     IPCSkeleton() = default;
     ~IPCSkeleton() = default;
+
+    static pid_t GetCallingAppUid()
+    {
+        return GetCallingUid();
+    }
 
     static int32_t GetCallingUid()
     {

@@ -732,7 +732,7 @@ bool UIAbilityLifecycleManager::AddStartCallerTimestamp(int32_t callerUid)
     int64_t curTimeNs = AbilityUtil::GetSysTimeNs();
     int64_t aSecondEarlier = curTimeNs - AbilityUtil::NANOSECONDS;
     if (callerUid < 0) {
-        callerUid = IPCSkeleton::GetCallingUid();
+        callerUid = IPCSkeleton::GetCallingAppUid();
     }
     std::lock_guard<ffrt::mutex> guard(startUIAbilityCallerTimestampsLock_);
     if (startUIAbilityCallerTimestamps_.find(callerUid) == startUIAbilityCallerTimestamps_.end()) {
@@ -894,7 +894,7 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
         abilityRequest.want.SetParam(IS_SHELL_CALL, true);
     }
     std::string callerKey = std::to_string(IPCSkeleton::GetCallingPid()) + ":" +
-        std::to_string(IPCSkeleton::GetCallingUid());
+        std::to_string(IPCSkeleton::GetCallingAppUid());
     bool isCallerKilling = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->IsCallerKilling(callerKey));
     if (isCallerKilling) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is killing");
@@ -1053,7 +1053,7 @@ int32_t UIAbilityLifecycleManager::HandleUIAbilityRequestList(std::vector<Abilit
         }
         abilityRequest.want.SetParam(IS_SHELL_CALL, AAFwk::PermissionVerification::GetInstance()->IsShellCall());
         std::string callerKey = std::to_string(IPCSkeleton::GetCallingPid()) + ":" +
-            std::to_string(IPCSkeleton::GetCallingUid());
+            std::to_string(IPCSkeleton::GetCallingAppUid());
         bool isCallerKilling = IN_PROCESS_CALL(
             DelayedSingleton<AppScheduler>::GetInstance()->IsCallerKilling(callerKey));
         if (isCallerKilling) {
@@ -1356,7 +1356,7 @@ int32_t UIAbilityLifecycleManager::NotifyCancelGamePreLaunch(const sptr<IRemoteO
         return ERR_INVALID_VALUE;
     }
 
-    if (IPCSkeleton::GetCallingUid() != abilityRecord->GetUid()) {
+    if (IPCSkeleton::GetCallingAppUid() != abilityRecord->GetUid()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller uid not match ability record uid, not allowed");
         return CHECK_PERMISSION_FAILED;
     }
@@ -1390,7 +1390,7 @@ int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemot
         return ERR_INVALID_VALUE;
     }
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingUid = IPCSkeleton::GetCallingAppUid();
     if (callingUid != abilityRecord->GetUid() && callingUid != AbilityRuntime::GlobalConstant::FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller uid not match ability record uid and not foundation uid, not allowed");
         return CHECK_PERMISSION_FAILED;
@@ -2074,7 +2074,7 @@ void UIAbilityLifecycleManager::ReportGrantUriPermissionEvent(const AbilityReque
 {
     std::shared_ptr<AbilityRecord> callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
     std::string callerBundleName = callerAbility ?
-        callerAbility->GetAbilityInfo().bundleName : std::to_string(IPCSkeleton::GetCallingUid());
+        callerAbility->GetAbilityInfo().bundleName : std::to_string(IPCSkeleton::GetCallingAppUid());
     std::string currentName = abilityRequest.abilityInfo.bundleName;
     EventInfo eventInfo = { .bundleName = currentName, .callerBundleName = callerBundleName, .uri = callScenario };
     EventReport::SendGrantUriPermissionEvent(EventName::GRANT_URI_PERMISSION, eventInfo);

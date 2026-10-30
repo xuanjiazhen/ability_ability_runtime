@@ -531,7 +531,7 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
             faultData.processedId, faultData.dispatchedEventId);
     }
     int32_t pid = IPCSkeleton::GetCallingPid();
-    int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t uid = IPCSkeleton::GetCallingAppUid();
     faultData.errorObject.mainStack = GetMainStackDump(pid);
     bool isExit = IsExitApp(faultData.errorObject.name) && faultData.needKillProcess;
     if (isExit) {

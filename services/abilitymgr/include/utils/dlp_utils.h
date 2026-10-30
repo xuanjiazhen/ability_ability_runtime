@@ -126,7 +126,7 @@ static bool CheckCallerIsDlpManager(const std::shared_ptr<AppExecFwk::BundleMgrH
     }
 
     std::string bundleName;
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     if (IN_PROCESS_CALL(bundleManager->GetNameForUid(callerUid, bundleName)) != ERR_OK) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "Get Bundle Name failed");
         return false;

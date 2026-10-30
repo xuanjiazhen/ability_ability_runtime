@@ -143,7 +143,7 @@ int32_t TaskManagerService::FinishTask(const std::string &taskId)
         TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu", taskId.size());
         return INVALID_PARAMETERS_ERR;
     }
-    return FinishTaskInner(taskId, TaskFinishReason::FINISHED_BY_CALLER, IPCSkeleton::GetCallingUid(),
+    return FinishTaskInner(taskId, TaskFinishReason::FINISHED_BY_CALLER, IPCSkeleton::GetCallingAppUid(),
         SKIP_DEADLINE_CHECK);
 }
 
@@ -483,7 +483,7 @@ int32_t TaskManagerService::DumpUnregisterManagedProcess(const std::string &task
 TaskManagerService::TaskCallerInfo TaskManagerService::GetCallerInfo()
 {
     TaskCallerInfo caller;
-    caller.uid = IPCSkeleton::GetCallingUid();
+    caller.uid = IPCSkeleton::GetCallingAppUid();
     caller.pid = IPCSkeleton::GetCallingPid();
     caller.tokenId = IPCSkeleton::GetCallingTokenID();
     caller.userId = caller.uid / BASE_USER_RANGE;

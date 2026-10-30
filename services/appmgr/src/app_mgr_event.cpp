@@ -82,7 +82,7 @@ bool AppMgrEventUtil::SendCreateAtomicServiceProcessEvent(const std::shared_ptr<
     eventInfo.moduleName = moduleName;
     eventInfo.bundleName = appRecord->GetBundleName();
 
-    eventInfo.callerUid = appRecord->GetCallerUid() == -1 ? IPCSkeleton::GetCallingUid() : appRecord->GetCallerUid();
+    eventInfo.callerUid = appRecord->GetCallerUid() == -1 ? IPCSkeleton::GetCallingAppUid() : appRecord->GetCallerUid();
     if (callerAppRecord == nullptr) {
         Security::AccessToken::NativeTokenInfo nativeTokenInfo = {};
         auto token = appRecord->GetCallerTokenId() == -1 ?
@@ -108,7 +108,7 @@ bool AppMgrEventUtil::SendProcessStartEvent(const std::shared_ptr<AppRunningReco
     }
     time_t currentTime = time(nullptr);
     eventInfo.time = currentTime;
-    eventInfo.callerUid = appRecord->GetCallerUid() == -1 ? IPCSkeleton::GetCallingUid() : appRecord->GetCallerUid();
+    eventInfo.callerUid = appRecord->GetCallerUid() == -1 ? IPCSkeleton::GetCallingAppUid() : appRecord->GetCallerUid();
     if (!appRecord->GetAbilities().empty()) {
         auto abilityinfo = appRecord->GetAbilities().begin()->second->GetAbilityInfo();
         UpdateStartupType(abilityinfo, eventInfo.abilityType, eventInfo.extensionType);
@@ -162,7 +162,7 @@ bool AppMgrEventUtil::SendProcessStartFailedEvent(std::shared_ptr<AppRunningReco
         return false;
     }
     eventInfo.time = currentTime;
-    eventInfo.callerUid = appRecord->GetCallerUid() == -1 ? IPCSkeleton::GetCallingUid() : appRecord->GetCallerUid();
+    eventInfo.callerUid = appRecord->GetCallerUid() == -1 ? IPCSkeleton::GetCallingAppUid() : appRecord->GetCallerUid();
     if (!appRecord->GetAbilities().empty()) {
         auto abilityRecord = appRecord->GetAbilities().begin()->second;
         if (!abilityRecord) {

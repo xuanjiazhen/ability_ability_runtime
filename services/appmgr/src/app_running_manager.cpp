@@ -1529,7 +1529,7 @@ bool AppRunningManager::GetAppRunningStateByBundleName(const std::string &bundle
         if (appRecord && appRecord->GetBundleName() == bundleName) {
             TAG_LOGD(AAFwkTag::APPMGR, "Process of [%{public}s] is running, processName: %{public}s.",
                 bundleName.c_str(), appRecord->GetProcessName().c_str());
-            if (IPCSkeleton::GetCallingUid() == QUICKFIX_UID && appRecord->GetPriorityObject() != nullptr) {
+            if (IPCSkeleton::GetCallingAppUid() == QUICKFIX_UID && appRecord->GetPriorityObject() != nullptr) {
                 TAG_LOGI(AAFwkTag::APPMGR, "pid: %{public}d", appRecord->GetPid());
             }
             return true;

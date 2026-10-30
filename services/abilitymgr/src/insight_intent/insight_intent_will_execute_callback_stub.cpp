@@ -34,9 +34,9 @@ int32_t InsightIntentWillExecuteCallbackStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
 
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::INTENT, "reject: callingUid=%{public}d, expected foundation uid",
-            IPCSkeleton::GetCallingUid());
+            IPCSkeleton::GetCallingAppUid());
         return CHECK_PERMISSION_FAILED;
     }
 

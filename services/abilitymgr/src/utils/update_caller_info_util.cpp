@@ -82,7 +82,7 @@ void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject
     }
     ClearProtectedWantParam(want);
     int32_t tokenId = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     UpdateByIndirectCallerInfo(indirectCallerInfo, tokenId, callerUid, callerPid);
     want.RemoveParam(Want::PARAM_RESV_CALLER_TOKEN);
@@ -272,7 +272,7 @@ bool UpdateCallerInfoUtil::UpdateAsCallerInfoFromDialog(Want& want)
         }
     };
     if (dialogCallerInfo == nullptr) {
-        removeParamsForNotBroker(IPCSkeleton::GetCallingUid(),
+        removeParamsForNotBroker(IPCSkeleton::GetCallingAppUid(),
             want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME));
         TAG_LOGW(AAFwkTag::ABILITYMGR, "failed get dialog caller info");
         return false;
@@ -361,7 +361,7 @@ void UpdateCallerInfoUtil::UpdateDmsCallerInfo(Want& want, const sptr<IRemoteObj
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     int32_t tokenId = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     ClearProtectedWantParam(want);
 
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
@@ -456,7 +456,7 @@ void UpdateCallerInfoUtil::ClearProtectedWantParam(Want &want)
     if (want.HasParameter(HIDE_SENSITIVE_TYPE)) {
         EventInfo eventInfo;
         const auto &bundleName = want.GetBundleNameRef();
-        int32_t callerUid = IPCSkeleton::GetCallingUid();
+        int32_t callerUid = IPCSkeleton::GetCallingAppUid();
         std::string callerBundleName;
         auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
         if (bundleMgr != nullptr) {

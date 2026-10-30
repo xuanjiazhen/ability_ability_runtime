@@ -223,7 +223,7 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
 
     // Check AGENT_UI launch limit before creating new record
     bool isAgentUI = AAFwk::UIExtensionWrapper::IsAgentUIExtension(abilityRequest.abilityInfo.extensionAbilityType);
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     if (isAgentUI) {
         auto ret = CheckAgentUILaunchLimit(callerUid, abilityRequest.abilityInfo.bundleName);
         if (ret != ERR_OK) {

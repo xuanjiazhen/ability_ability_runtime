@@ -64,6 +64,11 @@ DistributedKv::Status DirectBootTestStore::Delete(const DistributedKv::Key &key)
 
 // Test-only dependency replacements. The scoped context restores all configurable state.
 namespace OHOS {
+pid_t IPCSkeleton::GetCallingAppUid()
+{
+    return GetCallingUid();
+}
+
 pid_t IPCSkeleton::GetCallingUid()
 {
     const auto &state = AAFwk::GetDirectBootTestState();

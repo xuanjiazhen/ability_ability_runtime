@@ -445,7 +445,7 @@ int32_t KeepAliveProcessManager::SetAppServiceExtensionKeepAlive(const std::stri
     KeepAliveInfo info;
     info.bundleName = bundleName;
     info.userId = U1_USER_ID;
-    info.setterId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    info.setterId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     info.appType = bundleInfo.applicationInfo.isSystemApp ? KeepAliveAppType::SYSTEM : KeepAliveAppType::THIRD_PARTY;
     info.setter = isByEDM ? KeepAliveSetter::SYSTEM : KeepAliveSetter::USER;
     info.policy = isByEDM ? (isAllowUserToCancel ? KeepAlivePolicy::ALLOW_CANCEL : KeepAlivePolicy::NOT_ALLOW_CANCEL) :

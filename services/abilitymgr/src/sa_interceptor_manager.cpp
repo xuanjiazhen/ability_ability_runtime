@@ -166,9 +166,9 @@ std::string SAInterceptorManager::GenerateSAInterceptorParams(const AAFwk::Want 
         jsonObj["callerModuleName"] = "";
         jsonObj["callerAbilityName"] = "";
     }
-    jsonObj["callerUid"] = IPCSkeleton::GetCallingUid();
+    jsonObj["callerUid"] = IPCSkeleton::GetCallingAppUid();
     jsonObj["callerAppState"] = abilityRecord ? static_cast<int32_t>(abilityRecord->GetAppState()) : 0;
-    jsonObj["callerUserId"] = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    jsonObj["callerUserId"] = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
 
     jsonObj["targetBundleName"] = abilityInfo.bundleName;
     jsonObj["targetModuleName"] = abilityInfo.moduleName;

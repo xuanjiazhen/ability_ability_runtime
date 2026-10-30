@@ -123,7 +123,7 @@ void UserController::GetAllForegroundUserId(std::vector<int32_t> &userIds)
 
 int32_t UserController::GetCallerUserId()
 {
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     int32_t callerUser = callerUid / BASE_USER_RANGE;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "callerUser = %{public}d, CallingUid = %{public}d.", callerUser, callerUid);
     if (callerUser == U0_USER_ID || callerUser == U1_USER_ID) {
@@ -166,7 +166,7 @@ int32_t UserController::CheckUserParam(int32_t userId) const
         return AAFwk::INVALID_USERID_VALUE;
     }
 
-    if (IPCSkeleton::GetCallingUid() != ACCOUNT_MGR_SERVICE_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != ACCOUNT_MGR_SERVICE_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed, not account process");
         return AAFwk::CHECK_PERMISSION_FAILED;
     }

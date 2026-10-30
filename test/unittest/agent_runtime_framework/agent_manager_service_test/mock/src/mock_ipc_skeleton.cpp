@@ -47,6 +47,11 @@ std::string IPCSkeleton::ResetCallingIdentity()
 // spoof (mismatch) case to be exercised. When overrideCallingUid is false (the default
 // for every non-ForCli test) GetCallingUid() falls back to getuid(), preserving prior
 // behavior.
+pid_t IPCSkeleton::GetCallingAppUid()
+{
+    return GetCallingUid();
+}
+
 pid_t IPCSkeleton::GetCallingUid()
 {
     if (!OHOS::AgentRuntime::MyFlag::overrideCallingUid) {

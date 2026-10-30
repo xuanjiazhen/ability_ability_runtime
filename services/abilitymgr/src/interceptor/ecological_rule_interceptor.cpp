@@ -302,7 +302,7 @@ void EcologicalRuleInterceptor::InitErmsCallerInfo(const StartAbilityContext &ct
 
     if (!skipCallerInfo) {
         callerInfo.packageName = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
-        callerInfo.uid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
+        callerInfo.uid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingAppUid());
         callerInfo.pid = want.GetIntParam(Want::PARAM_RESV_CALLER_PID, IPCSkeleton::GetCallingPid());
         callerInfo.embedded = want.GetIntParam("send_to_erms_embedded", 0);
     }

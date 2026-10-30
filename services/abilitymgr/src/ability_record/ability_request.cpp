@@ -51,7 +51,7 @@ void AbilityRequest::Voluation(const Want &srcWant, int srcRequestCode,
     requestCode = srcRequestCode;
     callerToken = srcCallerToken;
     startSetting = srcStartSetting;
-    callerUid = srcCallerUid == -1 ? IPCSkeleton::GetCallingUid() : srcCallerUid;
+    callerUid = srcCallerUid == -1 ? IPCSkeleton::GetCallingAppUid() : srcCallerUid;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

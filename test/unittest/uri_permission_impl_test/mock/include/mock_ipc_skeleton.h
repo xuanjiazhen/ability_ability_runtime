@@ -16,6 +16,7 @@
 #ifndef OHOS_IPC_IPC_SKELETON_H
 #define OHOS_IPC_IPC_SKELETON_H
 
+#include <sys/types.h>
 #include "iremote_object.h"
 
 namespace OHOS {
@@ -26,6 +27,7 @@ public:
 
     static uint32_t GetCallingTokenID();
     static uint32_t GetCallingPid();
+    static pid_t GetCallingAppUid();
     static uint32_t GetCallingUid();
 
     static void SetCallingTokenId(uint32_t tokenId);
