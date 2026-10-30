@@ -81,8 +81,6 @@ void SanitizeTraceIds(OptionsT &options)
     }
 }
 
-const std::set<std::string> RESERVED_ATTRIBUTION_KEYS = { "taskId" };
-
 constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
 constexpr const char* PERMISSION_EXEC_PUBLIC_CLI_TOOL = "ohos.permission.EXEC_PUBLIC_CLI_TOOL";
 constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
@@ -1512,61 +1510,6 @@ int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &para
     return ret;
 }
 
-void CliToolManagerService::StripAttributionKeys(AAFwk::WantParams &args, int32_t depth)
-{
-    constexpr int32_t MAX_STRIP_DEPTH = 16;
-    if (depth > MAX_STRIP_DEPTH) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "args attribution strip depth limit reached: %{public}d", depth);
-        return;
-    }
-    for (const auto &reserved : RESERVED_ATTRIBUTION_KEYS) {
-        if (args.HasParam(reserved)) {
-            args.Remove(reserved);
-            TAG_LOGW(AAFwkTag::CLI_TOOL,
-                "reserved attribution key stripped from args: key=%{public}s, depth=%{public}d",
-                reserved.c_str(), depth);
-        }
-    }
-    for (const auto &entry : args.GetParams()) {
-        if (entry.second == nullptr) {
-            continue;
-        }
-        AAFwk::IInterface *iface = entry.second.GetRefPtr();
-        AAFwk::IWantParams *nested = AAFwk::IWantParams::Query(iface);
-        if (nested != nullptr) {
-            AAFwk::WantParams nestedCopy;
-            if (nested->GetValue(nestedCopy) == ERR_OK) {
-                StripAttributionKeys(nestedCopy, depth + 1);
-                args.SetParam(entry.first, AAFwk::WantParamWrapper::Box(std::move(nestedCopy)).GetRefPtr());
-            }
-            continue;
-        }
-        AAFwk::IArray *array = AAFwk::IArray::Query(iface);
-        if (array == nullptr) {
-            continue;
-        }
-        long length = 0;
-        if (array->GetLength(length) != ERR_OK) {
-            continue;
-        }
-        for (long i = 0; i < length; ++i) {
-            sptr<AAFwk::IInterface> element;
-            if (array->Get(i, element) != ERR_OK || element == nullptr) {
-                continue;
-            }
-            AAFwk::IWantParams *elementParams = AAFwk::IWantParams::Query(element.GetRefPtr());
-            if (elementParams == nullptr) {
-                continue;
-            }
-            AAFwk::WantParams elementCopy;
-            if (elementParams->GetValue(elementCopy) == ERR_OK) {
-                StripAttributionKeys(elementCopy, depth + 1);
-                array->Set(i, AAFwk::WantParamWrapper::Box(std::move(elementCopy)).GetRefPtr());
-            }
-        }
-    }
-}
-
 int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::string &eventId,
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
@@ -1611,7 +1554,6 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
             "ExecTool trace ids: toolCallId=%{public}s, dmSessionId=%{public}s",
             actualParam.options.toolCallId.c_str(), actualParam.options.dmSessionId.c_str());
     }
-    StripAttributionKeys(actualParam.args);
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {

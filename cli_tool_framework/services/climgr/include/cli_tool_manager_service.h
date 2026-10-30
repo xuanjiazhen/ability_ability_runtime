@@ -363,7 +363,6 @@ private:
     void InvokeBeforeCallTool(ExecToolParam &param);
     void InvokeAfterCallTool(CliSessionInfo &session, const SessionRecord &record);
     void InvokeBeforeCallCmd(ExecCmdParam &param);
-    void StripAttributionKeys(AAFwk::WantParams &args, int32_t depth = 0);
 
     bool initialized_ = false;
     bool isDeveloperMode_ = false;
