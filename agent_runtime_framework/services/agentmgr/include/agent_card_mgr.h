@@ -39,11 +39,18 @@ public:
     int32_t HandleBundleRemove(const std::string &bundleName, int32_t userId);
 
     // Backfills AgentCards for pre-installed apps whose install events fired before
-    // AgentManagerService started listening. Enumerates all created OS accounts, then fans
-    // out one ffrt task per user. Caller guarantees BMS and accountmgr are online; idempotent.
+    // AgentManagerService started listening. On first start after migration to subfoundation,
+    // also migrates dynamic (API-source) cards from the old KV store and backfills ALL installed
+    // apps. Subsequent starts skip migration and backfill pre-installed apps only.
+    // Enumerates all created OS accounts, then fans out one ffrt task per user.
+    // Caller guarantees BMS and accountmgr are online; idempotent.
     static void BackfillPreInstallCards();
 
-    int32_t HandlePreInstallBackfill(int32_t userId);
+    int32_t HandleInstallBackfill(int32_t userId, bool migrationComplete);
+
+    // Migrates dynamic (API-source) agent cards from the old KV store (accessible via AMS)
+    // into the current KV store. Called once during the migration flow.
+    int32_t MigrateDynamicAgentCards(const std::string &jsonStr);
 
     int32_t GetAllAgentCards(AgentCardsRawData &cards);
 
