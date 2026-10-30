@@ -1,0 +1,25 @@
+diff --git a/services/abilitymgr/src/ability_manager_service.cpp b/services/abilitymgr/src/ability_manager_service.cpp
+--- a/services/abilitymgr/src/ability_manager_service.cpp
++++ b/services/abilitymgr/src/ability_manager_service.cpp
+@@ -17159,16 +17159,16 @@
+ {
+     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+     TAG_LOGD(AAFwkTag::ABILITYMGR, "Get ui extension host info by id: %{public}d.", abilityRecordId);
+-    if (abilityRecordId <= 0) {
+-        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityRecordId");
+-        return ERR_INVALID_VALUE;
+-    }
+-
+     if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+         TAG_LOGE(AAFwkTag::ABILITYMGR, "permission deny");
+         return ERR_PERMISSION_DENIED;
+     }
+ 
++    if (abilityRecordId <= 0) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityRecordId");
++        return ERR_INVALID_VALUE;
++    }
++
+     auto recordId = static_cast<int64_t>(abilityRecordId);
+     std::shared_ptr<UIExtensionAbilityManager> connectManager = nullptr;
+     std::shared_ptr<BaseExtensionRecord> extensionRecord = nullptr;
