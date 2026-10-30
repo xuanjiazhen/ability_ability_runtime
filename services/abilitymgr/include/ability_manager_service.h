@@ -2907,10 +2907,13 @@ protected:
      * @param abilityRequest, abilityRequest.
      * @param isVerifyAppIdentifierAllowList, isVerifyAppIdentifierAllowList
      * @param isFromConnect, isFromConnect
+     * @param indirectCaller Validated EDM caller identity, or nullptr for the original calling path.
+     * @param callerBundleName Bundle name resolved from the indirect caller's token.
      * @return Returns whether the caller is allowed to start AppServiceExtension.
      */
     int32_t CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
-        std::shared_ptr<BaseExtensionRecord> targetService, bool isFromConnect);
+        std::shared_ptr<BaseExtensionRecord> targetService, bool isFromConnect,
+        const IndirectCallerInfo *indirectCaller = nullptr, const std::string &callerBundleName = "");
 
     static void HandleAutoStartupReadyCallback(const char *key, const char *value, void *context);
 
@@ -3359,9 +3362,11 @@ private:
      * Check if Caller is allowed to start ServiceExtension(Stage) or DataShareExtension(Stage).
      *
      * @param abilityRequest, abilityRequest.
+     * @param callerTokenId Validated caller token, or 0 to use the identity in abilityRequest.
      * @return Returns whether the caller is allowed to start ServiceExtension.
      */
-    int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest);
+    int CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest,
+        uint32_t callerTokenId = 0);
 
 #ifdef SUPPORT_AUTO_FILL
     /**
@@ -3579,7 +3584,8 @@ private:
     int32_t CheckRestartAppWant(const AppExecFwk::ElementName &elementName, int32_t appIndex, int32_t userId);
 
     int32_t CheckDebugAssertPermission();
-    bool VerifySameAppOrAppIdentifierAllowListPermission(const AbilityRequest &abilityRequest);
+    bool VerifySameAppOrAppIdentifierAllowListPermission(const AbilityRequest &abilityRequest,
+        const IndirectCallerInfo *indirectCaller = nullptr, const std::string &indirectCallerBundleName = "");
     std::shared_ptr<AbilityDebugDeal> ConnectInitAbilityDebugDeal();
 
     int32_t SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,

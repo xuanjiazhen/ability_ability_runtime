@@ -1,0 +1,102 @@
+#
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+import("//build/ohos.gni")
+import("//build/test.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
+
+action("test_sdk") {
+  script = "prepare_test_sdk.py"
+  inputs = [
+    "//base/security/access_token/services/accesstokenmanager/permission_definitions.json",
+    "//base/global/system_resources/systemres/main/module.json",
+  ]
+  outputs = [ "$root_out_dir/app_service_test_sdk/ready.stamp" ]
+  args = [
+    "--sdk",
+    rebase_path("//prebuilts/ohos-sdk/linux", root_build_dir),
+    "--permissions",
+    rebase_path(inputs[0], root_build_dir),
+    "--resources",
+    rebase_path(inputs[1], root_build_dir),
+    "--output",
+    rebase_path("$root_out_dir/app_service_test_sdk", root_build_dir),
+  ]
+}
+
+ohos_moduletest("app_service_proxy_test") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = "ability_runtime/ability_runtime/app_service"
+  sources = [ "AppServiceProxyModuleTest.cpp" ]
+  configs = [ "${ability_runtime_services_path}/common:common_config" ]
+  if (target_cpu == "arm") {
+    cflags = [ "-DBINDER_IPC_32BIT" ]
+  }
+  deps = [
+    ":test_resources",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
+    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+  ]
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_manager",
+    "ability_runtime:app_manager",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "os_account:os_account_innerkits",
+    "samgr:samgr_proxy",
+  ]
+}
+
+ohos_copy("test_resources") {
+  install_enable = false
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  sources = [
+    "README.md",
+    "ohos_test.xml",
+    "run.sh",
+  ]
+  resource_dir = "$root_out_dir/tests/moduletest/ability_runtime/ability_runtime/app_service/resource"
+  outputs = [ "$resource_dir/{{source_file_part}}" ]
+}
+
+group("app_service_proxy_tests") {
+  testonly = true
+  deps = [
+    ":app_service_proxy_test",
+    "apps/caller:caller_hap",
+    "apps/denied:denied_hap",
+    "apps/legacy:legacy_hap",
+    "apps/provider:provider_hap",
+    "apps/unlicensed:unlicensed_hap",
+  ]
+}
+
+group("moduletest") {
+  testonly = true
+  deps = [ ":app_service_proxy_tests" ]
+}
