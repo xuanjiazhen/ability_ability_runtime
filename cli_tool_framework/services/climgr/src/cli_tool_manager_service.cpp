@@ -1359,8 +1359,7 @@ void CliToolManagerService::InvokeAfterCallTool(CliSessionInfo &session, const S
     if (record.sessionType == SessionType::CLI_CMD &&
         !InvokeHookAsync([hook](ExecResultWrap &w) { hook->AfterCallCmd(w); }, execResultWrap)) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "InvokeAfterCallCmd timeout, using original result");
-    } else if (record.sessionType == SessionType::CLI &&
-        !InvokeHookAsync([hook](ExecResultWrap &w) { hook->AfterCallTool(w); }, execResultWrap)) {
+    } else if (!InvokeHookAsync([hook](ExecResultWrap &w) { hook->AfterCallTool(w); }, execResultWrap)) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "InvokeAfterCallTool timeout, using original result");
     }
     *session.result = execResultWrap.execResult;
