@@ -109,6 +109,10 @@ static void HybridSpawnExitCallback(const char *key, const char *value, void *co
 
 void AppHybridSpawnManager::InitHybridSpawnMsgPipe(std::weak_ptr<AppMgrServiceInner> appMgrServiceInner)
 {
+    if (hrFd_ != -1) {
+        TAG_LOGD(AAFwkTag::APPMGR, "InitHybridSpawnMsgPipe already initialized");
+        return;
+    }
     appMgrServiceInner_ = appMgrServiceInner;
     if (appMgrServiceInner_.lock() == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is null");

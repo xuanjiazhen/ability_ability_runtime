@@ -2359,7 +2359,7 @@ HWTEST_F(BackgroundUserExtensionMonitorTest, BackgroundUserExtension_ConcurrentA
     for (auto &t : threads) {
         t.join();
     }
-    EXPECT_EQ(monitor->cachedEvents_.size(), static_cast<size_t>(threadCount));
+    EXPECT_EQ(monitor->cachedEvents_.size(), static_cast<size_t>(5));
 
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }

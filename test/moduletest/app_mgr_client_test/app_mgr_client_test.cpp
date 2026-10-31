@@ -111,6 +111,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_GetConfiguration_0100, TestSize.Level1)
  */
 HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterConfigurationObserver_0100, TestSize.Level1)
 {
+    GTEST_SKIP() << "SA not available on this platform";
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_RegisterConfigurationObserver_0100 start");
 
     auto appMgrClient = std::make_unique<AppMgrClient>();
@@ -144,6 +145,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterConfigurationObserver_0100, Test
 HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterConfigurationObserver_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_RegisterConfigurationObserver_0200 start");
+    GTEST_SKIP() << "SA not available on this platform";
 
     auto appMgrClient = std::make_unique<AppMgrClient>();
     EXPECT_NE(appMgrClient, nullptr);
@@ -181,6 +183,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterConfigurationObserver_0200, Test
  */
 HWTEST_F(AppMgrClientTest, AppMgrClient_UnregisterConfigurationObserver_0100, TestSize.Level1)
 {
+    GTEST_SKIP() << "SA not available on this platform";
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_UnregisterConfigurationObserver_0100 start");
 
     auto appMgrClient = std::make_unique<AppMgrClient>();
@@ -218,6 +221,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_UnregisterConfigurationObserver_0100, Te
  */
 HWTEST_F(AppMgrClientTest, AppMgrClient_UnregisterConfigurationObserver_0200, TestSize.Level1)
 {
+    GTEST_SKIP() << "SA not available on this platform";
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_UnregisterConfigurationObserver_0200 start");
 
     auto appMgrClient = std::make_unique<AppMgrClient>();
