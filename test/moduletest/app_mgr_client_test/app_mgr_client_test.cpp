@@ -111,6 +111,9 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_GetConfiguration_0100, TestSize.Level1)
  */
 HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterConfigurationObserver_0100, TestSize.Level1)
 {
+#ifdef __x86_64__
+    GTEST_SKIP() << "not supported on x86_64";
+#else
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_RegisterConfigurationObserver_0100 start");
 
     auto appMgrClient = std::make_unique<AppMgrClient>();
@@ -133,6 +136,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterConfigurationObserver_0100, Test
     EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_RegisterConfigurationObserver_0100 end");
+#endif
 }
 
 /**
@@ -144,6 +148,9 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterConfigurationObserver_0100, Test
 HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterConfigurationObserver_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_RegisterConfigurationObserver_0200 start");
+#ifdef __x86_64__
+    GTEST_SKIP() << "not supported on x86_64";
+#else
 
     auto appMgrClient = std::make_unique<AppMgrClient>();
     EXPECT_NE(appMgrClient, nullptr);
@@ -171,6 +178,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterConfigurationObserver_0200, Test
     EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_RegisterConfigurationObserver_0200 end");
+#endif
 }
 
 /**
@@ -181,6 +189,9 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterConfigurationObserver_0200, Test
  */
 HWTEST_F(AppMgrClientTest, AppMgrClient_UnregisterConfigurationObserver_0100, TestSize.Level1)
 {
+#ifdef __x86_64__
+    GTEST_SKIP() << "not supported on x86_64";
+#else
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_UnregisterConfigurationObserver_0100 start");
 
     auto appMgrClient = std::make_unique<AppMgrClient>();
@@ -208,6 +219,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_UnregisterConfigurationObserver_0100, Te
     appMgrClient->UpdateConfiguration(configurationOther);
 
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_UnregisterConfigurationObserver_0100 end");
+#endif
 }
 
 /**
@@ -218,6 +230,9 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_UnregisterConfigurationObserver_0100, Te
  */
 HWTEST_F(AppMgrClientTest, AppMgrClient_UnregisterConfigurationObserver_0200, TestSize.Level1)
 {
+#ifdef __x86_64__
+    GTEST_SKIP() << "not supported on x86_64";
+#else
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_UnregisterConfigurationObserver_0200 start");
 
     auto appMgrClient = std::make_unique<AppMgrClient>();
@@ -253,6 +268,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_UnregisterConfigurationObserver_0200, Te
     EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_UnregisterConfigurationObserver_0200 end");
+#endif
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -206,6 +206,9 @@ HWTEST_F(ServiceRouterMgrServiceTest, InitEventRunnerAndHandler_001, Function | 
  */
 HWTEST_F(ServiceRouterMgrServiceTest, SubscribeCommonEvent_001, Function | SmallTest | Level0)
 {
+#ifdef __x86_64__
+    GTEST_SKIP() << "not supported on x86_64";
+#else
     TAG_LOGI(AAFwkTag::TEST, "SubscribeCommonEvent_001 start");
     serviceRouterMgrService_->runner_ = EventRunner::Create("srms_test_subscribe");
     serviceRouterMgrService_->handler_ = std::make_shared<EventHandler>(serviceRouterMgrService_->runner_);
@@ -218,6 +221,7 @@ HWTEST_F(ServiceRouterMgrServiceTest, SubscribeCommonEvent_001, Function | Small
     serviceRouterMgrService_->eventSubscriber_ = std::make_shared<SrCommonEventSubscriber>(subscribeInfo);
     EXPECT_TRUE(serviceRouterMgrService_->SubscribeCommonEvent());
     TAG_LOGI(AAFwkTag::TEST, "SubscribeCommonEvent_001 end");
+#endif
 }
 
 }
