@@ -116,11 +116,15 @@ ohos_unittest("extension_record_manager_second_test") {
     "samgr:samgr_proxy",
     "selinux_adapter:librestorecon",
   ]
-
+  defines = []
   if (ability_runtime_child_process) {
-    defines = [ "SUPPORT_CHILD_PROCESS" ]
+    defines += [ "SUPPORT_CHILD_PROCESS" ]
   }
   if (ability_runtime_graphics) {
+    defines += [
+      "SUPPORT_GRAPHICS",
+      "SUPPORT_SCREEN",
+    ]
     external_deps += [
       "input:libmmi-client",
       "window_manager:libwsutils",
