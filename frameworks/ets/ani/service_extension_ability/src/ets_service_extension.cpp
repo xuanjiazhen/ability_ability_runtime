@@ -101,6 +101,7 @@ bool ConnectPromiseCallback(ani_env *env, ani_object aniObj, ani_object obj)
     auto remoteObject = AniGetNativeRemoteObject(env, obj);
     if (remoteObject == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null remoteObject");
+        return false;
     }
     auto *callbackInfo =
         reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>> *>(connectCallback);
