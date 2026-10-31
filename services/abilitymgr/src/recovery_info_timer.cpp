@@ -56,7 +56,7 @@ void RecoveryInfoTimer::SubmitSaveRecoveryInfo(RecoveryInfo recoveryInfo)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "clearRecoveryInfo bundleName: %{public}s, abilityName: %{public}s",
             recoveryInfo->bundleName.c_str(), recoveryInfo->abilityName.c_str());
         (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
-            DeleteAbilityRecoverInfo(recoveryInfo->tokenId, recoveryInfo->moduleName, recoveryInfo->abilityName);
+            DeleteAbilityRecoverInfoWithNotify(recoveryInfo->tokenId, recoveryInfo->moduleName, recoveryInfo->abilityName);
         recoveryInfoQueue_.pop_front();
     }
 }

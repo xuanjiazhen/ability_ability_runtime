@@ -20,6 +20,7 @@
 #include "ability_manager_errors.h"
 #include "accesstoken_kit.h"
 #include "app_utils.h"
+#include "backup_notification_manager.h"
 #include "exit_info_data_manager.h"
 #include "ffrt.h"
 #include "hitrace_meter.h"
@@ -756,6 +757,60 @@ int32_t AppExitReasonDataManager::DeleteAbilityRecoverInfo(
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "DeleteAbilityRecoverInfo finished");
     return ERR_OK;
+}
+
+int32_t AppExitReasonDataManager::DeleteAbilityRecoverInfoWithNotify(
+    uint32_t accessTokenId, const std::string &moduleName, const std::string &abilityName)
+{
+    AAFwk::RecordCostTimeUtil timeRecord("DeleteAbilityRecoverInfoWithNotify");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "tokenId %{private}u module %{public}s ability %{public}s",
+        accessTokenId, moduleName.c_str(), abilityName.c_str());
+    int32_t sessionId = 0;
+    {
+        std::lock_guard lock(kvStorePtrMutex_);
+        if (!CheckKvStore()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStore");
+            return ERR_NO_INIT;
+        }
+    }
+    DistributedKv::Key key = GetAbilityRecoverInfoKey(accessTokenId);
+    DistributedKv::Value value;
+    DistributedKv::Status status;
+    {
+        std::lock_guard lock(kvStorePtrMutex_);
+        status = kvStorePtr_->Get(key, value);
+    }
+    if (status == DistributedKv::Status::SUCCESS) {
+        std::vector<std::string> recoverInfoList;
+        std::vector<int> sessionIdList;
+        ConvertAbilityRecoverInfoFromValue(value, recoverInfoList, sessionIdList);
+        std::string recoverInfo = moduleName + abilityName;
+        auto pos = std::find(recoverInfoList.begin(), recoverInfoList.end(), recoverInfo);
+        if (pos != recoverInfoList.end()) {
+            int index = static_cast<int>(std::distance(recoverInfoList.begin(), pos));
+            if (index < static_cast<int>(sessionIdList.size())) {
+                sessionId = sessionIdList[index];
+            }
+        }
+    }
+    auto ret = DeleteAbilityRecoverInfo(accessTokenId, moduleName, abilityName);
+    if (ret == ERR_OK && sessionId > 0) {
+        DelayedSingleton<AAFwk::BackupNotificationManager>::GetInstance()->
+            NotifyWindowSnapshotDeleted(sessionId);
+    }
+    return ret;
+}
+
+int32_t AppExitReasonDataManager::DeleteAbilityRecoverInfoBySessionIdWithNotify(const int32_t sessionId)
+{
+    AAFwk::RecordCostTimeUtil timeRecord("DeleteAbilityRecoverInfoBySessionIdWithNotify");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "sessionId %{public}d", sessionId);
+    auto ret = DeleteAbilityRecoverInfoBySessionId(sessionId);
+    if (ret == ERR_OK && sessionId > 0) {
+        DelayedSingleton<AAFwk::BackupNotificationManager>::GetInstance()->
+            NotifyWindowSnapshotDeleted(sessionId);
+    }
+    return ret;
 }
 
 int32_t AppExitReasonDataManager::GetAbilityRecoverInfo(

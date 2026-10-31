@@ -189,6 +189,14 @@ public:
      */
     UIAbilityRecordPtr GetUIAbilityRecordBySessionInfo(const sptr<SessionInfo> &sessionInfo);
 
+    /**
+     * Get all UIAbilityRecords by pid.
+     *
+     * @param pid The process id.
+     * @return Returns vector of UIAbilityRecordPtr matching the pid.
+     */
+    std::vector<UIAbilityRecordPtr> GetUIAbilityRecordsByPid(int32_t pid);
+
     int32_t BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
         int resultCode, const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp = false);
 

@@ -193,6 +193,18 @@ void UIAbilityLifecycleManager::RecordPidKilling(pid_t pid, const std::string &r
     }
 }
 
+std::vector<UIAbilityRecordPtr> UIAbilityLifecycleManager::GetUIAbilityRecordsByPid(int32_t pid)
+{
+    std::vector<UIAbilityRecordPtr> records;
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    for (const auto& [first, second] : sessionAbilityMap_) {
+        if (second && pid == second->GetPid()) {
+            records.emplace_back(second);
+        }
+    }
+    return records;
+}
+
 void UIAbilityLifecycleManager::MarkStartingFlag(const AbilityRequest &abilityRequest)
 {
     for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {

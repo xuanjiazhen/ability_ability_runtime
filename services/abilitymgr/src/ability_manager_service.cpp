@@ -40,6 +40,7 @@
 #include "app_recovery_mgr.h"
 #include "application_util.h"
 #include "assert_fault_callback_death_mgr.h"
+#include "backup_notification_manager.h"
 #include "collaborator_util.h"
 #include "concurrent_task_client.h"
 #include "config_policy_utils.h"
@@ -4089,6 +4090,10 @@ int32_t AbilityManagerService::KillAppWithReason(const int32_t pid, const ExitRe
         return innerRet;
     }
 
+    auto uiAbilityManager = GetUIAbilityManagerByUid(uid);
+    DelayedSingleton<BackupNotificationManager>::GetInstance()->NotifyWindowSnapshotBeforeKill(
+        pid, reason.reason, uiAbilityManager);
+
     appExitReasonHelper_->AddAppExitReason(bundleName, pid, uid, appIndex, exitReason, callerPid);
     std::vector<int32_t> pidToBeKilled = { pid };
     return IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(pidToBeKilled,
@@ -5989,7 +5994,7 @@ int AbilityManagerService::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionI
         sessionInfo->persistentId, sessionInfo->resultCode, sessionInfo->isClearSession);
     if (sessionInfo->isClearSession) {
         (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
-            DeleteAbilityRecoverInfoBySessionId(sessionInfo->persistentId);
+            DeleteAbilityRecoverInfoBySessionIdWithNotify(sessionInfo->persistentId);
     }
     auto abilityRecord = uiAbilityManager->GetUIAbilityRecordBySessionInfo(sessionInfo);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
@@ -15041,6 +15046,16 @@ int32_t AbilityManagerService::KillProcessWithReasonInner(int32_t pid, const Exi
         TAG_LOGW(AAFwkTag::ABILITYMGR, "RecordAppExitReason failed, ret:%{public}d", ret);
     }
     std::vector<int32_t> pidToBeKilled = { pid };
+    {
+        AppExecFwk::ApplicationInfo applicationInfo;
+        bool debug = false;
+        if (IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->GetApplicationInfoByProcessID(
+            pid, applicationInfo, debug)) == ERR_OK) {
+            auto uiAbilityManager = GetUIAbilityManagerByUid(applicationInfo.uid);
+            DelayedSingleton<BackupNotificationManager>::GetInstance()->NotifyWindowSnapshotBeforeKill(
+                pid, reason.reason, uiAbilityManager);
+        }
+    }
     return IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(pidToBeKilled,
         reason.exitMsg, true, isKillPrecedeStart));
 }
@@ -18578,7 +18593,7 @@ int32_t AbilityManagerService::CleanUIAbilityBySCB(const sptr<SessionInfo> &sess
     auto abilityRecord = uiAbilityManager->GetUIAbilityRecordBySessionInfo(sessionInfo);
     if(!abilityRecord){
         (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
-            DeleteAbilityRecoverInfoBySessionId(sessionInfo->persistentId);
+            DeleteAbilityRecoverInfoBySessionIdWithNotify(sessionInfo->persistentId);
     }
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     abilityRecord->SetSceneFlag(sceneFlag);
@@ -18628,7 +18643,7 @@ void AbilityManagerService::ReportCleanSession(const sptr<SessionInfo> &sessionI
         abilityName += std::to_string(sessionInfo->persistentId);
     }
     (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
-        DeleteAbilityRecoverInfo(abilityInfo.applicationInfo.accessTokenId, abilityInfo.moduleName, abilityName);
+        DeleteAbilityRecoverInfoWithNotify(abilityInfo.applicationInfo.accessTokenId, abilityInfo.moduleName, abilityName);
 
     auto eventInfo = std::make_shared<EventInfo>();
     eventInfo->errCode = errCode;

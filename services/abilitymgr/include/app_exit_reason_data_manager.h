@@ -57,6 +57,11 @@ public:
 
     int32_t DeleteAbilityRecoverInfoBySessionId(const int32_t sessionId);
 
+    int32_t DeleteAbilityRecoverInfoWithNotify(
+        uint32_t accessTokenId, const std::string &moduleName, const std::string &abilityName);
+
+    int32_t DeleteAbilityRecoverInfoBySessionIdWithNotify(const int32_t sessionId);
+
     /**
      * @brief Clear all ability recover info after an OTA upgrade. Compares the current system
      *        fingerprint (multiple const.product.* params) with the marker in the kv store.
