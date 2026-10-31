@@ -109,6 +109,7 @@ AbilityInfo BuildFuzzAbilityInfo(const char* data, size_t size)
     info.allowSelfRedirect = true;
     info.linkType = static_cast<LinkType>(GetU32Data(data));
     info.applicationInfo.uid = static_cast<int32_t>(GetU32Data(data));
+    info.applicationInfo.appuid = info.applicationInfo.uid;
     return info;
 }
 

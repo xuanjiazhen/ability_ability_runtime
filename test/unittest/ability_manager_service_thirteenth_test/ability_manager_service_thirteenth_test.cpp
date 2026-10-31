@@ -3996,6 +3996,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitializeAppCloneRequest_001, Tes
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
     mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->abilityInfo.applicationInfo.appuid = mockStartInfo->abilityInfo.applicationInfo.uid;
     mockStartInfo->status = ERR_OK;
     StartAbilityContext ctx;
     ctx.startAbilityInfo = mockStartInfo;
@@ -4053,6 +4054,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitializeAppCloneRequest_002, Tes
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
     mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->abilityInfo.applicationInfo.appuid = mockStartInfo->abilityInfo.applicationInfo.uid;
     mockStartInfo->status = ERR_OK;
     StartAbilityContext ctx;
     ctx.startAbilityInfo = mockStartInfo;
@@ -4984,9 +4986,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
     mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->abilityInfo.applicationInfo.appuid = mockStartInfo->abilityInfo.applicationInfo.uid;
     mockStartInfo->status = ERR_OK;
-    StartAbilityUtils::isSandBoxClone = true;
-    StartAbilityUtils::startAbilityInfo = mockStartInfo;
 
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
@@ -5016,6 +5017,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
 
     StartAbilityWrapParam param;
+    param.startAbilityCtx.isSandBoxClone = true;
+    param.startAbilityCtx.startAbilityInfo = mockStartInfo;
     param.want = want;
     param.userId = DEFAULT_INVAL_VALUE;
     param.callerToken = callerToken;
@@ -5032,8 +5035,6 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     MyStatus::GetInstance().isSupportMultiInstance_ = true;
     MyStatus::GetInstance().paramGetBoolParameter_ = true;
     MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
-    StartAbilityUtils::startAbilityInfo = nullptr;
-    StartAbilityUtils::isSandBoxClone = false;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_014 end");
 }
 
@@ -5058,9 +5059,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
     mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->abilityInfo.applicationInfo.appuid = mockStartInfo->abilityInfo.applicationInfo.uid;
     mockStartInfo->status = ERR_OK;
-    StartAbilityUtils::isSandBoxClone = true;
-    StartAbilityUtils::startAbilityInfo = mockStartInfo;
 
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
@@ -5090,6 +5090,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     want.SetParam("isSelector", true);
 
     StartAbilityWrapParam param;
+    param.startAbilityCtx.isSandBoxClone = true;
+    param.startAbilityCtx.startAbilityInfo = mockStartInfo;
     param.want = want;
     param.userId = DEFAULT_INVAL_VALUE;
     param.callerToken = callerToken;
@@ -5107,8 +5109,6 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     MyStatus::GetInstance().isSupportMultiInstance_ = true;
     MyStatus::GetInstance().paramGetBoolParameter_ = true;
     MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
-    StartAbilityUtils::startAbilityInfo = nullptr;
-    StartAbilityUtils::isSandBoxClone = false;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_015 end");
 }
 
@@ -5133,9 +5133,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
     mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->abilityInfo.applicationInfo.appuid = mockStartInfo->abilityInfo.applicationInfo.uid;
     mockStartInfo->status = ERR_OK;
-    StartAbilityUtils::isSandBoxClone = true;
-    StartAbilityUtils::startAbilityInfo = mockStartInfo;
 
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
@@ -5159,6 +5158,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
 
     StartAbilityWrapParam param;
+    param.startAbilityCtx.isSandBoxClone = true;
+    param.startAbilityCtx.startAbilityInfo = mockStartInfo;
     param.want = want;
     param.userId = DEFAULT_INVAL_VALUE;
     param.callerToken = callerToken;
@@ -5175,8 +5176,6 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     MyStatus::GetInstance().isSupportMultiInstance_ = true;
     MyStatus::GetInstance().paramGetBoolParameter_ = true;
     MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
-    StartAbilityUtils::startAbilityInfo = nullptr;
-    StartAbilityUtils::isSandBoxClone = false;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_016 end");
 }
 #endif // SUPPORT_SCREEN

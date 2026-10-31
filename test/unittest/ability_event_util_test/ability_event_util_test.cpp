@@ -125,6 +125,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0100, Te
     appInfo.isBundleFirstLaunched = false;
     appInfo.appIndex = 0;
     appInfo.uid = 20010000;
+    appInfo.appuid = appInfo.uid;
     int32_t userId = 100;
 
     bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
@@ -146,6 +147,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0200, Te
     appInfo.isBundleFirstLaunched = true;
     appInfo.appIndex = 0;
     appInfo.uid = 20010000;
+    appInfo.appuid = appInfo.uid;
     int32_t userId = 100;
 
     bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
@@ -167,6 +169,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0300, Te
     appInfo.isBundleFirstLaunched = false;
     appInfo.appIndex = 1;
     appInfo.uid = 20010001;
+    appInfo.appuid = appInfo.uid;
     int32_t userId = 100;
 
     bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
@@ -188,6 +191,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0400, Te
     appInfo.isBundleFirstLaunched = false;
     appInfo.appIndex = 2;
     appInfo.uid = 20010002;
+    appInfo.appuid = appInfo.uid;
     int32_t userId = 100;
 
     bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
@@ -209,6 +213,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0500, Te
     appInfo.isBundleFirstLaunched = true;
     appInfo.appIndex = 1;
     appInfo.uid = 20010001;
+    appInfo.appuid = appInfo.uid;
     int32_t userId = 100;
 
     bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
@@ -230,6 +235,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0600, Te
     appInfo.isBundleFirstLaunched = false;
     appInfo.appIndex = 0;
     appInfo.uid = 20020000;
+    appInfo.appuid = appInfo.uid;
     int32_t userId = 200;
 
     bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
@@ -251,6 +257,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0700, Te
     appInfo.isBundleFirstLaunched = false;
     appInfo.appIndex = 0;
     appInfo.uid = 20010000;
+    appInfo.appuid = appInfo.uid;
     int32_t userId = 100;
     std::string callerBundleName = "com.test.caller";
 
@@ -273,6 +280,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0800, Te
     appInfo.isBundleFirstLaunched = false;
     appInfo.appIndex = 1;
     appInfo.uid = 20010001;
+    appInfo.appuid = appInfo.uid;
     int32_t userId = 100;
     std::string callerBundleName = "com.test.caller";
 
@@ -295,6 +303,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0900, Te
     appInfo.isBundleFirstLaunched = false;
     appInfo.appIndex = 0;
     appInfo.uid = 20010000;
+    appInfo.appuid = appInfo.uid;
     int32_t userId = 100;
     std::string callerBundleName = "_system";
 
@@ -317,6 +326,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_1000, Te
     appInfo.isBundleFirstLaunched = false;
     appInfo.appIndex = 0;
     appInfo.uid = 20010000;
+    appInfo.appuid = appInfo.uid;
     int32_t userId = 100;
 
     bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);

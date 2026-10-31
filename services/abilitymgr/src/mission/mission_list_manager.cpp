@@ -4261,7 +4261,7 @@ bool MissionListManager::IsAppLastAbility(const std::shared_ptr<AbilityRecord> &
         return false;
     }
 
-    auto uid = abilityRecord->GetAbilityInfo().applicationInfo.uid;
+    auto uid = abilityRecord->GetAbilityInfo().applicationInfo.appuid;
 
     std::vector<std::string> abilityList;
     for (auto missionList : currentMissionLists_) {

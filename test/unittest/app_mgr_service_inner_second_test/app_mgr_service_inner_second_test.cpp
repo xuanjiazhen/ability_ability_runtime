@@ -1280,6 +1280,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, KillApplicationByUid_0100, TestSize.Level
 
     AppRunningManager appRunningManager;
     applicationInfo_->uid = uid;
+    applicationInfo_->appuid = applicationInfo_->uid;
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
     auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();

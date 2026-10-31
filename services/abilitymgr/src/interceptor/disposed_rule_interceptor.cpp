@@ -227,7 +227,7 @@ ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk:
 
     std::string moduleName = abilityInfo->moduleName;
     std::string abilityName = abilityInfo->name;
-    int32_t uid = abilityInfo->applicationInfo.uid;
+    int32_t uid = abilityInfo->applicationInfo.appuid;
 
     sptr<OHOS::AppExecFwk::IAppMgr> appManager = AppMgrUtil::GetAppMgr();
     CHECK_POINTER_AND_RETURN(appManager, ERR_INVALID_VALUE);

@@ -1430,6 +1430,7 @@ HWTEST_F(AppMgrServiceInnerTest, TryToUseImageInfo_ImageInfoNotFound_001, TestSi
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "testBundle";
     appInfo->uid = 0;
+    appInfo->appuid = appInfo->uid;
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     auto ret = appMgrServiceInner->TryToUseImageInfo(abilityInfo, appInfo, nullptr,
         "callerKey", 0, "process", "instanceKey", "", "", appRecord, false);
@@ -1449,6 +1450,7 @@ HWTEST_F(AppMgrServiceInnerTest, TryToUseImageInfo_ImageInfoNotMatched_001, Test
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "testBundle";
     appInfo->uid = 0;
+    appInfo->appuid = appInfo->uid;
     AppMgrServiceInner::MakeImageRequest request {
         .bundleName = "testBundle",
         .abilityName = "testAbility",

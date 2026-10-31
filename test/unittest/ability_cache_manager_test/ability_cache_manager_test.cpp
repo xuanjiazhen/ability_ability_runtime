@@ -1446,6 +1446,7 @@ HWTEST_F(AbilityCacheManagerTest, SignRestartAppFlag_001, TestSize.Level2)
     abilityInfo.bundleName = "TestBundle";
     AppExecFwk::ApplicationInfo appInfo;
     appInfo.uid = 1000;
+    appInfo.appuid = appInfo.uid;
     Want want;
     auto rec = std::make_shared<BaseExtensionRecord>(want, abilityInfo, appInfo);
     rec->Init(AbilityRequest());

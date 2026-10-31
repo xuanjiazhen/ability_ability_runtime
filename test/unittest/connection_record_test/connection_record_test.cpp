@@ -1292,6 +1292,7 @@ HWTEST_F(ConnectionRecordTest, ConnectionRecord_AttachCallerInfo_001, TestSize.L
 {
     AbilityRequest callerRequest;
     callerRequest.appInfo.uid = 12345;
+    callerRequest.appInfo.appuid = callerRequest.appInfo.uid;
     callerRequest.appInfo.name = "CallerApp";
     callerRequest.abilityInfo.bundleName = "com.test.caller";
     callerRequest.abilityInfo.name = "CallerAbility";

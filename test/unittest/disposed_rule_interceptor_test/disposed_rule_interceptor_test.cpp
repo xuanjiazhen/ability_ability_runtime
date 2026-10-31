@@ -1100,6 +1100,7 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_008, TestSize.Level1)
     auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
     int32_t uid = 100;
     abilityInfo->applicationInfo.uid = uid;
+    abilityInfo->applicationInfo.appuid = abilityInfo->applicationInfo.uid;
     auto ret = interceptor->StartNonBlockRule(want, rule, abilityInfo);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(interceptor->disposedObserverMap_.size(), 1);
@@ -1147,6 +1148,7 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_009, TestSize.Level3)
     auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
     int32_t uid = 101;
     abilityInfo->applicationInfo.uid = uid;
+    abilityInfo->applicationInfo.appuid = abilityInfo->applicationInfo.uid;
     auto ret = interceptor->StartNonBlockRule(want, rule, abilityInfo);
     EXPECT_EQ(ret, ERR_OK);
     {
@@ -1202,6 +1204,7 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_010, TestSize.Level3)
     auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
     int32_t uid = 102;
     abilityInfo->applicationInfo.uid = uid;
+    abilityInfo->applicationInfo.appuid = abilityInfo->applicationInfo.uid;
     // first registration arms the timeout task at t0
     auto ret = interceptor->StartNonBlockRule(want, rule, abilityInfo);
     EXPECT_EQ(ret, ERR_OK);

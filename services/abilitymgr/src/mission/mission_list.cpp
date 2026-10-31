@@ -461,7 +461,7 @@ void MissionList::GetActiveAbilityList(int32_t uid, std::vector<std::string> &ab
         }
 
         const AppExecFwk::AbilityInfo &abilityInfo = abilityRecord->GetAbilityInfo();
-        if (abilityInfo.applicationInfo.uid == uid && !abilityInfo.name.empty()) {
+        if (abilityInfo.applicationInfo.appuid == uid && !abilityInfo.name.empty()) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "find ability name is %{public}s", abilityInfo.name.c_str());
             abilityList.push_back(abilityInfo.name);
         }

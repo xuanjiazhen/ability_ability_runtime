@@ -85,6 +85,7 @@ AppExecFwk::BundleInfo BuildPreInstallBundleInfo(const std::string &bundleName, 
     info.name = bundleName;
     info.isPreInstallApp = true;
     info.uid = userId * BASE_USER_RANGE;
+    info.appuid = info.uid;
     return info;
 }
 
@@ -1772,6 +1773,8 @@ HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_008, TestSize.Level1)
     // user-100 pre-install bundle -> kept; user-101 pre-install bundle -> filtered out
     AppExecFwk::BundleInfo keep = BuildPreInstallBundleInfoWithAgent("keep.bundle");
     AppExecFwk::BundleInfo skip = BuildPreInstallBundleInfoWithAgent("skip.bundle", 101);
+    keep.uid = 100;
+    skip.uid = 100;
     MyFlag::mockBundleInfos = { keep, skip };
     MyFlag::retGetBundleInfos = true;
     MyFlag::mockProfileInfoContent = TEST_PROFILE_CONTENT;

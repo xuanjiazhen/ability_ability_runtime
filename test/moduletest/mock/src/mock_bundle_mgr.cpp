@@ -73,6 +73,7 @@ bool BundleMgrService::GetBundleInfo(
     const std::string& bundleName, const BundleFlag flag, BundleInfo& bundleInfo, int32_t userId)
 {
     bundleInfo.uid = 0;
+    bundleInfo.appuid = bundleInfo.uid;
     return true;
 }
 
@@ -141,6 +142,7 @@ bool BundleMgrService::GetApplicationInfo(
     appInfo.name = appName;
     appInfo.bundleName = appName;
     appInfo.uid = userId * BASE_USER_RANGE;
+    appInfo.appuid = appInfo.uid;
     return true;
 }
 

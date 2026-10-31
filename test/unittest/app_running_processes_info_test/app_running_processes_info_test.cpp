@@ -244,9 +244,11 @@ HWTEST_F(AppRunningProcessesInfoTest, UpdateAppRunningRecord_002, TestSize.Level
     int uid = 0;
     abilityInfo->name = GetTestAbilityName();
     abilityInfo->applicationInfo.uid = uid;
+    abilityInfo->applicationInfo.appuid = abilityInfo->applicationInfo.uid;
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->name = GetTestAppName();
     appInfo->uid = uid;
+    appInfo->appuid = appInfo->uid;
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
     EXPECT_TRUE(service_ != nullptr);

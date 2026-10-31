@@ -99,7 +99,7 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
     want.SetParam("bundleName", appInfo.bundleName);
     want.SetParam("userId", userId);
     want.SetParam("appIndex", appInfo.appIndex);
-    want.SetParam("uid", appInfo.uid);
+    want.SetParam("uid", appInfo.appuid);
     if (!appId.empty()) {
         want.SetParam("appId", appId);
     }

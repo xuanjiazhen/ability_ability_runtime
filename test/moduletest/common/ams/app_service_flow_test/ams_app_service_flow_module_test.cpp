@@ -124,8 +124,10 @@ TestApplicationPreRunningRecord AmsAppServiceFlowModuleTest::TestCreateApplicati
     appInfo->name = appName;
     appInfo->bundleName = appName;  // specify process condition
     appInfo->uid = 0;
+    appInfo->appuid = appInfo->uid;
     abilityInfo->name = abilityName;
     abilityInfo->applicationInfo.uid = 0;
+    abilityInfo->applicationInfo.appuid = abilityInfo->applicationInfo.uid;
     sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
     outToken = token;
 

@@ -799,6 +799,7 @@ HWTEST_F(KeepAliveProcessManagerTest, FilterNeedRestartKeepAliveBundleInfos_001,
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
     AppExecFwk::BundleInfo bundleInfo;
     bundleInfo.uid = 12345;
+    bundleInfo.appuid = bundleInfo.uid;
     bundleInfos.emplace_back(bundleInfo);
     KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.clear();
     KeepAliveProcessManager::GetInstance().FilterNeedRestartKeepAliveBundleInfos(bundleInfos);
@@ -820,6 +821,7 @@ HWTEST_F(KeepAliveProcessManagerTest, FilterNeedRestartKeepAliveBundleInfos_002,
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
     AppExecFwk::BundleInfo bundleInfo;
     bundleInfo.uid = 12345;
+    bundleInfo.appuid = bundleInfo.uid;
     bundleInfos.emplace_back(bundleInfo);
     KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.emplace(12345);
     KeepAliveProcessManager::GetInstance().FilterNeedRestartKeepAliveBundleInfos(bundleInfos);
@@ -1639,6 +1641,7 @@ HWTEST_F(KeepAliveProcessManagerTest, StartKeepAliveProcessWithMainElement_003, 
     AppExecFwk::BundleInfo bundleInfo;
     bundleInfo.name = "testBundle";
     bundleInfo.uid = MOCK_TEST_UID;
+    bundleInfo.appuid = bundleInfo.uid;
     std::vector<AppExecFwk::BundleInfo> bundleInfos = {bundleInfo};
     int32_t testUser = 0;
     AbilityManagerService::userId_ = testUser;
@@ -1701,6 +1704,7 @@ HWTEST_F(KeepAliveProcessManagerTest, StartKeepAliveProcessWithMainElementPerBun
     AppExecFwk::BundleInfo bundleInfo;
     bundleInfo.name = "testBundle";
     bundleInfo.uid = MOCK_TEST_UID;
+    bundleInfo.appuid = bundleInfo.uid;
     int32_t testUser = 100;
     keepAliveProcessManager->StartKeepAliveProcessWithMainElementPerBundle(bundleInfo, testUser);
     bool usedSupportStatusBarTimes = AbilityManagerService::usedSupportStatusBarTimes;
@@ -1732,6 +1736,7 @@ HWTEST_F(KeepAliveProcessManagerTest, StartKeepAliveProcessWithMainElementPerBun
     AppExecFwk::BundleInfo bundleInfo;
     bundleInfo.name = "testBundle";
     bundleInfo.uid = MOCK_TEST_UID;
+    bundleInfo.appuid = bundleInfo.uid;
     int32_t testUser = 100;
     keepAliveProcessManager->StartKeepAliveProcessWithMainElementPerBundle(bundleInfo, testUser);
     int32_t testResult = AbilityManagerService::usedSupportStatusBarTimes;

@@ -578,7 +578,7 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
     if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
         return;
     }
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->uid))) {
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->appuid))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return;
     }
@@ -590,7 +590,7 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
     auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
     std::lock_guard guard(exitMasterProcessRoleLock_);
     auto masterAppRecord = appRunningManager_->FindMasterProcessAppRunningRecord(appInfo->name, abilityInfo,
-        appInfo->uid);
+        appInfo->appuid);
     std::string customProcessFlag = "";
     if (masterAppRecord == nullptr) {
         if (AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo.extensionAbilityType)) {
@@ -598,7 +598,7 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
         } else {
             customProcessFlag = abilityInfo.process;
         }
-        masterAppRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->uid,
+        masterAppRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->appuid,
             bundleInfo, "", nullptr, instanceKey, customProcessFlag);
         if(masterAppRecord != nullptr){
             masterAppRecord->SetMasterProcess(true);
@@ -625,7 +625,7 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     if (abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
         appRecord = !AAFwk::AppUtils::GetInstance().InOnNewProcessEnableList(bundleInfo.name) ? nullptr :
-            appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(appInfo->uid, instanceKey, customProcessFlag);
+            appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(appInfo->appuid, instanceKey, customProcessFlag);
     }
     if (appRecord != nullptr) {
         TAG_LOGI(AAFwkTag::APPMGR, "starting process [%{public}s]", processName.c_str());
@@ -642,12 +642,12 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
         newAppRecord->SetScheduleNewProcessRequestState(requestId, want, hapModuleInfo.moduleName);
         bool appExistFlag = appRunningManager_->IsAppExist(bundleInfo.applicationInfo.accessTokenId);
         auto ret = StartProcess(abilityInfo.applicationName, processName, 0, newAppRecord,
-            appInfo->uid, bundleInfo, appInfo->bundleName, 0, appExistFlag);
+            appInfo->appuid, bundleInfo, appInfo->bundleName, 0, appExistFlag);
         TAG_LOGI(AAFwkTag::APPMGR, "start process ret %{public}d, schedule new process request", ret);
         return;
     }
     if (startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnNewProcessRequestResponse("", GetUserIdByUid(appInfo->uid), requestId);
+        startSpecifiedAbilityResponse_->OnNewProcessRequestResponse("", GetUserIdByUid(appInfo->appuid), requestId);
     }
 }
 
@@ -1226,7 +1226,7 @@ void AppMgrServiceInner::HandleMakeImageFailed(const std::string& bundleName, co
     }
     UnMarkTemplateProcess(imageInfo->templatePid);
     RemoveImageInfo(bundleName, abilityName, userId, appIndex);
-    NotifyMakeImageFailed(imageInfo->bundleInfo.uid, imageInfo->errorHandler, err);
+    NotifyMakeImageFailed(imageInfo->bundleInfo.appuid, imageInfo->errorHandler, err);
 }
 
 int32_t AppMgrServiceInner::PreAddImageInfo(const std::string& bundleName, int32_t userId, int32_t appIndex,
@@ -1593,7 +1593,7 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
     if (appRunningManager_ == nullptr || appInfo == nullptr || abilityInfo == nullptr) {
         return ERR_OK;
     }
-    auto imageInfo = FindImageInfo(appInfo->bundleName, abilityInfo->name, appInfo->uid / BASE_USER_RANGE, appIndex);
+    auto imageInfo = FindImageInfo(appInfo->bundleName, abilityInfo->name, appInfo->appuid / BASE_USER_RANGE, appIndex);
     if (imageInfo == nullptr) {
         return ERR_OK;
     }
@@ -1606,22 +1606,22 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
         NotifyLoadAbilityFailed(token);
         return ERR_INVALID_VALUE;
     }
-    auto ret = PreCheckStartProcess(appInfo->bundleName, appInfo->uid, appIndex);
+    auto ret = PreCheckStartProcess(appInfo->bundleName, appInfo->appuid, appIndex);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
         NotifyStartProcessFailed(token);
         return ret;
     }
     bool appExistFlag = appRunningManager_->IsAppExist(appInfo->accessTokenId);
-    bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(appInfo->uid);
+    bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(appInfo->appuid);
     if (!appMultiUserExistFlag) {
         NotifyAppRunningStatusEvent(
-            appInfo->bundleName, appInfo->uid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
+            appInfo->bundleName, appInfo->appuid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
     }
     appRecord = CreateAppRunningRecordFromImageInfo(imageInfo);
     if (appRecord == nullptr) {
-        SnapshotErrorReport(appInfo->uid, appInfo->bundleName, appInfo->versionName, -1, "appRecord not exist");
-        SaveHyperSnapError(appInfo->uid, HyperSnapErrorType::FORK_FROM_SNAPSHOT, HyperSnapErrorCode::ERR_SYSTEM_INNER);
+        SnapshotErrorReport(appInfo->appuid, appInfo->bundleName, appInfo->versionName, -1, "appRecord not exist");
+        SaveHyperSnapError(appInfo->appuid, HyperSnapErrorType::FORK_FROM_SNAPSHOT, HyperSnapErrorCode::ERR_SYSTEM_INNER);
         TAG_LOGE(AAFwkTag::APPMGR, "Saved FORK_FROM_SNAPSHOT error: CreateAppRunningRecordFromImageInfo failed");
         return ERR_OK;
     }
@@ -1659,14 +1659,14 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
         SnapshotErrorReport(-1, appInfo->bundleName, appInfo->versionName, errCode, "forkall failed");
 
         auto imageError = GetCheckpointRestoreError(imageInfo->imagePid, imageInfo->imageName);
-        SaveHyperSnapError(appInfo->uid, HyperSnapErrorType::FORK_FROM_SNAPSHOT, ConvertImageErrorToHyperSnapCode(imageError));
+        SaveHyperSnapError(appInfo->appuid, HyperSnapErrorType::FORK_FROM_SNAPSHOT, ConvertImageErrorToHyperSnapCode(imageError));
 
         return ERR_OK;
     }
     TAG_LOGI(AAFwkTag::APPMGR, "fork from image success, imagePid:%{public}d, workpid:%{public}d", imageInfo->imagePid,
         workPid);
 
-    ClearHyperSnapError(appInfo->uid, HyperSnapErrorType::FORK_FROM_SNAPSHOT);
+    ClearHyperSnapError(appInfo->appuid, HyperSnapErrorType::FORK_FROM_SNAPSHOT);
 
     std::string key = std::to_string(workPid) + ":" + std::to_string(appRecord->GetUid());
     KillingProcessManager::GetInstance().RemoveKillingCallerKey(key);
@@ -1915,7 +1915,7 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
         TAG_LOGW(AAFwkTag::APPMGR, "appRecord already exists when preload application");
         if (request.needMakeImage) {
             HandleMakeImageFailed(request.appInfo->bundleName, request.abilityName,
-                request.appInfo->uid / BASE_USER_RANGE, request.appIndex, ImageError::ERR_APP_RECORD_EXIST);
+                request.appInfo->appuid / BASE_USER_RANGE, request.appIndex, ImageError::ERR_APP_RECORD_EXIST);
         }
         return;
     }
@@ -1930,10 +1930,10 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
     AAFwk::ResSchedUtil::GetInstance().ReportPreloadApplicationToRSS(abilityInfo,
         static_cast<int32_t>(request.preloadMode));
     bool appExistFlag = appRunningManager_->IsAppExist(appInfo->accessTokenId);
-    bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(bundleInfo.uid);
+    bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(bundleInfo.appuid);
     if (!appMultiUserExistFlag) {
         NotifyAppRunningStatusEvent(
-            bundleInfo.name, appInfo->uid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
+            bundleInfo.name, appInfo->appuid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
     }
     std::shared_ptr<AppRunningRecord> appRecord;
     if (request.preloadMode == AppExecFwk::PreloadMode::PRESS_DOWN) {
@@ -2015,7 +2015,7 @@ bool AppMgrServiceInner::CheckAppRecordExistByPreloadRequest(const PreloadReques
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
         return false;
     }
-    auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->uid, request.bundleInfo,
+    auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->appuid, request.bundleInfo,
         specifiedProcessFlag, nullptr, "", "", true, false);
     return appRecord != nullptr;
 }
@@ -2141,7 +2141,7 @@ void AppMgrServiceInner::ReportEventToRSS(const AppExecFwk::AbilityInfo &ability
     }
 
     std::string reason = AAFwk::ResSchedUtil::GetInstance().GetThawReasonByAbilityType(abilityInfo);
-    const int32_t uid = abilityInfo.applicationInfo.uid;
+    const int32_t uid = abilityInfo.applicationInfo.appuid;
     const std::string bundleName = abilityInfo.applicationInfo.bundleName;
     const int32_t pid = appRecord->GetPid();
     const int32_t callerPid = appRecord->GetCallerPid();
@@ -2221,7 +2221,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         return;
     }
 
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->uid))) {
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->appuid))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return;
     }
@@ -2326,7 +2326,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
 
             isExtensionSandBox = IsIsolateExtensionSandBox(abilityInfo, hapModuleInfo);
             appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name,
-                processName, appInfo->uid, bundleInfo, specifiedProcessFlag, &isProcCache, loadParam->instanceKey,
+                processName, appInfo->appuid, bundleInfo, specifiedProcessFlag, &isProcCache, loadParam->instanceKey,
                 customProcessFlag);
         }
     } else {
@@ -2344,7 +2344,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             return;
         }
         appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name,
-            processName, appInfo->uid, bundleInfo, specifiedProcessFlag, &isProcCache, loadParam->instanceKey,
+            processName, appInfo->appuid, bundleInfo, specifiedProcessFlag, &isProcCache, loadParam->instanceKey,
             customProcessFlag);
     }
 
@@ -2401,17 +2401,17 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             return;
         }
         bool appExistFlag = appRunningManager_->IsAppExist(appInfo->accessTokenId);
-        bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(bundleInfo.uid);
+        bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(bundleInfo.appuid);
         if (!appMultiUserExistFlag) {
             NotifyAppRunningStatusEvent(
-                bundleInfo.name, appInfo->uid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
+                bundleInfo.name, appInfo->appuid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
         }
         appRecord = CreateAppRunningRecord(loadParam, appInfo, abilityInfo,
             processName, bundleInfo, hapModuleInfo, want, isKia);
 
         if (abilityInfo->isolationProcess) {
             bool isMasterProcessExist = appRunningManager_->CheckMasterProcessAppRunningRecordIsExist(
-                                    appInfo->name, *abilityInfo, appInfo->uid);
+                                    appInfo->name, *abilityInfo, appInfo->appuid);
             if (!isMasterProcessExist) {
                 appRecord->SetMasterProcess(true);
             }
@@ -2827,7 +2827,7 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
         TAG_LOGE(AAFwkTag::APPMGR, "startFlags is default");
     }
     if (StartProcess(abilityInfo->applicationName, processName, startFlags, appRecord,
-        appInfo->uid, bundleInfo, appInfo->bundleName, bundleIndex, appExistFlag, isPreload, preloadMode,
+        appInfo->appuid, bundleInfo, appInfo->bundleName, bundleIndex, appExistFlag, isPreload, preloadMode,
         abilityInfo->moduleName, abilityInfo->name, token, want, abilityInfo->extensionAbilityType) != ERR_OK) {
         NotifyStartProcessFailed(token);
     }
@@ -2932,7 +2932,7 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
         return false;
     }
 
-    auto userId = GetUserIdByUid(appInfo->uid);
+    auto userId = GetUserIdByUid(appInfo->appuid);
     TAG_LOGD(AAFwkTag::APPMGR, "userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d", userId,
         appInfo->bundleName.c_str(), appIndex);
     int32_t bundleMgrResult;
@@ -3437,7 +3437,7 @@ int32_t AppMgrServiceInner::UpdateApplicationInfoInstalled(
     HITRACE_METER_NAME(HITRACE_TAG_APP, "BMS->GetApplicationInfo");
     if (isPlugin) {
         appInfo.bundleName = bundleName;
-        appInfo.uid = uid;
+        appInfo.appuid = uid;
         appInfo.name = bundleName;
         appInfo.bundleType = BundleType::APP_PLUGIN;
     } else {
@@ -5641,7 +5641,7 @@ int AppMgrServiceInner::CheckStablePermission(const BundleInfo &bundleInfo)
     });
     int result = granted ? Security::AccessToken::PERMISSION_GRANTED : Security::AccessToken::PERMISSION_DENIED;
     TAG_LOGI(AAFwkTag::APPMGR, "GetInternetPermission, ret %{public}d, uid %{public}d, token %{public}d", result,
-        bundleInfo.uid, token);
+        bundleInfo.appuid, token);
     return result;
 }
 
@@ -5682,7 +5682,7 @@ int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo
 
     uint64_t startFlags = AppspawnUtil::BuildStartFlags(want, abilityInfo);
     CHECK_POINTER_AND_RETURN_VALUE(appInfo, ERR_NO_INIT);
-    auto uid = appInfo->uid;
+    auto uid = appInfo->appuid;
     auto bundleType = appInfo->bundleType;
     bundleInfo.applicationInfo.accessTokenId = appInfo->accessTokenId;
     bundleInfo.applicationInfo.accessTokenIdEx = appInfo->accessTokenIdEx;
@@ -6037,7 +6037,7 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
     SetRunningSharedBundleList(bundleName, startMsg.hspList);
     CHECK_POINTER_AND_RETURN_VALUE(appRecord->GetPriorityObject(), ERR_INVALID_VALUE);
     appRecord->GetPriorityObject()->SetPid(pid);
-    appRecord->SetUid(startMsg.uid);
+    appRecord->SetUid(bundleInfo.applicationInfo.appuid);
     if (isPreload) {
         PostPreloadAttachTimeoutTask(appRecord);
     }
@@ -6830,7 +6830,7 @@ void AppMgrServiceInner::StartResidentProcess(const std::vector<BundleInfo> &inf
         auto processName = bundle.applicationInfo.process;
         // Inspection records
         auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(
-            bundle.applicationInfo.name, processName, bundle.applicationInfo.uid, bundle);
+            bundle.applicationInfo.name, processName, bundle.applicationInfo.appuid, bundle);
         if (appRecord) {
             TAG_LOGI(AAFwkTag::APPMGR, "processName [%{public}s] already exists", processName.c_str());
             continue;
@@ -6851,13 +6851,13 @@ void AppMgrServiceInner::StartEmptyResidentProcess(
     }
 
     bool appExistFlag = appRunningManager_->IsAppExist(info.applicationInfo.accessTokenId);
-    bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(info.uid);
+    bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(info.appuid);
     auto appInfo = std::make_shared<ApplicationInfo>(info.applicationInfo);
 
     if (!appMultiUserExistFlag) {
-        NotifyAppRunningStatusEvent(info.name, appInfo->uid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
+        NotifyAppRunningStatusEvent(info.name, appInfo->appuid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
     }
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->uid))) {
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->appuid))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return;
     }
@@ -6868,7 +6868,7 @@ void AppMgrServiceInner::StartEmptyResidentProcess(
         return;
     }
 
-    StartProcess(appInfo->name, processName, 0, appRecord, appInfo->uid, info, appInfo->bundleName, 0, appExistFlag);
+    StartProcess(appInfo->name, processName, 0, appRecord, appInfo->appuid, info, appInfo->bundleName, 0, appExistFlag);
 
     // If it is empty, the startup failed
     if (!appRecord) {
@@ -7167,7 +7167,7 @@ int AppMgrServiceInner::StartUserTestProcess(
 
     // Inspection records
     auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(
-        bundleInfo.applicationInfo.name, processName, bundleInfo.applicationInfo.uid, bundleInfo);
+        bundleInfo.applicationInfo.name, processName, bundleInfo.applicationInfo.appuid, bundleInfo);
     if (appRecord) {
         TAG_LOGI(AAFwkTag::APPMGR, "processName [%{public}s] already exists", processName.c_str());
         return ERR_INVALID_VALUE;
@@ -7234,12 +7234,12 @@ int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IR
     }
 
     bool appExistFlag = appRunningManager_->IsAppExist(info.applicationInfo.accessTokenId);
-    bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(info.uid);
+    bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(info.appuid);
     auto appInfo = std::make_shared<ApplicationInfo>(info.applicationInfo);
     if (!appMultiUserExistFlag) {
-        NotifyAppRunningStatusEvent(info.name, appInfo->uid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
+        NotifyAppRunningStatusEvent(info.name, appInfo->appuid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
     }
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->uid))) {
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->appuid))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return ERR_INVALID_OPERATION;
     }
@@ -7269,7 +7269,7 @@ int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IR
 
     int32_t appIndex = info.applicationInfo.appIndex;
     uint64_t startFlags = AppspawnUtil::BuildStartFlags(want, info.applicationInfo);
-    StartProcess(appInfo->name, processName, startFlags, appRecord, appInfo->uid, info, appInfo->bundleName,
+    StartProcess(appInfo->name, processName, startFlags, appRecord, appInfo->appuid, info, appInfo->bundleName,
         appIndex, appExistFlag);
 
     // If it is empty, the startup failed
@@ -7375,7 +7375,7 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
     if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
         return;
     }
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->uid))) {
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->appuid))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return;
     }
@@ -7398,7 +7398,7 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
     std::shared_ptr<AppRunningRecord> appRecord;
     auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
     auto customProcessFlag = param.customProcess;
-    appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->uid, bundleInfo,
+    appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->appuid, bundleInfo,
         "", nullptr, instanceKey, customProcessFlag);
     if (!appRecord) {
         auto ret = TryToUseImageInfo(abilityInfoPtr, appInfo, nullptr, "", appIndex, processName,
@@ -7410,10 +7410,10 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
     }
     if (!appRecord) {
         bool appExistFlag = appRunningManager_->IsAppExist(appInfo->accessTokenId);
-        bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(bundleInfo.uid);
+        bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(bundleInfo.appuid);
         if (!appMultiUserExistFlag) {
             NotifyAppRunningStatusEvent(
-                bundleInfo.name, appInfo->uid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
+                bundleInfo.name, appInfo->appuid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
         }
         // new app record
         appRecord = appRunningManager_->CreateAppRunningRecord(appInfo, processName, bundleInfo, instanceKey,
@@ -7456,7 +7456,7 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
         appRecord->SetAppIndex(appIndex);
         appRecord->SetExtensionSandBoxFlag(isExtensionSandBox);
         uint64_t startFlags = AppspawnUtil::BuildStartFlags(want, abilityInfo);
-        StartProcess(appInfo->name, processName, startFlags, appRecord, appInfo->uid, bundleInfo, appInfo->bundleName,
+        StartProcess(appInfo->name, processName, startFlags, appRecord, appInfo->appuid, bundleInfo, appInfo->bundleName,
             appIndex, appExistFlag);
 
         appRecord->SetSpecifiedAbilityFlagAndWant(param.requestId, want, hapModuleInfo.moduleName);
@@ -9894,7 +9894,7 @@ int32_t AppMgrServiceInner::StartNativeProcessForDebugger(const AAFwk::Want &wan
         TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
         return ERR_INVALID_OPERATION;
     }
-    auto accessTokenIdEx = AccessToken::AccessTokenKit::GetHapTokenIDEx(GetUserIdByUid(appInfo->uid),
+    auto accessTokenIdEx = AccessToken::AccessTokenKit::GetHapTokenIDEx(GetUserIdByUid(appInfo->appuid),
         bundleInfo.name, appInfo->appIndex);
     appInfo->accessTokenIdEx = accessTokenIdEx.tokenIDEx;
     appInfo->accessTokenId = accessTokenIdEx.tokenIdExStruct.tokenID;
@@ -9902,12 +9902,12 @@ int32_t AppMgrServiceInner::StartNativeProcessForDebugger(const AAFwk::Want &wan
     std::string processName;
     auto abilityInfoPtr = std::make_shared<AbilityInfo>(abilityInfo);
     MakeProcessName(abilityInfoPtr, appInfo, hapModuleInfo, 0, "", processName);
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->uid))) {
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->appuid))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return ERR_INVALID_OPERATION;
     }
     auto&& appRecord =
-        appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->uid, bundleInfo);
+        appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->appuid, bundleInfo);
     AppSpawnStartMsg startMsg;
     bool isDevelopeMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
     if (appRecord) {
@@ -10003,7 +10003,7 @@ bool AppMgrServiceInner::IsCorrespondingProcessAttachDebug(const AbilityInfo &ab
     TAG_LOGD(AAFwkTag::APPMGR, "processName: %{public}s, customProcessFlag: %{public}s",
         processName.c_str(), customProcessFlag.c_str());
     auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name,
-        processName, appInfo->uid, bundleInfo, "", nullptr, "", customProcessFlag);
+        processName, appInfo->appuid, bundleInfo, "", nullptr, "", customProcessFlag);
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord nullptr");
         return false;
@@ -12288,7 +12288,7 @@ bool AppMgrServiceInner::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const 
     auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
     auto customProcessFlag = abilityInfo.process;
     auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name,
-        processName, appInfo->uid, bundleInfo, "", nullptr, instanceKey, customProcessFlag);
+        processName, appInfo->appuid, bundleInfo, "", nullptr, instanceKey, customProcessFlag);
     if (appRecord == nullptr) {
         return false;
     }

@@ -52,10 +52,12 @@ void ProcessExtension(
         info.type = AppExecFwk::ExtensionAbilityType::APP_SERVICE;
         info.visible = true;
         info.applicationInfo.uid = DEFAULT_APPLICATION_UID;
+        info.applicationInfo.appuid = info.applicationInfo.uid;
     } else if ("extensionInfoTypeAppServiceU1" == bundleName) {
         info.type = AppExecFwk::ExtensionAbilityType::APP_SERVICE;
         info.visible = true;
         info.applicationInfo.uid = U1_USER_APPLICATION_UID;
+        info.applicationInfo.appuid = info.applicationInfo.uid;
     }
     bundleInfo.extensionInfos.emplace_back(info);
 }

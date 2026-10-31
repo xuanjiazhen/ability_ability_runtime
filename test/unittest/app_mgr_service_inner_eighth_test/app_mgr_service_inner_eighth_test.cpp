@@ -4015,6 +4015,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, TryToUseImageInfo_NotifyAppRunningStatusE
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "testBundle";
     appInfo->uid = 100;
+    appInfo->appuid = appInfo->uid;
     appInfo->accessTokenId = 1000;
     
     AppMgrServiceInner::MakeImageRequest request {
@@ -4678,6 +4679,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, TryToUseImageInfo_0100, TestSize.Level2)
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "com.ix.hiservcie";
     appInfo->uid = TEST_UID; // uid / BASE_USER_RANGE = 0, matches PreAddImageInfo below
+    appInfo->appuid = appInfo->uid;
     PreloadRequest preloadRequest;
     preloadRequest.abilityName = abilityInfo->name;
     // A debug-app want paired with a release-type ApplicationInfo makes CreateAppRunningRecord
@@ -4728,6 +4730,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, HandleMakeImageFailed_0100, TestSize.Leve
     PreloadRequest preloadRequest;
     preloadRequest.abilityName = abilityInfo->name;
     preloadRequest.bundleInfo.uid = TEST_UID;
+    preloadRequest.bundleInfo.appuid = preloadRequest.bundleInfo.uid;
     sptr<MockImageErrorHandlerStub> errHandler = new MockImageErrorHandlerStub();
     appMgrServiceInner->PreAddImageInfo(appInfo->bundleName, 0, 0, errHandler, preloadRequest);
     EXPECT_CALL(*errHandler, OnError(static_cast<int32_t>(ImageError::ERR_TEMPLATE_DIED))).Times(1);

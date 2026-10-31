@@ -189,7 +189,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReasonForTimeout(const AppExecFwk:
     }
 
     std::string bundleName = abilityInfo.bundleName;
-    auto uid = abilityInfo.applicationInfo.uid;
+    auto uid = abilityInfo.applicationInfo.appuid;
     auto accessTokenId = abilityInfo.applicationInfo.accessTokenId;
     int32_t resultCode = RecordProcessExtensionExitReason(pid, bundleName, exitReason, processInfo, false);
     if (resultCode != ERR_OK) {
@@ -243,7 +243,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const Ex
         TAG_LOGI(AAFwkTag::ABILITYMGR, "not record extension reason: %{public}d", resultCode);
     }
 
-    return RecordProcessExitReason(pid, bundleName, application.uid, application.accessTokenId, exitReason,
+    return RecordProcessExitReason(pid, bundleName, application.appuid, application.accessTokenId, exitReason,
         processInfo, fromKillWithReason);
 }
 
@@ -418,7 +418,7 @@ int32_t AppExitReasonHelper::AddBundleExitReason(
 
     RecordExitReasonParams params;
     params.pid = processInfo.pid_;
-    params.uid = bundleInfo.uid;
+    params.uid = bundleInfo.appuid;
     params.bundleName = bundleName;
     params.accessTokenId = accessTokenId;
     params.exitReason = exitReason;

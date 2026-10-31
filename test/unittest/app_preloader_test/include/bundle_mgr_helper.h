@@ -103,6 +103,7 @@ public:
             return ERR_INVALID_NUM_ARGS_ERROR;
         }
         bundleInfo.applicationInfo.uid = appCloneIndex + 10000;
+        bundleInfo.applicationInfo.appuid = bundleInfo.applicationInfo.uid;
         return ERR_OK;
     }
 
@@ -119,6 +120,7 @@ public:
         abilityInfo.applicationName = element.GetBundleName();
         abilityInfo.applicationInfo.name = abilityInfo.applicationName;
         abilityInfo.applicationInfo.uid = appCloneIndex + 10000;
+        abilityInfo.applicationInfo.appuid = abilityInfo.applicationInfo.uid;
         return ERR_OK;
     }
 

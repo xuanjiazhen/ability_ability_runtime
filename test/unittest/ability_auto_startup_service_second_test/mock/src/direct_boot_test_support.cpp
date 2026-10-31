@@ -28,6 +28,7 @@ bool GetDirectBootBundleInfo(const std::string &bundleName, AppExecFwk::BundleIn
     bundleInfo.applicationInfo.accessTokenId = target->second.tokenId;
     bundleInfo.applicationInfo.appIndex = target->second.appIndex;
     bundleInfo.applicationInfo.uid = userId * AppExecFwk::Constants::BASE_USER_RANGE;
+    bundleInfo.applicationInfo.appuid = bundleInfo.applicationInfo.uid;
     AppExecFwk::AbilityInfo ability;
     ability.bundleName = bundleName;
     ability.moduleName = "entry";

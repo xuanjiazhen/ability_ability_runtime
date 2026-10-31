@@ -491,6 +491,7 @@ void GetRandomApplicationInfo(FuzzedDataProvider& fdp, ApplicationInfo& appInfo)
     appInfo.enabled = fdp.ConsumeBool();
     appInfo.appIndex = fdp.ConsumeIntegral<int64_t>();
     appInfo.uid = fdp.ConsumeIntegral<int32_t>();
+    appInfo.appuid = appInfo.uid;
     appInfo.maxChildProcess = fdp.ConsumeIntegral<int32_t>();
     appInfo.nativeLibraryPath = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     appInfo.cpuAbi = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
@@ -662,6 +663,7 @@ void GenerateApplicationInfo(FuzzedDataProvider& fdp, ApplicationInfo& applicati
     applicationInfo.supportedModes = fdp.ConsumeIntegral<int32_t>();
     applicationInfo.appIndex = fdp.ConsumeIntegral<int32_t>();
     applicationInfo.uid = fdp.ConsumeIntegral<int32_t>();
+    applicationInfo.appuid = applicationInfo.uid;
     applicationInfo.flags = fdp.ConsumeIntegral<int32_t>();
     applicationInfo.targetPriority = fdp.ConsumeIntegral<int32_t>();
     applicationInfo.overlayState = fdp.ConsumeIntegral<int32_t>();

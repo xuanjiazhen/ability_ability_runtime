@@ -55,6 +55,8 @@ public:
         info.name = "KeepAliveApp";
         info.bundleName = "KeepAliveApplication";
         info.uid = appUid;
+        info.appuid = info.uid;
+        info.appuid = info.uid;
 
         BundleInfo bundleInfo;
         bundleInfo.applicationInfo = info;

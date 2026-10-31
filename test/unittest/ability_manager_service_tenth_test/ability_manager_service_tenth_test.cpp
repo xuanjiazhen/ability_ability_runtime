@@ -179,6 +179,7 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleConnectAbilityDone_001, TestSiz
 
     abilityRequest.abilityInfo.applicationInfo.accessTokenId = 5;
     abilityRequest.abilityInfo.applicationInfo.uid = 2000;
+    abilityRequest.abilityInfo.applicationInfo.appuid = abilityRequest.abilityInfo.applicationInfo.uid;
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     callerToken = abilityRecord->GetToken();
@@ -227,6 +228,7 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleDisconnectAbilityDone_001, Test
 
     abilityRequest.abilityInfo.applicationInfo.accessTokenId = 5;
     abilityRequest.abilityInfo.applicationInfo.uid = 2000;
+    abilityRequest.abilityInfo.applicationInfo.appuid = abilityRequest.abilityInfo.applicationInfo.uid;
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     callerToken = abilityRecord->GetToken();
@@ -272,6 +274,7 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleCommandAbilityDone_001, TestSiz
 
     abilityRequest.abilityInfo.applicationInfo.accessTokenId = 5;
     abilityRequest.abilityInfo.applicationInfo.uid = 2000;
+    abilityRequest.abilityInfo.applicationInfo.appuid = abilityRequest.abilityInfo.applicationInfo.uid;
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     callerToken = abilityRecord->GetToken();
@@ -555,6 +558,7 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleCommandAbilityWindowDone_004, T
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     ApplicationInfo applicationInfo;
     applicationInfo.uid = 2000000;
+    applicationInfo.appuid = applicationInfo.uid;
     AppExecFwk::AbilityInfo abilityInfo;
     abilityInfo.applicationInfo = applicationInfo;
     abilityInfo.extensionAbilityType = ExtensionAbilityType::WINDOW;

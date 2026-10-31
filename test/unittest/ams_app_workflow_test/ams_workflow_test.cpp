@@ -131,7 +131,9 @@ TestApplicationPreRecord AmsWorkFlowTest::CreateTestApplicationRecord(const std:
     auto abilityInfo = CreateAbilityInfo(ability, app);
     auto appInfo = CreateApplication(app);
     abilityInfo->applicationInfo.uid = 0;
+    abilityInfo->applicationInfo.appuid = abilityInfo->applicationInfo.uid;
     appInfo->uid = 0;
+    appInfo->appuid = appInfo->uid;
 
     BundleInfo bundleInfo;
     bundleInfo.appId = "com.ohos.test.helloworld_code123";

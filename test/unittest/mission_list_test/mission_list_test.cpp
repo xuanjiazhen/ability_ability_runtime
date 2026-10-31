@@ -1005,7 +1005,7 @@ HWTEST_F(MissionListTest, GetActiveAbilityList_0100, TestSize.Level1)
     missionList->GetActiveAbilityList(uid, abilityList, pid);
     EXPECT_NE(*missionList->missions_.begin(), nullptr);
     auto ai = (*missionList->missions_.begin())->GetAbilityRecord()->GetAbilityInfo();
-    EXPECT_EQ(ai.applicationInfo.uid, uid);
+    EXPECT_EQ(ai.applicationInfo.appuid, uid);
 
     missionList->missions_.clear();
     uid = 2;
@@ -1014,7 +1014,7 @@ HWTEST_F(MissionListTest, GetActiveAbilityList_0100, TestSize.Level1)
     missionList->GetActiveAbilityList(uid, abilityList, pid);
     EXPECT_NE(*missionList->missions_.begin(), nullptr);
     ai = (*missionList->missions_.begin())->GetAbilityRecord()->GetAbilityInfo();
-    EXPECT_NE(ai.applicationInfo.uid, uid);
+    EXPECT_NE(ai.applicationInfo.appuid, uid);
 }
 
 /*
@@ -1058,5 +1058,32 @@ HWTEST_F(MissionListTest, SignRestartAppFlag_0100, TestSize.Level1)
     missionList->SignRestartAppFlag(0, "");
     EXPECT_EQ(*missionList->missions_.begin(), nullptr);
 }
+/**
+ * @tc.name: GetActiveAbilityList_SeparatesApplicationsWithSameOsUid
+ * @tc.desc: A shared OS uid cannot select another application's active abilities.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MissionListTest, GetActiveAbilityList_SeparatesApplicationsWithSameOsUid, TestSize.Level1)
+{
+    auto missionList = std::make_shared<MissionList>();
+    for (int32_t index = 0; index < 2; ++index) {
+        AbilityRequest request;
+        request.abilityInfo.name = "Ability" + std::to_string(index);
+        request.abilityInfo.applicationInfo.uid = 100;
+        request.abilityInfo.applicationInfo.appuid = 20012345 + index;
+        request.appInfo = request.abilityInfo.applicationInfo;
+        auto record = MissionAbilityRecord::CreateAbilityRecord(request);
+        ASSERT_NE(record, nullptr);
+        missionList->missions_.push_back(std::make_shared<Mission>(index + 1, record, "mission"));
+    }
+    std::vector<std::string> abilities;
+    missionList->GetActiveAbilityList(20012345, abilities, NO_PID);
+    ASSERT_EQ(abilities.size(), 1U);
+    EXPECT_EQ(abilities.front(), "Ability0");
+    abilities.clear();
+    missionList->GetActiveAbilityList(100, abilities, NO_PID);
+    EXPECT_TRUE(abilities.empty());
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

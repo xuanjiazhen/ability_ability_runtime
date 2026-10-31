@@ -239,7 +239,7 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
     collaboratorType_ = abilityRequest.collaboratorType;
     missionAffinity_ = abilityRequest.want.GetStringParam(PARAM_MISSION_AFFINITY_KEY);
 
-    auto userId = abilityRequest.appInfo.uid / BASE_USER_RANGE;
+    auto userId = abilityRequest.appInfo.appuid / BASE_USER_RANGE;
     if ((userId == 0 || AppUtils::GetInstance().InResidentWhiteList(abilityRequest.abilityInfo.bundleName)) &&
         DelayedSingleton<ResidentProcessManager>::GetInstance()->IsResidentAbility(
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
@@ -1483,7 +1483,7 @@ void AbilityRecord::SendResultToCallers(bool schedulerdied)
             if (callerSystemAbilityRecord != nullptr) {
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "send result to system ability");
                 callerSystemAbilityRecord->SendResultToSystemAbility(caller->GetRequestCode(),
-                    callerSystemAbilityRecord, abilityInfo_.applicationInfo.uid,
+                    callerSystemAbilityRecord, abilityInfo_.applicationInfo.appuid,
                     abilityInfo_.applicationInfo.accessTokenId, schedulerdied);
             }
         }

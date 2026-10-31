@@ -197,7 +197,7 @@ void UIAbilityLifecycleManager::MarkStartingFlag(const AbilityRequest &abilityRe
 {
     for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
         if (iter->second == nullptr || iter->second->GetPid() <= 0 ||
-            iter->second->GetApplicationInfo().uid != abilityRequest.appInfo.uid) {
+            iter->second->GetApplicationInfo().appuid != abilityRequest.appInfo.appuid) {
             continue;
         }
         AddStartingPid(iter->second->GetPid());
@@ -2923,7 +2923,7 @@ void UIAbilityLifecycleManager::OnTimeOut(uint32_t msgId, int64_t abilityRecordI
         DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByToken(
             abilityRecord->GetToken(), processInfo);
         if (processInfo.pid_ > 0) {
-            GetActiveAbilityListLocked(abilityInfo.applicationInfo.uid, processInfo.pid_, abilityList);
+            GetActiveAbilityListLocked(abilityInfo.applicationInfo.appuid, processInfo.pid_, abilityList);
         }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityList.size:%{public}zu", abilityList.size());
         switch (msgId) {
@@ -3816,7 +3816,7 @@ void UIAbilityLifecycleManager::GetActiveAbilityListLocked(int32_t uid, int32_t 
             continue;
         }
         const auto &abilityInfo = abilityRecord->GetAbilityInfo();
-        if (abilityInfo.applicationInfo.uid == uid && !abilityInfo.name.empty()) {
+        if (abilityInfo.applicationInfo.appuid == uid && !abilityInfo.name.empty()) {
             std::string abilityName = abilityInfo.name;
             if (abilityInfo.launchMode == AppExecFwk::LaunchMode::STANDARD &&
                 abilityRecord->GetSessionInfo() != nullptr) {

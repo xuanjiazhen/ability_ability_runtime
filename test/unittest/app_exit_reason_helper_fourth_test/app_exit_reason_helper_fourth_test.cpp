@@ -101,6 +101,7 @@ HWTEST_F(AppExitReasonHelperTest, RecordAppExitReason_0100, TestSize.Level1)
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->SetPid(IPCSkeleton::GetCallingPid());
     abilityRecord->abilityInfo_.applicationInfo.uid = IPCSkeleton::GetCallingUid();
+    abilityRecord->abilityInfo_.applicationInfo.appuid = abilityRecord->abilityInfo_.applicationInfo.uid;
     abilityRecord->abilityInfo_.name = "test";
     abilityRecord->abilityInfo_.launchMode = AppExecFwk::LaunchMode::STANDARD;
     abilityRecord->sessionInfo_ = new SessionInfo();
@@ -385,6 +386,7 @@ HWTEST_F(AppExitReasonHelperTest, RecordAppWithReason_0100, TestSize.Level1)
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->SetPid(pid);
     abilityRecord->abilityInfo_.applicationInfo.uid = uid;
+    abilityRecord->abilityInfo_.applicationInfo.appuid = abilityRecord->abilityInfo_.applicationInfo.uid;
     abilityRecord->abilityInfo_.name = "test";
     abilityRecord->abilityInfo_.launchMode = AppExecFwk::LaunchMode::STANDARD;
     abilityRecord->sessionInfo_ = new SessionInfo();
@@ -546,6 +548,7 @@ HWTEST_F(AppExitReasonHelperTest, AddProcessExitReason_0100, TestSize.Level1)
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->SetPid(1);
     abilityRecord->abilityInfo_.applicationInfo.uid = 1;
+    abilityRecord->abilityInfo_.applicationInfo.appuid = abilityRecord->abilityInfo_.applicationInfo.uid;
     abilityRecord->abilityInfo_.name = "test";
     abilityRecord->abilityInfo_.launchMode = AppExecFwk::LaunchMode::STANDARD;
     abilityRecord->sessionInfo_ = new SessionInfo();

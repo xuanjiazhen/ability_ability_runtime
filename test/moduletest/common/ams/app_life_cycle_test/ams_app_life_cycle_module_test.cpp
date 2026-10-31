@@ -1505,11 +1505,16 @@ HWTEST_F(AmsAppLifeCycleModuleTest, LoadResidentProcess_001, TestSize.Level1)
     BundleInfo info;
     info.name = proc;
     info.uid = uid;
+    info.appuid = info.uid;
+    info.appuid = info.uid;
+    info.appuid = info.uid;
+    info.appuid = info.uid;
 
     ApplicationInfo appInfo;
     appInfo.name = "KeepAliveApp";
     appInfo.bundleName = "KeepAliveApplication";
     appInfo.uid = 2100;
+    appInfo.appuid = appInfo.uid;
 
     info.applicationInfo = appInfo;
     HapModuleInfo hapModuleInfo;
@@ -1551,6 +1556,7 @@ HWTEST_F(AmsAppLifeCycleModuleTest, LoadResidentProcess_002, TestSize.Level1)
     appInfo.name = appName;
     appInfo.bundleName = proc;
     appInfo.uid = 2100;
+    appInfo.appuid = appInfo.uid;
     info.applicationInfo = appInfo;
 
     int appUid1 = 2101;
@@ -1564,10 +1570,12 @@ HWTEST_F(AmsAppLifeCycleModuleTest, LoadResidentProcess_002, TestSize.Level1)
     appInfo1.name = appName1;
     appInfo1.bundleName = proc1;
     appInfo1.uid = appUid1;
+    appInfo1.appuid = appInfo1.uid;
 
     BundleInfo info1;
     info1.name = proc1;
     info1.uid = appUid1;
+    info1.appuid = info1.uid;
     info1.isKeepAlive = true;
     info1.appId = "com.ohos.test.helloworld_code123";
     info1.hapModuleInfos.push_back(hapModuleInfo1);
@@ -1615,6 +1623,7 @@ HWTEST_F(AmsAppLifeCycleModuleTest, RestartResidentProcess_001, TestSize.Level1)
     appInfo.name = "KeepAliveApp";
     appInfo.bundleName = "KeepAliveApplication";
     appInfo.uid = 2100;
+    appInfo.appuid = appInfo.uid;
     info.applicationInfo = appInfo;
     infos.push_back(info);
 
@@ -1726,6 +1735,7 @@ HWTEST_F(AmsAppLifeCycleModuleTest, RestartResidentProcess_003, TestSize.Level1)
     appInfo.name = "KeepAliveApp";
     appInfo.bundleName = "KeepAliveApplication";
     appInfo.uid = 2100;
+    appInfo.appuid = appInfo.uid;
     info.applicationInfo = appInfo;
     infos.push_back(info);
 

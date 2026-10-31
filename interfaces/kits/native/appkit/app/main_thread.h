@@ -507,7 +507,7 @@ private:
     * @param processExitInfo The info of the process exit info.
     *
     */
-    static void ProcessExit(const ProcessExitInfo& info);
+    void ProcessExit(const ProcessExitInfo& info);
 
     /**
      *
