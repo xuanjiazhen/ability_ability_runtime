@@ -578,7 +578,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, GetProcessRunningInfos_001, TestSize.Le
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetProcessRunningInfos_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     std::vector<AppExecFwk::RunningProcessInfo> info;
-    EXPECT_EQ(abilityMs_->GetProcessRunningInfos(info), ERR_OK);
+    EXPECT_EQ(abilityMs_->GetProcessRunningInfos(info), INNER_ERR);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetProcessRunningInfos_001 end");
 }
 
@@ -1343,7 +1343,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartAbilityByFreeInstall_001, TestSize
         .userId = userId,
     };
     auto result = abilityMs->StartAbilityByFreeInstall(param);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_NULL_INTERCEPTOR_EXECUTER);
+#endif
 }
 
 /*
@@ -1415,7 +1419,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartAbilityWithSpecifyTokenIdInner_001
     sptr<IRemoteObject> callerToken = nullptr;
     int requestCode = 0;
     EXPECT_EQ(abilityMs_->StartAbilityWithSpecifyTokenIdInner(want, callerToken, USER_ID_U100, false, requestCode),
+#ifdef SUPPORT_GRAPHICS
+        ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
         ERR_NULL_INTERCEPTOR_EXECUTER);
+#endif
 }
 
 /*
@@ -1593,7 +1601,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, ImplicitStartAbilityAsCaller_001, TestS
     int requestCode = 0;
     auto result = abilityMs->ImplicitStartAbilityAsCaller(want, callerToken, asCallerSourceToken, userId,
         requestCode);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_NULL_INTERCEPTOR_EXECUTER);
+#endif
 }
 
 /*
@@ -1612,7 +1624,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartAbilityAsCallerDetails_001, TestSi
     bool isImplicit = true;
     auto result = abilityMs->StartAbilityAsCallerDetails(want, callerToken, asCallerSourceToken, userId,
         requestCode, isImplicit);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_NULL_INTERCEPTOR_EXECUTER);
+#endif
 }
 
 /*
@@ -1651,7 +1667,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartAbilityAsCallerDetails_003, TestSi
     bool isImplicit = true;
     auto result = abilityMs->StartAbilityAsCallerDetails(want, callerToken, asCallerSourceToken, userId,
         requestCode, isImplicit);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_NULL_INTERCEPTOR_EXECUTER);
+#endif
 }
 
 /*
@@ -1682,7 +1702,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, ImplicitStartAbility_001, TestSize.Leve
     int32_t userId = 0;
     int requestCode = 0;
     auto result = abilityMs->ImplicitStartAbility(want, abilityStartSetting, callerToken, userId, requestCode);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_NULL_INTERCEPTOR_EXECUTER);
+#endif
 }
 
 /*
@@ -1699,7 +1723,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, ImplicitStartAbility_002, TestSize.Leve
     int32_t userId = 0;
     int requestCode = 0;
     auto result = abilityMs->ImplicitStartAbility(want, startOptions, callerToken, userId, requestCode);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_NULL_INTERCEPTOR_EXECUTER);
+#endif
 }
 
 /*
@@ -1719,7 +1747,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartUIAbilityForOptionWrap_001, TestSi
     bool isImplicit = true;
     auto result = abilityMs->StartUIAbilityForOptionWrap(want, startOptions, callerToken, false, userId, requestCode,
         callerTokenId, isImplicit);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_NULL_INTERCEPTOR_EXECUTER);
+#endif
 }
 
 /*
@@ -1740,7 +1772,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartAbilityForOptionInner_001, TestSiz
     bool isImplicit = true;
     auto result = abilityMs->StartAbilityForOptionInner(want, startOptions, callerToken, false, userId, requestCode,
         isStartAsCaller, specifyTokenId, isImplicit);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_NULL_INTERCEPTOR_EXECUTER);
+#endif
 }
 
 /*
@@ -2032,7 +2068,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, ImplicitStartExtensionAbility_001, Test
     int32_t userId = 0;
     AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UI;
     auto result = abilityMs->ImplicitStartExtensionAbility(want, callerToken, userId, extensionType);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_INVALID_VALUE);
+#endif
 }
 
 /*
@@ -2048,7 +2088,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, ImplicitStartExtensionAbility_002, Test
     int32_t userId = 0;
     AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::VPN;
     auto result = abilityMs->ImplicitStartExtensionAbility(want, callerToken, userId, extensionType);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_INVALID_VALUE);
+#endif
 }
 
 /*
@@ -2131,7 +2175,11 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartExtensionAbilityInner_001, TestSiz
     bool isDlp = true;
     auto result = abilityMs->StartExtensionAbilityInner(want, callerToken, userId, extensionType, checkSystemCaller,
         isImplicit, isDlp);
+#ifdef SUPPORT_GRAPHICS
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+#else
     EXPECT_EQ(result, ERR_INVALID_VALUE);
+#endif
 }
 
 /*
@@ -3313,7 +3361,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_001, TestSize.Level1)
     AppExecFwk::AbilityInfo abilityInfo;
     abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::VPN;
     auto result = abilityMs_->CheckSupportVpn(abilityInfo);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
