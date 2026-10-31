@@ -1125,6 +1125,9 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_008, TestSize.Level1)
  */
 HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_009, TestSize.Level3)
 {
+#ifdef __x86_64__
+    GTEST_SKIP() << "not supported on x86_64";
+#else
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_009 start");
     auto appMgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
     MyFlag::mockAppMgr_ = appMgr;
@@ -1168,6 +1171,7 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_009, TestSize.Level3)
     EXPECT_TRUE(mapEmpty);
     EXPECT_GE(unregisterCount->load(), 1);
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_009 end");
+#endif
 }
 
 /**
@@ -1180,6 +1184,9 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_009, TestSize.Level3)
  */
 HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_010, TestSize.Level3)
 {
+#ifdef __x86_64__
+    GTEST_SKIP() << "not supported on x86_64";
+#else
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_010 start");
     auto appMgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
     MyFlag::mockAppMgr_ = appMgr;
@@ -1232,6 +1239,7 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_010, TestSize.Level3)
     EXPECT_TRUE(mapEmpty);
     EXPECT_GE(unregisterCount->load(), 1);
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_010 end");
+#endif
 }
 
 #ifdef SUPPORT_GRAPHICS

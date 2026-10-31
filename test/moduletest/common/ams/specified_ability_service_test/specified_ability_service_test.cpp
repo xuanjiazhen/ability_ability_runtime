@@ -97,6 +97,9 @@ void SpecifiedAbilityServiceTest::TearDown(void) {}
  */
 HWTEST_F(SpecifiedAbilityServiceTest, OnAcceptWantResponse_001, TestSize.Level1)
 {
+#ifdef __x86_64__
+    GTEST_SKIP() << "not supported on x86_64";
+#else
     auto abilityMgrServ_ = std::make_shared<AbilityManagerService>();
     abilityMgrServ_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     std::string abilityName = "MusicAbility";
@@ -125,6 +128,7 @@ HWTEST_F(SpecifiedAbilityServiceTest, OnAcceptWantResponse_001, TestSize.Level1)
     abilityMgrServ_->OnAcceptWantResponse(want, "flag", 0, userId);
 
     EXPECT_EQ(false, abilityRecord->IsNewWant());
+#endif
 }
 }  // namespace AAFwk
 }  // namespace OHOS

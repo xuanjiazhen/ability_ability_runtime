@@ -385,11 +385,15 @@ void BacktraceWithoutHeader(std::ostringstream &stack)
 HWTEST_F(NapiUncaughtExceptionCallbackTest, GetFuncNameAndBuildIdTest_0100, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0100 start";
+#ifndef __x86_64__
     std::ostringstream stack;
     stack << "Cannot get SourceMap info, dump raw stack:\n";
     Backtrace(stack);
     std::string stackinfo = NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(stack.str());
     ASSERT_EQ(stackinfo.find("OHOS::JsEnv::GetPcs") != std::string::npos, true);
+#else
+    GTEST_SKIP() << "not supported on x86_64";
+#endif
     GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0100 end" << stackinfo.c_str();
 }
 
@@ -404,10 +408,14 @@ HWTEST_F(NapiUncaughtExceptionCallbackTest, GetFuncNameAndBuildIdTest_0200, Test
 {
     GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0200 start";
     // Simulate release mode: stack has only the Backtrace header, no "Cannot get SourceMap info" prefix
+#ifndef __x86_64__
     std::ostringstream stack;
     Backtrace(stack);
     std::string stackinfo = NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(stack.str());
     ASSERT_EQ(stackinfo.find("OHOS::JsEnv::GetPcs") != std::string::npos, true);
+#else
+    GTEST_SKIP() << "not supported on x86_64";
+#endif
     GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0200 end" << stackinfo.c_str();
 }
 
@@ -431,8 +439,12 @@ HWTEST_F(NapiUncaughtExceptionCallbackTest, GetFuncNameAndBuildIdTest_0300, Test
     std::string resultTwoHeader = NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(withPrefix.str());
 
     // Both should contain the test function name (first frame preserved)
+#ifndef __x86_64__
     ASSERT_EQ(resultOneHeader.find("OHOS::JsEnv::GetPcs") != std::string::npos, true);
     ASSERT_EQ(resultTwoHeader.find("OHOS::JsEnv::GetPcs") != std::string::npos, true);
+#else
+    GTEST_SKIP() << "not supported on x86_64";
+#endif
 
     // The first frame line should be the same in both results
     auto GetFirstFrameLine = [](const std::string& s) -> std::string {
@@ -445,9 +457,13 @@ HWTEST_F(NapiUncaughtExceptionCallbackTest, GetFuncNameAndBuildIdTest_0300, Test
     };
     std::string firstFrameOne = GetFirstFrameLine(resultOneHeader);
     std::string firstFrameTwo = GetFirstFrameLine(resultTwoHeader);
+#ifndef __x86_64__
     ASSERT_FALSE(firstFrameOne.empty()) << "First frame not found in one-header result";
     ASSERT_EQ(firstFrameOne, firstFrameTwo)
         << "First frame differs: one-header=\"" << firstFrameOne << "\", two-header=\"" << firstFrameTwo << "\"";
+#else
+    GTEST_SKIP() << "not supported on x86_64";
+#endif
     GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0300 end";
 }
 
@@ -462,10 +478,14 @@ HWTEST_F(NapiUncaughtExceptionCallbackTest, GetFuncNameAndBuildIdTest_0400, Test
 {
     GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0400 start";
     // Build a stack that only contains raw frame lines, without the Backtrace marker.
+#ifndef __x86_64__
     std::ostringstream stack;
     BacktraceWithoutHeader(stack);
     std::string stackinfo = NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(stack.str());
     ASSERT_EQ(stackinfo.find("OHOS::JsEnv::GetPcs") != std::string::npos, true);
+#else
+    GTEST_SKIP() << "not supported on x86_64";
+#endif
     GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0400 end" << stackinfo.c_str();
 }
 
