@@ -273,6 +273,15 @@ private:
     std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
     std::vector<std::shared_ptr<SessionRecord>> GetSessionRecords();
     void RemoveSessionRecord(const std::string &sessionId);
+
+    void AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record);
+    void AttachSkillTaskAttribution(const std::shared_ptr<SessionRecord> &record, const std::string &bundleName);
+    void PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId, int32_t callerUid);
+    // Caller must hold sessionsMutex_. Consumes an ATTACHED attribution (returns true and fills the
+    // detach triple) or relays a PENDING one to the attach write-back (CONSUMED, nothing to detach now).
+    bool TryConsumeAttribution(SessionRecord &record, std::string &taskId, int64_t &attributionId,
+        int32_t &callerUid);
+
     bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
 
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecOptions &options);

@@ -9821,6 +9821,15 @@ int32_t AppMgrServiceInner::IsAppRunningByBundleNameAndUserId(const std::string 
     return appQueryHelper_.IsAppRunningByBundleNameAndUserId(bundleName, userId, isRunning);
 }
 
+pid_t AppMgrServiceInner::ResolveMainProcessPidByBundleName(const std::string &bundleName)
+{
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return -1;
+    }
+    return appRunningManager_->GetMainProcessPidByBundleName(bundleName);
+}
+
 bool AppMgrServiceInner::CreateAbilityInfo(const AAFwk::Want &want, AbilityInfo &abilityInfo)
 {
     auto&& bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
