@@ -1560,6 +1560,13 @@ void JsRuntime::GetHeapPrepare()
     jsEnv_->GetHeapPrepare();
 }
 
+void JsRuntime::NotifyPowerSavingMode(bool enabled)
+{
+    auto nativeEngine = GetNativeEnginePointer();
+    CHECK_POINTER(nativeEngine);
+    nativeEngine->NotifyPowerSavingMode(enabled);
+}
+
 void JsRuntime::NotifyApplicationState(bool isBackground)
 {
     auto nativeEngine = GetNativeEnginePointer();

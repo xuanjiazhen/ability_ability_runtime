@@ -105,6 +105,7 @@ public:
     void AllowCrossThreadExecution() override;
     void GetHeapPrepare() override;
     void NotifyApplicationState(bool isBackground) override;
+    void NotifyPowerSavingMode(bool enabled) override;
     bool SuspendVM(uint32_t tid) override;
     void ResumeVM(uint32_t tid) override;
 

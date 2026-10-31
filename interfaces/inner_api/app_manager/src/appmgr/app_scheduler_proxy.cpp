@@ -1078,5 +1078,24 @@ int32_t AppSchedulerProxy::SchedulePreTemplateProcessDeepFrozen()
     }
     return ERR_OK;
 }
+
+void AppSchedulerProxy::SchedulePowerSavingMode(bool enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    if (!data.WriteBool(enabled)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write bool failed.");
+        return;
+    }
+    int32_t ret = SendTransactCmd(
+        static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_POWER_SAVING_MODE), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is unsuccessful, error code: %{public}d", ret);
+    }
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -139,6 +139,7 @@ public:
     virtual void AllowCrossThreadExecution() = 0;
     virtual void GetHeapPrepare() = 0;
     virtual void NotifyApplicationState(bool isBackground) = 0;
+    virtual void NotifyPowerSavingMode(bool enabled) {}
     virtual bool SuspendVM(uint32_t tid) = 0;
     virtual void ResumeVM(uint32_t tid) = 0;
     virtual void PreloadSystemModule(const std::string& moduleName) = 0;

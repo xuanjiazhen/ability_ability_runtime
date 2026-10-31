@@ -59,6 +59,9 @@ void JsRuntime::AllowCrossThreadExecution()
 void JsRuntime::GetHeapPrepare()
 {}
 
+void JsRuntime::NotifyPowerSavingMode(bool enabled)
+{}
+
 void JsRuntime::NotifyApplicationState(bool isBackground)
 {}
 
