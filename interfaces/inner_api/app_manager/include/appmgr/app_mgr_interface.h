@@ -1376,6 +1376,18 @@ public:
     {
         return ERR_OK;
     }
+
+    /**
+     * @brief Attributes the target Agent process into the task after a successful
+     *        A2A connect. Performs ownership + alive-state verification, then
+     *        registers an AttributionRecord with AttributionTool::A2A. Best-effort:
+     *        failures are logged and do NOT fail the connect result.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId Indicates the app's token id captured at the convergence point.
+     * @param targetPid Indicates the target Agent process pid (resolved post-connect).
+     */
+    virtual void AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid) {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

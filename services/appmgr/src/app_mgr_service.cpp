@@ -190,6 +190,12 @@ int32_t AppMgrService::FinishTask(const std::string &taskId)
     return TaskManagerService::GetInstance().FinishTask(taskId);
 }
 
+void AppMgrService::AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+    pid_t targetPid)
+{
+    TaskManagerService::GetInstance().AttributeTaskForA2A(taskId, callerTokenId, targetPid);
+}
+
 AppMgrServiceState AppMgrService::QueryServiceState()
 {
     if (appMgrServiceInner_) {
