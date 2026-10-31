@@ -1024,6 +1024,20 @@ enum {
      */
     ERR_LOW_MEM_SAINTERCEPTOR_START_BLOCK = 2097404,
 
+    /*
+     * Internal launch service error codes. They are consumed by the service layer and must be
+     * translated into the public AbilityErrorCode values before leaving the bindings.
+     */
+    ERR_LAUNCH_SERVICE_NOT_FOUND = 2097405,
+    ERR_LAUNCH_SERVICE_ALREADY_REGISTERED = 2097407,
+    ERR_LAUNCH_SERVICE_NOT_REGISTERED = 2097408,
+    ERR_LAUNCH_SERVICE_DISABLED = 2097409,
+    ERR_LAUNCH_SERVICE_NOT_RUNNING = 2097410,
+    ERR_LAUNCH_SERVICE_DEVICE_NOT_SUPPORTED = 2097411,
+    ERR_LAUNCH_SERVICE_IPC_DEAD = 2097412,
+    ERR_LAUNCH_SERVICE_SAME_DEVELOPER_REQUIRED = 2097413,
+    ERR_LAUNCH_SERVICE_STORAGE_FAILED = 2097414,
+
     /**
      * Result (2098000-2098049) Error code refinement INVALID_VALUE.
      */

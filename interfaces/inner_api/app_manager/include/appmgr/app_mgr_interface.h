@@ -35,6 +35,7 @@
 #ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_request.h"
 #endif // SUPPORT_CHILD_PROCESS
+#include "daemon_service_info.h"
 #include "fault_data.h"
 #include "kia_interceptor_interface.h"
 #include "iapp_state_callback.h"
@@ -62,6 +63,9 @@
 #include "hyper_snap_error_record.h"
 
 namespace OHOS {
+namespace AAFwk {
+class ILaunchServiceObserver;
+}
 namespace AppExecFwk {
 class IAppMgr : public IRemoteBroker {
 public:
@@ -1351,6 +1355,38 @@ public:
     }
 
     virtual void CancelDelayedExitTask(int32_t pid) {}
+
+    virtual int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t RegisterLaunchServiceObserver(
+        const sptr<AAFwk::ILaunchServiceObserver> &observer)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t UnregisterLaunchServiceObserver(
+        const sptr<AAFwk::ILaunchServiceObserver> &observer)
+    {
+        return ERR_OK;
+    }
 
     /**
      * @brief Starts a task with the specified task id and priority.

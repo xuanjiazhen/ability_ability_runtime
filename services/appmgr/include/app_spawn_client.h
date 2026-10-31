@@ -61,6 +61,7 @@ struct AppSpawnStartMsg {
     std::string atomicAccount = "";
     std::string extensionSandboxPath;
     std::string processType = "";
+    std::string daemonBinPath = "";
     std::string extensionTypeName;
     std::string appSignType;
     std::string imageName;
@@ -75,7 +76,7 @@ struct AppSpawnStartMsg {
     int32_t uid;
     int32_t gid;
     int32_t pid;
-    int32_t code = 0; // 0: default, MSG_APP_SPAWN; 1: MSG_SPAWN_NATIVE_PROCESS; 2: MSG_GET_RENDER_TERMINATION_STATUS
+    int32_t code = 0; // spawn msg type, e.g. MSG_APP_SPAWN, MSG_SPAWN_NATIVE_PROCESS, MSG_SPAWN_DAEMON
     int32_t bundleIndex;   // when dlp launch another app used, default is 0
     int32_t maxChildProcess = 0;
 #ifdef SUPPORT_CHILD_PROCESS

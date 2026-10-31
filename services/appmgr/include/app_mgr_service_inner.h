@@ -20,6 +20,7 @@
 #include <map>
 #include <mutex>
 #include <regex>
+#include <shared_mutex>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -61,6 +62,9 @@
 #endif // SUPPORT_CHILD_PROCESS
 #include "configuration_policy.h"
 #include "cpp/mutex.h"
+#include "daemon_process_info.h"
+#include "daemon_service_info.h"
+#include "daemon_service_observer.h"
 #include "event_report.h"
 #include "exit_resident_process_manager.h"
 #include "fault_data.h"
@@ -196,6 +200,33 @@ public:
      */
     virtual void LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<ApplicationInfo> appInfo,
         std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam);
+
+    /**
+     * StartDaemonProcess, spawn a launch service process through appspawn.
+     *
+     * @param descriptor, the launch service descriptor.
+     * @param pid, the spawned process pid.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartDaemonProcess(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t &pid);
+
+    /**
+     * StopDaemonProcess, stop a running launch service process.
+     *
+     * @param descriptor, the launch service descriptor.
+     * @param pid, the process pid reported by appspawn.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StopDaemonProcess(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t pid);
+
+    int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t RegisterLaunchServiceObserver(
+        const sptr<AAFwk::ILaunchServiceObserver> &observer, int32_t callerUserId);
+    int32_t UnregisterLaunchServiceObserver(
+        const sptr<AAFwk::ILaunchServiceObserver> &observer);
 
     /**
      * notify load ability finished.
@@ -2258,6 +2289,15 @@ private:
         const std::shared_ptr<AAFwk::Want>& want, bool isPreloadUIExtension);
 
 private:
+    int32_t SpawnDaemonProcess(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t &pid, int32_t &uid);
+    void UnregisterLaunchServicesByUid(int32_t uid);
+    void CleanupDaemonsByUid(int32_t uid);
+    void NotifyLaunchServiceStateChanged(
+        const AAFwk::LaunchServiceDescriptor &descriptor, AAFwk::LaunchServiceState state);
+    void NotifyLaunchServiceProcessStateChanged(
+        const AAFwk::LaunchServiceDescriptor &descriptor, int32_t pid,
+        AAFwk::LaunchServiceProcessState state);
+
     /**
      * ClearUpApplicationData, clear the application data.
      *
@@ -2596,6 +2636,8 @@ private:
 
     std::shared_ptr<RemoteClientManager> remoteClientManager_;
     std::shared_ptr<AppRunningManager> appRunningManager_;
+    ProcessInfoMap daemonProcessInfoMap_;
+    mutable std::shared_mutex daemonProcessInfoMutex_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> rssTaskHandler_;
     std::shared_ptr<AMSEventHandler> eventHandler_;
