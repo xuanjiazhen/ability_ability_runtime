@@ -309,10 +309,12 @@ int32_t AppSpawnClient::SetStrictMode(const AppSpawnStartMsg &startMsg, const Ap
 int32_t AppSpawnClient::AppspawnSetExtMsg(const AppSpawnStartMsg &startMsg, AppSpawnReqMsgHandle reqHandle)
 {
     int32_t ret = 0;
-    ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_RENDER_CMD, startMsg.renderParam.c_str());
-    if (ret) {
-        TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
-        return ret;
+    if (!startMsg.renderParam.empty()) {
+        ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_RENDER_CMD, startMsg.renderParam.c_str());
+        if (ret) {
+            TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
+            return ret;
+        }
     }
 
     if (!startMsg.hspList.empty()) {
@@ -530,6 +532,33 @@ int32_t AppSpawnClient::AppspawnCreateDefaultMsg(const AppSpawnStartMsg &startMs
                 startMsg.hapFlags, startMsg.apl.c_str(), ret);
             break;
         }
+        if (startMsg.code == MSG_SPAWN_DAEMON) {
+            ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_DAEMON_BIN_PATH,
+                startMsg.daemonBinPath.c_str());
+            if (ret) {
+                TAG_LOGE(AAFwkTag::APPMGR, "add daemon bin path failed, ret: %{public}d", ret);
+                break;
+            }
+            ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_OWNER, startMsg.bundleName.c_str());
+            if (ret) {
+                TAG_LOGE(AAFwkTag::APPMGR, "add daemon owner failed, ret: %{public}d", ret);
+                break;
+            }
+            // Send the owner application information same as a normal app.
+            // Start flags are intentionally not sent: appspawn currently rejects
+            // TLV_MSG_FLAGS for daemon requests.
+            ret = SetMountPermission(startMsg, reqHandle);
+            if (ret) {
+                TAG_LOGE(AAFwkTag::APPMGR, "add daemon mount permission failed, ret: %{public}d", ret);
+                break;
+            }
+            ret = AppspawnSetExtMsg(startMsg, reqHandle);
+            if (ret != ERR_OK) {
+                TAG_LOGE(AAFwkTag::APPMGR, "add daemon ext msg failed, ret: %{public}d", ret);
+                break;
+            }
+            return ret;
+        }
         ret = SetStartFlags(startMsg, reqHandle);
         if (ret) {
             TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
@@ -574,7 +603,8 @@ bool AppSpawnClient::VerifyMsg(const AppSpawnStartMsg &startMsg)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "VerifyMsg");
     if (startMsg.code == MSG_APP_SPAWN ||
-        startMsg.code == MSG_SPAWN_NATIVE_PROCESS) {
+        startMsg.code == MSG_SPAWN_NATIVE_PROCESS ||
+        startMsg.code == MSG_SPAWN_DAEMON) {
         if (startMsg.uid < 0) {
             TAG_LOGE(AAFwkTag::APPMGR, "invalid uid! [%{public}d]", startMsg.uid);
             return false;
@@ -603,6 +633,11 @@ bool AppSpawnClient::VerifyMsg(const AppSpawnStartMsg &startMsg)
         }
         if (startMsg.procName.empty() || startMsg.procName.size() >= MAX_PROC_NAME_LEN) {
             TAG_LOGE(AAFwkTag::APPMGR, "invalid procName");
+            return false;
+        }
+        if (startMsg.code == MSG_SPAWN_DAEMON &&
+            (startMsg.daemonBinPath.empty() || startMsg.daemonBinPath.front() != '/')) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid daemon bin path");
             return false;
         }
     } else if (startMsg.code == MSG_GET_RENDER_TERMINATION_STATUS) {

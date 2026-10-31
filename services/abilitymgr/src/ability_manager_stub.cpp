@@ -6327,5 +6327,6 @@ int32_t AbilityManagerStub::StartSandboxCloneAbilityInner(MessageParcel &data, M
     reply.WriteInt32(result);
     return NO_ERROR;
 }
+
 } // namespace AAFwk
 } // namespace OHOS

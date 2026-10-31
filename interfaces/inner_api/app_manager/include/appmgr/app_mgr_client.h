@@ -28,6 +28,7 @@
 #include "application_info.h"
 #include "application_state_filter.h"
 #include "bundle_info.h"
+#include "daemon_service_info.h"
 #include "fault_data.h"
 #include "iapplication_state_observer.h"
 #include "iapp_state_callback.h"
@@ -99,6 +100,15 @@ public:
      * @param callbackId Id of the load-ability callback to complete.
      */
     virtual void NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId);
+
+    virtual int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t RegisterLaunchServiceObserver(
+        const sptr<AAFwk::ILaunchServiceObserver> &observer);
+    virtual int32_t UnregisterLaunchServiceObserver(
+        const sptr<AAFwk::ILaunchServiceObserver> &observer);
 
     /**
      * Terminate the ability identified by token and remove its record from the

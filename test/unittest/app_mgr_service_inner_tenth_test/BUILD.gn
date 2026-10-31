@@ -59,7 +59,7 @@ ohos_unittest("app_mgr_service_inner_tenth_test") {
     "${ability_runtime_services_path}/appmgr/src/app_mgr_event.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_mgr_service.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_mgr_service_inner.cpp",
-
+    "${ability_runtime_services_path}/appmgr/src/launch_service_observer_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_query_helper.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_pidfd_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_native_spawn_manager.cpp",
@@ -157,6 +157,8 @@ ohos_unittest("app_mgr_service_inner_tenth_test") {
     "selinux_adapter:librestorecon",
     "window_manager:libdm",
     "window_manager:session_manager_lite",
+    # IAM is temporarily disabled during appspawn joint debugging.
+    # "user_auth_framework:userauth_client",
   ]
   defines = []
   if (ability_runtime_child_process) {

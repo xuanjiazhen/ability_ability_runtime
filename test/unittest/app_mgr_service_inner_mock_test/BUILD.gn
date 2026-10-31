@@ -57,6 +57,8 @@ ohos_unittest("app_mgr_service_inner_mock_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    # IAM is temporarily disabled during appspawn joint debugging.
+    # "user_auth_framework:userauth_client",
   ]
 
   defines = [ "INCLUDE_ZURI" ]

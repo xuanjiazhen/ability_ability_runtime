@@ -113,6 +113,7 @@ ohos_shared_library("app_manager") {
     "src/appmgr/app_scheduler_proxy.cpp",
     "src/appmgr/app_service_manager.cpp",
     "src/appmgr/app_state_callback_host.cpp",
+    "src/appmgr/daemon_service_observer.cpp",
     "src/appmgr/app_state_callback_proxy.cpp",
     "src/appmgr/app_state_data.cpp",
     "src/appmgr/application_state_filter.cpp",

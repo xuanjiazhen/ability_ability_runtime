@@ -1249,6 +1249,15 @@ private:
 
     void CancelDelayedExitTask(int32_t pid) override;
 
+    int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t RegisterLaunchServiceObserver(
+        const sptr<AAFwk::ILaunchServiceObserver> &observer) override;
+    int32_t UnregisterLaunchServiceObserver(
+        const sptr<AAFwk::ILaunchServiceObserver> &observer) override;
+
     enum DumpIpcKey {
         KEY_DUMP_IPC_START = 0,
         KEY_DUMP_IPC_STOP,

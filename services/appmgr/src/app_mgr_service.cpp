@@ -2625,5 +2625,116 @@ void AppMgrService::CancelDelayedExitTask(int32_t pid)
     }
     appMgrServiceInner_->CancelDelayedExitTask(pid);
 }
+
+int32_t AppMgrService::RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    if (!IsReady() || appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    // Permission check is temporarily disabled during appspawn joint debugging.
+    // auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    // if (permissionVerification == nullptr ||
+    //     !permissionVerification->VerifyCallingPermission(
+    //         AAFwk::PermissionConstants::PERMISSION_RIGISTER_DAEMON_SERVICE)) {
+    //     TAG_LOGE(AAFwkTag::APPMGR, "register daemon permission denied");
+    //     return AAFwk::CHECK_PERMISSION_FAILED;
+    // }
+    return appMgrServiceInner_->RegisterDaemon(descriptor, IPCSkeleton::GetCallingUid());
+}
+
+int32_t AppMgrService::UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    if (!IsReady() || appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    // Permission check is temporarily disabled during appspawn joint debugging.
+    // auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    // if (permissionVerification == nullptr ||
+    //     !permissionVerification->VerifyCallingPermission(
+    //         AAFwk::PermissionConstants::PERMISSION_RIGISTER_DAEMON_SERVICE)) {
+    //     TAG_LOGE(AAFwkTag::APPMGR, "unregister daemon permission denied");
+    //     return AAFwk::CHECK_PERMISSION_FAILED;
+    // }
+    return appMgrServiceInner_->UnregisterDaemon(descriptor, IPCSkeleton::GetCallingUid());
+}
+
+int32_t AppMgrService::StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    if (!IsReady() || appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    // Permission check is temporarily disabled during appspawn joint debugging.
+    // auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    // if (permissionVerification == nullptr ||
+    //     !permissionVerification->VerifyCallingPermission(
+    //         AAFwk::PermissionConstants::PERMISSION_USE_DAEMON_SERVICE)) {
+    //     TAG_LOGE(AAFwkTag::APPMGR, "start daemon permission denied");
+    //     return AAFwk::CHECK_PERMISSION_FAILED;
+    // }
+    return appMgrServiceInner_->StartDaemon(descriptor, IPCSkeleton::GetCallingUid());
+}
+
+int32_t AppMgrService::StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    if (!IsReady() || appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    // Permission check is temporarily disabled during appspawn joint debugging.
+    // auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    // if (permissionVerification == nullptr ||
+    //     !permissionVerification->VerifyCallingPermission(
+    //         AAFwk::PermissionConstants::PERMISSION_USE_DAEMON_SERVICE)) {
+    //     TAG_LOGE(AAFwkTag::APPMGR, "stop daemon permission denied");
+    //     return AAFwk::CHECK_PERMISSION_FAILED;
+    // }
+    return appMgrServiceInner_->StopDaemon(descriptor, IPCSkeleton::GetCallingUid());
+}
+
+int32_t AppMgrService::RegisterLaunchServiceObserver(
+    const sptr<AAFwk::ILaunchServiceObserver> &observer)
+{
+    if (!IsReady() || appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    // Permission check is temporarily disabled during appspawn joint debugging.
+    // auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    // if (permissionVerification == nullptr ||
+    //     !permissionVerification->JudgeCallerIsAllowedToUseSystemAPI()) {
+    //     return AAFwk::ERR_NOT_SYSTEM_APP;
+    // }
+    // if (!permissionVerification->VerifyCallingPermission(
+    //     AAFwk::PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+    //     TAG_LOGE(AAFwkTag::APPMGR, "register launch service observer permission denied");
+    //     return AAFwk::CHECK_PERMISSION_FAILED;
+    // }
+    return appMgrServiceInner_->RegisterLaunchServiceObserver(observer,
+        IPCSkeleton::GetCallingUid() / BASE_USER_RANGE);
+}
+
+int32_t AppMgrService::UnregisterLaunchServiceObserver(
+    const sptr<AAFwk::ILaunchServiceObserver> &observer)
+{
+    if (!IsReady() || appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ERR_LAUNCH_SERVICE_IPC_DEAD;
+    }
+    // Permission check is temporarily disabled during appspawn joint debugging.
+    // auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    // if (permissionVerification == nullptr ||
+    //     !permissionVerification->JudgeCallerIsAllowedToUseSystemAPI()) {
+    //     return AAFwk::ERR_NOT_SYSTEM_APP;
+    // }
+    // if (!permissionVerification->VerifyCallingPermission(
+    //     AAFwk::PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+    //     TAG_LOGE(AAFwkTag::APPMGR, "unregister launch service observer permission denied");
+    //     return AAFwk::CHECK_PERMISSION_FAILED;
+    // }
+    return appMgrServiceInner_->UnregisterLaunchServiceObserver(observer);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
