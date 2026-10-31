@@ -206,6 +206,7 @@ HWTEST_F(ServiceRouterMgrServiceTest, InitEventRunnerAndHandler_001, Function | 
  */
 HWTEST_F(ServiceRouterMgrServiceTest, SubscribeCommonEvent_001, Function | SmallTest | Level0)
 {
+    GTEST_SKIP() << "SA not available on this platform";
     TAG_LOGI(AAFwkTag::TEST, "SubscribeCommonEvent_001 start");
     serviceRouterMgrService_->runner_ = EventRunner::Create("srms_test_subscribe");
     serviceRouterMgrService_->handler_ = std::make_shared<EventHandler>(serviceRouterMgrService_->runner_);

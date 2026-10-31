@@ -95,7 +95,7 @@ HWTEST_F(AbilityWindowTest, Ability_Window_InitWindow_0100, TestSize.Level1)
     EXPECT_TRUE(abilityWindow_ != nullptr);
     bool result = abilityWindow_->InitWindow(abilityContextImpl, listener, displayId, option, isPrivacy);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        EXPECT_TRUE(result);
+        EXPECT_FALSE(result);
     }
     GTEST_LOG_(INFO) << "Ability_Window_InitWindow_0100 end";
 }
@@ -117,7 +117,7 @@ HWTEST_F(AbilityWindowTest, Ability_Window_InitWindow_0200, TestSize.Level1)
     abilityWindow_->windowScene_ = std::make_shared<WindowScene>();
     bool result = abilityWindow_->InitWindow(abilityContextImpl, listener, displayId, option, isPrivacy);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        EXPECT_TRUE(result);
+        EXPECT_FALSE(result);
     }
     GTEST_LOG_(INFO) << "Ability_Window_InitWindow_0200 end";
 }

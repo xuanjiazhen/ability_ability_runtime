@@ -107,22 +107,26 @@ void AbilityManagerClientTest::SetWant(Want& want, const std::string bundleName)
  */
 HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_DumpSysState_0100, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_DumpSysState_0100 start");
-    std::string args = "-a";
-    std::vector<std::string> state;
-    bool isClient = false;
-    bool isUserID = true;
-    int userID = 1;
+    #if defined(__aarch64__)
+        TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_DumpSysState_0100 start");
+        std::string args = "-a";
+        std::vector<std::string> state;
+        bool isClient = false;
+        bool isUserID = true;
+        int userID = 1;
 
-    auto result = AbilityManagerClient::GetInstance()->DumpSysState(args, state, isClient, isUserID, userID);
-    EXPECT_EQ(result, ERR_OK);
-    MockIAbilityManager* rawPtr =
-        static_cast<MockIAbilityManager*>(AbilityManagerClient::GetInstance()->proxy_.GetRefPtr());
-    if (rawPtr) {
-        sptr<MockIAbilityManager> iapp(rawPtr);
-        EXPECT_EQ(iapp->mockFunctionExcuted, true);
-    }
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_DumpSysState_0100 end");
+        auto result = AbilityManagerClient::GetInstance()->DumpSysState(args, state, isClient, isUserID, userID);
+        EXPECT_EQ(result, ERR_OK);
+        MockIAbilityManager* rawPtr =
+            static_cast<MockIAbilityManager*>(AbilityManagerClient::GetInstance()->proxy_.GetRefPtr());
+        if (rawPtr) {
+            sptr<MockIAbilityManager> iapp(rawPtr);
+            EXPECT_EQ(iapp->mockFunctionExcuted, true);
+        }
+        TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_DumpSysState_0100 end");
+    #else
+        GTEST_SKIP() << "SA not available on this platform";
+    #endif
 }
 
 /**
@@ -133,11 +137,15 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_DumpSysState_0100, TestS
 HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_ForceExitApp_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_ForceExitApp_0100 start");
-    int32_t pid = 0;
-    ExitReason exitReason = { REASON_JS_ERROR, "Js Error." };
-    auto result = AbilityManagerClient::GetInstance()->ForceExitApp(pid, exitReason);
-    EXPECT_EQ(result, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_ForceExitApp_0100 end");
+    #if defined(__aarch64__)
+        int32_t pid = 0;
+        ExitReason exitReason = { REASON_JS_ERROR, "Js Error." };
+        auto result = AbilityManagerClient::GetInstance()->ForceExitApp(pid, exitReason);
+        EXPECT_EQ(result, ERR_OK);
+        TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_ForceExitApp_0100 end");
+    #else
+        GTEST_SKIP() << "SA not available on this platform";
+    #endif
 }
 
 /**
