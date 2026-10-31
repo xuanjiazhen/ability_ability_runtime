@@ -381,6 +381,16 @@ public:
         return 0;
     }
 
+    /**
+     * SchedulePowerSavingMode, call SchedulePowerSavingMode() through proxy project,
+     * Notify the application of the power saving mode.
+     *
+     * @param enabled Indicates whether power saving mode is enabled.
+     *
+     * @return
+     */
+    virtual void SchedulePowerSavingMode(bool enabled) {}
+
     enum class Message {
         SCHEDULE_FOREGROUND_APPLICATION_TRANSACTION = 0,
         SCHEDULE_BACKGROUND_APPLICATION_TRANSACTION,
@@ -422,6 +432,7 @@ public:
         SCHEDULE_MEM_APPLICATION_TRANSACTION,
         SCHEDULE_JSHANDLE_MAP_APPLICATION_TRANSACTION,
         SCHEDULE_PRE_TEMPLATE_PROCESS_DEEP_FROZEN,
+        SCHEDULE_POWER_SAVING_MODE,
     };
 };
 }  // namespace AppExecFwk

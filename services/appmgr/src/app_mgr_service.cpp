@@ -150,6 +150,9 @@ void AppMgrService::OnStart()
     if (!AddSystemAbilityListener(URI_PERMISSION_MGR_SERVICE_ID)) {
         TAG_LOGE(AAFwkTag::APPMGR, "failed to add upms listener");
     }
+    if (!AddSystemAbilityListener(POWER_MANAGER_SERVICE_ID)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to add power service listener");
+    }
     TAG_LOGI(AAFwkTag::APPMGR, "start service success");
     PerfProfile::GetInstance().SetAmsLoadEndTime(GetTickCount());
     PerfProfile::GetInstance().Dump();
@@ -1782,6 +1785,10 @@ void AppMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::strin
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return;
     }
+    if (systemAbilityId == POWER_MANAGER_SERVICE_ID) {
+        appMgrServiceInner_->InitPowerModeListener();
+        return;
+    }
     if (systemAbilityId == URI_PERMISSION_MGR_SERVICE_ID) {
         AAFwk::UriPermissionManagerClient::GetInstance().SetUriPermServiceStarted();
     }
@@ -1805,6 +1812,10 @@ void AppMgrService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::st
         return;
     }
 
+    if (systemAbilityId == POWER_MANAGER_SERVICE_ID) {
+        appMgrServiceInner_->FreePowerModeListener();
+        return;
+    }
     if (systemAbilityId != WINDOW_MANAGER_SERVICE_ID) {
         return;
     }

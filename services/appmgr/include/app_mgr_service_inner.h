@@ -112,6 +112,7 @@ struct AppfreezeAppInfo;
 using OHOS::AAFwk::Want;
 using AAFwk::FdGuard;
 using ImageError = IImageErrorHandler::ImageError;
+class PowerModeChangedListener;
 class WindowFocusChangedListener;
 class WindowVisibilityChangedListener;
 class WindowPidVisibilityChangedListener;
@@ -1326,6 +1327,33 @@ public:
      */
     virtual int32_t GetRunningProcessInformation(
         const std::string &bundleName, int32_t userId, std::vector<RunningProcessInfo> &info);
+
+    /**
+     * Initialize the power mode listener.
+     */
+    void InitPowerModeListener();
+
+    /**
+     * Register the power mode listener and query the current mode.
+     */
+    void RegisterPowerModeListener();
+
+    /**
+     * Unregister and release the power mode listener.
+     */
+    void FreePowerModeListener();
+
+    /**
+     * Query and handle the current power mode.
+     */
+    void HandlePowerModeChanged();
+
+    /**
+     * Notify running applications of the power saving mode.
+     *
+     * @param enabled Indicates whether power saving mode is enabled.
+     */
+    void NotifyPowerSavingMode(bool enabled);
 
     /**
      * init focusListener.
@@ -2619,6 +2647,8 @@ private:
     sptr<IStartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
     sptr<IAbilityDebugResponse> abilityDebugResponse_;
     sptr<IKiaInterceptor> kiaInterceptor_;
+    sptr<PowerModeChangedListener> powerModeListener_;
+    std::atomic<bool> powerSavingMode_ {false};
 #ifdef SUPPORT_SCREEN
     sptr<WindowFocusChangedListener> focusListener_;
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;

@@ -361,6 +361,8 @@ public:
 
     int32_t ScheduleNotifyAppFault(const FaultData &faultData) override;
     int32_t SchedulePreTemplateProcessDeepFrozen() override;
+
+    void SchedulePowerSavingMode(bool enabled) override;
 #ifdef CJ_FRONTEND
     CJUncaughtExceptionInfo CreateCjExceptionInfo(const std::string &bundleName, uint32_t versionCode,
         const std::string &hapPath, const std::string &appRunningId);
@@ -711,6 +713,7 @@ private:
 
     void NotifyAppFault(const FaultData &faultData);
     void NotifyPreTemplateProcessDeepFrozen();
+    void HandlePowerSavingMode(bool enabled);
 
     void OnOverlayChanged(const EventFwk::CommonEventData &data,
         const std::shared_ptr<Global::Resource::ResourceManager> &resourceManager, const std::string &bundleName,

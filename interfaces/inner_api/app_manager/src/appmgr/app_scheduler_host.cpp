@@ -172,6 +172,8 @@ int32_t AppSchedulerHost::OnRemoteRequestInnerThird(uint32_t code, MessageParcel
             return HandleScheduleUpdateWorkProcessInfo(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PRE_TEMPLATE_PROCESS_DEEP_FROZEN):
             return HandleSchedulePreTemplateProcessDeepFrozen(data, reply);
+        case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_POWER_SAVING_MODE):
+            return HandleSchedulePowerSavingMode(data, reply);
     }
     return INVALID_FD;
 }
@@ -618,6 +620,14 @@ int32_t AppSchedulerHost::HandleSchedulePreTemplateProcessDeepFrozen(MessageParc
 {
     HITRACE_METER(HITRACE_TAG_APP);
     SchedulePreTemplateProcessDeepFrozen();
+    return NO_ERROR;
+}
+
+int32_t AppSchedulerHost::HandleSchedulePowerSavingMode(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    bool enabled = data.ReadBool();
+    SchedulePowerSavingMode(enabled);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

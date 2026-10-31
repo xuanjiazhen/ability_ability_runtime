@@ -359,6 +359,16 @@ public:
 
     virtual int32_t SchedulePreTemplateProcessDeepFrozen() override;
 
+    /**
+     * SchedulePowerSavingMode, call SchedulePowerSavingMode() through proxy project,
+     * Notify the application of the power saving mode.
+     *
+     * @param enabled Indicates whether power saving mode is enabled.
+     *
+     * @return
+     */
+    virtual void SchedulePowerSavingMode(bool enabled) override;
+
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     void ScheduleMemoryCommon(const int32_t level, const uint32_t operation, bool isShellCall = false);

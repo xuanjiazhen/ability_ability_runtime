@@ -4708,10 +4708,55 @@ int32_t MainThread::SchedulePreTemplateProcessDeepFrozen()
     return NO_ERROR;
 }
 
+/**
+ *
+ * @brief Schedule the power saving mode notification.
+ *
+ * @param enabled Indicates whether power saving mode is enabled.
+ */
+void MainThread::SchedulePowerSavingMode(bool enabled)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "enabled: %{public}d", enabled);
+    wptr<MainThread> weak = this;
+    auto task = [weak, enabled]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return;
+        }
+        appThread->HandlePowerSavingMode(enabled);
+    };
+    if (!mainHandler_->PostTask(task, "MainThread:PowerSavingMode")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+    }
+}
+
 void MainThread::NotifyPreTemplateProcessDeepFrozen()
 {
     TAG_LOGI(AAFwkTag::APPMGR, "pre template process deep frozen");
     DelayedReportNotifyFFRTToRss();
+}
+
+/**
+ *
+ * @brief Notify the runtime of the power saving mode.
+ *
+ * @param enabled Indicates whether power saving mode is enabled.
+ */
+void MainThread::HandlePowerSavingMode(bool enabled)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+
+    if (application_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null application_");
+        return;
+    }
+    auto &runtime = application_->GetRuntime();
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
+        return;
+    }
+    runtime->NotifyPowerSavingMode(enabled);
 }
 
 void MainThread::NotifyFFRTSnapshot(int32_t snapshotState)

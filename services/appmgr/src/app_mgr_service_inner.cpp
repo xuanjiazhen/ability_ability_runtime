@@ -119,6 +119,8 @@
 #include "app_mgr_service_dump_error_code.h"
 #include "param.h"
 #include "all_users_window_manager.h"
+#include "power_mgr_client.h"
+#include "power_mode_changed_listener.h"
 #include "window_focus_changed_listener.h"
 #include "window_visibility_changed_listener.h"
 #include "window_pid_visibility_changed_listener.h"
@@ -193,6 +195,7 @@ constexpr int KILL_PROCESS_DELAYTIME_MICRO_SECONDS = 200;
 // kill process for logout user time out setting
 constexpr int LOGOUT_USER_TIMEOUT_MILLISION_SECONDS = 5000;
 // delay register focus listener to wms
+constexpr int REGISTER_POWER_MODE_DELAY = 0;
 constexpr int REGISTER_FOCUS_DELAY = 5000;
 constexpr int REGISTER_VISIBILITY_DELAY = 5000;
 constexpr int REGISTER_PID_VISIBILITY_DELAY = 5000;
@@ -3019,6 +3022,7 @@ void AppMgrServiceInner::AttachApplication(const pid_t pid, const sptr<IAppSched
 
     appRecord->SetAppDeathRecipient(appDeathRecipient);
     appRecord->SetApplicationClient(appScheduler);
+    appScheduler->SchedulePowerSavingMode(powerSavingMode_.load());
     if (appRecord->GetState() == ApplicationState::APP_STATE_CREATE) {
         LaunchApplicationExt(appRecord);
     }
@@ -8710,6 +8714,91 @@ void AppMgrServiceInner::AddWatchParameter()
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "watch parameter %{public}s fail with %{public}d",
             AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE, ret);
+    }
+}
+
+void AppMgrServiceInner::InitPowerModeListener()
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "begin initPowerModeListener");
+    if (powerModeListener_) {
+        return;
+    }
+
+    powerModeListener_ = new PowerModeChangedListener(shared_from_this(), taskHandler_);
+    auto registerTask = [innerServiceWeak = weak_from_this()]() {
+        auto innerService = innerServiceWeak.lock();
+        if (innerService) {
+            TAG_LOGI(AAFwkTag::APPMGR, "registerPowerModeListenerTask");
+            innerService->RegisterPowerModeListener();
+        }
+    };
+    if (taskHandler_) {
+        taskHandler_->SubmitTaskJust(registerTask, "RegisterPowerModeListenerTask", REGISTER_POWER_MODE_DELAY);
+        TAG_LOGI(AAFwkTag::APPMGR, "submit registerPowerModeListenerTask");
+    }
+}
+
+void AppMgrServiceInner::RegisterPowerModeListener()
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "registerPowerModeListener begin");
+    if (!powerModeListener_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no powerModeListener_");
+        return;
+    }
+    if (!PowerMgr::PowerMgrClient::GetInstance().RegisterPowerModeCallback(powerModeListener_)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to register power mode listener");
+        return;
+    }
+    HandlePowerModeChanged();
+    TAG_LOGI(AAFwkTag::APPMGR, "registerPowerModeListener end");
+}
+
+void AppMgrServiceInner::FreePowerModeListener()
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "freePowerModeListener begin");
+    if (!powerModeListener_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no powerModeListener_");
+        return;
+    }
+    PowerMgr::PowerMgrClient::GetInstance().UnRegisterPowerModeCallback(powerModeListener_);
+    powerModeListener_ = nullptr;
+    TAG_LOGI(AAFwkTag::APPMGR, "freePowerModeListener end");
+}
+
+void AppMgrServiceInner::HandlePowerModeChanged()
+{
+    auto mode = PowerMgr::PowerMgrClient::GetInstance().GetDeviceMode();
+    switch (mode) {
+        case PowerMgr::PowerMode::POWER_SAVE_MODE:
+        case PowerMgr::PowerMode::EXTREME_POWER_SAVE_MODE:
+        case PowerMgr::PowerMode::CUSTOM_POWER_SAVE_MODE:
+            NotifyPowerSavingMode(true);
+            break;
+        case PowerMgr::PowerMode::NORMAL_MODE:
+        case PowerMgr::PowerMode::PERFORMANCE_MODE:
+            NotifyPowerSavingMode(false);
+            break;
+        default:
+            TAG_LOGW(AAFwkTag::APPMGR, "Power mode unavailable; retaining last state");
+            break;
+    }
+}
+
+void AppMgrServiceInner::NotifyPowerSavingMode(bool enabled)
+{
+    if (powerSavingMode_.exchange(enabled) == enabled) {
+        return;
+    }
+    auto appRunningMap = appRunningManager_->GetAppRunningRecordMap();
+    for (const auto &item : appRunningMap) {
+        const auto &appRecord = item.second;
+        if (!appRecord) {
+            continue;
+        }
+        auto scheduler = appRecord->GetApplicationClient();
+        if (scheduler) {
+            scheduler->SchedulePowerSavingMode(enabled);
+        }
     }
 }
 

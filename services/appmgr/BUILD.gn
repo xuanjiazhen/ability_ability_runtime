@@ -77,6 +77,7 @@ ohos_shared_library("libappms") {
     "src/modal_system_app_freeze_uiextension.cpp",
     "src/module_running_record.cpp",
     "src/multi_user_config_mgr.cpp",
+    "src/power_mode_changed_listener.cpp",
     "src/quick_fix_callback_with_record.cpp",
     "src/remote_client_manager.cpp",
     "src/render_record.cpp",
@@ -162,11 +163,13 @@ ohos_shared_library("libappms") {
     "memory_utils:libmeminfo",
     "os_account:libaccountkits",
     "os_account:os_account_innerkits",
+    "power_manager:powermgr_client",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:session_manager_lite",
   ]
+
   public_external_deps = [ "kv_store:distributeddata_mgr" ]
 
   if (product_name != "ohcore") {
