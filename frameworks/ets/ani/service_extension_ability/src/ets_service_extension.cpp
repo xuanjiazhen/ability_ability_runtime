@@ -98,14 +98,16 @@ bool ConnectPromiseCallback(ani_env *env, ani_object aniObj, ani_object obj)
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "status : %{public}d", status);
         return false;
     }
-    auto remoteObject = AniGetNativeRemoteObject(env, obj);
-    if (remoteObject == nullptr) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null remoteObject");
-    }
     auto *callbackInfo =
         reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>> *>(connectCallback);
     if (callbackInfo == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null callbackInfo");
+        return false;
+    }
+    auto remoteObject = AniGetNativeRemoteObject(env, obj);
+    if (remoteObject == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null remoteObject");
+        AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>>::Destroy(callbackInfo);
         return false;
     }
 
