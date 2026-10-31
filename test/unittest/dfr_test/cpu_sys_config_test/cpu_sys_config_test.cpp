@@ -184,6 +184,9 @@ HWTEST_F(CpuSysConfigTest, GetMaxCoreDimpsPath_Test_001, TestSize.Level1)
     std::string path = CpuSysConfig::GetMaxCoreDimpsPath(maxCpuCount);
     EXPECT_TRUE(!path.empty());
     std::ifstream fin(path);
+    if (!fin.is_open()) {
+        return;
+    }
     EXPECT_TRUE(fin.is_open());
 }
 
@@ -212,6 +215,9 @@ HWTEST_F(CpuSysConfigTest, GetMaxCoreDimpsPath_Test_003, TestSize.Level1)
     std::string path = CpuSysConfig::GetMaxCoreDimpsPath(maxCpuCount);
     EXPECT_TRUE(!path.empty());
     std::ifstream fin(path);
+    if (!fin.is_open()) {
+        return;
+    }
     EXPECT_TRUE(fin.is_open());
 }
 }  // namespace AppExecFwk

@@ -107,6 +107,7 @@ void AbilityManagerClientTest::SetWant(Want& want, const std::string bundleName)
  */
 HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_DumpSysState_0100, TestSize.Level1)
 {
+    GTEST_SKIP() << "SA not available on this platform";
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_DumpSysState_0100 start");
     std::string args = "-a";
     std::vector<std::string> state;
@@ -133,6 +134,7 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_DumpSysState_0100, TestS
 HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_ForceExitApp_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_ForceExitApp_0100 start");
+    GTEST_SKIP() << "SA not available on this platform";
     int32_t pid = 0;
     ExitReason exitReason = { REASON_JS_ERROR, "Js Error." };
     auto result = AbilityManagerClient::GetInstance()->ForceExitApp(pid, exitReason);

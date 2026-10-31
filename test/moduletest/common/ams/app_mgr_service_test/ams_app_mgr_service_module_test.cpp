@@ -378,6 +378,7 @@ HWTEST_F(AppMgrServiceModuleTest, ApplicationTerminated_001, TestSize.Level1)
  */
 HWTEST_F(AppMgrServiceModuleTest, ClearUpApplicationData_001, TestSize.Level1)
 {
+    GTEST_SKIP() << "SA not available on this platform";
     auto appMgrService = std::make_shared<AppMgrService>();
     std::shared_ptr<OHOS::AAFwk::TaskHandlerWrap> taskHandler_ =
         OHOS::AAFwk::TaskHandlerWrap::CreateQueueHandler(Constants::APP_MGR_SERVICE_NAME);

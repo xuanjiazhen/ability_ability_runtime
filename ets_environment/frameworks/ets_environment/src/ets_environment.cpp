@@ -192,6 +192,10 @@ void ETSEnvironment::RegisterUncaughtExceptionHandler(const ETSUncaughtException
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "RegisterUncaughtExceptionHandler called");
     uncaughtExceptionInfo_ = handle;
+    if (vmEntry_.aniVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "ANI VM not initialized");
+        return;
+    }
     auto callback = [handle] (ani_error aniError) {
         std::string errorMsg = ETSEnvironment::GetInstance()->GetErrorProperty(aniError, "message");
         std::string errorName = ETSEnvironment::GetInstance()->GetErrorProperty(aniError, "name");

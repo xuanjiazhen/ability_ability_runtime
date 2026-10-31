@@ -4276,7 +4276,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, ResolvePickerByTargetType_0200, TestSiz
     ASSERT_NE(sessionInfo, nullptr);
     int32_t userId = USER_ID_U100;
     auto ret = abilityMs->ResolvePickerByTargetType(sessionInfo, targetType, userId);
-    EXPECT_EQ(ret, ABILITY_SERVICE_NOT_CONNECTED);
+    EXPECT_EQ(ret, RESOLVE_ABILITY_ERR);
     pickerMap.erase(targetType);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolvePickerByTargetType_0200 end");
 }

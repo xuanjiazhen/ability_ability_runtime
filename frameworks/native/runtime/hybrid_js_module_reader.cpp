@@ -112,8 +112,10 @@ std::string HybridJsModuleReader::GetPluginHspPath(const std::string& inputPath)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null bundleMgrHelper");
         return presetAppHapPath;
     }
-    std::string moduleName = inputPath.substr(inputPath.find_last_of("/") + 1);
-    std::string tmpPath = inputPath.substr(inputPath.find_first_of("/") + 1);
+    size_t lastSlash = inputPath.find_last_of("/");
+    size_t firstSlash = inputPath.find_first_of("/");
+    std::string moduleName = (lastSlash == std::string::npos) ? inputPath : inputPath.substr(lastSlash + 1);
+    std::string tmpPath = (firstSlash == std::string::npos) ? inputPath : inputPath.substr(firstSlash + 1);
     const std::string sharedBundleName = tmpPath.substr(0, tmpPath.find_first_of("/"));
     TAG_LOGI(AAFwkTag::JSRUNTIME, "moduleName: %{public}s, sharedBundleName: %{public}s",
         moduleName.c_str(), sharedBundleName.c_str());
@@ -175,7 +177,11 @@ std::string HybridJsModuleReader::GetFormAppPath(const std::string& inputPath,
 
 std::string HybridJsModuleReader::GetModuleName(const std::string& inputPath) const
 {
-    return inputPath.substr(inputPath.find_last_of("/") + 1);
+    size_t pos = inputPath.find_last_of("/");
+    if (pos == std::string::npos) {
+        return inputPath;
+    }
+    return inputPath.substr(pos + 1);
 }
 
 std::string HybridJsModuleReader::GetCommonAppPath(const std::string& inputPath,
@@ -212,7 +218,8 @@ std::string HybridJsModuleReader::GetOtherHspPath(const std::string& bundleName,
         TAG_LOGE(AAFwkTag::JSRUNTIME, "GetBaseSharedBundleInfos failed");
         return presetAppHapPath;
     }
-    std::string tmpPath = inputPath.substr(inputPath.find_first_of("/") + 1);
+    size_t firstSlash = inputPath.find_first_of("/");
+    std::string tmpPath = (firstSlash == std::string::npos) ? inputPath : inputPath.substr(firstSlash + 1);
     const std::string sharedBundleName = tmpPath.substr(0, tmpPath.find_first_of("/"));
     for (const auto &info : baseSharedBundleInfos) {
         if ((info.bundleName == sharedBundleName) && (info.moduleName == moduleName)) {
@@ -242,7 +249,8 @@ std::string HybridJsModuleReader::GetPresetAppHapPath(const std::string& inputPa
     const std::string& bundleName, bool& needFindPluginHsp)
 {
     std::string presetAppHapPath = inputPath;
-    std::string moduleName = inputPath.substr(inputPath.find_last_of("/") + 1);
+    size_t lastSlashPos = inputPath.find_last_of("/");
+    std::string moduleName = (lastSlashPos == std::string::npos) ? inputPath : inputPath.substr(lastSlashPos + 1);
     if (moduleName.empty()) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "empty moduleName");
         return presetAppHapPath;
