@@ -30,13 +30,13 @@ namespace AppExecFwk {
 napi_value WrapElementName(napi_env env, const ElementName &elementName);
 bool UnwrapElementName(napi_env env, napi_value param, ElementName &elementName);
 
-napi_value WrapWantParams(napi_env env, const AAFwk::WantParams &wantParams);
+napi_value WrapWantParams(napi_env env, const AAFwk::WantParams &wantParams, bool needErase = false);
 bool UnwrapWantParams(napi_env env, napi_value param, AAFwk::WantParams &wantParams);
 bool UnwrapWantParams(napi_env env, napi_value param, AAFwk::WantParams &wantParams,
     const std::string &proNameNotFilter);
 bool BlackListFilter(const std::string &strProName, const std::string &proNameNotFilter);
 
-napi_value WrapWant(napi_env env, const AAFwk::Want &want);
+napi_value WrapWant(napi_env env, const AAFwk::Want &want, bool needErase = false);
 bool UnwrapWant(napi_env env, napi_value param, AAFwk::Want &want);
 bool UnwrapWant(napi_env env, napi_value param, AAFwk::Want &want, const std::string &proNameNotFilter);
 void SetUriWithPassThroughFlag(const std::string &uriString, AAFwk::Want &want);
