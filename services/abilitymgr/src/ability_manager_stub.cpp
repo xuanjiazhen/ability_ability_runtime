@@ -4814,11 +4814,9 @@ int32_t AbilityManagerStub::StartAbilityOnlyUIAbilityInner(MessageParcel &data, 
     want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
 
     sptr<IRemoteObject> callerToken = nullptr;
-    if (!data.ReadBool()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid caller token");
-        return ERR_INVALID_VALUE;
+    if (data.ReadBool()) {
+        callerToken = data.ReadRemoteObject();
     }
-    callerToken = data.ReadRemoteObject();
     uint32_t specifyTokenId = data.ReadUint32();
     int32_t result = StartAbilityOnlyUIAbility(*want, callerToken, specifyTokenId);
     reply.WriteInt32(result);
