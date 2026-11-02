@@ -1,0 +1,672 @@
+# ./ohos_application_test
+Running main() from gmock_main.cc
+[==========] Running 115 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 115 tests from OHOSApplicationTest
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnForeground_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:110:: AppExecFwk_OHOSApplicationTest_OnForeground_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:113:: AppExecFwk_OHOSApplicationTest_OnForeground_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnForeground_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnForeground_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:123:: AppExecFwk_OHOSApplicationTest_OnForeground_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:127:: AppExecFwk_OHOSApplicationTest_OnForeground_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnForeground_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnBackground_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:137:: AppExecFwk_OHOSApplicationTest_OnBackground_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:140:: AppExecFwk_OHOSApplicationTest_OnBackground_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnBackground_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnBackground_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:150:: AppExecFwk_OHOSApplicationTest_OnBackground_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:154:: AppExecFwk_OHOSApplicationTest_OnBackground_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnBackground_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_DumpApplication_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:164:: AppExecFwk_OHOSApplicationTest_DumpApplication_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:172:: AppExecFwk_OHOSApplicationTest_DumpApplication_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_DumpApplication_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_DumpApplication_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:182:: AppExecFwk_OHOSApplicationTest_DumpApplication_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:191:: AppExecFwk_OHOSApplicationTest_DumpApplication_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_DumpApplication_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_DumpApplication_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:201:: AppExecFwk_OHOSApplicationTest_DumpApplication_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:209:: AppExecFwk_OHOSApplicationTest_DumpApplication_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_DumpApplication_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetRuntime_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:219:: AppExecFwk_OHOSApplicationTest_SetRuntime_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:223:: AppExecFwk_OHOSApplicationTest_SetRuntime_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetRuntime_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetRuntime_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:233:: AppExecFwk_OHOSApplicationTest_SetRuntime_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:238:: AppExecFwk_OHOSApplicationTest_SetRuntime_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetRuntime_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetSpecifiedRuntime_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:248:: AppExecFwk_OHOSApplicationTest_GetSpecifiedRuntime_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:253:: AppExecFwk_OHOSApplicationTest_GetSpecifiedRuntime_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetSpecifiedRuntime_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetSpecifiedRuntime_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:263:: AppExecFwk_OHOSApplicationTest_GetSpecifiedRuntime_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:269:: AppExecFwk_OHOSApplicationTest_GetSpecifiedRuntime_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetSpecifiedRuntime_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:279:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:283:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:293:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:299:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:309:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:320:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0400
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:330:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0400 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:341:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0400 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0400 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetAbilityRecordMgr_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:351:: AppExecFwk_OHOSApplicationTest_SetAbilityRecordMgr_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:355:: AppExecFwk_OHOSApplicationTest_SetAbilityRecordMgr_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetAbilityRecordMgr_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetAbilityRecordMgr_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:365:: AppExecFwk_OHOSApplicationTest_SetAbilityRecordMgr_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:370:: AppExecFwk_OHOSApplicationTest_SetAbilityRecordMgr_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetAbilityRecordMgr_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:380:: AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:387:: AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:397:: AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:410:: AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0200 (1 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:420:: AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:430:: AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0310
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:440:: AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0310 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:466:: AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0310 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0310 (63 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0320
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:476:: AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0320 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:502:: AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0320 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0320 (60 ms)
+[ RUN      ] OHOSApplicationTest.OnConfigurationUpdated_0600
+[       OK ] OHOSApplicationTest.OnConfigurationUpdated_0600 (58 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:549:: AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:562:: AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:572:: AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:584:: AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0210
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:594:: AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0210 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:603:: AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0210 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0210 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0220
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:613:: AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0220 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:622:: AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0220 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnMemoryLevel_0220 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:632:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:640:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:650:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:657:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:667:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:676:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0300 (3 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0400
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:686:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0400 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:695:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0400 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0400 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0500
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:705:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0500 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:718:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0500 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0500 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0600
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:728:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0600 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:738:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0600 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0600 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0700
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:748:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0700 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:757:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0700 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0700 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0710
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:767:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0710 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:783:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0710 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0710 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0720
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:793:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0720 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:809:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0720 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0720 (1 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0800
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:819:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0800 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:826:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0800 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0800 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0900
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:836:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0900 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:844:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_0900 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_0900 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_01000
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:854:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_01000 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:866:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_01000 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_01000 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_01100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:876:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_01100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:892:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_01100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_01100 (1 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_01200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:902:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_01200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:918:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_01200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_01200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_01300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:928:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_01300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:948:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_01300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_01300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:958:: AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:963:: AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:973:: AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:978:: AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:988:: AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:998:: AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0400
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1008:: AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0400 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1023:: AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0400 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0400 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0500
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1033:: AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0500 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1048:: AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0500 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CleanAbilityStage_0500 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAppContext_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1058:: AppExecFwk_OHOSApplicationTest_GetAppContext_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1061:: AppExecFwk_OHOSApplicationTest_GetAppContext_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAppContext_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetRuntime_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1071:: AppExecFwk_OHOSApplicationTest_GetRuntime_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1074:: AppExecFwk_OHOSApplicationTest_GetRuntime_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetRuntime_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetConfiguration_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1084:: AppExecFwk_OHOSApplicationTest_SetConfiguration_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1090:: AppExecFwk_OHOSApplicationTest_SetConfiguration_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetConfiguration_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_ScheduleAcceptWant_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1100:: AppExecFwk_OHOSApplicationTest_ScheduleAcceptWant_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1111:: AppExecFwk_OHOSApplicationTest_ScheduleAcceptWant_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_ScheduleAcceptWant_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1121:: AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1137:: AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1147:: AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1162:: AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1172:: AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1187:: AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SchedulePrepareTerminate_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetConfiguration_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1197:: AppExecFwk_OHOSApplicationTest_GetConfiguration_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1205:: AppExecFwk_OHOSApplicationTest_GetConfiguration_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetConfiguration_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetExtensionTypeMap_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1215:: AppExecFwk_OHOSApplicationTest_SetExtensionTypeMap_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1222:: AppExecFwk_OHOSApplicationTest_SetExtensionTypeMap_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetExtensionTypeMap_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyLoadRepairPatch_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1232:: AppExecFwk_OHOSApplicationTest_NotifyLoadRepairPatch_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1237:: AppExecFwk_OHOSApplicationTest_NotifyLoadRepairPatch_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyLoadRepairPatch_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyLoadRepairPatch_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1247:: AppExecFwk_OHOSApplicationTest_NotifyLoadRepairPatch_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1253:: AppExecFwk_OHOSApplicationTest_NotifyLoadRepairPatch_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyLoadRepairPatch_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyHotReloadPage_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1263:: AppExecFwk_OHOSApplicationTest_NotifyHotReloadPage_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1266:: AppExecFwk_OHOSApplicationTest_NotifyHotReloadPage_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyHotReloadPage_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyHotReloadPage_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1276:: AppExecFwk_OHOSApplicationTest_NotifyHotReloadPage_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1280:: AppExecFwk_OHOSApplicationTest_NotifyHotReloadPage_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyHotReloadPage_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyUnLoadRepairPatch_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1290:: AppExecFwk_OHOSApplicationTest_NotifyUnLoadRepairPatch_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1294:: AppExecFwk_OHOSApplicationTest_NotifyUnLoadRepairPatch_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyUnLoadRepairPatch_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyUnLoadRepairPatch_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1304:: AppExecFwk_OHOSApplicationTest_NotifyUnLoadRepairPatch_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1309:: AppExecFwk_OHOSApplicationTest_NotifyUnLoadRepairPatch_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_NotifyUnLoadRepairPatch_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetAppEnv_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1319:: AppExecFwk_OHOSApplicationTest_SetAppEnv_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1327:: AppExecFwk_OHOSApplicationTest_SetAppEnv_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetAppEnv_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_ScheduleNewProcessRequest_0100
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_ScheduleNewProcessRequest_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1361:: CreateFirstStartupCallbackForRecord_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1367:: CreateFirstStartupCallbackForRecord_0100 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1377:: CreateFirstStartupCallbackForRecord_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1389:: CreateFirstStartupCallbackForRecord_0200 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1399:: CreateFirstStartupCallbackForRecord_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1420:: CreateFirstStartupCallbackForRecord_0300 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0400
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1430:: CreateFirstStartupCallbackForRecord_0400 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1450:: CreateFirstStartupCallbackForRecord_0400 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0400 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0500
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1460:: CreateFirstStartupCallbackForRecord_0500 start.
+
+GMOCK WARNING:
+Uninteresting mock function call - returning directly.
+    Function call: OnAboutToCreateAbility(@0xfffbf91f false, @0xfffbf958 24-byte object <21-00 00-00 10-00 00-00 D0-80 23-F7 AD-2D 88-00 00-00 00-00 00-00 00-00>)
+NOTE: You can safely ignore the above warning unless this call should not happen.  Do not suppress it by blindly adding an EXPECT_CALL() if you don't mean to enforce the call.  See https://github.com/google/googletest/blob/main/docs/gmock_cook_book.md#knowing-when-to-expect-useoncall for details.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1489:: CreateFirstStartupCallbackForRecord_0500 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0500 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0600
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1499:: CreateFirstStartupCallbackForRecord_0600 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1528:: CreateFirstStartupCallbackForRecord_0600 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForRecord_0600 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1538:: CreateFirstStartupCallbackForHap_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1544:: CreateFirstStartupCallbackForHap_0100 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1554:: CreateFirstStartupCallbackForHap_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1568:: CreateFirstStartupCallbackForHap_0200 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1578:: CreateFirstStartupCallbackForHap_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1600:: CreateFirstStartupCallbackForHap_0300 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0400
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1610:: CreateFirstStartupCallbackForHap_0400 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1631:: CreateFirstStartupCallbackForHap_0400 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0400 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0500
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1641:: CreateFirstStartupCallbackForHap_0500 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1671:: CreateFirstStartupCallbackForHap_0500 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0500 (0 ms)
+[ RUN      ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0600
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1681:: CreateFirstStartupCallbackForHap_0600 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1711:: CreateFirstStartupCallbackForHap_0600 end.
+[       OK ] OHOSApplicationTest.CreateFirstStartupCallbackForHap_0600 (0 ms)
+[ RUN      ] OHOSApplicationTest.UpdateETSRuntime_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1721:: UpdateETSRuntime_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1726:: UpdateETSRuntime_0100 end.
+[       OK ] OHOSApplicationTest.UpdateETSRuntime_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.UpdateETSRuntime_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1736:: UpdateETSRuntime_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1741:: UpdateETSRuntime_0200 end.
+[       OK ] OHOSApplicationTest.UpdateETSRuntime_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0500
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1752:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0500 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1761:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0500 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0500 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0600
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1771:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0600 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1784:: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0600 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetApplicationContext_0600 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1794:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1810:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1820:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1831:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1841:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1861:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0400
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1871:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0400 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1879:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0400 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0400 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0500
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1889:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0500 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1901:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0500 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0500 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0600
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1911:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0600 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1927:: AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0600 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_GetAllUIAbilities_0600 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_RegisterGetAllUIAbilitiesCallback_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1937:: AppExecFwk_OHOSApplicationTest_RegisterGetAllUIAbilitiesCallback_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1950:: AppExecFwk_OHOSApplicationTest_RegisterGetAllUIAbilitiesCallback_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_RegisterGetAllUIAbilitiesCallback_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.OnUpdate_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1961:: OnUpdate_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1974:: OnUpdate_0100 end.
+[       OK ] OHOSApplicationTest.OnUpdate_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.OnUpdate_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1984:: OnUpdate_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:1994:: OnUpdate_0200 end.
+[       OK ] OHOSApplicationTest.OnUpdate_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AddAbility_ShouldDonothingWhenInputIsInvalid
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2004:: AddAbility_ShouldDonothingWhenInputIsInvalid start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2015:: AddAbility_ShouldDonothingWhenInputIsInvalid end.
+[       OK ] OHOSApplicationTest.AddAbility_ShouldDonothingWhenInputIsInvalid (0 ms)
+[ RUN      ] OHOSApplicationTest.AddAbility_ShouldAddAbilityToAbilityStageWhenInputIsValid
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2025:: AddAbility_ShouldAddAbilityToAbilityStageWhenInputIsValid start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2049:: AddAbility_ShouldAddAbilityToAbilityStageWhenInputIsValid end.
+[       OK ] OHOSApplicationTest.AddAbility_ShouldAddAbilityToAbilityStageWhenInputIsValid (0 ms)
+[ RUN      ] OHOSApplicationTest.AddAbility_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2059:: AddAbility_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2075:: AddAbility_0200 end.
+[       OK ] OHOSApplicationTest.AddAbility_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_LaunchElement_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2087:: AppExecFwk_OHOSApplicationTest_LaunchElement_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2113:: AppExecFwk_OHOSApplicationTest_LaunchElement_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_LaunchElement_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_LaunchElement_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2125:: AppExecFwk_OHOSApplicationTest_LaunchElement_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2141:: AppExecFwk_OHOSApplicationTest_LaunchElement_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_LaunchElement_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_LaunchElement_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2153:: AppExecFwk_OHOSApplicationTest_LaunchElement_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2178:: AppExecFwk_OHOSApplicationTest_LaunchElement_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_LaunchElement_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2188:: AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2200:: AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2210:: AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2223:: AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0200 (1 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2233:: AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2246:: AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0400
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2256:: AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0400 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2269:: AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0400 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_InitJSLeakWatcher_0400 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnTerminate_0100
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnTerminate_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnTerminate_0200
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_OnTerminate_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2305:: AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2324:: AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2334:: AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2347:: AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2357:: AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2369:: AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0400
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2379:: AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0400 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2398:: AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0400 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_SetLaunchElementForStage_0400 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CreateAndInitStageContext_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2408:: AppExecFwk_OHOSApplicationTest_CreateAndInitStageContext_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2428:: AppExecFwk_OHOSApplicationTest_CreateAndInitStageContext_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CreateAndInitStageContext_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CreateAndInitStageContext_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2438:: AppExecFwk_OHOSApplicationTest_CreateAndInitStageContext_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2456:: AppExecFwk_OHOSApplicationTest_CreateAndInitStageContext_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_CreateAndInitStageContext_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_ExecuteAutoStartupTasks_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2466:: AppExecFwk_OHOSApplicationTest_ExecuteAutoStartupTasks_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2479:: AppExecFwk_OHOSApplicationTest_ExecuteAutoStartupTasks_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_ExecuteAutoStartupTasks_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2490:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2521:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0200
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2532:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0200 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2563:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0200 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0200 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0300
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2574:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0300 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2604:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0300 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_WithPreloadAbilityName_0300 (0 ms)
+[ RUN      ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_PreloadScenario_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2614:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_PreloadScenario_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2647:: AppExecFwk_OHOSApplicationTest_AddAbilityStage_PreloadScenario_0100 end.
+[       OK ] OHOSApplicationTest.AppExecFwk_OHOSApplicationTest_AddAbilityStage_PreloadScenario_0100 (0 ms)
+[ RUN      ] OHOSApplicationTest.ChangeAppGcState_0100
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2660:: ChangeAppGcState_0100 start.
+
+[  INFO ] ../../foundation/ability/ability_runtime/test/unittest/appkit/ohos_application_test/ohos_application_test.cpp:2669:: ChangeAppGcState_0100 end.
+Signal 4
