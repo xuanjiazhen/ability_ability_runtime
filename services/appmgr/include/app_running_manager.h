@@ -188,6 +188,19 @@ public:
         int32_t userId, bool &isRunning);
 
     /**
+     * Resolve the main-process pid of a running application by bundle name, in process:
+     * no IPC and no process query capability is exposed. Only records whose process is
+     * already forked and that are not restarting are considered; clone-app records
+     * (appIndex > 0) are skipped. The record map is ordered by record id, so when the
+     * same bundle runs in several users the first (oldest) main-process record wins.
+     *
+     * @param bundleName Indicates the bundle name of the application.
+     * @return Returns the main-process pid on success, or -1 when no running
+     *         main-process record matches.
+     */
+    pid_t GetMainProcessPidByBundleName(const std::string &bundleName);
+
+    /**
      * GetAppRunningRecordByPid, Get process record by application pid.
      *
      * @param pid, the application pid.

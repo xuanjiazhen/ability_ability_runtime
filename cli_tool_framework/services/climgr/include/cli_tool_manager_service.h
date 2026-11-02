@@ -273,6 +273,30 @@ private:
     std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
     std::vector<std::shared_ptr<SessionRecord>> GetSessionRecords();
     void RemoveSessionRecord(const std::string &sessionId);
+
+    void AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record);
+    void AttachSkillTaskAttribution(const std::shared_ptr<SessionRecord> &record, const std::string &bundleName);
+    void PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId, int32_t callerUid);
+    // Caller must hold sessionsMutex_. Consumes an ATTACHED attribution (returns true and fills the
+    // detach triple) or relays a PENDING one to the attach write-back (CONSUMED, nothing to detach now).
+    bool TryConsumeAttribution(SessionRecord &record, std::string &taskId, int64_t &attributionId,
+        int32_t &callerUid);
+    // Phase 3+4 of the attach flow, shared by AttachTaskAttribution/AttachSkillTaskAttribution: writes
+    // the IPC verdict back under sessionsMutex_ (PENDING -> ATTACHED/FAILED, keyed by the precomputed
+    // attributed flag) and returns true when the caller must post the compensating detach (a teardown
+    // consumed while the IPC was in flight — the write-back side becomes the single finisher).
+    // action prefixes the log lines so each caller keeps its own wording.
+    bool WriteBackAttachResult(const std::shared_ptr<SessionRecord> &record, const char *action,
+        bool attributed, int32_t ret, pid_t reportedPid, const std::string &taskId,
+        int64_t attributionId);
+    // Caller must hold sessionsMutex_. Collects one record's detach triple into the parallel vectors
+    // when its attribution is ATTACHED; a PENDING one is relayed to the attach write-back instead.
+    void CollectDetachRequest(SessionRecord &record, std::vector<std::string> &taskIds,
+        std::vector<int64_t> &attributionIds, std::vector<int32_t> &uids);
+    // Posts every triple collected by CollectDetachRequest (off-lock, off-thread).
+    void PostDetachRequests(const std::vector<std::string> &taskIds,
+        const std::vector<int64_t> &attributionIds, const std::vector<int32_t> &uids);
+
     bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
 
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecOptions &options);
