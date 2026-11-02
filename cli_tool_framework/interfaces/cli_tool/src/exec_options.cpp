@@ -14,6 +14,7 @@
  */
 
 #include "exec_options.h"
+#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -32,6 +33,9 @@ bool ExecOptions::Marshalling(Parcel &parcel) const
         return false;
     }
     if (!parcel.WriteString(dmSessionId)) {
+        return false;
+    }
+    if (!parcel.WriteString(taskId)) {
         return false;
     }
     return true;
@@ -62,6 +66,11 @@ ExecOptions *ExecOptions::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadString(options->dmSessionId)) {
         delete options;
         return nullptr;
+    }
+    // Tail field with backward-compat default: older peers may omit taskId.
+    options->taskId = "";
+    if (!parcel.ReadString(options->taskId)) {
+        TAG_LOGD(AAFwkTag::CLI_TOOL, "taskId not present, using default(\"\").");
     }
     return options;
 }

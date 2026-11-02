@@ -61,6 +61,10 @@ bool ExecCmdOptions::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write dmSessionId failed.");
         return false;
     }
+    if (!parcel.WriteString(taskId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write taskId failed.");
+        return false;
+    }
     return true;
 }
 
@@ -98,6 +102,11 @@ ExecCmdOptions *ExecCmdOptions::Unmarshalling(Parcel &parcel)
     result->dmSessionId = "";
     if (!parcel.ReadString(result->dmSessionId)) {
         TAG_LOGD(AAFwkTag::CLI_TOOL, "dmSessionId not present, using default(\"\").");
+    }
+    // Attribution key: tolerant tail read, default "" (not provided).
+    result->taskId = "";
+    if (!parcel.ReadString(result->taskId)) {
+        TAG_LOGD(AAFwkTag::CLI_TOOL, "taskId not present, using default(\"\").");
     }
     return result;
 }
