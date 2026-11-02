@@ -25,6 +25,8 @@
 #include "dialog_session_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "insight_intent_execute_param.h"
+#include "insight_intent_execute_manager.h"
 #include "ipc_skeleton.h"
 #include "global_constant.h"
 #include "exec_options.h"
@@ -53,6 +55,21 @@ constexpr const char* UIEXTENSION_TYPE_KEY = "ability.want.params.uiExtensionTyp
 const std::string HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
 constexpr int32_t DEFAULT_HIDE_SENSITIVE_TYPE = 4;
 constexpr int32_t BROKER_UID = 5557;
+
+// Insight intent identity params that must survive the SCB relay unchanged; keep in sync with
+// the intent section of AMSWantParamFilter's THIRD_PARTY_PARAMS_TO_STRIP.
+constexpr const char* INTENT_USER_ID = "ohos.insightIntent.userId";  // AbilityRuntime::INTENT_USER_ID
+constexpr const char* INTENT_IDENTITY_KEYS[] = {
+    AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME,
+    AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID,
+    AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE,
+    AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG,
+    AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME,
+    AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID,
+    AppExecFwk::INSIGHT_INTENT_CALLER_UID,
+    INTENT_USER_ID,
+    AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID,
+};
 }
 
 UpdateCallerInfoUtil &UpdateCallerInfoUtil::GetInstance()
@@ -424,6 +441,7 @@ void UpdateCallerInfoUtil::CacheCallerInfoFromWant(const Want &want, AbilitySess
     info.callerAppId = want.GetStringParam(Want::PARAM_RESV_CALLER_APP_ID);
     info.callerAppIdentifier = want.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
     info.callerAppCloneIndex = want.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, 0);
+    CacheInsightIntentParams(want, info);
 }
 
 void UpdateCallerInfoUtil::RestoreCallerInfoToWant(Want &want, const AbilitySessionInfo &info)
@@ -441,6 +459,104 @@ void UpdateCallerInfoUtil::RestoreCallerInfoToWant(Want &want, const AbilitySess
     want.SetParam(Want::PARAM_RESV_CALLER_APP_ID, info.callerAppId);
     want.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER, info.callerAppIdentifier);
     want.SetParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, info.callerAppCloneIndex);
+    RestoreInsightIntentParams(want, info);
+}
+
+void UpdateCallerInfoUtil::CacheInsightIntentParams(const Want &want, AbilitySessionInfo &info)
+{
+    // Same judgment as AbilityManagerService::IsInsightIntentCall, evaluated before the session is
+    // handed to SCB so the SCB return path never re-judges it.
+    std::string intentIdStr = want.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID);
+    bool isIntentExecute = false;
+    if (!intentIdStr.empty()) {
+        uint64_t intentId = 0;
+        try {
+            intentId = std::stoull(intentIdStr);
+        } catch (...) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid insight intent id: %{public}s", intentIdStr.c_str());
+            intentIdStr.clear();
+        }
+        auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+        std::string recordBundle;
+        isIntentExecute = !intentIdStr.empty() && executeManager != nullptr &&
+            executeManager->GetBundleName(intentId, recordBundle) == ERR_OK &&
+            recordBundle == want.GetBundle();
+    }
+    info.hasInsightIntent = isIntentExecute;
+    if (!isIntentExecute) {
+        return;
+    }
+    info.insightIntentName = want.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME);
+    info.insightIntentId = intentIdStr;
+    info.hasInsightIntentMode = want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE);
+    info.insightIntentMode = want.GetIntParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, 0);
+    info.hasInsightIntentOpenLinkFlag =
+        want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG);
+    info.insightIntentOpenLinkFlag = want.GetIntParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG, 0);
+    info.hasInsightIntentCallerInfo = want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME) ||
+        want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID) ||
+        want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_UID);
+    info.insightIntentCallerBundleName = want.GetStringParam(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME);
+    info.insightIntentCallerTokenId = want.GetStringParam(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID);
+    info.insightIntentCallerUid = want.GetIntParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, 0);
+    info.hasInsightIntentUserId = want.HasParameter(INTENT_USER_ID);
+    info.insightIntentUserId = want.GetIntParam(INTENT_USER_ID, 0);
+    info.hasInsightIntentParamUserId = want.HasParameter(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID);
+    info.insightIntentParamUserId = want.GetIntParam(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID, 0);
+}
+
+void UpdateCallerInfoUtil::RemoveIntentIdentityParams(Want &want, bool needLog)
+{
+    for (const auto &key : INTENT_IDENTITY_KEYS) {
+        if (!want.HasParameter(key)) {
+            continue;
+        }
+        if (needLog) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "remove insight intent identity param: %{public}s", key);
+        }
+        want.RemoveParam(key);
+    }
+}
+
+void UpdateCallerInfoUtil::RestoreInsightIntentParams(Want &want, const AbilitySessionInfo &info)
+{
+    if (!info.hasInsightIntent) {
+        // Not an intent execute start: the Want must not carry intent identity params.
+        RemoveIntentIdentityParams(want, true);
+        return;
+    }
+    // The snapshot is authoritative; the check only feeds the warning log.
+    if (want.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID) != info.insightIntentId ||
+        want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE) != info.hasInsightIntentMode ||
+        want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG) !=
+            info.hasInsightIntentOpenLinkFlag ||
+        want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME) != info.hasInsightIntentCallerInfo ||
+        want.HasParameter(INTENT_USER_ID) != info.hasInsightIntentUserId ||
+        want.HasParameter(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID) != info.hasInsightIntentParamUserId) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "insight intent identity params tampered during SCB relay");
+    }
+    RemoveIntentIdentityParams(want, false);
+    if (!info.insightIntentName.empty()) {
+        want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, info.insightIntentName);
+    }
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, info.insightIntentId);
+    if (info.hasInsightIntentMode) {
+        want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, info.insightIntentMode);
+    }
+    if (info.hasInsightIntentOpenLinkFlag) {
+        want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG, info.insightIntentOpenLinkFlag);
+    }
+    if (info.hasInsightIntentCallerInfo) {
+        want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME, info.insightIntentCallerBundleName);
+        want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID, info.insightIntentCallerTokenId);
+        want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, info.insightIntentCallerUid);
+    }
+    if (info.hasInsightIntentUserId) {
+        want.SetParam(INTENT_USER_ID, info.insightIntentUserId);
+    }
+    if (info.hasInsightIntentParamUserId) {
+        want.SetParam(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID, info.insightIntentParamUserId);
+    }
 }
 
 void UpdateCallerInfoUtil::ClearProtectedWantParam(Want &want)
