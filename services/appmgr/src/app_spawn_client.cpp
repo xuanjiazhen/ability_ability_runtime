@@ -225,6 +225,7 @@ int32_t AppSpawnClient::SetDacInfo(const AppSpawnStartMsg &startMsg, AppSpawnReq
     ret = strcpy_s(appDacInfo.userName, sizeof(appDacInfo.userName), APPSPAWN_CLIENT_USER_NAME);
     if (ret) {
         TAG_LOGE(AAFwkTag::APPMGR, "set dac userName fail");
+        TAG_LOGE(AAFwkTag::APPMGR, "SetDacInfo fail");
         return ret;
     }
     return AppSpawnReqMsgSetAppDacInfo(reqHandle, &appDacInfo);
