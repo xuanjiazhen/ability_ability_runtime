@@ -3681,9 +3681,13 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         hasCachedInfo = uiAbilityManager->GetAbilitySessionInfo(sessionInfo->requestId, abilitySessionInfo);
         uiAbilityManager->RemoveAbilitySessionInfo(sessionInfo->requestId);
     }
-    // Restore cached caller info to want so SCB-returned IPC values don't override the originals.
     if (hasCachedInfo) {
+        // Restore cached caller info and the insight intent identity snapshot so SCB-returned
+        // IPC values don't override the originals.
         UpdateCallerInfoUtil::GetInstance().RestoreCallerInfoToWant(sessionInfo->want, abilitySessionInfo);
+    } else if (!IsInsightIntentCall(sessionInfo->want, sessionInfo->want.GetBundle())) {
+        // No cache and not a legitimate insight intent execute: strip injected identity params.
+        UpdateCallerInfoUtil::GetInstance().RemoveIntentIdentityParams(sessionInfo->want);
     }
     if (abilitySessionInfo.isWebSandBoxClone) {
         sessionInfo->want.RemoveParam(AbilityRuntime::ServerConstant::DLP_INDEX);
@@ -18456,6 +18460,7 @@ ErrCode AbilityManagerService::IntentOpenLinkInner(const std::shared_ptr<AppExec
         want.SetParam(APP_LINKING_ONLY, false);
     }
     want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, param->insightIntentName_);
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(param->insightIntentId_));
     want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG, 1);
     if (!want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
         want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
