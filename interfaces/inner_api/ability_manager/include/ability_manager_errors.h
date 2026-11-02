@@ -1024,6 +1024,16 @@ enum {
      */
     ERR_LOW_MEM_SAINTERCEPTOR_START_BLOCK = 2097404,
 
+    // Launch service error codes. Their order follows the public error codes 16000211-16000215.
+    ERR_LAUNCH_SERVICE_NOT_FOUND = 2097405,
+    ERR_LAUNCH_SERVICE_ALREADY_REGISTERED = 2097406,
+    ERR_LAUNCH_SERVICE_DISABLED = 2097407,
+    ERR_LAUNCH_SERVICE_NOT_RUNNING = 2097408,
+    ERR_LAUNCH_SERVICE_APPROVAL_REJECTED = 2097409,
+
+    // Internal-only state. It is translated to the public launch service not found error.
+    ERR_LAUNCH_SERVICE_NOT_REGISTERED = 2097410,
+
     /**
      * Result (2098000-2098049) Error code refinement INVALID_VALUE.
      */

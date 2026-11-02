@@ -15,6 +15,7 @@
 
 #include "app_mgr_service_inner.h"
 
+#include <algorithm>
 #include <atomic>
 #include <charconv>
 #include <chrono>
@@ -24,10 +25,14 @@
 #include <cstdint>
 #include <cerrno>
 #include <fcntl.h>
+#include <future>
+#include <limits>
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <securec.h>
 #include <sstream>
+#include <tuple>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -69,6 +74,7 @@
 #include "hap_token_info.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "iam_common_defines.h"
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
@@ -76,6 +82,7 @@
 #include "itest_observer.h"
 #include "killing_process_manager.h"
 #include "last_exit_detail_info.h"
+#include "launch_service_observer_manager.h"
 #include "os_account_manager.h"
 #include "app_native_spawn_manager.h"
 #include "app_pidfd_manager.h"
@@ -109,6 +116,7 @@
 #ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
 #endif // SUPPORT_UPMS
+#include "user_launch_service_client.h"
 #include "user_record_manager.h"
 #ifdef APP_MGR_SERVICE_APPMS
 #include "net_conn_client.h"
@@ -245,6 +253,7 @@ constexpr const char* SCENE_BOARD_BUNDLE_NAME = "com.ohos.sceneboard";
 constexpr const char* DEBUG_APP = "debugApp";
 constexpr const char* NATIVE_DEBUG = "nativeDebug";
 constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
+constexpr const char* ENTERPRISE_SPACE_ENABLE = "persist.space_mgr_service.enterprise_space_enable";
 constexpr const char* SERVICE_EXTENSION = ":ServiceExtension";
 constexpr const char* KEEP_ALIVE = ":KeepAlive";
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
@@ -276,6 +285,94 @@ constexpr int32_t USER_SCALE = 200000;
 
 constexpr int32_t MAX_RESTART_COUNT = 3;
 constexpr int32_t RESTART_INTERVAL_TIME = 120000;
+constexpr int64_t LAUNCH_SERVICE_RESTART_BASE_DELAY = 1000;
+constexpr uint32_t LAUNCH_SERVICE_RESTART_MAX_SHIFT = 53;
+
+std::atomic_bool g_enterpriseSpaceEnabled = false;
+
+void EnterpriseSpaceEnableCallback(const char *, const char *, void *)
+{
+    g_enterpriseSpaceEnabled.store(system::GetBoolParameter(ENTERPRISE_SPACE_ENABLE, false));
+}
+
+bool IsEnterpriseSpaceEnabled()
+{
+    static std::once_flag enterpriseSpaceInitFlag;
+    std::call_once(enterpriseSpaceInitFlag, []() {
+        g_enterpriseSpaceEnabled.store(system::GetBoolParameter(ENTERPRISE_SPACE_ENABLE, false));
+        if (WatchParameter(ENTERPRISE_SPACE_ENABLE, EnterpriseSpaceEnableCallback, nullptr) != 0) {
+            TAG_LOGW(AAFwkTag::APPMGR, "watch enterprise space parameter failed");
+        }
+    });
+    return g_enterpriseSpaceEnabled.load();
+}
+
+bool IsEnterpriseSpaceCrossUser(int32_t callerUserId, int32_t targetUserId)
+{
+    return IsEnterpriseSpaceEnabled() && callerUserId != 0 && callerUserId != targetUserId;
+}
+
+int64_t GetLaunchServiceRestartDelay(uint32_t restartCount)
+{
+    if (restartCount > LAUNCH_SERVICE_RESTART_MAX_SHIFT) {
+        return std::numeric_limits<int64_t>::max();
+    }
+    return LAUNCH_SERVICE_RESTART_BASE_DELAY << restartCount;
+}
+
+void SetLaunchServiceDescriptor(AbilityRuntime::LaunchServiceDescriptor &descriptor, const std::string &bundleName,
+    const std::string &moduleName, const std::string &serviceName, int32_t userId, int32_t appIndex)
+{
+    descriptor.bundleName = bundleName;
+    descriptor.moduleName = moduleName;
+    descriptor.serviceName = serviceName;
+    descriptor.hasUserId = true;
+    descriptor.userId = userId;
+    descriptor.hasAppIndex = true;
+    descriptor.appIndex = appIndex;
+}
+
+AbilityRuntime::LaunchServiceState ConvertLaunchServiceState(UserIam::UserAuth::LaunchServiceState state)
+{
+    switch (state) {
+        case UserIam::UserAuth::LaunchServiceState::ACTIVATE:
+            return AbilityRuntime::LaunchServiceState::ENABLED;
+        case UserIam::UserAuth::LaunchServiceState::DEACTIVATE:
+            return AbilityRuntime::LaunchServiceState::DISABLED;
+        default:
+            return AbilityRuntime::LaunchServiceState::NOT_REGISTERED;
+    }
+}
+
+int32_t CheckLaunchServiceQuery(const std::shared_ptr<BundleMgrHelper> &bundleMgrHelper,
+    const AbilityRuntime::LaunchServiceDescriptor &targetDescriptor, int32_t callerUid)
+{
+    LaunchServicesResult launchServicesResult;
+    auto result = IN_PROCESS_CALL(bundleMgrHelper->GetLaunchServices(targetDescriptor.bundleName,
+        targetDescriptor.moduleName, targetDescriptor.userId, launchServicesResult));
+    if (result != ERR_OK) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    std::string callerBundleName;
+    result = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerBundleName));
+    if (result != ERR_OK) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    AppProvisionInfo callerProvisionInfo;
+    result = IN_PROCESS_CALL(bundleMgrHelper->GetAppProvisionInfo(
+        callerBundleName, callerUid / BASE_USER_RANGE, callerProvisionInfo));
+    if (result != ERR_OK) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    if (launchServicesResult.developerId != callerProvisionInfo.developerId) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    if (std::none_of(launchServicesResult.launchServices.begin(), launchServicesResult.launchServices.end(),
+        [&targetDescriptor](const auto &service) { return service.name == targetDescriptor.serviceName; })) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
 
 constexpr ErrCode APPMGR_ERR_OFFSET = ErrCodeOffset(SUBSYS_APPEXECFWK, 0x01);
  // Error code for already exist render.
@@ -506,6 +603,400 @@ std::pair<int, std::string> GetEventTypeAndMsg(int32_t eventId)
     }
     return result;
 }
+
+bool IsDaemonProcessAlive(pid_t pid)
+{
+    if (pid <= 0) {
+        return false;
+    }
+    if (kill(pid, 0) == 0) {
+        return true;
+    }
+    return errno != ESRCH;
+}
+
+constexpr int32_t IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS = 1000;
+constexpr int32_t IAM_LAUNCH_SERVICE_NOT_FOUND = 10;
+constexpr int32_t IAM_LAUNCH_SERVICE_ALREADY_REGISTERED = 20;
+
+class IamLaunchServiceOperateCallback final : public UserIam::UserAuth::LaunchServiceOperateCallback {
+public:
+    explicit IamLaunchServiceOperateCallback(std::shared_ptr<std::promise<int32_t>> promise)
+        : promise_(std::move(promise))
+    {
+    }
+    ~IamLaunchServiceOperateCallback() override = default;
+
+    void OnResult(int32_t result) override
+    {
+        if (promise_ != nullptr) {
+            promise_->set_value(result);
+        }
+    }
+
+private:
+    std::shared_ptr<std::promise<int32_t>> promise_;
+};
+
+class IamLaunchServiceInfoCallback final : public UserIam::UserAuth::LaunchServiceInfoCallback {
+public:
+    using Result = std::pair<int32_t, UserIam::UserAuth::LaunchServiceRecord>;
+
+    explicit IamLaunchServiceInfoCallback(std::shared_ptr<std::promise<Result>> promise)
+        : promise_(std::move(promise))
+    {
+    }
+    ~IamLaunchServiceInfoCallback() override = default;
+
+    void OnResult(int32_t result, const UserIam::UserAuth::LaunchServiceRecord &service) override
+    {
+        if (promise_ != nullptr) {
+            promise_->set_value({result, service});
+        }
+    }
+
+private:
+    std::shared_ptr<std::promise<Result>> promise_;
+};
+
+class IamLaunchServiceListCallback final : public UserIam::UserAuth::LaunchServiceListCallback {
+public:
+    using Result = std::pair<int32_t, std::vector<UserIam::UserAuth::LaunchServiceRecord>>;
+
+    explicit IamLaunchServiceListCallback(std::shared_ptr<std::promise<Result>> promise)
+        : promise_(std::move(promise))
+    {
+    }
+    ~IamLaunchServiceListCallback() override = default;
+
+    void OnResult(int32_t result,
+        const std::vector<UserIam::UserAuth::LaunchServiceRecord> &serviceList) override
+    {
+        if (promise_ != nullptr) {
+            promise_->set_value({result, serviceList});
+        }
+    }
+
+private:
+    std::shared_ptr<std::promise<Result>> promise_;
+};
+
+std::optional<int32_t> GetIamLaunchServiceInfo(int32_t uid,
+    const UserIam::UserAuth::LaunchServiceKey &key, UserIam::UserAuth::LaunchServiceRecord &record)
+{
+    auto promise = std::make_shared<std::promise<IamLaunchServiceInfoCallback::Result>>();
+    auto future = promise->get_future();
+    auto callback = std::make_shared<IamLaunchServiceInfoCallback>(promise);
+    UserIam::UserAuth::UserLaunchServiceClient::GetInstance().GetLaunchServiceInfo(
+        uid, std::make_optional(key), callback);
+    if (future.wait_for(std::chrono::milliseconds(IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS)) !=
+        std::future_status::ready) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get IAM launch service info timeout");
+        return std::nullopt;
+    }
+    auto result = future.get();
+    record = std::move(result.second);
+    return result.first;
+}
+
+std::optional<int32_t> GetIamLaunchServiceList(const std::optional<int32_t> &userId,
+    std::vector<UserIam::UserAuth::LaunchServiceRecord> &serviceList)
+{
+    auto promise = std::make_shared<std::promise<IamLaunchServiceListCallback::Result>>();
+    auto future = promise->get_future();
+    auto callback = std::make_shared<IamLaunchServiceListCallback>(promise);
+    UserIam::UserAuth::UserLaunchServiceClient::GetInstance().GetLaunchServiceList(userId, callback);
+    if (future.wait_for(std::chrono::milliseconds(IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS)) !=
+        std::future_status::ready) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get IAM launch service list timeout");
+        return std::nullopt;
+    }
+    auto result = future.get();
+    serviceList = std::move(result.second);
+    return result.first;
+}
+
+std::optional<int32_t> SetIamLaunchServiceState(int32_t uid, const std::vector<uint8_t> &token,
+    UserIam::UserAuth::LaunchServiceState state)
+{
+    auto promise = std::make_shared<std::promise<int32_t>>();
+    auto future = promise->get_future();
+    auto callback = std::make_shared<IamLaunchServiceOperateCallback>(promise);
+    UserIam::UserAuth::UserLaunchServiceClient::GetInstance().SetLaunchServiceState(uid, token, state, callback);
+    if (future.wait_for(std::chrono::milliseconds(IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS)) !=
+        std::future_status::ready) {
+        TAG_LOGE(AAFwkTag::APPMGR, "set IAM launch service state timeout");
+        return std::nullopt;
+    }
+    return future.get();
+}
+
+int32_t GetDaemonUid(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t &uid)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon get bundle manager helper failed");
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    uid = IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(
+        descriptor.bundleName, descriptor.userId, descriptor.appIndex));
+    if (uid < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon get uid failed, bundle:%{public}s, result:%{public}d",
+            descriptor.bundleName.c_str(), uid);
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
+
+UserIam::UserAuth::LaunchServiceType ToIamLaunchServiceType(LaunchServiceType type)
+{
+    if (type == LaunchServiceType::DAEMON) {
+        return UserIam::UserAuth::LaunchServiceType::PRIVILEGED_DAEMON;
+    }
+    return UserIam::UserAuth::LaunchServiceType::INVALID;
+}
+
+int32_t MapIamLaunchServiceOperateResult(int32_t result)
+{
+    switch (result) {
+        case UserIam::UserAuth::SUCCESS:
+            return ERR_OK;
+        case UserIam::UserAuth::CAPABILITY_NOT_SUPPORTED:
+            return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+        case UserIam::UserAuth::INVALID_PARAMETERS:
+            return ERR_INVALID_VALUE;
+        case IAM_LAUNCH_SERVICE_NOT_FOUND:
+            return AAFwk::ERR_LAUNCH_SERVICE_NOT_REGISTERED;
+        case IAM_LAUNCH_SERVICE_ALREADY_REGISTERED:
+            return AAFwk::ERR_LAUNCH_SERVICE_ALREADY_REGISTERED;
+        default:
+            TAG_LOGE(AAFwkTag::APPMGR, "iam launch service operate failed, result:%{public}d", result);
+            return AAFwk::INNER_ERR;
+    }
+}
+
+int32_t QueryLaunchServiceRecord(const AAFwk::LaunchServiceDescriptor &descriptor,
+    UserIam::UserAuth::LaunchServiceRecord &record)
+{
+    int32_t uid = -1;
+    auto uidResult = GetDaemonUid(descriptor, uid);
+    if (uidResult != ERR_OK) {
+        return uidResult;
+    }
+    UserIam::UserAuth::LaunchServiceKey key{descriptor.serviceName, descriptor.moduleName};
+    auto result = GetIamLaunchServiceInfo(uid, key, record);
+    if (!result.has_value()) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    if (*result == UserIam::UserAuth::SUCCESS) {
+        return ERR_OK;
+    }
+    if (*result == UserIam::UserAuth::CAPABILITY_NOT_SUPPORTED) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    TAG_LOGW(AAFwkTag::APPMGR, "launch service not registered, service:%{public}s, result:%{public}d",
+        descriptor.serviceName.c_str(), *result);
+    return AAFwk::ERR_LAUNCH_SERVICE_NOT_REGISTERED;
+}
+
+int32_t RegisterLaunchServiceToIam(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t uid,
+    const LaunchServicesResult &launchServicesResult, const LaunchService &launchService,
+    UserIam::UserAuth::LaunchServiceRecord &record)
+{
+    UserIam::UserAuth::LaunchServiceRegisterInfo registerInfo;
+    registerInfo.uid = uid;
+    registerInfo.serviceKey = UserIam::UserAuth::LaunchServiceKey{
+        descriptor.serviceName, descriptor.moduleName};
+    registerInfo.bundleInfo.ownerBundleName = descriptor.bundleName;
+    registerInfo.bundleInfo.appIndex = descriptor.appIndex;
+    registerInfo.bundleInfo.appIdentifier = launchServicesResult.appIdentifier;
+    registerInfo.serviceInfo.serviceType = ToIamLaunchServiceType(launchService.type);
+
+    auto promise = std::make_shared<std::promise<IamLaunchServiceInfoCallback::Result>>();
+    auto future = promise->get_future();
+    auto callback = std::make_shared<IamLaunchServiceInfoCallback>(promise);
+    UserIam::UserAuth::UserLaunchServiceClient::GetInstance().RegisterLaunchService({registerInfo}, callback);
+    if (future.wait_for(std::chrono::milliseconds(IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS)) !=
+        std::future_status::ready) {
+        TAG_LOGE(AAFwkTag::APPMGR, "register launch service timeout, service:%{public}s",
+            descriptor.serviceName.c_str());
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    auto result = future.get();
+    if (result.first != UserIam::UserAuth::SUCCESS) {
+        return MapIamLaunchServiceOperateResult(result.first);
+    }
+    record = result.second;
+    return ERR_OK;
+}
+
+int32_t UnregisterLaunchServiceFromIam(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t uid)
+{
+    auto promise = std::make_shared<std::promise<int32_t>>();
+    auto future = promise->get_future();
+    auto callback = std::make_shared<IamLaunchServiceOperateCallback>(promise);
+    UserIam::UserAuth::LaunchServiceKey key{descriptor.serviceName, descriptor.moduleName};
+    UserIam::UserAuth::UserLaunchServiceClient::GetInstance().UnRegisterLaunchService(
+        uid, std::make_optional(key), callback);
+    if (future.wait_for(std::chrono::milliseconds(IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS)) !=
+        std::future_status::ready) {
+        TAG_LOGE(AAFwkTag::APPMGR, "unregister launch service timeout, service:%{public}s",
+            descriptor.serviceName.c_str());
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    return MapIamLaunchServiceOperateResult(future.get());
+}
+
+int32_t UnregisterLaunchServicesByUidFromIam(int32_t uid)
+{
+    auto promise = std::make_shared<std::promise<int32_t>>();
+    auto future = promise->get_future();
+    auto callback = std::make_shared<IamLaunchServiceOperateCallback>(promise);
+    UserIam::UserAuth::UserLaunchServiceClient::GetInstance().UnRegisterLaunchService(uid, std::nullopt, callback);
+    if (future.wait_for(std::chrono::milliseconds(IAM_LAUNCH_SERVICE_CALL_TIMEOUT_MS)) !=
+        std::future_status::ready) {
+        TAG_LOGE(AAFwkTag::APPMGR, "unregister launch services by uid timeout, uid:%{public}d", uid);
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    return MapIamLaunchServiceOperateResult(future.get());
+}
+
+bool IsValidDaemonDescriptor(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    return !descriptor.bundleName.empty() && !descriptor.moduleName.empty() &&
+        !descriptor.serviceName.empty() && descriptor.userId >= -1 && descriptor.appIndex >= 0;
+}
+
+AAFwk::LaunchServiceDescriptor ResolveDaemonDescriptor(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    AAFwk::LaunchServiceDescriptor resolved = descriptor;
+    if (resolved.userId < 0) {
+        resolved.userId = callerUid / BASE_USER_RANGE;
+    }
+    return resolved;
+}
+
+bool IsPrivateSpaceUser(int32_t userId)
+{
+    AccountSA::OsAccountType type = AccountSA::OsAccountType::NORMAL;
+    return AccountSA::OsAccountManager::GetOsAccountType(userId, type) == ERR_OK &&
+        type == AccountSA::OsAccountType::PRIVATE;
+}
+
+bool IsDualSpaceScene(int32_t callerUserId, int32_t hostUserId)
+{
+    if (IsEnterpriseSpaceEnabled()) {
+        return true;
+    }
+    return IsPrivateSpaceUser(callerUserId) || IsPrivateSpaceUser(hostUserId);
+}
+
+int32_t CheckDaemonHostUser(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    const int32_t callerUserId = callerUid / BASE_USER_RANGE;
+    const int32_t hostUserId = descriptor.userId < 0 ? callerUserId : descriptor.userId;
+    if (!IsDualSpaceScene(callerUserId, hostUserId) || hostUserId == callerUserId) {
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::APPMGR,
+        "daemon host user mismatch, host:%{public}d, caller:%{public}d", hostUserId, callerUserId);
+    return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+}
+
+const LaunchService *FindDaemonLaunchService(
+    const LaunchServicesResult &result, const std::string &serviceName)
+{
+    auto iter = std::find_if(result.launchServices.begin(), result.launchServices.end(),
+        [&serviceName](const auto &service) {
+            return service.name == serviceName && service.type == LaunchServiceType::DAEMON;
+        });
+    return iter == result.launchServices.end() ? nullptr : &(*iter);
+}
+
+int32_t GetDaemonLaunchService(const AAFwk::LaunchServiceDescriptor &descriptor,
+    LaunchServicesResult &result, LaunchService &service)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon declaration get bundle manager helper failed");
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetLaunchServices(descriptor.bundleName,
+        descriptor.moduleName, descriptor.userId, result));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon declaration GetLaunchServices failed: %{public}d", ret);
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    auto launchService = FindDaemonLaunchService(result, descriptor.serviceName);
+    if (launchService != nullptr) {
+        service = *launchService;
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::APPMGR, "daemon declaration not found, service:%{public}s",
+        descriptor.serviceName.c_str());
+    return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+}
+
+int32_t CheckDaemonCallerOwnsInstance(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    std::string callerBundleName;
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerBundleName)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get caller bundle failed");
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    if (callerBundleName != descriptor.bundleName) {
+        TAG_LOGE(AAFwkTag::APPMGR, "caller does not own daemon bundle");
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
+
+int32_t CheckDaemonSameDeveloper(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid,
+    const std::string &targetDeveloperId)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    std::string callerBundleName;
+    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerBundleName));
+    if (ret != ERR_OK || callerBundleName.empty()) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    AppProvisionInfo callerProvisionInfo;
+    ret = IN_PROCESS_CALL(bundleMgrHelper->GetAppProvisionInfo(callerBundleName,
+        callerUid / BASE_USER_RANGE, callerProvisionInfo));
+    if (ret != ERR_OK) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    if (targetDeveloperId.empty() || callerProvisionInfo.developerId.empty() ||
+        targetDeveloperId != callerProvisionInfo.developerId) {
+        TAG_LOGE(AAFwkTag::APPMGR, "daemon developer mismatch, bundle:%{public}s",
+            descriptor.bundleName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
+
+int32_t CheckDaemonSameDeveloper(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    AppProvisionInfo targetProvisionInfo;
+    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetAppProvisionInfo(descriptor.bundleName,
+        descriptor.userId, targetProvisionInfo));
+    if (ret != ERR_OK) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    return CheckDaemonSameDeveloper(descriptor, callerUid, targetProvisionInfo.developerId);
+}
 }  // namespace
 
 using OHOS::AppExecFwk::Constants::PERMISSION_GRANTED;
@@ -554,6 +1045,7 @@ void AppMgrServiceInner::Init()
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
     AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(weak_from_this());
     AppPidFdManager::GetInstance().Init(weak_from_this(), taskHandler_);
+    StartLaunchServices("", Constants::ALL_USERID, Constants::INITIAL_APP_INDEX, true);
 #ifdef ABILITY_CLOUD_PUSH_ENABLE
     ffrt::submit([]() {
         AAFwk::AbilityCloudPushManager::GetInstance().InitParam();
@@ -1130,14 +1622,14 @@ ImageError AppMgrServiceInner::HandleForkAllInner(std::shared_ptr<AppRunningReco
         " pid:%{public}d, imagePid:%{public}d", appRecord->GetProcessName().c_str(), errCode, pid, imagePid);
     if (errCode != ERR_OK || imagePid <= 0) {
         auto imageError = GetCheckpointRestoreError(pid, imageInfo->imageName);
-        SaveHyperSnapError(appRecord->GetUid(), HyperSnapErrorType::CREATE_SNAPSHOT, 
+        SaveHyperSnapError(appRecord->GetUid(), HyperSnapErrorType::CREATE_SNAPSHOT,
             ConvertImageErrorToHyperSnapCode(imageError));
 
         if (errCode == EBUSY) {
             return ImageError::ERR_FORKALL_BUSY;
         } else {
             return ImageError::ERR_FORKALL_FAILED;
-        }  
+        }
     }
     appRecord->SetMakeImageState(MakeImageState::MAKE_IMAGE_FINISH);
     UpdateImageInfo(imagePid, checkpointId, appRecord);
@@ -1384,7 +1876,7 @@ std::shared_ptr<ForkImageInfo> AppMgrServiceInner::GetImageInfo(std::shared_ptr<
     if (appRecord == nullptr) {
         return nullptr;
     }
-    return GetImageInfo(appRecord->GetBundleName(), appRecord->GetPreloadAbilityName(), 
+    return GetImageInfo(appRecord->GetBundleName(), appRecord->GetPreloadAbilityName(),
         appRecord->GetUserId(), appRecord->GetAppIndex());
 }
 
@@ -2468,6 +2960,364 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     }
     guard.appRecord_ = appRecord;
     AfterLoadAbility(appRecord, abilityInfo, loadParam, isProcessReuse);
+}
+
+int32_t AppMgrServiceInner::StartLaunchService(
+    const LaunchServiceKey &key, const LaunchService &service, uint32_t restartCount)
+{
+    if (key.bundleName.empty() || key.moduleName.empty() || key.serviceName.empty() ||
+        key.userId < 0 || key.appIndex < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid launch service key");
+        return ERR_INVALID_VALUE;
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    std::unique_lock<std::shared_mutex> lock(launchServiceMutex_);
+    auto iter = launchServiceRuntimeRecords_.find(key);
+    if (iter != launchServiceRuntimeRecords_.end()) {
+        if (iter->second.pid > 0 && IsDaemonProcessAlive(iter->second.pid)) {
+            TAG_LOGI(AAFwkTag::APPMGR, "launch service already running, pid=%{public}d", iter->second.pid);
+            return ERR_OK;
+        }
+        launchServiceRuntimeRecords_.erase(iter);
+    }
+
+    AAFwk::LaunchServiceDescriptor descriptor;
+    descriptor.bundleName = key.bundleName;
+    descriptor.moduleName = key.moduleName;
+    descriptor.serviceName = key.serviceName;
+    descriptor.userId = key.userId;
+    descriptor.appIndex = key.appIndex;
+    int32_t pid = 0;
+    int32_t daemonUid = -1;
+    auto ret = SpawnDaemonProcess(descriptor, pid, daemonUid);
+    if (ret != ERR_OK || pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn launch service failed, result=%{public}d", ret);
+        return ret != ERR_OK ? ret : AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+
+    launchServiceRuntimeRecords_[key] = {service, daemonUid, pid, restartCount};
+    TAG_LOGI(AAFwkTag::APPMGR, "start launch service success, bundle=%{public}s, service=%{public}s, pid=%{public}d",
+        key.bundleName.c_str(), key.serviceName.c_str(), pid);
+    lock.unlock();
+    NotifyLaunchServiceProcessStateChanged(key, pid, AbilityRuntime::LaunchServiceProcessState::CREATED);
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::StopLaunchService(const LaunchServiceKey &key)
+{
+    if (key.bundleName.empty() || key.moduleName.empty() || key.serviceName.empty() ||
+        key.userId < 0 || key.appIndex < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid launch service key");
+        return ERR_INVALID_VALUE;
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    std::unique_lock<std::shared_mutex> lock(launchServiceMutex_);
+    auto iter = launchServiceRuntimeRecords_.find(key);
+    if (iter == launchServiceRuntimeRecords_.end()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "launch service not running, bundle=%{public}s, service=%{public}s",
+            key.bundleName.c_str(), key.serviceName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_RUNNING;
+    }
+    if (taskHandler_ != nullptr) {
+        taskHandler_->CancelTask(GetLaunchServiceRestartTaskName(key));
+    }
+    if (iter->second.pid <= 0) {
+        launchServiceRuntimeRecords_.erase(iter);
+        TAG_LOGE(AAFwkTag::APPMGR, "launch service not running, bundle=%{public}s, service=%{public}s",
+            key.bundleName.c_str(), key.serviceName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_RUNNING;
+    }
+    const int32_t pid = iter->second.pid;
+    auto ret = kill(pid, SIGNAL_KILL);
+    if (ret != 0 && errno != ESRCH) {
+        TAG_LOGE(AAFwkTag::APPMGR, "kill launch service failed, pid=%{public}d, errno=%{public}d", pid, errno);
+        return AAFwk::INNER_ERR;
+    }
+    launchServiceRuntimeRecords_.erase(iter);
+    TAG_LOGI(AAFwkTag::APPMGR, "stop launch service success, bundle=%{public}s, service=%{public}s, pid=%{public}d",
+        key.bundleName.c_str(), key.serviceName.c_str(), pid);
+    lock.unlock();
+    NotifyLaunchServiceProcessStateChanged(key, pid, AbilityRuntime::LaunchServiceProcessState::TERMINATED);
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::RegisterDaemon(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    if (!IsValidDaemonDescriptor(descriptor)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto resolvedDescriptor = ResolveDaemonDescriptor(descriptor, callerUid);
+    auto callerResult = CheckDaemonCallerOwnsInstance(resolvedDescriptor, callerUid);
+    if (callerResult != ERR_OK) {
+        return callerResult;
+    }
+
+    int32_t daemonUid = -1;
+    auto uidResult = GetDaemonUid(resolvedDescriptor, daemonUid);
+    if (uidResult != ERR_OK) {
+        return uidResult;
+    }
+    LaunchServicesResult launchServicesResult;
+    LaunchService launchService;
+    auto declarationResult = GetDaemonLaunchService(resolvedDescriptor, launchServicesResult, launchService);
+    if (declarationResult != ERR_OK) {
+        return declarationResult;
+    }
+
+    UserIam::UserAuth::LaunchServiceRecord registeredRecord;
+    auto registerResult = RegisterLaunchServiceToIam(
+        resolvedDescriptor, daemonUid, launchServicesResult, launchService, registeredRecord);
+    if (registerResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "register daemon to iam failed: %{public}d", registerResult);
+        if (registerResult == AAFwk::ERR_LAUNCH_SERVICE_ALREADY_REGISTERED) {
+            return registerResult;
+        }
+        return AAFwk::INNER_ERR;
+    }
+    NotifyLaunchServiceStateChanged(resolvedDescriptor, ConvertLaunchServiceState(registeredRecord.activeState));
+
+    if (launchService.runAtLoad &&
+        registeredRecord.activeState == UserIam::UserAuth::LaunchServiceState::ACTIVATE &&
+        !registeredRecord.isForbidden) {
+        LaunchServiceKey key = {resolvedDescriptor.bundleName, resolvedDescriptor.moduleName,
+            resolvedDescriptor.serviceName, resolvedDescriptor.userId, resolvedDescriptor.appIndex};
+        auto spawnResult = StartLaunchService(key, launchService);
+        if (spawnResult != ERR_OK) {
+            TAG_LOGW(AAFwkTag::APPMGR, "register daemon runAtLoad spawn failed: %{public}d", spawnResult);
+        }
+    }
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::UnregisterDaemon(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    if (!IsValidDaemonDescriptor(descriptor)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto resolvedDescriptor = ResolveDaemonDescriptor(descriptor, callerUid);
+    auto callerResult = CheckDaemonCallerOwnsInstance(resolvedDescriptor, callerUid);
+    if (callerResult != ERR_OK) {
+        return callerResult;
+    }
+
+    int32_t daemonUid = -1;
+    auto uidResult = GetDaemonUid(resolvedDescriptor, daemonUid);
+    if (uidResult != ERR_OK) {
+        return uidResult;
+    }
+    auto unregisterResult = UnregisterLaunchServiceFromIam(resolvedDescriptor, daemonUid);
+    if (unregisterResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "unregister daemon from iam failed: %{public}d", unregisterResult);
+        return unregisterResult;
+    }
+    LaunchServiceKey key = {resolvedDescriptor.bundleName, resolvedDescriptor.moduleName,
+        resolvedDescriptor.serviceName, resolvedDescriptor.userId, resolvedDescriptor.appIndex};
+    (void)StopLaunchService(key);
+    NotifyLaunchServiceStateChanged(resolvedDescriptor, AbilityRuntime::LaunchServiceState::NOT_REGISTERED);
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::StartDaemon(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    if (!IsValidDaemonDescriptor(descriptor)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto resolvedDescriptor = ResolveDaemonDescriptor(descriptor, callerUid);
+    TAG_LOGI(AAFwkTag::APPMGR, "start daemon bundle:%{public}s module:%{public}s service:%{public}s "
+        "userId:%{public}d appIndex:%{public}d callerUid:%{public}d", resolvedDescriptor.bundleName.c_str(),
+        resolvedDescriptor.moduleName.c_str(), resolvedDescriptor.serviceName.c_str(), resolvedDescriptor.userId,
+        resolvedDescriptor.appIndex, callerUid);
+    auto userResult = CheckDaemonHostUser(resolvedDescriptor, callerUid);
+    if (userResult != ERR_OK) {
+        return userResult;
+    }
+    LaunchServicesResult launchServicesResult;
+    LaunchService launchService;
+    auto declarationResult = GetDaemonLaunchService(resolvedDescriptor, launchServicesResult, launchService);
+    if (declarationResult != ERR_OK) {
+        return declarationResult;
+    }
+    auto developerResult = CheckDaemonSameDeveloper(
+        resolvedDescriptor, callerUid, launchServicesResult.developerId);
+    if (developerResult != ERR_OK) {
+        return developerResult;
+    }
+
+    UserIam::UserAuth::LaunchServiceRecord record;
+    auto queryResult = QueryLaunchServiceRecord(resolvedDescriptor, record);
+    if (queryResult != ERR_OK) {
+        return queryResult;
+    }
+    if (record.activeState != UserIam::UserAuth::LaunchServiceState::ACTIVATE || record.isForbidden) {
+        TAG_LOGW(AAFwkTag::APPMGR, "daemon is disabled or forbidden, service:%{public}s",
+            resolvedDescriptor.serviceName.c_str());
+        return AAFwk::ERR_LAUNCH_SERVICE_DISABLED;
+    }
+    LaunchServiceKey key = {resolvedDescriptor.bundleName, resolvedDescriptor.moduleName,
+        resolvedDescriptor.serviceName, resolvedDescriptor.userId, resolvedDescriptor.appIndex};
+    return StartLaunchService(key, launchService);
+}
+
+int32_t AppMgrServiceInner::StopDaemon(
+    const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    if (!IsValidDaemonDescriptor(descriptor)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto resolvedDescriptor = ResolveDaemonDescriptor(descriptor, callerUid);
+    auto userResult = CheckDaemonHostUser(resolvedDescriptor, callerUid);
+    if (userResult != ERR_OK) {
+        return userResult;
+    }
+    auto developerResult = CheckDaemonSameDeveloper(resolvedDescriptor, callerUid);
+    if (developerResult != ERR_OK) {
+        return developerResult;
+    }
+    LaunchServiceKey key = {resolvedDescriptor.bundleName, resolvedDescriptor.moduleName,
+        resolvedDescriptor.serviceName, resolvedDescriptor.userId, resolvedDescriptor.appIndex};
+    return StopLaunchService(key);
+}
+
+void AppMgrServiceInner::NotifyLaunchServiceStateChanged(
+    const AAFwk::LaunchServiceDescriptor &descriptor, AbilityRuntime::LaunchServiceState state)
+{
+    AbilityRuntime::LaunchServiceStateData stateData;
+    SetLaunchServiceDescriptor(stateData.descriptor, descriptor.bundleName, descriptor.moduleName,
+        descriptor.serviceName, descriptor.userId, descriptor.appIndex);
+    stateData.state = state;
+    LaunchServiceObserverManager::GetInstance().NotifyStatusChanged(stateData);
+}
+
+void AppMgrServiceInner::NotifyLaunchServiceProcessStateChanged(
+    const LaunchServiceKey &key, int32_t pid, AbilityRuntime::LaunchServiceProcessState state)
+{
+    AbilityRuntime::LaunchServiceProcessStateData processStateData;
+    SetLaunchServiceDescriptor(processStateData.descriptor, key.bundleName, key.moduleName,
+        key.serviceName, key.userId, key.appIndex);
+    processStateData.pid = pid;
+    processStateData.state = state;
+    LaunchServiceObserverManager::GetInstance().NotifyProcessStateChanged(processStateData);
+}
+
+int32_t AppMgrServiceInner::SpawnDaemonProcess(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t &pid,
+    int32_t &uid)
+{
+    pid = 0;
+    uid = -1;
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon get bundle manager helper failed");
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    BundleInfo bundleInfo;
+    auto bundleFlags = static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE);
+    bool getBundleInfoResult = false;
+    if (descriptor.appIndex == 0) {
+        getBundleInfoResult = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfo(
+            descriptor.bundleName, bundleFlags, bundleInfo, descriptor.userId));
+    } else {
+        auto cloneRet = IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(
+            descriptor.bundleName, bundleFlags, descriptor.appIndex, bundleInfo, descriptor.userId));
+        getBundleInfoResult = (cloneRet == ERR_OK);
+    }
+    if (!getBundleInfoResult) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon get bundle info failed, appIndex:%{public}d",
+            descriptor.appIndex);
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    uid = bundleInfo.uid;
+
+    std::string binPath;
+    for (const auto &hapModuleInfo : bundleInfo.hapModuleInfos) {
+        if (hapModuleInfo.moduleName != descriptor.moduleName) {
+            continue;
+        }
+        for (const auto &launchService : hapModuleInfo.launchServices) {
+            if (launchService.name == descriptor.serviceName) {
+                binPath = launchService.binaryPath;
+                break;
+            }
+        }
+        if (!binPath.empty()) {
+            break;
+        }
+    }
+    if (binPath.empty() || binPath.front() != '/') {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon launch service not declared");
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    if (bundleInfo.uid < 0 || bundleInfo.gid < 0 || bundleInfo.applicationInfo.appPrivilegeLevel.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon invalid bundle info");
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    uint64_t accessTokenIdEx = bundleInfo.applicationInfo.accessTokenIdEx;
+    if (accessTokenIdEx == 0) {
+        auto tokenInfo = AccessToken::AccessTokenKit::GetHapTokenIDEx(
+            descriptor.userId, descriptor.bundleName, descriptor.appIndex);
+        accessTokenIdEx = tokenInfo.tokenIDEx;
+    }
+    if (accessTokenIdEx == 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon invalid access token");
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    if (!remoteClientManager_ || !remoteClientManager_->GetSpawnClient()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon get spawn client failed");
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+
+    AppSpawnStartMsg startMsg{};
+    startMsg.code = MSG_SPAWN_DAEMON;
+    startMsg.bundleName = descriptor.bundleName;
+    startMsg.procName = descriptor.bundleName + ":" + descriptor.serviceName;
+    startMsg.bundleIndex = descriptor.appIndex;
+    startMsg.daemonBinPath = binPath;
+    if (bundleInfo.applicationInfo.accessTokenId == 0) {
+        bundleInfo.applicationInfo.accessTokenId = static_cast<uint32_t>(accessTokenIdEx & 0xFFFFFFFF);
+    }
+    bundleInfo.applicationInfo.accessTokenIdEx = accessTokenIdEx;
+
+    SetAppInfo(bundleInfo, startMsg);
+    startMsg.accessTokenIdEx = accessTokenIdEx;
+    startMsg.appSignType = bundleInfo.applicationInfo.appSignType;
+
+    auto userId = GetUserIdByUid(bundleInfo.uid);
+    HspList hspList;
+    auto hspRet = bundleMgrHelper->GetBaseSharedBundleInfos(bundleInfo.name, hspList,
+        AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
+    if (hspRet == ERR_OK) {
+        startMsg.hspList = hspList;
+    } else {
+        TAG_LOGW(AAFwkTag::APPMGR, "spawn daemon get hsp list failed, ret:%{public}d", hspRet);
+    }
+
+    DataGroupInfoList dataGroupInfoList;
+    (void)bundleMgrHelper->QueryDataGroupInfos(bundleInfo.name, userId, dataGroupInfoList);
+    startMsg.dataGroupInfoList = dataGroupInfoList;
+    startMsg.isScreenLockDataProtect = std::any_of(bundleInfo.reqPermissions.begin(),
+        bundleInfo.reqPermissions.end(), [](const std::string &permission) {
+            return permission == PERMISSION_PROTECT_SCREEN_LOCK_DATA;
+        });
+
+    SetOverlayInfo(bundleInfo.name, userId, startMsg);
+    AddMountPermission(bundleInfo.applicationInfo.accessTokenId, startMsg.permissions);
+    SetStartMsgCustomSandboxFlag(startMsg, bundleInfo.applicationInfo.accessTokenId);
+    GetKernelPermissions(bundleInfo.applicationInfo.accessTokenId, startMsg.jitPermissionsMap);
+    TAG_LOGI(AAFwkTag::APPMGR, "spawn daemon call appspawn process:%{public}s binPath:%{public}s uid:%{public}d "
+        "gid:%{public}d token:0x%{public}" PRIx64, startMsg.procName.c_str(), startMsg.daemonBinPath.c_str(),
+        startMsg.uid, startMsg.gid, startMsg.accessTokenIdEx);
+    auto errCode = remoteClientManager_->GetSpawnClient()->StartProcess(startMsg, pid);
+    if (errCode != ERR_OK || pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn daemon failed, process:%{public}s result=%{public}d, pid=%{public}d",
+            startMsg.procName.c_str(), errCode, pid);
+        pid = 0;
+        return errCode != ERR_OK ? errCode : AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "spawn daemon success process:%{public}s pid:%{public}d", startMsg.procName.c_str(), pid);
+    return ERR_OK;
 }
 
 void AppMgrServiceInner::ReportUIExtensionProcColdStartToRss(const std::shared_ptr<AbilityInfo>& abilityInfo,
@@ -3771,8 +4621,12 @@ int32_t AppMgrServiceInner::NotifyUninstallOrUpgradeApp(const std::string &bundl
 {
     TAG_LOGD(AAFwkTag::APPMGR,
         "bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
-    std::unique_lock lock(startProcessLock_);
+    if (!isUpgrade) {
+        UnregisterLaunchServicesByUid(uid);
+    }
+    HandleLaunchServiceUninstallOrUpgrade(bundleName, uid, isUpgrade);
     std::string killReason = isUpgrade ? "UpgradeApp" : "UninstallApp";
+    std::unique_lock lock(startProcessLock_);
     InsertUninstallOrUpgradeUidSet(uid);
     auto ret = KillApplicationByUid(bundleName, uid, killReason);
     DestroyImageForUninstallOrUpgrade(uid);
@@ -3780,10 +4634,137 @@ int32_t AppMgrServiceInner::NotifyUninstallOrUpgradeApp(const std::string &bundl
     return ret;
 }
 
+void AppMgrServiceInner::UnregisterLaunchServicesByUid(int32_t uid)
+{
+    if (uid < 0) {
+        return;
+    }
+
+    std::vector<AAFwk::LaunchServiceDescriptor> descriptors;
+    std::vector<UserIam::UserAuth::LaunchServiceRecord> records;
+    auto listResult = GetIamLaunchServiceList(std::make_optional(uid / BASE_USER_RANGE), records);
+    if (!listResult.has_value() || *listResult != UserIam::UserAuth::SUCCESS) {
+        TAG_LOGW(AAFwkTag::APPMGR, "get launch services before unregister failed, uid:%{public}d, result:%{public}d",
+            uid, listResult.value_or(AAFwk::ABILITY_SERVICE_NOT_CONNECTED));
+    } else {
+        for (const auto &record : records) {
+            if (record.uid != uid ||
+                record.serviceInfo.serviceType != UserIam::UserAuth::LaunchServiceType::PRIVILEGED_DAEMON) {
+                continue;
+            }
+            descriptors.emplace_back(AAFwk::LaunchServiceDescriptor {record.bundleInfo.ownerBundleName,
+                record.serviceKey.moduleName, record.serviceKey.serviceName,
+                record.uid / BASE_USER_RANGE, record.bundleInfo.appIndex});
+        }
+    }
+
+    auto iamResult = UnregisterLaunchServicesByUidFromIam(uid);
+    if (iamResult != ERR_OK && iamResult != AAFwk::ERR_LAUNCH_SERVICE_NOT_REGISTERED) {
+        TAG_LOGW(AAFwkTag::APPMGR, "unregister launch services from iam failed, uid:%{public}d, result:%{public}d",
+            uid, iamResult);
+    }
+    CleanupLaunchServicesByUid(uid);
+    if (iamResult == ERR_OK) {
+        for (const auto &descriptor : descriptors) {
+            NotifyLaunchServiceStateChanged(descriptor, AbilityRuntime::LaunchServiceState::NOT_REGISTERED);
+        }
+    }
+}
+
+void AppMgrServiceInner::CleanupLaunchServicesByUid(int32_t uid)
+{
+    if (uid < 0) {
+        return;
+    }
+    std::vector<LaunchServiceKey> serviceKeys;
+    {
+        std::shared_lock<std::shared_mutex> lock(launchServiceMutex_);
+        for (const auto &[key, record] : launchServiceRuntimeRecords_) {
+            if (record.uid == uid) {
+                serviceKeys.emplace_back(key);
+            }
+        }
+    }
+    for (const auto &key : serviceKeys) {
+        (void)StopLaunchService(key);
+    }
+}
+
 void AppMgrServiceInner::NotifyUninstallOrUpgradeAppEnd(int32_t uid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "uid: %{public}d", uid);
     RemoveUninstallOrUpgradeUidSet(uid);
+    HandleLaunchServiceUpgradeEnd(uid);
+}
+
+void AppMgrServiceInner::HandleLaunchServiceUninstallOrUpgrade(
+    const std::string &bundleName, int32_t uid, bool isUpgrade)
+{
+    {
+        std::unique_lock<std::shared_mutex> lock(launchServiceMutex_);
+        upgradingLaunchServiceKeys_.erase(uid);
+    }
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    int32_t appIndex = 0;
+    std::string resolvedBundleName;
+    if (bundleMgrHelper == nullptr ||
+        IN_PROCESS_CALL(bundleMgrHelper->GetNameAndIndexForUid(uid, resolvedBundleName, appIndex)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get app index for launch service failed");
+        return;
+    }
+    const int32_t userId = uid / BASE_USER_RANGE;
+    if (isUpgrade) {
+        std::unique_lock<std::shared_mutex> lock(launchServiceMutex_);
+        auto &serviceKeys = upgradingLaunchServiceKeys_[uid];
+        for (const auto &[key, record] : launchServiceRuntimeRecords_) {
+            if (key.bundleName == bundleName && key.userId == userId && key.appIndex == appIndex &&
+                record.pid > 0 && record.service.keepAlive) {
+                serviceKeys.emplace_back(key);
+            }
+        }
+        if (serviceKeys.empty()) {
+            upgradingLaunchServiceKeys_.erase(uid);
+        }
+    }
+    StopLaunchServices(bundleName, userId, appIndex);
+}
+
+void AppMgrServiceInner::HandleLaunchServiceUpgradeEnd(int32_t uid)
+{
+    std::vector<LaunchServiceKey> serviceKeys;
+    {
+        std::unique_lock<std::shared_mutex> lock(launchServiceMutex_);
+        auto iter = upgradingLaunchServiceKeys_.find(uid);
+        if (iter == upgradingLaunchServiceKeys_.end()) {
+            return;
+        }
+        serviceKeys = std::move(iter->second);
+        upgradingLaunchServiceKeys_.erase(iter);
+    }
+    if (serviceKeys.empty()) {
+        return;
+    }
+
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return;
+    }
+    for (const auto &key : serviceKeys) {
+        LaunchServicesResult launchServicesResult;
+        auto result = IN_PROCESS_CALL(bundleMgrHelper->GetLaunchServices(
+            key.bundleName, key.moduleName, key.userId, launchServicesResult));
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "get updated launch services failed: %{public}d", result);
+            continue;
+        }
+        auto launchService = FindDaemonLaunchService(launchServicesResult, key.serviceName);
+        if (launchService != nullptr) {
+            auto startResult = StartLaunchService(key, *launchService);
+            if (startResult != ERR_OK) {
+                TAG_LOGW(AAFwkTag::APPMGR, "restart updated launch service failed: %{public}d", startResult);
+            }
+        }
+    }
 }
 
 int32_t AppMgrServiceInner::UpdateProcessMemoryState(const std::vector<ProcessMemoryState> &procMemState)
@@ -12644,6 +13625,9 @@ int32_t AppMgrServiceInner::ExitMasterProcessRole()
 
 void AppMgrServiceInner::OnProcessDied(std::shared_ptr<AppRunningRecord> appRecord)
 {
+    if (appRecord != nullptr) {
+        HandleLaunchServiceProcessDied(appRecord->GetPid());
+    }
     if (appRunningManager_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "running manager null");
         return;
@@ -13193,5 +14177,320 @@ void AppMgrServiceInner::ClearHyperSnapError(int32_t uid)
     forkFromSnapshotErrorMap_.erase(uid);
 }
 
+bool AppMgrServiceInner::LaunchServiceKey::operator==(const LaunchServiceKey &other) const
+{
+    return std::tie(bundleName, moduleName, serviceName, userId, appIndex) ==
+        std::tie(other.bundleName, other.moduleName, other.serviceName, other.userId, other.appIndex);
+}
+
+size_t AppMgrServiceInner::LaunchServiceKey::Hash::operator()(const LaunchServiceKey &key) const
+{
+    size_t seed = 0;
+    auto combine = [&seed](size_t value) {
+        seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    };
+    combine(std::hash<std::string> {}(key.bundleName));
+    combine(std::hash<std::string> {}(key.moduleName));
+    combine(std::hash<std::string> {}(key.serviceName));
+    combine(std::hash<int32_t> {}(key.userId));
+    combine(std::hash<int32_t> {}(key.appIndex));
+    return seed;
+}
+
+std::string AppMgrServiceInner::GetLaunchServiceRestartTaskName(const LaunchServiceKey &key) const
+{
+    return "RestartLaunchService_" + key.bundleName + "_" + key.moduleName + "_" + key.serviceName + "_" +
+        std::to_string(key.userId) + "_" + std::to_string(key.appIndex);
+}
+
+void AppMgrServiceInner::StartLaunchServices(
+    const std::string &bundleName, int32_t userId, int32_t appIndex, bool runAtLoadOnly)
+{
+    std::optional<int32_t> iamUserId = userId == Constants::ALL_USERID ?
+        std::nullopt : std::make_optional(userId);
+    std::vector<UserIam::UserAuth::LaunchServiceRecord> records;
+    auto iamResult = GetIamLaunchServiceList(iamUserId, records);
+    if (!iamResult.has_value() || *iamResult != UserIam::UserAuth::SUCCESS) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get IAM launch service list failed: %{public}d",
+            iamResult.value_or(AAFwk::ABILITY_SERVICE_NOT_CONNECTED));
+        return;
+    }
+    if (records.empty()) {
+        return;
+    }
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "bundle manager helper is nullptr");
+        return;
+    }
+    const bool startAll = bundleName.empty();
+    for (const auto &record : records) {
+        if (record.uid < 0 || (!startAll && (record.bundleInfo.ownerBundleName != bundleName ||
+            record.bundleInfo.appIndex != appIndex)) ||
+            record.activeState != UserIam::UserAuth::LaunchServiceState::ACTIVATE || record.isForbidden) {
+            continue;
+        }
+        const int32_t recordUserId = record.uid / BASE_USER_RANGE;
+        LaunchServicesResult launchServicesResult;
+        auto result = IN_PROCESS_CALL(bundleMgrHelper->GetLaunchServices(record.bundleInfo.ownerBundleName,
+            record.serviceKey.moduleName, recordUserId, launchServicesResult));
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "get launch services failed: %{public}d", result);
+            continue;
+        }
+        auto launchService = FindDaemonLaunchService(launchServicesResult, record.serviceKey.serviceName);
+        if (launchService == nullptr || (runAtLoadOnly && !launchService->runAtLoad)) {
+            continue;
+        }
+        LaunchServiceKey key = {record.bundleInfo.ownerBundleName, record.serviceKey.moduleName, launchService->name,
+            recordUserId, record.bundleInfo.appIndex};
+        auto startResult = StartLaunchService(key, *launchService);
+        if (startResult != ERR_OK) {
+            TAG_LOGW(AAFwkTag::APPMGR, "start launch service failed: %{public}d", startResult);
+        }
+    }
+}
+
+void AppMgrServiceInner::RestartLaunchService(const LaunchServiceKey &key)
+{
+    LaunchService service;
+    uint32_t restartCount = 0;
+    {
+        std::shared_lock<std::shared_mutex> lock(launchServiceMutex_);
+        auto iter = launchServiceRuntimeRecords_.find(key);
+        if (iter == launchServiceRuntimeRecords_.end() || iter->second.pid > 0 || !iter->second.service.keepAlive) {
+            return;
+        }
+        service = iter->second.service;
+        restartCount = iter->second.restartCount;
+    }
+    auto result = StartLaunchService(key, service, restartCount);
+    if (result != ERR_OK) {
+        TAG_LOGW(AAFwkTag::APPMGR, "restart launch service failed: %{public}d", result);
+    }
+}
+
+void AppMgrServiceInner::HandleLaunchServiceProcessDied(int32_t pid)
+{
+    LaunchServiceKey key;
+    uint32_t restartCount = 0;
+    bool needRestart = false;
+    {
+        std::unique_lock<std::shared_mutex> lock(launchServiceMutex_);
+        auto iter = std::find_if(launchServiceRuntimeRecords_.begin(), launchServiceRuntimeRecords_.end(),
+            [pid](const auto &item) { return item.second.pid == pid; });
+        if (iter == launchServiceRuntimeRecords_.end()) {
+            return;
+        }
+        key = iter->first;
+        iter->second.pid = 0;
+        needRestart = iter->second.service.keepAlive;
+        if (needRestart && iter->second.restartCount != std::numeric_limits<uint32_t>::max()) {
+            ++iter->second.restartCount;
+        }
+        restartCount = iter->second.restartCount;
+    }
+
+    NotifyLaunchServiceProcessStateChanged(key, pid, AbilityRuntime::LaunchServiceProcessState::TERMINATED);
+    if (!needRestart || taskHandler_ == nullptr) {
+        return;
+    }
+
+    const int64_t delay = GetLaunchServiceRestartDelay(restartCount - 1);
+    auto restartTask = [innerServiceWeak = weak_from_this(), key]() {
+        auto innerService = innerServiceWeak.lock();
+        CHECK_POINTER_AND_RETURN_LOG(innerService, "get appMgrServiceInner fail");
+        innerService->RestartLaunchService(key);
+    };
+    taskHandler_->SubmitTask(restartTask, GetLaunchServiceRestartTaskName(key), delay, false);
+}
+
+void AppMgrServiceInner::StopLaunchServices(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    std::vector<LaunchServiceKey> runningServices;
+    {
+        std::unique_lock<std::shared_mutex> lock(launchServiceMutex_);
+        for (auto iter = launchServiceRuntimeRecords_.begin(); iter != launchServiceRuntimeRecords_.end();) {
+            const auto &key = iter->first;
+            if (key.bundleName != bundleName || key.userId != userId || key.appIndex != appIndex) {
+                ++iter;
+                continue;
+            }
+            if (iter->second.pid > 0) {
+                runningServices.emplace_back(key);
+                ++iter;
+            } else {
+                if (taskHandler_ != nullptr) {
+                    taskHandler_->CancelTask(GetLaunchServiceRestartTaskName(key));
+                }
+                iter = launchServiceRuntimeRecords_.erase(iter);
+            }
+        }
+    }
+    for (const auto &key : runningServices) {
+        auto result = StopLaunchService(key);
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "stop launch service process failed: %{public}d", result);
+        }
+    }
+}
+
+int32_t AppMgrServiceInner::GetLaunchServiceInformation(
+    const AbilityRuntime::LaunchServiceDescriptor &targetDescriptor,
+    AbilityRuntime::LaunchServiceInformation &information, int32_t callerUid)
+{
+    const int32_t callerUserId = callerUid / BASE_USER_RANGE;
+    if (IsEnterpriseSpaceCrossUser(callerUserId, targetDescriptor.userId)) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    auto result = CheckLaunchServiceQuery(bundleMgrHelper, targetDescriptor, callerUid);
+    if (result != ERR_OK) {
+        return result;
+    }
+    int32_t uid = IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(
+        targetDescriptor.bundleName, targetDescriptor.userId, targetDescriptor.appIndex));
+    if (uid == Constants::INVALID_UID) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+
+    information.descriptor = targetDescriptor;
+    information.state = AbilityRuntime::LaunchServiceState::NOT_REGISTERED;
+    LaunchServiceKey runtimeKey = {targetDescriptor.bundleName, targetDescriptor.moduleName,
+        targetDescriptor.serviceName, targetDescriptor.userId, targetDescriptor.appIndex};
+    {
+        std::shared_lock<std::shared_mutex> lock(launchServiceMutex_);
+        auto iter = launchServiceRuntimeRecords_.find(runtimeKey);
+        information.pid = iter == launchServiceRuntimeRecords_.end() ? 0 : iter->second.pid;
+    }
+
+    UserIam::UserAuth::LaunchServiceKey iamKey = {
+        targetDescriptor.serviceName, targetDescriptor.moduleName};
+    UserIam::UserAuth::LaunchServiceRecord record;
+    const auto iamResult = GetIamLaunchServiceInfo(uid, iamKey, record);
+    if (iamResult.has_value() && *iamResult == UserIam::UserAuth::ResultCode::NOT_ENROLLED) {
+        return ERR_OK;
+    }
+    if (!iamResult.has_value() || *iamResult != UserIam::UserAuth::SUCCESS) {
+        TAG_LOGW(AAFwkTag::APPMGR, "get IAM launch service info failed: %{public}d",
+            iamResult.value_or(AAFwk::ABILITY_SERVICE_NOT_CONNECTED));
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    information.state = ConvertLaunchServiceState(record.activeState);
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::GetAllLaunchServiceInformations(
+    std::vector<AbilityRuntime::LaunchServiceInformation> &informations, int32_t userId, int32_t callerUserId)
+{
+    if (userId != Constants::ALL_USERID && IsEnterpriseSpaceCrossUser(callerUserId, userId)) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    const int32_t queryUserId = userId == Constants::ALL_USERID &&
+        IsEnterpriseSpaceEnabled() && callerUserId != 0 ? callerUserId : userId;
+    std::optional<int32_t> iamUserId = queryUserId == Constants::ALL_USERID ?
+        std::nullopt : std::make_optional(queryUserId);
+    std::vector<UserIam::UserAuth::LaunchServiceRecord> records;
+    auto iamResult = GetIamLaunchServiceList(iamUserId, records);
+    if (!iamResult.has_value() || *iamResult != UserIam::UserAuth::SUCCESS) {
+        TAG_LOGW(AAFwkTag::APPMGR, "get IAM launch service list failed: %{public}d",
+            iamResult.value_or(AAFwk::ABILITY_SERVICE_NOT_CONNECTED));
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    if (records.empty()) {
+        informations.clear();
+        return ERR_OK;
+    }
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    informations.clear();
+    informations.reserve(records.size());
+    for (const auto &record : records) {
+        if (record.uid < 0) {
+            continue;
+        }
+        const int32_t recordUserId = record.uid / BASE_USER_RANGE;
+        LaunchServicesResult launchServicesResult;
+        auto result = IN_PROCESS_CALL(bundleMgrHelper->GetLaunchServices(record.bundleInfo.ownerBundleName,
+            record.serviceKey.moduleName, recordUserId, launchServicesResult));
+        if (result != ERR_OK) {
+            TAG_LOGW(AAFwkTag::APPMGR, "get registered launch service configuration failed: %{public}d", result);
+            continue;
+        }
+        if (FindDaemonLaunchService(launchServicesResult, record.serviceKey.serviceName) == nullptr) {
+            continue;
+        }
+        AbilityRuntime::LaunchServiceInformation information;
+        SetLaunchServiceDescriptor(information.descriptor, record.bundleInfo.ownerBundleName,
+            record.serviceKey.moduleName, record.serviceKey.serviceName, recordUserId, record.bundleInfo.appIndex);
+        information.state = ConvertLaunchServiceState(record.activeState);
+        informations.emplace_back(std::move(information));
+    }
+
+    std::shared_lock<std::shared_mutex> lock(launchServiceMutex_);
+    for (auto &information : informations) {
+        const auto &descriptor = information.descriptor;
+        LaunchServiceKey key = {descriptor.bundleName, descriptor.moduleName, descriptor.serviceName,
+            descriptor.userId, descriptor.appIndex};
+        auto runtimeIter = launchServiceRuntimeRecords_.find(key);
+        if (runtimeIter != launchServiceRuntimeRecords_.end()) {
+            information.pid = runtimeIter->second.pid;
+        }
+    }
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    const std::vector<uint8_t> &token, bool enable, int32_t callerUserId)
+{
+    if (IsEnterpriseSpaceCrossUser(callerUserId, userId)) {
+        return AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND;
+    }
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    int32_t uid = IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(bundleName, userId, appIndex));
+    if (uid == Constants::INVALID_UID) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+
+    auto activeState = enable ? UserIam::UserAuth::LaunchServiceState::ACTIVATE :
+        UserIam::UserAuth::LaunchServiceState::DEACTIVATE;
+    const auto iamResult = SetIamLaunchServiceState(uid, token, activeState);
+    if (!iamResult.has_value() || *iamResult != UserIam::UserAuth::SUCCESS) {
+        TAG_LOGE(AAFwkTag::APPMGR, "set IAM launch service state failed: %{public}d",
+            iamResult.value_or(AAFwk::ABILITY_SERVICE_NOT_CONNECTED));
+        if (iamResult.has_value() && (*iamResult == UserIam::UserAuth::ResultCode::AUTH_TOKEN_CHECK_FAILED ||
+            *iamResult == UserIam::UserAuth::ResultCode::CANCELED)) {
+            return AAFwk::ERR_LAUNCH_SERVICE_APPROVAL_REJECTED;
+        }
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+
+    if (enable) {
+        StartLaunchServices(bundleName, userId, appIndex, true);
+    } else {
+        StopLaunchServices(bundleName, userId, appIndex);
+    }
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::RegisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer, int32_t callerUserId)
+{
+    return LaunchServiceObserverManager::GetInstance().RegisterObserver(observer, callerUserId);
+}
+
+int32_t AppMgrServiceInner::UnregisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
+{
+    return LaunchServiceObserverManager::GetInstance().UnregisterObserver(observer);
+}
 } // namespace AppExecFwk
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <mutex>
 #include <nlohmann/json.hpp>
 #include <sys/types.h>
 #include <thread>
@@ -44,7 +45,9 @@
 #include "accesstoken_kit.h"
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
+#include "bundle_mgr_helper.h"
 #include "cache_process_manager.h"
+#include "launch_service_info.h"
 #include "uri_permission_manager_client.h"
 #include "appfreeze_manager.h"
 
@@ -107,6 +110,26 @@ constexpr int32_t USER_UID = 2000;
 constexpr const char* HIVIEW_PROCESS_NAME = "hiview";
 constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+constexpr const char* LAUNCH_SERVICE_PC_MODE_PARAM = "persist.sceneboard.ispcmode";
+
+bool IsDaemonDeviceSupported()
+{
+    return system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_PARAM, false);
+}
+
+void SetLaunchServiceDescriptorDefaultValues(
+    AbilityRuntime::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    if (!descriptor.hasUserId) {
+        descriptor.userId = callerUid / BASE_USER_RANGE;
+        descriptor.hasUserId = true;
+    }
+    if (!descriptor.hasAppIndex) {
+        descriptor.appIndex = Constants::DEFAULT_APP_INDEX;
+        descriptor.hasAppIndex = true;
+    }
+}
+
 }  // namespace
 
 REGISTER_SYSTEM_ABILITY_BY_ID(AppMgrService, APP_MGR_SERVICE_ID, true);
@@ -2624,6 +2647,189 @@ void AppMgrService::CancelDelayedExitTask(int32_t pid)
         return;
     }
     appMgrServiceInner_->CancelDelayedExitTask(pid);
+}
+
+int32_t AppMgrService::RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    if (!IsReady() || appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(
+            AAFwk::PermissionConstants::PERMISSION_REGISTER_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "register daemon permission denied");
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    return appMgrServiceInner_->RegisterDaemon(descriptor, IPCSkeleton::GetCallingUid());
+}
+
+int32_t AppMgrService::UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    if (!IsReady() || appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(
+            AAFwk::PermissionConstants::PERMISSION_REGISTER_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "unregister daemon permission denied");
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    return appMgrServiceInner_->UnregisterDaemon(descriptor, IPCSkeleton::GetCallingUid());
+}
+
+int32_t AppMgrService::StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    if (!IsReady() || appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(
+            AAFwk::PermissionConstants::PERMISSION_USE_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "start daemon permission denied");
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    return appMgrServiceInner_->StartDaemon(descriptor, IPCSkeleton::GetCallingUid());
+}
+
+int32_t AppMgrService::StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    if (!IsReady() || appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->VerifyCallingPermission(
+            AAFwk::PermissionConstants::PERMISSION_USE_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "stop daemon permission denied");
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    return appMgrServiceInner_->StopDaemon(descriptor, IPCSkeleton::GetCallingUid());
+}
+
+int32_t AppMgrService::GetLaunchServiceInformation(
+    const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+    AbilityRuntime::LaunchServiceInformation &information)
+{
+    auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    if (permissionVerification == nullptr || !permissionVerification->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_USE_DAEMON_SERVICE)) {
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    if (!descriptor.IsValid()) {
+        return ERR_INVALID_VALUE;
+    }
+    AbilityRuntime::LaunchServiceDescriptor targetDescriptor = descriptor;
+    const int32_t callerUid = IPCSkeleton::GetCallingUid();
+    SetLaunchServiceDescriptorDefaultValues(targetDescriptor, callerUid);
+    return appMgrServiceInner_->GetLaunchServiceInformation(targetDescriptor, information, callerUid);
+}
+
+int32_t AppMgrService::GetAllLaunchServiceInformations(
+    int32_t userId, std::vector<AbilityRuntime::LaunchServiceInformation> &informations)
+{
+    auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->JudgeCallerIsAllowedToUseSystemAPI()) {
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!permissionVerification->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    if (userId < Constants::ALL_USERID) {
+        return ERR_INVALID_VALUE;
+    }
+    const int32_t callerUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    return appMgrServiceInner_->GetAllLaunchServiceInformations(informations, userId, callerUserId);
+}
+
+int32_t AppMgrService::SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    const std::vector<uint8_t> &token, bool enable)
+{
+    auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->JudgeCallerIsAllowedToUseSystemAPI()) {
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!permissionVerification->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "set daemon enable permission denied");
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    if (bundleName.empty() || userId < 0 || appIndex < 0) {
+        return ERR_INVALID_VALUE;
+    }
+
+    const int32_t callerUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    return appMgrServiceInner_->SetDaemonEnable(bundleName, userId, appIndex, token, enable, callerUserId);
+}
+
+int32_t AppMgrService::RegisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
+{
+    auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->JudgeCallerIsAllowedToUseSystemAPI()) {
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!permissionVerification->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    const int32_t callerUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    return appMgrServiceInner_->RegisterLaunchServiceObserver(observer, callerUserId);
+}
+
+int32_t AppMgrService::UnregisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
+{
+    auto permissionVerification = AAFwk::PermissionVerification::GetInstance();
+    if (permissionVerification == nullptr ||
+        !permissionVerification->JudgeCallerIsAllowedToUseSystemAPI()) {
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!permissionVerification->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!IsDaemonDeviceSupported()) {
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    return appMgrServiceInner_->UnregisterLaunchServiceObserver(observer);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
