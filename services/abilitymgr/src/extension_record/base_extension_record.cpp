@@ -392,5 +392,41 @@ void BaseExtensionRecord::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
         }
     }
 }
+
+void BaseExtensionRecord::AddTaskAttribution(int32_t recordId, const std::string &taskId,
+    int64_t attributionId)
+{
+    std::lock_guard<ffrt::mutex> lock(taskAttributionsMutex_);
+    taskAttributions_[recordId] = std::make_pair(taskId, attributionId);
+}
+
+void BaseExtensionRecord::RemoveTaskAttribution(int32_t recordId)
+{
+    std::lock_guard<ffrt::mutex> lock(taskAttributionsMutex_);
+    taskAttributions_.erase(recordId);
+}
+
+void BaseExtensionRecord::AddPendingTaskAttribution(int32_t recordId, int32_t callerUid,
+    int32_t callerPid)
+{
+    std::lock_guard<ffrt::mutex> lock(taskAttributionsMutex_);
+    PendingTaskAttribution attribution;
+    attribution.callerUid = callerUid;
+    attribution.callerPid = callerPid;
+    pendingTaskAttributions_[recordId] = attribution;
+}
+
+void BaseExtensionRecord::RemovePendingTaskAttribution(int32_t recordId)
+{
+    std::lock_guard<ffrt::mutex> lock(taskAttributionsMutex_);
+    pendingTaskAttributions_.erase(recordId);
+}
+
+void BaseExtensionRecord::RemoveAllTaskAttributions()
+{
+    std::lock_guard<ffrt::mutex> lock(taskAttributionsMutex_);
+    taskAttributions_.clear();
+    pendingTaskAttributions_.clear();
+}
 } // namespace AAFwk
 } // namespace OHOS

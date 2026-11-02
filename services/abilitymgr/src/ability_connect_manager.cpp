@@ -1032,6 +1032,11 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
 
     UpdateStateAndCompleteDisconnect(abilityRecord, connect, token);
 
+    if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        abilityRecord->RemoveTaskAttribution(connect->GetRecordId());
+        abilityRecord->RemovePendingTaskAttribution(connect->GetRecordId());
+    }
+
     CleanupConnectionAndTerminateIfNeeded(abilityRecord);
 
     RemoveConnectionRecordFromMap(connect);

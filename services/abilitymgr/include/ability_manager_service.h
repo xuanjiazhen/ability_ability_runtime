@@ -3235,6 +3235,26 @@ private:
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(
         const sptr<IRemoteObject> &token, const AppExecFwk::ExtensionAbilityType type);
 
+    /**
+     * @brief Best-effort attribution of the target Agent process into the task
+     *        claimed via Want.parameters[ohos.task.id]. Called from
+     *        ScheduleConnectAbilityDone after the Agent extension process is
+     *        spawned and onConnect has returned. Resolves taskId and target pid
+     *        from the ability record, then calls AppMgrClient::AttributeTaskForA2A.
+     *        On success records the attribution on the extension record, keyed by
+     *        the connecting record id for precise per-connection cleanup on disconnect.
+     *        Failure here does NOT fail the connect result.
+     * @param token Indicates the ability token of the connected Agent extension.
+     * @param callerTokenId Indicates the caller token id resolved from the
+     *        connecting record before ScheduleConnectAbilityDoneLocked transitions
+     *        it to CONNECTED.
+     * @param callerUid Indicates the caller uid resolved from the connecting record.
+     * @param callerPid Indicates the caller pid resolved from the connecting record.
+     * @param recordId Indicates the connection record id for per-connection keying.
+     */
+    void TryAttributeTargetAgentForA2A(const sptr<IRemoteObject> &token, uint32_t callerTokenId,
+        int32_t callerUid, int32_t callerPid, int32_t recordId);
+
     std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> GetUIExtensionAbilityManagers();
     std::shared_ptr<UIExtensionAbilityManager> GetCurrentUIExtensionAbilityManager();
     std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByToken(const sptr<IRemoteObject> &token);

@@ -434,6 +434,20 @@ public:
     int32_t FinishTask(const std::string &taskId) override;
 
     /**
+     * @brief Attributes the target Agent process into the task after a successful
+     *        A2A connect. Best-effort: failures are logged and do NOT fail the
+     *        connect result.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.task.id].
+     * @param callerTokenId Indicates the app's token id captured at the convergence.
+     * @param targetPid Indicates the target Agent process pid (resolved post-connect).
+     * @param attributionId Indicates the server-assigned attribution handle for later
+     *        unregister; 0 on failure.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, int64_t &attributionId) override;
+
+    /**
      * @brief called when the abilityStage's onAcceptWant lifecycle completed.
      * @param recordId record id of the ability.
      * @param want want has been accepted.
