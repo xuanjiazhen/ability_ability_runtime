@@ -40,6 +40,7 @@ public:
     void UpdateDmsCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken);
     void CacheCallerInfoFromWant(const Want &want, AbilitySessionInfo &info);
     void RestoreCallerInfoToWant(Want &want, const AbilitySessionInfo &info);
+    void RemoveIntentIdentityParams(Want &want, bool needLog);
 
 private:
     UpdateCallerInfoUtil() = default;
@@ -52,6 +53,8 @@ private:
     void UpdateCallerAppCloneIndex(Want& want, int32_t appIndex);
     void ClearProtectedWantParam(Want &want);
     void ClearCallerIdentityParam(Want &want);
+    void CacheInsightIntentParams(const Want &want, AbilitySessionInfo &info);
+    void RestoreInsightIntentParams(Want &want, const AbilitySessionInfo &info);
 
     DISALLOW_COPY_AND_MOVE(UpdateCallerInfoUtil);
 };
