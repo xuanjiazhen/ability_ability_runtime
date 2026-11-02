@@ -3995,8 +3995,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitializeAppCloneRequest_001, Tes
     mockStartInfo->abilityInfo.moduleName = "entry";
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
-    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
-    mockStartInfo->abilityInfo.applicationInfo.appuid = mockStartInfo->abilityInfo.applicationInfo.uid;
+    mockStartInfo->abilityInfo.applicationInfo.appuid = 1000;
     mockStartInfo->status = ERR_OK;
     StartAbilityContext ctx;
     ctx.startAbilityInfo = mockStartInfo;
@@ -4053,8 +4052,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitializeAppCloneRequest_002, Tes
     mockStartInfo->abilityInfo.moduleName = "entry";
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
-    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
-    mockStartInfo->abilityInfo.applicationInfo.appuid = mockStartInfo->abilityInfo.applicationInfo.uid;
+    mockStartInfo->abilityInfo.applicationInfo.appuid = 1000;
     mockStartInfo->status = ERR_OK;
     StartAbilityContext ctx;
     ctx.startAbilityInfo = mockStartInfo;
@@ -4985,8 +4983,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     mockStartInfo->abilityInfo.moduleName = "entry";
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
-    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
-    mockStartInfo->abilityInfo.applicationInfo.appuid = mockStartInfo->abilityInfo.applicationInfo.uid;
+    mockStartInfo->abilityInfo.applicationInfo.appuid = 1000;
     mockStartInfo->status = ERR_OK;
 
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
@@ -5058,8 +5055,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     mockStartInfo->abilityInfo.moduleName = "entry";
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
-    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
-    mockStartInfo->abilityInfo.applicationInfo.appuid = mockStartInfo->abilityInfo.applicationInfo.uid;
+    mockStartInfo->abilityInfo.applicationInfo.appuid = 1000;
     mockStartInfo->status = ERR_OK;
 
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
@@ -5132,8 +5128,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     mockStartInfo->abilityInfo.moduleName = "entry";
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
-    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
-    mockStartInfo->abilityInfo.applicationInfo.appuid = mockStartInfo->abilityInfo.applicationInfo.uid;
+    mockStartInfo->abilityInfo.applicationInfo.appuid = 1000;
     mockStartInfo->status = ERR_OK;
 
     auto abilityMs_ = std::make_shared<AbilityManagerService>();

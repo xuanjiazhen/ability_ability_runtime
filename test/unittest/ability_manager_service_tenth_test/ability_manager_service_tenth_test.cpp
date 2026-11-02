@@ -178,8 +178,7 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleConnectAbilityDone_001, TestSiz
     ASSERT_EQ(ret, TARGET_ABILITY_NOT_SERVICE);
 
     abilityRequest.abilityInfo.applicationInfo.accessTokenId = 5;
-    abilityRequest.abilityInfo.applicationInfo.uid = 2000;
-    abilityRequest.abilityInfo.applicationInfo.appuid = abilityRequest.abilityInfo.applicationInfo.uid;
+    abilityRequest.abilityInfo.applicationInfo.appuid = 2000;
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     callerToken = abilityRecord->GetToken();
@@ -227,8 +226,7 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleDisconnectAbilityDone_001, Test
     ASSERT_EQ(ret, TARGET_ABILITY_NOT_SERVICE);
 
     abilityRequest.abilityInfo.applicationInfo.accessTokenId = 5;
-    abilityRequest.abilityInfo.applicationInfo.uid = 2000;
-    abilityRequest.abilityInfo.applicationInfo.appuid = abilityRequest.abilityInfo.applicationInfo.uid;
+    abilityRequest.abilityInfo.applicationInfo.appuid = 2000;
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     callerToken = abilityRecord->GetToken();
@@ -273,8 +271,7 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleCommandAbilityDone_001, TestSiz
     ASSERT_EQ(ret, TARGET_ABILITY_NOT_SERVICE);
 
     abilityRequest.abilityInfo.applicationInfo.accessTokenId = 5;
-    abilityRequest.abilityInfo.applicationInfo.uid = 2000;
-    abilityRequest.abilityInfo.applicationInfo.appuid = abilityRequest.abilityInfo.applicationInfo.uid;
+    abilityRequest.abilityInfo.applicationInfo.appuid = 2000;
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     callerToken = abilityRecord->GetToken();
@@ -557,8 +554,7 @@ HWTEST_F(AbilityManagerServiceTenhtTest, ScheduleCommandAbilityWindowDone_004, T
     EXPECT_NE(abilityMs_, nullptr);
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     ApplicationInfo applicationInfo;
-    applicationInfo.uid = 2000000;
-    applicationInfo.appuid = applicationInfo.uid;
+    applicationInfo.appuid = 2000000;
     AppExecFwk::AbilityInfo abilityInfo;
     abilityInfo.applicationInfo = applicationInfo;
     abilityInfo.extensionAbilityType = ExtensionAbilityType::WINDOW;

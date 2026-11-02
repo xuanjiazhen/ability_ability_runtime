@@ -177,8 +177,7 @@ bool BundleMgrService::GetApplicationInfo(
     }
     appInfo.name = appName;
     appInfo.bundleName = appName;
-    appInfo.uid = userId * BASE_USER_RANGE;
-    appInfo.appuid = appInfo.uid;
+    appInfo.appuid = userId * BASE_USER_RANGE;
     if (appName.compare("com.test.crowdtest") == 0) {
         appInfo.appDistributionType = "crowdtesting";
         appInfo.crowdtestDeadline = 0;

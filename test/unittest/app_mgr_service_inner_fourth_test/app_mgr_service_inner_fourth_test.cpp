@@ -274,8 +274,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, StartEmptyProcess_0100, TestSize.Level1)
     EXPECT_EQ(appMgrServiceInner->StartEmptyProcess(want, observer, bundleInfo,
         "processName", userId), ERR_OK);
 
-    bundleInfo.applicationInfo.uid = userId;
-    bundleInfo.applicationInfo.appuid = bundleInfo.applicationInfo.uid;
+    bundleInfo.applicationInfo.appuid = userId;
     appMgrServiceInner->appRunningManager_->appRunningRecordMap_.clear();
     want.SetParam(COLD_START, true);
     EXPECT_EQ(appMgrServiceInner->StartEmptyProcess(want, observer, bundleInfo,

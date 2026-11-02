@@ -210,8 +210,9 @@ bool BundleMgrService::GetBundleInfo(
 {
     int32_t userUid = 10001;
     int32_t userGid = 10001;
+    // The shared fixture also supplies the OS uid used by SetAppInfo when spawning.
     bundleInfo.uid = userUid;
-    bundleInfo.appuid = bundleInfo.uid;
+    bundleInfo.appuid = userUid;
     bundleInfo.gid = userGid;
     int index1 = 101;
     int index2 = 102;
@@ -231,10 +232,9 @@ bool BundleMgrService::GetBundleInfo(
         ApplicationInfo appInfo;
         appInfo.name = "KeepAliveApp";
         appInfo.bundleName = bundleName;
-        appInfo.uid = appUid;
-        appInfo.appuid = appInfo.uid;
+        appInfo.appuid = appUid;
         bundleInfo.uid = appUid;
-        bundleInfo.appuid = bundleInfo.uid;
+        bundleInfo.appuid = appUid;
         bundleInfo.name = bundleName;
         bundleInfo.applicationInfo = appInfo;
         bundleInfo.hapModuleInfos.push_back(hapModuleInfo);
@@ -245,10 +245,9 @@ bool BundleMgrService::GetBundleInfo(
         ApplicationInfo appInfo;
         appInfo.name = "KeepAliveApp1";
         appInfo.bundleName = bundleName;
-        appInfo.uid = appUid1;
-        appInfo.appuid = appInfo.uid;
+        appInfo.appuid = appUid1;
         bundleInfo.uid = appUid1;
-        bundleInfo.appuid = bundleInfo.uid;
+        bundleInfo.appuid = appUid1;
         bundleInfo.name = bundleName;
         bundleInfo.applicationInfo = appInfo;
         bundleInfo.hapModuleInfos.push_back(hapModuleInfo);
@@ -286,15 +285,13 @@ void BundleMgrService::PushTestHelloIndexAbility(int index)
     info.applicationName = "helloworld";
     info.applicationInfo.name = "helloworld";
     info.process = "p1";
-    info.applicationInfo.uid = -1;
-    info.applicationInfo.appuid = info.applicationInfo.uid;
+    info.applicationInfo.appuid = -1;
     info.deviceId = "deviceId";
     info.visible = true;
 
     BundleInfo bundleInfo;
     bundleInfo.name = COM_OHOS_HELLO + std::to_string(index);
-    bundleInfo.uid = info.applicationInfo.uid;
-    bundleInfo.appuid = bundleInfo.uid;
+    bundleInfo.appuid = info.applicationInfo.appuid;
     bundleInfo.abilityInfos.emplace_back(info);
     bundleInfo.applicationInfo = info.applicationInfo;
     bundleInfos_.emplace_back(bundleInfo);
@@ -309,15 +306,13 @@ void BundleMgrService::PushTestSpecialAbility()
     info.applicationName = "helloworld";
     info.applicationInfo.name = "helloworld";
     info.process = "p1";
-    info.applicationInfo.uid = -1;
-    info.applicationInfo.appuid = info.applicationInfo.uid;
+    info.applicationInfo.appuid = -1;
     info.deviceId = "deviceId";
     info.visible = true;
 
     BundleInfo bundleInfo;
     bundleInfo.name = COM_OHOS_SPECIAL;
-    bundleInfo.uid = info.applicationInfo.uid;
-    bundleInfo.appuid = bundleInfo.uid;
+    bundleInfo.appuid = info.applicationInfo.appuid;
     bundleInfo.abilityInfos.emplace_back(info);
     bundleInfo.applicationInfo = info.applicationInfo;
     bundleInfos_.emplace_back(bundleInfo);
@@ -332,15 +327,13 @@ void BundleMgrService::PushTestHelloAbility()
     info.applicationName = "helloworld";
     info.applicationInfo.name = "helloworld";
     info.process = "p1";
-    info.applicationInfo.uid = -1;
-    info.applicationInfo.appuid = info.applicationInfo.uid;
+    info.applicationInfo.appuid = -1;
     info.deviceId = "deviceId";
     info.visible = true;
 
     BundleInfo bundleInfo;
     bundleInfo.name = COM_OHOS_HELLO;
-    bundleInfo.uid = info.applicationInfo.uid;
-    bundleInfo.appuid = bundleInfo.uid;
+    bundleInfo.appuid = info.applicationInfo.appuid;
     bundleInfo.abilityInfos.emplace_back(info);
     bundleInfo.applicationInfo = info.applicationInfo;
     bundleInfos_.emplace_back(bundleInfo);
@@ -361,13 +354,11 @@ void BundleMgrService::MakingResidentProcData()
     int appUid = 2100;
     int appUid1 = 2101;
     BundleInfo bundleInfo;
-    bundleInfo.uid = appUid;
-    bundleInfo.appuid = bundleInfo.uid;
+    bundleInfo.appuid = appUid;
     bundleInfo.name = "KeepAliveApplication";
 
     BundleInfo bundleInfo1;
-    bundleInfo1.uid = appUid1;
-    bundleInfo1.appuid = bundleInfo1.uid;
+    bundleInfo1.appuid = appUid1;
     bundleInfo1.name = "KeepAliveApplication1";
 
     bundleInfos_.emplace_back(bundleInfo);

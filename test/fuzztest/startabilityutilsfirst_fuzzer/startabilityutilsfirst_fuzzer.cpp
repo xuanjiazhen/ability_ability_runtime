@@ -108,8 +108,7 @@ AbilityInfo BuildFuzzAbilityInfo(const char* data, size_t size)
     info.name = std::string(data + INPUT_THREE, size % MAX_STR_LEN);
     info.allowSelfRedirect = true;
     info.linkType = static_cast<LinkType>(GetU32Data(data));
-    info.applicationInfo.uid = static_cast<int32_t>(GetU32Data(data));
-    info.applicationInfo.appuid = info.applicationInfo.uid;
+    info.applicationInfo.appuid = static_cast<int32_t>(GetU32Data(data));
     return info;
 }
 

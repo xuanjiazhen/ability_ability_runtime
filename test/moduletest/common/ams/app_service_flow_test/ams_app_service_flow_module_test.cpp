@@ -123,11 +123,9 @@ TestApplicationPreRunningRecord AmsAppServiceFlowModuleTest::TestCreateApplicati
 
     appInfo->name = appName;
     appInfo->bundleName = appName;  // specify process condition
-    appInfo->uid = 0;
-    appInfo->appuid = appInfo->uid;
+    appInfo->appuid = 0;
     abilityInfo->name = abilityName;
-    abilityInfo->applicationInfo.uid = 0;
-    abilityInfo->applicationInfo.appuid = abilityInfo->applicationInfo.uid;
+    abilityInfo->applicationInfo.appuid = 0;
     sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
     outToken = token;
 
@@ -136,7 +134,7 @@ TestApplicationPreRunningRecord AmsAppServiceFlowModuleTest::TestCreateApplicati
     EXPECT_FALSE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, 0));
 
     auto appRecord = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, appName, appInfo->uid, bundleInfo);
+        appInfo->name, appName, appInfo->appuid, bundleInfo);
     if (!appRecord) {
         auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
         loadParam->token = token;

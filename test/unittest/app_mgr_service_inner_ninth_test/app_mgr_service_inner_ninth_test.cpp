@@ -634,8 +634,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, HandlePreloadApplication_004, TestSize.Lev
     request.abilityInfo = std::make_shared<AbilityInfo>();
     request.appInfo = std::make_shared<ApplicationInfo>();
     request.bundleInfo.name = "com.test.app";
-    request.bundleInfo.uid = 1000;
-    request.bundleInfo.appuid = request.bundleInfo.uid;
+    request.bundleInfo.appuid = 1000;
     request.hapModuleInfo.name = "entry";
     request.hapModuleInfo.bundleName = "com.test.app";
     request.want = std::make_shared<AAFwk::Want>();
@@ -680,8 +679,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, HandlePreloadApplication_005, TestSize.Lev
     request.appInfo = std::make_shared<ApplicationInfo>();
     request.appInfo->name = "com.test.app";
     request.bundleInfo.name = "com.test.app";
-    request.bundleInfo.uid = 1000;
-    request.bundleInfo.appuid = request.bundleInfo.uid;
+    request.bundleInfo.appuid = 1000;
     request.hapModuleInfo.name = "entry";
     request.hapModuleInfo.bundleName = "com.test.app";
     request.want = std::make_shared<AAFwk::Want>();
@@ -725,8 +723,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, HandlePreloadApplication_006, TestSize.Lev
     request.appInfo = std::make_shared<ApplicationInfo>();
     request.appInfo->name = "com.test.app";
     request.bundleInfo.name = "com.test.app";
-    request.bundleInfo.uid = 1000;
-    request.bundleInfo.appuid = request.bundleInfo.uid;
+    request.bundleInfo.appuid = 1000;
     request.hapModuleInfo.name = "entry";
     request.hapModuleInfo.bundleName = "com.test.app";
     request.want = std::make_shared<AAFwk::Want>();

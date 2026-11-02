@@ -798,8 +798,7 @@ HWTEST_F(KeepAliveProcessManagerTest, FilterNeedRestartKeepAliveBundleInfos_001,
     GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest FilterNeedRestartKeepAliveBundleInfos_001 start";
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
     AppExecFwk::BundleInfo bundleInfo;
-    bundleInfo.uid = 12345;
-    bundleInfo.appuid = bundleInfo.uid;
+    bundleInfo.appuid = 12345;
     bundleInfos.emplace_back(bundleInfo);
     KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.clear();
     KeepAliveProcessManager::GetInstance().FilterNeedRestartKeepAliveBundleInfos(bundleInfos);
@@ -820,8 +819,7 @@ HWTEST_F(KeepAliveProcessManagerTest, FilterNeedRestartKeepAliveBundleInfos_002,
     GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest FilterNeedRestartKeepAliveBundleInfos_002 start";
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
     AppExecFwk::BundleInfo bundleInfo;
-    bundleInfo.uid = 12345;
-    bundleInfo.appuid = bundleInfo.uid;
+    bundleInfo.appuid = 12345;
     bundleInfos.emplace_back(bundleInfo);
     KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.emplace(12345);
     KeepAliveProcessManager::GetInstance().FilterNeedRestartKeepAliveBundleInfos(bundleInfos);
@@ -1640,8 +1638,7 @@ HWTEST_F(KeepAliveProcessManagerTest, StartKeepAliveProcessWithMainElement_003, 
     auto keepAliveProcessManager = std::make_shared<KeepAliveProcessManager>();
     AppExecFwk::BundleInfo bundleInfo;
     bundleInfo.name = "testBundle";
-    bundleInfo.uid = MOCK_TEST_UID;
-    bundleInfo.appuid = bundleInfo.uid;
+    bundleInfo.appuid = MOCK_TEST_UID;
     std::vector<AppExecFwk::BundleInfo> bundleInfos = {bundleInfo};
     int32_t testUser = 0;
     AbilityManagerService::userId_ = testUser;
@@ -1703,8 +1700,7 @@ HWTEST_F(KeepAliveProcessManagerTest, StartKeepAliveProcessWithMainElementPerBun
     auto keepAliveProcessManager = std::make_shared<KeepAliveProcessManager>();
     AppExecFwk::BundleInfo bundleInfo;
     bundleInfo.name = "testBundle";
-    bundleInfo.uid = MOCK_TEST_UID;
-    bundleInfo.appuid = bundleInfo.uid;
+    bundleInfo.appuid = MOCK_TEST_UID;
     int32_t testUser = 100;
     keepAliveProcessManager->StartKeepAliveProcessWithMainElementPerBundle(bundleInfo, testUser);
     bool usedSupportStatusBarTimes = AbilityManagerService::usedSupportStatusBarTimes;
@@ -1735,8 +1731,7 @@ HWTEST_F(KeepAliveProcessManagerTest, StartKeepAliveProcessWithMainElementPerBun
     auto keepAliveProcessManager = std::make_shared<KeepAliveProcessManager>();
     AppExecFwk::BundleInfo bundleInfo;
     bundleInfo.name = "testBundle";
-    bundleInfo.uid = MOCK_TEST_UID;
-    bundleInfo.appuid = bundleInfo.uid;
+    bundleInfo.appuid = MOCK_TEST_UID;
     int32_t testUser = 100;
     keepAliveProcessManager->StartKeepAliveProcessWithMainElementPerBundle(bundleInfo, testUser);
     int32_t testResult = AbilityManagerService::usedSupportStatusBarTimes;

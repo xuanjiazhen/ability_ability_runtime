@@ -43,8 +43,7 @@ public:
             return false;
         }
         appInfo.appDistributionType = "debug";
-        appInfo.uid = 1000;
-        appInfo.appuid = appInfo.uid;
+        appInfo.appuid = 1000;
         return true;
     }
     ErrCode GetDualModeBundleInfo(const std::string &bundleName, int32_t userId, int32_t &appIndex)

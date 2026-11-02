@@ -679,27 +679,26 @@ HWTEST_F(AppRunningManagerTest, IsAppProcessesAllCached_0100, TestSize.Level1)
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "com.tdd.cacheprocesstest";
     appInfo->apiTargetVersion = 12;
-    appInfo->uid = 1010101;
-    appInfo->appuid = appInfo->uid;
+    appInfo->appuid = 1010101;
     int32_t recordId1 = RECORD_ID;
     int32_t recordId2 = RECORD_ID + 1;
     std::string processName = "com.tdd.cacheprocesstest";
     auto appRunningRecord1 = std::make_shared<AppRunningRecord>(appInfo, recordId1, processName);
-    appRunningRecord1->SetUid(appInfo->uid);
+    appRunningRecord1->SetUid(appInfo->appuid);
     appRunningRecord1->SetSupportedProcessCache(true);
     appRunningRecord1->SetUIAbilityLaunched(true);
     auto appRunningRecord2 = std::make_shared<AppRunningRecord>(appInfo, recordId2, processName);
-    appRunningRecord2->SetUid(appInfo->uid);
+    appRunningRecord2->SetUid(appInfo->appuid);
     appRunningRecord2->SetSupportedProcessCache(true);
     appRunningRecord2->SetUIAbilityLaunched(true);
 
     appRunningManager->appRunningRecordMap_.insert(make_pair(recordId1, appRunningRecord1));
     std::set<std::shared_ptr<AppRunningRecord>> cachedSet;
     cachedSet.insert(appRunningRecord1);
-    EXPECT_EQ(appRunningManager->IsAppProcessesAllCached(appInfo->bundleName, appInfo->uid, cachedSet), true);
+    EXPECT_EQ(appRunningManager->IsAppProcessesAllCached(appInfo->bundleName, appInfo->appuid, cachedSet), true);
 
     appRunningManager->appRunningRecordMap_.insert(make_pair(recordId2, appRunningRecord2));
-    EXPECT_EQ(appRunningManager->IsAppProcessesAllCached(appInfo->bundleName, appInfo->uid, cachedSet), false);
+    EXPECT_EQ(appRunningManager->IsAppProcessesAllCached(appInfo->bundleName, appInfo->appuid, cachedSet), false);
 }
 
 /**
@@ -1152,8 +1151,7 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_IsAppInfoMatch_0200, TestSize.
     int uid = 1000;
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->name = appName;
-    appInfo->uid = uid;
-    appInfo->appuid = appInfo->uid;
+    appInfo->appuid = uid;
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, AppRecordId::Create(), "processName");
     EXPECT_TRUE(AppRunningManager::IsAppInfoMatch(appInfo, appName, uid, appRecord));
 }

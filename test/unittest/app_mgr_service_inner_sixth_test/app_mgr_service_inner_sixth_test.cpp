@@ -716,8 +716,7 @@ HWTEST_F(AppMgrServiceInnerSixthTest, TryToUseImageInfo_ShouldReturnErrOkWhenIma
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = bundleName;
-    appInfo->uid = userId * BASE_USER_RANGE;
-    appInfo->appuid = appInfo->uid;
+    appInfo->appuid = userId * BASE_USER_RANGE;
     PreloadRequest preloadRequest;
     appMgrServiceInner->PreAddImageInfo(bundleName, userId, appIndex, nullptr, preloadRequest);
     EXPECT_EQ(appMgrServiceInner->TryToUseImageInfo(nullptr, appInfo, nullptr, "callerKey", appIndex, processName,

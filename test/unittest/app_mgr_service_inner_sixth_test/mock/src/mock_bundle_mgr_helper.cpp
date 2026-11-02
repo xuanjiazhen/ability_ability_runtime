@@ -30,8 +30,7 @@ BundleMgrHelper::~BundleMgrHelper() {}
 bool BundleMgrHelper::QueryAbilityInfo(const Want& want, int32_t flags, int32_t userId, AbilityInfo& abilityInfo)
 {
     ApplicationInfo applicationInfo;
-    applicationInfo.uid = USER_ID;
-    applicationInfo.appuid = applicationInfo.uid;
+    applicationInfo.appuid = USER_ID;
     abilityInfo.applicationInfo = applicationInfo;
     return !!(AAFwk::MyFlag::flag1_);
 }

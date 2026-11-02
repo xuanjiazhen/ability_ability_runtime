@@ -59,8 +59,7 @@ std::shared_ptr<AppRunningRecord> CacheProcessManagerTest::MockAppRecord(int api
 {
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = DEFAULT_BUNDLE_NAME;
-    appInfo->uid = DEFAULT_UID;
-    appInfo->appuid = appInfo->uid;
+    appInfo->appuid = DEFAULT_UID;
     appInfo->accessTokenId = 1;
     appInfo->apiTargetVersion = apiLevel;
     std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId++, "process");

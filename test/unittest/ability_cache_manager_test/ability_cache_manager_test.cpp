@@ -1097,7 +1097,7 @@ HWTEST_F(AbilityCacheManagerTest, AbilityCacheManagerSignRestartAppFlag_001, Tes
     int recId = abilityRecord_->GetRecordId();
     std::shared_ptr<BaseExtensionRecord> rec = OHOS::AAFwk::AbilityCacheManager::GetInstance().Put(abilityRecord_);
     EXPECT_EQ(rec, nullptr);
-    OHOS::AAFwk::AbilityCacheManager::GetInstance().SignRestartAppFlag(applicationInfo.uid, "");
+    OHOS::AAFwk::AbilityCacheManager::GetInstance().SignRestartAppFlag(applicationInfo.appuid, "");
     AbilityRequest abilityRequest;
     abilityRequest.abilityInfo = abilityInfo;
     abilityRequest.appInfo = applicationInfo;
@@ -1445,8 +1445,7 @@ HWTEST_F(AbilityCacheManagerTest, SignRestartAppFlag_001, TestSize.Level2)
     abilityInfo.moduleName = "TestModule";
     abilityInfo.bundleName = "TestBundle";
     AppExecFwk::ApplicationInfo appInfo;
-    appInfo.uid = 1000;
-    appInfo.appuid = appInfo.uid;
+    appInfo.appuid = 1000;
     Want want;
     auto rec = std::make_shared<BaseExtensionRecord>(want, abilityInfo, appInfo);
     rec->Init(AbilityRequest());
