@@ -27,9 +27,7 @@ public:
 
     static uint32_t GetCallingTokenID();
     static uint32_t GetCallingPid();
-
     static pid_t GetCallingAppUid();
-
     static uint32_t GetCallingUid();
 
     static void SetCallingTokenId(uint32_t tokenId);
