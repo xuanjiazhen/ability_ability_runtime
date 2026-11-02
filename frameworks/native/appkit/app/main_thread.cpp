@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2320,7 +2320,8 @@ void MainThread::ProcessExit(const ProcessExitInfo& info)
     exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_ERROR;
     int32_t result = ERR_INVALID_VALUE;
     if (applicationInfo_ != nullptr) {
-        result = AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, applicationInfo_->appuid, exitReason);
+        result = AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, applicationInfo_->appuid,
+            exitReason);
     } else {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationInfo, skip exit reason record");
     }

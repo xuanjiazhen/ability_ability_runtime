@@ -625,7 +625,8 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     if (abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
         appRecord = !AAFwk::AppUtils::GetInstance().InOnNewProcessEnableList(bundleInfo.name) ? nullptr :
-            appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(appInfo->appuid, instanceKey, customProcessFlag);
+            appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(appInfo->appuid, instanceKey,
+                customProcessFlag);
     }
     if (appRecord != nullptr) {
         TAG_LOGI(AAFwkTag::APPMGR, "starting process [%{public}s]", processName.c_str());
@@ -1621,7 +1622,8 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
     appRecord = CreateAppRunningRecordFromImageInfo(imageInfo);
     if (appRecord == nullptr) {
         SnapshotErrorReport(appInfo->appuid, appInfo->bundleName, appInfo->versionName, -1, "appRecord not exist");
-        SaveHyperSnapError(appInfo->appuid, HyperSnapErrorType::FORK_FROM_SNAPSHOT, HyperSnapErrorCode::ERR_SYSTEM_INNER);
+        SaveHyperSnapError(appInfo->appuid, HyperSnapErrorType::FORK_FROM_SNAPSHOT,
+            HyperSnapErrorCode::ERR_SYSTEM_INNER);
         TAG_LOGE(AAFwkTag::APPMGR, "Saved FORK_FROM_SNAPSHOT error: CreateAppRunningRecordFromImageInfo failed");
         return ERR_OK;
     }
@@ -1659,7 +1661,8 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
         SnapshotErrorReport(-1, appInfo->bundleName, appInfo->versionName, errCode, "forkall failed");
 
         auto imageError = GetCheckpointRestoreError(imageInfo->imagePid, imageInfo->imageName);
-        SaveHyperSnapError(appInfo->appuid, HyperSnapErrorType::FORK_FROM_SNAPSHOT, ConvertImageErrorToHyperSnapCode(imageError));
+        SaveHyperSnapError(appInfo->appuid, HyperSnapErrorType::FORK_FROM_SNAPSHOT,
+            ConvertImageErrorToHyperSnapCode(imageError));
 
         return ERR_OK;
     }
@@ -2015,8 +2018,8 @@ bool AppMgrServiceInner::CheckAppRecordExistByPreloadRequest(const PreloadReques
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
         return false;
     }
-    auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->appuid, request.bundleInfo,
-        specifiedProcessFlag, nullptr, "", "", true, false);
+    auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName,
+        appInfo->appuid, request.bundleInfo, specifiedProcessFlag, nullptr, "", "", true, false);
     return appRecord != nullptr;
 }
 
@@ -7398,8 +7401,8 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
     std::shared_ptr<AppRunningRecord> appRecord;
     auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
     auto customProcessFlag = param.customProcess;
-    appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->appuid, bundleInfo,
-        "", nullptr, instanceKey, customProcessFlag);
+    appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->appuid,
+        bundleInfo, "", nullptr, instanceKey, customProcessFlag);
     if (!appRecord) {
         auto ret = TryToUseImageInfo(abilityInfoPtr, appInfo, nullptr, "", appIndex, processName,
             instanceKey, "", customProcessFlag, appRecord, false);
@@ -7456,8 +7459,8 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
         appRecord->SetAppIndex(appIndex);
         appRecord->SetExtensionSandBoxFlag(isExtensionSandBox);
         uint64_t startFlags = AppspawnUtil::BuildStartFlags(want, abilityInfo);
-        StartProcess(appInfo->name, processName, startFlags, appRecord, appInfo->appuid, bundleInfo, appInfo->bundleName,
-            appIndex, appExistFlag);
+        StartProcess(appInfo->name, processName, startFlags, appRecord, appInfo->appuid, bundleInfo,
+            appInfo->bundleName, appIndex, appExistFlag);
 
         appRecord->SetSpecifiedAbilityFlagAndWant(param.requestId, want, hapModuleInfo.moduleName);
         appRecord->AddModules(appInfo, hapModules);

@@ -3782,7 +3782,8 @@ int32_t AbilityManagerService::StartUIAbilityBySCBDefaultCommon(AbilityRequest &
 {
     const auto &abilityInfo = abilityRequest.abilityInfo;
     if (!AbilityUtil::IsSystemDialogAbility(abilityInfo.bundleName, abilityInfo.name)) {
-        int32_t result = PreLoadAppDataAbilities(abilityInfo.bundleName, IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE);
+        int32_t result = PreLoadAppDataAbilities(abilityInfo.bundleName,
+            IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE);
         if (result != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility: app data ability preloading failed, '%{public}s', %{public}d",
                 abilityInfo.bundleName.c_str(), result);
@@ -13171,7 +13172,8 @@ int AbilityManagerService::RegisterWindowManagerServiceHandler(const sptr<IWindo
     bool animationEnabled)
 {
     if (IPCSkeleton::GetCallingAppUid() != SAMGR_UID) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "register wms handler permission fail:%{public}d", IPCSkeleton::GetCallingAppUid());
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "register wms handler permission fail:%{public}d",
+            IPCSkeleton::GetCallingAppUid());
         return CHECK_PERMISSION_FAILED;
     }
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
