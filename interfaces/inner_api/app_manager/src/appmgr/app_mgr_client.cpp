@@ -25,6 +25,7 @@
 #include "app_mem_info.h"
 #include "app_mgr_interface.h"
 #include "app_service_manager.h"
+#include "app_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "param.h"
@@ -54,6 +55,10 @@ public:
 
     sptr<IRemoteObject> GetRemoteObject()
     {
+        if (AAFwk::AppUtils::GetInstance().IsForbidStart()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start");
+            return nullptr;
+        }
         std::lock_guard<std::mutex> lock(mutex_);
         if (!remote_) {
             (void) ConnectAppMgrServiceInner();

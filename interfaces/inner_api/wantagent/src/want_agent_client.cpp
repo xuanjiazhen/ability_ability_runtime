@@ -19,6 +19,7 @@
 #include "ability_manager_errors.h"
 #include "ability_manager_interface.h"
 #include "ability_util.h"
+#include "app_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_chain_utils.h"
 #include "hitrace_meter.h"
@@ -482,6 +483,10 @@ void WantAgentClient::RegisterWantAgentHolder(const sptr<IWantSender> &target)
 sptr<IRemoteObject> WantAgentClient::GetAbilityManager()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::WANTAGENT, "forbid start");
+        return nullptr;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     if (proxy_ == nullptr) {
         auto systemManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
