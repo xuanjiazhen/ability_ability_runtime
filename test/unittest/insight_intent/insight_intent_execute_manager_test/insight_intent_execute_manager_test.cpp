@@ -101,6 +101,9 @@ HWTEST_F(InsightIntentExecuteManagerTest, GenerateWant_0200, TestSize.Level1)
     // get display id of want
     auto displayId = want.GetIntParam(Want::PARAM_RESV_DISPLAY_ID, -100);
     EXPECT_EQ(displayId, 2);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
 /**
  * @tc.name: RemoveExecuteIntent_0100
  * @tc.desc: Test RemoveExecuteIntent with valid intentId.
@@ -136,9 +139,6 @@ HWTEST_F(InsightIntentExecuteManagerTest, RemoveExecuteIntent_0100, TestSize.Lev
     TAG_LOGI(AAFwkTag::TEST, "RemoveExecuteIntent_0100 end.");
 }
 
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
-
 /**
  * @tc.name: RemoveExecuteIntent_0200
  * @tc.desc: Test RemoveExecuteIntent with non-existent intentId.
@@ -154,6 +154,9 @@ HWTEST_F(InsightIntentExecuteManagerTest, RemoveExecuteIntent_0200, TestSize.Lev
     uint64_t invalidIntentId = 99999;
     auto ret = manager->RemoveExecuteIntent(invalidIntentId);
     EXPECT_EQ(ret, ERR_OK);  // Remove doesn't return error for non-existent
+
+    TAG_LOGI(AAFwkTag::TEST, "RemoveExecuteIntent_0200 end.");
+}
 
 /**
  * @tc.name: GetBundleName_0100
@@ -310,9 +313,6 @@ HWTEST_F(InsightIntentExecuteManagerTest, ExecuteIntentDone_0200, TestSize.Level
     TAG_LOGI(AAFwkTag::TEST, "ExecuteIntentDone_0200 end.");
 }
 
-    TAG_LOGI(AAFwkTag::TEST, "RemoveExecuteIntent_0200 end.");
-}
-
 /**
  * @tc.name: CheckCallerPermission_0100
  * @tc.desc: Test CheckCallerPermission static method.
@@ -325,6 +325,9 @@ HWTEST_F(InsightIntentExecuteManagerTest, CheckCallerPermission_0100, TestSize.L
     auto ret = InsightIntentExecuteManager::CheckCallerPermission();
     // Result depends on system permissions, just check it doesn't crash
     EXPECT_TRUE(ret == ERR_OK || ret == ERR_PERMISSION_DENIED);
+
+    TAG_LOGI(AAFwkTag::TEST, "CheckCallerPermission_0100 end.");
+}
 
 /**
  * @tc.name: SetIntentExemptionInfo_0100
@@ -408,9 +411,6 @@ HWTEST_F(InsightIntentExecuteManagerTest, GenerateWant_0300, TestSize.Level1)
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "GenerateWant_0300 end.");
-}
-
-    TAG_LOGI(AAFwkTag::TEST, "CheckCallerPermission_0100 end.");
 }
 
 /**
