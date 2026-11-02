@@ -612,6 +612,9 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0400, TestSize.Leve
     InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, extractInfo, want);
     startTime = want.GetStringParam(Want::PARAM_RESV_START_TIME);
     EXPECT_FALSE(startTime.empty());
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
 /**
  * @tc.name: GenerateWant_0500
  * @tc.desc: GenerateWant_0500
@@ -635,9 +638,6 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0500, TestSize.Leve
     Want want;
     int32_t result = InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, extractInfo, want);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
-
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
 
