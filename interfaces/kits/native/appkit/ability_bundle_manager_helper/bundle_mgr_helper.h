@@ -107,6 +107,10 @@ public:
     bool GetHapModuleInfo(const AbilityInfo &abilityInfo, int32_t userId, HapModuleInfo &hapModuleInfo);
     bool QueryAppGalleryBundleName(std::string &bundleName);
     ErrCode GetUidByBundleName(const std::string &bundleName, int32_t userId, int32_t appCloneIndex);
+    ErrCode GetAppProvisionInfo(
+        const std::string &bundleName, int32_t userId, AppProvisionInfo &appProvisionInfo);
+    ErrCode GetLaunchServices(const std::string &bundleName, const std::string &moduleName,
+        int32_t userId, LaunchServicesResult &result);
     ErrCode QueryExtensionAbilityInfosOnlyWithTypeName(const std::string &extensionTypeName,
         const uint32_t flag, const int32_t userId, std::vector<ExtensionAbilityInfo> &extensionInfos);
     sptr<IDefaultApp> GetDefaultAppProxy();

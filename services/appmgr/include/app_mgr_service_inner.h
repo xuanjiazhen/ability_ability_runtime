@@ -20,6 +20,7 @@
 #include <map>
 #include <mutex>
 #include <regex>
+#include <shared_mutex>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -61,6 +62,7 @@
 #endif // SUPPORT_CHILD_PROCESS
 #include "configuration_policy.h"
 #include "cpp/mutex.h"
+#include "daemon_service_info.h"
 #include "event_report.h"
 #include "exit_resident_process_manager.h"
 #include "fault_data.h"
@@ -77,6 +79,8 @@
 #include "istart_specified_ability_response.h"
 #include "kia_interceptor_interface.h"
 #include "kill_process_config.h"
+#include "launch_service_info.h"
+#include "launch_service_observer.h"
 #include "process_memory_state.h"
 #include "process_options.h"
 #include "process_util.h"
@@ -1912,6 +1916,21 @@ public:
      */
     bool CheckProcessAvailable(const std::shared_ptr<AppRunningRecord> &appRecord);
 
+    int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+        AbilityRuntime::LaunchServiceInformation &information, int32_t callerUid);
+    int32_t GetAllLaunchServiceInformations(std::vector<AbilityRuntime::LaunchServiceInformation> &informations,
+        int32_t userId, int32_t callerUserId);
+    int32_t SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        const std::vector<uint8_t> &token, bool enable, int32_t callerUserId);
+    int32_t RegisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer, int32_t callerUserId);
+    int32_t UnregisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = -1);
@@ -2547,6 +2566,42 @@ private:
     void SetKeepAliveAppServiceAndNotify(const std::shared_ptr<AppRunningRecord>& appRecord, bool enable);
     bool GetKeepAliveState(const std::shared_ptr<AppRunningRecord> &appRecord);
     void OnProcessDied(std::shared_ptr<AppRunningRecord> appRecord);
+    struct LaunchServiceKey {
+        std::string bundleName;
+        std::string moduleName;
+        std::string serviceName;
+        int32_t userId = 0;
+        int32_t appIndex = 0;
+
+        bool operator==(const LaunchServiceKey &other) const;
+
+        struct Hash {
+            size_t operator()(const LaunchServiceKey &key) const;
+        };
+    };
+    struct LaunchServiceRuntimeRecord {
+        LaunchService service;
+        int32_t uid = -1;
+        int32_t pid = 0;
+        uint32_t restartCount = 0;
+    };
+    void StartLaunchServices(const std::string &bundleName, int32_t userId, int32_t appIndex, bool runAtLoadOnly);
+    int32_t StartLaunchService(
+        const LaunchServiceKey &key, const LaunchService &service, uint32_t restartCount = 0);
+    int32_t StopLaunchService(const LaunchServiceKey &key);
+    int32_t SpawnDaemonProcess(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t &pid, int32_t &uid);
+    void NotifyLaunchServiceStateChanged(
+        const AAFwk::LaunchServiceDescriptor &descriptor, AbilityRuntime::LaunchServiceState state);
+    void NotifyLaunchServiceProcessStateChanged(const LaunchServiceKey &key, int32_t pid,
+        AbilityRuntime::LaunchServiceProcessState state);
+    void HandleLaunchServiceProcessDied(int32_t pid);
+    void RestartLaunchService(const LaunchServiceKey &key);
+    void StopLaunchServices(const std::string &bundleName, int32_t userId, int32_t appIndex);
+    void UnregisterLaunchServicesByUid(int32_t uid);
+    void CleanupLaunchServicesByUid(int32_t uid);
+    void HandleLaunchServiceUninstallOrUpgrade(const std::string &bundleName, int32_t uid, bool isUpgrade);
+    void HandleLaunchServiceUpgradeEnd(int32_t uid);
+    std::string GetLaunchServiceRestartTaskName(const LaunchServiceKey &key) const;
     bool IsBlockedByDisposeRules(const std::string &bundleName, int32_t userId,
         int32_t appIndex);
     int32_t PreCheckStartProcess(const std::string &bundleName, int32_t uid, int32_t appIndex);
@@ -2635,6 +2690,10 @@ private:
     std::unordered_set<int32_t> renderProcessIsolationUidSet_;
     std::unordered_set<int32_t> childProcessIsolationUidSet_;
     std::unordered_set<int32_t> uninstallOrUpgradeUidSet_ {};
+    mutable std::shared_mutex launchServiceMutex_;
+    std::unordered_map<LaunchServiceKey, LaunchServiceRuntimeRecord, LaunchServiceKey::Hash>
+        launchServiceRuntimeRecords_;
+    std::unordered_map<int32_t, std::vector<LaunchServiceKey>> upgradingLaunchServiceKeys_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
 
     std::vector<AppStateCallbackWithUserId> appStateCallbacks_;
