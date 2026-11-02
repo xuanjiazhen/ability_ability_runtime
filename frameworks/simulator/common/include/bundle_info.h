@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -109,6 +109,7 @@ struct BundleInfo {
 
     // user related fields, assign when calling the get interface
     int uid = -1;
+    int32_t appuid = -1;
     int gid = -1;
     int64_t installTime = 0;
     int64_t updateTime = 0;
