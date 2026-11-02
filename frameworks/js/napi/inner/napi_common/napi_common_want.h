@@ -30,7 +30,7 @@ namespace AppExecFwk {
 napi_value WrapElementName(napi_env env, const ElementName &elementName);
 bool UnwrapElementName(napi_env env, napi_value param, ElementName &elementName);
 
-napi_value WrapWantParams(napi_env env, const AAFwk::WantParams &wantParams);
+napi_value WrapWantParams(napi_env env, const AAFwk::WantParams &wantParams, bool needErase = false);
 bool UnwrapWantParams(napi_env env, napi_value param, AAFwk::WantParams &wantParams);
 bool UnwrapWantParams(napi_env env, napi_value param, AAFwk::WantParams &wantParams,
     const std::string &proNameNotFilter);
