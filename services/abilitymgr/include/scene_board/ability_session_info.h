@@ -36,6 +36,22 @@ struct AbilitySessionInfo {
     int32_t callerAppCloneIndex = 0;
     // Task attribution key (ohos.aafwk.param.taskId) cached from the original caller want.
     std::string taskId;
+    // Insight intent identity snapshot taken before the SCB relay; has* marks conditional params.
+    bool hasInsightIntent = false;
+    std::string insightIntentName;
+    std::string insightIntentId;
+    int32_t insightIntentMode = 0;
+    bool hasInsightIntentMode = false;
+    int32_t insightIntentOpenLinkFlag = 0;
+    bool hasInsightIntentOpenLinkFlag = false;
+    std::string insightIntentCallerBundleName;
+    std::string insightIntentCallerTokenId;
+    int32_t insightIntentCallerUid = 0;
+    bool hasInsightIntentCallerInfo = false;
+    int32_t insightIntentUserId = 0;
+    bool hasInsightIntentUserId = false;
+    int32_t insightIntentParamUserId = 0;
+    bool hasInsightIntentParamUserId = false;
 };
 
 #endif // OHOS_ABILITY_RUNTIME_ABILITY_SESSION_INFO_H
