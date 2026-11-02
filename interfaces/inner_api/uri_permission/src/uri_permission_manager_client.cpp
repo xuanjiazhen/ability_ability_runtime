@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,8 @@
  */
 
 #include "uri_permission_manager_client.h"
+
+#include <unistd.h>
 
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
@@ -32,8 +34,8 @@ constexpr int32_t BROKER_UID = 5557;
 bool CheckUseRawData()
 {
     // broker can't use raw data
-    auto selfUID = getuid();
-    return selfUID != BROKER_UID;
+    auto selfAppUid = getappuid();
+    return selfAppUid != BROKER_UID;
 }
 } // namespace
 
