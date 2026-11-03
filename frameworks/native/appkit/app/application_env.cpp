@@ -16,6 +16,11 @@
 #include "application_env.h"
 #include "application_env_impl.h"
 
+#include <cstring>
+#include "application_context.h"
+#include "hilog_tag_wrapper.h"
+#include "securec.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -86,6 +91,39 @@ void ClearAppPreload()
     if (pApplicationEnvIml) {
         pApplicationEnvIml->ClearAppPreloadType();
     }
+}
+
+bool InvokeAppFreezeFilterCallback(int32_t pid, int32_t needDecreaseQuota,
+                                   char *eventConfigKey, int32_t keyBufSize)
+{
+    if (eventConfigKey == nullptr || keyBufSize <= 0) {
+        return false;
+    }
+    auto applicationContext = OHOS::AbilityRuntime::ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        return false;
+    }
+    auto callback = applicationContext->GetAppFreezeFilterCallback();
+    if (!callback) {
+        return false;
+    }
+    std::string key(eventConfigKey);
+    bool allowed = callback(pid, needDecreaseQuota != 0, key);
+    if (allowed) {
+        // On success the callback writes the resolved config value back into key.
+        // Copy it out to the caller's buffer (truncated if too long).
+        int32_t copyLen = static_cast<int32_t>(key.size());
+        if (copyLen >= keyBufSize) {
+            copyLen = keyBufSize - 1;
+        }
+        errno_t ret = memcpy_s(eventConfigKey, keyBufSize, key.c_str(), copyLen);
+        if (ret != EOK) {
+            TAG_LOGE(AAFwkTag::APPKIT, "memcpy_s failed, ret=%d", ret);
+            return false;
+        }
+        eventConfigKey[copyLen] = '\0';
+    }
+    return allowed;
 }
 
 #ifdef __cplusplus
