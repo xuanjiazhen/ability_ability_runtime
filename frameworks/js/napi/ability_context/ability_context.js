@@ -229,8 +229,8 @@ class AbilityContext extends Context {
     return this.__context_impl__.requestModalUIExtensionWithAccount(want, accountId, callback);
   }
 
-  showAbility() {
-    return this.__context_impl__.showAbility();
+  showAbility(params) {
+    return this.__context_impl__.showAbility(params);
   }
 
   hideAbility() {

@@ -153,7 +153,8 @@ private:
     napi_value OnRequestModalUIExtensionWithAccount(napi_env env, NapiCallbackInfo& info);
     napi_value OnShowAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnHideAbility(napi_env env, NapiCallbackInfo& info);
-    napi_value ChangeAbilityVisibility(napi_env env, NapiCallbackInfo& info, bool isShow);
+    napi_value ChangeAbilityVisibility(napi_env env, NapiCallbackInfo& info, bool isShow,
+        const std::shared_ptr<Rosen::WindowShowParams> &params);
     napi_value OnMoveAbilityToBackground(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetRestoreEnabled(napi_env env, NapiCallbackInfo& info);
     bool CreateOpenLinkTask(const napi_env &env, const napi_value &lastParam, AAFwk::Want &want,
