@@ -21,6 +21,7 @@
 #include "ability_manager_service.h"
 #include "ability_permission_util.h"
 #include "ability_resident_process_rdb.h"
+#include "app_mgr_client.h"
 #include "ability_util.h"
 #include "agent_card.h"
 #include "agent_extension_connection_constants.h"
@@ -1031,6 +1032,23 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
     }
 
     UpdateStateAndCompleteDisconnect(abilityRecord, connect, token);
+
+    if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        int32_t recordId = connect->GetRecordId();
+        auto attribution = abilityRecord->GetTaskAttribution(recordId);
+        if (!attribution.first.empty() && attribution.second > 0) {
+            int32_t ret = IN_PROCESS_CALL(
+                DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterTaskForA2A(
+                    attribution.first, attribution.second));
+            if (ret == ERR_OK) {
+                abilityRecord->RemoveTaskAttribution(recordId);
+                abilityRecord->RemovePendingTaskAttribution(recordId);
+            } else {
+                TAG_LOGE(AAFwkTag::EXT,
+                    "A2A unregister failed, recordId=%{public}d, ret=%{public}d", recordId, ret);
+            }
+        }
+    }
 
     CleanupConnectionAndTerminateIfNeeded(abilityRecord);
 
