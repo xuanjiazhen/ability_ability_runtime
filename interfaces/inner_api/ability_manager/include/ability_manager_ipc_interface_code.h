@@ -807,11 +807,17 @@ enum class AbilityManagerInterfaceCode {
     // unregister listener that an insight intent is about to be executed
     UNREGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK = 6186,
 
-    // get pid by call stub (RSS only)
+// get pid by call stub (RSS only)
     GET_PID_BY_CALL_STUB = 6187,
 
     // get dynamic agent cards (API-source) from the old KV store for migration
     GET_DYNAMIC_AGENT_CARDS_FOR_MIGRATION = 6188,
+
+    // execute intent by agent (third-party agent function call)
+    EXECUTE_INTENT_BY_AGENT = 6189,
+
+    // query whether the given intent id belongs to an insight intent call
+    IS_INSIGHT_INTENT_CALL = 6190,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

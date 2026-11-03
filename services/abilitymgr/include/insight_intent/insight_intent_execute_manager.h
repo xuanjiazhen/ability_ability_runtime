@@ -45,8 +45,10 @@ struct InsightIntentExecuteRecord {
     sptr<IRemoteObject> callerToken = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient = nullptr;
     uint64_t key = 0;
-    std::string bundleName;
-    std::string callerBundleName;
+    std::string bundleName;           // target bundle name
+    int32_t targetBundleIndex = 0;    // target app (clone) index
+    std::string callerBundleName;     // caller bundle name
+    int32_t callerAppIndex = 0;       // caller app (clone) index
     AppExecFwk::InsightIntentExecutionInfo executionInfo;
     pid_t targetPid = 0;
     InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
@@ -92,6 +94,8 @@ struct ExecuteParam {
     std::string srcDeviceId;
     uint64_t requestCode = 0;
     uint64_t specifiedFullTokenId = 0;
+    int32_t callerAppIndex = 0;
+    int32_t targetAppIndex = 0;
 };
 
 class InsightIntentExecuteManager : public std::enable_shared_from_this<InsightIntentExecuteManager> {
@@ -99,7 +103,14 @@ class InsightIntentExecuteManager : public std::enable_shared_from_this<InsightI
 public:
     int32_t CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
-        const ExecuteParam &execParam = ExecuteParam{});
+        const ExecuteParam &execParam = ExecuteParam{}, uint64_t specifiedIntentId = 0);
+
+    // Pre-register an execution record and allocate the intent id before the
+    // execution actually starts. Used by the agent path so that the privacy-center
+    // consent popup can be shown while the record is already queryable (via
+    // IsInsightIntentCall), and the id is later reused by CheckAndUpdateParam.
+    int32_t RegisterExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const ExecuteParam &execParam, uint64_t &intentId);
 
     int32_t CheckAndUpdateWant(Want &want, AppExecFwk::ExecuteMode executeMode, int32_t userId,
         std::string callerBundleName = "");
@@ -117,6 +128,12 @@ public:
     int32_t GetBundleName(uint64_t intentId, std::string &bundleName) const;
 
     int32_t GetCallerBundleName(uint64_t intentId, std::string &callerBundleName) const;
+
+    int32_t GetCallerAppIndex(uint64_t intentId, int32_t &callerAppIndex) const;
+
+    int32_t GetTargetBundleIndex(uint64_t intentId, int32_t &targetBundleIndex) const;
+
+    bool IsInsightIntentCall(uint64_t intentId) const;
 
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,

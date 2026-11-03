@@ -146,7 +146,8 @@ InsightIntentExecuteManager::InsightIntentExecuteManager() = default;
 InsightIntentExecuteManager::~InsightIntentExecuteManager() = default;
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, const ExecuteParam &execParam)
+    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, const ExecuteParam &execParam,
+    uint64_t specifiedIntentId)
 {
     std::string targetBundleName = (param != nullptr) ? param->bundleName_ : "";
     int32_t result = CheckCallerPermission(execParam.specifiedFullTokenId, execParam.callerBundleName,
@@ -168,6 +169,17 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
         TAG_LOGE(AAFwkTag::INTENT, "invalid param");
         return ERR_INVALID_VALUE;
     }
+    if (specifiedIntentId != 0) {
+        // Reuse a pre-registered record (agent path registers it before showing the
+        // privacy-center consent popup). Skip AddRecord to avoid a duplicate/orphan
+        // record, but still validate the id maps to a live execute record.
+        if (!IsInsightIntentCall(specifiedIntentId)) {
+            TAG_LOGE(AAFwkTag::INTENT, "specified intentId not found: %{public}" PRIu64, specifiedIntentId);
+            return ERR_INVALID_VALUE;
+        }
+        param->insightIntentId_ = specifiedIntentId;
+        return ERR_OK;
+    }
     uint64_t intentId = 0;
     result = AddRecord(key, callerToken, param->bundleName_, intentId, execParam, param->taskId_);
     if (result != ERR_OK) {
@@ -176,6 +188,12 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
 
     param->insightIntentId_ = intentId;
     return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::RegisterExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
+    const std::string &bundleName, const ExecuteParam &execParam, uint64_t &intentId)
+{
+    return AddRecord(key, callerToken, bundleName, intentId, execParam);
 }
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode executeMode, int32_t userId,
@@ -269,6 +287,8 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->callerToken = callerToken;
     record->bundleName = bundleName;
     record->callerBundleName = execParam.callerBundleName;
+    record->targetBundleIndex = execParam.targetAppIndex;
+    record->callerAppIndex = execParam.callerAppIndex;
     record->isDistributed = execParam.isDistributed;
     record->deviceId = execParam.srcDeviceId;
     record->requestCode = execParam.requestCode;
@@ -452,6 +472,45 @@ int32_t InsightIntentExecuteManager::GetCallerBundleName(uint64_t intentId, std:
     }
     callerBundleName = result->second->callerBundleName;
     return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::GetCallerAppIndex(uint64_t intentId, int32_t &callerAppIndex) const
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto result = records_.find(intentId);
+    if (result == records_.end()) {
+        TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    if (result->second == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null intent record,id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    callerAppIndex = result->second->callerAppIndex;
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::GetTargetBundleIndex(uint64_t intentId, int32_t &targetBundleIndex) const
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto result = records_.find(intentId);
+    if (result == records_.end()) {
+        TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    if (result->second == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null intent record,id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    targetBundleIndex = result->second->targetBundleIndex;
+    return ERR_OK;
+}
+
+bool InsightIntentExecuteManager::IsInsightIntentCall(uint64_t intentId) const
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto it = records_.find(intentId);
+    return it != records_.end() && it->second != nullptr;
 }
 
 int32_t InsightIntentExecuteManager::AddWantUirsAndFlagsFromParam(
