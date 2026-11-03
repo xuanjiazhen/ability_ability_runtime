@@ -130,8 +130,8 @@ TestApplicationPreRecord AmsWorkFlowTest::CreateTestApplicationRecord(const std:
 {
     auto abilityInfo = CreateAbilityInfo(ability, app);
     auto appInfo = CreateApplication(app);
-    abilityInfo->applicationInfo.appuid = 0;
-    appInfo->appuid = 0;
+    abilityInfo->applicationInfo.appUid = 0;
+    appInfo->appUid = 0;
 
     BundleInfo bundleInfo;
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
@@ -139,14 +139,14 @@ TestApplicationPreRecord AmsWorkFlowTest::CreateTestApplicationRecord(const std:
     hapModuleInfo.moduleName = "module789";
 
     auto appRecord = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, appInfo->name, appInfo->appuid, bundleInfo);
+        appInfo->name, appInfo->name, appInfo->appUid, bundleInfo);
     if (!appRecord) {
         appRecord = serviceInner_->CreateAppRunningRecord(
             token, nullptr, appInfo, abilityInfo, appInfo->name, bundleInfo, hapModuleInfo, nullptr, 0);
         serviceInner_->StartProcess(abilityInfo->applicationName,
             appInfo->name,
             false, appRecord,
-            abilityInfo->applicationInfo.appuid,
+            abilityInfo->applicationInfo.appUid,
             bundleInfo, abilityInfo->applicationInfo.bundleName, 0);
     } else {
         appRecord->AddModule(appInfo, abilityInfo, token, hapModuleInfo, nullptr, 0);

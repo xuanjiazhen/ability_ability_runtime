@@ -101,7 +101,7 @@ void KeepAliveProcessManager::StartKeepAliveProcessWithMainElementPerBundle(cons
     KeepAliveAbilityInfo info = {
         .userId = userId,
         .appCloneIndex = bundleInfo.appIndex,
-        .uid = bundleInfo.appuid,
+        .uid = bundleInfo.appUid,
         .bundleName = bundleInfo.name,
         .moduleName = bundleInfo.entryModuleName,
         .abilityName = mainElementName,
@@ -112,7 +112,7 @@ void KeepAliveProcessManager::StartKeepAliveProcessWithMainElementPerBundle(cons
     if (ret == ERR_OK) {
         TAG_LOGI(AAFwkTag::KEEP_ALIVE, "start ok");
         AfterStartKeepAliveApp(bundleInfo.name, bundleInfo.applicationInfo.accessTokenId,
-            bundleInfo.appuid, userId, isMultiInstance);
+            bundleInfo.appUid, userId, isMultiInstance);
         return;
     }
 
@@ -269,7 +269,7 @@ int32_t KeepAliveProcessManager::SetApplicationKeepAlive(const std::string &bund
         std::string mainElementName;
         CHECK_TRUE_RETURN_RET(!MainElementUtils::CheckMainUIAbility(bundleInfo, mainElementName),
             ERR_NO_MAIN_ABILITY, "bundle has no main uiability");
-        if (DelayedSingleton<AbilityManagerService>::GetInstance()->IsSupportStatusBar(bundleInfo.appuid)) {
+        if (DelayedSingleton<AbilityManagerService>::GetInstance()->IsSupportStatusBar(bundleInfo.appUid)) {
             CHECK_TRUE_RETURN_RET(!MainElementUtils::CheckStatusBarAbility(bundleInfo),
                 ERR_NO_STATUS_BAR_ABILITY, "app has no status bar");
             bool isRunning = false;
@@ -291,7 +291,7 @@ int32_t KeepAliveProcessManager::SetApplicationKeepAlive(const std::string &bund
     if (!updateEnable && localEnable) {
         TAG_LOGI(AAFwkTag::KEEP_ALIVE, "unsetting keep-alive");
         if (!isInner) {
-            RemoveCheckStatusBarTask(bundleInfo.appuid, true);
+            RemoveCheckStatusBarTask(bundleInfo.appUid, true);
         }
         std::vector<AppExecFwk::BundleInfo> bundleInfos{ bundleInfo };
         KeepAliveUtils::NotifyDisableKeepAliveProcesses(bundleInfos, userId);
@@ -309,7 +309,7 @@ bool KeepAliveProcessManager::IsRunningAppInStatusBar(const AppExecFwk::BundleIn
     auto isMultiInstance =
         bundleInfo.applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
     return DelayedSingleton<AbilityManagerService>::GetInstance()->IsInStatusBar(
-        bundleInfo.applicationInfo.accessTokenId, bundleInfo.appuid, isMultiInstance);
+        bundleInfo.applicationInfo.accessTokenId, bundleInfo.appUid, isMultiInstance);
 }
 
 void KeepAliveProcessManager::OnAppStateChanged(const AppInfo &info)
@@ -452,7 +452,7 @@ int32_t KeepAliveProcessManager::SetAppServiceExtensionKeepAlive(const std::stri
         KeepAlivePolicy::UNSPECIFIED;
     result = AbilityKeepAliveService::GetInstance().SetAppServiceExtensionKeepAlive(info, updateEnable);
     CHECK_RET_RETURN_RET(result, "set keep-alive failed");
-    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveAppService(bundleName, updateEnable, bundleInfo.appuid));
+    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveAppService(bundleName, updateEnable, bundleInfo.appUid));
     return ERR_OK;
 }
 
@@ -487,7 +487,7 @@ void KeepAliveProcessManager::StartKeepAliveAppServiceExtensionPerBundle(const A
     KeepAliveAbilityInfo info = {
         .userId = userId,
         .appCloneIndex = bundleInfo.appIndex,
-        .uid = bundleInfo.appuid,
+        .uid = bundleInfo.appUid,
         .bundleName = bundleInfo.name,
         .moduleName = bundleInfo.entryModuleName,
         .abilityName = mainElementName,

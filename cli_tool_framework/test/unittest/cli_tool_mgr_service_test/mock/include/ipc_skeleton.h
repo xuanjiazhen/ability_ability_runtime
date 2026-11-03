@@ -29,7 +29,6 @@ constexpr int32_t FOUNDATION_UID = 5523;
 class IPCSkeleton {
 public:
     static pid_t GetCallingAppUid();
-    static pid_t GetCallingUid();
     static pid_t GetCallingPid();
     static uint64_t GetCallingFullTokenID();
     static uint64_t GetCallingTokenID();

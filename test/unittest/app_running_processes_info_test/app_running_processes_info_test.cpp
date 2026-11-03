@@ -188,7 +188,7 @@ std::shared_ptr<AppRunningRecord> AppRunningProcessesInfoTest::StartLoadAbility(
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestProcessName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestProcessName(), appInfo->appUid, bundleInfo);
 
     EXPECT_TRUE(record);
     auto clent = GetMockedAppSchedulerClient();
@@ -243,10 +243,10 @@ HWTEST_F(AppRunningProcessesInfoTest, UpdateAppRunningRecord_002, TestSize.Level
     auto abilityInfo = std::make_shared<AbilityInfo>();
     int uid = 0;
     abilityInfo->name = GetTestAbilityName();
-    abilityInfo->applicationInfo.appuid = uid;
+    abilityInfo->applicationInfo.appUid = uid;
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->name = GetTestAppName();
-    appInfo->appuid = uid;
+    appInfo->appUid = uid;
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
     EXPECT_TRUE(service_ != nullptr);
@@ -285,7 +285,7 @@ HWTEST_F(AppRunningProcessesInfoTest, UpdateAppRunningRecord_002, TestSize.Level
     // update application state and check the state
     record->SetState(ApplicationState::APP_STATE_FOREGROUND);
     auto newRecord = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestProcessName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestProcessName(), appInfo->appUid, bundleInfo);
     EXPECT_TRUE(newRecord);
     newRecord->SetUid(uid);
     auto stateFromRec = newRecord->GetState();

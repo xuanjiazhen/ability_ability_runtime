@@ -240,7 +240,7 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
     abilityRecord->collaboratorType_ = abilityRequest.collaboratorType;
     abilityRecord->missionAffinity_ = abilityRequest.want.GetStringParam(PARAM_MISSION_AFFINITY_KEY);
 
-    auto userId = abilityRequest.appInfo.appuid / BASE_USER_RANGE;
+    auto userId = abilityRequest.appInfo.appUid / BASE_USER_RANGE;
     if ((userId == 0 ||
         AppUtils::GetInstance().InResidentWhiteList(abilityRequest.abilityInfo.bundleName)) &&
         DelayedSingleton<ResidentProcessManager>::GetInstance()->IsResidentAbility(
@@ -797,7 +797,7 @@ void SystemAbilityCallerRecord::SendResultToSystemAbility(int requestCode,
     Want resultWant = callerSystemAbilityRecord->GetResultWant();
     sptr<IRemoteObject> callerToken = callerSystemAbilityRecord->GetCallerToken();
     if (!schedulerdied) {
-        callerUid = IPCSkeleton::GetCallingUid();
+        callerUid = IPCSkeleton::GetCallingAppUid();
         accessToken = IPCSkeleton::GetCallingTokenID();
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Try to SendResult");

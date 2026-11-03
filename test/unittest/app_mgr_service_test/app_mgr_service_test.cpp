@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1939,7 +1939,7 @@ HWTEST_F(AppMgrServiceTest, SetSupportedProcessCacheSelf_002, TestSize.Level2)
         appRunningMgr->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
     EXPECT_NE(appRecord, nullptr);
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     appRecord->GetPriorityObject()->pid_ = IPCSkeleton::GetCallingPid();
     appRecord->SetCallerPid(IPCSkeleton::GetCallingPid());
     auto &recordMap = appRunningMgr->appRunningRecordMap_;

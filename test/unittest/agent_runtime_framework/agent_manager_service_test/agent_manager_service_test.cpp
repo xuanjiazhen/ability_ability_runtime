@@ -158,7 +158,7 @@ AgentConnectPreflightConsumeRequest BuildPreflightConsumeRequest(
 AgentQuotaKey BuildStandardTestQuotaKey(const std::string &agentId)
 {
     AgentQuotaKey key;
-    key.hostKey.userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE_FOR_TEST;
+    key.hostKey.userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE_FOR_TEST;
     key.hostKey.bundleName = "standard.bundle";
     key.hostKey.moduleName = "entry";
     key.hostKey.abilityName = "StandardAgentExtAbility";
@@ -172,7 +172,7 @@ AgentStandardConnectRequest BuildStandardConnectRequest(
 {
     AgentStandardConnectRequest request;
     request.connection = connection;
-    request.callerUid = IPCSkeleton::GetCallingUid();
+    request.callerUid = IPCSkeleton::GetCallingAppUid();
     request.agentId = agentId;
     request.originalIdentity = "identity-" + agentId;
     request.quotaKey = BuildStandardTestQuotaKey(agentId);
@@ -230,7 +230,7 @@ void AgentManagerServiceTest::SetUp(void)
     MyFlag::mockExtensionInfos.clear();
     MyFlag::mockHapModuleInfos.clear();
     MyFlag::mockProfileInfos.clear();
-    MyFlag::extensionAbilityUid = IPCSkeleton::GetCallingUid();
+    MyFlag::extensionAbilityUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
     MyFlag::retGetBundleNameByPid = ERR_OK;
     MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
@@ -247,13 +247,13 @@ void AgentManagerServiceTest::SetUp(void)
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
     MyFlag::retGetHapTokenInfo = 0;
-    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
-    // anti-spoof seams: default off so GetCallingUid() behaves as getuid() for non-ForCli tests.
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingAppUid();
+    // anti-spoof seams: default off so GetCallingAppUid() behaves as getuid() for non-ForCli tests.
     MyFlag::overrideCallingUid = false;
     MyFlag::setIdentityActive = false;
     MyFlag::retSetCallingIdentity = true;
-    MyFlag::cliToolUid = IPCSkeleton::GetCallingUid();
-    MyFlag::identityUid = IPCSkeleton::GetCallingUid();
+    MyFlag::cliToolUid = IPCSkeleton::GetCallingAppUid();
+    MyFlag::identityUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::lastConnectAbilityWant = Want();
     MyFlag::shouldFillExtensionAbilityInfos = true;
     MyFlag::retGetApplicationInfo = false;
@@ -1170,7 +1170,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_033, TestSize.Lev
     preflightWant.SetElementName("", "test.bundle", "TestAbility", "");
     AgentCard preflightCard = BuildServiceTestAgentCard("testAgent");
     int64_t nonce = service->RegisterConnectPreflight(preflightWant, "testAgent", preflightCard,
-        IPCSkeleton::GetCallingUid());
+        IPCSkeleton::GetCallingAppUid());
 
     AAFwk::Want connectWant = preflightWant;
     SetAgentVerificationNonceParam(connectWant, nonce);
@@ -1195,7 +1195,7 @@ HWTEST_F(AgentManagerServiceTest, CleanupExpiredConnectPreflights_001, TestSize.
     auto expiredAt = steady_clock::now() - milliseconds(1);
 
     AgentConnectPreflightRecord record;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.callerUserId = record.callerUid / BASE_USER_RANGE_FOR_TEST;
     record.agentId = "testAgent";
     record.card = BuildServiceTestAgentCard("testAgent");
@@ -1841,13 +1841,13 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_029, TestSize.Lev
     MyFlag::agentCardAbilityName = "LowCodeExtAbility";
     MyFlag::agentCardModuleName = "entry";
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
     auto session = std::make_shared<AgentHostSession>();
     session->key = hostKey;
-    session->hostUid = IPCSkeleton::GetCallingUid();
+    session->hostUid = IPCSkeleton::GetCallingAppUid();
     session->hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey, nullptr, "");
     session->isConnected = true;
     session->remoteObject = sptr<TestAgentReceiver>(new TestAgentReceiver())->AsObject();
@@ -1959,7 +1959,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_032, TestSize.Lev
 HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_034, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::retGetAgentCardByAgentId = ERR_OK;
     MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
     MyFlag::agentCardBundleName = "lowcode.bundle";
@@ -2260,7 +2260,7 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_011, TestSize.
 HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_012, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -2357,7 +2357,7 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_012, TestSize.
 HWTEST_F(AgentManagerServiceTest, HandleCallerConnectionDied_009, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / BASE_USER_RANGE_FOR_TEST;
     hostKey.bundleName = "lowcode.bundle";
@@ -3029,7 +3029,7 @@ HWTEST_F(AgentManagerServiceTest, ValidateConnectAgentRequest_003, TestSize.Leve
 HWTEST_F(AgentManagerServiceTest, ValidateConnectAgentRequest_004, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     int32_t outCallerUid = -1;
 
@@ -3080,7 +3080,7 @@ HWTEST_F(AgentManagerServiceTest, ResolveConnectAgentTarget_001, TestSize.Level1
     EXPECT_EQ(card.type, AgentCardType::LOW_CODE);
     EXPECT_EQ(connectWant.GetElement().GetBundleName(), "lowcode.bundle");
     EXPECT_EQ(connectWant.GetElement().GetAbilityName(), "LowCodeExtAbility");
-    EXPECT_EQ(callingUid, IPCSkeleton::GetCallingUid());
+    EXPECT_EQ(callingUid, IPCSkeleton::GetCallingAppUid());
 }
 
 /**
@@ -3116,7 +3116,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareStandardAgentConnectWant_001, TestSize.
     connectWant.SetBundle("test.bundle");
 
     EXPECT_EQ(AgentManagerService::GetInstance()->PrepareStandardAgentConnectWant(connectWant, card,
-        IPCSkeleton::GetCallingUid()), ERR_OK);
+        IPCSkeleton::GetCallingAppUid()), ERR_OK);
     EXPECT_NE(connectWant.GetFlags() & Want::FLAG_INSTALL_ON_DEMAND, 0);
     EXPECT_FALSE(connectWant.GetStringParam(Want::PARAM_RESV_START_TIME).empty());
 }
@@ -3135,7 +3135,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareStandardAgentConnectWant_002, TestSize.
     MyFlag::extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
 
     EXPECT_EQ(AgentManagerService::GetInstance()->PrepareStandardAgentConnectWant(connectWant, card,
-        IPCSkeleton::GetCallingUid()), AAFwk::ERR_WRONG_INTERFACE_CALL);
+        IPCSkeleton::GetCallingAppUid()), AAFwk::ERR_WRONG_INTERFACE_CALL);
 }
 
 /**
@@ -3151,7 +3151,7 @@ HWTEST_F(AgentManagerServiceTest, ResolveLowCodeHostInfo_001, TestSize.Level1)
     int32_t hostUid = -1;
 
     EXPECT_EQ(AgentManagerService::GetInstance()->ResolveLowCodeHostInfo(want,
-        IPCSkeleton::GetCallingUid() / 200000, hostUid), AAFwk::RESOLVE_ABILITY_ERR);
+        IPCSkeleton::GetCallingAppUid() / 200000, hostUid), AAFwk::RESOLVE_ABILITY_ERR);
 }
 
 /**
@@ -3167,7 +3167,7 @@ HWTEST_F(AgentManagerServiceTest, ResolveLowCodeHostInfo_002, TestSize.Level1)
     int32_t hostUid = -1;
 
     EXPECT_EQ(AgentManagerService::GetInstance()->ResolveLowCodeHostInfo(want,
-        IPCSkeleton::GetCallingUid() / 200000, hostUid), AAFwk::ERR_WRONG_INTERFACE_CALL);
+        IPCSkeleton::GetCallingAppUid() / 200000, hostUid), AAFwk::ERR_WRONG_INTERFACE_CALL);
 }
 
 /**
@@ -3177,7 +3177,7 @@ HWTEST_F(AgentManagerServiceTest, ResolveLowCodeHostInfo_002, TestSize.Level1)
 */
 HWTEST_F(AgentManagerServiceTest, ResolveLowCodeHostInfo_003, TestSize.Level1)
 {
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::extensionAbilityUid = callingUid + 123;
     AAFwk::Want want;
     want.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
@@ -3198,12 +3198,12 @@ HWTEST_F(AgentManagerServiceTest, FindTrackedConnectionLocked_001, TestSize.Leve
     auto trackedConnection = sptr<MockAbilityConnection>::MakeSptr();
     auto probeConnection = sptr<MockAbilityConnection>::MakeSptr();
     TrackedConnectionRecord record;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.callerRemote = trackedConnection->AsObject();
     AgentConnectManager::GetInstance().trackedConnections_[trackedConnection->AsObject()] = record;
 
     auto iter = AgentConnectManager::GetInstance().FindTrackedConnectionLocked(
-        probeConnection, IPCSkeleton::GetCallingUid());
+        probeConnection, IPCSkeleton::GetCallingAppUid());
     ASSERT_NE(iter, AgentConnectManager::GetInstance().trackedConnections_.end());
     EXPECT_EQ(iter->first, trackedConnection->AsObject());
 }
@@ -3219,7 +3219,7 @@ HWTEST_F(AgentManagerServiceTest, FindTrackedConnectionLocked_002, TestSize.Leve
     auto trackedConnectionB = sptr<MockAbilityConnection>::MakeSptr();
     auto probeConnection = sptr<MockAbilityConnection>::MakeSptr();
     TrackedConnectionRecord recordA;
-    recordA.callerUid = IPCSkeleton::GetCallingUid();
+    recordA.callerUid = IPCSkeleton::GetCallingAppUid();
     recordA.callerRemote = trackedConnectionA->AsObject();
     TrackedConnectionRecord recordB = recordA;
     recordB.callerRemote = trackedConnectionB->AsObject();
@@ -3227,7 +3227,7 @@ HWTEST_F(AgentManagerServiceTest, FindTrackedConnectionLocked_002, TestSize.Leve
     AgentConnectManager::GetInstance().trackedConnections_[trackedConnectionB->AsObject()] = recordB;
 
     auto iter = AgentConnectManager::GetInstance().FindTrackedConnectionLocked(
-        probeConnection, IPCSkeleton::GetCallingUid());
+        probeConnection, IPCSkeleton::GetCallingAppUid());
     EXPECT_EQ(iter, AgentConnectManager::GetInstance().trackedConnections_.end());
 }
 
@@ -3241,13 +3241,13 @@ HWTEST_F(AgentManagerServiceTest, FindTrackedConnectionLocked_003, TestSize.Leve
     auto trackedConnection = sptr<MockAbilityConnection>::MakeSptr();
     auto probeConnection = sptr<MockAbilityConnection>::MakeSptr();
     TrackedConnectionRecord record;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.callerRemote = trackedConnection->AsObject();
     record.isLowCode = true;
     AgentConnectManager::GetInstance().trackedConnections_[trackedConnection->AsObject()] = record;
 
     auto iter = AgentConnectManager::GetInstance().FindTrackedConnectionLocked(
-        probeConnection, IPCSkeleton::GetCallingUid());
+        probeConnection, IPCSkeleton::GetCallingAppUid());
     EXPECT_EQ(iter, AgentConnectManager::GetInstance().trackedConnections_.end());
 }
 
@@ -3260,12 +3260,12 @@ HWTEST_F(AgentManagerServiceTest, TryRegisterConnectionLocked_001, TestSize.Leve
 {
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     TrackedConnectionRecord record;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.callerRemote = connection->AsObject();
     AgentConnectManager::GetInstance().trackedConnections_[connection->AsObject()] = record;
 
     EXPECT_EQ(AgentConnectManager::GetInstance().TryRegisterConnectionLocked(
-        connection, IPCSkeleton::GetCallingUid(), AgentConnectManager::CallerDeathHandler()), ERR_INVALID_VALUE);
+        connection, IPCSkeleton::GetCallingAppUid(), AgentConnectManager::CallerDeathHandler()), ERR_INVALID_VALUE);
 }
 
 /**
@@ -3279,7 +3279,7 @@ HWTEST_F(AgentManagerServiceTest, RegisterTrackedConnectionAndGetServiceConnecti
     sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
 
     EXPECT_EQ(AgentConnectManager::GetInstance().RegisterTrackedConnectionAndGetServiceConnection(
-        connection, IPCSkeleton::GetCallingUid(), AgentConnectManager::CallerDeathHandler(), serviceConnection),
+        connection, IPCSkeleton::GetCallingAppUid(), AgentConnectManager::CallerDeathHandler(), serviceConnection),
         ERR_OK);
     ASSERT_NE(serviceConnection, nullptr);
     ASSERT_EQ(AgentConnectManager::GetInstance().trackedConnections_.size(), 1);
@@ -3297,7 +3297,7 @@ HWTEST_F(AgentManagerServiceTest, RegisterTrackedConnectionAndGetServiceConnecti
 {
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
 
     EXPECT_EQ(AgentConnectManager::GetInstance().RegisterTrackedConnectionAndGetServiceConnection(
         connection, callerUid, AgentConnectManager::CallerDeathHandler(), serviceConnection), ERR_OK);
@@ -3319,13 +3319,13 @@ HWTEST_F(AgentManagerServiceTest, RegisterTrackedConnectionAndGetServiceConnecti
 {
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     TrackedConnectionRecord record;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.callerRemote = connection->AsObject();
     AgentConnectManager::GetInstance().trackedConnections_[connection->AsObject()] = record;
     sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
 
     EXPECT_EQ(AgentConnectManager::GetInstance().RegisterTrackedConnectionAndGetServiceConnection(
-        connection, IPCSkeleton::GetCallingUid(), AgentConnectManager::CallerDeathHandler(), serviceConnection),
+        connection, IPCSkeleton::GetCallingAppUid(), AgentConnectManager::CallerDeathHandler(), serviceConnection),
         ERR_INVALID_VALUE);
     EXPECT_EQ(serviceConnection, nullptr);
     EXPECT_EQ(AgentConnectManager::GetInstance().trackedConnections_.size(), 1);
@@ -3339,7 +3339,7 @@ HWTEST_F(AgentManagerServiceTest, RegisterTrackedConnectionAndGetServiceConnecti
 HWTEST_F(AgentManagerServiceTest, RegisterTrackedConnectionAndGetServiceConnection_004, TestSize.Level1)
 {
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
 
     EXPECT_EQ(AgentConnectManager::GetInstance().RegisterTrackedConnectionAndGetServiceConnection(
@@ -3407,7 +3407,7 @@ HWTEST_F(AgentManagerServiceTest, TryRegisterConnectionLocked_002, TestSize.Leve
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeAbility";
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
 
     EXPECT_EQ(AgentConnectManager::GetInstance().TryRegisterConnectionLocked(
         connection, callerUid, AgentConnectManager::CallerDeathHandler(), serviceConnection, &hostKey), ERR_OK);
@@ -3430,7 +3430,7 @@ HWTEST_F(AgentManagerServiceTest, TryRegisterConnectionLocked_002, TestSize.Leve
 HWTEST_F(AgentManagerServiceTest, PrepareLowCodeConnectPlan_001, TestSize.Level1)
 {
     AgentConnectPlan plan;
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -3466,7 +3466,7 @@ HWTEST_F(AgentManagerServiceTest, NotifyLowCodeAgentComplete_005, TestSize.Level
 HWTEST_F(AgentManagerServiceTest, NotifyLowCodeAgentComplete_006, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentConnectManager::GetInstance().agentOwners_[{callingUid, "agentA"}] = nullptr;
 
     EXPECT_EQ(service->NotifyLowCodeAgentComplete("agentA"), AAFwk::CONNECTION_NOT_EXIST);
@@ -3481,7 +3481,7 @@ HWTEST_F(AgentManagerServiceTest, NotifyLowCodeAgentComplete_006, TestSize.Level
 HWTEST_F(AgentManagerServiceTest, NotifyLowCodeAgentComplete_007, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -3506,7 +3506,7 @@ HWTEST_F(AgentManagerServiceTest, NotifyLowCodeAgentComplete_007, TestSize.Level
 HWTEST_F(AgentManagerServiceTest, NotifyLowCodeAgentComplete_008, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -3554,7 +3554,7 @@ HWTEST_F(AgentManagerServiceTest, NotifyLowCodeAgentComplete_008, TestSize.Level
 HWTEST_F(AgentManagerServiceTest, NotifyLowCodeAgentComplete_009, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::retDisconnectAbility = ERR_INVALID_VALUE;
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
@@ -3595,7 +3595,7 @@ HWTEST_F(AgentManagerServiceTest, NotifyLowCodeAgentComplete_009, TestSize.Level
 HWTEST_F(AgentManagerServiceTest, PrepareLowCodeConnectPlan_002, TestSize.Level1)
 {
     AgentConnectPlan plan;
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -3633,7 +3633,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareLowCodeConnectPlan_002, TestSize.Level1
 HWTEST_F(AgentManagerServiceTest, PrepareLowCodeConnectPlan_003, TestSize.Level1)
 {
     AgentConnectPlan plan;
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -3660,7 +3660,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareLowCodeConnectPlan_003, TestSize.Level1
 HWTEST_F(AgentManagerServiceTest, PrepareLowCodeConnectPlan_004, TestSize.Level1)
 {
     AgentConnectPlan plan;
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -3709,7 +3709,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareLowCodeConnectPlan_004, TestSize.Level1
 */
 HWTEST_F(AgentManagerServiceTest, CleanupLowCodeConnectPlan_001, TestSize.Level1)
 {
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -3753,7 +3753,7 @@ HWTEST_F(AgentManagerServiceTest, CleanupLowCodeConnectPlan_001, TestSize.Level1
 */
 HWTEST_F(AgentManagerServiceTest, CleanupLowCodeConnectPlan_002, TestSize.Level1)
 {
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -3810,7 +3810,7 @@ HWTEST_F(AgentManagerServiceTest, CleanupLowCodeConnectPlan_002, TestSize.Level1
 HWTEST_F(AgentManagerServiceTest, CompleteAgentHostConnect_001, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::retConnectAbilityWithExtensionType = ERR_INVALID_VALUE;
 
     AgentHostKey hostKey;
@@ -3863,12 +3863,12 @@ HWTEST_F(AgentManagerServiceTest, CompleteAgentHostConnect_002, TestSize.Level1)
     auto service = AgentManagerService::GetInstance();
     AgentConnectPlan plan;
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
     plan.hostKey = hostKey;
-    plan.hostUid = IPCSkeleton::GetCallingUid();
+    plan.hostUid = IPCSkeleton::GetCallingAppUid();
     plan.hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey, nullptr, "");
     AAFwk::Want want;
     want.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
@@ -3893,7 +3893,7 @@ HWTEST_F(AgentManagerServiceTest, CompleteAgentHostConnect_002, TestSize.Level1)
 HWTEST_F(AgentManagerServiceTest, HandleAgentHostConnectDone_001, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -4058,7 +4058,7 @@ HWTEST_F(AgentManagerServiceTest, HandleCallerConnectionDied_003, TestSize.Level
 HWTEST_F(AgentManagerServiceTest, HandleCallerConnectionDied_008, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     std::vector<sptr<MockAbilityConnection>> connections;
     for (size_t i = 0; i < AGENT_MGR_QUOTA_DEAUTH_PROBE_COUNT; i++) {
         auto connection = sptr<MockAbilityConnection>::MakeSptr();
@@ -4113,7 +4113,7 @@ HWTEST_F(AgentManagerServiceTest, HandleCallerConnectionDied_004, TestSize.Level
 HWTEST_F(AgentManagerServiceTest, HandleCallerConnectionDied_005, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -4173,7 +4173,7 @@ HWTEST_F(AgentManagerServiceTest, HandleCallerConnectionDied_005, TestSize.Level
 HWTEST_F(AgentManagerServiceTest, HandleCallerConnectionDied_006, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -4225,7 +4225,7 @@ HWTEST_F(AgentManagerServiceTest, HandleCallerConnectionDied_006, TestSize.Level
 HWTEST_F(AgentManagerServiceTest, HandleCallerConnectionDied_007, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     AgentHostKey hostKey;
     hostKey.userId = callingUid / 200000;
     hostKey.bundleName = "lowcode.bundle";
@@ -4324,7 +4324,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyAgentRequestNonce_001, TestSize.Level1)
     constexpr int64_t verificationNonce = 1000000001;
 
     TrackedConnectionRecord record;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.callerRemote = callerConnection->AsObject();
     record.serviceConnection = serviceConnection;
     record.agentId = "testAgent";
@@ -4356,7 +4356,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyAgentRequestNonce_002, TestSize.Level1)
     auto serviceConnection = sptr<MockAbilityConnection>::MakeSptr();
 
     TrackedConnectionRecord record;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.callerRemote = callerConnection->AsObject();
     record.serviceConnection = serviceConnection;
     record.agentId = "testAgent";
@@ -4382,7 +4382,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentConnectRequest_001, TestSize
     auto service = AgentManagerService::GetInstance();
     auto callerConnection = sptr<MockAbilityConnection>::MakeSptr();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "bundle";
     hostKey.moduleName = "module";
     hostKey.abilityName = "ability";
@@ -4393,7 +4393,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentConnectRequest_001, TestSize
     session->hostConnection = hostConnection;
     LowCodeAgentRecord firstRecord;
     firstRecord.callerRemote = callerConnection->AsObject();
-    firstRecord.callerUid = IPCSkeleton::GetCallingUid();
+    firstRecord.callerUid = IPCSkeleton::GetCallingAppUid();
     firstRecord.hostConnection = hostConnection;
     firstRecord.originalIdentity = "first.identity";
     firstRecord.verificationNonce = 1000000001L;
@@ -4423,7 +4423,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_001, Test
     auto service = AgentManagerService::GetInstance();
     auto callerConnection = sptr<MockAbilityConnection>::MakeSptr();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "bundle";
     hostKey.moduleName = "module";
     hostKey.abilityName = "ability";
@@ -4434,7 +4434,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_001, Test
     session->hostConnection = hostConnection;
     LowCodeAgentRecord record;
     record.callerRemote = callerConnection->AsObject();
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.hostConnection = hostConnection;
     record.originalIdentity = "second.identity";
     record.verificationNonce = 1000000001L;
@@ -4459,7 +4459,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_002, Test
     auto service = AgentManagerService::GetInstance();
     auto callerConnection = sptr<MockAbilityConnection>::MakeSptr();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "bundle";
     hostKey.moduleName = "module";
     hostKey.abilityName = "ability";
@@ -4470,7 +4470,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_002, Test
     session->hostConnection = hostConnection;
     LowCodeAgentRecord firstRecord;
     firstRecord.callerRemote = callerConnection->AsObject();
-    firstRecord.callerUid = IPCSkeleton::GetCallingUid();
+    firstRecord.callerUid = IPCSkeleton::GetCallingAppUid();
     firstRecord.hostConnection = hostConnection;
     firstRecord.originalIdentity = "caller.identity";
     firstRecord.verificationNonce = 1000000001L;
@@ -4502,7 +4502,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_003, Test
     auto service = AgentManagerService::GetInstance();
     auto callerConnection = sptr<MockAbilityConnection>::MakeSptr();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "bundle";
     hostKey.moduleName = "module";
     hostKey.abilityName = "ability";
@@ -4513,7 +4513,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_003, Test
     session->hostConnection = hostConnection;
     LowCodeAgentRecord record;
     record.callerRemote = callerConnection->AsObject();
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.hostConnection = hostConnection;
     record.originalIdentity = "caller.identity";
     record.verificationNonce = 1000000001L;
@@ -4541,7 +4541,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_004, Test
     auto service = AgentManagerService::GetInstance();
     auto callerConnection = sptr<MockAbilityConnection>::MakeSptr();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "bundle";
     hostKey.moduleName = "module";
     hostKey.abilityName = "ability";
@@ -4552,7 +4552,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_004, Test
     session->hostConnection = hostConnection;
     LowCodeAgentRecord record;
     record.callerRemote = callerConnection->AsObject();
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.hostConnection = hostConnection;
     record.originalIdentity = "caller.identity";
     record.verificationNonce = 1000000001L;
@@ -4580,7 +4580,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_005, Test
     auto service = AgentManagerService::GetInstance();
     auto callerConnection = sptr<MockAbilityConnection>::MakeSptr();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "bundle";
     hostKey.moduleName = "module";
     hostKey.abilityName = "ability";
@@ -4591,7 +4591,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_005, Test
     session->hostConnection = hostConnection;
     LowCodeAgentRecord record;
     record.callerRemote = callerConnection->AsObject();
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.hostConnection = hostConnection;
     record.originalIdentity = "caller.identity";
     record.isDisconnecting = true;
@@ -4617,7 +4617,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_006, Test
     auto service = AgentManagerService::GetInstance();
     auto callerConnection = sptr<MockAbilityConnection>::MakeSptr();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "bundle";
     hostKey.moduleName = "module";
     hostKey.abilityName = "ability";
@@ -4628,7 +4628,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_006, Test
     session->hostConnection = hostConnection;
     LowCodeAgentRecord record;
     record.callerRemote = callerConnection->AsObject();
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.hostConnection = hostConnection;
     record.originalIdentity = "caller.identity";
     record.verificationNonce = 1000000001L;
@@ -4657,7 +4657,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_007, Test
     auto callerConnection = sptr<MockAbilityConnection>::MakeSptr();
     auto otherConnection = sptr<MockAbilityConnection>::MakeSptr();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "bundle";
     hostKey.moduleName = "module";
     hostKey.abilityName = "ability";
@@ -4668,7 +4668,7 @@ HWTEST_F(AgentManagerServiceTest, VerifyLowCodeAgentDisconnectRequests_007, Test
     session->hostConnection = hostConnection;
     LowCodeAgentRecord record;
     record.callerRemote = callerConnection->AsObject();
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.hostConnection = hostConnection;
     record.originalIdentity = "caller.identity";
     record.verificationNonce = 1000000001L;
@@ -4744,7 +4744,7 @@ HWTEST_F(AgentManagerServiceTest, ValidateNotifyLowCodeAgentCompleteRequest_004,
     MyFlag::retVerifyConnectAgentPermission = true;
     int32_t callingUid = 0;
     EXPECT_EQ(service->ValidateNotifyLowCodeAgentCompleteRequest("agentA", callingUid), ERR_OK);
-    EXPECT_EQ(callingUid, IPCSkeleton::GetCallingUid());
+    EXPECT_EQ(callingUid, IPCSkeleton::GetCallingAppUid());
 }
 
 /**
@@ -4760,11 +4760,11 @@ HWTEST_F(AgentManagerServiceTest, HasOtherAgentForCallerLocked_001, TestSize.Lev
     auto session = std::make_shared<AgentHostSession>();
     LowCodeAgentRecord recordA;
     recordA.callerRemote = callerRemote;
-    recordA.callerUid = IPCSkeleton::GetCallingUid();
+    recordA.callerUid = IPCSkeleton::GetCallingAppUid();
     session->agents["agentA"] = recordA;
     LowCodeAgentRecord recordB;
     recordB.callerRemote = callerRemote;
-    recordB.callerUid = IPCSkeleton::GetCallingUid();
+    recordB.callerUid = IPCSkeleton::GetCallingAppUid();
     session->agents["agentB"] = recordB;
     EXPECT_TRUE(AgentConnectManager::GetInstance().HasOtherAgentForCallerLocked(*session, "agentA", callerRemote));
 }
@@ -4782,7 +4782,7 @@ HWTEST_F(AgentManagerServiceTest, HasOtherAgentForCallerLocked_002, TestSize.Lev
     auto session = std::make_shared<AgentHostSession>();
     LowCodeAgentRecord recordA;
     recordA.callerRemote = callerRemote;
-    recordA.callerUid = IPCSkeleton::GetCallingUid();
+    recordA.callerUid = IPCSkeleton::GetCallingAppUid();
     session->agents["agentA"] = recordA;
     EXPECT_FALSE(AgentConnectManager::GetInstance().HasOtherAgentForCallerLocked(*session, "agentA", callerRemote));
 }
@@ -4832,7 +4832,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareLowCodeDisconnectLocked_001, TestSize.L
     auto callerConnection = sptr<MockAbilityConnection>::MakeSptr();
     AgentDisconnectRequest request;
     EXPECT_EQ(AgentConnectManager::GetInstance().PrepareAgentDisconnectRequest(
-        callerConnection, IPCSkeleton::GetCallingUid(), request),
+        callerConnection, IPCSkeleton::GetCallingAppUid(), request),
         ERR_INVALID_VALUE);
 }
 
@@ -4851,7 +4851,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareLowCodeDisconnectLocked_002, TestSize.L
     AgentConnectManager::GetInstance().trackedConnections_[callerRemote] = record;
     AgentDisconnectRequest request;
     EXPECT_EQ(AgentConnectManager::GetInstance().PrepareAgentDisconnectRequest(
-        callerConnection, IPCSkeleton::GetCallingUid(), request), ERR_OK);
+        callerConnection, IPCSkeleton::GetCallingAppUid(), request), ERR_OK);
     EXPECT_TRUE(request.alreadyDisconnecting);
 }
 
@@ -4873,7 +4873,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareLowCodeDisconnectLocked_003, TestSize.L
     AgentConnectManager::GetInstance().trackedConnections_[callerRemote] = record;
     AgentDisconnectRequest request;
     EXPECT_EQ(AgentConnectManager::GetInstance().PrepareAgentDisconnectRequest(
-        callerConnection, IPCSkeleton::GetCallingUid(), request),
+        callerConnection, IPCSkeleton::GetCallingAppUid(), request),
         ERR_INVALID_VALUE);
 }
 
@@ -4907,7 +4907,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareAgentDisconnectRequest_004, TestSize.Le
 
     AgentDisconnectRequest request;
     EXPECT_EQ(AgentConnectManager::GetInstance().PrepareAgentDisconnectRequest(
-        connection, IPCSkeleton::GetCallingUid(), request), ERR_OK);
+        connection, IPCSkeleton::GetCallingAppUid(), request), ERR_OK);
     EXPECT_TRUE(request.isLowCode);
     ASSERT_EQ(request.lowCodeTargets.size(), 1);
     EXPECT_EQ(request.lowCodeTargets[0].agentIds, (std::set<std::string> { "agentA", "agentB" }));
@@ -4928,7 +4928,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareAgentDisconnectRequest_004, TestSize.Le
 
     AgentDisconnectRequest duplicateRequest;
     EXPECT_EQ(AgentConnectManager::GetInstance().PrepareAgentDisconnectRequest(
-        connection, IPCSkeleton::GetCallingUid(), duplicateRequest), ERR_OK);
+        connection, IPCSkeleton::GetCallingAppUid(), duplicateRequest), ERR_OK);
     EXPECT_TRUE(duplicateRequest.alreadyDisconnecting);
 }
 
@@ -4959,7 +4959,7 @@ HWTEST_F(AgentManagerServiceTest, RestoreLowCodeDisconnectingState_001, TestSize
     session->hostConnection = hostConnection;
     LowCodeAgentRecord agentA;
     agentA.callerRemote = callerRemote;
-    agentA.callerUid = IPCSkeleton::GetCallingUid();
+    agentA.callerUid = IPCSkeleton::GetCallingAppUid();
     agentA.hostConnection = hostConnection;
     agentA.originalIdentity = "caller.identity";
     agentA.verificationNonce = 1000000001L;
@@ -4998,7 +4998,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareLowCodeCompleteLocked_001, TestSize.Lev
     auto service = AgentManagerService::GetInstance();
     LowCodeCompleteRequest request;
     EXPECT_EQ(AgentConnectManager::GetInstance().PrepareLowCodeComplete("absentAgent",
-        IPCSkeleton::GetCallingUid(), request), AAFwk::ERR_INVALID_AGENT_CARD_ID);
+        IPCSkeleton::GetCallingAppUid(), request), AAFwk::ERR_INVALID_AGENT_CARD_ID);
 }
 
 /**
@@ -5017,7 +5017,7 @@ HWTEST_F(AgentManagerServiceTest, PrepareLowCodeCompleteLocked_002, TestSize.Lev
     session->key = hostKey;
     LowCodeAgentRecord record;
     record.callerRemote = callerRemote;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.isDisconnecting = true;
     session->agents["agentA"] = record;
     AgentConnectManager::GetInstance().agentHostSessions_[hostKey] = session;
@@ -5087,7 +5087,7 @@ HWTEST_F(AgentManagerServiceTest, AdmitStandardAgentConnectionLocked_001, TestSi
     AgentQuotaKey key;
     key.agentId = "agentA";
     key.isLowCode = false;
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     EXPECT_EQ(AgentConnectManager::GetInstance().AdmitStandardAgentConnectionLocked(callerUid, key), ERR_OK);
     ASSERT_EQ(AgentConnectManager::GetInstance().callerQuotas_[callerUid].count(key), 1u);
     EXPECT_EQ(AgentConnectManager::GetInstance().callerQuotas_[callerUid][key], 1);
@@ -5102,7 +5102,7 @@ HWTEST_F(AgentManagerServiceTest, AdmitStandardAgentConnectionLocked_002, TestSi
 {
     auto service = AgentManagerService::GetInstance();
     AgentConnectManager::GetInstance().callerQuotas_.clear();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     for (int i = 0; i < 5; ++i) {
         AgentQuotaKey key;
         key.agentId = "agent" + std::to_string(i);
@@ -5125,7 +5125,7 @@ HWTEST_F(AgentManagerServiceTest, AdmitStandardAgentConnectionLocked_003, TestSi
 {
     auto service = AgentManagerService::GetInstance();
     AgentConnectManager::GetInstance().callerQuotas_.clear();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     for (int i = 0; i < 5; ++i) {
         AgentQuotaKey key;
         key.agentId = "agent" + std::to_string(i);
@@ -5149,7 +5149,7 @@ HWTEST_F(AgentManagerServiceTest, ReleaseCallerQuotaLocked_001, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
     AgentConnectManager::GetInstance().callerQuotas_.clear();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     AgentQuotaKey key;
     key.agentId = "agentA";
     key.isLowCode = false;
@@ -5168,7 +5168,7 @@ HWTEST_F(AgentManagerServiceTest, TryConsumeConnectPreflight_001, TestSize.Level
     AgentConnectManager::GetInstance().connectPreflights_.clear();
     Want want;
     auto result = AgentConnectManager::GetInstance().TryConsumeConnectPreflight(BuildPreflightConsumeRequest(
-        want, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingUid() / BASE_USER_RANGE_FOR_TEST));
+        want, IPCSkeleton::GetCallingAppUid(), IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE_FOR_TEST));
     EXPECT_FALSE(result.matched);
 }
 
@@ -5183,7 +5183,7 @@ HWTEST_F(AgentManagerServiceTest, TryConsumeConnectPreflight_002, TestSize.Level
     Want want;
     SetAgentVerificationNonceParam(want, 99999);
     auto result = AgentConnectManager::GetInstance().TryConsumeConnectPreflight(BuildPreflightConsumeRequest(
-        want, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingUid() / BASE_USER_RANGE_FOR_TEST));
+        want, IPCSkeleton::GetCallingAppUid(), IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE_FOR_TEST));
     EXPECT_FALSE(result.matched);
 }
 
@@ -5199,7 +5199,7 @@ HWTEST_F(AgentManagerServiceTest, RegisterConnectPreflight_001, TestSize.Level1)
     Want connectWant;
     connectWant.SetElementName("", "test.bundle", "TestAbility", "test.module");
     connectWant.SetParam(AGENTID_KEY, std::string("agentA"));
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     AgentCard card;
     card.type = AgentCardType::APP;
     int64_t nonce = service->RegisterConnectPreflight(connectWant, "agentA", card, callerUid);
@@ -5237,7 +5237,7 @@ HWTEST_F(AgentManagerServiceTest, RegisterConnectPreflight_002, TestSize.Level1)
     request.connectWant.SetParam(AGENTID_KEY, std::string("agentA"));
     request.agentId = "agentA";
     request.card.type = AgentCardType::APP;
-    request.callerUid = IPCSkeleton::GetCallingUid();
+    request.callerUid = IPCSkeleton::GetCallingAppUid();
     request.callerUserId = request.callerUid / BASE_USER_RANGE_FOR_TEST;
 
     auto result = AgentConnectManager::GetInstance().RegisterConnectPreflight(request, []() {
@@ -5346,7 +5346,7 @@ HWTEST_F(AgentManagerServiceTest, ValidateConnectAgentCaller_002, TestSize.Level
     MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
     int32_t callerUid = 0;
     EXPECT_EQ(service->ValidateConnectAgentCaller(callerUid), ERR_OK);
-    EXPECT_EQ(callerUid, IPCSkeleton::GetCallingUid());
+    EXPECT_EQ(callerUid, IPCSkeleton::GetCallingAppUid());
 }
 
 /**
@@ -5392,13 +5392,13 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_035, TestSize.Lev
     MyFlag::agentCardModuleName = "entry";
 
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
     auto session = std::make_shared<AgentHostSession>();
     session->key = hostKey;
-    session->hostUid = IPCSkeleton::GetCallingUid();
+    session->hostUid = IPCSkeleton::GetCallingAppUid();
     session->hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey, nullptr, "");
     session->isConnected = true;
     session->remoteObject = sptr<TestAgentReceiver>(new TestAgentReceiver())->AsObject();
@@ -5429,10 +5429,10 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_035, TestSize.Lev
 // ---- TASK-6: ForCli interface UT coverage (issue-16055) ----
 // ConnectAgentExtensionAbilityForCli / DisconnectAgentExtensionAbilityForCli — security-critical
 // branch coverage: CCM gate, IsCliToolToken gate, anti-spoof (callerIdentity uid, obtained via
-// GetCallingUid after SetCallingIdentity, == the CLI tool's real process uid captured before
+// GetCallingAppUid after SetCallingIdentity, == the CLI tool's real process uid captured before
 // SetCallingIdentity), APP-type enforcement, app-A CONNECT_AGENT / system-app / foreground
 // enforcement, success. Legit-path tests rely on the default overrideCallingUid=false, so
-// GetCallingUid() returns getuid() both before and after SetCallingIdentity and the anti-spoof
+// GetCallingAppUid() returns getuid() both before and after SetCallingIdentity and the anti-spoof
 // passes; the spoof tests set overrideCallingUid=true with a mismatched identityUid.
 // All error codes are asserted against the exact values the production ForCli code returns so the
 // test guards against a silent relaxation of any branch.
@@ -5489,16 +5489,16 @@ HWTEST_F(AgentManagerServiceTest, ConnectForCli_NullConnection_ReturnsInvalidVal
 /**
 * @tc.name  : ConnectForCli_UidSpoof_ReturnsPermissionDenied
 * @tc.number: ConnectForCli_UidSpoof_ReturnsPermissionDenied
-* @tc.desc  : Returns ERR_PERMISSION_DENIED when the callerIdentity uid (GetCallingUid after
+* @tc.desc  : Returns ERR_PERMISSION_DENIED when the callerIdentity uid (GetCallingAppUid after
 *             SetCallingIdentity) differs from the CLI tool's real process uid (anti-spoof, fix).
 */
 HWTEST_F(AgentManagerServiceTest, ConnectForCli_UidSpoof_ReturnsPermissionDenied, TestSize.Level1)
 {
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
-    // anti-spoof (fix): GetCallingUid before SetCallingIdentity (cliToolUid) != after (identityUid).
+    // anti-spoof (fix): GetCallingAppUid before SetCallingIdentity (cliToolUid) != after (identityUid).
     MyFlag::overrideCallingUid = true;
-    MyFlag::cliToolUid = IPCSkeleton::GetCallingUid();
+    MyFlag::cliToolUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::identityUid = MyFlag::cliToolUid + 1;  // forged identity uid != real CLI tool uid
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
@@ -5516,7 +5516,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectForCli_NonAppType_ReturnsWrongInterface
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
     MyFlag::retGetHapTokenInfo = 0;
-    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::ATOMIC_SERVICE);
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
@@ -5534,7 +5534,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectForCli_NoConnectAgentPerm_ReturnsPermis
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
     MyFlag::retGetHapTokenInfo = 0;
-    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::retVerifyConnectAgentPermission = false;
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
@@ -5552,7 +5552,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectForCli_NotSystemApp_ReturnsNotSystemApp
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
     MyFlag::retGetHapTokenInfo = 0;
-    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::retJudgeCallerIsAllowedToUseSystemAPI = false;
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
@@ -5570,7 +5570,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectForCli_NotForeground_ReturnsNotTopAbili
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
     MyFlag::retGetHapTokenInfo = 0;
-    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_BACKGROUND;
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
@@ -5588,7 +5588,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectForCli_AllOk_ReturnsOk, TestSize.Level1
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
     MyFlag::retGetHapTokenInfo = 0;
-    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
@@ -5666,9 +5666,9 @@ HWTEST_F(AgentManagerServiceTest, DisconnectForCli_Spoof_ReturnsPermissionDenied
 {
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
-    // anti-spoof (fix): GetCallingUid before SetCallingIdentity (cliToolUid) != after (identityUid).
+    // anti-spoof (fix): GetCallingAppUid before SetCallingIdentity (cliToolUid) != after (identityUid).
     MyFlag::overrideCallingUid = true;
-    MyFlag::cliToolUid = IPCSkeleton::GetCallingUid();
+    MyFlag::cliToolUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::identityUid = MyFlag::cliToolUid + 1;  // forged identity uid != real CLI tool uid
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbilityForCli(
@@ -5686,7 +5686,7 @@ HWTEST_F(AgentManagerServiceTest, DisconnectForCli_AllOk_DelegatesAndReturnsOk, 
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
     MyFlag::retGetHapTokenInfo = 0;
-    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::retDisconnectAbility = ERR_OK;
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     // ForCli delegates to DisconnectAgentExtensionAbility -> PrepareAgentDisconnectRequest, which
@@ -5697,7 +5697,7 @@ HWTEST_F(AgentManagerServiceTest, DisconnectForCli_AllOk_DelegatesAndReturnsOk, 
     // tolerates) so the lookup succeeds and the chain reaches the mocked DisconnectAbility(ERR_OK).
     // Mirrors the tracked-record emplace in OnStop_001 (line 398).
     TrackedConnectionRecord record;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     AgentConnectManager::GetInstance().trackedConnections_.emplace(connection->AsObject(), record);
     EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbilityForCli(
         connection, std::string("callerIdentity")), ERR_OK);

@@ -191,7 +191,7 @@ std::shared_ptr<AppRunningRecord> AmsAppRunningRecordTest::StartLoadAbility(cons
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestProcessName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestProcessName(), appInfo->appUid, bundleInfo);
 
     EXPECT_TRUE(record);
     auto clent = GetMockedAppSchedulerClient();
@@ -248,8 +248,8 @@ HWTEST_F(AmsAppRunningRecordTest, CreateAppRunningRecord_002, TestSize.Level1)
     abilityInfo->name = GetTestAbilityName();
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->name = GetTestAppName();
-    abilityInfo->applicationInfo.appuid = 1010;
-    appInfo->appuid = 1010;
+    abilityInfo->applicationInfo.appUid = 1010;
+    appInfo->appUid = 1010;
     BundleInfo bundleInfo;
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
     HapModuleInfo hapModuleInfo;
@@ -284,8 +284,8 @@ HWTEST_F(AmsAppRunningRecordTest, CreateAppRunningRecord_003, TestSize.Level1)
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->name = GetTestAppName();
     appInfo->bundleName = GetTestAppName();
-    abilityInfo->applicationInfo.appuid = 1010;
-    appInfo->appuid = 1010;
+    abilityInfo->applicationInfo.appUid = 1010;
+    appInfo->appUid = 1010;
     BundleInfo bundleInfo;
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
     HapModuleInfo hapModuleInfo;
@@ -299,7 +299,7 @@ HWTEST_F(AmsAppRunningRecordTest, CreateAppRunningRecord_003, TestSize.Level1)
 
     auto anotherAbilityInfo = std::make_shared<AbilityInfo>();
     anotherAbilityInfo->name = "Another_ability";
-    anotherAbilityInfo->applicationInfo.appuid = 1010;
+    anotherAbilityInfo->applicationInfo.appUid = 1010;
     loadParam->preToken = new (std::nothrow) MockAbilityToken();
     auto record1 = service_->CreateAppRunningRecord(loadParam,
         appInfo,

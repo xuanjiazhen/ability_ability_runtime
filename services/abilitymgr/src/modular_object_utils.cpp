@@ -114,7 +114,7 @@ int32_t ModularObjectUtils::CheckPermission(const AbilityRequest &abilityRequest
     if (ret != ERR_OK) {
         return ret;
     }
-    return CheckTargetHasRunningAbility(targetAppInfo.appuid, validUserId, bundleName);
+    return CheckTargetHasRunningAbility(targetAppInfo.appUid, validUserId, bundleName);
 }
 
 int32_t ModularObjectUtils::CheckExtensionEnabled(const ModularObjectExtensionInfo &info,

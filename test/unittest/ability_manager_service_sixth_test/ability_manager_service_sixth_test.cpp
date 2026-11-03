@@ -1131,7 +1131,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectLocalAbility_003, TestSize.Level
 
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo applicationInfo;
-    applicationInfo.appuid = 10000;
+    applicationInfo.appUid = 10000;
     applicationInfo.singleton = 0;
     applicationInfo.name = "app";
     applicationInfo.bundleName = "testBundleName";
@@ -2675,7 +2675,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartAbilityInner_001, TestSize.Level1)
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
     AbilityRequest preAbilityRequest;
-    preAbilityRequest.abilityInfo.applicationInfo.appuid = 0;
+    preAbilityRequest.abilityInfo.applicationInfo.appUid = 0;
     std::string dialogSessionId = "testDialogSessionId";
     DialogSessionManager::GetInstance().OnlySetDialogCallerInfo(preAbilityRequest, preAbilityRequest.userId,
         AAFwk::SelectorType::INTERCEPTOR_SELECTOR, dialogSessionId, false);

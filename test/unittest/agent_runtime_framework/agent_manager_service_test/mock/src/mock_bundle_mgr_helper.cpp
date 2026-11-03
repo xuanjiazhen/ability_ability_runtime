@@ -82,7 +82,7 @@ bool BundleMgrHelper::QueryExtensionAbilityInfos(const AAFwk::Want &want, const 
     if (AgentRuntime::MyFlag::retQueryExtensionAbilityInfos && AgentRuntime::MyFlag::shouldFillExtensionAbilityInfos) {
         ExtensionAbilityInfo info;
         info.type = AgentRuntime::MyFlag::extensionAbilityType;
-        info.applicationInfo.appuid = AgentRuntime::MyFlag::extensionAbilityUid;
+        info.applicationInfo.appUid = AgentRuntime::MyFlag::extensionAbilityUid;
         extensionInfos.push_back(info);
     }
     return AgentRuntime::MyFlag::retQueryExtensionAbilityInfos;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -275,7 +275,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartEvent_006, TestSize.Level1)
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
     moduleRunningRecord->abilities_[token] = abilityRecord;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     EXPECT_TRUE(appMgrServiceInner->SendProcessStartEvent(appRecord, false, AppExecFwk::PreloadMode::PRESS_DOWN));
     TAG_LOGI(AAFwkTag::TEST, "SendProcessStartEvent_006 end");
 }
@@ -311,7 +311,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartEvent_007, TestSize.Level1)
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
     moduleRunningRecord->abilities_[token] = abilityRecord;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     auto &recordMap = appMgrServiceInner->appRunningManager_->appRunningRecordMap_;
     auto iter = recordMap.find(IPCSkeleton::GetCallingPid());
     if (iter == recordMap.end()) {
@@ -358,7 +358,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartEvent_008, TestSize.Level1)
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
     moduleRunningRecord->abilities_[token] = abilityRecord;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     auto &recordMap = appMgrServiceInner->appRunningManager_->appRunningRecordMap_;
     auto iter = recordMap.find(IPCSkeleton::GetCallingPid());
     if (iter == recordMap.end()) {
@@ -449,7 +449,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartFailedEvent_003, TestSize.Level
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
     moduleRunningRecord->abilities_[token] = abilityRecord;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     auto &recordMap = appMgrServiceInner->appRunningManager_->appRunningRecordMap_;
     auto iter = recordMap.find(IPCSkeleton::GetCallingPid());
     if (iter == recordMap.end()) {
@@ -494,7 +494,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartFailedEvent_004, TestSize.Level
     std::vector<std::shared_ptr<ModuleRunningRecord>> moduleRecordList = { moduleRunningRecord };
     appRecord->hapModules_["moduleRecordList"] = moduleRecordList;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     auto &recordMap = appMgrServiceInner->appRunningManager_->appRunningRecordMap_;
     auto iter = recordMap.find(IPCSkeleton::GetCallingPid());
     if (iter == recordMap.end()) {
@@ -540,7 +540,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartFailedEvent_005, TestSize.Level
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
     moduleRunningRecord->abilities_[token] = abilityRecord;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     auto &recordMap = appMgrServiceInner->appRunningManager_->appRunningRecordMap_;
     auto iter = recordMap.find(IPCSkeleton::GetCallingPid());
     if (iter == recordMap.end()) {
@@ -586,7 +586,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartFailedEvent_006, TestSize.Level
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
     moduleRunningRecord->abilities_[token] = abilityRecord;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     auto &recordMap = appMgrServiceInner->appRunningManager_->appRunningRecordMap_;
     auto iter = recordMap.find(IPCSkeleton::GetCallingPid());
     if (iter == recordMap.end()) {
@@ -632,7 +632,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartFailedEvent_007, TestSize.Level
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
     moduleRunningRecord->abilities_[token] = abilityRecord;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     auto &recordMap = appMgrServiceInner->appRunningManager_->appRunningRecordMap_;
     auto iter = recordMap.find(IPCSkeleton::GetCallingPid());
     if (iter == recordMap.end()) {
@@ -680,7 +680,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartFailedEvent_008, TestSize.Level
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
     moduleRunningRecord->abilities_[token] = abilityRecord;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     auto &recordMap = appMgrServiceInner->appRunningManager_->appRunningRecordMap_;
     auto iter = recordMap.find(IPCSkeleton::GetCallingPid());
     if (iter == recordMap.end()) {
@@ -728,7 +728,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartFailedEvent_009, TestSize.Level
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
     moduleRunningRecord->abilities_[token] = abilityRecord;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     auto &recordMap = appMgrServiceInner->appRunningManager_->appRunningRecordMap_;
     auto iter = recordMap.find(IPCSkeleton::GetCallingPid());
     if (iter == recordMap.end()) {
@@ -774,7 +774,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessStartFailedEvent_010, TestSize.Level
     auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
     moduleRunningRecord->abilities_[token] = abilityRecord;
     appRecord->SetCallerTokenId(IPCSkeleton::GetCallingTokenID());
-    appRecord->SetCallerUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetCallerUid(IPCSkeleton::GetCallingAppUid());
     auto &recordMap = appMgrServiceInner->appRunningManager_->appRunningRecordMap_;
     auto iter = recordMap.find(IPCSkeleton::GetCallingPid());
     if (iter == recordMap.end()) {

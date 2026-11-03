@@ -862,7 +862,7 @@ AbilityStateData AppRunningRecord::BuildAbilityStateData(
     abilityStateData.abilityName = ability->GetName();
     abilityStateData.pid = GetPid();
     abilityStateData.abilityState = state;
-    abilityStateData.uid = abilityInfo->applicationInfo.appuid;
+    abilityStateData.uid = abilityInfo->applicationInfo.appUid;
     abilityStateData.token = ability->GetToken();
     abilityStateData.abilityType = static_cast<int32_t>(abilityInfo->type);
     abilityStateData.isFocused = ability->GetFocusFlag();
@@ -3223,7 +3223,7 @@ void AppRunningRecord::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateDa
         AbilityStateData info;
         info.abilityRecordId = abilityRecord->GetAbilityRecordId();
         info.pid = GetPid();
-        info.uid = abilityRecord->GetAbilityInfo()->applicationInfo.appuid;
+        info.uid = abilityRecord->GetAbilityInfo()->applicationInfo.appUid;
         info.abilityType = static_cast<int32_t>(abilityRecord->GetAbilityInfo()->type);
         info.extensionAbilityType = static_cast<int32_t>(abilityRecord->GetAbilityInfo()->extensionAbilityType);
         infos.emplace_back(info);

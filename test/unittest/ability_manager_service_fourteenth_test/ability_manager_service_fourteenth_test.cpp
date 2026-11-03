@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -790,7 +790,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, TerminateAbilityWithFlag_003, Test
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest TerminateAbilityWithFlag_003 start");
     MyStatus::GetInstance().smhVerificationAllToken_ = true;
     MyStatus::GetInstance().arGetAbilityRecord_ = MockAbilityRecord(AbilityType::SERVICE);
-    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = 1;
     MyStatus::GetInstance().arGetAbilityInfo_.bundleName = AbilityConfig::SYSTEM_UI_BUNDLE_NAME;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
@@ -814,7 +814,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, TerminateAbilityWithFlag_004, Test
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest TerminateAbilityWithFlag_004 start");
     MyStatus::GetInstance().smhVerificationAllToken_ = true;
     MyStatus::GetInstance().arGetAbilityRecord_ = MockAbilityRecord(AbilityType::SERVICE);
-    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = 1;
     MyStatus::GetInstance().arGetAbilityInfo_.bundleName = AbilityConfig::SYSTEM_UI_NAVIGATION_BAR;
     MyStatus::GetInstance().arGetAbilityInfo_.type = AbilityType::SERVICE;
     MyStatus::GetInstance().smhGetConnectManagerByToken_ = false;
@@ -840,7 +840,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, TerminateAbilityWithFlag_005, Test
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest TerminateAbilityWithFlag_005 start");
     MyStatus::GetInstance().smhVerificationAllToken_ = true;
     MyStatus::GetInstance().arGetAbilityRecord_ = MockAbilityRecord(AbilityType::SERVICE);
-    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = 1;
     MyStatus::GetInstance().arGetAbilityInfo_.bundleName = AbilityConfig::SYSTEM_UI_NAVIGATION_BAR;
     MyStatus::GetInstance().arGetAbilityInfo_.type = AbilityType::SERVICE;
     MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
@@ -871,7 +871,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, TerminateAbilityWithFlag_006, Test
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest TerminateAbilityWithFlag_006 start");
     MyStatus::GetInstance().smhVerificationAllToken_ = true;
     MyStatus::GetInstance().arGetAbilityRecord_ = MockAbilityRecord(AbilityType::SERVICE);
-    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = 1;
     MyStatus::GetInstance().arGetAbilityInfo_.bundleName = AbilityConfig::SYSTEM_UI_NAVIGATION_BAR;
     MyStatus::GetInstance().arGetAbilityInfo_.type = AbilityType::DATA;
     MyStatus::GetInstance().smhGetConnectManagerByToken_ = false;
@@ -954,7 +954,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
              "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_003 start");
     MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
     MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = nullptr;
-    MyStatus::GetInstance().ipcGetCallingUid_ = U0_USER_ID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = U0_USER_ID;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
 
@@ -988,7 +988,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
              "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_004 start");
     MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
     MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = nullptr;
-    MyStatus::GetInstance().ipcGetCallingUid_ = -1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = -1;
     MyStatus::GetInstance().acmGetUIExtensionBySessionFromServiceMap_ = nullptr;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
@@ -1022,7 +1022,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
              "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_005 start");
     MyStatus::GetInstance().smhGetConnectManagerByToken_ = true;
     MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = nullptr;
-    MyStatus::GetInstance().ipcGetCallingUid_ = -1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = -1;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
 
@@ -1055,7 +1055,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerAndUIExtensionByS
              "AbilityManagerServiceFourteenthTest GetConnectManagerAndUIExtensionBySessionInfo_006 start");
     MyStatus::GetInstance().smhGetConnectManagerByToken_ = false;
     MyStatus::GetInstance().acmGetUIExtensionBySessionInfo_ = nullptr;
-    MyStatus::GetInstance().ipcGetCallingUid_ = -1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = -1;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     std::shared_ptr<UIExtensionAbilityManager> connectManager = nullptr;
@@ -1171,7 +1171,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, CheckNewRuleSwitchState_002, TestS
 HWTEST_F(AbilityManagerServiceFourteenthTest, CheckDlpForExtension_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckDlpForExtension_001 start");
-    MyStatus::GetInstance().ipcGetCallingUid_ = AppExecFwk::Constants::FOUNDATION_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = AppExecFwk::Constants::FOUNDATION_UID;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     Want want;
@@ -1194,7 +1194,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, CheckDlpForExtension_001, TestSize
 HWTEST_F(AbilityManagerServiceFourteenthTest, CheckDlpForExtension_002, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckDlpForExtension_002 start");
-    MyStatus::GetInstance().ipcGetCallingUid_ = -1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = -1;
     MyStatus::GetInstance().permPermission_ = false;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
@@ -1218,7 +1218,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, CheckDlpForExtension_002, TestSize
 HWTEST_F(AbilityManagerServiceFourteenthTest, CheckDlpForExtension_003, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckDlpForExtension_003 start");
-    MyStatus::GetInstance().ipcGetCallingUid_ = -1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = -1;
     MyStatus::GetInstance().permPermission_ = true;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
@@ -1242,7 +1242,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, CheckDlpForExtension_003, TestSize
 HWTEST_F(AbilityManagerServiceFourteenthTest, GetFocusAbility_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest GetFocusAbility_001 start");
-    MyStatus::GetInstance().ipcGetCallingUid_ = AppExecFwk::Constants::FOUNDATION_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = AppExecFwk::Constants::FOUNDATION_UID;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     abilityMs_->wmsHandler_ = nullptr;
@@ -1260,7 +1260,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetFocusAbility_001, TestSize.Leve
 HWTEST_F(AbilityManagerServiceFourteenthTest, GetFocusAbility_002, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest GetFocusAbility_002 start");
-    MyStatus::GetInstance().ipcGetCallingUid_ = AppExecFwk::Constants::FOUNDATION_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = AppExecFwk::Constants::FOUNDATION_UID;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     abilityMs_->wmsHandler_ = nullptr;
@@ -1302,7 +1302,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, CheckExtensionRateLimit_001, TestS
     EXPECT_NE(abilityMs_, nullptr);
     auto uid = 20010001;
     MyStatus::GetInstance().permPermission_ = 1;
-    MyStatus::GetInstance().ipcGetCallingUid_ = uid;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = uid;
     Want want;
     ElementName element("", "com.acts.testCheckExtensionRateLimit", "TestAbility");
     want.SetElement(element);
@@ -1332,7 +1332,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, CheckExtensionRateLimit_002, TestS
     EXPECT_NE(abilityMs_, nullptr);
     auto uid = 20010001;
     MyStatus::GetInstance().permPermission_ = 0;
-    MyStatus::GetInstance().ipcGetCallingUid_ = uid;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = uid;
     Want want;
     ElementName element("", "com.acts.testCheckExtensionRateLimit", "TestAbility");
     want.SetElement(element);
@@ -1362,7 +1362,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, CheckExtensionRateLimit_003, TestS
     EXPECT_NE(abilityMs_, nullptr);
     auto uid = 20010001;
     MyStatus::GetInstance().permPermission_ = 0;
-    MyStatus::GetInstance().ipcGetCallingUid_ = uid;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = uid;
     Want want;
     ElementName element("", "com.acts.testCheckExtensionRateLimit", "TestAbility");
     want.SetElement(element);
@@ -1768,7 +1768,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, SetGamePreLaunchCompleteTime_001, 
     EXPECT_NE(abilityMs_, nullptr);
     auto result = abilityMs_->SetGamePreLaunchCompleteTime(userId, completeTime);
     // Should fail due to permission check (unless running as GAME_SA_UID)
-    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != GAME_SA_UID) {
         EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     } else {
         EXPECT_EQ(result, ERR_OK);
@@ -1789,7 +1789,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_001, Te
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
-    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != GAME_SA_UID) {
         EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_001 end");
@@ -1808,7 +1808,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_002, Te
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
-    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != GAME_SA_UID) {
         EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     } else {
         EXPECT_EQ(result, ERR_INVALID_VALUE);
@@ -1829,7 +1829,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_003, Te
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
-    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != GAME_SA_UID) {
         EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     } else {
         EXPECT_EQ(result, ERR_INVALID_VALUE);

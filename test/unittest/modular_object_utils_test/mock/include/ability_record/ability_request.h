@@ -26,7 +26,7 @@ struct ApplicationInfo {
     std::string appDistributionType;
     uint32_t accessTokenId = 0;
     int32_t uid = 0;
-    int32_t appuid = -1;
+    int32_t appUid = -1;
     int32_t appIndex = 0;
     std::string process;
 };

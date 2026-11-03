@@ -28,7 +28,6 @@ public:
     static void StopWorkThread();
     static pid_t GetCallingPid();
     static pid_t GetCallingAppUid();
-    static pid_t GetCallingUid();
     static uint32_t GetCallingTokenID();
     static std::string GetLocalDeviceID();
     static std::string GetCallingDeviceID();

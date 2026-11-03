@@ -88,7 +88,7 @@ public:
         }
         appInfo.name = appName;
         appInfo.bundleName = appName;
-        appInfo.appuid = userId * BASE_USER_RANGE;
+        appInfo.appUid = userId * BASE_USER_RANGE;
         if (appName.compare("com.test.crowdtest") == 0) {
             appInfo.appDistributionType = "crowdtesting";
             appInfo.crowdtestDeadline = 0;

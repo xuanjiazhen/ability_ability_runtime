@@ -780,7 +780,7 @@ HWTEST_F(AppPreloaderTest, AppPreloaderTest_GetBundleAndHapInfo_CloneAppIndex, T
 
     auto ret = manager->GetBundleAndHapInfo(bundleName, userId, appIndex, abilityInfo, bundleInfo, hapModuleInfo);
     EXPECT_TRUE(ret);
-    EXPECT_EQ(bundleInfo.applicationInfo.appuid, appIndex + 10000);
+    EXPECT_EQ(bundleInfo.applicationInfo.appUid, appIndex + 10000);
     TAG_LOGD(AAFwkTag::TEST, "AppPreloaderTest_GetBundleAndHapInfo_CloneAppIndex end.");
 }
 
@@ -810,7 +810,7 @@ HWTEST_F(AppPreloaderTest, AppPreloaderTest_GetBundleAndHapInfo_AppIndex0_UsesGe
 
     auto ret = manager->GetBundleAndHapInfo(bundleName, userId, appIndex, abilityInfo, bundleInfo, hapModuleInfo);
     EXPECT_TRUE(ret);
-    EXPECT_NE(bundleInfo.applicationInfo.appuid, 0 + 10000);
+    EXPECT_NE(bundleInfo.applicationInfo.appUid, 0 + 10000);
     TAG_LOGD(AAFwkTag::TEST, "AppPreloaderTest_GetBundleAndHapInfo_AppIndex0_UsesGetBundleInfo end.");
 }
 

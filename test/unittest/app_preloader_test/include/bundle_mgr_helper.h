@@ -102,7 +102,7 @@ public:
         if (userId == UID_CHECK_BUNDLE_INFO) {
             return ERR_INVALID_NUM_ARGS_ERROR;
         }
-        bundleInfo.applicationInfo.appuid = appCloneIndex + 10000;
+        bundleInfo.applicationInfo.appUid = appCloneIndex + 10000;
         return ERR_OK;
     }
 
@@ -118,7 +118,7 @@ public:
         abilityInfo.bundleName = element.GetBundleName();
         abilityInfo.applicationName = element.GetBundleName();
         abilityInfo.applicationInfo.name = abilityInfo.applicationName;
-        abilityInfo.applicationInfo.appuid = appCloneIndex + 10000;
+        abilityInfo.applicationInfo.appUid = appCloneIndex + 10000;
         return ERR_OK;
     }
 

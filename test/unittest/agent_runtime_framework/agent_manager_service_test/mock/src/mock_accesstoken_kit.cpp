@@ -22,7 +22,7 @@ namespace AgentRuntime {
 bool MyFlag::retIsCliToolToken = true;
 int32_t MyFlag::retGetHapTokenInfo = 0;
 int32_t MyFlag::hapTokenInfoUid = 0;
-// ForCli anti-spoof seams (issue-16055 fix): default overrideCallingUid=false keeps GetCallingUid()
+// ForCli anti-spoof seams (issue-16055 fix): default overrideCallingUid=false keeps GetCallingAppUid()
 // on the real getuid() for all non-ForCli tests; cliToolUid/identityUid default to the calling uid.
 bool MyFlag::overrideCallingUid = false;
 bool MyFlag::setIdentityActive = false;

@@ -220,7 +220,7 @@ HWTEST_F(ChildMainThreadTest, HandleLoadJs_0100, TestSize.Level1)
     bundleInfo.hapModuleInfos = hapModuleInfos;
 
     ApplicationInfo applicationInfo;
-    applicationInfo.appuid = 2001;
+    applicationInfo.appUid = 2001;
     bundleInfo.applicationInfo = applicationInfo;
     
     thread->bundleInfo_ = std::make_shared<BundleInfo>(bundleInfo);
@@ -254,7 +254,7 @@ HWTEST_F(ChildMainThreadTest, HandleLoadArkTs_0100, TestSize.Level1)
     bundleInfo.hapModuleInfos = hapModuleInfos;
 
     ApplicationInfo applicationInfo;
-    applicationInfo.appuid = 2001;
+    applicationInfo.appUid = 2001;
     bundleInfo.applicationInfo = applicationInfo;
     
     thread->bundleInfo_ = std::make_shared<BundleInfo>(bundleInfo);

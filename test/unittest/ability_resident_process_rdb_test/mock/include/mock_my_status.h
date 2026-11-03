@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,7 +43,7 @@ public:
     std::shared_ptr<AbilityRecord> arGetAbilityRecord_ = nullptr;
     AppExecFwk::AbilityInfo arGetAbilityInfo_ = {};
     bool sbjIsSceneBoardEnabled_ = false;
-    int ipcGetCallingUid_ = 1;
+    int ipcGetCallingAppUid_ = 1;
     int ipcGetCallingPid_ = 1;
     uint32_t ipcGetCallingTokenID_ = 1;
     uint32_t ipcGetSelfTokenID_ = 1;

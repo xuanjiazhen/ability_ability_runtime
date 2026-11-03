@@ -1291,7 +1291,7 @@ HWTEST_F(ConnectionRecordTest, ConnectionRecord_CallOnAbilityConnectDone_002, Te
 HWTEST_F(ConnectionRecordTest, ConnectionRecord_AttachCallerInfo_001, TestSize.Level1)
 {
     AbilityRequest callerRequest;
-    callerRequest.appInfo.appuid = 12345;
+    callerRequest.appInfo.appUid = 12345;
     callerRequest.appInfo.name = "CallerApp";
     callerRequest.abilityInfo.bundleName = "com.test.caller";
     callerRequest.abilityInfo.name = "CallerAbility";
@@ -1325,7 +1325,7 @@ HWTEST_F(ConnectionRecordTest, ConnectionRecord_AttachCallerInfo_002, TestSize.L
     auto connRecord = std::make_shared<ConnectionRecord>(nullptr, nullptr, nullptr, nullptr);
     connRecord->AttachCallerInfo();
 
-    int32_t expectedUid = static_cast<int32_t>(IPCSkeleton::GetCallingUid());
+    int32_t expectedUid = static_cast<int32_t>(IPCSkeleton::GetCallingAppUid());
     int32_t expectedPid = static_cast<int32_t>(IPCSkeleton::GetCallingPid());
     uint32_t expectedTokenId = IPCSkeleton::GetCallingTokenID();
 

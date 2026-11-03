@@ -915,7 +915,7 @@ int32_t AgentManagerService::ResolveLowCodeHostInfo(const AAFwk::Want &want, int
         TAG_LOGE(AAFwkTag::SER_ROUTER, "incorrect extension");
         return AAFwk::ERR_WRONG_INTERFACE_CALL;
     }
-    hostUid = extensionInfos[0].applicationInfo.appuid;
+    hostUid = extensionInfos[0].applicationInfo.appUid;
     return ERR_OK;
 }
 

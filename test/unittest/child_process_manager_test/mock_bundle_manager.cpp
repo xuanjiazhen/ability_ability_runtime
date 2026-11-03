@@ -38,7 +38,7 @@ ErrCode BundleMgrService::GetBundleInfoForSelf(int32_t flags, BundleInfo &bundle
     bundleInfo.hapModuleInfos = hapModuleInfos;
 
     AppExecFwk::ApplicationInfo applicationInfo;
-    applicationInfo.appuid = UID;
+    applicationInfo.appUid = UID;
     bundleInfo.applicationInfo = applicationInfo;
 
     return ERR_OK;

@@ -715,7 +715,7 @@ HWTEST_F(MainThreadFristTest, IsFormRenderService_EmptyName_ReturnsFalse_0100, T
 }
 /**
  * @tc.name: ProcessExit_RecordsApplicationIdentity
- * @tc.desc: Exit recording uses the process ApplicationInfo appuid instead of the OS uid.
+ * @tc.desc: Exit recording uses the process ApplicationInfo appUid instead of the OS uid.
  * @tc.type: FUNC
  */
 HWTEST_F(MainThreadFristTest, ProcessExit_RecordsApplicationIdentity, TestSize.Level1)
@@ -727,7 +727,7 @@ HWTEST_F(MainThreadFristTest, ProcessExit_RecordsApplicationIdentity, TestSize.L
     client->proxy_ = recorder;
     sharedThread_->applicationInfo_ = std::make_shared<ApplicationInfo>();
     sharedThread_->applicationInfo_->uid = 100;
-    sharedThread_->applicationInfo_->appuid = 20012345;
+    sharedThread_->applicationInfo_->appUid = 20012345;
     ProcessExitInfo info {};
     info.pid = 12345;
     sharedThread_->ProcessExit(info);

@@ -116,7 +116,7 @@ std::shared_ptr<AppRunningRecord> AmsServiceLoadAbilityProcessTest::StartLoadAbi
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, abilityInfo->process, appInfo->appuid, bundleInfo);
+        appInfo->name, abilityInfo->process, appInfo->appUid, bundleInfo);
     EXPECT_EQ(record->GetPriorityObject()->GetPid(), newPid);
     return record;
 }
@@ -155,7 +155,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LoadAbility_001, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -206,7 +206,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LoadAbility_002, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -237,7 +237,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LoadAbility_002, TestSize.Level1)
     const uint32_t EXPECT_MAP_SIZE = 2;
     if (recordMap.size() == EXPECT_MAP_SIZE) {
         auto record2 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-            appInfo2->name, "com.ohos.test.special", appInfo2->uid, bundleInfo);
+            appInfo2->name, "com.ohos.test.special", appInfo2->appUid, bundleInfo);
         EXPECT_NE(record2, nullptr);
         CHECK_POINTER_IS_NULLPTR(record2);
         EXPECT_EQ(record2->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -420,7 +420,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LoadAbility_007, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -438,7 +438,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LoadAbility_007, TestSize.Level1)
     EXPECT_EQ(recordMap.size(), (uint32_t)1);
 
     auto record2 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record2, record);
     const auto& abilityMap2 = record2->GetAbilities();
     EXPECT_EQ(abilityMap2.size(), (uint32_t)1);
@@ -478,7 +478,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LoadAbility_008, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -506,7 +506,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LoadAbility_008, TestSize.Level1)
     service_->LoadAbility(abilityInfo2, appInfo, nullptr, loadParamPtr2);
     EXPECT_EQ(recordMap.size(), (uint32_t)1);
     auto record2 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record2, record);
     const auto& abilityMap2 = record2->GetAbilities();
     EXPECT_EQ(abilityMap2.size(), EXPECT_MAP_SIZE);
@@ -551,7 +551,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, RequestProcess_001, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetPriorityObject()->GetPid(), PID);
@@ -627,7 +627,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, SavePid_001, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest SavePid_001 end");
 }
@@ -663,7 +663,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, SavePid_002, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest SavePid_002 end");
 }
@@ -699,7 +699,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LaunchMode_001, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -744,7 +744,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LaunchMode_002, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -765,7 +765,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, LaunchMode_002, TestSize.Level1)
     auto loadParamPtr2 = std::make_shared<AbilityRuntime::LoadParam>(loadParam2);
     service_->LoadAbility(abilityInfo, appInfo, nullptr, loadParamPtr2);
     auto record2 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record2, record);
     const auto& abilityMap2 = record2->GetAbilities();
     EXPECT_EQ(abilityMap2.size(), (uint32_t)2);
@@ -803,7 +803,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_001, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -830,7 +830,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_001, TestSize.Level1)
     hapModuleInfo.moduleName = "module789";
     service_->StartAbility(token2, token, abilityInfo2, record, hapModuleInfo, nullptr, 0);
     auto record1 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     const auto& abilityMap1 = record1->GetAbilities();
     EXPECT_EQ(abilityMap1.size(), (uint32_t)2);
     auto abilityrecord1 = record1->GetAbilityRunningRecordByToken(token2);
@@ -871,7 +871,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_002, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -897,7 +897,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_002, TestSize.Level1)
     hapModuleInfo.moduleName = "module789";
     service_->StartAbility(token2, token, abilityInfo2, nullptr, hapModuleInfo, nullptr, 0);
     auto record1 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     const auto& abilityMap1 = record1->GetAbilities();
     EXPECT_EQ(abilityMap1.size(), (uint32_t)1);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest StartAbility_002 end");
@@ -936,7 +936,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_003, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -964,7 +964,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_003, TestSize.Level1)
     hapModuleInfo.moduleName = "module789";
     service_->StartAbility(token2, token, abilityInfo2, nullptr, hapModuleInfo, nullptr, 0);
     auto record1 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     const auto& abilityMap1 = record1->GetAbilities();
     EXPECT_EQ(abilityMap1.size(), (uint32_t)1);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest StartAbility_003 end");
@@ -1000,7 +1000,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_004, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -1025,7 +1025,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_004, TestSize.Level1)
     service_->StartAbility(nullptr, token, abilityInfo2, nullptr, hapModuleInfo, nullptr, 0);
 
     auto record1 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     const auto& abilityMap1 = record1->GetAbilities();
     EXPECT_EQ(abilityMap1.size(), (uint32_t)1);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest StartAbility_004 end");
@@ -1063,7 +1063,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_005, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -1088,7 +1088,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_005, TestSize.Level1)
     hapModuleInfo.moduleName = "module789";
     service_->StartAbility(token2, nullptr, abilityInfo2, record, hapModuleInfo, nullptr, 0);
     auto record1 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     const auto& abilityMap1 = record1->GetAbilities();
     EXPECT_EQ(abilityMap1.size(), (uint32_t)2);
     auto abilityrecord1 = record1->GetAbilityRunningRecordByToken(token2);
@@ -1128,7 +1128,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_006, TestSize.Level1)
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto record = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record, nullptr);
     CHECK_POINTER_IS_NULLPTR(record);
     EXPECT_EQ(record->GetState(), ApplicationState::APP_STATE_CREATE);
@@ -1151,7 +1151,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartAbility_006, TestSize.Level1)
     hapModuleInfo.moduleName = "module789";
     service_->StartAbility(nullptr, token, abilityInfo2, nullptr, hapModuleInfo, nullptr, 0);
     auto record1 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     const auto& abilityMap1 = record1->GetAbilities();
     EXPECT_EQ(abilityMap1.size(), (uint32_t)1);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest StartAbility_006 end");
@@ -1197,13 +1197,13 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartProcess001, TestSize.Level1)
     service_->StartProcess(abilityInfo->applicationName,
         GetTestAppName(),
         false, record,
-        abilityInfo->applicationInfo.appuid,
+        abilityInfo->applicationInfo.appUid,
         bundleInfo, abilityInfo->applicationInfo.bundleName, 0);
     const auto& recordMap = service_->appRunningManager_->GetAppRunningRecordMap();
     EXPECT_EQ(recordMap.size(), (uint32_t)1);
 
     auto record1 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record1, nullptr);
     CHECK_POINTER_IS_NULLPTR(record1);
     EXPECT_EQ(record1->GetPriorityObject()->GetPid(), PID);
@@ -1251,13 +1251,13 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartProcess002, TestSize.Level1)
     service_->StartProcess(abilityInfo->applicationName,
         GetTestAppName(),
         false, record,
-        abilityInfo->applicationInfo.appuid,
+        abilityInfo->applicationInfo.appUid,
         bundleInfo, abilityInfo->applicationInfo.bundleName, 0);
     const auto& recordMap = service_->appRunningManager_->GetAppRunningRecordMap();
     EXPECT_EQ(recordMap.size(), (uint32_t)0);
 
     auto record1 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_EQ(record1, nullptr);
     CHECK_POINTER_IS_NULLPTR(record1);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest StartProcess002 end");
@@ -1297,13 +1297,13 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartProcess003, TestSize.Level1)
     service_->StartProcess(abilityInfo->applicationName,
         GetTestAppName(),
         false, nullptr,
-        abilityInfo->applicationInfo.appuid,
+        abilityInfo->applicationInfo.appUid,
         bundleInfo, abilityInfo->applicationInfo.bundleName, 0);
     const auto& recordMap = service_->appRunningManager_->GetAppRunningRecordMap();
     EXPECT_EQ(recordMap.size(), (uint32_t)1);
 
     auto record1 = service_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, GetTestAppName(), appInfo->appuid, bundleInfo);
+        appInfo->name, GetTestAppName(), appInfo->appUid, bundleInfo);
     EXPECT_NE(record1, nullptr);
     CHECK_POINTER_IS_NULLPTR(record1);
     TAG_LOGI(AAFwkTag::TEST, "AmsServiceLoadAbilityProcessTest StartProcess003 end");
@@ -1353,7 +1353,7 @@ HWTEST_F(AmsServiceLoadAbilityProcessTest, StartProcess004, TestSize.Level1)
     service_->StartProcess(abilityInfo->applicationName,
         GetTestAppName(),
         false, record,
-        abilityInfo->applicationInfo.appuid,
+        abilityInfo->applicationInfo.appUid,
         bundleInfo, abilityInfo->applicationInfo.bundleName, 0);
     auto record1 = service_->GetAppRunningRecordByAppRecordId(record->GetRecordId());
     EXPECT_EQ(record1, nullptr);

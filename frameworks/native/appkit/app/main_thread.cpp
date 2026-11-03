@@ -1639,7 +1639,7 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
         int32_t result = ERR_INVALID_VALUE;
         if (appThread->applicationInfo_ != nullptr) {
             result = AbilityManagerClient::GetInstance()->RecordAppWithReason(
-                pid, appThread->applicationInfo_->appuid, exitReason);
+                pid, appThread->applicationInfo_->appUid, exitReason);
         } else {
             TAG_LOGE(AAFwkTag::APPKIT, "null applicationInfo, skip exit reason record");
         }
@@ -1882,7 +1882,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         options.isBundle = (entryHapModuleInfo.compileMode != AppExecFwk::CompileMode::ES_MODULE);
         options.isDebugVersion = bundleInfo.applicationInfo.debug;
         options.arkNativeFilePath = bundleInfo.applicationInfo.arkNativeFilePath;
-        options.uid = bundleInfo.applicationInfo.appuid;
+        options.uid = bundleInfo.applicationInfo.appUid;
         options.apiTargetVersion = appInfo.apiTargetVersion;
         options.pkgContextInfoJsonStringMap = pkgContextInfoJsonStringMap;
         options.isStartWithDebug = appLaunchData.GetDebugApp();
@@ -2320,7 +2320,7 @@ void MainThread::ProcessExit(const ProcessExitInfo& info)
     exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_ERROR;
     int32_t result = ERR_INVALID_VALUE;
     if (applicationInfo_ != nullptr) {
-        result = AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, applicationInfo_->appuid,
+        result = AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, applicationInfo_->appUid,
             exitReason);
     } else {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationInfo, skip exit reason record");
@@ -4799,7 +4799,7 @@ void MainThread::SleepCleanKill()
             exitReason.innerMsg = "Js_Heap_Sleep_Clean_Kill";
             if (appThread->applicationInfo_ != nullptr) {
                 AbilityManagerClient::GetInstance()->RecordAppWithReason(
-                    pid, appThread->applicationInfo_->appuid, exitReason);
+                    pid, appThread->applicationInfo_->appUid, exitReason);
             } else {
                 TAG_LOGE(AAFwkTag::APPKIT, "null applicationInfo, skip exit reason record");
             }

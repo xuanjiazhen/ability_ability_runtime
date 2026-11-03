@@ -27,11 +27,6 @@ std::string IPCSkeleton::callingIdentity;
 
 pid_t IPCSkeleton::GetCallingAppUid()
 {
-    return GetCallingUid();
-}
-
-pid_t IPCSkeleton::GetCallingUid()
-{
     return callingUid;
 }
 

@@ -342,7 +342,7 @@ void AbilityConnectManager::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
     }
 
     std::string reason = ResSchedUtil::GetInstance().GetThawReasonByAbilityType(abilityInfo);
-    const int32_t uid = abilityInfo.applicationInfo.appuid;
+    const int32_t uid = abilityInfo.applicationInfo.appUid;
     const std::string bundleName = abilityInfo.applicationInfo.bundleName;
     const int32_t pid = abilityRecord->GetPid();
     auto callerAbility = Token::GetAbilityRecordByToken(callerToken);
@@ -811,7 +811,7 @@ void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
             info.appIndex == service.second->GetAppIndex() && info.instanceKey == service.second->GetInstanceKey() &&
             info.pid == service.second->GetPid()) {
             auto appName = service.second->GetApplicationInfo().name;
-            auto uid = service.second->GetAbilityInfo().applicationInfo.appuid;
+            auto uid = service.second->GetAbilityInfo().applicationInfo.appUid;
             auto isExist = [&appName, &uid](
                                const AppData &appData) { return appData.appName == appName && appData.uid == uid; };
             auto iter = std::find_if(info.appData.begin(), info.appData.end(), isExist);
@@ -827,7 +827,7 @@ void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
         if (service && info.bundleName == service->GetApplicationInfo().bundleName &&
             info.appIndex == service->GetAppIndex() && info.instanceKey == service->GetInstanceKey()) {
             auto appName = service->GetApplicationInfo().name;
-            auto uid = service->GetAbilityInfo().applicationInfo.appuid;
+            auto uid = service->GetAbilityInfo().applicationInfo.appUid;
             auto isExist = [&appName, &uid](const AppData &appData) {
                 return appData.appName == appName && appData.uid == uid;
             };
@@ -3330,7 +3330,7 @@ int32_t AbilityConnectManager::ReportAbilityStartInfoToRSS(const AppExecFwk::Abi
     int32_t preloadMode = -1;
     bool isSuggestCache = false;
     for (auto const &info : runningProcessInfos) {
-        if (info.uid_ == abilityInfo.applicationInfo.appuid) {
+        if (info.uid_ == abilityInfo.applicationInfo.appUid) {
             isColdStart = false;
             pid = info.pid_;
             isSuggestCache = info.isCached;
@@ -3464,7 +3464,7 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
             abilityRequest.appInfo.appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
             bool isMainProcessDebug = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->IsMainProcessDebug(
-                abilityRequest.appInfo.appuid));
+                abilityRequest.appInfo.appUid));
             if (isMainProcessDebug) {
                 targetService->SetDebugApp(true);
                 TAG_LOGD(AAFwkTag::EXT, "AGENT extension inherit debug from main process, ability:%{public}s",

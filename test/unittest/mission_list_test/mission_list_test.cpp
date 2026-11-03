@@ -1005,7 +1005,7 @@ HWTEST_F(MissionListTest, GetActiveAbilityList_0100, TestSize.Level1)
     missionList->GetActiveAbilityList(uid, abilityList, pid);
     EXPECT_NE(*missionList->missions_.begin(), nullptr);
     auto ai = (*missionList->missions_.begin())->GetAbilityRecord()->GetAbilityInfo();
-    EXPECT_EQ(ai.applicationInfo.appuid, uid);
+    EXPECT_EQ(ai.applicationInfo.appUid, uid);
 
     missionList->missions_.clear();
     uid = 2;
@@ -1014,7 +1014,7 @@ HWTEST_F(MissionListTest, GetActiveAbilityList_0100, TestSize.Level1)
     missionList->GetActiveAbilityList(uid, abilityList, pid);
     EXPECT_NE(*missionList->missions_.begin(), nullptr);
     ai = (*missionList->missions_.begin())->GetAbilityRecord()->GetAbilityInfo();
-    EXPECT_NE(ai.applicationInfo.appuid, uid);
+    EXPECT_NE(ai.applicationInfo.appUid, uid);
 }
 
 /*
@@ -1070,7 +1070,7 @@ HWTEST_F(MissionListTest, GetActiveAbilityList_SeparatesApplicationsWithSameOsUi
         AbilityRequest request;
         request.abilityInfo.name = "Ability" + std::to_string(index);
         request.abilityInfo.applicationInfo.uid = 100;
-        request.abilityInfo.applicationInfo.appuid = 20012345 + index;
+        request.abilityInfo.applicationInfo.appUid = 20012345 + index;
         request.appInfo = request.abilityInfo.applicationInfo;
         auto record = MissionAbilityRecord::CreateAbilityRecord(request);
         ASSERT_NE(record, nullptr);

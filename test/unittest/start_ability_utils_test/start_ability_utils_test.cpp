@@ -754,7 +754,7 @@ HWTEST_F(StartAbilityUtilsTest, StartUIAbilitiesProcessAppIndex_004, TestSize.Le
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->abilityInfo_.bundleName = "com.ohos.test1";
     abilityRecord->abilityInfo_.applicationInfo.appIndex = -2;
-    abilityRecord->abilityInfo_.applicationInfo.appuid = TEST_USER_ID * BASE_USER_RANGE;
+    abilityRecord->abilityInfo_.applicationInfo.appUid = TEST_USER_ID * BASE_USER_RANGE;
     MyStatus::GetInstance().appClonePreference_.mode = AppExecFwk::AppClonePreferenceMode::CLONE_APP;
     MyStatus::GetInstance().appClonePreference_.appIndex = 2;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
@@ -861,7 +861,7 @@ HWTEST_F(StartAbilityUtilsTest, HandleSelfRedirection_006, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest HandleSelfRedirection_006 start");
     AppExecFwk::AbilityInfo abilityInfo;
     abilityInfo.allowSelfRedirect = false;
-    abilityInfo.applicationInfo.appuid = 100;
+    abilityInfo.applicationInfo.appUid = 100;
     abilityInfo.linkType = AppExecFwk::LinkType::APP_LINK;
     std::vector<AppExecFwk::AbilityInfo> infos = { abilityInfo };
     MyStatus::GetInstance().processInfo_.uid_ = 200;
@@ -881,7 +881,7 @@ HWTEST_F(StartAbilityUtilsTest, HandleSelfRedirection_007, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest HandleSelfRedirection_007 start");
     AppExecFwk::AbilityInfo abilityInfo;
     abilityInfo.allowSelfRedirect = false;
-    abilityInfo.applicationInfo.appuid = 100;
+    abilityInfo.applicationInfo.appUid = 100;
     abilityInfo.linkType = AppExecFwk::LinkType::APP_LINK;
     std::vector<AppExecFwk::AbilityInfo> infos = { abilityInfo };
     MyStatus::GetInstance().processInfo_.uid_ = 100;

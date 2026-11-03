@@ -84,7 +84,7 @@ AppExecFwk::BundleInfo BuildPreInstallBundleInfo(const std::string &bundleName, 
     AppExecFwk::BundleInfo info;
     info.name = bundleName;
     info.isPreInstallApp = true;
-    info.appuid = userId * BASE_USER_RANGE;
+    info.appUid = userId * BASE_USER_RANGE;
     return info;
 }
 

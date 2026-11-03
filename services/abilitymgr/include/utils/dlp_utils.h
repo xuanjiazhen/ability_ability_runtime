@@ -61,7 +61,7 @@ using Dlp = Security::DlpPermission::DlpPermissionKit;
     if (abilityRecord->GetApplicationInfo().bundleName == want.GetBundle()) {
         return true;
     }
-    int32_t uid = abilityRecord->GetApplicationInfo().appuid;
+    int32_t uid = abilityRecord->GetApplicationInfo().appUid;
     Security::DlpPermission::SandBoxExternalAuthorType authResult;
     int result = Dlp::GetSandboxExternalAuthorization(uid, want, authResult);
     if (result != ERR_OK) {
@@ -104,7 +104,7 @@ using Dlp = Security::DlpPermission::DlpPermissionKit;
 [[maybe_unused]]static bool SandboxAuthCheck(const AbilityRecord &callerRecord, const Want &want)
 {
 #ifdef WITH_DLP
-    int32_t uid = callerRecord.GetApplicationInfo().appuid;
+    int32_t uid = callerRecord.GetApplicationInfo().appUid;
     Security::DlpPermission::SandBoxExternalAuthorType authResult;
     int result = Dlp::GetSandboxExternalAuthorization(uid, want, authResult);
     if (result != ERR_OK) {

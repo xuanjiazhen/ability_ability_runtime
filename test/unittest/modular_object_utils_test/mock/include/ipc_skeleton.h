@@ -25,11 +25,6 @@ class IPCSkeleton {
 public:
     static pid_t GetCallingAppUid()
     {
-        return GetCallingUid();
-    }
-
-    static int32_t GetCallingUid()
-    {
         return MockFlag::callingUid;
     }
     static pid_t GetCallingPid()

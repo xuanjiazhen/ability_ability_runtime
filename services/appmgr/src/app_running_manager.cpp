@@ -123,7 +123,7 @@ bool AppRunningManager::IsAppInfoMatch(const std::shared_ptr<ApplicationInfo> &a
         return false;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "appInfo->name: %{public}s", appInfo->name.c_str());
-    return (appInfo->name == appName && appInfo->appuid == uid) ||
+    return (appInfo->name == appName && appInfo->appUid == uid) ||
         (appInfo->bundleType == BundleType::APP_PLUGIN && appRecord->GetUid() == uid);
 }
 
@@ -558,14 +558,14 @@ int32_t AppRunningManager::ProcessUpdateApplicationInfoInstalled(
         }
         auto appInfoList = appRecord->GetAppInfoList();
         if (appInfo.bundleType == BundleType::APP_PLUGIN) {
-            if (appRecord->GetUid() == appInfo.appuid) {
+            if (appRecord->GetUid() == appInfo.appUid) {
                 TAG_LOGI(AAFwkTag::APPMGR, "UpdateApplicationInfoInstalled: %{public}s", moduleName.c_str());
                 appRecord->UpdateApplicationInfoInstalled(appInfo, moduleName);
                 continue;
             }
         }
         for (auto iter : appInfoList) {
-            if (iter->bundleName == appInfo.bundleName && iter->appuid == appInfo.appuid) {
+            if (iter->bundleName == appInfo.bundleName && iter->appUid == appInfo.appUid) {
                 appRecord->UpdateApplicationInfoInstalled(appInfo, moduleName);
                 break;
             }
@@ -585,7 +585,7 @@ bool AppRunningManager::ProcessExitByBundleNameAndUid(
         }
         auto appInfoList = appRecord->GetAppInfoList();
         auto isExist = [&bundleName, &uid](const std::shared_ptr<ApplicationInfo> &appInfo) {
-            return appInfo->bundleName == bundleName && appInfo->appuid == uid;
+            return appInfo->bundleName == bundleName && appInfo->appUid == uid;
         };
         auto iter = std::find_if(appInfoList.begin(), appInfoList.end(), isExist);
         pid_t pid = appRecord->GetPid();
@@ -721,7 +721,7 @@ bool AppRunningManager::GetPidsByBundleNameUserIdAndAppIndex(const std::string &
         }
         auto appInfoList = appRecord->GetAppInfoList();
         auto isExist = [&bundleName, &userId, &appIndex](const std::shared_ptr<ApplicationInfo> &appInfo) {
-            return appInfo->bundleName == bundleName && appInfo->appuid / BASE_USER_RANGE == userId &&
+            return appInfo->bundleName == bundleName && appInfo->appUid / BASE_USER_RANGE == userId &&
                 appInfo->appIndex == appIndex;
         };
         auto iter = std::find_if(appInfoList.begin(), appInfoList.end(), isExist);

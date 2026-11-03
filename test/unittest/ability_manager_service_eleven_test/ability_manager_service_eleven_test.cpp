@@ -1180,7 +1180,7 @@ HWTEST_F(AbilityManagerServiceElevenTest, AttachAbilityThread_0009, TestSize.Lev
         auto abilityRecordTest = Token::GetAbilityRecordByToken(token);
         EXPECT_NE(abilityRecordTest, nullptr);
         abilityRecordTest->abilityInfo_.applicationInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
-        abilityRecordTest->abilityInfo_.applicationInfo.appuid = 0;
+        abilityRecordTest->abilityInfo_.applicationInfo.appUid = 0;
         bool resultBranch = abilityMs->JudgeSelfCalled(abilityRecord);
         EXPECT_TRUE(resultBranch);
         abilityMs->timeoutMap_.emplace("INITIAL", "test");
@@ -1194,7 +1194,7 @@ HWTEST_F(AbilityManagerServiceElevenTest, AttachAbilityThread_0009, TestSize.Lev
         abilityMs->timeoutMap_.clear();
         abilityMs->subManagersHelper_ = nullptr;
         abilityRecordTest->abilityInfo_.type = AppExecFwk::AbilityType::SERVICE;
-        abilityRecordTest->abilityInfo_.applicationInfo.appuid = 0;
+        abilityRecordTest->abilityInfo_.applicationInfo.appUid = 0;
         result = abilityMs->AttachAbilityThread(scheduler, token);
         EXPECT_EQ(result, ERR_INVALID_VALUE);
     }
@@ -1225,7 +1225,7 @@ HWTEST_F(AbilityManagerServiceElevenTest, AttachAbilityThread_0010, TestSize.Lev
     auto abilityRecordTest = Token::GetAbilityRecordByToken(token);
     EXPECT_NE(abilityRecordTest, nullptr);
     abilityRecordTest->abilityInfo_.applicationInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
-    abilityRecordTest->abilityInfo_.applicationInfo.appuid = 0;
+    abilityRecordTest->abilityInfo_.applicationInfo.appUid = 0;
     bool resultBranch = abilityMs->JudgeSelfCalled(abilityRecord);
     EXPECT_TRUE(resultBranch);
 
@@ -1282,7 +1282,7 @@ HWTEST_F(AbilityManagerServiceElevenTest, AttachAbilityThread_0011, TestSize.Lev
     EXPECT_NE(abilityRecordTest, nullptr);
 
     abilityRecordTest->abilityInfo_.applicationInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
-    abilityRecordTest->abilityInfo_.applicationInfo.appuid = 0;
+    abilityRecordTest->abilityInfo_.applicationInfo.appUid = 0;
     bool resultBranch = abilityMs->JudgeSelfCalled(abilityRecord);
     EXPECT_TRUE(resultBranch);
 
@@ -1329,7 +1329,7 @@ HWTEST_F(AbilityManagerServiceElevenTest, AttachAbilityThread_0012, TestSize.Lev
     EXPECT_NE(abilityRecordTest, nullptr);
 
     abilityRecordTest->abilityInfo_.applicationInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
-    abilityRecordTest->abilityInfo_.applicationInfo.appuid = 0;
+    abilityRecordTest->abilityInfo_.applicationInfo.appUid = 0;
     bool resultBranch = abilityMs->JudgeSelfCalled(abilityRecord);
     EXPECT_TRUE(resultBranch);
 

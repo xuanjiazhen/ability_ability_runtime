@@ -624,7 +624,7 @@ void CommonFunc::ConvertApplicationInfo(napi_env env, napi_value objAppInfo, con
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, objAppInfo, "accessTokenId", nAccessTokenId));
 
     napi_value nUid;
-    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, appInfo.uid, &nUid));
+    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, appInfo.appUid, &nUid));
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, objAppInfo, "uid", nUid));
 
     napi_value nIconResource;

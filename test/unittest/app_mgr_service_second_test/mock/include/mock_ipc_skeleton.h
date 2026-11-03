@@ -26,7 +26,6 @@ public:
     static pid_t GetCallingPid();
     static int pid_;
     static pid_t GetCallingAppUid();
-    static pid_t GetCallingUid();
     static int uid_;
 };
 }  // namespace OHOS

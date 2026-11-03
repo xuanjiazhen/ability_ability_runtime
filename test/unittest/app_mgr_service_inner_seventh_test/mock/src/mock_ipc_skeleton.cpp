@@ -23,12 +23,7 @@ using namespace IPC_SINGLE;
 
 pid_t IPCSkeleton::GetCallingAppUid()
 {
-    return GetCallingUid();
-}
-
-pid_t IPCSkeleton::GetCallingUid()
-{
-    return AAFwk::MyStatus::GetInstance().getCallingUid_;
+    return AAFwk::MyStatus::GetInstance().getCallingAppUid_;
 }
 
 pid_t IPCSkeleton::GetCallingPid()

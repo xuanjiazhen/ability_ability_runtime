@@ -634,7 +634,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, HandlePreloadApplication_004, TestSize.Lev
     request.abilityInfo = std::make_shared<AbilityInfo>();
     request.appInfo = std::make_shared<ApplicationInfo>();
     request.bundleInfo.name = "com.test.app";
-    request.bundleInfo.appuid = 1000;
+    request.bundleInfo.appUid = 1000;
     request.hapModuleInfo.name = "entry";
     request.hapModuleInfo.bundleName = "com.test.app";
     request.want = std::make_shared<AAFwk::Want>();
@@ -679,7 +679,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, HandlePreloadApplication_005, TestSize.Lev
     request.appInfo = std::make_shared<ApplicationInfo>();
     request.appInfo->name = "com.test.app";
     request.bundleInfo.name = "com.test.app";
-    request.bundleInfo.appuid = 1000;
+    request.bundleInfo.appUid = 1000;
     request.hapModuleInfo.name = "entry";
     request.hapModuleInfo.bundleName = "com.test.app";
     request.want = std::make_shared<AAFwk::Want>();
@@ -723,7 +723,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, HandlePreloadApplication_006, TestSize.Lev
     request.appInfo = std::make_shared<ApplicationInfo>();
     request.appInfo->name = "com.test.app";
     request.bundleInfo.name = "com.test.app";
-    request.bundleInfo.appuid = 1000;
+    request.bundleInfo.appUid = 1000;
     request.hapModuleInfo.name = "entry";
     request.hapModuleInfo.bundleName = "com.test.app";
     request.want = std::make_shared<AAFwk::Want>();
@@ -2739,7 +2739,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, CancelDelayedExitTask_0400, TestSize.Level
 }
 /**
  * @tc.name: StartProcess_KeepsApplicationIdentityAfterSpawn
- * @tc.desc: Spawn credentials remain OS uid while the running record keeps appuid.
+ * @tc.desc: Spawn credentials remain OS uid while the running record keeps appUid.
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrServiceInnerNinthTest, StartProcess_KeepsApplicationIdentityAfterSpawn, TestSize.Level1)
@@ -2749,11 +2749,11 @@ HWTEST_F(AppMgrServiceInnerNinthTest, StartProcess_KeepsApplicationIdentityAfter
     appInfo->name = "com.test.appuid";
     appInfo->bundleName = appInfo->name;
     appInfo->uid = 100;
-    appInfo->appuid = 20012345;
+    appInfo->appUid = 20012345;
     BundleInfo bundleInfo;
     bundleInfo.name = appInfo->bundleName;
     bundleInfo.uid = appInfo->uid;
-    bundleInfo.appuid = appInfo->appuid;
+    bundleInfo.appUid = appInfo->appUid;
     bundleInfo.applicationInfo = *appInfo;
     auto record = std::make_shared<AppRunningRecord>(appInfo, 1, "appuid_process");
     record->priorityObject_ = std::make_shared<PriorityObject>();
@@ -2769,7 +2769,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, StartProcess_KeepsApplicationIdentityAfter
     status.startProcess_ = ERR_OK;
 
     auto result = service->StartProcess(appInfo->name, "appuid_process", 0, record,
-        appInfo->appuid, bundleInfo, bundleInfo.name, 0, true);
+        appInfo->appUid, bundleInfo, bundleInfo.name, 0, true);
 
     status.getBundleManagerHelper_ = oldHelper;
     status.getSpawnClient_ = oldSpawn;

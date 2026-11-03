@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2134,7 +2134,7 @@ HWTEST_F(AbilityManagerServiceSecondTest, CheckCallAutoFillExtensionPermission_0
     abilityRequest_.want.SetParam(WANT_PARAMS_VIEW_DATA_KEY, jsonDataStr);
 
     // Note: This test verifies the permission check logic including uid validation.
-    // The actual behavior depends on the runtime environment (IPCSkeleton::GetCallingUid/GetCallingPid
+    // The actual behavior depends on the runtime environment (IPCSkeleton::GetCallingAppUid/GetCallingPid
     // and DelayedSingleton<AppScheduler>::GetInstance()->GetBundleNameByPid).
     // In a real testing environment, proper mocking would be required.
     auto result = abilityMs_->CheckCallAutoFillExtensionPermission(abilityRequest_);

@@ -100,7 +100,7 @@ int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bund
     }
     bundleName_ = bundleInfo.name;
     appIndex_ = bundleInfo.applicationInfo.appIndex;
-    uid_ = bundleInfo.applicationInfo.appuid;
+    uid_ = bundleInfo.applicationInfo.appUid;
     moduleStartupConfigInfos_.emplace_back(preloadHapModuleInfo.name, preloadHapModuleInfo.appStartup,
         preloadHapModuleInfo.hapPath, preloadHapModuleInfo.moduleType,
         preloadHapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE);

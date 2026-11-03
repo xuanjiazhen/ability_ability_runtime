@@ -34,7 +34,6 @@ public:
 
     static pid_t GetCallingAppUid();
 
-    static pid_t GetCallingUid();
 
     static uint32_t GetCallingTokenID();
 

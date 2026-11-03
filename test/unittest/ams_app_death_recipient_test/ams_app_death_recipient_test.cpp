@@ -154,7 +154,7 @@ const std::shared_ptr<AppRunningRecord> AppDeathRecipientTest::GetAppRunningReco
     bundleInfo.appId = "com.ohos.test.helloworld_code123";
 
     auto appRecord = appMgrServiceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, appInfo->name, appInfo->appuid, bundleInfo);
+        appInfo->name, appInfo->name, appInfo->appUid, bundleInfo);
 
     EXPECT_NE(nullptr, appRecord);
     return appRecord;

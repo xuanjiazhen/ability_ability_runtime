@@ -244,7 +244,7 @@ struct ApplicationInfo {
     bool enabled = false;
     int32_t appIndex = 0;
     int32_t uid = -1;
-    int32_t appuid = -1;
+    int32_t appUid = -1;
     int32_t maxChildProcess = 0;
     int32_t applicationFlags = static_cast<uint32_t>(ApplicationInfoFlag::FLAG_INSTALLED);
     MultiAppModeData multiAppMode;

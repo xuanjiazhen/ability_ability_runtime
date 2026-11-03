@@ -14,11 +14,6 @@ uint32_t IPCSkeleton::callingTokenId = 0;
 
 pid_t IPCSkeleton::GetCallingAppUid()
 {
-    return GetCallingUid();
-}
-
-pid_t IPCSkeleton::GetCallingUid()
-{
     return callingUid;
 }
 

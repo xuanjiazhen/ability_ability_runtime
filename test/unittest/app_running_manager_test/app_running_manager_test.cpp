@@ -679,26 +679,26 @@ HWTEST_F(AppRunningManagerTest, IsAppProcessesAllCached_0100, TestSize.Level1)
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "com.tdd.cacheprocesstest";
     appInfo->apiTargetVersion = 12;
-    appInfo->appuid = 1010101;
+    appInfo->appUid = 1010101;
     int32_t recordId1 = RECORD_ID;
     int32_t recordId2 = RECORD_ID + 1;
     std::string processName = "com.tdd.cacheprocesstest";
     auto appRunningRecord1 = std::make_shared<AppRunningRecord>(appInfo, recordId1, processName);
-    appRunningRecord1->SetUid(appInfo->appuid);
+    appRunningRecord1->SetUid(appInfo->appUid);
     appRunningRecord1->SetSupportedProcessCache(true);
     appRunningRecord1->SetUIAbilityLaunched(true);
     auto appRunningRecord2 = std::make_shared<AppRunningRecord>(appInfo, recordId2, processName);
-    appRunningRecord2->SetUid(appInfo->appuid);
+    appRunningRecord2->SetUid(appInfo->appUid);
     appRunningRecord2->SetSupportedProcessCache(true);
     appRunningRecord2->SetUIAbilityLaunched(true);
 
     appRunningManager->appRunningRecordMap_.insert(make_pair(recordId1, appRunningRecord1));
     std::set<std::shared_ptr<AppRunningRecord>> cachedSet;
     cachedSet.insert(appRunningRecord1);
-    EXPECT_EQ(appRunningManager->IsAppProcessesAllCached(appInfo->bundleName, appInfo->appuid, cachedSet), true);
+    EXPECT_EQ(appRunningManager->IsAppProcessesAllCached(appInfo->bundleName, appInfo->appUid, cachedSet), true);
 
     appRunningManager->appRunningRecordMap_.insert(make_pair(recordId2, appRunningRecord2));
-    EXPECT_EQ(appRunningManager->IsAppProcessesAllCached(appInfo->bundleName, appInfo->appuid, cachedSet), false);
+    EXPECT_EQ(appRunningManager->IsAppProcessesAllCached(appInfo->bundleName, appInfo->appUid, cachedSet), false);
 }
 
 /**
@@ -1151,7 +1151,7 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_IsAppInfoMatch_0200, TestSize.
     int uid = 1000;
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->name = appName;
-    appInfo->appuid = uid;
+    appInfo->appUid = uid;
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, AppRecordId::Create(), "processName");
     EXPECT_TRUE(AppRunningManager::IsAppInfoMatch(appInfo, appName, uid, appRecord));
 }
@@ -1166,18 +1166,18 @@ HWTEST_F(AppRunningManagerTest, IsAppInfoMatch_UsesAppUid, TestSize.Level1)
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->name = "com.test.appuid";
     appInfo->uid = 100;
-    appInfo->appuid = 20012345;
+    appInfo->appUid = 20012345;
     auto record = std::make_shared<AppRunningRecord>(appInfo, AppRecordId::Create(), "appuid_process");
     EXPECT_TRUE(AppRunningManager::IsAppInfoMatch(appInfo, appInfo->name, 20012345, record));
     EXPECT_FALSE(AppRunningManager::IsAppInfoMatch(appInfo, appInfo->name, 20012346, record));
     EXPECT_FALSE(AppRunningManager::IsAppInfoMatch(appInfo, appInfo->name, 100, record));
-    appInfo->uid = appInfo->appuid;
+    appInfo->uid = appInfo->appUid;
     EXPECT_TRUE(AppRunningManager::IsAppInfoMatch(appInfo, appInfo->name, 20012345, record));
 }
 
 /**
  * @tc.name: GetPidsByBundleNameUserIdAndAppIndex_UsesAppUid
- * @tc.desc: User routing derives userId from appuid for a weak-sandbox application.
+ * @tc.desc: User routing derives userId from appUid for a weak-sandbox application.
  * @tc.type: FUNC
  */
 HWTEST_F(AppRunningManagerTest, GetPidsByBundleNameUserIdAndAppIndex_UsesAppUid, TestSize.Level1)
@@ -1187,16 +1187,16 @@ HWTEST_F(AppRunningManagerTest, GetPidsByBundleNameUserIdAndAppIndex_UsesAppUid,
     appInfo->name = "com.test.appuid";
     appInfo->bundleName = appInfo->name;
     appInfo->uid = 100;
-    appInfo->appuid = 20012345;
+    appInfo->appUid = 20012345;
     appInfo->appIndex = 0;
     auto record = std::make_shared<AppRunningRecord>(appInfo, AppRecordId::Create(), "appuid_process");
-    record->SetUid(appInfo->appuid);
+    record->SetUid(appInfo->appUid);
     record->GetPriorityObject()->SetPid(12345);
     HapModuleInfo moduleInfo;
     moduleInfo.moduleName = "entry";
     record->AddModule(appInfo, nullptr, nullptr, moduleInfo, nullptr, 0);
     manager->appRunningRecordMap_.emplace(record->GetRecordId(), record);
-    EXPECT_TRUE(manager->CheckAppRunningRecordIsExistByUid(appInfo->appuid));
+    EXPECT_TRUE(manager->CheckAppRunningRecordIsExistByUid(appInfo->appUid));
     EXPECT_FALSE(manager->CheckAppRunningRecordIsExistByUid(appInfo->uid));
     std::list<pid_t> pids;
     EXPECT_TRUE(manager->GetPidsByBundleNameUserIdAndAppIndex(appInfo->bundleName, 100, 0, pids));

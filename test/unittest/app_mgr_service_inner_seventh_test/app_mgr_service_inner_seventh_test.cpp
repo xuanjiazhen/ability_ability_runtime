@@ -181,7 +181,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_001, Test
     TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = nullptr;
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     auto bundleMgrHelper = appMgrServiceInner->remoteClientManager_->GetBundleManagerHelper();
 
     std::string bundleName = "";
@@ -203,7 +203,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_002, Test
     TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_002 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().processUpdate_ = ERR_INVALID_STATE;
 
     std::string bundleName = "";
@@ -225,7 +225,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_003, Test
     TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_003 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().processUpdate_ = ERR_OK;
 
     std::string bundleName = "";
@@ -247,7 +247,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_004, Test
     TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_004 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_INVALID_OPERATION;
 
     std::string bundleName = "com.test.app";
@@ -269,7 +269,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_005, Test
     TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_005 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_OK;
     AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = false;
 
@@ -292,7 +292,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_006, Test
     TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_006 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_OK;
     AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = true;
     AAFwk::MyStatus::GetInstance().processUpdate_ = ERR_INVALID_STATE;
@@ -316,7 +316,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_007, Test
     TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_007 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_OK;
     AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = true;
     AAFwk::MyStatus::GetInstance().processUpdate_ = ERR_OK;
@@ -1900,7 +1900,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, SchedulePrepareTerminate_001, TestSize.L
 {
     TAG_LOGI(AAFwkTag::TEST, "SchedulePrepareTerminate_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(nullptr, 0, "");
     AAFwk::MyStatus::GetInstance().schedulePrepareCall_ = 0;
     
@@ -1920,7 +1920,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, SchedulePrepareTerminate_002, TestSize.L
 {
     TAG_LOGI(AAFwkTag::TEST, "SchedulePrepareTerminate_002 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;;
     AAFwk::MyStatus::GetInstance().schedulePrepareCall_ = 0;
 
@@ -1940,7 +1940,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, SchedulePrepareTerminate_003, TestSize.L
 {
     TAG_LOGI(AAFwkTag::TEST, "SchedulePrepareTerminate_003 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;;
     AAFwk::MyStatus::GetInstance().schedulePrepareCall_ = 0;
 
@@ -2227,7 +2227,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyAppMgrRecordExitReason_001, TestSi
 {
     TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReason_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(nullptr, 0, "");
 
     int32_t pid = 0;
@@ -2247,7 +2247,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyAppMgrRecordExitReason_002, TestSi
 {
     TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReason_002 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
 
     int32_t pid = 0;

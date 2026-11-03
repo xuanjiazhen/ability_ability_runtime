@@ -27,11 +27,6 @@ public:
 
     static pid_t GetCallingAppUid()
     {
-        return GetCallingUid();
-    }
-
-    static int32_t GetCallingUid()
-    {
         return 0;
     }
 };

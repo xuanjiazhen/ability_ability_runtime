@@ -472,7 +472,7 @@ int32_t StartAbilityUtils::HandleSelfRedirection(bool isFromOpenLink,
     AppExecFwk::RunningProcessInfo processInfo;
     DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(
         IPCSkeleton::GetCallingPid(), processInfo);
-    if (processInfo.uid_ != abilityInfo.applicationInfo.appuid) {
+    if (processInfo.uid_ != abilityInfo.applicationInfo.appUid) {
         return ERR_OK;
     }
     return ERR_SELF_REDIRECTION_DISALLOWED;

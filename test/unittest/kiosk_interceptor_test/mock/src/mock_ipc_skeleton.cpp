@@ -26,12 +26,7 @@ pid_t tokenId_ = 0;
 
 pid_t IPCSkeleton::GetCallingAppUid()
 {
-    return GetCallingUid();
-}
-
-pid_t IPCSkeleton::GetCallingUid()
-{
-    return static_cast<pid_t>(AAFwk::MyStatus::GetInstance().ipcGetCallingUid_);
+    return static_cast<pid_t>(AAFwk::MyStatus::GetInstance().ipcGetCallingAppUid_);
 }
 
 pid_t IPCSkeleton::GetCallingPid()

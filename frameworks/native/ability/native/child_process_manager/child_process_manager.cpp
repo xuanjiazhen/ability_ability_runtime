@@ -443,7 +443,7 @@ std::unique_ptr<AbilityRuntime::Runtime> ChildProcessManager::CreateRuntime(
     options.hapPath = hapModuleInfo.hapPath;
     options.moduleName = hapModuleInfo.moduleName;
     options.isBundle = (hapModuleInfo.compileMode != AppExecFwk::CompileMode::ES_MODULE);
-    options.uid = applicationInfo.appuid;
+    options.uid = applicationInfo.appUid;
     options.isDebugVersion = applicationInfo.debug;
     options.arkNativeFilePath = applicationInfo.arkNativeFilePath;
     options.apiTargetVersion = applicationInfo.apiTargetVersion;

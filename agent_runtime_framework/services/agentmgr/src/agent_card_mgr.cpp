@@ -255,7 +255,7 @@ int32_t AgentCardMgr::HandlePreInstallBackfill(int32_t userId)
     }
     int32_t installedCount = 0;
     for (const auto &bundleInfo : bundleInfos) {
-        if (!bundleInfo.isPreInstallApp || bundleInfo.appuid / BASE_USER_RANGE != userId) {
+        if (!bundleInfo.isPreInstallApp || bundleInfo.appUid / BASE_USER_RANGE != userId) {
             continue;
         }
         int32_t ret = HandleBundleInstall(bundleInfo.name, bundleInfo, userId);

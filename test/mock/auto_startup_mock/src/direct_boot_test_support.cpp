@@ -66,11 +66,6 @@ DistributedKv::Status DirectBootTestStore::Delete(const DistributedKv::Key &key)
 namespace OHOS {
 pid_t IPCSkeleton::GetCallingAppUid()
 {
-    return GetCallingUid();
-}
-
-pid_t IPCSkeleton::GetCallingUid()
-{
     const auto &state = AAFwk::GetDirectBootTestState();
     return state.active ? state.callingUid : getuid();
 }

@@ -331,7 +331,7 @@ void DataAbilityManager::OnAppStateChanged(const AppInfo &info)
         if (abilityRecord && info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
             info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
             auto appName = abilityRecord->GetApplicationInfo().name;
-            auto uid = abilityRecord->GetAbilityInfo().applicationInfo.appuid;
+            auto uid = abilityRecord->GetAbilityInfo().applicationInfo.appUid;
             auto isExist = [&appName, &uid](
                                const AppData &appData) { return appData.appName == appName && appData.uid == uid; };
             auto iter = std::find_if(info.appData.begin(), info.appData.end(), isExist);
@@ -349,7 +349,7 @@ void DataAbilityManager::OnAppStateChanged(const AppInfo &info)
         if (abilityRecord && info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
             info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
             auto appName = abilityRecord->GetApplicationInfo().name;
-            auto uid = abilityRecord->GetAbilityInfo().applicationInfo.appuid;
+            auto uid = abilityRecord->GetAbilityInfo().applicationInfo.appUid;
             auto isExist = [&appName, &uid](
                                const AppData &appData) { return appData.appName == appName && appData.uid == uid; };
             auto iter = std::find_if(info.appData.begin(), info.appData.end(), isExist);

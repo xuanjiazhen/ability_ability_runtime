@@ -197,7 +197,7 @@ HWTEST_F(AppLaunchDataTest, AppUid_ApplicationLaunchRoundTrip, TestSize.Level1)
 {
     ApplicationInfo appInfo;
     appInfo.uid = 100;
-    appInfo.appuid = 20012345;
+    appInfo.appUid = 20012345;
     launchData_->SetApplicationInfo(appInfo);
     launchData_->startupTaskData_ = std::make_shared<StartupTaskData>();
     Parcel parcel;
@@ -205,7 +205,7 @@ HWTEST_F(AppLaunchDataTest, AppUid_ApplicationLaunchRoundTrip, TestSize.Level1)
     std::unique_ptr<AppLaunchData> restored(AppLaunchData::Unmarshalling(parcel));
     ASSERT_NE(restored, nullptr);
     EXPECT_EQ(restored->GetApplicationInfo().uid, 100);
-    EXPECT_EQ(restored->GetApplicationInfo().appuid, 20012345);
+    EXPECT_EQ(restored->GetApplicationInfo().appUid, 20012345);
 }
 
 /**
@@ -217,9 +217,9 @@ HWTEST_F(AppLaunchDataTest, AppUid_BundleAndAbilityRoundTrip, TestSize.Level1)
 {
     BundleInfo bundle;
     bundle.uid = 100;
-    bundle.appuid = 20012345;
+    bundle.appUid = 20012345;
     bundle.applicationInfo.uid = 100;
-    bundle.applicationInfo.appuid = 20012345;
+    bundle.applicationInfo.appUid = 20012345;
     AbilityInfo ability;
     ability.applicationInfo = bundle.applicationInfo;
     bundle.abilityInfos.emplace_back(ability);
@@ -228,11 +228,11 @@ HWTEST_F(AppLaunchDataTest, AppUid_BundleAndAbilityRoundTrip, TestSize.Level1)
     std::unique_ptr<BundleInfo> restored(BundleInfo::Unmarshalling(parcel));
     ASSERT_NE(restored, nullptr);
     EXPECT_EQ(restored->uid, 100);
-    EXPECT_EQ(restored->appuid, 20012345);
-    EXPECT_EQ(restored->applicationInfo.appuid, 20012345);
+    EXPECT_EQ(restored->appUid, 20012345);
+    EXPECT_EQ(restored->applicationInfo.appUid, 20012345);
     ASSERT_EQ(restored->abilityInfos.size(), 1U);
     EXPECT_EQ(restored->abilityInfos[0].applicationInfo.uid, 100);
-    EXPECT_EQ(restored->abilityInfos[0].applicationInfo.appuid, 20012345);
+    EXPECT_EQ(restored->abilityInfos[0].applicationInfo.appUid, 20012345);
 }
 
 } // namespace AppExecFwk

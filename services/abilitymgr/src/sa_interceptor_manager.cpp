@@ -173,7 +173,7 @@ std::string SAInterceptorManager::GenerateSAInterceptorParams(const AAFwk::Want 
     jsonObj["targetBundleName"] = abilityInfo.bundleName;
     jsonObj["targetModuleName"] = abilityInfo.moduleName;
     jsonObj["targetAbilityName"] = abilityInfo.name;
-    jsonObj["targetUid"] = abilityInfo.applicationInfo.appuid;
+    jsonObj["targetUid"] = abilityInfo.applicationInfo.appUid;
     jsonObj["targetAbilityType"] = abilityInfo.type;
     jsonObj["targetAppIndex"] = abilityInfo.appIndex;
     jsonObj["targetExtensionAbilityType"] = abilityInfo.extensionAbilityType;

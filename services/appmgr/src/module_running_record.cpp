@@ -407,7 +407,7 @@ void ModuleRunningRecord::GetHapModuleInfo(HapModuleInfo &info)
     }
     BundleInfo bundleInfo;
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
-    auto userId = appInfo_->appuid / BASE_USER_RANGE;
+    auto userId = appInfo_->appUid / BASE_USER_RANGE;
     TAG_LOGD(AAFwkTag::APPMGR, "userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d", userId,
         appInfo_->bundleName.c_str(), appIndex_);
     int32_t bundleMgrResult;

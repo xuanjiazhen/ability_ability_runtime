@@ -4936,7 +4936,7 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyAppFault_002, TestSize.Level1)
     EXPECT_NE(appRecord, nullptr);
     int32_t pid = IPCSkeleton::GetCallingPid();
     appRecord->priorityObject_->pid_ = pid;
-    appRecord->SetUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetUid(IPCSkeleton::GetCallingAppUid());
     appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordId, appRecord);
     FaultData faultData;
     faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
@@ -5174,7 +5174,7 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyAppFault_003, TestSize.Level1)
     EXPECT_NE(appRecord, nullptr);
     int32_t pid = IPCSkeleton::GetCallingPid();
     appRecord->priorityObject_->pid_ = pid;
-    appRecord->SetUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetUid(IPCSkeleton::GetCallingAppUid());
     appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordId, appRecord);
     FaultData faultData;
     faultData.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
@@ -5204,7 +5204,7 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyAppFault_004, TestSize.Level1)
     EXPECT_NE(appRecord, nullptr);
     int32_t pid = IPCSkeleton::GetCallingPid();
     appRecord->priorityObject_->pid_ = pid;
-    appRecord->SetUid(IPCSkeleton::GetCallingUid() + 1);
+    appRecord->SetUid(IPCSkeleton::GetCallingAppUid() + 1);
     appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordId, appRecord);
     FaultData faultData;
     faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;

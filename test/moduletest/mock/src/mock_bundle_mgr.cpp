@@ -72,7 +72,7 @@ int BundleMgrStub::OnRemoteRequest(uint32_t code, MessageParcel& data, MessagePa
 bool BundleMgrService::GetBundleInfo(
     const std::string& bundleName, const BundleFlag flag, BundleInfo& bundleInfo, int32_t userId)
 {
-    bundleInfo.appuid = 0;
+    bundleInfo.appUid = 0;
     return true;
 }
 
@@ -140,7 +140,7 @@ bool BundleMgrService::GetApplicationInfo(
 {
     appInfo.name = appName;
     appInfo.bundleName = appName;
-    appInfo.appuid = userId * BASE_USER_RANGE;
+    appInfo.appUid = userId * BASE_USER_RANGE;
     return true;
 }
 
