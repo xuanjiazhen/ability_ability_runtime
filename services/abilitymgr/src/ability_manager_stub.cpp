@@ -1850,7 +1850,8 @@ int AbilityManagerStub::ChangeAbilityVisibilityInner(MessageParcel &data, Messag
     }
 
     bool isShow = data.ReadBool();
-    int result = ChangeAbilityVisibility(token, isShow);
+    std::shared_ptr<Rosen::WindowShowParams> params(data.ReadParcelable<Rosen::WindowShowParams>());
+    int result = ChangeAbilityVisibility(token, isShow, params);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail");
         return ERR_NATIVE_IPC_PARCEL_FAILED;
