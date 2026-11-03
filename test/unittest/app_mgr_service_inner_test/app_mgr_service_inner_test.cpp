@@ -5216,6 +5216,175 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyAppFault_004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckFaultAppRecord_001
+ * @tc.desc: Test CheckFaultAppRecord with nullptr appRecord, should return ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, CheckFaultAppRecord_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    std::string eventName = AppFreezeType::THREAD_BLOCK_6S;
+    FaultData faultData;
+    faultData.errorObject.name = eventName;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    int32_t ret = appMgrServiceInner->CheckFaultAppRecord(pid, uid, eventName, faultData, appRecord);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_001 end");
+}
+
+/**
+ * @tc.name: CheckFaultAppRecord_002
+ * @tc.desc: Test CheckFaultAppRecord when calling uid does not own the record, should return ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, CheckFaultAppRecord_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->bundleName = "check_fault_uid_mismatch_bundle";
+    int32_t recordId = 10;
+    std::string processName = "check_fault_uid_mismatch_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    appRecord->SetUid(uid + 1);
+    std::string eventName = AppFreezeType::THREAD_BLOCK_6S;
+    FaultData faultData;
+    faultData.errorObject.name = eventName;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    int32_t ret = appMgrServiceInner->CheckFaultAppRecord(pid, uid, eventName, faultData, appRecord);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_002 end");
+}
+
+/**
+ * @tc.name: CheckFaultAppRecord_003
+ * @tc.desc: Test CheckFaultAppRecord with invalid freeze type name, should return ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, CheckFaultAppRecord_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->bundleName = "check_fault_invalid_name_bundle";
+    int32_t recordId = 11;
+    std::string processName = "check_fault_invalid_name_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    appRecord->SetUid(uid);
+    std::string invalidEventName = "INVALID_FREEZE_TYPE";
+    FaultData faultData;
+    faultData.errorObject.name = invalidEventName;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    int32_t ret = appMgrServiceInner->CheckFaultAppRecord(pid, uid, invalidEventName, faultData, appRecord);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_003 end");
+}
+
+/**
+ * @tc.name: CheckFaultAppRecord_004
+ * @tc.desc: Test CheckFaultAppRecord with APP_INPUT_BLOCK and empty timeoutMarkers, should return ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, CheckFaultAppRecord_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->bundleName = "check_fault_input_block_empty_bundle";
+    int32_t recordId = 12;
+    std::string processName = "check_fault_input_block_empty_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    appRecord->SetUid(uid);
+    std::string eventName = AppFreezeType::APP_INPUT_BLOCK;
+    FaultData faultData;
+    faultData.errorObject.name = eventName;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    faultData.timeoutMarkers = "";
+    int32_t ret = appMgrServiceInner->CheckFaultAppRecord(pid, uid, eventName, faultData, appRecord);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_004 end");
+}
+
+/**
+ * @tc.name: CheckFaultAppRecord_005
+ * @tc.desc: Test CheckFaultAppRecord with APP_INPUT_BLOCK and non-empty timeoutMarkers, should return ERR_OK.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, CheckFaultAppRecord_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->bundleName = "check_fault_input_block_with_marker_bundle";
+    int32_t recordId = 13;
+    std::string processName = "check_fault_input_block_with_marker_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    appRecord->SetUid(uid);
+    std::string eventName = AppFreezeType::APP_INPUT_BLOCK;
+    FaultData faultData;
+    faultData.errorObject.name = eventName;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    faultData.timeoutMarkers = "notifyFault:123:1:1000";
+    int32_t ret = appMgrServiceInner->CheckFaultAppRecord(pid, uid, eventName, faultData, appRecord);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_005 end");
+}
+
+/**
+ * @tc.name: CheckFaultAppRecord_006
+ * @tc.desc: Test CheckFaultAppRecord with valid THREAD_BLOCK_6S, should return ERR_OK.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, CheckFaultAppRecord_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->bundleName = "check_fault_valid_bundle";
+    int32_t recordId = 14;
+    std::string processName = "check_fault_valid_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    appRecord->SetUid(uid);
+    std::string eventName = AppFreezeType::THREAD_BLOCK_6S;
+    FaultData faultData;
+    faultData.errorObject.name = eventName;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    int32_t ret = appMgrServiceInner->CheckFaultAppRecord(pid, uid, eventName, faultData, appRecord);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "CheckFaultAppRecord_006 end");
+}
+
+/**
  * @tc.name: TransformedNotifyAppFault_003
  * @tc.desc: Test TransformedNotifyAppFault with invalid pid, should return ERR_INVALID_VALUE.
  * @tc.type: FUNC
