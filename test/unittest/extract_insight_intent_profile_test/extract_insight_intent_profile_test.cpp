@@ -2495,7 +2495,7 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_Form_Missing_AbilityName_0
 }
 
 namespace {
-nlohmann::json MakeExportedProfileJson(const std::string &decoratorType, const std::string &exported,
+nlohmann::json MakeExportedProfileJson(const std::string &decoratorType, const nlohmann::json &exported,
     const std::vector<std::string> &executeMode = {}, const std::string &formName = "")
 {
     nlohmann::json intent;
@@ -2515,7 +2515,7 @@ nlohmann::json MakeExportedProfileJson(const std::string &decoratorType, const s
     if (!formName.empty()) {
         intent["formName"] = formName;
     }
-    if (!exported.empty()) {
+    if (!exported.is_null()) {
         intent["exported"] = exported;
     }
     nlohmann::json root;
@@ -2526,66 +2526,66 @@ nlohmann::json MakeExportedProfileJson(const std::string &decoratorType, const s
 
 /**
  * @tc.number: Exported_ThirdParty_Propagated_0100
- * @tc.name: exported=thirdParty propagated through TransformTo and ProfileInfoFormat
- * @tc.desc: exported=thirdParty is parsed and stored into ExtractInsightIntentInfo.
+ * @tc.name: exported=true propagated through TransformTo and ProfileInfoFormat
+ * @tc.desc: exported=true is parsed and stored into ExtractInsightIntentInfo.
  */
 HWTEST_F(ExtractInsightIntentProfileTest, Exported_ThirdParty_Propagated_0100, TestSize.Level0)
 {
-    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", "thirdParty",
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", true,
         {"foreground", "background"});
     ExtractInsightIntentProfileInfoVec infos;
     EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
     ASSERT_EQ(infos.insightIntents.size(), 1u);
-    EXPECT_EQ(infos.insightIntents[0].exported, INSIGHT_INTENT_EXPORTED_THIRD_PARTY);
+    EXPECT_TRUE(infos.insightIntents[0].exported);
 
     ExtractInsightIntentInfo info;
     EXPECT_TRUE(ExtractInsightIntentProfile::ProfileInfoFormat(infos.insightIntents[0], info));
-    EXPECT_EQ(info.exported, INSIGHT_INTENT_EXPORTED_THIRD_PARTY);
+    EXPECT_TRUE(info.exported);
 }
 
 /**
  * @tc.number: Exported_Missing_DefaultSystemOnly_0100
- * @tc.name: missing exported defaults to systemOnly
- * @tc.desc: profile without exported field is treated as systemOnly.
+ * @tc.name: missing exported defaults to false
+ * @tc.desc: profile without exported field is treated as system-only.
  */
 HWTEST_F(ExtractInsightIntentProfileTest, Exported_Missing_DefaultSystemOnly_0100, TestSize.Level0)
 {
-    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", "", {"foreground"});
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", nlohmann::json(), {"foreground"});
     ExtractInsightIntentProfileInfoVec infos;
     EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
     ASSERT_EQ(infos.insightIntents.size(), 1u);
-    EXPECT_EQ(infos.insightIntents[0].exported, INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY);
+    EXPECT_FALSE(infos.insightIntents[0].exported);
 }
 
 /**
  * @tc.number: Exported_Invalid_FallbackSystemOnly_0100
- * @tc.name: invalid exported value falls back to systemOnly
- * @tc.desc: enum-out-of-range exported value is tolerated as systemOnly without error.
+ * @tc.name: non-boolean exported value falls back to false
+ * @tc.desc: a non-boolean exported value is tolerated as false without error.
  */
 HWTEST_F(ExtractInsightIntentProfileTest, Exported_Invalid_FallbackSystemOnly_0100, TestSize.Level0)
 {
-    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", "invalid", {"foreground"});
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", nlohmann::json("notABool"), {"foreground"});
     ExtractInsightIntentProfileInfoVec infos;
     EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
     ASSERT_EQ(infos.insightIntents.size(), 1u);
-    EXPECT_EQ(infos.insightIntents[0].exported, INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY);
+    EXPECT_FALSE(infos.insightIntents[0].exported);
 }
 
 /**
  * @tc.number: Exported_Form_Ignored_0100
  * @tc.name: form intent ignores exported
- * @tc.desc: exported on a @InsightIntentForm intent is ignored (stays systemOnly).
+ * @tc.desc: exported on a @InsightIntentForm intent is ignored (stays false).
  */
 HWTEST_F(ExtractInsightIntentProfileTest, Exported_Form_Ignored_0100, TestSize.Level0)
 {
-    nlohmann::json json = MakeExportedProfileJson("@InsightIntentForm", "thirdParty", {}, "weatherCard");
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentForm", true, {}, "weatherCard");
     ExtractInsightIntentProfileInfoVec infos;
     EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
     ASSERT_EQ(infos.insightIntents.size(), 1u);
 
     ExtractInsightIntentInfo info;
     EXPECT_TRUE(ExtractInsightIntentProfile::ProfileInfoFormat(infos.insightIntents[0], info));
-    EXPECT_EQ(info.exported, INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY);
+    EXPECT_FALSE(info.exported);
 }
 
 /**
@@ -2595,14 +2595,14 @@ HWTEST_F(ExtractInsightIntentProfileTest, Exported_Form_Ignored_0100, TestSize.L
  */
 HWTEST_F(ExtractInsightIntentProfileTest, Exported_UIExtensionEntry_Ignored_0100, TestSize.Level0)
 {
-    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", "thirdParty", {"uiextension"});
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", true, {"uiextension"});
     ExtractInsightIntentProfileInfoVec infos;
     EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
     ASSERT_EQ(infos.insightIntents.size(), 1u);
 
     ExtractInsightIntentInfo info;
     EXPECT_TRUE(ExtractInsightIntentProfile::ProfileInfoFormat(infos.insightIntents[0], info));
-    EXPECT_EQ(info.exported, INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY);
+    EXPECT_FALSE(info.exported);
 }
 
 /**
@@ -2612,7 +2612,7 @@ HWTEST_F(ExtractInsightIntentProfileTest, Exported_UIExtensionEntry_Ignored_0100
  */
 HWTEST_F(ExtractInsightIntentProfileTest, Exported_Persisted_RoundTrip_0100, TestSize.Level0)
 {
-    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", "thirdParty",
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", true,
         {"foreground", "background"});
     ExtractInsightIntentProfileInfoVec infos;
     EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
@@ -2623,7 +2623,7 @@ HWTEST_F(ExtractInsightIntentProfileTest, Exported_Persisted_RoundTrip_0100, Tes
     ExtractInsightIntentProfileInfoVec infos2;
     EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(out.dump(), infos2));
     ASSERT_EQ(infos2.insightIntents.size(), 1u);
-    EXPECT_EQ(infos2.insightIntents[0].exported, INSIGHT_INTENT_EXPORTED_THIRD_PARTY);
+    EXPECT_TRUE(infos2.insightIntents[0].exported);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

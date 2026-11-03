@@ -26,22 +26,9 @@ namespace OHOS {
 namespace AbilityRuntime {
 using ExecuteMode = AppExecFwk::ExecuteMode;
 
-// Exported visibility of an insight intent. `systemOnly` keeps the intent visible
-// only to system applications, `thirdParty` additionally exposes it to third-party
-// agents. The field is declarative and never constitutes a permission gate.
-constexpr const char *INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY = "systemOnly";
-constexpr const char *INSIGHT_INTENT_EXPORTED_THIRD_PARTY = "thirdParty";
-
-inline bool IsThirdPartyExported(const std::string &exported)
-{
-    return exported == INSIGHT_INTENT_EXPORTED_THIRD_PARTY;
-}
-
-inline bool IsValidExportedValue(const std::string &exported)
-{
-    return exported == INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY ||
-        exported == INSIGHT_INTENT_EXPORTED_THIRD_PARTY;
-}
+// Exported visibility of an insight intent. When `false` (default) the intent is
+// visible only to system applications; when `true` it is additionally exposed to
+// third-party agents. The field is declarative and never constitutes a permission gate.
 
 struct UIAbilityIntentInfo {
     std::vector<ExecuteMode> supportExecuteMode {};
@@ -81,7 +68,7 @@ struct InsightIntentInfo {
     std::string displayDescription;
     std::string bundleName;
     std::string moduleName;
-    std::string exported = INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY;
+    bool exported = false;
 };
 
 class InsightIntentProfile {

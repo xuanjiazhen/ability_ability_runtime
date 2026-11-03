@@ -110,7 +110,7 @@ struct InsightIntentProfileInfo {
     std::string moduleName;
     std::vector<std::string> keywords;
     std::vector<std::string> permissions;
-    std::string exported = INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY;
+    bool exported = false;
     UIAbilityProfileInfo uiAbilityProfileInfo;
     UIExtensionProfileInfo uiExtensionProfileInfo;
     ServiceExtensionProfileInfo serviceExtensionProfileInfo;
@@ -372,16 +372,10 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
 
     if (jsonObject.find(INSIGHT_INTENT_EXPORTED) != jsonObjectEnd) {
         const auto &exportedJson = jsonObject.at(INSIGHT_INTENT_EXPORTED);
-        if (!exportedJson.is_string()) {
-            TAG_LOGW(AAFwkTag::INTENT, "type error: exported not string, fallback to systemOnly");
+        if (!exportedJson.is_boolean()) {
+            TAG_LOGW(AAFwkTag::INTENT, "type error: exported not bool, fallback to false");
         } else {
-            const std::string exported = exportedJson.get<std::string>();
-            if (!IsValidExportedValue(exported)) {
-                TAG_LOGW(AAFwkTag::INTENT, "invalid exported value: %{public}s, fallback to systemOnly",
-                    exported.c_str());
-            } else {
-                insightIntentInfo.exported = exported;
-            }
+            insightIntentInfo.exported = exportedJson.get<bool>();
         }
     }
 }

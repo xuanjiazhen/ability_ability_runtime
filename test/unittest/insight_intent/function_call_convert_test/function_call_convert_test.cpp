@@ -257,13 +257,13 @@ HWTEST_F(FunctionCallConvertTest, ConvertFromConfigIntent_ExportedPropagated, Te
 {
     std::vector<InsightIntentInfo> configInfos;
     auto info = MakeConfigIntent("com.test.demo", "entry", "QueryWeather");
-    info.exported = INSIGHT_INTENT_EXPORTED_THIRD_PARTY;
+    info.exported = true;
     configInfos.push_back(info);
 
     std::vector<FunctionInfo> functions;
     EXPECT_TRUE(ConvertFromConfigIntent(configInfos, functions));
     ASSERT_EQ(functions.size(), 1u);
-    EXPECT_EQ(functions[0].exported, INSIGHT_INTENT_EXPORTED_THIRD_PARTY);
+    EXPECT_TRUE(functions[0].exported);
 }
 
 HWTEST_F(FunctionCallConvertTest, ConvertFromConfigIntent_DefaultExportedSystemOnly, TestSize.Level1)
@@ -274,18 +274,18 @@ HWTEST_F(FunctionCallConvertTest, ConvertFromConfigIntent_DefaultExportedSystemO
     std::vector<FunctionInfo> functions;
     EXPECT_TRUE(ConvertFromConfigIntent(configInfos, functions));
     ASSERT_EQ(functions.size(), 1u);
-    EXPECT_EQ(functions[0].exported, INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY);
+    EXPECT_FALSE(functions[0].exported);
 }
 
 HWTEST_F(FunctionCallConvertTest, ConvertFromExtractIntentInfo_ExportedPropagated, TestSize.Level1)
 {
     std::vector<ExtractInsightIntentInfo> intentInfos;
     auto info = MakeLinkIntent("com.test.demo", "entry", "OpenLink");
-    info.exported = INSIGHT_INTENT_EXPORTED_THIRD_PARTY;
+    info.exported = true;
     intentInfos.push_back(info);
 
     std::vector<FunctionInfo> functions;
     EXPECT_TRUE(ConvertFromExtractIntentInfo(intentInfos, functions));
     ASSERT_EQ(functions.size(), 1u);
-    EXPECT_EQ(functions[0].exported, INSIGHT_INTENT_EXPORTED_THIRD_PARTY);
+    EXPECT_TRUE(functions[0].exported);
 }

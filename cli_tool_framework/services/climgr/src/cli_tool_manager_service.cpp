@@ -903,7 +903,7 @@ int32_t CliToolManagerService::ResetNamespaceFunctions(int32_t userId, const std
 void CliToolManagerService::FilterFunctionsByVisibility(std::vector<FunctionInfo> &functionList)
 {
     // System apps and system SAs keep the full list; only third-party callers are narrowed
-    // to exported=thirdParty. This is a visibility hook only — it does not grant or deny
+    // to exported=true. This is a visibility hook only — it does not grant or deny
     // access, which is handled by the permission gate on the calling path.
     if (PermissionUtil::IsSystemApp() || PermissionUtil::IsSystemSA()) {
         return;
@@ -911,7 +911,7 @@ void CliToolManagerService::FilterFunctionsByVisibility(std::vector<FunctionInfo
     std::vector<FunctionInfo> filtered;
     filtered.reserve(functionList.size());
     for (auto &func : functionList) {
-        if (func.exported == FUNCTION_EXPORTED_THIRD_PARTY) {
+        if (func.exported) {
             filtered.emplace_back(std::move(func));
         }
     }

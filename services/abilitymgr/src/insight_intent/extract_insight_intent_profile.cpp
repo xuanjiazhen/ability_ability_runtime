@@ -432,16 +432,10 @@ void from_json(const nlohmann::json &jsonObject, ExtractInsightIntentProfileInfo
 
     if (jsonObject.find(INSIGHT_INTENT_EXPORTED) != jsonObjectEnd) {
         const auto &exportedJson = jsonObject.at(INSIGHT_INTENT_EXPORTED);
-        if (!exportedJson.is_string()) {
-            TAG_LOGW(AAFwkTag::INTENT, "type error: exported not string, fallback to systemOnly");
+        if (!exportedJson.is_boolean()) {
+            TAG_LOGW(AAFwkTag::INTENT, "type error: exported not bool, fallback to false");
         } else {
-            const std::string exported = exportedJson.get<std::string>();
-            if (!IsValidExportedValue(exported)) {
-                TAG_LOGW(AAFwkTag::INTENT, "invalid exported value: %{public}s, fallback to systemOnly",
-                    exported.c_str());
-            } else {
-                insightIntentInfo.exported = exported;
-            }
+            insightIntentInfo.exported = exportedJson.get<bool>();
         }
     }
 

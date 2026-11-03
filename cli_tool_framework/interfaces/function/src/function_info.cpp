@@ -159,25 +159,20 @@ bool ParseUserId(const nlohmann::json &json, int32_t &output)
     return true;
 }
 
-void ParseExportedField(const nlohmann::json &json, std::string &output)
+void ParseExportedField(const nlohmann::json &json, bool &output)
 {
-    // Absent key = default systemOnly; invalid values fail closed to systemOnly,
-    // mirroring the profile parser (exported never becomes thirdParty on bad input).
-    output = FUNCTION_EXPORTED_SYSTEM_ONLY;
+    // Absent key = default false (system only); non-boolean values fail closed to
+    // false, mirroring the profile parser (exported never becomes true on bad input).
+    output = false;
     if (!json.contains("exported")) {
         return;
     }
     const auto &exported = json["exported"];
-    if (!exported.is_string()) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "ParseFromJson: exported is not a string, fallback to systemOnly");
+    if (!exported.is_boolean()) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ParseFromJson: exported is not a boolean, fallback to false");
         return;
     }
-    const std::string value = exported.get<std::string>();
-    if (value == FUNCTION_EXPORTED_SYSTEM_ONLY || value == FUNCTION_EXPORTED_THIRD_PARTY) {
-        output = value;
-    } else {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "ParseFromJson: invalid exported value, fallback to systemOnly");
-    }
+    output = exported.get<bool>();
 }
 
 } // namespace
@@ -217,7 +212,7 @@ bool FunctionInfo::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write userId failed");
         return false;
     }
-    if (!parcel.WriteString(exported)) {
+    if (!parcel.WriteBool(exported)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write exported failed");
         return false;
     }
@@ -269,7 +264,7 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Read userId failed");
         return nullptr;
     }
-    if (!parcel.ReadString(function->exported)) {
+    if (!parcel.ReadBool(function->exported)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Read exported failed");
         return nullptr;
     }

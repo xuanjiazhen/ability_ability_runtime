@@ -31,11 +31,9 @@ enum class FunctionType : int32_t {
     END,
 };
 
-// Exported visibility of an insight intent function. `systemOnly` keeps the function
-// visible only to system callers, `thirdParty` additionally exposes it to third-party
-// agents. It is declarative and never constitutes a permission gate.
-constexpr const char *FUNCTION_EXPORTED_SYSTEM_ONLY = "systemOnly";
-constexpr const char *FUNCTION_EXPORTED_THIRD_PARTY = "thirdParty";
+// Exported visibility of an insight intent function. When `false` (default) the
+// function is visible only to system callers; when `true` it is additionally exposed
+// to third-party agents. It is declarative and never constitutes a permission gate.
 
 /**
  * @brief Function information structure
@@ -50,7 +48,7 @@ public:
     std::string outputSchema;
     FunctionType functionType;
     int32_t userId;
-    std::string exported = FUNCTION_EXPORTED_SYSTEM_ONLY;
+    bool exported = false;
 
     FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION), userId(-1) {}
     ~FunctionInfo() override = default;

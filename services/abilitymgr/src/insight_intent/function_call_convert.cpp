@@ -309,13 +309,13 @@ void IntentFilterUtil::FilterConfig(std::vector<AbilityRuntime::InsightIntentInf
             key.abilityName = ui.abilityName;
         } else if (!se.abilityName.empty()) {
             key.abilityName = se.abilityName;
-        } else if (isFgUiAbility && AbilityRuntime::IsThirdPartyExported(info.exported)) {
+        } else if (isFgUiAbility && info.exported) {
             key.abilityName = ui.abilityName;
         } else {
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "config intent dropped: not BG UIAbility, SE or FG UIAbility + thirdParty, "
-                "intentName:%{public}s moduleName:%{public}s uiAbility:%{public}s seAbility:%{public}s exported:%{public}s",
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "config intent dropped: not BG UIAbility, SE or FG UIAbility + exported, "
+                "intentName:%{public}s moduleName:%{public}s uiAbility:%{public}s seAbility:%{public}s exported:%{public}d",
                 info.intentName.c_str(), info.moduleName.c_str(),
-                ui.abilityName.c_str(), se.abilityName.c_str(), info.exported.c_str());
+                ui.abilityName.c_str(), se.abilityName.c_str(), info.exported);
             continue;
         }
         qualified.emplace_back(std::move(key), std::move(info));
@@ -349,16 +349,16 @@ void IntentFilterUtil::FilterGeneric(std::vector<AbilityRuntime::ExtractInsightI
         bool isQualified = isBasicType || IsQualifiedEntry(generic, key.abilityName);
         if (!isQualified) {
             std::string fgAbility;
-            if (IsFgEntry(generic, fgAbility) && AbilityRuntime::IsThirdPartyExported(info.exported)) {
+            if (IsFgEntry(generic, fgAbility) && info.exported) {
                 key.abilityName = fgAbility;
                 isQualified = true;
             }
         }
         if (!isQualified) {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "generic intent dropped: not Function/Page/Link or qualified Entry, "
-                "intentName:%{public}s moduleName:%{public}s decoratorType:%{public}s exported:%{public}s",
+                "intentName:%{public}s moduleName:%{public}s decoratorType:%{public}s exported:%{public}d",
                 generic.intentName.c_str(), generic.moduleName.c_str(), generic.decoratorType.c_str(),
-                info.exported.c_str());
+                info.exported);
             continue;
         }
         qualified.emplace_back(std::move(key), std::move(info));

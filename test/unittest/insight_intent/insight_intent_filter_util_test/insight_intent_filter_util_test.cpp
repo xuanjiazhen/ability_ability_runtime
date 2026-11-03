@@ -81,7 +81,7 @@ InsightIntentInfo MakeConfigFormOnly(const std::string &bundle, const std::strin
 }
 
 InsightIntentInfo MakeConfigFgUiAbility(const std::string &bundle, const std::string &module,
-    const std::string &intent, const std::string &ability, const std::string &exported)
+    const std::string &intent, const std::string &ability, bool exported)
 {
     InsightIntentInfo info;
     info.bundleName = bundle;
@@ -157,21 +157,19 @@ HWTEST_F(InsightIntentFilterUtilTest, FilterConfig_FormOnlyDropped, TestSize.Lev
 HWTEST_F(InsightIntentFilterUtilTest, FilterConfig_FgUiAbilityThirdPartyKept, TestSize.Level1)
 {
     std::vector<InsightIntentInfo> items = {
-        MakeConfigFgUiAbility("bundle", "entry", "intent", "MainAbility",
-            INSIGHT_INTENT_EXPORTED_THIRD_PARTY),
+        MakeConfigFgUiAbility("bundle", "entry", "intent", "MainAbility", true),
     };
     IntentFilterUtil filter;
     filter.FilterConfig(items);
     EXPECT_EQ(items.size(), 1u);
     EXPECT_EQ(items[0].moduleName, "entry");
-    EXPECT_EQ(items[0].exported, INSIGHT_INTENT_EXPORTED_THIRD_PARTY);
+    EXPECT_TRUE(items[0].exported);
 }
 
 HWTEST_F(InsightIntentFilterUtilTest, FilterConfig_FgUiAbilitySystemOnlyDropped, TestSize.Level1)
 {
     std::vector<InsightIntentInfo> items = {
-        MakeConfigFgUiAbility("bundle", "entry", "intent", "MainAbility",
-            INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY),
+        MakeConfigFgUiAbility("bundle", "entry", "intent", "MainAbility", false),
     };
     IntentFilterUtil filter;
     filter.FilterConfig(items);
@@ -183,12 +181,12 @@ HWTEST_F(InsightIntentFilterUtilTest, FilterGeneric_FgEntryThirdPartyKept, TestS
     std::vector<ExtractInsightIntentInfo> items = {
         MakeFgUiAbilityIntent("bundle", "entry", "intent", "MainAbility"),
     };
-    items[0].exported = INSIGHT_INTENT_EXPORTED_THIRD_PARTY;
+    items[0].exported = true;
     IntentFilterUtil filter;
     filter.FilterGeneric(items);
     EXPECT_EQ(items.size(), 1u);
     EXPECT_EQ(items[0].genericInfo.moduleName, "entry");
-    EXPECT_EQ(items[0].exported, INSIGHT_INTENT_EXPORTED_THIRD_PARTY);
+    EXPECT_TRUE(items[0].exported);
 }
 
 HWTEST_F(InsightIntentFilterUtilTest, FilterGeneric_FgEntrySystemOnlyDropped, TestSize.Level1)
@@ -196,7 +194,7 @@ HWTEST_F(InsightIntentFilterUtilTest, FilterGeneric_FgEntrySystemOnlyDropped, Te
     std::vector<ExtractInsightIntentInfo> items = {
         MakeFgUiAbilityIntent("bundle", "entry", "intent", "MainAbility"),
     };
-    items[0].exported = INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY;
+    items[0].exported = false;
     IntentFilterUtil filter;
     filter.FilterGeneric(items);
     EXPECT_TRUE(items.empty());

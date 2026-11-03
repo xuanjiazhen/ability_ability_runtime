@@ -303,7 +303,7 @@ private:
 
     /**
      * @brief Visibility hook for third-party function queries. System apps/SAs keep the full
-     * list; third-party callers only see functions marked exported=thirdParty. The function
+     * list; third-party callers only see functions marked exported=true. The function
      * never gates permission: the caller identity/permission check is handled separately.
      */
     void FilterFunctionsByVisibility(std::vector<FunctionInfo> &functionList);
