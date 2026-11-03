@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 560" width="980" height="560" font-family="-apple-system, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">
+  <rect width="980" height="560" fill="#ffffff"/>
+  <text x="24" y="30" font-size="19" font-weight="700" fill="#0f172a">开发者视角：写一个可撤销意图只需要 6 步</text>
+  <text x="24" y="52" font-size="12" fill="#64748b">约 15 行代码；没有注册表、没有配置字段、没有额外的 undo/redo 方法要实现</text>
+
+  <!-- left: stepper -->
+  <rect x="24" y="70" width="630" height="466" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+
+  <!-- step 1 -->
+  <circle cx="58" cy="104" r="13" fill="#2563eb"/>
+  <text x="58" y="104" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">1</text>
+  <text x="84" y="98" font-size="12.5" font-weight="700" fill="#0f172a">声明意图类型</text>
+  <text x="84" y="116" font-size="9.5" fill="#64748b">遵守协议就是「声明可撤销」，无需任何 metadata</text>
+  <rect x="84" y="124" width="540" height="22" rx="3" fill="#0f172a"/>
+  <text x="92" y="139" font-size="9.5" fill="#e2e8f0" font-family="Consolas, monospace">struct DeleteCollectionIntent: AppIntent, UndoableIntent {</text>
+
+  <!-- step 2 -->
+  <circle cx="58" cy="182" r="13" fill="#2563eb"/>
+  <text x="58" y="182" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">2</text>
+  <text x="84" y="176" font-size="12.5" font-weight="700" fill="#0f172a">指定执行目标（关键，容易漏）</text>
+  <text x="84" y="194" font-size="9.5" fill="#b45309">跑在扩展里时，撤销栈靠系统「找宿主」，不如显式钉在主 App 稳</text>
+  <rect x="84" y="202" width="540" height="22" rx="3" fill="#0f172a"/>
+  <text x="92" y="217" font-size="9.5" fill="#e2e8f0" font-family="Consolas, monospace">static var allowedExecutionTargets: IntentExecutionTargets { .main }</text>
+
+  <!-- step 3 -->
+  <circle cx="58" cy="260" r="13" fill="#2563eb"/>
+  <text x="58" y="260" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">3</text>
+  <text x="84" y="254" font-size="12.5" font-weight="700" fill="#0f172a">perform 隔离到主线程</text>
+  <text x="84" y="272" font-size="9.5" fill="#64748b">undoManager 属性是 @MainActor，跨线程访问在 Swift 6 下直接编译失败</text>
+  <rect x="84" y="280" width="540" height="22" rx="3" fill="#0f172a"/>
+  <text x="92" y="295" font-size="9.5" fill="#e2e8f0" font-family="Consolas, monospace">@MainActor func perform() async throws -&gt; some IntentResult {</text>
+
+  <!-- step 4 -->
+  <circle cx="58" cy="338" r="13" fill="#b45309"/>
+  <text x="58" y="338" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">4</text>
+  <text x="84" y="332" font-size="12.5" font-weight="700" fill="#0f172a">取栈并判空（它是 Optional）</text>
+  <text x="84" y="350" font-size="9.5" fill="#b45309">拿不到栈 ≠ 不执行业务，但要接受「这次操作不可撤销」</text>
+  <rect x="84" y="358" width="540" height="22" rx="3" fill="#0f172a"/>
+  <text x="92" y="373" font-size="9.5" fill="#e2e8f0" font-family="Consolas, monospace">guard let undoManager else { try await store.delete(c); return .result() }</text>
+
+  <!-- step 5 -->
+  <circle cx="58" cy="428" r="13" fill="#047857"/>
+  <text x="58" y="428" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">5</text>
+  <text x="84" y="422" font-size="12.5" font-weight="700" fill="#0f172a">先备份，再注册逆操作</text>
+  <text x="84" y="440" font-size="9.5" fill="#047857">闭包捕获的是「变更前的快照」；withTarget 把模型对象作为参数传入，避免捕获 self</text>
+  <rect x="84" y="448" width="540" height="42" rx="3" fill="#0f172a"/>
+  <text x="92" y="463" font-size="9.5" fill="#e2e8f0" font-family="Consolas, monospace">let backup = collection.snapshot()</text>
+  <text x="92" y="481" font-size="9.5" fill="#e2e8f0" font-family="Consolas, monospace">undoManager.registerUndo(withTarget: store) { $0.restore(backup) }</text>
+
+  <!-- step 6 -->
+  <circle cx="58" cy="508" r="13" fill="#047857"/>
+  <text x="58" y="508" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">6</text>
+  <text x="84" y="502" font-size="12.5" font-weight="700" fill="#0f172a">最后才改数据，失败自行清理</text>
+  <text x="84" y="520" font-size="9.5" fill="#64748b">顺序很重要：先变更后注册，失败就不会留下悬挂的撤销条目</text>
+
+  <!-- right: system vs you -->
+  <rect x="674" y="70" width="282" height="222" rx="10" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="692" y="94" font-size="12.5" font-weight="700" fill="#1d4ed8">系统替你做的</text>
+  <text x="692" y="118" font-size="10.5" fill="#1e3a8a">· 找到「最相关」的 undoManager</text>
+  <text x="692" y="138" font-size="10.5" fill="#1e3a8a">· 把多次注册收进同一个组</text>
+  <text x="692" y="158" font-size="10.5" fill="#1e3a8a">· 提供三指左滑等系统手势</text>
+  <text x="692" y="178" font-size="10.5" fill="#1e3a8a">· 与 UI 撤销合并成一条时间线</text>
+  <text x="692" y="198" font-size="10.5" fill="#1e3a8a">· 回放时的栈迁移与状态切换</text>
+  <text x="692" y="222" font-size="10.5" fill="#1e3a8a">· 撤销项文案（setActionName）</text>
+  <line x1="692" y1="238" x2="938" y2="238" stroke="#bfdbfe"/>
+  <text x="692" y="258" font-size="10" fill="#1d4ed8">所以：开发者只写「业务逆操作」</text>
+  <text x="692" y="276" font-size="10" fill="#1d4ed8">不写撤销栈、不写手势、不写 UI</text>
+
+  <rect x="674" y="308" width="282" height="228" rx="10" fill="#fef2f2" stroke="#fecaca"/>
+  <text x="692" y="332" font-size="12.5" font-weight="700" fill="#b91c1c">你必须自己保证的</text>
+  <text x="692" y="356" font-size="10.5" fill="#991b1b">· 逆操作真的能还原（幂等）</text>
+  <text x="692" y="376" font-size="10.5" fill="#991b1b">· 回放时调用的方法内部</text>
+  <text x="692" y="392" font-size="10.5" fill="#991b1b">  也要再注册，否则 Redo 失效</text>
+  <text x="692" y="412" font-size="10.5" fill="#991b1b">· nil 时的降级行为</text>
+  <text x="692" y="432" font-size="10.5" fill="#991b1b">· 失败路径不留悬挂条目</text>
+  <text x="692" y="452" font-size="10.5" fill="#991b1b">· 不要撤销「不可逆业务」</text>
+  <text x="692" y="472" font-size="10.5" fill="#991b1b">  （已扣款、已发通知）</text>
+  <text x="692" y="500" font-size="10" fill="#b91c1c">协议不会帮你检查这五件事</text>
+  <text x="692" y="518" font-size="10" fill="#b91c1c">全部靠代码评审与测试兜住</text>
+</svg>
