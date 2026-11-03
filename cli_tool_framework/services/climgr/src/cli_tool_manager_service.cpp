@@ -900,6 +900,24 @@ int32_t CliToolManagerService::ResetNamespaceFunctions(int32_t userId, const std
     return ERR_OK;
 }
 
+void CliToolManagerService::FilterFunctionsByVisibility(std::vector<FunctionInfo> &functionList)
+{
+    // System apps and system SAs keep the full list; only third-party callers are narrowed
+    // to exported=thirdParty. This is a visibility hook only — it does not grant or deny
+    // access, which is handled by the permission gate on the calling path.
+    if (PermissionUtil::IsSystemApp() || PermissionUtil::IsSystemSA()) {
+        return;
+    }
+    std::vector<FunctionInfo> filtered;
+    filtered.reserve(functionList.size());
+    for (auto &func : functionList) {
+        if (func.exported == FUNCTION_EXPORTED_THIRD_PARTY) {
+            filtered.emplace_back(std::move(func));
+        }
+    }
+    functionList.swap(filtered);
+}
+
 int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "GetAllFunctions called");
@@ -919,6 +937,8 @@ int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions: Failed to get functions, ret=%{public}d", ret);
         return ret;
     }
+
+    FilterFunctionsByVisibility(functionList);
 
     ret = FunctionsRawData::FromFunctionInfoVec(functionList, functions);
     if (ret != ERR_OK) {

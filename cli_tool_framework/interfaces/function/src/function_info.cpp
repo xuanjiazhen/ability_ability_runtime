@@ -159,6 +159,27 @@ bool ParseUserId(const nlohmann::json &json, int32_t &output)
     return true;
 }
 
+void ParseExportedField(const nlohmann::json &json, std::string &output)
+{
+    // Absent key = default systemOnly; invalid values fail closed to systemOnly,
+    // mirroring the profile parser (exported never becomes thirdParty on bad input).
+    output = FUNCTION_EXPORTED_SYSTEM_ONLY;
+    if (!json.contains("exported")) {
+        return;
+    }
+    const auto &exported = json["exported"];
+    if (!exported.is_string()) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ParseFromJson: exported is not a string, fallback to systemOnly");
+        return;
+    }
+    const std::string value = exported.get<std::string>();
+    if (value == FUNCTION_EXPORTED_SYSTEM_ONLY || value == FUNCTION_EXPORTED_THIRD_PARTY) {
+        output = value;
+    } else {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ParseFromJson: invalid exported value, fallback to systemOnly");
+    }
+}
+
 } // namespace
 
 bool FunctionInfo::Marshalling(Parcel &parcel) const
@@ -194,6 +215,10 @@ bool FunctionInfo::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteInt32(userId)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write userId failed");
+        return false;
+    }
+    if (!parcel.WriteString(exported)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write exported failed");
         return false;
     }
     return true;
@@ -244,12 +269,16 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Read userId failed");
         return nullptr;
     }
+    if (!parcel.ReadString(function->exported)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Read exported failed");
+        return nullptr;
+    }
     return function.release();
 }
 
 bool FunctionInfo::ParseFromJson(const nlohmann::json &json, FunctionInfo &function)
 {
-    return ParseRequiredStringField(json, "functionName", function.functionName) &&
+    bool ret = ParseRequiredStringField(json, "functionName", function.functionName) &&
            ParseRequiredStringField(json, "functionNamespace", function.functionNamespace) &&
            ParseRequiredStringField(json, "version", function.version, true) &&
            ParseRequiredStringField(json, "description", function.description, true) &&
@@ -257,6 +286,8 @@ bool FunctionInfo::ParseFromJson(const nlohmann::json &json, FunctionInfo &funct
            ParseOutputSchema(json, function.outputSchema) &&
            ParseFunctionType(json, function.functionType) &&
            ParseUserId(json, function.userId);
+    ParseExportedField(json, function.exported);
+    return ret;
 }
 
 nlohmann::json FunctionInfo::ParseToJson() const
@@ -282,6 +313,8 @@ nlohmann::json FunctionInfo::ParseToJson() const
     if (userId >= 0) {
         j["userId"] = userId;
     }
+
+    j["exported"] = exported;
 
     return j;
 }

@@ -2493,5 +2493,137 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_Form_Missing_AbilityName_0
     bool result = ExtractInsightIntentProfile::TransformTo(formMissingAbilityName, infos);
     EXPECT_EQ(result, false);
 }
+
+namespace {
+nlohmann::json MakeExportedProfileJson(const std::string &decoratorType, const std::string &exported,
+    const std::vector<std::string> &executeMode = {}, const std::string &formName = "")
+{
+    nlohmann::json intent;
+    intent["decoratorFile"] = "@normalized:N&&&entry/src/main/ets/Index&";
+    intent["decoratorClass"] = "EntryClass";
+    intent["decoratorType"] = decoratorType;
+    intent["bundleName"] = "com.example.test";
+    intent["moduleName"] = "entry";
+    intent["intentName"] = "TestIntent";
+    intent["domain"] = "test";
+    intent["intentVersion"] = "1.0.0";
+    intent["displayName"] = "TestIntent";
+    intent["abilityName"] = "MainAbility";
+    if (!executeMode.empty()) {
+        intent["executeMode"] = executeMode;
+    }
+    if (!formName.empty()) {
+        intent["formName"] = formName;
+    }
+    if (!exported.empty()) {
+        intent["exported"] = exported;
+    }
+    nlohmann::json root;
+    root["extractInsightIntents"] = nlohmann::json::array({ intent });
+    return root;
+}
+} // namespace
+
+/**
+ * @tc.number: Exported_ThirdParty_Propagated_0100
+ * @tc.name: exported=thirdParty propagated through TransformTo and ProfileInfoFormat
+ * @tc.desc: exported=thirdParty is parsed and stored into ExtractInsightIntentInfo.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, Exported_ThirdParty_Propagated_0100, TestSize.Level0)
+{
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", "thirdParty",
+        {"foreground", "background"});
+    ExtractInsightIntentProfileInfoVec infos;
+    EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
+    ASSERT_EQ(infos.insightIntents.size(), 1u);
+    EXPECT_EQ(infos.insightIntents[0].exported, INSIGHT_INTENT_EXPORTED_THIRD_PARTY);
+
+    ExtractInsightIntentInfo info;
+    EXPECT_TRUE(ExtractInsightIntentProfile::ProfileInfoFormat(infos.insightIntents[0], info));
+    EXPECT_EQ(info.exported, INSIGHT_INTENT_EXPORTED_THIRD_PARTY);
+}
+
+/**
+ * @tc.number: Exported_Missing_DefaultSystemOnly_0100
+ * @tc.name: missing exported defaults to systemOnly
+ * @tc.desc: profile without exported field is treated as systemOnly.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, Exported_Missing_DefaultSystemOnly_0100, TestSize.Level0)
+{
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", "", {"foreground"});
+    ExtractInsightIntentProfileInfoVec infos;
+    EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
+    ASSERT_EQ(infos.insightIntents.size(), 1u);
+    EXPECT_EQ(infos.insightIntents[0].exported, INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY);
+}
+
+/**
+ * @tc.number: Exported_Invalid_FallbackSystemOnly_0100
+ * @tc.name: invalid exported value falls back to systemOnly
+ * @tc.desc: enum-out-of-range exported value is tolerated as systemOnly without error.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, Exported_Invalid_FallbackSystemOnly_0100, TestSize.Level0)
+{
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", "invalid", {"foreground"});
+    ExtractInsightIntentProfileInfoVec infos;
+    EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
+    ASSERT_EQ(infos.insightIntents.size(), 1u);
+    EXPECT_EQ(infos.insightIntents[0].exported, INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY);
+}
+
+/**
+ * @tc.number: Exported_Form_Ignored_0100
+ * @tc.name: form intent ignores exported
+ * @tc.desc: exported on a @InsightIntentForm intent is ignored (stays systemOnly).
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, Exported_Form_Ignored_0100, TestSize.Level0)
+{
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentForm", "thirdParty", {}, "weatherCard");
+    ExtractInsightIntentProfileInfoVec infos;
+    EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
+    ASSERT_EQ(infos.insightIntents.size(), 1u);
+
+    ExtractInsightIntentInfo info;
+    EXPECT_TRUE(ExtractInsightIntentProfile::ProfileInfoFormat(infos.insightIntents[0], info));
+    EXPECT_EQ(info.exported, INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY);
+}
+
+/**
+ * @tc.number: Exported_UIExtensionEntry_Ignored_0100
+ * @tc.name: entry bound to UIExtension ignores exported
+ * @tc.desc: exported on an @InsightIntentEntry bound to uiextension is ignored.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, Exported_UIExtensionEntry_Ignored_0100, TestSize.Level0)
+{
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", "thirdParty", {"uiextension"});
+    ExtractInsightIntentProfileInfoVec infos;
+    EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
+    ASSERT_EQ(infos.insightIntents.size(), 1u);
+
+    ExtractInsightIntentInfo info;
+    EXPECT_TRUE(ExtractInsightIntentProfile::ProfileInfoFormat(infos.insightIntents[0], info));
+    EXPECT_EQ(info.exported, INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY);
+}
+
+/**
+ * @tc.number: Exported_Persisted_RoundTrip_0100
+ * @tc.name: exported value survives ToJson/TransformTo round trip
+ * @tc.desc: exported is serialized and read back identically.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, Exported_Persisted_RoundTrip_0100, TestSize.Level0)
+{
+    nlohmann::json json = MakeExportedProfileJson("@InsightIntentEntry", "thirdParty",
+        {"foreground", "background"});
+    ExtractInsightIntentProfileInfoVec infos;
+    EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(json.dump(), infos));
+    ASSERT_EQ(infos.insightIntents.size(), 1u);
+
+    nlohmann::json out;
+    EXPECT_TRUE(ExtractInsightIntentProfile::ToJson(infos.insightIntents[0], out));
+    ExtractInsightIntentProfileInfoVec infos2;
+    EXPECT_TRUE(ExtractInsightIntentProfile::TransformTo(out.dump(), infos2));
+    ASSERT_EQ(infos2.insightIntents.size(), 1u);
+    EXPECT_EQ(infos2.insightIntents[0].exported, INSIGHT_INTENT_EXPORTED_THIRD_PARTY);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

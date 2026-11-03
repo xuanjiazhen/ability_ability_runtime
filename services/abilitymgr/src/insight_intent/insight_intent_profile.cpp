@@ -69,6 +69,7 @@ const std::string INSIGHT_INTENT_MODULE_NAME = "moduleName";
 const std::string INSIGHT_INTENT_INPUT_PARAMS = "inputParams";
 const std::string INSIGHT_INTENT_OUTPUT_PARAMS = "outputParams";
 const std::string INSIGHT_INTENT_ENTITES = "entities";
+const std::string INSIGHT_INTENT_EXPORTED = "exported";
 
 const std::map<std::string, ExecuteMode> executeModeMap = {
     {"foreground", ExecuteMode::UI_ABILITY_FOREGROUND},
@@ -109,6 +110,7 @@ struct InsightIntentProfileInfo {
     std::string moduleName;
     std::vector<std::string> keywords;
     std::vector<std::string> permissions;
+    std::string exported = INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY;
     UIAbilityProfileInfo uiAbilityProfileInfo;
     UIExtensionProfileInfo uiExtensionProfileInfo;
     ServiceExtensionProfileInfo serviceExtensionProfileInfo;
@@ -367,6 +369,21 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
             g_parseResult = ERR_INVALID_VALUE;
         }
     }
+
+    if (jsonObject.find(INSIGHT_INTENT_EXPORTED) != jsonObjectEnd) {
+        const auto &exportedJson = jsonObject.at(INSIGHT_INTENT_EXPORTED);
+        if (!exportedJson.is_string()) {
+            TAG_LOGW(AAFwkTag::INTENT, "type error: exported not string, fallback to systemOnly");
+        } else {
+            const std::string exported = exportedJson.get<std::string>();
+            if (!IsValidExportedValue(exported)) {
+                TAG_LOGW(AAFwkTag::INTENT, "invalid exported value: %{public}s, fallback to systemOnly",
+                    exported.c_str());
+            } else {
+                insightIntentInfo.exported = exported;
+            }
+        }
+    }
 }
 
 void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfoVec &infos)
@@ -421,6 +438,12 @@ bool TransformToInsightIntentInfo(const InsightIntentProfileInfo &insightIntent,
     info.serviceExtensionIntentInfo.abilityName = insightIntent.serviceExtensionProfileInfo.abilityName;
     info.formIntentInfo.abilityName = insightIntent.formProfileInfo.abilityName;
     info.formIntentInfo.formName = insightIntent.formProfileInfo.formName;
+
+    bool isFormOrUIExtension = !insightIntent.formProfileInfo.abilityName.empty() ||
+        !insightIntent.uiExtensionProfileInfo.abilityName.empty();
+    if (!isFormOrUIExtension) {
+        info.exported = insightIntent.exported;
+    }
     return true;
 }
 
@@ -537,6 +560,7 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentInfo& info)
     };
     AddJsonStringArray(jsonObject, INSIGHT_INTENT_INPUT_PARAMS, info.inputParams);
     AddJsonStringArray(jsonObject, INSIGHT_INTENT_OUTPUT_PARAMS, info.outputParams);
+    jsonObject[INSIGHT_INTENT_EXPORTED] = info.exported;
     if (!info.cfgEntities.empty()) {
         nlohmann::json cfgEntities;
         if (!SafeParse(info.cfgEntities, cfgEntities)) {

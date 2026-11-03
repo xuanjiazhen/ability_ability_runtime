@@ -182,6 +182,7 @@ struct ExtractInsightIntentInfo {
     std::string result;
     std::string example;
     std::string arkTSMode;
+    std::string exported = INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY;
 
     ExtractInsightIntentInfo() = default;
 };
@@ -226,6 +227,7 @@ struct ExtractInsightIntentProfileInfo {
     std::string functionReturnType;
     std::string formName;
     std::string arkTSMode;
+    std::string exported = INSIGHT_INTENT_EXPORTED_SYSTEM_ONLY;
 };
 
 struct ExtractInsightIntentProfileInfoVec {
