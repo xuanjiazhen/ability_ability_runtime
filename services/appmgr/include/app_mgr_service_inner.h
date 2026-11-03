@@ -2472,6 +2472,8 @@ private:
         int64_t receiveTime, bool isThreadBlock);
     int32_t KillFaultApp(int32_t pid, const std::string &bundleName, const FaultData &faultData,
         bool isNeedExit = false, int32_t recordId = -1);
+    int32_t CheckFaultAppRecord(int32_t pid, int32_t uid, const std::string &eventName,
+        const FaultData &faultData, const std::shared_ptr<AppRunningRecord> &appRecord)
 #ifdef APP_MGR_KILL_REASON_TAG
     void RecordAppfreezeKillReason(int32_t pid, const FaultData &faultData);
 #endif

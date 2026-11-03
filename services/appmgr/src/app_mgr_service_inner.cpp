@@ -9430,24 +9430,9 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         return ERR_INVALID_VALUE;
     }
     auto appRecord = GetAppRunningRecordByPid(pid);
-    if (appRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "no appRecord, pid:%{public}d", pid);
-        return ERR_INVALID_VALUE;
-    }
-    if (appRecord->GetUid() != uid) {
-        TAG_LOGE(AAFwkTag::APPMGR, "calling uid:%{public}d does not own record pid:%{public}d, recordUid:%{public}d",
-            uid, pid, appRecord->GetUid());
-        return ERR_INVALID_VALUE;
-    }
-    std::string eventName = faultData.errorObject.name;
-    if (!AppExecFwk::AppfreezeManager::GetInstance()->IsValidFreezeTypeName(eventName)) {
-        TAG_LOGE(AAFwkTag::APPDFR, "called failed, invalid freeze name: %{public}s", eventName.c_str());
-        return ERR_INVALID_VALUE;
-    }
-    if (faultData.faultType == FaultDataType::APP_FREEZE && eventName == AppFreezeType::APP_INPUT_BLOCK &&
-        faultData.timeoutMarkers.empty()) {
-        TAG_LOGE(AAFwkTag::APPDFR, "APP_INPUT_BLOCK feedback without server-issued marker, pid:%{public}d", pid);
-        return ERR_INVALID_VALUE;
+    int32_t checkResult = CheckFaultAppRecord(pid, uid, eventName, faultData, appRecord);
+    if (checkResult != ERR_OK) {
+        return checkResult;
     }
     if (appRecord->GetState() == ApplicationState::APP_STATE_TERMINATED ||
         appRecord->GetState() == ApplicationState::APP_STATE_END) {
@@ -9469,6 +9454,31 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     }
 
     return SubmitAppFault(const_cast<FaultData&>(faultData), appRecord, pid, receiveTime);
+}
+
+int32_t AppMgrServiceInner::CheckFaultAppRecord(int32_t pid, int32_t uid, const std::string &eventName,
+    const FaultData &faultData, const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no appRecord, pid:%{public}d", pid);
+        return ERR_INVALID_VALUE;
+    }
+    if (appRecord->GetUid() != uid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "calling uid:%{public}d does not own record pid:%{public}d, recordUid:%{public}d",
+            uid, pid, appRecord->GetUid());
+        return ERR_INVALID_VALUE;
+    }
+    std::string eventName = faultData.errorObject.name;
+    if (!AppExecFwk::AppfreezeManager::GetInstance()->IsValidFreezeTypeName(eventName)) {
+        TAG_LOGE(AAFwkTag::APPDFR, "called failed, invalid freeze name: %{public}s", eventName.c_str());
+        return ERR_INVALID_VALUE;
+    }
+    if (faultData.faultType == FaultDataType::APP_FREEZE && eventName == AppFreezeType::APP_INPUT_BLOCK &&
+        faultData.timeoutMarkers.empty()) {
+        TAG_LOGE(AAFwkTag::APPDFR, "APP_INPUT_BLOCK feedback without server-issued marker, pid:%{public}d", pid);
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
 }
 
 bool AppMgrServiceInner::HandleFaultTimeout(FaultData &faultData, int32_t pid, int32_t recordId,
