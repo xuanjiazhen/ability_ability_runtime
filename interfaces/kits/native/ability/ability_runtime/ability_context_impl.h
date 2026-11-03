@@ -265,7 +265,8 @@ public:
 #endif
     ErrCode RequestModalUIExtension(const Want &want) override;
 
-    ErrCode ChangeAbilityVisibility(bool isShow) override;
+    ErrCode ChangeAbilityVisibility(bool isShow,
+        const std::shared_ptr<Rosen::WindowShowParams> &params = nullptr) override;
 
     ErrCode AddFreeInstallObserver(const sptr<AbilityRuntime::IFreeInstallObserver> &observer) override;
 
