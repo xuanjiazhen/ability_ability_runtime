@@ -180,3 +180,13 @@ IntentUndoGroup（业务事务，可序列化，跨入口）
 | M2 | 挂接点①~④系统侧落地；装饰器与配置文件双路径 |
 | M3 | 凭据落盘（跨会话撤销）、冲突态处理 |
 | M4 | 标准意图 Schema / 文档仓规范同步 |
+
+## 7. 参考实现分析（iOS NSUndoManager）
+
+本设计的每个关键决策都有一条 iOS `NSUndoManager` 的对照出处，完整分析（含架构分层、双栈流转、消息转发截获、机制映射 4 张图）见 [reference/ios-undomanager-insight.md](reference/ios-undomanager-insight.md)。直接影响本设计的 5 条结论：
+
+1. iOS "执行即注册" → 本提案改为框架在 `onExecute` 成功时自动入栈，一致性从开发者责任降级为框架默认值；
+2. iOS 靠 Run Loop hook 猜"事件边界" → 意图天然有起止，`一次意图执行 = 一个撤销组`，无需分组机制；
+3. iOS Redo 免费来自对称注册 → 意图是黑盒业务无法自动求逆，显式提供 `onRedo`，但引擎回传原 `executeResult` 使其通常只需一行委托 `onExecute`；
+4. iOS `setActionIsDiscardable:` → `undoable` 声明 + 未实现 `onCancel` 即不入栈（导航、纯查询自动排除）；
+5. iOS 栈在内存且持对象引用，杀进程即丢 → 本提案组为纯数据（`ToJsonString` 可落盘），支持跨会话撤销，且凭据随意图流动可覆盖小艺/卡片/跨设备等应用外入口——iOS 方案做不到的结构性收益。
