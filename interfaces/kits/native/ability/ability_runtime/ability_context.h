@@ -43,6 +43,10 @@ namespace Ace {
 class UIContent;
 }
 
+namespace Rosen {
+struct WindowShowParams;
+}
+
 namespace AbilityRuntime {
 using RuntimeTask = std::function<void(int, const AAFwk::Want&, bool)>;
 using PermissionRequestTask = std::function<void(const std::vector<std::string>&, const std::vector<int>&)>;
@@ -214,7 +218,8 @@ public:
 
     virtual ErrCode AddFreeInstallObserver(const sptr<AbilityRuntime::IFreeInstallObserver> &observer) = 0;
 
-    virtual ErrCode ChangeAbilityVisibility(bool isShow) { return 0; }
+    virtual ErrCode ChangeAbilityVisibility(bool isShow,
+        const std::shared_ptr<Rosen::WindowShowParams> &params = nullptr) { return 0; }
 
     /**
     * @brief Connects the current ability to an ability using the AbilityInfo.AbilityType.SERVICE template.
