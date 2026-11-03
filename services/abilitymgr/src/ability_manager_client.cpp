@@ -2217,6 +2217,17 @@ bool AbilityManagerClient::IsAbilityControllerStart(const Want &want)
     return abms->IsAbilityControllerStart(want);
 }
 
+bool AbilityManagerClient::IsInsightIntentCall(uint64_t intentId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    auto abms = GetAbilityManager();
+    if (abms == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abms");
+        return false;
+    }
+    return abms->IsInsightIntentCall(intentId);
+}
+
 ErrCode AbilityManagerClient::ExecuteInsightIntentDone(sptr<IRemoteObject> token, uint64_t intentId,
     const InsightIntentExecuteResult &result)
 {
