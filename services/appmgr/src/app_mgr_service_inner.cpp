@@ -233,6 +233,8 @@ constexpr size_t MAX_PROCESS_NAME_LENGTH = 64;
 constexpr const int32_t DEFAULT_APPFREEZE_KILL_WAIT_TIME = 3500; // 3.5s
 constexpr const int32_t BETA_APPFREEZE_KILL_WAIT_TIME = 6000; // 6s
 constexpr const int64_t PROCESS_KILL_DELAY_TIME = 600 * 1000; // 600ms
+constexpr const int32_t COLLABORATOR_TYPE_RESERVE = 1;
+constexpr const int32_t COLLABORATOR_TYPE_OTHERS = 2;
 
 #ifdef WITH_DLP
 constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
@@ -3955,11 +3957,63 @@ int32_t AppMgrServiceInner::KillApplicationByBundleName(
     return result;
 }
 
+int32_t AppMgrServiceInner::GetCollaboratorTypeForKill(
+    const std::string &bundleName, int32_t appCloneIndex, int32_t userId, int32_t &collaboratorType)
+{
+    CHECK_POINTER_AND_RETURN_VALUE(remoteClientManager_, ERR_NO_INIT);
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN_VALUE(bundleMgrHelper, ERR_NO_INIT);
+    AppExecFwk::BundleInfo bundleInfo;
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    if (appCloneIndex == 0) {
+        auto res = bundleMgrHelper->GetBundleInfoV9(bundleName,
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+            bundleInfo, userId);
+        if (res == ERR_OK && bundleInfo.applicationInfo.enabled) {
+            appCloneIndex = bundleInfo.applicationInfo.appIndex;
+        }
+    }
+#endif
+    if (appCloneIndex == -1) {
+        bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appCloneIndex);
+    }
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfoExt(bundleName,
+        static_cast<uint32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+        appCloneIndex, userId, bundleInfo)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get bundle info for collaborator type failed");
+        return GET_BUNDLE_INFO_FAILED;
+    }
+    const std::string &codePath = bundleInfo.applicationInfo.codePath;
+    if (codePath == std::to_string(COLLABORATOR_TYPE_RESERVE)) {
+        collaboratorType = COLLABORATOR_TYPE_RESERVE;
+    } else if (codePath == std::to_string(COLLABORATOR_TYPE_OTHERS)) {
+        collaboratorType = COLLABORATOR_TYPE_OTHERS;
+    }
+    return ERR_OK;
+}
+
 int32_t AppMgrServiceInner::KillApplicationByUserId(
     const std::string &bundleName, int32_t appCloneIndex, const int userId,
     const bool clearPageStack, const std::string& reason)
 {
     CHECK_CALLER_IS_SYSTEM_APP;
+    CHECK_POINTER_AND_RETURN_VALUE(remoteClientManager_, ERR_NO_INIT);
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN_VALUE(bundleMgrHelper, ERR_NO_INIT);
+
+    int32_t collaboratorType = 0;
+    GetCollaboratorTypeForKill(bundleName, appCloneIndex, userId, collaboratorType);
+
+    if (collaboratorType != 0) {
+        if (VerifyAccountPermission(
+            AAFwk::PermissionConstants::PERMISSION_KILL_APP_PROCESSES, userId) == ERR_PERMISSION_DENIED) {
+            TAG_LOGE(AAFwkTag::APPMGR, "collaborator kill permission denied");
+            return ERR_PERMISSION_DENIED;
+        }
+        return AbilityManagerClient::GetInstance()->KillCollaboratorProcess(
+            collaboratorType, bundleName, userId);
+    }
+
     if (VerifyAccountPermission(
         AAFwk::PermissionConstants::PERMISSION_KILL_APP_PROCESSES, userId) == ERR_PERMISSION_DENIED &&
         VerifyAccountPermission(
@@ -3967,10 +4021,8 @@ int32_t AppMgrServiceInner::KillApplicationByUserId(
         TAG_LOGE(AAFwkTag::APPMGR, "permission verify fail");
         return ERR_PERMISSION_DENIED;
     }
-
     KillProcessConfig config{clearPageStack, true, reason};
-    if(appCloneIndex == -1) {
-        auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    if (appCloneIndex == -1) {
         bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appCloneIndex);
     }
     return KillApplicationByUserIdLocked(bundleName, appCloneIndex, userId, config);
