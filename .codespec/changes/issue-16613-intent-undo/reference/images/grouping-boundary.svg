@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 520" width="980" height="520" font-family="-apple-system, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">
+  <rect width="980" height="500" fill="#ffffff"/>
+  <text x="24" y="30" font-size="19" font-weight="700" fill="#0f172a">隐性坑：撤销组的边界由 run loop 事件决定，而不是由 perform 决定</text>
+  <text x="24" y="52" font-size="12" fill="#64748b">NSUndoManager 的 groupsByEvent 在每个事件周期结束时收口 —— 一旦 perform 跨周期挂起，一个意图会被拆成多组</text>
+
+  <!-- A -->
+  <rect x="24" y="72" width="300" height="330" rx="8" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="44" y="98" font-size="12.5" font-weight="700" fill="#047857">A. 同步 perform</text>
+  <text x="44" y="118" font-size="10" fill="#065f46">三次注册都在同一个事件周期</text>
+  <rect x="44" y="134" width="260" height="96" rx="6" fill="#ffffff" stroke="#059669"/>
+  <text x="58" y="156" font-size="11" font-weight="700" fill="#065f46">Group（1 个）</text>
+  <text x="58" y="176" font-size="10" fill="#047857">op1 恢复集合</text>
+  <text x="58" y="194" font-size="10" fill="#047857">op2 恢复条目</text>
+  <text x="58" y="212" font-size="10" fill="#047857">op3 刷新小组件</text>
+  <text x="44" y="254" font-size="10.5" fill="#065f46">用户按 1 次撤销 = 全部回滚</text>
+  <text x="44" y="274" font-size="10" fill="#059669">✔ 符合「一次意图 = 一个事务」直觉</text>
+  <rect x="44" y="292" width="260" height="90" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+  <text x="58" y="312" font-size="10" fill="#065f46">适用于：纯内存操作、</text>
+  <text x="58" y="330" font-size="10" fill="#065f46">无网络/无 DB 往返的意图</text>
+  <text x="58" y="354" font-size="9.5" fill="#64748b">perform 里不出现 await 就不会被拆</text>
+  <text x="58" y="370" font-size="9.5" fill="#64748b">（或 await 都发生在注册之后）</text>
+
+  <!-- B -->
+  <rect x="340" y="72" width="300" height="330" rx="8" fill="#fef2f2" stroke="#fecaca"/>
+  <text x="360" y="98" font-size="12.5" font-weight="700" fill="#b91c1c">B. 跨 await 的 perform（隐患）</text>
+  <text x="360" y="118" font-size="10" fill="#991b1b">每次挂起后继续，可能落在新周期</text>
+  <g font-size="10">
+    <rect x="360" y="134" width="260" height="28" rx="4" fill="#ffffff" stroke="#dc2626"/>
+    <text x="372" y="152" fill="#991b1b">Group 1 — op1（删除集合）</text>
+    <rect x="360" y="168" width="260" height="28" rx="4" fill="#ffffff" stroke="#dc2626"/>
+    <text x="372" y="186" fill="#991b1b">Group 2 — op2（删子条目）</text>
+    <rect x="360" y="202" width="260" height="28" rx="4" fill="#ffffff" stroke="#dc2626"/>
+    <text x="372" y="220" fill="#991b1b">Group 3 — op3（刷新小组件）</text>
+  </g>
+  <text x="360" y="254" font-size="10.5" fill="#991b1b">用户要按 3 次撤销才回到原状</text>
+  <text x="360" y="274" font-size="10" fill="#dc2626">✘ 典型的「撤销体验事故」</text>
+  <rect x="360" y="292" width="260" height="90" rx="6" fill="#ffffff" stroke="#fecaca"/>
+  <text x="372" y="312" font-size="10" fill="#991b1b">触发条件：await 网络请求、</text>
+  <text x="372" y="330" font-size="10" fill="#991b1b">await 数据库写入、Task.sleep</text>
+  <text x="372" y="354" font-size="9.5" fill="#64748b">说明：此结论由 groupsByEvent 语义推论，</text>
+  <text x="372" y="370" font-size="9.5" fill="#64748b">建议用「栈内组数」断点实测确认</text>
+
+  <!-- C -->
+  <rect x="656" y="72" width="300" height="330" rx="8" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="676" y="98" font-size="12.5" font-weight="700" fill="#1d4ed8">C. 显式包一层组（修复）</text>
+  <text x="676" y="118" font-size="10" fill="#1e3a8a">beginUndoGrouping 跨周期也不会拆</text>
+  <rect x="676" y="134" width="260" height="96" rx="6" fill="#ffffff" stroke="#2563eb"/>
+  <text x="690" y="156" font-size="11" font-weight="700" fill="#1e40af">Group（显式包裹）</text>
+  <text x="690" y="176" font-size="10" fill="#1d4ed8">op1 · await 之后</text>
+  <text x="690" y="194" font-size="10" fill="#1d4ed8">op2 · await 之后</text>
+  <text x="690" y="212" font-size="10" fill="#1d4ed8">op3 · await 之后</text>
+  <text x="676" y="254" font-size="10.5" fill="#1e40af">1 次撤销仍然撤完全部</text>
+  <text x="676" y="274" font-size="10" fill="#2563eb">✔ 异步意图的正确姿势</text>
+  <rect x="676" y="292" width="260" height="90" rx="6" fill="#0f172a"/>
+  <text x="688" y="312" font-size="9.5" fill="#e2e8f0" font-family="Consolas, monospace">um.beginUndoGrouping()</text>
+  <text x="688" y="330" font-size="9.5" fill="#e2e8f0" font-family="Consolas, monospace">defer { um.endUndoGrouping() }</text>
+  <text x="688" y="348" font-size="9.5" fill="#94a3b8" font-family="Consolas, monospace">// 用 defer 保证异常路径也收口</text>
+  <text x="688" y="366" font-size="9" fill="#fcd34d" font-family="Consolas, monospace">// 嵌套时 groupingLevel 会 +1</text>
+
+  <!-- bottom -->
+  <rect x="24" y="418" width="932" height="84" rx="8" fill="#fff7ed" stroke="#fed7aa"/>
+  <text x="44" y="440" font-size="11.5" font-weight="700" fill="#c2410c">为什么这条边界值得写进规范</text>
+  <text x="44" y="460" font-size="10.5" fill="#7c2d12">意图的语义边界是 perform 的起止，但撤销引擎只认事件周期。两者不重合时，「一次业务事务 = 一个撤销组」这条不变式必须靠显式开组来维持，</text>
+  <text x="44" y="480" font-size="10.5" fill="#7c2d12">否则异步意图会把一次操作拆成多组，用户需要连按多次撤销 —— 这正是 Apple 文档没有强调、但实际项目最容易踩到的地方。</text>
+</svg>
