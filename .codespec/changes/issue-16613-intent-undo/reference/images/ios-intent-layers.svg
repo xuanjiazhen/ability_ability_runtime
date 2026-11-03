@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 520" width="980" height="520" font-family="-apple-system, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">
+  <rect width="980" height="520" fill="#ffffff"/>
+  <text x="24" y="30" font-size="19" font-weight="700" fill="#0f172a">两套撤销体系的分层关系</text>
+  <text x="24" y="52" font-size="12" fill="#64748b">UndoableIntent 不是新的撤销引擎，而是把「意图执行」接进 NSUndoManager 的一层适配器</text>
+
+  <!-- Layer 1: 意图层 -->
+  <rect x="24" y="70" width="640" height="92" rx="8" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="40" y="94" font-size="13" font-weight="700" fill="#1d4ed8">① 意图层：AppIntent + UndoableIntent</text>
+  <text x="40" y="116" font-size="11" fill="#1e3a8a">perform() 内部完成「备份 → 注册逆操作 → 变更数据」</text>
+  <rect x="40" y="126" width="200" height="24" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+  <text x="48" y="142" font-size="10" fill="#1e3a8a">@Parameter（意图入参）</text>
+  <rect x="252" y="126" width="200" height="24" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+  <text x="260" y="142" font-size="10" fill="#1e3a8a">@Dependency（注入模型）</text>
+  <rect x="464" y="126" width="186" height="24" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+  <text x="472" y="142" font-size="10" fill="#1e3a8a">@MainActor perform()</text>
+
+  <!-- adapter arrow -->
+  <line x1="344" y1="162" x2="344" y2="186" stroke="#475569" stroke-width="1.5" marker-end="url(#a1)"/>
+  <defs>
+    <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#475569"/>
+    </marker>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#b45309"/>
+    </marker>
+  </defs>
+
+  <!-- Layer 2: 适配层 -->
+  <rect x="24" y="188" width="640" height="92" rx="8" fill="#fff7ed" stroke="#fed7aa"/>
+  <text x="40" y="212" font-size="13" font-weight="700" fill="#c2410c">② 适配层：UndoableIntent 只提供一个属性</text>
+  <text x="40" y="234" font-size="11" fill="#7c2d12">@MainActor var undoManager: UndoManager? —— 系统按当前状态挑选「最相关」的实例</text>
+  <rect x="40" y="244" width="200" height="24" rx="4" fill="#ffffff" stroke="#fdba74"/>
+  <text x="48" y="260" font-size="10" fill="#7c2d12">宿主 App 的撤销栈</text>
+  <rect x="252" y="244" width="200" height="24" rx="4" fill="#ffffff" stroke="#fdba74"/>
+  <text x="260" y="260" font-size="10" fill="#7c2d12">扩展运行时由宿主提供</text>
+  <rect x="464" y="244" width="186" height="24" rx="4" fill="#ffffff" stroke="#fdba74"/>
+  <text x="472" y="260" font-size="10" fill="#7c2d12">找不到即 nil（降级）</text>
+
+  <line x1="344" y1="280" x2="344" y2="304" stroke="#475569" stroke-width="1.5" marker-end="url(#a1)"/>
+
+  <!-- Layer 3: 引擎层 -->
+  <rect x="24" y="306" width="640" height="110" rx="8" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="40" y="330" font-size="13" font-weight="700" fill="#047857">③ 引擎层：NSUndoManager（Foundation，与 UI 共用同一个）</text>
+  <g font-size="10.5" fill="#065f46">
+    <rect x="40" y="342" width="146" height="60" rx="6" fill="#ffffff" stroke="#059669"/>
+    <text x="50" y="362" font-size="11" font-weight="700">组（Group）</text>
+    <text x="50" y="380">栈的基本单元</text>
+    <text x="50" y="395" font-size="9.5" fill="#64748b">run loop 事件边界切分</text>
+
+    <rect x="198" y="342" width="146" height="60" rx="6" fill="#ffffff" stroke="#059669"/>
+    <text x="208" y="362" font-size="11" font-weight="700">undoStack</text>
+    <text x="208" y="380">UI 与意图操作同栈</text>
+    <text x="208" y="395" font-size="9.5" fill="#64748b">顺序由时间线保证</text>
+
+    <rect x="356" y="342" width="146" height="60" rx="6" fill="#ffffff" stroke="#059669"/>
+    <text x="366" y="362" font-size="11" font-weight="700">redoStack</text>
+    <text x="366" y="380">仅 undo 回放写入</text>
+    <text x="366" y="395" font-size="9.5" fill="#64748b">无显式 redo API</text>
+
+    <rect x="514" y="342" width="136" height="60" rx="6" fill="#ffffff" stroke="#059669"/>
+    <text x="524" y="362" font-size="11" font-weight="700">状态机</text>
+    <text x="524" y="380">isUndoing/grouping</text>
+    <text x="524" y="395" font-size="9.5" fill="#64748b">决定注册落哪个栈</text>
+  </g>
+
+  <line x1="344" y1="416" x2="344" y2="438" stroke="#475569" stroke-width="1.5" marker-end="url(#a1)"/>
+
+  <!-- Layer 4: 业务层 -->
+  <rect x="24" y="440" width="640" height="60" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="40" y="464" font-size="12.5" font-weight="700" fill="#334155">④ 业务层：模型对象（被回放的真正目标）</text>
+  <text x="40" y="484" font-size="10.5" fill="#475569">undo 执行的是闭包里对 store 的调用，而不是重新跑一遍意图 —— 参数、意图实例、执行环境都不参与回滚</text>
+
+  <!-- Right: trigger panel -->
+  <rect x="684" y="70" width="272" height="200" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="700" y="94" font-size="12.5" font-weight="700" fill="#0f172a">撤销的触发面（不在意图里）</text>
+  <g font-size="10.5" fill="#334155">
+    <text x="700" y="118">三指左滑（系统手势）</text>
+    <text x="700" y="140">App 菜单 Edit ▸ Undo</text>
+    <text x="700" y="162">摇一摇（Shake to Undo）</text>
+    <text x="700" y="184">键盘 ⌘Z（iPad / Mac）</text>
+  </g>
+  <line x1="700" y1="196" x2="940" y2="196" stroke="#e2e8f0"/>
+  <text x="700" y="216" font-size="10" fill="#b45309">官方原文：App intents 不会主动调用</text>
+  <text x="700" y="232" font-size="10" fill="#b45309">undo() / redo()</text>
+  <text x="700" y="252" font-size="10" fill="#64748b">→ 意图只负责「登记」，不负责「发起」</text>
+
+  <rect x="684" y="290" width="272" height="210" rx="8" fill="#fff7ed" stroke="#fed7aa"/>
+  <text x="700" y="314" font-size="12.5" font-weight="700" fill="#c2410c">这层设计的三条铁律</text>
+  <text x="700" y="338" font-size="10.5" fill="#7c2d12">① 声明即能力：遵守协议 = 可撤销</text>
+  <text x="700" y="356" font-size="9.5" fill="#92400e">没有 undoable 布尔字段，也没有注册表</text>
+  <text x="700" y="382" font-size="10.5" fill="#7c2d12">② 注册必须在 perform 内完成</text>
+  <text x="700" y="400" font-size="9.5" fill="#92400e">perform 是唯一允许产生副作用的入口</text>
+  <text x="700" y="426" font-size="10.5" fill="#7c2d12">③ 撤销粒度 = 一次 perform</text>
+  <text x="700" y="444" font-size="9.5" fill="#92400e">多个 registerUndo 落在同一个组里</text>
+  <text x="700" y="470" font-size="9.5" fill="#b45309">前提：同一次 run loop 事件内注册</text>
+</svg>
