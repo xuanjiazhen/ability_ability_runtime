@@ -936,11 +936,21 @@ int AppMgrService::StartUserTestProcess(const AAFwk::Want &want, const sptr<IRem
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    if (!AAFwk::PermissionVerification::GetInstance()->IsShellCall() &&
-        !AAFwk::PermissionVerification::GetInstance()->IsAllowLocalDebugOtherApps(
-            want.GetBoolParam("ohos.param.debugFrom", false))) {
+    auto perm = AAFwk::PermissionVerification::GetInstance();
+    bool isShellCall = perm->IsShellCall();
+    bool isSACall = perm->IsSACall();
+    bool isAllowLocalDebug = perm->IsAllowLocalDebugOtherApps(
+        want.GetBoolParam("ohos.param.debugFrom", false));
+    if (!isShellCall && !isSACall && !isAllowLocalDebug) {
         TAG_LOGE(AAFwkTag::APPMGR, "StartUserTestProcess is not shell call");
         return ERR_INVALID_OPERATION;
+    }
+    if (!isShellCall && !isSACall && isAllowLocalDebug) {
+        int32_t callingUserId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
+        if (callingUserId > 1 && userId != callingUserId) {
+            TAG_LOGE(AAFwkTag::APPMGR, "cross-user StartUserTestProcess not allowed");
+            return ERR_INVALID_OPERATION;
+        }
     }
     std::function<void()> startUserTestProcessFunc = [appMgrServiceInner = appMgrServiceInner_,
         want, observer, bundleInfo, userId]() {
@@ -2037,6 +2047,15 @@ bool AppMgrService::IsFinalAppProcess()
         return false;
     }
     return appMgrServiceInner_->IsFinalAppProcessByBundleName("");
+}
+
+bool AppMgrService::IsHyperSnapInitializing()
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return false;
+    }
+    return appMgrServiceInner_->IsHyperSnapInitializing();
 }
 
 int32_t AppMgrService::RegisterRenderStateObserver(const sptr<IRenderStateObserver> &observer)

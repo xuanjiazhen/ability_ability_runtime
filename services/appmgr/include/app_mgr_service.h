@@ -88,7 +88,7 @@ public:
         AppExecFwk::PreloadMode preloadMode, int32_t appIndex) override;
 
     virtual int32_t MakeImage(const AAFwk::Want &want, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1,
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0,
         sptr<IImageErrorHandler> errorHandler = nullptr) override;
 
     virtual int32_t DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler = nullptr) override;
@@ -546,7 +546,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
-        int32_t appIndex = -1) override;
+        int32_t appIndex = 0) override;
 
     /**
      * @brief register a configuration observer which will receive notifies when updated.
@@ -1211,6 +1211,15 @@ private:
      * @return Returns true is final application process, others return false.
      */
     bool IsFinalAppProcess() override;
+
+    /**
+     * Query whether the current process is doing snapshot initialization.
+     *
+     * @return Returns true if the current process is doing snapshot initialization,
+     *         false otherwise (completed, failed, not a template process,
+     *         or service unavailable).
+     */
+    bool IsHyperSnapInitializing() override;
 
     /**
      * Get pids of processes which belong to specific bundle name and support process cache feature.

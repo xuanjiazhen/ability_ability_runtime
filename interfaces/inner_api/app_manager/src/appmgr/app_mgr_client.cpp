@@ -306,6 +306,18 @@ AppMgrResultCode AppMgrClient::KillProcessesByPids(const std::vector<int32_t> &p
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
+bool AppMgrClient::CheckProcessAvailable(int32_t pid)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        if (amsService != nullptr) {
+            return amsService->CheckProcessAvailable(pid);
+        }
+    }
+    return true;
+}
+
 AppMgrResultCode AppMgrClient::AttachPidToParent(const sptr<IRemoteObject> &token,
     const sptr<IRemoteObject> &callerToken)
 {
@@ -1553,6 +1565,16 @@ bool AppMgrClient::IsFinalAppProcess()
         return false;
     }
     return service->IsFinalAppProcess();
+}
+
+bool AppMgrClient::IsHyperSnapInitializing()
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return false;
+    }
+    return service->IsHyperSnapInitializing();
 }
 
 int32_t AppMgrClient::RegisterRenderStateObserver(const sptr<IRenderStateObserver> &observer)

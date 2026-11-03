@@ -1045,7 +1045,7 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+    virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
         const std::string& reason = "Abilityms::KillProcess") override;
 
     /**
@@ -1087,7 +1087,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpgradeApp(const std::string &bundleName, const int32_t uid, const std::string &exitMsg,
-        int32_t appIndex = -1) override;
+        int32_t appIndex = 0) override;
 
     virtual sptr<IWantSender> GetWantSender(
         const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t uid = -1) override;
@@ -2149,7 +2149,7 @@ public:
      * @param appIndex app clone index. Currently, only appIndex = 0 is supported.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = -1) override;
+    virtual int32_t LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = 0) override;
 
     /**
      * @brief Cancel game prelaunch and kill the game process.
@@ -3804,7 +3804,7 @@ private:
 
     bool IsAllowAttachOrDetachAppDebug(AppExecFwk::ApplicationInfo &appInfo);
     bool IsAllowLocalDebugOtherApps(bool isDebugFromLocal);
-    ErrCode CheckLocalDebugPermission(bool isDebugApp, bool isDebugFromLocal);
+    ErrCode CheckLocalDebugPermission(bool isDebugApp, bool isDebugFromLocal, int32_t userId);
     ErrCode GetBundleInfoForUserTest(const std::string &bundleName,
         int32_t userId, AppExecFwk::BundleInfo &bundleInfo);
     bool IsExitReasonValid(const ExitReasonCompability &reason);

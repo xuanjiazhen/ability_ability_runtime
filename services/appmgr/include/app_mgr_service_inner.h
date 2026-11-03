@@ -421,7 +421,7 @@ public:
      *
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int32_t KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+    virtual int32_t KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
         const std::string &reason = "KillApplication", int32_t userId = -1);
 
     /**
@@ -433,7 +433,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t ForceKillApplication(const std::string &bundleName, const int userId = -1,
-        int appIndex = -1);
+        int appIndex = 0);
 
     /**
      * KillApplicationWithUserId, force kill the application.
@@ -444,7 +444,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillApplicationWithUserId(const std::string &bundleName, const int userId = -1,
-        const int appIndex = -1);
+        const int appIndex = 0);
 
     /**
      * KillProcessesByAccessTokenId.
@@ -1616,6 +1616,13 @@ public:
     bool IsFinalAppProcessByBundleName(const std::string &bundleName);
 
     /**
+     * Query whether the calling process is doing snapshot initialization.
+     * @return Returns true if the calling process is doing snapshot initialization,
+     *         false otherwise (completed, failed, or not a template process).
+     */
+    bool IsHyperSnapInitializing();
+
+    /**
      * @brief Notify memory size state changed: LOW_MEMORY, MEMORY_RECOVERY, REQUIRE_BIG_MEMORY, NO_REQUIRE_BIG_MEMORY.
      * @param memorySizeState Indicates the memory size state.
      * @return Returns ERR_OK on success, others on failure.
@@ -1895,13 +1902,22 @@ public:
 
     int32_t CheckAppProvisionType(
         const std::string &bundleName, int32_t callerUid, int32_t appCloneIndex, int32_t userId);
+    
+    /**
+     * Async query memmgr whether the process is available for reuse.
+     * If memmgr is unreachable, tolerate and return true (backward compatible).
+     *
+     * @param appRecord Current app running record.
+     * @return true if process is available or memmgr unreachable; false if being killed.
+     */
+    bool CheckProcessAvailable(const std::shared_ptr<AppRunningRecord> &appRecord);
 
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
-        const int appIndex = -1);
+        const int appIndex = 0);
     
     int32_t KillApplicationWithUserIdInner(const std::string &bundleName, const int userId = -1,
-        const int appIndex = -1);
+        const int appIndex = 0);
 
     std::string FaultTypeToString(FaultDataType type);
 

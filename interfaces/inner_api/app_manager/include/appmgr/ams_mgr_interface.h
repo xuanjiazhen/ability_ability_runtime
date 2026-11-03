@@ -144,6 +144,15 @@ public:
         bool isKillPrecedeStart = false) = 0;
 
     /**
+     * CheckProcessAvailable, async query memmgr whether the process is available.
+     * If memmgr is unreachable, tolerate and return true.
+     *
+     * @param pid, the process id to check.
+     * @return true if process is available or memmgr unreachable; false if being killed.
+     */
+    virtual bool CheckProcessAvailable(int32_t pid) { return true; }
+
+    /**
      * Set child and parent relationship
      * @param token child process
      * @param callerToken parent process
@@ -159,7 +168,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int KillProcessWithAccount(const std::string &bundleName, const int accountId,
-        const bool clearPageStack = false, int32_t appIndex = -1) = 0;
+        const bool clearPageStack = false, int32_t appIndex = 0) = 0;
 
     /**
      * KillProcessesInBatch, kill processes in batch, call KillProcessesInBatch() through proxy object;
@@ -187,7 +196,7 @@ public:
      * @param  bundleName, bundle name in Application record.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+    virtual int KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
         const std::string &reason = "KillApplication", int32_t userId = -1) = 0;
 
     /**
@@ -198,7 +207,7 @@ public:
      * @param  appIndex, appIndex.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int ForceKillApplication(const std::string &bundleName, const int userId = -1, const int appIndex = -1) = 0;
+    virtual int ForceKillApplication(const std::string &bundleName, const int userId = -1, const int appIndex = 0) = 0;
 
     /**
      * KillApplicationWithUserId, call KillApplicationWithUserId() through proxy object, kill the application.
@@ -603,6 +612,7 @@ public:
         CLEAR_PROCESS_BY_TOKEN,
         REGISTER_ABILITY_MS_DELEGATE,
         KILL_PROCESSES_BY_PIDS,
+        CHECK_PROCESS_AVAILABLE,
         ATTACH_PID_TO_PARENT,
         IS_MEMORY_SIZE_SUFFICIENT,
         NOTIFY_APP_MGR_RECORD_EXIT_REASON,

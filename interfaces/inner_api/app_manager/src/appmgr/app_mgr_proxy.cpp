@@ -2390,6 +2390,27 @@ bool AppMgrProxy::IsFinalAppProcess()
     return reply.ReadBool();
 }
 
+bool AppMgrProxy::IsHyperSnapInitializing()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return false;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AppMgrInterfaceCode::IS_HYPER_SNAP_INITIALIZING,
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request is failed, error code: %{public}d", ret);
+        return false;
+    }
+
+    return reply.ReadBool();
+}
+
 int32_t AppMgrProxy::RegisterRenderStateObserver(const sptr<IRenderStateObserver> &observer)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -3222,7 +3243,6 @@ int32_t AppMgrProxy::PreloadExtension(const AAFwk::Want &want, int32_t appIndex,
     return reply.ReadInt32();
 }
 
-
 void AppMgrProxy::SetProcessPrepareExit(int32_t pid)
 {
     MessageParcel data;
@@ -3249,7 +3269,7 @@ void AppMgrProxy::SetTerminateTimeOutFlag(const sptr<IRemoteObject> token)
         return;
     }
     PARCEL_UTIL_WRITE_NORET(data, RemoteObject, token.GetRefPtr());
-    PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::SET_PROCESS_PREPARE_EXIT, data, reply, option);
+    PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::SET_TERMINATE_TIMEOUT_FLAG, data, reply, option);
 }
 
 int32_t AppMgrProxy::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
