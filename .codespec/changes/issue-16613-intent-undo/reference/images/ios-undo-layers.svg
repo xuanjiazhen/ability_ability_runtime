@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 600" width="980" height="600" font-family="-apple-system, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">
+  <rect width="980" height="600" fill="#ffffff"/>
+  <text x="24" y="30" font-size="19" font-weight="700" fill="#0f172a">iOS NSUndoManager 架构分层</text>
+  <text x="24" y="52" font-size="12" fill="#64748b">命令模式 + 双栈 + 组 ｜ 核心记录逻辑位于闭源 Foundation，UIKit / SwiftUI 仅通过响应链与环境注入接入</text>
+
+  <!-- Layer 1 -->
+  <rect x="24" y="68" width="624" height="100" rx="8" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="40" y="92" font-size="13.5" font-weight="700" fill="#1d4ed8">① 触发与集成层（UI 侧，可替换）</text>
+  <g font-size="10" fill="#1e3a8a">
+    <rect x="40" y="104" width="185" height="24" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="48" y="120">UIResponder.undoManager（响应链）</text>
+    <rect x="237" y="104" width="185" height="24" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="245" y="120">Shake to Undo（摇一摇）</text>
+    <rect x="434" y="104" width="185" height="24" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="442" y="120">SwiftUI Environment 注入</text>
+    <rect x="40" y="134" width="185" height="24" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="48" y="150">NSTextStorage 编辑提交观察</text>
+    <rect x="237" y="134" width="382" height="24" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="245" y="150">NSUndoManagerCheckpoint / DidOpenUndoGroup 等通知（刷新 UI 状态）</text>
+  </g>
+
+  <!-- Layer 2 -->
+  <rect x="24" y="180" width="624" height="116" rx="8" fill="#f0f9ff" stroke="#bae6fd"/>
+  <text x="40" y="204" font-size="13.5" font-weight="700" fill="#0369a1">② 公开 API 层（注册“逆操作消息”）</text>
+  <g font-size="10.5" fill="#0c4a6e">
+    <rect x="40" y="214" width="290" height="30" rx="4" fill="#ffffff" stroke="#7dd3fc"/>
+    <text x="48" y="227">registerUndoWithTarget:selector:object:</text>
+    <text x="48" y="239" font-size="9.5" fill="#64748b">仅 1 个参数，最古老形态</text>
+    <rect x="342" y="214" width="290" height="30" rx="4" fill="#ffffff" stroke="#f59e0b"/>
+    <text x="350" y="227">prepareWithInvocationTarget:</text>
+    <text x="350" y="239" font-size="9.5" fill="#b45309">任意方法 + 任意参数，靠消息转发截获</text>
+    <rect x="40" y="252" width="290" height="30" rx="4" fill="#ffffff" stroke="#7dd3fc"/>
+    <text x="48" y="265">registerUndo(withTarget:handler:)（iOS 9+）</text>
+    <text x="48" y="277" font-size="9.5" fill="#64748b">Swift 闭包，target 作为参数回传</text>
+    <rect x="342" y="252" width="290" height="30" rx="4" fill="#ffffff" stroke="#7dd3fc"/>
+    <text x="350" y="265">begin / endUndoGrouping · setActionIsDiscardable:</text>
+    <text x="350" y="277" font-size="9.5" fill="#64748b">分组控制与“可丢弃”标记</text>
+  </g>
+
+  <!-- Layer 3 -->
+  <rect x="24" y="308" width="624" height="152" rx="8" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="40" y="332" font-size="13.5" font-weight="700" fill="#047857">③ 核心引擎（Foundation 内，闭源）</text>
+  <g>
+    <rect x="40" y="344" width="178" height="102" rx="6" fill="#ffffff" stroke="#059669"/>
+    <text x="52" y="364" font-size="11.5" font-weight="700" fill="#065f46">undoStack</text>
+    <text x="52" y="384" font-size="10.5" fill="#065f46">组 N（最新）← 栈顶</text>
+    <text x="52" y="402" font-size="10.5" fill="#065f46">组 N-1</text>
+    <text x="52" y="420" font-size="10.5" fill="#64748b">… 组 1（最旧，超限淘汰）</text>
+    <text x="52" y="438" font-size="9.5" fill="#94a3b8">组 = ops[] + actionName</text>
+
+    <rect x="234" y="344" width="178" height="102" rx="6" fill="#ffffff" stroke="#059669"/>
+    <text x="246" y="364" font-size="11.5" font-weight="700" fill="#065f46">redoStack</text>
+    <text x="246" y="384" font-size="10.5" fill="#065f46">初始为空</text>
+    <text x="246" y="402" font-size="10.5" fill="#64748b">仅由 undo 执行期写入</text>
+    <text x="246" y="420" font-size="10.5" fill="#64748b">新操作注册即整体清空</text>
+    <text x="246" y="438" font-size="9.5" fill="#94a3b8">levelsOfUndo 限制栈深</text>
+
+    <rect x="428" y="344" width="204" height="102" rx="6" fill="#ffffff" stroke="#059669"/>
+    <text x="440" y="364" font-size="11.5" font-weight="700" fill="#065f46">状态机</text>
+    <text x="440" y="384" font-size="10.5" fill="#065f46">isUndoing / isRedoing</text>
+    <text x="440" y="402" font-size="10.5" fill="#065f46">isUndoRegistrationEnabled</text>
+    <text x="440" y="420" font-size="10.5" fill="#065f46">groupingLevel（嵌套深度）</text>
+    <text x="440" y="438" font-size="9.5" fill="#94a3b8">决定注册动作落到哪个栈</text>
+  </g>
+
+  <!-- Layer 4 -->
+  <rect x="24" y="476" width="624" height="100" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="40" y="500" font-size="13.5" font-weight="700" fill="#334155">④ 命令回放层（undo() / redo() 时执行）</text>
+  <g font-size="10.5" fill="#334155">
+    <rect x="40" y="512" width="190" height="48" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="48" y="532">重新发送固化消息</text>
+    <text x="48" y="548" font-size="9.5" fill="#64748b">target + selector + args 原样重放</text>
+    <rect x="242" y="512" width="190" height="48" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="250" y="532">执行闭包 handler</text>
+    <text x="250" y="548" font-size="9.5" fill="#64748b">target 作为参数传回</text>
+    <rect x="444" y="512" width="188" height="48" rx="4" fill="#fff7ed" stroke="#fdba74"/>
+    <text x="452" y="532">执行期再次注册</text>
+    <text x="452" y="548" font-size="9.5" fill="#b45309">方向反转，自动落入对侧栈</text>
+  </g>
+
+  <!-- Right panel: invariants -->
+  <rect x="664" y="68" width="292" height="508" rx="8" fill="#fff7ed" stroke="#fed7aa"/>
+  <text x="684" y="94" font-size="13.5" font-weight="700" fill="#c2410c">三条不变式（设计灵魂）</text>
+
+  <text x="684" y="124" font-size="11.5" font-weight="700" fill="#9a3412">① 组是栈的基本单元</text>
+  <text x="684" y="143" font-size="10.5" fill="#7c2d12">哪怕只改一个属性也成组；</text>
+  <text x="684" y="160" font-size="10.5" fill="#7c2d12">组是原子回放单位，不可拆半。</text>
+
+  <text x="684" y="192" font-size="11.5" font-weight="700" fill="#9a3412">② 执行期间的注册写入对侧栈</text>
+  <text x="684" y="211" font-size="10.5" fill="#7c2d12">isUndoing 为真时，注册被路由到</text>
+  <text x="684" y="228" font-size="10.5" fill="#7c2d12">redoStack —— 这是 Redo 的唯一来源。</text>
+
+  <text x="684" y="260" font-size="11.5" font-weight="700" fill="#9a3412">③ 正常注册即清空 redo 栈</text>
+  <text x="684" y="279" font-size="10.5" fill="#7c2d12">新变更使历史分叉失效，与 Git 分支</text>
+  <text x="684" y="296" font-size="10.5" fill="#7c2d12">被覆盖同构；不允许回到“未发生”的状态。</text>
+
+  <line x1="684" y1="318" x2="936" y2="318" stroke="#fed7aa"/>
+  <text x="684" y="342" font-size="11.5" font-weight="700" fill="#9a3412">推论：Redo 是 Undo 的影子</text>
+  <text x="684" y="361" font-size="10.5" fill="#7c2d12">不做双向记录，只依赖注册机制的对称性</text>
+  <text x="684" y="378" font-size="10.5" fill="#7c2d12">→ 一套代码支撑两个方向。</text>
+
+  <text x="684" y="412" font-size="11.5" font-weight="700" fill="#9a3412">代价：可逆性责任外移</text>
+  <text x="684" y="431" font-size="10.5" fill="#7c2d12">框架不解释语义，只记录消息；撤销方法</text>
+  <text x="684" y="448" font-size="10.5" fill="#7c2d12">自身必须再次注册，否则 Redo 静默失效。</text>
+
+  <rect x="684" y="470" width="252" height="86" rx="6" fill="#ffffff" stroke="#fdba74"/>
+  <text x="696" y="490" font-size="10.5" font-weight="700" fill="#c2410c">对 IntentUndo 的启示</text>
+  <text x="696" y="508" font-size="10" fill="#7c2d12">“执行即注册” → 意图成功即入栈</text>
+  <text x="696" y="525" font-size="10" fill="#7c2d12">“事件边界即事务边界” → 意图天然事务</text>
+  <text x="696" y="542" font-size="10" fill="#7c2d12">“注册对称性免 Redo” → onRedo 可委托 execute</text>
+</svg>
