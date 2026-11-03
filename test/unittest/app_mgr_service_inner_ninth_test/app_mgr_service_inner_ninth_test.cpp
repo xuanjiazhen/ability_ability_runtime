@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -634,7 +634,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, HandlePreloadApplication_004, TestSize.Lev
     request.abilityInfo = std::make_shared<AbilityInfo>();
     request.appInfo = std::make_shared<ApplicationInfo>();
     request.bundleInfo.name = "com.test.app";
-    request.bundleInfo.uid = 1000;
+    request.bundleInfo.appuid = 1000;
     request.hapModuleInfo.name = "entry";
     request.hapModuleInfo.bundleName = "com.test.app";
     request.want = std::make_shared<AAFwk::Want>();
@@ -679,7 +679,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, HandlePreloadApplication_005, TestSize.Lev
     request.appInfo = std::make_shared<ApplicationInfo>();
     request.appInfo->name = "com.test.app";
     request.bundleInfo.name = "com.test.app";
-    request.bundleInfo.uid = 1000;
+    request.bundleInfo.appuid = 1000;
     request.hapModuleInfo.name = "entry";
     request.hapModuleInfo.bundleName = "com.test.app";
     request.want = std::make_shared<AAFwk::Want>();
@@ -723,7 +723,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, HandlePreloadApplication_006, TestSize.Lev
     request.appInfo = std::make_shared<ApplicationInfo>();
     request.appInfo->name = "com.test.app";
     request.bundleInfo.name = "com.test.app";
-    request.bundleInfo.uid = 1000;
+    request.bundleInfo.appuid = 1000;
     request.hapModuleInfo.name = "entry";
     request.hapModuleInfo.bundleName = "com.test.app";
     request.want = std::make_shared<AAFwk::Want>();
@@ -2737,5 +2737,48 @@ HWTEST_F(AppMgrServiceInnerNinthTest, CancelDelayedExitTask_0400, TestSize.Level
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
     TAG_LOGI(AAFwkTag::TEST, "CancelDelayedExitTask_0400 end");
 }
+/**
+ * @tc.name: StartProcess_KeepsApplicationIdentityAfterSpawn
+ * @tc.desc: Spawn credentials remain OS uid while the running record keeps appuid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerNinthTest, StartProcess_KeepsApplicationIdentityAfterSpawn, TestSize.Level1)
+{
+    auto service = std::make_shared<AppMgrServiceInner>();
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = "com.test.appuid";
+    appInfo->bundleName = appInfo->name;
+    appInfo->uid = 100;
+    appInfo->appuid = 20012345;
+    BundleInfo bundleInfo;
+    bundleInfo.name = appInfo->bundleName;
+    bundleInfo.uid = appInfo->uid;
+    bundleInfo.appuid = appInfo->appuid;
+    bundleInfo.applicationInfo = *appInfo;
+    auto record = std::make_shared<AppRunningRecord>(appInfo, 1, "appuid_process");
+    record->priorityObject_ = std::make_shared<PriorityObject>();
+    record->mainUid_ = -1;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    auto oldHelper = status.getBundleManagerHelper_;
+    auto oldSpawn = status.getSpawnClient_;
+    auto oldSharedResult = status.getBaseSharedBundleInfos_;
+    auto oldStartResult = status.startProcess_;
+    status.getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    status.getSpawnClient_ = std::make_shared<AppSpawnClient>();
+    status.getBaseSharedBundleInfos_ = ERR_OK;
+    status.startProcess_ = ERR_OK;
+
+    auto result = service->StartProcess(appInfo->name, "appuid_process", 0, record,
+        appInfo->appuid, bundleInfo, bundleInfo.name, 0, true);
+
+    status.getBundleManagerHelper_ = oldHelper;
+    status.getSpawnClient_ = oldSpawn;
+    status.getBaseSharedBundleInfos_ = oldSharedResult;
+    status.startProcess_ = oldStartResult;
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(record->mainUid_, 20012345);
+    EXPECT_EQ(record->GetStartMsg().uid, 100);
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

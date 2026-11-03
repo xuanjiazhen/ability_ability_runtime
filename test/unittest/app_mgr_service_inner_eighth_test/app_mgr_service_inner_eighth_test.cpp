@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -4014,7 +4014,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, TryToUseImageInfo_NotifyAppRunningStatusE
     
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "testBundle";
-    appInfo->uid = 100;
+    appInfo->appuid = 100;
     appInfo->accessTokenId = 1000;
     
     AppMgrServiceInner::MakeImageRequest request {
@@ -4677,7 +4677,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, TryToUseImageInfo_0100, TestSize.Level2)
     abilityInfo->name = "ServiceAbility";
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "com.ix.hiservcie";
-    appInfo->uid = TEST_UID; // uid / BASE_USER_RANGE = 0, matches PreAddImageInfo below
+    appInfo->appuid = TEST_UID; // uid / BASE_USER_RANGE = 0, matches PreAddImageInfo below
     PreloadRequest preloadRequest;
     preloadRequest.abilityName = abilityInfo->name;
     // A debug-app want paired with a release-type ApplicationInfo makes CreateAppRunningRecord
@@ -4727,7 +4727,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, HandleMakeImageFailed_0100, TestSize.Leve
     AAFwk::MyStatus::GetInstance().getCallingUid_ = TEST_UID;
     PreloadRequest preloadRequest;
     preloadRequest.abilityName = abilityInfo->name;
-    preloadRequest.bundleInfo.uid = TEST_UID;
+    preloadRequest.bundleInfo.appuid = TEST_UID;
     sptr<MockImageErrorHandlerStub> errHandler = new MockImageErrorHandlerStub();
     appMgrServiceInner->PreAddImageInfo(appInfo->bundleName, 0, 0, errHandler, preloadRequest);
     EXPECT_CALL(*errHandler, OnError(static_cast<int32_t>(ImageError::ERR_TEMPLATE_DIED))).Times(1);

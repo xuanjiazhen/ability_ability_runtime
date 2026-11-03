@@ -342,7 +342,7 @@ void AbilityConnectManager::ReportEventToRSS(const AppExecFwk::AbilityInfo &abil
     }
 
     std::string reason = ResSchedUtil::GetInstance().GetThawReasonByAbilityType(abilityInfo);
-    const int32_t uid = abilityInfo.applicationInfo.uid;
+    const int32_t uid = abilityInfo.applicationInfo.appuid;
     const std::string bundleName = abilityInfo.applicationInfo.bundleName;
     const int32_t pid = abilityRecord->GetPid();
     auto callerAbility = Token::GetAbilityRecordByToken(callerToken);
@@ -363,7 +363,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     auto connectObject = connect->AsObject();
 #ifdef SUPPORT_UPMS
     // grant uri to service extension by connect, must call out of serialMutex_
-    int32_t callerUser = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t callerUser = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     if (userId_ == U0_USER_ID || callerUser == U0_USER_ID || callerUser == U1_USER_ID ||
         userId_ == AbilityRuntime::UserController::GetInstance().GetCallerUserId()) {
         UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
@@ -811,7 +811,7 @@ void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
             info.appIndex == service.second->GetAppIndex() && info.instanceKey == service.second->GetInstanceKey() &&
             info.pid == service.second->GetPid()) {
             auto appName = service.second->GetApplicationInfo().name;
-            auto uid = service.second->GetAbilityInfo().applicationInfo.uid;
+            auto uid = service.second->GetAbilityInfo().applicationInfo.appuid;
             auto isExist = [&appName, &uid](
                                const AppData &appData) { return appData.appName == appName && appData.uid == uid; };
             auto iter = std::find_if(info.appData.begin(), info.appData.end(), isExist);
@@ -827,7 +827,7 @@ void AbilityConnectManager::OnAppStateChanged(const AppInfo &info)
         if (service && info.bundleName == service->GetApplicationInfo().bundleName &&
             info.appIndex == service->GetAppIndex() && info.instanceKey == service->GetInstanceKey()) {
             auto appName = service->GetApplicationInfo().name;
-            auto uid = service->GetAbilityInfo().applicationInfo.uid;
+            auto uid = service->GetAbilityInfo().applicationInfo.appuid;
             auto isExist = [&appName, &uid](const AppData &appData) {
                 return appData.appName == appName && appData.uid == uid;
             };
@@ -3330,7 +3330,7 @@ int32_t AbilityConnectManager::ReportAbilityStartInfoToRSS(const AppExecFwk::Abi
     int32_t preloadMode = -1;
     bool isSuggestCache = false;
     for (auto const &info : runningProcessInfos) {
-        if (info.uid_ == abilityInfo.applicationInfo.uid) {
+        if (info.uid_ == abilityInfo.applicationInfo.appuid) {
             isColdStart = false;
             pid = info.pid_;
             isSuggestCache = info.isCached;
@@ -3464,7 +3464,7 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
             abilityRequest.appInfo.appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
             bool isMainProcessDebug = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->IsMainProcessDebug(
-                abilityRequest.appInfo.uid));
+                abilityRequest.appInfo.appuid));
             if (isMainProcessDebug) {
                 targetService->SetDebugApp(true);
                 TAG_LOGD(AAFwkTag::EXT, "AGENT extension inherit debug from main process, ability:%{public}s",

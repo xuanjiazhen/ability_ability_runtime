@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -85,7 +85,7 @@ int32_t StartOptionsUtils::CheckProcessOptionsInner(const Want &want, const Star
         element.GetBundleName(), userId, appIndex), ERR_NOT_SELF_APPLICATION, "not self application");
 
     auto uiAbilityManager = DelayedSingleton<AbilityManagerService>::GetInstance()->GetUIAbilityManagerByUid(
-        IPCSkeleton::GetCallingUid());
+        IPCSkeleton::GetCallingAppUid());
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
 
     auto callerPid = IPCSkeleton::GetCallingPid();
@@ -122,7 +122,7 @@ int32_t StartOptionsUtils::CheckStartSelfUIAbilityStartOptions(const Want &want,
     }
 
     auto uiAbilityManager = DelayedSingleton<AbilityManagerService>::GetInstance()->GetUIAbilityManagerByUid(
-        IPCSkeleton::GetCallingUid());
+        IPCSkeleton::GetCallingAppUid());
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
 
     auto callerPid = IPCSkeleton::GetCallingPid();

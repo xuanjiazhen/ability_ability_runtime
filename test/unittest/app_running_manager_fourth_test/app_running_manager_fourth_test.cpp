@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,7 +62,7 @@ void AppRunningManagerFourthTest::SetUpTestCase(void)
 {
     appInfo_ = std::make_shared<ApplicationInfo>();
     appInfo_->bundleName = BUNDLE_NAME;
-    appInfo_->uid = TEST_UID;
+    appInfo_->appuid = TEST_UID;
 }
 
 void AppRunningManagerFourthTest::TearDownTestCase(void)
@@ -751,7 +751,7 @@ HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_ProcessUpdateApplication
     record->appInfos_.insert(std::make_pair("test", appInfo_));
     appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
     appInfo.bundleName = "";
-    appInfo.uid = TEST_UID;
+    appInfo.appuid = TEST_UID;
     ret = appRunningManager_->ProcessUpdateApplicationInfoInstalled(appInfo, MODULE_NAME);
     EXPECT_EQ(ret, ERR_OK);
 
@@ -759,7 +759,7 @@ HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_ProcessUpdateApplication
     record->appInfos_.insert(std::make_pair("test", appInfo_));
     appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
     appInfo.bundleName = BUNDLE_NAME;
-    appInfo.uid = TEST_UID;
+    appInfo.appuid = TEST_UID;
     ret = appRunningManager_->ProcessUpdateApplicationInfoInstalled(appInfo, MODULE_NAME);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -1449,7 +1449,7 @@ HWTEST_F(AppRunningManagerFourthTest, UpdateConfiguration_0100, TestSize.Level1)
     ApplicationInfo appInfo;
     appInfo.name = "KeepAliveApp";
     appInfo.bundleName = "KeepAliveApplication";
-    appInfo.uid = 2100;
+    appInfo.appuid = 2100;
     auto app = std::make_shared<ApplicationInfo>(appInfo);
 
     std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(app, 111, "KeepAliveApplication");
@@ -1491,7 +1491,7 @@ HWTEST_F(AppRunningManagerFourthTest, ExecuteConfigurationTask_0100, TestSize.Le
     ApplicationInfo appInfo;
     appInfo.name = "KeepAliveApp";
     appInfo.bundleName = "KeepAliveApplication";
-    appInfo.uid = 2100;
+    appInfo.appuid = 2100;
     auto app = std::make_shared<ApplicationInfo>(appInfo);
     std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(app, 111, "KeepAliveApplication");
 
@@ -2114,7 +2114,7 @@ HWTEST_F(AppRunningManagerFourthTest, CheckAppRunningRecordForSpecifiedProcess_0
     ApplicationInfo appInfo;
     appInfo.name = "KeepAliveApp";
     appInfo.bundleName = "KeepAliveApplication";
-    appInfo.uid = uid;
+    appInfo.appuid = uid;
     auto app = std::make_shared<ApplicationInfo>(appInfo);
     std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(app, 111, "KeepAliveApplication");
     appRecord->SetInstanceKey(instanceKey);
@@ -2172,7 +2172,7 @@ HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_GetRunningProcessInfoByT
     auto token = GetTestAbilityToken();
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = BUNDLE_NAME;
-    appInfo->uid = TEST_UID;
+    appInfo->appuid = TEST_UID;
     appInfo->accessTokenId = 1000;
     auto recordId = AppRecordId::Create();
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, PROCESS_NAME);
@@ -2212,7 +2212,7 @@ HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_AssignRunningProcessInfo
 
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = BUNDLE_NAME;
-    appInfo->uid = TEST_UID;
+    appInfo->appuid = TEST_UID;
     appInfo->accessTokenId = 1000;
     auto recordId = AppRecordId::Create();
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, PROCESS_NAME);

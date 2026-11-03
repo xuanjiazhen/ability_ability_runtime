@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1193,7 +1193,7 @@ void UIExtensionAbilityManager::UpdateUIExtensionBindInfo(
     wantParams.SetParam(UIEXTENSION_BIND_ABILITY_ID, AAFwk::Integer::Box(uiExtensionBindAbilityId));
     wantParams.SetParam(UIEXTENSION_NOTIFY_BIND, AAFwk::Integer::Box(notifyProcessBind));
     wantParams.SetParam(UIEXTENSION_HOST_PID, AAFwk::Integer::Box(IPCSkeleton::GetCallingPid()));
-    wantParams.SetParam(UIEXTENSION_HOST_UID, AAFwk::Integer::Box(IPCSkeleton::GetCallingUid()));
+    wantParams.SetParam(UIEXTENSION_HOST_UID, AAFwk::Integer::Box(IPCSkeleton::GetCallingAppUid()));
     wantParams.SetParam(UIEXTENSION_HOST_BUNDLENAME, String ::Box(callerBundleName));
     abilityRecord->UpdateUIExtensionBindInfo(wantParams);
 }

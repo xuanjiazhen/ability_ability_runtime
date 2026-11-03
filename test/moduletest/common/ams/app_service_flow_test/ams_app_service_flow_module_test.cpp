@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -123,9 +123,9 @@ TestApplicationPreRunningRecord AmsAppServiceFlowModuleTest::TestCreateApplicati
 
     appInfo->name = appName;
     appInfo->bundleName = appName;  // specify process condition
-    appInfo->uid = 0;
+    appInfo->appuid = 0;
     abilityInfo->name = abilityName;
-    abilityInfo->applicationInfo.uid = 0;
+    abilityInfo->applicationInfo.appuid = 0;
     sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
     outToken = token;
 
@@ -134,7 +134,7 @@ TestApplicationPreRunningRecord AmsAppServiceFlowModuleTest::TestCreateApplicati
     EXPECT_FALSE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, 0));
 
     auto appRecord = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, appName, appInfo->uid, bundleInfo);
+        appInfo->name, appName, appInfo->appuid, bundleInfo);
     if (!appRecord) {
         auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
         loadParam->token = token;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,7 +28,7 @@ int32_t WantUtils::GetCallerBundleName(std::string &callerBundleName)
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, ERR_INVALID_VALUE);
 
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     return IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerBundleName));
 }
 

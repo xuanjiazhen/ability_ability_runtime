@@ -50,7 +50,7 @@ int32_t ModularObjectUtils::CheckRateLimit()
     if (AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
         return ERR_OK;
     }
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     if (RateLimiter::GetInstance().CheckModularObjectLimit(callingUid)) {
         TAG_LOGW(AAFwkTag::EXT, "moe rate limit exceeded, uid:%{public}d", callingUid);
         return ERR_FREQ_START_ABILITY;
@@ -114,13 +114,13 @@ int32_t ModularObjectUtils::CheckPermission(const AbilityRequest &abilityRequest
     if (ret != ERR_OK) {
         return ret;
     }
-    return CheckTargetHasRunningAbility(targetAppInfo.uid, validUserId, bundleName);
+    return CheckTargetHasRunningAbility(targetAppInfo.appuid, validUserId, bundleName);
 }
 
 int32_t ModularObjectUtils::CheckExtensionEnabled(const ModularObjectExtensionInfo &info,
     const AbilityRequest &abilityRequest)
 {
-    if (info.isDisabled && IPCSkeleton::GetCallingUid() != abilityRequest.uid) {
+    if (info.isDisabled && IPCSkeleton::GetCallingAppUid() != abilityRequest.uid) {
         TAG_LOGE(AAFwkTag::EXT, "Extension is disabled: %{public}s/%{public}s. targetUid:%{public}d",
             info.bundleName.c_str(), info.abilityName.c_str(), abilityRequest.uid);
         return ERR_MODULAR_OBJECT_DISABLED;
@@ -133,7 +133,7 @@ int32_t ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode launchMode, i
     if (launchMode != MoeLaunchMode::IN_PROCESS) {
         return ERR_OK;
     }
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     if (callingUid != targetUid) {
         TAG_LOGE(AAFwkTag::EXT, "IN_PROCESS not support cross-app, callerUid: %{public}d, targetUid: %{public}d",
             callingUid, targetUid);
@@ -263,7 +263,7 @@ int32_t ModularObjectUtils::GetTargetExtensionInfoFromDb(const std::string &bund
 
 int32_t ModularObjectUtils::GetCallerAppInfo(AppExecFwk::ApplicationInfo &callerAppInfo)
 {
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
     std::string callerBundleName;

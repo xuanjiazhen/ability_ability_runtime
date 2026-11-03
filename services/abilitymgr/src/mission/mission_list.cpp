@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -461,7 +461,7 @@ void MissionList::GetActiveAbilityList(int32_t uid, std::vector<std::string> &ab
         }
 
         const AppExecFwk::AbilityInfo &abilityInfo = abilityRecord->GetAbilityInfo();
-        if (abilityInfo.applicationInfo.uid == uid && !abilityInfo.name.empty()) {
+        if (abilityInfo.applicationInfo.appuid == uid && !abilityInfo.name.empty()) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "find ability name is %{public}s", abilityInfo.name.c_str());
             abilityList.push_back(abilityInfo.name);
         }

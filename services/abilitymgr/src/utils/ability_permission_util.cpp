@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -416,7 +416,7 @@ bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::strin
         TAG_LOGW(AAFwkTag::ABILITYMGR, "empty name");
         return true;
     }
-    auto userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(userId);
     if (userLockStatus == AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED) {
         return true;

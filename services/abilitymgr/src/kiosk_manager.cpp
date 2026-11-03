@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -196,7 +196,7 @@ int32_t KioskManager::AddKioskApplicationList(const std::vector<std::string> &ap
     if (appList.empty()) {
         return ERR_OK;
     }
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     std::vector<std::string> fullList;
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
@@ -228,7 +228,7 @@ int32_t KioskManager::DeleteKioskApplicationList(const std::vector<std::string> 
     // empty appList => no-op, do not clear the caller's slot
         return ERR_OK;
     }
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     std::vector<std::string> remainList;
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
@@ -294,7 +294,7 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t ki
     }
     std::string bundleName = record->GetAbilityInfo().bundleName;
     int32_t recordUid = record->GetAbilityInfo().uid;
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     bool isSelf = (callingUid == recordUid);
     if (isSelf && IsCallerBackgroundAndScreenLocked(callerToken)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is in background and screen locked");
@@ -369,11 +369,11 @@ int32_t KioskManager::ExitKioskModeInner(const std::string &bundleName, sptr<IRe
         }
         auto permRet = VerifyKioskPermissions();
         if (!isFoundation && permRet == ERR_OK) {
-            if (IPCSkeleton::GetCallingUid() != kioskStatus_.kioskCallerUid_) {
+            if (IPCSkeleton::GetCallingAppUid() != kioskStatus_.kioskCallerUid_) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is not the SA that entered kiosk");
                 return CHECK_PERMISSION_FAILED;
             }
-        } else if (!isFoundation && (kioskStatus_.kioskBundleUid_ != IPCSkeleton::GetCallingUid() ||
+        } else if (!isFoundation && (kioskStatus_.kioskBundleUid_ != IPCSkeleton::GetCallingAppUid() ||
             kioskStatus_.isProxyEnter_)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName %{public}s is not the currently kiosk app", bundleName.c_str());
             return ERR_NOT_IN_KIOSK_MODE;

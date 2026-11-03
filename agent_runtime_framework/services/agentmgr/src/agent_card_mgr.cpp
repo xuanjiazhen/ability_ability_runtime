@@ -255,7 +255,7 @@ int32_t AgentCardMgr::HandlePreInstallBackfill(int32_t userId)
     }
     int32_t installedCount = 0;
     for (const auto &bundleInfo : bundleInfos) {
-        if (!bundleInfo.isPreInstallApp || bundleInfo.uid / BASE_USER_RANGE != userId) {
+        if (!bundleInfo.isPreInstallApp || bundleInfo.appuid / BASE_USER_RANGE != userId) {
             continue;
         }
         int32_t ret = HandleBundleInstall(bundleInfo.name, bundleInfo, userId);
@@ -281,7 +281,7 @@ int32_t AgentCardMgr::GetAllAgentCards(AgentCardsRawData &cards)
 
 int32_t AgentCardMgr::GetAgentCardsByBundleName(const std::string &bundleName, std::vector<AgentCard> &cards)
 {
-    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     std::vector<StoredAgentCardEntry> entries;
     std::lock_guard<std::mutex> lock(cardDataMutex_);
     int32_t ret = AgentCardDbMgr::GetInstance().QueryData(bundleName, userId, entries);
@@ -332,7 +332,7 @@ int32_t AgentCardMgr::RegisterAgentCard(const AgentCard &card)
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
 
-    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     if (AgentCardUtils::ShouldValidateBundleAbility(registerCard, userId)) {
         auto validationRet = AgentCardUtils::ValidateBundleAbility(registerCard.appInfo->bundleName,
             registerCard.appInfo->abilityName, userId);
@@ -381,7 +381,7 @@ int32_t AgentCardMgr::UpdateAgentCard(const AgentCard &card)
         return AAFwk::ERR_INVALID_AGENT_CARD_VERSION;
     }
 
-    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     int32_t validationRet = ERR_OK;
     if (AgentCardUtils::ShouldValidateBundleAbility(card, userId)) {
         validationRet = AgentCardUtils::ValidateBundleAbility(card.appInfo->bundleName,
@@ -444,7 +444,7 @@ int32_t AgentCardMgr::DeleteAgentCard(const std::string &bundleName, const std::
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
 
-    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     std::vector<StoredAgentCardEntry> bundleCards;
     std::lock_guard<std::mutex> lock(cardDataMutex_);
     int32_t ret = AgentCardDbMgr::GetInstance().QueryData(bundleName, userId, bundleCards);

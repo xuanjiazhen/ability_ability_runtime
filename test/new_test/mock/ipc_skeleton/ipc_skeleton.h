@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_IPC_SKELETON_H
 #define OHOS_ABILITY_RUNTIME_IPC_SKELETON_H
 
+#include <sys/types.h>
 #include "refbase.h"
 
 namespace OHOS {
@@ -23,6 +24,11 @@ class IPCSkeleton {
 public:
     IPCSkeleton() = default;
     ~IPCSkeleton() = default;
+
+    static pid_t GetCallingAppUid()
+    {
+        return GetCallingUid();
+    }
 
     static int32_t GetCallingUid()
     {

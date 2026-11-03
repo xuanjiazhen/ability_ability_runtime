@@ -195,7 +195,7 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     nlohmann::json config;
     config["callerTokenId"] = IPCSkeleton::GetCallingFullTokenID();
     config["challenge"] = param.challenge;
-    config["uid"] = IPCSkeleton::GetCallingUid();
+    config["uid"] = IPCSkeleton::GetCallingAppUid();
     config["callerPid"] = IPCSkeleton::GetCallingPid();
     config["gid"] = bundleInfo.gid;
     config["appId"] = bundleInfo.appId;
@@ -215,7 +215,7 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     }
     envConfig["ohos_cli_callerIdentity"] = callerIdentity;
     envConfig["ohos_cli_callerBundleName"] = bundleInfo.name;
-    envConfig["ohos_cli_callerUid"] = std::to_string(IPCSkeleton::GetCallingUid());
+    envConfig["ohos_cli_callerUid"] = std::to_string(IPCSkeleton::GetCallingAppUid());
     envConfig["ohos_cli_callerTokenId"] = std::to_string(IPCSkeleton::GetCallingTokenID());
     config["env"] = envConfig;
     config["nsFlags"] = {"pid"};
@@ -237,7 +237,7 @@ bool ToolUtil::GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::
 
     nlohmann::json config;
     config["callerTokenId"] = IPCSkeleton::GetCallingFullTokenID();
-    config["uid"] = IPCSkeleton::GetCallingUid();
+    config["uid"] = IPCSkeleton::GetCallingAppUid();
     config["callerPid"] = IPCSkeleton::GetCallingPid();
     config["gid"] = bundleInfo.gid;
     config["appIdentifier"] = bundleInfo.signatureInfo.appIdentifier;

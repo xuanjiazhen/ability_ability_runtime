@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -116,7 +116,7 @@ auto MusicServiceInfo = [](std::string bundleName, AbilityInfo& abilityInfo, Ele
     abilityInfo.name = elementTemp.GetAbilityName();
     abilityInfo.bundleName = elementTemp.GetBundleName();
     abilityInfo.applicationInfo.bundleName = elementTemp.GetBundleName();
-    abilityInfo.applicationInfo.uid = APPLICATIONINFO_UID;
+    abilityInfo.applicationInfo.appuid = APPLICATIONINFO_UID;
     abilityInfo.applicationName = "musicService";
     abilityInfo.applicationInfo.name = "musicService";
     abilityInfo.type = AbilityType::SERVICE;
@@ -149,7 +149,7 @@ auto HiAccountInfo = [](std::string bundleName, AbilityInfo& abilityInfo, Elemen
     abilityInfo.name = elementTemp.GetAbilityName();
     abilityInfo.bundleName = elementTemp.GetBundleName();
     abilityInfo.applicationInfo.bundleName = elementTemp.GetBundleName();
-    abilityInfo.applicationInfo.uid = APPLICATIONINFO_UID;
+    abilityInfo.applicationInfo.appuid = APPLICATIONINFO_UID;
     abilityInfo.applicationName = "AccountTest";
     abilityInfo.applicationInfo.name = "AccountTest";
     abilityInfo.type = AbilityType::PAGE;
@@ -203,7 +203,7 @@ auto AccountServiceInfo = [](std::string bundleName, AbilityInfo& abilityInfo, E
     abilityInfo.name = elementTemp.GetAbilityName();
     abilityInfo.bundleName = elementTemp.GetBundleName();
     abilityInfo.applicationInfo.bundleName = elementTemp.GetBundleName();
-    abilityInfo.applicationInfo.uid = APPLICATIONINFO_UID;
+    abilityInfo.applicationInfo.appuid = APPLICATIONINFO_UID;
     abilityInfo.applicationName = "accountService";
     abilityInfo.applicationInfo.name = "accountService";
     abilityInfo.type = AbilityType::SERVICE;

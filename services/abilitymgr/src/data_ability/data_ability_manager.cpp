@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -331,7 +331,7 @@ void DataAbilityManager::OnAppStateChanged(const AppInfo &info)
         if (abilityRecord && info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
             info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
             auto appName = abilityRecord->GetApplicationInfo().name;
-            auto uid = abilityRecord->GetAbilityInfo().applicationInfo.uid;
+            auto uid = abilityRecord->GetAbilityInfo().applicationInfo.appuid;
             auto isExist = [&appName, &uid](
                                const AppData &appData) { return appData.appName == appName && appData.uid == uid; };
             auto iter = std::find_if(info.appData.begin(), info.appData.end(), isExist);
@@ -349,7 +349,7 @@ void DataAbilityManager::OnAppStateChanged(const AppInfo &info)
         if (abilityRecord && info.bundleName == abilityRecord->GetApplicationInfo().bundleName &&
             info.appIndex == abilityRecord->GetAppIndex() && info.instanceKey == abilityRecord->GetInstanceKey()) {
             auto appName = abilityRecord->GetApplicationInfo().name;
-            auto uid = abilityRecord->GetAbilityInfo().applicationInfo.uid;
+            auto uid = abilityRecord->GetAbilityInfo().applicationInfo.appuid;
             auto isExist = [&appName, &uid](
                                const AppData &appData) { return appData.appName == appName && appData.uid == uid; };
             auto iter = std::find_if(info.appData.begin(), info.appData.end(), isExist);
@@ -668,7 +668,7 @@ void DataAbilityManager::ReportDataAbilityAcquired(const sptr<IRemoteObject> &cl
     DataAbilityCaller caller;
     caller.isNotHap = isNotHap;
     caller.callerPid = IPCSkeleton::GetCallingPid();
-    caller.callerUid = IPCSkeleton::GetCallingUid();
+    caller.callerUid = IPCSkeleton::GetCallingAppUid();
     caller.callerToken = client;
     if (client && !isNotHap) {
         auto abilityRecord = Token::GetAbilityRecordByToken(client);
@@ -688,7 +688,7 @@ void DataAbilityManager::ReportDataAbilityReleased(const sptr<IRemoteObject> &cl
     DataAbilityCaller caller;
     caller.isNotHap = isNotHap;
     caller.callerPid = IPCSkeleton::GetCallingPid();
-    caller.callerUid = IPCSkeleton::GetCallingUid();
+    caller.callerUid = IPCSkeleton::GetCallingAppUid();
     caller.callerToken = client;
     DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveDataAbilityConnection(caller, record);
 }

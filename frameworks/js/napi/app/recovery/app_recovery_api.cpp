@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -179,7 +179,7 @@ private:
         exitReason.killMsg = RESTART_REASON;
         exitReason.innerMsg = RESTART_APP_REASON;
         int32_t pid = IPCSkeleton::GetCallingPid();
-        int32_t uid = IPCSkeleton::GetCallingUid();
+        int32_t uid = IPCSkeleton::GetCallingAppUid();
         auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, uid, exitReason);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Record recovery restart result=%{public}d, "
             "pid=%{public}d, uid=%{public}d, killId=%{public}d", result, pid, uid, exitReason.killId);

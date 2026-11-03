@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,17 +47,20 @@ constexpr std::array SUPPORTED_KILL_UIDS{1111, 1096, 1003, 5523, 7345, 7655, 120
 
 inline bool IsSupportSaCallPermission()
 {
-    TAG_LOGD(AAFwkTag::DEFAULT, "call IsSupportSaCallPermission, CallingUid: %{public}d", IPCSkeleton::GetCallingUid());
+    TAG_LOGD(AAFwkTag::DEFAULT, "call IsSupportSaCallPermission, CallingUid: %{public}d",
+        IPCSkeleton::GetCallingAppUid());
     bool hasSaCallPermission =
-        std::find(SUPPORTED_UIDS.begin(), SUPPORTED_UIDS.end(), IPCSkeleton::GetCallingUid()) != SUPPORTED_UIDS.end();
+        std::find(SUPPORTED_UIDS.begin(), SUPPORTED_UIDS.end(),
+            IPCSkeleton::GetCallingAppUid()) != SUPPORTED_UIDS.end();
     return hasSaCallPermission;
 }
 
 inline bool IsSupportSaKillPermission()
 {
-    TAG_LOGD(AAFwkTag::DEFAULT, "call IsSupportSaKillPermission, CallingUid: %{public}d", IPCSkeleton::GetCallingUid());
+    TAG_LOGD(AAFwkTag::DEFAULT, "call IsSupportSaKillPermission, CallingUid: %{public}d",
+        IPCSkeleton::GetCallingAppUid());
     bool hasSaKillPermission =
-        std::find(SUPPORTED_KILL_UIDS.begin(), SUPPORTED_KILL_UIDS.end(), IPCSkeleton::GetCallingUid()) !=
+        std::find(SUPPORTED_KILL_UIDS.begin(), SUPPORTED_KILL_UIDS.end(), IPCSkeleton::GetCallingAppUid()) !=
         SUPPORTED_KILL_UIDS.end();
     return hasSaKillPermission;
 }

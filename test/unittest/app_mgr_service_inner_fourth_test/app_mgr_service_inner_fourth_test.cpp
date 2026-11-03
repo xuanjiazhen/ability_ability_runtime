@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -274,7 +274,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, StartEmptyProcess_0100, TestSize.Level1)
     EXPECT_EQ(appMgrServiceInner->StartEmptyProcess(want, observer, bundleInfo,
         "processName", userId), ERR_OK);
 
-    bundleInfo.applicationInfo.uid = userId;
+    bundleInfo.applicationInfo.appuid = userId;
     appMgrServiceInner->appRunningManager_->appRunningRecordMap_.clear();
     want.SetParam(COLD_START, true);
     EXPECT_EQ(appMgrServiceInner->StartEmptyProcess(want, observer, bundleInfo,

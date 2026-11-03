@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -73,7 +73,7 @@ void ResSchedUtil::ReportForkAllEventToRSS(int32_t imagePid, int32_t orginalPid,
     }
     uint32_t resType = ResourceSchedule::ResType::RES_TYPE_CREATE_LIVING_APP_PROCESS;
     std::unordered_map<std::string, std::string> eventParams {
-        { "uid", std::to_string(abilityInfo->applicationInfo.uid) },
+        { "uid", std::to_string(abilityInfo->applicationInfo.appuid) },
         { "bundleName", abilityInfo->applicationInfo.bundleName },
         { "imagePid", std::to_string(imagePid) },
         { "originalPid", std::to_string(orginalPid) }
@@ -121,7 +121,7 @@ void ResSchedUtil::ReportAbilityStartInfoToRSS(const AbilityInfo &abilityInfo, i
     uint32_t resType = ResourceSchedule::ResType::RES_TYPE_APP_ABILITY_START;
     std::unordered_map<std::string, std::string> eventParams {
         { "name", "ability_start" },
-        { "uid", std::to_string(abilityInfo.applicationInfo.uid) },
+        { "uid", std::to_string(abilityInfo.applicationInfo.appuid) },
         { "bundleName", abilityInfo.applicationInfo.bundleName },
         { "abilityName", abilityInfo.name },
         { "pid", std::to_string(pid) },
@@ -143,7 +143,7 @@ void ResSchedUtil::ReportAbilityAssociatedStartInfoToRSS(
         { "name", "associated_start" },
         { "caller_uid", std::to_string(callerUid) },
         { "caller_pid", std::to_string(callerPid) },
-        { "callee_uid", std::to_string(abilityInfo.applicationInfo.uid) },
+        { "callee_uid", std::to_string(abilityInfo.applicationInfo.appuid) },
         { "callee_bundle_name", abilityInfo.applicationInfo.bundleName }
     };
     int64_t type = convertType(resSchedType);
@@ -158,7 +158,7 @@ void ResSchedUtil::ReportPreloadApplicationToRSS(const std::shared_ptr<AbilityIn
     uint32_t resType = ResourceSchedule::ResType::RES_TYPE_PRELOAD_APPLICATION;
     std::unordered_map<std::string, std::string> eventParams {
         { "name", "preload_application" },
-        { "uid", std::to_string(abilityInfo->applicationInfo.uid) },
+        { "uid", std::to_string(abilityInfo->applicationInfo.appuid) },
         { "bundleName", abilityInfo->applicationInfo.bundleName },
         { "preloadMode", std::to_string(preloadMode) }
     };

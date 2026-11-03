@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -795,7 +795,7 @@ HWTEST_F(DataAbilityManagerTest, AaFwk_DataAbilityManager_OnAppStateChanged_001,
     abilityRecord1->abilityInfo_.process = processName;
     abilityRecord1->abilityInfo_.applicationInfo.bundleName = "";
     abilityRecord1->abilityInfo_.applicationInfo.name = appName;
-    abilityRecord1->abilityInfo_.applicationInfo.uid = uid;
+    abilityRecord1->abilityInfo_.applicationInfo.appuid = uid;
     dataAbilityRecord1->ability_ = abilityRecord1;
     dataAbilityManager->dataAbilityRecordsLoaded_["b"] = dataAbilityRecord1;
     dataAbilityManager->dataAbilityRecordsLoading_["b"] = dataAbilityRecord1;
@@ -804,7 +804,7 @@ HWTEST_F(DataAbilityManagerTest, AaFwk_DataAbilityManager_OnAppStateChanged_001,
     abilityRecord2->abilityInfo_.process = "";
     abilityRecord2->abilityInfo_.applicationInfo.bundleName = processName;
     abilityRecord2->abilityInfo_.applicationInfo.name = "";
-    abilityRecord2->abilityInfo_.applicationInfo.uid = 0;
+    abilityRecord2->abilityInfo_.applicationInfo.appuid = 0;
     dataAbilityRecord2->ability_ = abilityRecord2;
     dataAbilityManager->dataAbilityRecordsLoaded_["c"] = dataAbilityRecord2;
     dataAbilityManager->dataAbilityRecordsLoading_["c"] = dataAbilityRecord2;

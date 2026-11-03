@@ -51,7 +51,7 @@ void ExtensionQueryEventUtil::ReportExtensionQueryMultiResult(
     if (!hasSystem) {
         return;
     }
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     std::string callerBundleName;
     auto bms = AbilityUtil::GetBundleManagerHelper();
     if (bms != nullptr) {
