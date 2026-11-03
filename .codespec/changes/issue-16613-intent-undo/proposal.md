@@ -18,6 +18,8 @@ Intents Kit 意图框架把应用能力以 InsightIntent 注册给系统（小�
 
 需要在意图定义中引入**可撤销（undoable）声明与 cancel/redo 生命周期**，使意图天然携带撤销语义。
 
+为论证设计选择的出处与取舍，本文档配套一份参照实现分析：对 iOS Foundation `NSUndoManager` 的撤销架构做了完整洞察（双栈流转、消息转发截获、机制映射等 4 张图），见 [reference/ios-undomanager-insight.md](reference/ios-undomanager-insight.md)。
+
 ## 用户场景与业务触发
 
 ### US-1: 用户撤销一次小艺触发的业务操作
