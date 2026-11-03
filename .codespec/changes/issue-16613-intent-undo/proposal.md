@@ -16,9 +16,24 @@ Intents Kit 意图框架把应用能力以 InsightIntent 注册给系统（小�
 1. **用户视角**：意图执行产生的是"业务事务"（下单、删除订单、导航规划），用户没有统一入口撤销"刚才那次意图执行"；模型层/UI 层的撤销无法覆盖小艺、卡片等应用外入口。
 2. **框架视角**：意图是黑盒业务操作（网络/数据库/跨页面），框架无法自动推导逆操作；且外部触发时 executor 可能是新实例，内存态凭据不可用。
 
-需要在意图定义中引入**可撤销（undoable）声明与 cancel/redo 生命周期**，使意图天然携带撤销语义。
+需要在意图定义中引入**可撤销（undoable）声明与 undo/redo 生命周期**，使意图天然携带撤销语义。
 
-为论证设计选择的出处与取舍，本文档配套一份参照实现分析：对 iOS Foundation `NSUndoManager` 的撤销架构做了完整洞察（双栈流转、消息转发截获、机制映射等 4 张图），见 [reference/ios-undomanager-insight.md](reference/ios-undomanager-insight.md)。
+### 业界先例：iOS 26 的 `UndoableIntent`
+
+Apple 在 iOS 26 / macOS 26 正式为 App Intents 提供了撤销能力，形态与本提案**部分重合、关键处不同**：
+
+| 维度 | Apple `UndoableIntent` | 本提案 |
+|---|---|---|
+| 声明方式 | 遵守协议（编译期） | `undoable` 字段 + 实现探测（运行期，适配 JSON 配置） |
+| 撤销回调 | **无** `onUndo`/`onRedo`，只在 `perform()` 内 `registerUndo` 注册闭包 | 显式 `onUndo` / `onRedo` 生命周期 |
+| 凭据 | 闭包捕获内存快照 | `(params, executeResult)` 可序列化凭据 |
+| 撤销栈 | 共享 `NSUndoManager`（与 UI 同栈，保证顺序） | 同样共享时间线，但组 payload 可序列化 |
+| 持久化 | 无（内存态，杀进程即丢） | `ToJsonString` 落盘，支持跨会话撤销 |
+| 触发面 | 仅 App 界面手势/菜单 | 小艺 / 卡片 / 跨设备 / 应用内 |
+
+两点结论：①**共享时间线**是 Apple 已验证的正确选择，本提案采纳（见 design §4）；②Apple 的闭包方案受限于"App 活着 + 用户在界面旁"，而意图框架的入口天然在应用外，因此**可序列化凭据 + 显式 `onRedo`** 是本提案的必要差异化，而非重复造轮子。
+
+完整分析见两份参考文档：[reference/ios-undomanager-insight.md](reference/ios-undomanager-insight.md)（引擎层 `NSUndoManager`）与 [reference/ios-undo-system-analysis.md](reference/ios-undo-system-analysis.md)（意图层 `UndoableIntent` + 开发者/执行体验，共 8 张机制图）。
 
 ## 用户场景与业务触发
 
@@ -29,8 +44,8 @@ Intents Kit 意图框架把应用能力以 InsightIntent 注册给系统（小�
 
 ### US-2: 开发者注册可撤销意图
 - **角色**：应用开发者
-- **业务触发**：注册 InsightIntent 时除 `onExecute` 外，实现 `onCancel` / `onRedo`
-- **业务价值**：框架自动保存执行凭据（params + ExecuteResult）并在撤销/重做时回传，开发者零记忆负担；未实现 `onCancel` 的意图自动视为不可撤销
+- **业务触发**：注册 InsightIntent 时除 `onExecute` 外，实现 `onUndo` / `onRedo`
+- **业务价值**：框架自动保存执行凭据（params + ExecuteResult）并在撤销/重做时回传，开发者零记忆负担；未实现 `onUndo` 的意图自动视为不可撤销
 
 ### US-3: 跨会话与跨设备撤销
 - **角色**：终端用户
@@ -41,7 +56,7 @@ Intents Kit 意图框架把应用能力以 InsightIntent 注册给系统（小�
 
 | 判断项 | 结果 | 依据 |
 |--------|------|------|
-| 变更类型 | new-feature | 意图生命周期新增 cancel/redo，新增撤销栈宿主 |
+| 变更类型 | new-feature | 意图生命周期新增 undo/redo，新增撤销栈宿主 |
 | 复杂度 | 标准 | 主仓内多模块联动（abilitymgr 服务 + 框架层执行器 + ETS 基类） |
 | 涉及仓数量 | 1 | ability_ability_runtime（库层过渡方案可独立落地，不依赖系统改动） |
 | 是否涉及 Public/System API | 是 | `@InsightIntentEntry` / `InsightIntentEntryExecutor` 新增可选回调与声明字段 |
@@ -51,10 +66,10 @@ Intents Kit 意图框架把应用能力以 InsightIntent 注册给系统（小�
 ## 目标
 
 1. 意图注册支持 `undoable` 声明（装饰器与配置文件两条路径）。
-2. 执行器基类新增可选生命周期 `onCancel` / `onRedo`，框架在撤销/重做时回传 `(params, executeResult)` 凭据。
-3. 提供应用进程内 `IntentUndoManager`（双栈：undoStack/redoStack），一次意图执行成功自动入组，撤销/重做整组迁移。
+2. 执行器基类新增可选生命周期 `onUndo` / `onRedo`，框架在撤销/重做时回传 `(params, executeResult)` 凭据。
+3. 提供应用进程内 `AppUndoStack`：**与模型层共享同一条撤销时间线**（单一 double-stack，组带 kind 与全局 sequence），一次意图执行成功自动入组，撤销/重做整组迁移。
 4. 撤销动作复用现有意图执行通道（携带历史凭据 + action 字段的意图调用），不新增 IPC 接口。
-5. 意图层撤销组可嵌套模型层细粒度撤销组（应用内撤销按钮 = 细粒度；全局入口 = 业务事务级）。
+5. 意图执行窗口内产生的模型层细粒度组**收编进该意图组**并原子提交（应用内撤销按钮与全局入口共用同一条栈，需要局部撤销时用作用域过滤而非另建栈）。
 
 ## 非目标
 
@@ -75,10 +90,10 @@ Intents Kit 意图框架把应用能力以 InsightIntent 注册给系统（小�
 
 | 标准 | 可观察指标 | 验证方式 |
 |------|-----------|---------|
-| 可撤销意图执行后可撤销 | undo 后业务状态回滚，onCancel 收到原 params + 原 executeResult | demo：删除订单 → 撤销 → 订单恢复 |
-| 不可撤销意图不入栈 | 未实现 onCancel 的意图执行后 canUndo == false | demo：导航意图执行 → 撤销不可用 |
+| 可撤销意图执行后可撤销 | undo 后业务状态回滚，onUndo 收到原 params + 原 executeResult | demo：删除订单 → 撤销 → 订单恢复 |
+| 不可撤销意图不入栈 | 未实现 onUndo 的意图执行后 canUndo == false | demo：导航意图执行 → 撤销不可用 |
 | 撤销后可重做 | redo 后 onRedo 收到同一凭据且执行成功 | demo 全链路 |
-| 凭据可序列化 | IntentUndoGroup 落盘后应用重启仍可撤销 | demo 重启场景 |
+| 凭据可序列化 | UndoGroup 落盘后应用重启仍可撤销 | demo 重启场景 |
 
 ## 影响范围
 
