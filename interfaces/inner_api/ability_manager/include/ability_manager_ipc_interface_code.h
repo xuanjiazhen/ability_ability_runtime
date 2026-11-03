@@ -806,6 +806,12 @@ enum class AbilityManagerInterfaceCode {
 
     // unregister listener that an insight intent is about to be executed
     UNREGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK = 6186,
+
+    // execute intent by agent (third-party agent function call)
+    EXECUTE_INTENT_BY_AGENT = 6187,
+
+    // query whether the given intent id belongs to an insight intent call
+    IS_INSIGHT_INTENT_CALL = 6188,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

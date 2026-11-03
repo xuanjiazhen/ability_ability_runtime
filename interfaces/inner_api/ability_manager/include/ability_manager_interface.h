@@ -2083,6 +2083,41 @@ public:
     }
 
     /**
+     * @brief Execute intent by agent with simplified parameters.
+     *
+     * Third-party agent entry point. Currently delegates to the function-call
+     * execution path; agent-specific authorization is added on top later.
+     *
+     * @param key The callback key for result notification.
+     * @param callerToken The caller token.
+     * @param bundleName The target bundle name.
+     * @param intentName The insight intent name.
+     * @param wantParam The execution arguments.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ExecuteIntentByAgent(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
+    {
+        return 0;
+    }
+
+    /**
+     * @brief Query whether the given intent id belongs to an insight intent call.
+     *
+     * An intent id is allocated by InsightIntentExecuteManager for every insight
+     * intent execution (function/page/entry invocation). This interface tells the
+     * caller whether the intent id maps to a live insight intent execute record.
+     * Only system applications / SA are allowed to query.
+     *
+     * @param intentId The insight intent execute id to query.
+     * @return Returns true if the intent id belongs to an insight intent call.
+     */
+    virtual bool IsInsightIntentCall(uint64_t intentId)
+    {
+        return false;
+    }
+
+    /**
      * @brief Execute UIAbility foreground intent with specified token id.
      * @param want The info of the target ability and custom parameters.
      * @param callerAbilityToken The caller ability token.
