@@ -48,8 +48,10 @@
 #include "napi_remote_object.h"
 #include "open_link_options.h"
 #include "open_link/napi_common_open_link_options.h"
+#include "js_window_animation_utils.h"
 #include "start_options.h"
 #include "tokenid_kit.h"
+#include "wm_animation_common.h"
 #include "ui_ability_servicehost_stub_impl.h"
 #include "ui_service_extension_connection_constants.h"
 #include "uri.h"
@@ -3368,7 +3370,16 @@ napi_value JsAbilityContext::OnShowAbility(napi_env env, NapiCallbackInfo& info)
 #ifdef HIVIEWDFX_RUNTIME_API_METRICS
     HISTOGRAM_BOOLEAN("AbilityKit.UIAbilityContext.showAbility", 1);
 #endif
-    return ChangeAbilityVisibility(env, info, true);
+    std::shared_ptr<Rosen::WindowShowParams> params;
+    if (info.argc > ARGC_ZERO && info.argv[INDEX_ZERO] != nullptr) {
+        napi_value windowShowParamsObj = nullptr;
+        napi_get_named_property(env, info.argv[INDEX_ZERO], "windowShowParams", &windowShowParamsObj);
+        Rosen::WindowShowParams paramsTmp;
+        if (Rosen::ConvertWindowShowParamsFromJsValue(env, windowShowParamsObj, paramsTmp)) {
+            params = std::make_shared<Rosen::WindowShowParams>(paramsTmp);
+        }
+    }
+    return ChangeAbilityVisibility(env, info, true, params);
 }
 
 napi_value JsAbilityContext::OnHideAbility(napi_env env, NapiCallbackInfo& info)
@@ -3376,15 +3387,16 @@ napi_value JsAbilityContext::OnHideAbility(napi_env env, NapiCallbackInfo& info)
 #ifdef HIVIEWDFX_RUNTIME_API_METRICS
     HISTOGRAM_BOOLEAN("AbilityKit.UIAbilityContext.hideAbility", 1);
 #endif
-    return ChangeAbilityVisibility(env, info, false);
+    return ChangeAbilityVisibility(env, info, false, nullptr);
 }
 
-napi_value JsAbilityContext::ChangeAbilityVisibility(napi_env env, NapiCallbackInfo& info, bool isShow)
+napi_value JsAbilityContext::ChangeAbilityVisibility(
+    napi_env env, NapiCallbackInfo& info, bool isShow, const std::shared_ptr<Rosen::WindowShowParams> &params)
 {
     TAG_LOGI(AAFwkTag::CONTEXT, "called, isShow:%{public}d", isShow);
     // use complete only to maintain order
     NapiAsyncTask::CompleteCallback complete =
-        [weak = context_, isShow](napi_env env, NapiAsyncTask& task, int32_t status) {
+        [weak = context_, isShow, params](napi_env env, NapiAsyncTask& task, int32_t status) {
             HandleScope handleScope(env);
             auto context = weak.lock();
             if (!context) {
@@ -3392,7 +3404,7 @@ napi_value JsAbilityContext::ChangeAbilityVisibility(napi_env env, NapiCallbackI
                 task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
                 return;
             }
-            auto innerErrCode = context->ChangeAbilityVisibility(isShow);
+            auto innerErrCode = context->ChangeAbilityVisibility(isShow, params);
             if (innerErrCode == ERR_OK) {
                 task.ResolveWithNoError(env, CreateJsUndefined(env));
             } else {

@@ -73,6 +73,7 @@ ohos_unittest("ability_manager_proxy_test") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "samgr:samgr_proxy",
+    "window_manager:window_animation_utils",
   ]
 
   if (background_task_mgr_continuous_task_enable) {

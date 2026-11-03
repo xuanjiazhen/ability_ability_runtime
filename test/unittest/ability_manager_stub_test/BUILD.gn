@@ -77,6 +77,7 @@ ohos_unittest("ability_manager_stub_test") {
     "napi:ace_napi",
     "samgr:samgr_proxy",
     "selinux_adapter:librestorecon",
+    "window_manager:window_animation_utils",
   ]
 
   if (background_task_mgr_continuous_task_enable) {
