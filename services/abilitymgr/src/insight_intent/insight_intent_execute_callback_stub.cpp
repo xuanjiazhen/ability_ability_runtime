@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,9 +39,9 @@ int32_t InsightIntentExecuteCallbackStub::OnRemoteRequest(
     }
 
     // only foundation is allowed to invoke
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::INTENT, "reject: callingUid=%{public}d, expected foundation uid",
-            IPCSkeleton::GetCallingUid());
+            IPCSkeleton::GetCallingAppUid());
         return CHECK_PERMISSION_FAILED;
     }
 

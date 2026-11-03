@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -99,7 +99,7 @@ const std::shared_ptr<AppRunningRecord> AmsAppRecentListModuleTest::CreateAppRun
     HapModuleInfo hapModuleInfo;
     EXPECT_TRUE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, 0));
     auto appRunningRecord = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, abilityInfo->process, abilityInfo->applicationInfo.uid, bundleInfo);
+        appInfo->name, abilityInfo->process, abilityInfo->applicationInfo.appUid, bundleInfo);
     EXPECT_NE(nullptr, appRunningRecord);
     return appRunningRecord;
 }

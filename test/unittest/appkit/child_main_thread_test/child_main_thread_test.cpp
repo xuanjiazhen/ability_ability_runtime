@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -220,7 +220,7 @@ HWTEST_F(ChildMainThreadTest, HandleLoadJs_0100, TestSize.Level1)
     bundleInfo.hapModuleInfos = hapModuleInfos;
 
     ApplicationInfo applicationInfo;
-    applicationInfo.uid = 2001;
+    applicationInfo.appUid = 2001;
     bundleInfo.applicationInfo = applicationInfo;
     
     thread->bundleInfo_ = std::make_shared<BundleInfo>(bundleInfo);
@@ -254,7 +254,7 @@ HWTEST_F(ChildMainThreadTest, HandleLoadArkTs_0100, TestSize.Level1)
     bundleInfo.hapModuleInfos = hapModuleInfos;
 
     ApplicationInfo applicationInfo;
-    applicationInfo.uid = 2001;
+    applicationInfo.appUid = 2001;
     bundleInfo.applicationInfo = applicationInfo;
     
     thread->bundleInfo_ = std::make_shared<BundleInfo>(bundleInfo);

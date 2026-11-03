@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,9 @@
 
 #define private public
 #include "main_thread.h"
+#include "ability_manager_client.h"
 #undef private
+#include "ability_manager_proxy.h"
 #include "hilog_tag_wrapper.h"
 #include "ability_local_record.h"
 #include "app_launch_data.h"
@@ -34,6 +36,25 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace AppExecFwk {
+namespace {
+class ExitReasonManagerProxy : public AAFwk::AbilityManagerProxy {
+public:
+    ExitReasonManagerProxy() : AAFwk::AbilityManagerProxy(nullptr) {}
+
+    int32_t RecordAppWithReason(int32_t pid, int32_t uid,
+        const AAFwk::ExitReasonCompability &exitReason) override
+    {
+        recordedPid = pid;
+        recordedUid = uid;
+        ++calls;
+        return ERR_OK;
+    }
+
+    int32_t recordedPid = -1;
+    int32_t recordedUid = -1;
+    int32_t calls = 0;
+};
+}
 class MainThreadFristTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -692,5 +713,50 @@ HWTEST_F(MainThreadFristTest, IsFormRenderService_EmptyName_ReturnsFalse_0100, T
 {
     EXPECT_FALSE(IsFormRenderService(""));
 }
+/**
+ * @tc.name: ProcessExit_RecordsApplicationIdentity
+ * @tc.desc: Exit recording uses the process ApplicationInfo appUid instead of the OS uid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadFristTest, ProcessExit_RecordsApplicationIdentity, TestSize.Level1)
+{
+    auto client = AAFwk::AbilityManagerClient::GetInstance();
+    auto original = client->proxy_;
+    auto originalInfo = sharedThread_->applicationInfo_;
+    sptr<ExitReasonManagerProxy> recorder = new ExitReasonManagerProxy();
+    client->proxy_ = recorder;
+    sharedThread_->applicationInfo_ = std::make_shared<ApplicationInfo>();
+    sharedThread_->applicationInfo_->uid = 100;
+    sharedThread_->applicationInfo_->appUid = 20012345;
+    ProcessExitInfo info {};
+    info.pid = 12345;
+    sharedThread_->ProcessExit(info);
+    client->proxy_ = original;
+    sharedThread_->applicationInfo_ = originalInfo;
+    EXPECT_EQ(recorder->calls, 1);
+    EXPECT_EQ(recorder->recordedPid, info.pid);
+    EXPECT_EQ(recorder->recordedUid, 20012345);
+}
+
+/**
+ * @tc.name: ProcessExit_NullApplicationInfoSkipsRecording
+ * @tc.desc: Missing application metadata does not invent an identity or crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadFristTest, ProcessExit_NullApplicationInfoSkipsRecording, TestSize.Level1)
+{
+    auto client = AAFwk::AbilityManagerClient::GetInstance();
+    auto original = client->proxy_;
+    auto originalInfo = sharedThread_->applicationInfo_;
+    sptr<ExitReasonManagerProxy> recorder = new ExitReasonManagerProxy();
+    client->proxy_ = recorder;
+    sharedThread_->applicationInfo_.reset();
+    ProcessExitInfo info {};
+    sharedThread_->ProcessExit(info);
+    client->proxy_ = original;
+    sharedThread_->applicationInfo_ = originalInfo;
+    EXPECT_EQ(recorder->calls, 0);
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

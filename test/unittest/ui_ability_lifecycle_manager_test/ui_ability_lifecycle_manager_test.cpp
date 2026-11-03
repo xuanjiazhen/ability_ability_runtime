@@ -398,7 +398,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_1200, TestSize.Level1)
     auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     abilityRecord->SetPid(1000);
     mgr->sessionAbilityMap_.emplace(sessionInfo->persistentId, abilityRecord);
-    abilityRequest.appInfo.uid = 3000;
+    abilityRequest.appInfo.appUid = 3000;
     AbilityRuntime::StartParamsBySCB params;
     bool isColdStart = false;
     EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, params, isColdStart), ERR_OK);
@@ -3447,7 +3447,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetActiveAbilityList_002, TestSize.Level
     abilityRequest.abilityInfo.name = "testAbility";
     abilityRequest.abilityInfo.moduleName = "testModule";
     abilityRequest.abilityInfo.bundleName = "com.example.unittest";
-    abilityRequest.abilityInfo.applicationInfo.uid = TEST_UID;
+    abilityRequest.abilityInfo.applicationInfo.appUid = TEST_UID;
     auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     abilityRecord->SetOwnerMissionUserId(AbilityRuntime::UserController::GetInstance().GetCallerUserId());
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(1, abilityRecord);
@@ -7645,7 +7645,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MarkStartingFlag_001, TestSize.Level1)
 {
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
-    abilityRequest.appInfo.uid = 100;
+    abilityRequest.appInfo.appUid = 100;
     
     auto record = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     record->pid_ = 123;

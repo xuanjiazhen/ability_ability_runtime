@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -530,7 +530,7 @@ HWTEST_F(AppMgrServiceInnerSixthTest, IsAppRunningByBundleNameAndUserId_006, Tes
     IPCSkeleton::SetCallingUid(FOUNDATION_UID);
     appMgrServiceInner->appRunningManager_ = nullptr;
     appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
-    EXPECT_EQ(IPCSkeleton::GetCallingUid(), FOUNDATION_UID);
+    EXPECT_EQ(IPCSkeleton::GetCallingAppUid(), FOUNDATION_UID);
     result = appMgrServiceInner->IsAppRunningByBundleNameAndUserId("", userId, isRunning);
     EXPECT_NE(result, 0);
 
@@ -716,7 +716,7 @@ HWTEST_F(AppMgrServiceInnerSixthTest, TryToUseImageInfo_ShouldReturnErrOkWhenIma
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = bundleName;
-    appInfo->uid = userId * BASE_USER_RANGE;
+    appInfo->appUid = userId * BASE_USER_RANGE;
     PreloadRequest preloadRequest;
     appMgrServiceInner->PreAddImageInfo(bundleName, userId, appIndex, nullptr, preloadRequest);
     EXPECT_EQ(appMgrServiceInner->TryToUseImageInfo(nullptr, appInfo, nullptr, "callerKey", appIndex, processName,

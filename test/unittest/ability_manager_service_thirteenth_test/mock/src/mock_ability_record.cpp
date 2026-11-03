@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -245,7 +245,7 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
     abilityRecord->collaboratorType_ = abilityRequest.collaboratorType;
     abilityRecord->missionAffinity_ = abilityRequest.want.GetStringParam(PARAM_MISSION_AFFINITY_KEY);
 
-    auto userId = abilityRequest.appInfo.uid / BASE_USER_RANGE;
+    auto userId = abilityRequest.appInfo.appUid / BASE_USER_RANGE;
     if ((userId == 0 ||
         AppUtils::GetInstance().InResidentWhiteList(abilityRequest.abilityInfo.bundleName)) &&
         DelayedSingleton<ResidentProcessManager>::GetInstance()->IsResidentAbility(
@@ -802,7 +802,7 @@ void SystemAbilityCallerRecord::SendResultToSystemAbility(int requestCode,
     Want resultWant = callerSystemAbilityRecord->GetResultWant();
     sptr<IRemoteObject> callerToken = callerSystemAbilityRecord->GetCallerToken();
     if (!schedulerdied) {
-        callerUid = IPCSkeleton::GetCallingUid();
+        callerUid = IPCSkeleton::GetCallingAppUid();
         accessToken = IPCSkeleton::GetCallingTokenID();
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Try to SendResult");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -428,7 +428,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, FreeInstallAbilityFromRemote_001, 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest FreeInstallAbilityFromRemote_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
-    MyStatus::GetInstance().ipcGetCallingUid_ = FOUNDATION_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = FOUNDATION_UID;
     Want want;
     sptr<IRemoteObject> callback = nullptr;
     int retCode = abilityMs_->FreeInstallAbilityFromRemote(want, callback, 0, 0);
@@ -448,7 +448,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, FreeInstallAbilityFromRemote_002, 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest FreeInstallAbilityFromRemote_002 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
-    MyStatus::GetInstance().ipcGetCallingUid_ = DMS_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = DMS_UID;
     abilityMs_->freeInstallManager_ = nullptr;
     Want want;
     sptr<IRemoteObject> callback = nullptr;
@@ -469,7 +469,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, FreeInstallAbilityFromRemote_003, 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest FreeInstallAbilityFromRemote_003 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
-    MyStatus::GetInstance().ipcGetCallingUid_ = DMS_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = DMS_UID;
     Want want;
     sptr<IRemoteObject> callback = nullptr;
     int retCode = abilityMs_->FreeInstallAbilityFromRemote(want, callback, 0, 0);
@@ -3600,7 +3600,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_002, TestSiz
     ASSERT_NE(interceptor, nullptr);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
-    MyStatus::GetInstance().ipcGetCallingUid_ = PENG_LAI_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = PENG_LAI_UID;
     auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
     EXPECT_EQ(result, ERR_OK);
 }
@@ -3631,7 +3631,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_002, TestS
     ASSERT_NE(interceptor, nullptr);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
-    MyStatus::GetInstance().ipcGetCallingUid_ = TASKMGR_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = TASKMGR_UID;
     auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
     EXPECT_EQ(result, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
 }
@@ -3680,7 +3680,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, QueryCallerTokenIdForAnco_001, Tes
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdForAnco_001 start");
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityManagerService, nullptr);
-    MyStatus::GetInstance().ipcGetCallingUid_ = FOUNDATION_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = FOUNDATION_UID;
     int32_t userId = 101;
     std::string asCallerForAncoSessionId = "520";
     uint32_t callerTokenId = 0;
@@ -3699,7 +3699,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, QueryCallerTokenIdForAnco_002, Tes
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdForAnco_002 start");
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityManagerService, nullptr);
-    MyStatus::GetInstance().ipcGetCallingUid_ = BROKER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = BROKER_UID;
     int32_t userId = -1;
     std::string asCallerForAncoSessionId = "5201314";
     uint32_t callerTokenId = 0;
@@ -3995,7 +3995,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitializeAppCloneRequest_001, Tes
     mockStartInfo->abilityInfo.moduleName = "entry";
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
-    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->abilityInfo.applicationInfo.appUid = 1000;
     mockStartInfo->status = ERR_OK;
     StartAbilityContext ctx;
     ctx.startAbilityInfo = mockStartInfo;
@@ -4052,7 +4052,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitializeAppCloneRequest_002, Tes
     mockStartInfo->abilityInfo.moduleName = "entry";
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
-    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->abilityInfo.applicationInfo.appUid = 1000;
     mockStartInfo->status = ERR_OK;
     StartAbilityContext ctx;
     ctx.startAbilityInfo = mockStartInfo;
@@ -4983,7 +4983,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     mockStartInfo->abilityInfo.moduleName = "entry";
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
-    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->abilityInfo.applicationInfo.appUid = 1000;
     mockStartInfo->status = ERR_OK;
 
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
@@ -5014,6 +5014,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
 
     StartAbilityWrapParam param;
+    param.startAbilityCtx.isSandBoxClone = true;
+    param.startAbilityCtx.startAbilityInfo = mockStartInfo;
     param.want = want;
     param.userId = DEFAULT_INVAL_VALUE;
     param.callerToken = callerToken;
@@ -5055,7 +5057,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     mockStartInfo->abilityInfo.moduleName = "entry";
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
-    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->abilityInfo.applicationInfo.appUid = 1000;
     mockStartInfo->status = ERR_OK;
 
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
@@ -5086,6 +5088,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     want.SetParam("isSelector", true);
 
     StartAbilityWrapParam param;
+    param.startAbilityCtx.isSandBoxClone = true;
+    param.startAbilityCtx.startAbilityInfo = mockStartInfo;
     param.want = want;
     param.userId = DEFAULT_INVAL_VALUE;
     param.callerToken = callerToken;
@@ -5128,7 +5132,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     mockStartInfo->abilityInfo.moduleName = "entry";
     mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
     mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
-    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->abilityInfo.applicationInfo.appUid = 1000;
     mockStartInfo->status = ERR_OK;
 
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
@@ -5153,6 +5157,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
 
     StartAbilityWrapParam param;
+    param.startAbilityCtx.isSandBoxClone = true;
+    param.startAbilityCtx.startAbilityInfo = mockStartInfo;
     param.want = want;
     param.userId = DEFAULT_INVAL_VALUE;
     param.callerToken = callerToken;

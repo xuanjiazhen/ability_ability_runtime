@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -85,7 +85,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_0100, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -126,7 +126,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_0200, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -166,7 +166,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_0300, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -207,7 +207,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_0400, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -248,7 +248,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_0500, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -288,7 +288,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_0600, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -329,7 +329,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_0700, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -370,7 +370,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_0800, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -411,7 +411,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_0900, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -452,7 +452,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_1000, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -491,7 +491,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_1100, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -530,7 +530,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_1200, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -569,7 +569,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_1300, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -608,7 +608,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_1400, TestSize.Level1)
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -645,7 +645,7 @@ HWTEST_F(AppMgrServiceDumpIPCTest, AppMgrServiceDumpIPC_1500, TestSize.Level1)
 
     // Not HidumperServiceCall
     IPCSkeleton::SetCallingUid(RANDOM_SERVICE_UID);
-    EXPECT_FALSE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_FALSE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;

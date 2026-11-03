@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #ifndef OHOS_IPC_IPC_SKELETON_H
 #define OHOS_IPC_IPC_SKELETON_H
 
+#include <sys/types.h>
 #include "iremote_object.h"
 
 namespace OHOS {
@@ -26,7 +27,7 @@ public:
 
     static uint32_t GetCallingTokenID();
     static uint32_t GetCallingPid();
-    static uint32_t GetCallingUid();
+    static pid_t GetCallingAppUid();
 
     static void SetCallingTokenId(uint32_t tokenId);
     static void SetCallingPid(uint32_t pId);

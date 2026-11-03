@@ -248,9 +248,9 @@ int32_t AmsMgrScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bo
         TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrScheduler is not ready");
         return ERR_INVALID_VALUE;
     }
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "SetGameSAPrelaunch: not foundation call, uid: %{public}d",
-            IPCSkeleton::GetCallingUid());
+            IPCSkeleton::GetCallingAppUid());
         return ERR_PERMISSION_DENIED;
     }
 
@@ -307,9 +307,9 @@ bool AmsMgrScheduler::CheckProcessAvailable(int32_t pid)
         TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrScheduler is not ready");
         return true;
     }
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "CheckProcessAvailable: not foundation call, uid: %{public}d",
-            IPCSkeleton::GetCallingUid());
+            IPCSkeleton::GetCallingAppUid());
         return true;
     }
     auto appRecord = amsMgrServiceInner_->GetAppRunningRecordByPid(pid);

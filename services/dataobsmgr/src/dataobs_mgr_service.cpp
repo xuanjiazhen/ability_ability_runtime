@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -258,7 +258,7 @@ bool DataObsMgrService::IsCallingPermissionValid(DataObsOption &opt, int32_t use
     
     uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
     uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    int32_t uid  = IPCSkeleton::GetCallingUid();
+    int32_t uid  = IPCSkeleton::GetCallingAppUid();
     bool isValid = true;
     if (acrossUser) {
         isValid = IsSystemApp(tokenId, fullTokenId) || IsDataMgrService(tokenId, uid);
@@ -558,7 +558,7 @@ void DataObsMgrService::SubmitNotifyChangeTask(Uri &uri, int32_t userId, std::st
 
 int32_t DataObsMgrService::NotifyChangeInner(Uri &uri, int32_t userId, DataObsOption opt, bool isExtension)
 {
-    int32_t uid  = IPCSkeleton::GetCallingUid();
+    int32_t uid  = IPCSkeleton::GetCallingAppUid();
     uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
     uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
     int32_t callingUserId = GetCallingUserId(tokenId);

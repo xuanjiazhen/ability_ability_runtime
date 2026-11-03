@@ -23,7 +23,7 @@
 namespace OHOS {
 class IPCSkeleton {
 public:
-    static int32_t GetCallingUid()
+    static pid_t GetCallingAppUid()
     {
         return MockFlag::callingUid;
     }

@@ -46,14 +46,14 @@ void LocalDebugOtherAppsCallTest::SetUp()
 {
     MyStatus::GetInstance().getBoolParameter_ = false;
     MyStatus::GetInstance().isVerifyAccessToken_ = 1; // PERMISSION_DENIED by default
-    MyStatus::GetInstance().ipcGetCallingUid_ = 1; // uid 1 -> non-sandbox user by default
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = 1; // uid 1 -> non-sandbox user by default
 }
 
 void LocalDebugOtherAppsCallTest::TearDown()
 {
     MyStatus::GetInstance().getBoolParameter_ = false;
     MyStatus::GetInstance().isVerifyAccessToken_ = 1; // PERMISSION_DENIED by default
-    MyStatus::GetInstance().ipcGetCallingUid_ = 1; // uid 1 -> non-sandbox user by default
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = 1; // uid 1 -> non-sandbox user by default
 }
 
 constexpr uint32_t SPECIFY_TOKEN_ID = 100;
@@ -121,7 +121,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsLocalDebugOtherAppsCall_0400, TestSize.L
     MyStatus::GetInstance().getBoolParameter_ = false;
     MyStatus::GetInstance().isVerifyAccessToken_ =
         Security::AccessToken::PermissionState::PERMISSION_GRANTED;
-    MyStatus::GetInstance().ipcGetCallingUid_ = SANDBOX_USER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = SANDBOX_USER_UID;
     bool result = PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall(SPECIFY_TOKEN_ID,
         TARGET_USER_ID);
     EXPECT_FALSE(result);
@@ -140,7 +140,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsLocalDebugOtherAppsCall_0500, TestSize.L
     MyStatus::GetInstance().getBoolParameter_ = true;
     MyStatus::GetInstance().isVerifyAccessToken_ =
         Security::AccessToken::PermissionState::PERMISSION_GRANTED;
-    MyStatus::GetInstance().ipcGetCallingUid_ = SANDBOX_USER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = SANDBOX_USER_UID;
     bool result = PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall(SPECIFY_TOKEN_ID, -1);
     EXPECT_TRUE(result);
     TAG_LOGI(AAFwkTag::TEST, "IsLocalDebugOtherAppsCall_0500 end");
@@ -158,7 +158,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsLocalDebugOtherAppsCall_0600, TestSize.L
     MyStatus::GetInstance().getBoolParameter_ = true;
     MyStatus::GetInstance().isVerifyAccessToken_ =
         Security::AccessToken::PermissionState::PERMISSION_GRANTED;
-    MyStatus::GetInstance().ipcGetCallingUid_ = SANDBOX_USER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = SANDBOX_USER_UID;
     bool result = PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall(SPECIFY_TOKEN_ID,
         SAME_USER_ID);
     EXPECT_TRUE(result);
@@ -177,7 +177,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsLocalDebugOtherAppsCall_0700, TestSize.L
     MyStatus::GetInstance().getBoolParameter_ = true;
     MyStatus::GetInstance().isVerifyAccessToken_ =
         Security::AccessToken::PermissionState::PERMISSION_GRANTED;
-    MyStatus::GetInstance().ipcGetCallingUid_ = SANDBOX_USER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = SANDBOX_USER_UID;
     bool result = PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall(SPECIFY_TOKEN_ID,
         TARGET_USER_ID);
     EXPECT_FALSE(result);
@@ -195,7 +195,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsLocalDebugOtherAppsCall_0800, TestSize.L
     TAG_LOGI(AAFwkTag::TEST, "IsLocalDebugOtherAppsCall_0800 start");
     MyStatus::GetInstance().getBoolParameter_ = true;
     MyStatus::GetInstance().isVerifyAccessToken_ = 1; // PERMISSION_DENIED
-    MyStatus::GetInstance().ipcGetCallingUid_ = SANDBOX_USER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = SANDBOX_USER_UID;
     bool result = PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall(SPECIFY_TOKEN_ID,
         SAME_USER_ID);
     EXPECT_FALSE(result);
@@ -261,7 +261,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsCustomSandboxCall_0400, TestSize.Level1)
     MyStatus::GetInstance().getBoolParameter_ = true;
     MyStatus::GetInstance().isVerifyAccessToken_ =
         Security::AccessToken::PermissionState::PERMISSION_GRANTED;
-    MyStatus::GetInstance().ipcGetCallingUid_ = SANDBOX_USER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = SANDBOX_USER_UID;
     bool result = PermissionVerification::GetInstance()->IsCustomSandboxCall(SPECIFY_TOKEN_ID,
         SAME_USER_ID);
     EXPECT_TRUE(result);
@@ -280,7 +280,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsCustomSandboxCall_0500, TestSize.Level1)
     MyStatus::GetInstance().getBoolParameter_ = true;
     MyStatus::GetInstance().isVerifyAccessToken_ =
         Security::AccessToken::PermissionState::PERMISSION_GRANTED;
-    MyStatus::GetInstance().ipcGetCallingUid_ = SANDBOX_USER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = SANDBOX_USER_UID;
     bool result = PermissionVerification::GetInstance()->IsCustomSandboxCall(SPECIFY_TOKEN_ID,
         TARGET_USER_ID);
     EXPECT_FALSE(result);
@@ -295,7 +295,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsCustomSandboxCall_0500, TestSize.Level1)
 HWTEST_F(LocalDebugOtherAppsCallTest, IsCrossUserForSandboxCall_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsCrossUserForSandboxCall_0100 start");
-    MyStatus::GetInstance().ipcGetCallingUid_ = SANDBOX_USER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = SANDBOX_USER_UID;
     bool result = PermissionVerification::GetInstance()->IsCrossUserForSandboxCall(-1);
     EXPECT_FALSE(result);
     TAG_LOGI(AAFwkTag::TEST, "IsCrossUserForSandboxCall_0100 end");
@@ -309,7 +309,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsCrossUserForSandboxCall_0100, TestSize.L
 HWTEST_F(LocalDebugOtherAppsCallTest, IsCrossUserForSandboxCall_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsCrossUserForSandboxCall_0200 start");
-    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = 1;
     bool result = PermissionVerification::GetInstance()->IsCrossUserForSandboxCall(TARGET_USER_ID);
     EXPECT_FALSE(result);
     TAG_LOGI(AAFwkTag::TEST, "IsCrossUserForSandboxCall_0200 end");
@@ -323,7 +323,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsCrossUserForSandboxCall_0200, TestSize.L
 HWTEST_F(LocalDebugOtherAppsCallTest, IsCrossUserForSandboxCall_0300, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsCrossUserForSandboxCall_0300 start");
-    MyStatus::GetInstance().ipcGetCallingUid_ = SANDBOX_USER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = SANDBOX_USER_UID;
     bool result = PermissionVerification::GetInstance()->IsCrossUserForSandboxCall(TARGET_USER_ID);
     EXPECT_TRUE(result);
     TAG_LOGI(AAFwkTag::TEST, "IsCrossUserForSandboxCall_0300 end");
@@ -337,7 +337,7 @@ HWTEST_F(LocalDebugOtherAppsCallTest, IsCrossUserForSandboxCall_0300, TestSize.L
 HWTEST_F(LocalDebugOtherAppsCallTest, IsCrossUserForSandboxCall_0400, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsCrossUserForSandboxCall_0400 start");
-    MyStatus::GetInstance().ipcGetCallingUid_ = SANDBOX_USER_UID;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = SANDBOX_USER_UID;
     bool result = PermissionVerification::GetInstance()->IsCrossUserForSandboxCall(SAME_USER_ID);
     EXPECT_FALSE(result);
     TAG_LOGI(AAFwkTag::TEST, "IsCrossUserForSandboxCall_0400 end");

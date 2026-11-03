@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -755,7 +755,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAppFau
     auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
         TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
     appRecord->GetPriorityObject()->SetPid(1);
-    appRecord->SetUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetUid(IPCSkeleton::GetCallingAppUid());
     appRecord->SetState(ApplicationState::APP_STATE_TERMINATED);
 
     FaultData faultData;
@@ -807,7 +807,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAppFau
     auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
         TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
     appRecord->GetPriorityObject()->SetPid(1);
-    appRecord->SetUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetUid(IPCSkeleton::GetCallingAppUid());
     appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
 
     FaultData faultData;
@@ -837,7 +837,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAppFau
     auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
         TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
     appRecord->GetPriorityObject()->SetPid(1);
-    appRecord->SetUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetUid(IPCSkeleton::GetCallingAppUid());
     appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
 
     FaultData faultData;
@@ -1282,7 +1282,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, KillApplicationByUid_0100, TestSize.Level
     EXPECT_EQ(ret, ERR_OK); //unstart
 
     AppRunningManager appRunningManager;
-    applicationInfo_->uid = uid;
+    applicationInfo_->appUid = uid;
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
     auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();

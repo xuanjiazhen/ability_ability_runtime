@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -100,7 +100,7 @@ HWTEST_F(AppExitReasonHelperTest, RecordAppExitReason_0100, TestSize.Level1)
     auto abilityRecord = std::make_shared<UIAbilityRecord>(want, abilityInfo, applicationInfo, -1);
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->SetPid(IPCSkeleton::GetCallingPid());
-    abilityRecord->abilityInfo_.applicationInfo.uid = IPCSkeleton::GetCallingUid();
+    abilityRecord->abilityInfo_.applicationInfo.appUid = IPCSkeleton::GetCallingAppUid();
     abilityRecord->abilityInfo_.name = "test";
     abilityRecord->abilityInfo_.launchMode = AppExecFwk::LaunchMode::STANDARD;
     abilityRecord->sessionInfo_ = new SessionInfo();
@@ -384,7 +384,7 @@ HWTEST_F(AppExitReasonHelperTest, RecordAppWithReason_0100, TestSize.Level1)
     auto abilityRecord = std::make_shared<UIAbilityRecord>(want, abilityInfo, applicationInfo, -1);
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->SetPid(pid);
-    abilityRecord->abilityInfo_.applicationInfo.uid = uid;
+    abilityRecord->abilityInfo_.applicationInfo.appUid = uid;
     abilityRecord->abilityInfo_.name = "test";
     abilityRecord->abilityInfo_.launchMode = AppExecFwk::LaunchMode::STANDARD;
     abilityRecord->sessionInfo_ = new SessionInfo();
@@ -545,7 +545,7 @@ HWTEST_F(AppExitReasonHelperTest, AddProcessExitReason_0100, TestSize.Level1)
     auto abilityRecord = std::make_shared<UIAbilityRecord>(want, abilityInfo, applicationInfo, -1);
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->SetPid(1);
-    abilityRecord->abilityInfo_.applicationInfo.uid = 1;
+    abilityRecord->abilityInfo_.applicationInfo.appUid = 1;
     abilityRecord->abilityInfo_.name = "test";
     abilityRecord->abilityInfo_.launchMode = AppExecFwk::LaunchMode::STANDARD;
     abilityRecord->sessionInfo_ = new SessionInfo();

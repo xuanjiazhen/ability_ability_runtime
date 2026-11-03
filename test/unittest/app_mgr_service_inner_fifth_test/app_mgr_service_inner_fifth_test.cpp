@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1429,7 +1429,7 @@ HWTEST_F(AppMgrServiceInnerTest, TryToUseImageInfo_ImageInfoNotFound_001, TestSi
     abilityInfo->name = "testAbility";
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "testBundle";
-    appInfo->uid = 0;
+    appInfo->appUid = 0;
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     auto ret = appMgrServiceInner->TryToUseImageInfo(abilityInfo, appInfo, nullptr,
         "callerKey", 0, "process", "instanceKey", "", "", appRecord, false);
@@ -1448,7 +1448,7 @@ HWTEST_F(AppMgrServiceInnerTest, TryToUseImageInfo_ImageInfoNotMatched_001, Test
     abilityInfo->name = "testAbility";
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "testBundle";
-    appInfo->uid = 0;
+    appInfo->appUid = 0;
     AppMgrServiceInner::MakeImageRequest request {
         .bundleName = "testBundle",
         .abilityName = "testAbility",

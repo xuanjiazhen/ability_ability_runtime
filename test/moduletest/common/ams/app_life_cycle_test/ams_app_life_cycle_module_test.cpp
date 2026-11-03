@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -187,7 +187,7 @@ std::shared_ptr<AppRunningRecord> AmsAppLifeCycleModuleTest::StartProcessAndLoad
     EXPECT_TRUE(serviceInner_->GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, 0));
 
     std::shared_ptr<AppRunningRecord> record = serviceInner_->appRunningManager_->CheckAppRunningRecordIsExist(
-        appInfo->name, abilityInfo->process, abilityInfo->applicationInfo.uid, bundleInfo);
+        appInfo->name, abilityInfo->process, abilityInfo->applicationInfo.appUid, bundleInfo);
     if (record == nullptr) {
         EXPECT_TRUE(false);
     } else {
@@ -1504,12 +1504,12 @@ HWTEST_F(AmsAppLifeCycleModuleTest, LoadResidentProcess_001, TestSize.Level1)
     int uid = 2100;
     BundleInfo info;
     info.name = proc;
-    info.uid = uid;
+    info.appUid = uid;
 
     ApplicationInfo appInfo;
     appInfo.name = "KeepAliveApp";
     appInfo.bundleName = "KeepAliveApplication";
-    appInfo.uid = 2100;
+    appInfo.appUid = 2100;
 
     info.applicationInfo = appInfo;
     HapModuleInfo hapModuleInfo;
@@ -1542,7 +1542,7 @@ HWTEST_F(AmsAppLifeCycleModuleTest, LoadResidentProcess_002, TestSize.Level1)
     hapModuleInfo.moduleName = "KeepAliveApplication";
     BundleInfo info;
     info.name = proc;
-    info.uid = uid;
+    info.appUid = uid;
     info.isKeepAlive = true;
     info.appId = "com.ohos.test.helloworld_code123";
     info.hapModuleInfos.push_back(hapModuleInfo);
@@ -1550,7 +1550,7 @@ HWTEST_F(AmsAppLifeCycleModuleTest, LoadResidentProcess_002, TestSize.Level1)
     ApplicationInfo appInfo;
     appInfo.name = appName;
     appInfo.bundleName = proc;
-    appInfo.uid = 2100;
+    appInfo.appUid = 2100;
     info.applicationInfo = appInfo;
 
     int appUid1 = 2101;
@@ -1563,11 +1563,11 @@ HWTEST_F(AmsAppLifeCycleModuleTest, LoadResidentProcess_002, TestSize.Level1)
     ApplicationInfo appInfo1;
     appInfo1.name = appName1;
     appInfo1.bundleName = proc1;
-    appInfo1.uid = appUid1;
+    appInfo1.appUid = appUid1;
 
     BundleInfo info1;
     info1.name = proc1;
-    info1.uid = appUid1;
+    info1.appUid = appUid1;
     info1.isKeepAlive = true;
     info1.appId = "com.ohos.test.helloworld_code123";
     info1.hapModuleInfos.push_back(hapModuleInfo1);
@@ -1607,14 +1607,14 @@ HWTEST_F(AmsAppLifeCycleModuleTest, RestartResidentProcess_001, TestSize.Level1)
     std::vector<BundleInfo> infos;
     BundleInfo info;
     info.name = proc;
-    info.uid = uid;
+    info.appUid = uid;
     info.appId = "com.ohos.test.helloworld_code123";
     info.hapModuleInfos.push_back(hapModuleInfo);
 
     ApplicationInfo appInfo;
     appInfo.name = "KeepAliveApp";
     appInfo.bundleName = "KeepAliveApplication";
-    appInfo.uid = 2100;
+    appInfo.appUid = 2100;
     info.applicationInfo = appInfo;
     infos.push_back(info);
 
@@ -1717,7 +1717,7 @@ HWTEST_F(AmsAppLifeCycleModuleTest, RestartResidentProcess_003, TestSize.Level1)
     std::vector<BundleInfo> infos;
     BundleInfo info;
     info.name = proc;
-    info.uid = uid;
+    info.appUid = uid;
     info.isKeepAlive = true;
     info.appId = "com.ohos.test.helloworld_code123";
     info.hapModuleInfos.push_back(hapModuleInfo);
@@ -1725,7 +1725,7 @@ HWTEST_F(AmsAppLifeCycleModuleTest, RestartResidentProcess_003, TestSize.Level1)
     ApplicationInfo appInfo;
     appInfo.name = "KeepAliveApp";
     appInfo.bundleName = "KeepAliveApplication";
-    appInfo.uid = 2100;
+    appInfo.appUid = 2100;
     info.applicationInfo = appInfo;
     infos.push_back(info);
 

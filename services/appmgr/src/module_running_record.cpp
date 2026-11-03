@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -407,7 +407,7 @@ void ModuleRunningRecord::GetHapModuleInfo(HapModuleInfo &info)
     }
     BundleInfo bundleInfo;
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
-    auto userId = appInfo_->uid / BASE_USER_RANGE;
+    auto userId = appInfo_->appUid / BASE_USER_RANGE;
     TAG_LOGD(AAFwkTag::APPMGR, "userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d", userId,
         appInfo_->bundleName.c_str(), appIndex_);
     int32_t bundleMgrResult;

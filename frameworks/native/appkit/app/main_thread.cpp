@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1636,7 +1636,13 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
             appThread->applicationImpl_->GetState() == ApplicationImpl::APP_STATE_FOREGROUND) {
             foreground = true;
         }
-        auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, getuid(), exitReason);
+        int32_t result = ERR_INVALID_VALUE;
+        if (appThread->applicationInfo_ != nullptr) {
+            result = AbilityManagerClient::GetInstance()->RecordAppWithReason(
+                pid, appThread->applicationInfo_->appUid, exitReason);
+        } else {
+            TAG_LOGE(AAFwkTag::APPKIT, "null applicationInfo, skip exit reason record");
+        }
         TAG_LOGW(AAFwkTag::APPKIT, "Record result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
             "pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d",
             result, pid, processName.c_str(), eventKeyReason.c_str(), foreground);
@@ -1876,7 +1882,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         options.isBundle = (entryHapModuleInfo.compileMode != AppExecFwk::CompileMode::ES_MODULE);
         options.isDebugVersion = bundleInfo.applicationInfo.debug;
         options.arkNativeFilePath = bundleInfo.applicationInfo.arkNativeFilePath;
-        options.uid = bundleInfo.applicationInfo.uid;
+        options.uid = bundleInfo.applicationInfo.appUid;
         options.apiTargetVersion = appInfo.apiTargetVersion;
         options.pkgContextInfoJsonStringMap = pkgContextInfoJsonStringMap;
         options.isStartWithDebug = appLaunchData.GetDebugApp();
@@ -2268,7 +2274,7 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
             ApplicationImpl::APP_STATE_FOREGROUND) ? true : false;
         ProcessExitInfo info = {bundleName, errorObject.name, summary, appRunningId, processName, pid, foreground,
             isUncatchable};
-        ProcessExit(info);
+        appThread->ProcessExit(info);
 
         ErrorObject appExecErrorObj = { errorObject.name, errorObject.message, errorObject.stack};
         napi_env mainEnv = nullptr;
@@ -2312,7 +2318,13 @@ void MainThread::ProcessExit(const ProcessExitInfo& info)
         "%{public}s", info.bundleName.c_str(), info.errorObjectName.c_str(), info.summary.c_str());
     AAFwk::ExitReasonCompability exitReason = { REASON_JS_ERROR, info.errorObjectName };
     exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_ERROR;
-    auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, getuid(), exitReason);
+    int32_t result = ERR_INVALID_VALUE;
+    if (applicationInfo_ != nullptr) {
+        result = AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, applicationInfo_->appUid,
+            exitReason);
+    } else {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationInfo, skip exit reason record");
+    }
 
     TAG_LOGW(AAFwkTag::APPKIT, "Record result=%{public}d, send event [FRAMEWORK,PROCESS_KILL,JS_ERROR],"
         " pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d",
@@ -4785,7 +4797,12 @@ void MainThread::SleepCleanKill()
             exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_HEAP_SLEEP_CLEAN_KILL;
             exitReason.killMsg = "Js_Heap_Sleep_Clean_Kill";
             exitReason.innerMsg = "Js_Heap_Sleep_Clean_Kill";
-            AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, getuid(), exitReason);
+            if (appThread->applicationInfo_ != nullptr) {
+                AbilityManagerClient::GetInstance()->RecordAppWithReason(
+                    pid, appThread->applicationInfo_->appUid, exitReason);
+            } else {
+                TAG_LOGE(AAFwkTag::APPKIT, "null applicationInfo, skip exit reason record");
+            }
             _exit(0);
         }
     };

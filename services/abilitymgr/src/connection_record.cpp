@@ -625,7 +625,7 @@ void ConnectionRecord::SetDirectCallerInfo()
         return;
     }
 
-    directCallerUid_ = static_cast<int32_t>(IPCSkeleton::GetCallingUid());
+    directCallerUid_ = static_cast<int32_t>(IPCSkeleton::GetCallingAppUid());
     directCallerPid_ = static_cast<int32_t>(IPCSkeleton::GetCallingPid());
     directCallerName_ = ConnectionStateManager::GetProcessNameByPid(directCallerPid_);
 

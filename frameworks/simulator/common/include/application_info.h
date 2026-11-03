@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -244,6 +244,7 @@ struct ApplicationInfo {
     bool enabled = false;
     int32_t appIndex = 0;
     int32_t uid = -1;
+    int32_t appUid = -1;
     int32_t maxChildProcess = 0;
     int32_t applicationFlags = static_cast<uint32_t>(ApplicationInfoFlag::FLAG_INSTALLED);
     MultiAppModeData multiAppMode;

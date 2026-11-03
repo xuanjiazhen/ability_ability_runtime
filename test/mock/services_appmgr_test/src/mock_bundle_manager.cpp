@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -210,7 +210,9 @@ bool BundleMgrService::GetBundleInfo(
 {
     int32_t userUid = 10001;
     int32_t userGid = 10001;
+    // The shared fixture also supplies the OS uid used by SetAppInfo when spawning.
     bundleInfo.uid = userUid;
+    bundleInfo.appUid = userUid;
     bundleInfo.gid = userGid;
     int index1 = 101;
     int index2 = 102;
@@ -230,8 +232,9 @@ bool BundleMgrService::GetBundleInfo(
         ApplicationInfo appInfo;
         appInfo.name = "KeepAliveApp";
         appInfo.bundleName = bundleName;
-        appInfo.uid = appUid;
+        appInfo.appUid = appUid;
         bundleInfo.uid = appUid;
+        bundleInfo.appUid = appUid;
         bundleInfo.name = bundleName;
         bundleInfo.applicationInfo = appInfo;
         bundleInfo.hapModuleInfos.push_back(hapModuleInfo);
@@ -242,8 +245,9 @@ bool BundleMgrService::GetBundleInfo(
         ApplicationInfo appInfo;
         appInfo.name = "KeepAliveApp1";
         appInfo.bundleName = bundleName;
-        appInfo.uid = appUid1;
+        appInfo.appUid = appUid1;
         bundleInfo.uid = appUid1;
+        bundleInfo.appUid = appUid1;
         bundleInfo.name = bundleName;
         bundleInfo.applicationInfo = appInfo;
         bundleInfo.hapModuleInfos.push_back(hapModuleInfo);
@@ -281,13 +285,13 @@ void BundleMgrService::PushTestHelloIndexAbility(int index)
     info.applicationName = "helloworld";
     info.applicationInfo.name = "helloworld";
     info.process = "p1";
-    info.applicationInfo.uid = -1;
+    info.applicationInfo.appUid = -1;
     info.deviceId = "deviceId";
     info.visible = true;
 
     BundleInfo bundleInfo;
     bundleInfo.name = COM_OHOS_HELLO + std::to_string(index);
-    bundleInfo.uid = info.applicationInfo.uid;
+    bundleInfo.appUid = info.applicationInfo.appUid;
     bundleInfo.abilityInfos.emplace_back(info);
     bundleInfo.applicationInfo = info.applicationInfo;
     bundleInfos_.emplace_back(bundleInfo);
@@ -302,13 +306,13 @@ void BundleMgrService::PushTestSpecialAbility()
     info.applicationName = "helloworld";
     info.applicationInfo.name = "helloworld";
     info.process = "p1";
-    info.applicationInfo.uid = -1;
+    info.applicationInfo.appUid = -1;
     info.deviceId = "deviceId";
     info.visible = true;
 
     BundleInfo bundleInfo;
     bundleInfo.name = COM_OHOS_SPECIAL;
-    bundleInfo.uid = info.applicationInfo.uid;
+    bundleInfo.appUid = info.applicationInfo.appUid;
     bundleInfo.abilityInfos.emplace_back(info);
     bundleInfo.applicationInfo = info.applicationInfo;
     bundleInfos_.emplace_back(bundleInfo);
@@ -323,13 +327,13 @@ void BundleMgrService::PushTestHelloAbility()
     info.applicationName = "helloworld";
     info.applicationInfo.name = "helloworld";
     info.process = "p1";
-    info.applicationInfo.uid = -1;
+    info.applicationInfo.appUid = -1;
     info.deviceId = "deviceId";
     info.visible = true;
 
     BundleInfo bundleInfo;
     bundleInfo.name = COM_OHOS_HELLO;
-    bundleInfo.uid = info.applicationInfo.uid;
+    bundleInfo.appUid = info.applicationInfo.appUid;
     bundleInfo.abilityInfos.emplace_back(info);
     bundleInfo.applicationInfo = info.applicationInfo;
     bundleInfos_.emplace_back(bundleInfo);
@@ -350,11 +354,11 @@ void BundleMgrService::MakingResidentProcData()
     int appUid = 2100;
     int appUid1 = 2101;
     BundleInfo bundleInfo;
-    bundleInfo.uid = appUid;
+    bundleInfo.appUid = appUid;
     bundleInfo.name = "KeepAliveApplication";
 
     BundleInfo bundleInfo1;
-    bundleInfo1.uid = appUid1;
+    bundleInfo1.appUid = appUid1;
     bundleInfo1.name = "KeepAliveApplication1";
 
     bundleInfos_.emplace_back(bundleInfo);

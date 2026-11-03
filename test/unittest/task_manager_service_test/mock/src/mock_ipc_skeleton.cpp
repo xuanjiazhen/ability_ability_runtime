@@ -21,7 +21,7 @@ pid_t pid_ = 1;
 pid_t tokenId_ = 0;
 uint64_t fullTokenId_ = 0;
 
-pid_t IPCSkeleton::GetCallingUid()
+pid_t IPCSkeleton::GetCallingAppUid()
 {
     return uid_;
 }

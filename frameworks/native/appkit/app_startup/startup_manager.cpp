@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -100,7 +100,7 @@ int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bund
     }
     bundleName_ = bundleInfo.name;
     appIndex_ = bundleInfo.applicationInfo.appIndex;
-    uid_ = bundleInfo.applicationInfo.uid;
+    uid_ = bundleInfo.applicationInfo.appUid;
     moduleStartupConfigInfos_.emplace_back(preloadHapModuleInfo.name, preloadHapModuleInfo.appStartup,
         preloadHapModuleInfo.hapPath, preloadHapModuleInfo.moduleType,
         preloadHapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE);

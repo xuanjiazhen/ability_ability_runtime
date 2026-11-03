@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,7 @@ const char* BUNDLE_INFO_COMPATIBLE_VERSION = "compatibleVersion";
 const char* BUNDLE_INFO_TARGET_VERSION = "targetVersion";
 const char* BUNDLE_INFO_RELEASE_TYPE = "releaseType";
 const char* BUNDLE_INFO_UID = "uid";
+const char* BUNDLE_INFO_APPUID = "appUid";
 const char* BUNDLE_INFO_GID = "gid";
 const char* BUNDLE_INFO_SEINFO = "seInfo";
 const char* BUNDLE_INFO_INSTALL_TIME = "installTime";
@@ -255,6 +256,7 @@ void to_json(nlohmann::json &jsonObject, const BundleInfo &bundleInfo)
         {BUNDLE_INFO_TARGET_VERSION, bundleInfo.targetVersion},
         {BUNDLE_INFO_RELEASE_TYPE, bundleInfo.releaseType},
         {BUNDLE_INFO_UID, bundleInfo.uid},
+        {BUNDLE_INFO_APPUID, bundleInfo.appUid},
         {BUNDLE_INFO_GID, bundleInfo.gid},
         {BUNDLE_INFO_SEINFO, bundleInfo.seInfo},
         {BUNDLE_INFO_INSTALL_TIME, bundleInfo.installTime},
@@ -467,6 +469,14 @@ void from_json(const nlohmann::json &jsonObject, BundleInfo &bundleInfo)
         jsonObjectEnd,
         BUNDLE_INFO_UID,
         bundleInfo.uid,
+        JsonType::NUMBER,
+        false,
+        parseResult,
+        ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<int32_t>(jsonObject,
+        jsonObjectEnd,
+        BUNDLE_INFO_APPUID,
+        bundleInfo.appUid,
         JsonType::NUMBER,
         false,
         parseResult,

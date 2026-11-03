@@ -37,14 +37,14 @@ public:
     void SetUp(void)
     {
         // Default to a cross-process third-party caller (not local, not system).
-        MyStatus::GetInstance().ipcGetCallingUid_ = static_cast<int>(getpid()) + 1;
+        MyStatus::GetInstance().ipcGetCallingAppUid_ = static_cast<int>(getpid()) + 1;
         MyStatus::GetInstance().permPermission_ = 0;
         MyStatus::GetInstance().isSystemAppCall_ = false;
     }
     void TearDown(void)
     {
         // Restore the mock defaults so other test cases are not affected.
-        MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+        MyStatus::GetInstance().ipcGetCallingAppUid_ = 1;
         MyStatus::GetInstance().permPermission_ = 1;
         MyStatus::GetInstance().isSystemAppCall_ = true;
     }
@@ -127,7 +127,7 @@ HWTEST_F(AMSWantParamFilterTest, AMSWantParamFilter_SystemApp_KeepsParam, Functi
  */
 HWTEST_F(AMSWantParamFilterTest, AMSWantParamFilter_LocalDeserialization_KeepsParam, Function | MediumTest | Level1)
 {
-    MyStatus::GetInstance().ipcGetCallingUid_ = static_cast<int>(getpid());
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = static_cast<int>(getpid());
     WantParams params;
     params.SetParam(AppExecFwk::SKILL_EXECUTE_PARAM_SKILL_NAME, String::Box("forged"));
     AMSWantParamFilter::GetInstance()->OnDeserialized(params);

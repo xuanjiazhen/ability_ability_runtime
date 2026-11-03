@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -72,7 +72,7 @@ int BundleMgrStub::OnRemoteRequest(uint32_t code, MessageParcel& data, MessagePa
 bool BundleMgrService::GetBundleInfo(
     const std::string& bundleName, const BundleFlag flag, BundleInfo& bundleInfo, int32_t userId)
 {
-    bundleInfo.uid = 0;
+    bundleInfo.appUid = 0;
     return true;
 }
 
@@ -140,7 +140,7 @@ bool BundleMgrService::GetApplicationInfo(
 {
     appInfo.name = appName;
     appInfo.bundleName = appName;
-    appInfo.uid = userId * BASE_USER_RANGE;
+    appInfo.appUid = userId * BASE_USER_RANGE;
     return true;
 }
 

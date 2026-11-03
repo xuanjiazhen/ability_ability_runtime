@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@ BundleMgrHelper::~BundleMgrHelper() {}
 bool BundleMgrHelper::QueryAbilityInfo(const Want& want, int32_t flags, int32_t userId, AbilityInfo& abilityInfo)
 {
     ApplicationInfo applicationInfo;
-    applicationInfo.uid = USER_ID;
+    applicationInfo.appUid = USER_ID;
     abilityInfo.applicationInfo = applicationInfo;
     return !!(AAFwk::MyFlag::flag1_);
 }

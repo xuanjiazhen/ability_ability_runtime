@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,7 +39,7 @@ public:
     bool getHapModuleInfo_ = false;
     ErrCode getSandboxHapModuleInfo_ = ERR_OK;
     bool isLogoutUser_ = false;
-    pid_t getCallingUid_ = 0;
+    pid_t getCallingAppUid_ = 0;
     pid_t getCallingTokenID_ = 0;
     ErrCode processUpdate_ = ERR_OK;
     bool verifyCallingPermission_ = false;
@@ -225,7 +225,7 @@ public:
     bool notifyStartResidentProcessCalled_ = false;
     bool notifyStartKeepAliveProcessCalled_ = false;
     bool recordAppExitSignalReasonCall_ = false;
-    int getCallingUidCalledTimes_ = 0;
+    int getCallingAppUidCalledTimes_ = 0;
     int getAppRunningRecordMapCall_ = 0;
     bool setKeepAliveEnableStateCalled_ = false;
     bool setKeepAliveDkvCalled_ = false;
@@ -293,7 +293,7 @@ public:
         notifyStartResidentProcessCalled_ = false;
         notifyStartKeepAliveProcessCalled_ = false;
         recordAppExitSignalReasonCall_ = false;
-        getCallingUidCalledTimes_ = 0;
+        getCallingAppUidCalledTimes_ = 0;
         getAppRunningRecordMapCall_ = 0;
         setKeepAliveEnableStateCalled_ = false;
         setKeepAliveDkvCalled_ = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -166,14 +166,14 @@ std::string SAInterceptorManager::GenerateSAInterceptorParams(const AAFwk::Want 
         jsonObj["callerModuleName"] = "";
         jsonObj["callerAbilityName"] = "";
     }
-    jsonObj["callerUid"] = IPCSkeleton::GetCallingUid();
+    jsonObj["callerUid"] = IPCSkeleton::GetCallingAppUid();
     jsonObj["callerAppState"] = abilityRecord ? static_cast<int32_t>(abilityRecord->GetAppState()) : 0;
-    jsonObj["callerUserId"] = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    jsonObj["callerUserId"] = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
 
     jsonObj["targetBundleName"] = abilityInfo.bundleName;
     jsonObj["targetModuleName"] = abilityInfo.moduleName;
     jsonObj["targetAbilityName"] = abilityInfo.name;
-    jsonObj["targetUid"] = abilityInfo.applicationInfo.uid;
+    jsonObj["targetUid"] = abilityInfo.applicationInfo.appUid;
     jsonObj["targetAbilityType"] = abilityInfo.type;
     jsonObj["targetAppIndex"] = abilityInfo.appIndex;
     jsonObj["targetExtensionAbilityType"] = abilityInfo.extensionAbilityType;

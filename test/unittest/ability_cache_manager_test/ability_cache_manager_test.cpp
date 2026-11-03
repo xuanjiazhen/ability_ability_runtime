@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1097,7 +1097,7 @@ HWTEST_F(AbilityCacheManagerTest, AbilityCacheManagerSignRestartAppFlag_001, Tes
     int recId = abilityRecord_->GetRecordId();
     std::shared_ptr<BaseExtensionRecord> rec = OHOS::AAFwk::AbilityCacheManager::GetInstance().Put(abilityRecord_);
     EXPECT_EQ(rec, nullptr);
-    OHOS::AAFwk::AbilityCacheManager::GetInstance().SignRestartAppFlag(applicationInfo.uid, "");
+    OHOS::AAFwk::AbilityCacheManager::GetInstance().SignRestartAppFlag(applicationInfo.appUid, "");
     AbilityRequest abilityRequest;
     abilityRequest.abilityInfo = abilityInfo;
     abilityRequest.appInfo = applicationInfo;
@@ -1445,7 +1445,7 @@ HWTEST_F(AbilityCacheManagerTest, SignRestartAppFlag_001, TestSize.Level2)
     abilityInfo.moduleName = "TestModule";
     abilityInfo.bundleName = "TestBundle";
     AppExecFwk::ApplicationInfo appInfo;
-    appInfo.uid = 1000;
+    appInfo.appUid = 1000;
     Want want;
     auto rec = std::make_shared<BaseExtensionRecord>(want, abilityInfo, appInfo);
     rec->Init(AbilityRequest());

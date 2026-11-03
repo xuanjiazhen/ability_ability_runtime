@@ -111,7 +111,7 @@ constexpr int32_t BASE_USER_RANGE = 200000; // uid range per user, same as appmg
 
 int32_t GetCallingUserId()
 {
-    return static_cast<int32_t>(IPCSkeleton::GetCallingUid()) / BASE_USER_RANGE;
+    return static_cast<int32_t>(IPCSkeleton::GetCallingAppUid()) / BASE_USER_RANGE;
 }
 } // namespace
 
@@ -639,7 +639,7 @@ int32_t CliToolManagerService::GetToolInfoByName(const std::string &name, ToolIn
 
 int32_t CliToolManagerService::ValidateFoundationCaller(const char *apiName)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingUid = IPCSkeleton::GetCallingAppUid();
     auto callerToken = IPCSkeleton::GetCallingTokenID();
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
     if (callingUid != FOUNDATION_UID ||
@@ -1437,7 +1437,7 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
             actualParam.options.toolCallId.c_str(), actualParam.options.dmSessionId.c_str());
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
         ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ERR_NO_INIT));
         return ERR_NO_INIT;
@@ -1495,7 +1495,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
             param.execCmdOptions.toolCallId.c_str(), param.execCmdOptions.dmSessionId.c_str());
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
         return ERR_NO_INIT;
     }
@@ -1944,7 +1944,7 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
 {
     auto record = std::make_shared<SessionRecord>();
     record->callerPid = IPCSkeleton::GetCallingPid();
-    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->callerUid = IPCSkeleton::GetCallingAppUid();
     auto tokenId = static_cast<AccessToken::AccessTokenID>(IPCSkeleton::GetCallingTokenID());
     AppExecFwk::BundleInfo bundleInfo;
     if (ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
@@ -2038,7 +2038,7 @@ int32_t CliToolManagerService::SubscribeSessionInternal(const std::string &sessi
         return ERR_CLI_SESSION_NOT_FOUND;
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
         return ERR_NO_INIT;
     }
@@ -2070,7 +2070,7 @@ int32_t CliToolManagerService::UnsubscribeSession(const std::string &sessionId, 
     }
 
     if (!EventDispatcher::GetInstance().UnregisterSubscriber(
-        sessionId, subscriptionId, IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid())) {
+        sessionId, subscriptionId, IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingAppUid())) {
         return ERR_NO_INIT;
     }
     return ERR_OK;
@@ -2134,7 +2134,7 @@ int32_t CliToolManagerService::SendMessage(const std::string &sessionId,
     }
 
     int32_t callerPid = IPCSkeleton::GetCallingPid();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
         return ERR_NO_INIT;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -275,7 +275,7 @@ auto HiAccountInfo = [](std::string bundleName, AbilityInfo& abilityInfo, Elemen
     abilityInfo.name = elementTemp.GetAbilityName();
     abilityInfo.bundleName = elementTemp.GetBundleName();
     abilityInfo.applicationInfo.bundleName = elementTemp.GetBundleName();
-    abilityInfo.applicationInfo.uid = MOCK_MAIN_UID;
+    abilityInfo.applicationInfo.appUid = MOCK_MAIN_UID;
     abilityInfo.applicationName = "AccountTest";
     abilityInfo.applicationInfo.name = "AccountTest";
     abilityInfo.type = AbilityType::PAGE;
@@ -287,7 +287,7 @@ auto HiAccountServiceInfo = [](std::string bundleName, AbilityInfo& abilityInfo,
     abilityInfo.name = elementTemp.GetAbilityName();
     abilityInfo.bundleName = elementTemp.GetBundleName();
     abilityInfo.applicationInfo.bundleName = elementTemp.GetBundleName();
-    abilityInfo.applicationInfo.uid = MOCK_MAIN_UID;
+    abilityInfo.applicationInfo.appUid = MOCK_MAIN_UID;
     abilityInfo.applicationName = "AccountServiceTest";
     abilityInfo.applicationInfo.name = "AccountServiceTest";
     abilityInfo.type = AbilityType::SERVICE;

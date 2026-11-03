@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1058,9 +1058,9 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveEnableState_001, TestSize.Leve
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingUidCalledTimes_, 0);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingAppUidCalledTimes_, 0);
     appMgrServiceInner->SetKeepAliveEnableState("not_empty", true, 0);
-    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingUidCalledTimes_, 1);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingAppUidCalledTimes_, 1);
     TAG_LOGI(AAFwkTag::TEST, "SetKeepAliveEnableState_001 end");
 }
 
@@ -1076,7 +1076,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveEnableState_002, TestSize.Leve
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
     appMgrServiceInner->SetKeepAliveEnableState("not_empty", true, 0);
-    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingUidCalledTimes_, 0);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingAppUidCalledTimes_, 0);
     TAG_LOGI(AAFwkTag::TEST, "SetKeepAliveEnableState_002 end");
 }
 
@@ -1092,7 +1092,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveEnableState_003, TestSize.Leve
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
     appMgrServiceInner->SetKeepAliveEnableState("", true, 0); //empty bundleName
-    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingUidCalledTimes_, 0);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingAppUidCalledTimes_, 0);
     TAG_LOGI(AAFwkTag::TEST, "SetKeepAliveEnableState_003 end");
 }
 
@@ -1107,7 +1107,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveEnableState_004, TestSize.Leve
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppRunningRecordMapCall_, 0);
     appMgrServiceInner->SetKeepAliveEnableState("not_empty", true, 0);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppRunningRecordMapCall_, 1);
@@ -1125,7 +1125,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveEnableState_005, TestSize.Leve
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID + 1;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID + 1;
     appMgrServiceInner->SetKeepAliveEnableState("not_empty", true, 0);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppRunningRecordMapCall_, 0);
     TAG_LOGI(AAFwkTag::TEST, "SetKeepAliveEnableState_005 end");
@@ -1142,7 +1142,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveEnableState_006, TestSize.Leve
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     auto applicationInfo = std::make_shared<ApplicationInfo>();
     applicationInfo->name = "test.bundle.name";
     applicationInfo->bundleName = "test.bundle.name";
@@ -1168,7 +1168,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveEnableState_007, TestSize.Leve
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     auto applicationInfo = std::make_shared<ApplicationInfo>();
     applicationInfo->name = "test.bundle.name";
     applicationInfo->bundleName = "test.bundle.name";
@@ -1194,9 +1194,9 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveDkv_001, TestSize.Level2)
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingUidCalledTimes_, 0);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingAppUidCalledTimes_, 0);
     appMgrServiceInner->SetKeepAliveDkv("not_empty", true, 0);
-    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingUidCalledTimes_, 1);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingAppUidCalledTimes_, 1);
     TAG_LOGI(AAFwkTag::TEST, "SetKeepAliveDkv_001 end");
 }
 
@@ -1212,7 +1212,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveDkv_002, TestSize.Level2)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
     appMgrServiceInner->SetKeepAliveDkv("not_empty", true, 0);
-    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingUidCalledTimes_, 0);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingAppUidCalledTimes_, 0);
     TAG_LOGI(AAFwkTag::TEST, "SetKeepAliveDkv_002 end");
 }
 
@@ -1228,7 +1228,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveDkv_003, TestSize.Level2)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
     appMgrServiceInner->SetKeepAliveDkv("", true, 0); //empty bundleName
-    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingUidCalledTimes_, 0);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().getCallingAppUidCalledTimes_, 0);
     TAG_LOGI(AAFwkTag::TEST, "SetKeepAliveDkv_003 end");
 }
 
@@ -1243,7 +1243,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveDkv_004, TestSize.Level2)
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppRunningRecordMapCall_, 0);
     appMgrServiceInner->SetKeepAliveDkv("not_empty", true, 0);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppRunningRecordMapCall_, 1);
@@ -1261,7 +1261,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveDkv_005, TestSize.Level2)
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID + 1;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID + 1;
     appMgrServiceInner->SetKeepAliveDkv("not_empty", true, 0);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppRunningRecordMapCall_, 0);
     TAG_LOGI(AAFwkTag::TEST, "SetKeepAliveDkv_005 end");
@@ -1278,7 +1278,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveDkv_006, TestSize.Level2)
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     auto applicationInfo = std::make_shared<ApplicationInfo>();
     applicationInfo->name = "test.bundle.name";
     applicationInfo->bundleName = "test.bundle.name";
@@ -1304,7 +1304,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveDkv_007, TestSize.Level2)
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     auto applicationInfo = std::make_shared<ApplicationInfo>();
     applicationInfo->name = "test.bundle.name";
     applicationInfo->bundleName = "test.bundle.name";
@@ -1330,7 +1330,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetKeepAliveDkv_008, TestSize.Level2)
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = FOUNDATION_UID;
     auto applicationInfo = std::make_shared<ApplicationInfo>();
     applicationInfo->name = "test.bundle.name";
     applicationInfo->bundleName = "test.bundle.name";

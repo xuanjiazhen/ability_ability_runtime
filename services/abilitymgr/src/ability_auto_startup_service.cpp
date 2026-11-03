@@ -468,7 +468,7 @@ std::string AbilityAutoStartupService::GetSelfApplicationBundleName()
     }
 
     std::string bundleName;
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     if (IN_PROCESS_CALL(bundleMgrClient->GetNameForUid(callerUid, bundleName)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "get bundleName fail");
         return "";
@@ -489,7 +489,7 @@ int32_t AbilityAutoStartupService::GetValidUserId(int32_t userId)
     int32_t validUserId = userId;
 
     if (userId == -1) {
-        validUserId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+        validUserId = IPCSkeleton::GetCallingAppUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
     if (validUserId == U0_USER_ID || validUserId == U1_USER_ID) {
         validUserId = UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
@@ -550,8 +550,8 @@ bool AbilityAutoStartupService::GetAbilityData(const AutoStartupInfo &info, Auto
     }
     auto accessTokenIdStr = bundleInfo.applicationInfo.accessTokenId;
     abilityData.accessTokenId = std::to_string(accessTokenIdStr);
-    abilityData.setterUserId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
-    abilityData.userId = bundleInfo.applicationInfo.uid / AppExecFwk::Constants::BASE_USER_RANGE;
+    abilityData.setterUserId = IPCSkeleton::GetCallingAppUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+    abilityData.userId = bundleInfo.applicationInfo.appUid / AppExecFwk::Constants::BASE_USER_RANGE;
     abilityData.hasStatusBarExtension = MainElementUtils::CheckStatusBarAbility(bundleInfo);
     for (const auto& hapModuleInfo : bundleInfo.hapModuleInfos) {
         for (const auto& abilityInfo : hapModuleInfo.abilityInfos) {
@@ -877,7 +877,7 @@ std::function<void()> AbilityAutoStartupService::CreateHiddenStartCheckTask(
     std::shared_ptr<AbilityRecord> abilityRecord)
 {
     std::weak_ptr<AAFwk::AbilityRecord> abilityRecordWeak = abilityRecord;
-    auto userId = abilityRecord->GetApplicationInfo().uid / BASE_USER_RANGE;
+    auto userId = abilityRecord->GetApplicationInfo().appUid / BASE_USER_RANGE;
     return [abilityRecordWeak, userId]() {
         auto abilityRecord = abilityRecordWeak.lock();
         if (!abilityRecord) {
@@ -894,7 +894,7 @@ std::function<void()> AbilityAutoStartupService::CreateHiddenStartCheckTask(
             applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
         bool isStatusBarCreated =
             DelayedSingleton<AbilityManagerService>::GetInstance()->IsInStatusBar(applicationInfo.accessTokenId,
-            applicationInfo.uid, isMultiInstance);
+            applicationInfo.appUid, isMultiInstance);
         if (isStatusBarCreated) {
             TAG_LOGI(AAFwkTag::AUTO_STARTUP, "status bar is created");
             return;
@@ -903,7 +903,7 @@ std::function<void()> AbilityAutoStartupService::CreateHiddenStartCheckTask(
 
         ExitReasonCompability exitReasonCompability(
             HiviewDFX::ProcessKillReason::KillEventId::REASON_NOT_ATTACHED_TO_STATUS_BAR);
-        DelayedSingleton<AbilityManagerService>::GetInstance()->RecordAppWithReason(pid, applicationInfo.uid,
+        DelayedSingleton<AbilityManagerService>::GetInstance()->RecordAppWithReason(pid, applicationInfo.appUid,
             exitReasonCompability);
 
         std::vector<pid_t> pids = { pid };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -65,7 +65,7 @@ static void ReportRestoreAbilityStateResult(const std::shared_ptr<AbilityInfo> &
         return;
     }
     auto report = std::make_shared<AAFwk::HisyseventReport>(6);
-    report->InsertParam("APP_UID", static_cast<int32_t>(abilityInfo->applicationInfo.uid));
+    report->InsertParam("APP_UID", static_cast<int32_t>(abilityInfo->applicationInfo.appUid));
     report->InsertParam("VERSION_CODE", std::to_string(abilityInfo->applicationInfo.versionCode));
     report->InsertParam("VERSION_NAME", abilityInfo->applicationInfo.versionName);
     report->InsertParam("BUNDLE_NAME", abilityInfo->bundleName);

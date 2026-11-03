@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -87,7 +87,7 @@ bool ImplicitStartProcessor::IsImplicitStartAction(const Want &want)
     auto element = want.GetElement();
     if (!element.GetAbilityName().empty()) {
         if (element.GetBundleName().empty()) {
-            int32_t callingUid = IPCSkeleton::GetCallingUid();
+            int32_t callingUid = IPCSkeleton::GetCallingAppUid();
             TAG_LOGI(AAFwkTag::ABILITYMGR, "ImplicitStart with no bundleName, %{public}s, callingUid:%{public}d",
                 element.GetAbilityName().c_str(), callingUid);
             std::string callerBundleName;
@@ -153,7 +153,7 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "implicit start ability by type: %{public}d", request.callType);
-    bool isNfcCalling = (IPCSkeleton::GetCallingUid() == NFC_CALLER_UID);
+    bool isNfcCalling = (IPCSkeleton::GetCallingAppUid() == NFC_CALLER_UID);
     auto sysDialogScheduler = DelayedSingleton<SystemDialogScheduler>::GetInstance();
     CHECK_POINTER_AND_RETURN(sysDialogScheduler, ERR_NULL_SYS_DIALOG_SCHEDULER);
 
@@ -521,7 +521,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
     isOpenLink = request.want.HasParameter(OPEN_LINK_APP_LINKING_ONLY);
     appLinkingOnly = request.want.GetBoolParam(OPEN_LINK_APP_LINKING_ONLY, false);
 
-    if (IPCSkeleton::GetCallingUid() == NFC_CALLER_UID &&
+    if (IPCSkeleton::GetCallingAppUid() == NFC_CALLER_UID &&
         !request.want.GetStringArrayParam(PARAM_ABILITY_APPINFOS).empty()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "caller source: NFC");
         QueryBmsAppInfos(request, userId, dialogAppInfos);
@@ -944,7 +944,7 @@ bool ImplicitStartProcessor::FilterAbilityList(const Want &want, std::vector<App
 void ImplicitStartProcessor::GetEcologicalCallerInfo(const Want &want, ErmsCallerInfo &callerInfo, int32_t userId)
 {
     callerInfo.packageName = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
-    callerInfo.uid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
+    callerInfo.uid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingAppUid());
     callerInfo.pid = want.GetIntParam(Want::PARAM_RESV_CALLER_PID, IPCSkeleton::GetCallingPid());
     callerInfo.targetAppType = ErmsCallerInfo::TYPE_INVALID;
     callerInfo.callerAppType = ErmsCallerInfo::TYPE_INVALID;

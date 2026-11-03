@@ -470,7 +470,7 @@ public:
     virtual void NotifyUninstallOrUpgradeAppEnd(int32_t uid);
 
     /**
-     * Get error information (internally gets caller uid via IPCSkeleton::GetCallingUid()).
+     * Get error information (internally gets caller uid via IPCSkeleton::GetCallingAppUid()).
      *
      * @param errType Error type.
      * @param record Error record output.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -61,7 +61,7 @@ using Dlp = Security::DlpPermission::DlpPermissionKit;
     if (abilityRecord->GetApplicationInfo().bundleName == want.GetBundle()) {
         return true;
     }
-    int32_t uid = abilityRecord->GetApplicationInfo().uid;
+    int32_t uid = abilityRecord->GetApplicationInfo().appUid;
     Security::DlpPermission::SandBoxExternalAuthorType authResult;
     int result = Dlp::GetSandboxExternalAuthorization(uid, want, authResult);
     if (result != ERR_OK) {
@@ -104,7 +104,7 @@ using Dlp = Security::DlpPermission::DlpPermissionKit;
 [[maybe_unused]]static bool SandboxAuthCheck(const AbilityRecord &callerRecord, const Want &want)
 {
 #ifdef WITH_DLP
-    int32_t uid = callerRecord.GetApplicationInfo().uid;
+    int32_t uid = callerRecord.GetApplicationInfo().appUid;
     Security::DlpPermission::SandBoxExternalAuthorType authResult;
     int result = Dlp::GetSandboxExternalAuthorization(uid, want, authResult);
     if (result != ERR_OK) {
@@ -126,7 +126,7 @@ static bool CheckCallerIsDlpManager(const std::shared_ptr<AppExecFwk::BundleMgrH
     }
 
     std::string bundleName;
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     if (IN_PROCESS_CALL(bundleManager->GetNameForUid(callerUid, bundleName)) != ERR_OK) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "Get Bundle Name failed");
         return false;

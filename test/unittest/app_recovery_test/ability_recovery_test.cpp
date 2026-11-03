@@ -632,7 +632,7 @@ HWTEST_F(AbilityRecoveryUnitTest, ScheduleRestoreAbilityState_005, TestSize.Leve
 {
     abilityInfo_->bundleName = "com.test.recovery";
     abilityInfo_->name = "MainAbility";
-    abilityInfo_->applicationInfo.uid = 10000;
+    abilityInfo_->applicationInfo.appUid = 10000;
     abilityInfo_->applicationInfo.versionCode = 1;
     abilityInfo_->applicationInfo.versionName = "1.0.0";
     abilityRecovery_->EnableAbilityRecovery(true, RestartFlag::ALWAYS_RESTART, SaveOccasionFlag::SAVE_WHEN_ERROR,
@@ -654,7 +654,7 @@ HWTEST_F(AbilityRecoveryUnitTest, ScheduleRestoreAbilityState_006, TestSize.Leve
     EXPECT_TRUE(abilityInfo_ != nullptr);
     abilityInfo_->bundleName = "com.test.recovery";
     abilityInfo_->name = "MainAbility";
-    abilityInfo_->applicationInfo.uid = 10000;
+    abilityInfo_->applicationInfo.appUid = 10000;
     abilityInfo_->applicationInfo.versionCode = 1;
     abilityInfo_->applicationInfo.versionName = "1.0.0";
     abilityRecovery_->EnableAbilityRecovery(true, RestartFlag::ALWAYS_RESTART, SaveOccasionFlag::SAVE_WHEN_ERROR,

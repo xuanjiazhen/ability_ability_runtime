@@ -12,7 +12,7 @@ uint64_t IPCSkeleton::callingFullTokenId = 0;
 std::string IPCSkeleton::callingIdentity;
 uint32_t IPCSkeleton::callingTokenId = 0;
 
-pid_t IPCSkeleton::GetCallingUid()
+pid_t IPCSkeleton::GetCallingAppUid()
 {
     return callingUid;
 }

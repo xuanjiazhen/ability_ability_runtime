@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -76,6 +76,7 @@ const std::string APPLICATION_ACCESSTOKEN_ID = "accessTokenId";
 const std::string APPLICATION_ACCESSTOKEN_ID_EX = "accessTokenIdEx";
 const std::string APPLICATION_ENABLED = "enabled";
 const std::string APPLICATION_UID = "uid";
+const std::string APPLICATION_APPUID = "appUid";
 const std::string APPLICATION_PERMISSIONS = "permissions";
 const std::string APPLICATION_MODULE_SOURCE_DIRS = "moduleSourceDirs";
 const std::string APPLICATION_MODULE_INFOS = "moduleInfos";
@@ -543,6 +544,7 @@ void to_json(nlohmann::json &jsonObject, const ApplicationInfo &applicationInfo)
         {APPLICATION_ACCESSTOKEN_ID_EX, applicationInfo.accessTokenIdEx},
         {APPLICATION_ENABLED, applicationInfo.enabled},
         {APPLICATION_UID, applicationInfo.uid},
+        {APPLICATION_APPUID, applicationInfo.appUid},
         {APPLICATION_PERMISSIONS, applicationInfo.permissions},
         {APPLICATION_MODULE_SOURCE_DIRS, applicationInfo.moduleSourceDirs},
         {APPLICATION_MODULE_INFOS, applicationInfo.moduleInfos},
@@ -973,6 +975,14 @@ void from_json(const nlohmann::json &jsonObject, ApplicationInfo &applicationInf
         jsonObjectEnd,
         APPLICATION_UID,
         applicationInfo.uid,
+        JsonType::NUMBER,
+        false,
+        parseResult,
+        ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<int32_t>(jsonObject,
+        jsonObjectEnd,
+        APPLICATION_APPUID,
+        applicationInfo.appUid,
         JsonType::NUMBER,
         false,
         parseResult,

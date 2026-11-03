@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -492,7 +492,7 @@ int32_t DistributedClient::StartRemoteFreeInstall(const OHOS::AAFwk::Want& want,
 bool DistributedClient::WriteInfosToParcel(MessageParcel& data, const OHOS::AAFwk::Want& want,
     const sptr<IRemoteObject>& connect)
 {
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     uint32_t accessToken = IPCSkeleton::GetCallingTokenID();
     if (!data.WriteInterfaceToken(DMS_PROXY_INTERFACE_TOKEN)) {

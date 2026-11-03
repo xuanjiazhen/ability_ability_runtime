@@ -30,7 +30,7 @@ using namespace IPC_SINGLE;
 // in-process. SetCallingIdentity is left to the real ipc_core implementation, which is
 // already a no-op (returns true) without an active invoker — except that we track the
 // active-identity state so the ForCli anti-spoof test seams can distinguish the calling
-// uid before vs after SetCallingIdentity (see GetCallingUid below).
+// uid before vs after SetCallingIdentity (see GetCallingAppUid below).
 std::string IPCSkeleton::ResetCallingIdentity()
 {
     OHOS::AgentRuntime::MyFlag::setIdentityActive = false;  // identity reset to self
@@ -38,16 +38,16 @@ std::string IPCSkeleton::ResetCallingIdentity()
 }
 
 // ForCli anti-spoof (issue-16055 fix): the production path captures cliToolUid via
-// GetCallingUid() BEFORE SetCallingIdentity, then compares GetCallingUid() AFTER
+// GetCallingAppUid() BEFORE SetCallingIdentity, then compares GetCallingAppUid() AFTER
 // SetCallingIdentity. In production these come from two different sources (binder real
 // process uid vs the uid parsed from the callerIdentity string). With no active invoker
 // the real ipc_core returns getuid() for both, which can only model the legitimate
-// (equal) case. When a test sets MyFlag::overrideCallingUid=true, GetCallingUid() returns
+// (equal) case. When a test sets MyFlag::overrideCallingUid=true, GetCallingAppUid() returns
 // cliToolUid before SetCallingIdentity is active and identityUid afterwards — enabling a
 // spoof (mismatch) case to be exercised. When overrideCallingUid is false (the default
-// for every non-ForCli test) GetCallingUid() falls back to getuid(), preserving prior
+// for every non-ForCli test) GetCallingAppUid() falls back to getuid(), preserving prior
 // behavior.
-pid_t IPCSkeleton::GetCallingUid()
+pid_t IPCSkeleton::GetCallingAppUid()
 {
     if (!OHOS::AgentRuntime::MyFlag::overrideCallingUid) {
         return static_cast<pid_t>(getuid());
@@ -59,7 +59,7 @@ pid_t IPCSkeleton::GetCallingUid()
 bool IPCSkeleton::SetCallingIdentity(std::string &identity, bool flag)
 {
     // Mirrors the real no-op (returns true without an active invoker) while toggling the
-    // active-identity state the GetCallingUid seam relies on; retSetCallingIdentity models a
+    // active-identity state the GetCallingAppUid seam relies on; retSetCallingIdentity models a
     // malformed identity string (the ForCli fail-closed branch).
     (void)identity;
     (void)flag;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,9 +21,9 @@ namespace OHOS {
 using namespace IPC_SINGLE;
 #endif
 
-pid_t IPCSkeleton::GetCallingUid()
+pid_t IPCSkeleton::GetCallingAppUid()
 {
-    return AAFwk::MyStatus::GetInstance().getCallingUid_;
+    return AAFwk::MyStatus::GetInstance().getCallingAppUid_;
 }
 
 pid_t IPCSkeleton::GetCallingPid()

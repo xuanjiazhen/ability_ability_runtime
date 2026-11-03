@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,7 +59,7 @@ std::shared_ptr<AppRunningRecord> CacheProcessManagerTest::MockAppRecord(int api
 {
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = DEFAULT_BUNDLE_NAME;
-    appInfo->uid = DEFAULT_UID;
+    appInfo->appUid = DEFAULT_UID;
     appInfo->accessTokenId = 1;
     appInfo->apiTargetVersion = apiLevel;
     std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId++, "process");
