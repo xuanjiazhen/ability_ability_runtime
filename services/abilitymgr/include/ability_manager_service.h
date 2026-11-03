@@ -2268,6 +2268,23 @@ public:
     int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
 
+    int32_t ExecuteIntentByAgent(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
+
+    bool IsInsightIntentCall(uint64_t intentId) override;
+
+    /**
+     * @brief Reserved path to request the privacy-center (隐私中心) consent popup for a
+     *        third-party agent function invocation.
+     *
+     * TODO(agent): not implemented yet. This hook is invoked after the caller/target
+     * identity (bundle name + app index) has been captured, so the privacy-center dialog
+     * can later reuse RequestDialogService / ams_system_dialog to obtain user consent.
+     */
+    int32_t RequestAgentPrivacyDialog(const std::string &callerBundleName, int32_t callerAppIndex,
+        const std::string &targetBundleName, int32_t targetBundleIndex, uint64_t intentId,
+        const sptr<IRemoteObject> &callerToken);
+
     /**
      * @brief Execute UIAbility foreground intent with specified token id.
      * @param want The info of the target ability and custom parameters.
@@ -3788,6 +3805,10 @@ private:
 
     std::string InsightIntentGetcallerBundleName();
 
+    std::string InsightIntentGetcallerBundleNameAndIndex(int32_t &callerAppIndex);
+
+    int32_t InsightIntentGetTargetAppIndex(const std::string &bundleName, int32_t userId);
+
     ErrCode IntentOpenLinkInner(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         AbilityRuntime::ExtractInsightIntentGenericInfo &linkInfo, const int32_t userId);
  
@@ -3832,7 +3853,10 @@ private:
     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag) override;
     int32_t ExecuteIntentCommon(const sptr<IRemoteObject> &callerToken,
         const std::shared_ptr<InsightIntentExecuteParam> &param, const std::string &callerBundleName,
-        AbilityRuntime::ExecuteIntentCommonOptions &options);
+        AbilityRuntime::ExecuteIntentCommonOptions &options, uint64_t specifiedIntentId = 0);
+    int32_t ExecuteIntentByFunctionCallWithId(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+        uint64_t specifiedIntentId);
     void SetRemoteIntentTimeout(uint64_t insightIntentId);
     // 清理 wantParam 残留意图参数 + 意图候选匹配 + parser.Build 组装执行参数。
     int32_t PrepareFunctionCallParam(const std::string &bundleName, const std::string &intentName,

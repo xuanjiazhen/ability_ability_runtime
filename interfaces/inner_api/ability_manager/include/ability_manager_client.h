@@ -2454,6 +2454,14 @@ public:
     bool IsAbilityControllerStart(const Want &want);
 
     /**
+     * @brief Query whether the given insight intent execute id belongs to an
+     * insight intent call. Restricted to system applications / SA.
+     * @param intentId The insight intent execute id to query.
+     * @return Returns true if the intent id maps to a live execute record.
+     */
+    bool IsInsightIntentCall(uint64_t intentId);
+
+    /**
      * @brief Open a file by uri through the registered reserve-type collaborator
      * (application collocation file access). Requires a collaborator registered;
      * returns -1 otherwise. Internal use.
