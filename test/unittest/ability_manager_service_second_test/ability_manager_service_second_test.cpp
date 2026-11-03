@@ -38,6 +38,7 @@
 #include "user_controller/user_controller.h"
 #include "mock_my_status.h"
 #include "mock_sa_call.h"
+#include "mock_ipc_skeleton.h"
 #include "unlock_screen_manager.h"
 #include "view_data.h"
 
@@ -1924,6 +1925,42 @@ HWTEST_F(AbilityManagerServiceSecondTest, CheckPermissionForKillCollaborator_002
     MyStatus::GetInstance().permPermission_ = 1;
     EXPECT_EQ(abilityMs_->CheckPermissionForKillCollaborator(), true);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest CheckPermissionForKillCollaborator_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillCollaboratorProcess
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillCollaboratorProcess validates FOUNDATION_UID
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, KillCollaboratorProcess_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest KillCollaboratorProcess_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    // non-foundation uid → ERR_PERMISSION_DENIED
+    IPCSkeleton::SetCallingUid(0);
+    int32_t result = abilityMs_->KillCollaboratorProcess(1, "test_bundle", 0);
+    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest KillCollaboratorProcess_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillCollaboratorProcess
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillCollaboratorProcess delegates to KillProcessForCollaborator
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, KillCollaboratorProcess_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest KillCollaboratorProcess_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    // foundation uid → delegates to KillProcessForCollaborator → KILL_PROCESS_FAILED (no collaborator registered)
+    constexpr int32_t FOUNDATION_UID = 5523;
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    int32_t result = abilityMs_->KillCollaboratorProcess(1, "test_bundle", 0);
+    EXPECT_EQ(result, KILL_PROCESS_FAILED);
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest KillCollaboratorProcess_002 end");
 }
 
 /*
