@@ -1,0 +1,11 @@
+# Generated or refreshed when the ODK design-document bundle is submitted.
+req_id: "20260914692273"
+target_release: "7.1"
+repos:
+  - repo: "openharmony/ability_ability_runtime"
+    pull_requests:
+      - url: "https://gitcode.com/openharmony/ability_ability_runtime/merge_requests/20435"
+        title: "Add task system APIs for agent manager"
+        state: "open"
+        commit: "63194cd2a9a7d50d0f12fa45e284d44c8298d4e0"
+    issues: []
