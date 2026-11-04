@@ -197,7 +197,7 @@ void JsUIExtensionBase::RegisterAbilityConfigUpdateCallback()
         }
         if (abilityContext->GetAbilityConfiguration() == nullptr) {
             auto abilityModuleContext = abilityContext->CreateModuleContext(
-                abilityContext->GetAbilityInfo()->moduleName);
+                abilityContext->GetAbilityInfo()->moduleName, abilityContext);
             if (abilityModuleContext == nullptr) {
                 TAG_LOGE(AAFwkTag::UIABILITY, "null abilityModuleContext");
                 return;
@@ -316,7 +316,7 @@ void JsUIExtensionBase::OnStart(
     CallObjectMethod("onCreate", argv, ARGC_TWO);
 
     if (!OnGetConfigurationStrategy(sessionInfo)) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "OnGetConfigurationStrategy failed");
+        TAG_LOGW(AAFwkTag::UI_EXT, "OnGetConfigurationStrategy failed");
     }
 }
 
@@ -981,6 +981,10 @@ void JsUIExtensionBase::OnConfigurationUpdated(const AppExecFwk::Configuration &
     }
 
     ConfigurationUpdated();
+    if (context_->GetConfiguration() != nullptr &&
+        !context_->GetConfiguration()->GetItem(AAFwk::GlobalConfigurationKey::BRAND_COLOR_CHANGED).empty()) {
+        context_->GetConfiguration()->RemoveItem(AAFwk::GlobalConfigurationKey::BRAND_COLOR_CHANGED);
+    }
 }
 
 void JsUIExtensionBase::OnAbilityConfigurationUpdated(const AppExecFwk::Configuration& configuration)
@@ -1094,13 +1098,17 @@ int32_t JsUIExtensionBase::WindowNotifeBrandColorChange(Rosen::SubSystemId id, u
 
     AppExecFwk::Configuration config;
     config.AddItem(AAFwk::GlobalConfigurationKey::BRAND_COLOR_CHANGED, "true");
-    context_->SetAbilityConfiguration(config);
     auto self = std::static_pointer_cast<JsUIExtensionBase>(shared_from_this());
     auto task = [self, config]() {
         if (self == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null self");
             return;
         }
+        if (self->context_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+            return;
+        }
+        self->context_->SetAbilityConfiguration(config);
         self->OnAbilityConfigurationUpdated(config);
         auto abilityConfig = self->context_->GetAbilityConfiguration();
         if (abilityConfig != nullptr) {
