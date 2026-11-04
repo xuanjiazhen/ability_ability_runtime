@@ -2976,6 +2976,7 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
         TAG_LOGE(AAFwkTag::APPMGR, "getBundleInfo fail");
         return false;
     }
+
     bool hapQueryResult = false;
     if (appIndex == 0 || appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX ||
         AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
