@@ -51,6 +51,23 @@ std::mutex g_mutex;
 std::atomic<bool> g_blocked = false;
 const int DELAY_TIME = 1000;
 
+// Weak declaration: resolved at runtime from appkit_native (loaded later).
+// The symbol is a C++ free function whose mangled name contains
+// "ApplicationDataManager", matched by libappkit_native.map's wildcard.
+bool ApplicationDataManagerHasOnErrorCallback() __attribute__((weak));
+
+// Not static so the unittest target can link against it.
+bool CheckHasOnErrorCallback()
+{
+    if (&ApplicationDataManagerHasOnErrorCallback == nullptr) {
+        TAG_LOGI(AAFwkTag::RECOVERY, "ApplicationDataManagerHasOnErrorCallback weak symbol is null");
+        return false;
+    }
+    bool result = ApplicationDataManagerHasOnErrorCallback();
+    TAG_LOGI(AAFwkTag::RECOVERY, "CheckHasOnErrorCallback result:%{public}d", result);
+    return result;
+}
+
 AppRecovery::AppRecovery() : isEnable_(false), restartFlag_(RestartFlag::ALWAYS_RESTART),
     saveOccasion_(SaveOccasionFlag::SAVE_WHEN_ERROR), saveMode_(SaveModeFlag::SAVE_WITH_FILE),
     crashFlag_(RestartFlag::NO_RESTART)
@@ -287,6 +304,15 @@ bool AppRecovery::ScheduleRecoverApp(StateReason reason)
     
     if (!isEnable_) {
         if (OHOS::system::GetParameter("const.dfx.sub_health_recovery.enable", "") == "true") {
+            if (reason != StateReason::APP_FREEZE && CheckHasOnErrorCallback()) {
+                TAG_LOGI(AAFwkTag::RECOVERY,
+                    "app has error handler, skip sub_health_recovery for reason:%{public}d",
+                    static_cast<int>(reason));
+                return false;
+            }
+            TAG_LOGI(AAFwkTag::RECOVERY,
+                "DoRecoverMainApp for reason:%{public}d, isEnable_:%{public}d",
+                static_cast<int>(reason), static_cast<int>(isEnable_));
             return DoRecoverMainApp(reason);
         }
         return false;

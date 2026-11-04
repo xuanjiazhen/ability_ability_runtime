@@ -986,5 +986,62 @@ HWTEST_F(AppRecoveryUnitTest, IsEtsAPP_Test_001, TestSize.Level1)
     AppRecovery::GetInstance().InitApplicationInfo(testHandler_, applicationInfo_);
     AppRecovery::GetInstance().IsEtsAPP();
 }
+
+/**
+ * @tc.name:  CheckHasOnErrorCallback_001
+ * @tc.desc:  CheckHasOnErrorCallback when weak symbol is null (appkit_native not loaded).
+ * @tc.type: FUNC
+ * @tc.require: I7UL6H
+ */
+HWTEST_F(AppRecoveryUnitTest, CheckHasOnErrorCallback_001, TestSize.Level1)
+{
+    bool ret = CheckHasOnErrorCallback();
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name:  ScheduleRecoverApp_008
+ * @tc.desc:  ScheduleRecoverApp when isEnable_ is false with JS_ERROR reason.
+ *            sub_health_recovery.enable is not "true" in test env, returns false.
+ * @tc.type: FUNC
+ * @tc.require: I7UL6H
+ */
+HWTEST_F(AppRecoveryUnitTest, ScheduleRecoverApp_008, TestSize.Level1)
+{
+    AppRecovery::GetInstance().isEnable_ = false;
+    AppRecovery::GetInstance().restartFlag_ = RestartFlag::ALWAYS_RESTART;
+    bool ret = AppRecovery::GetInstance().ScheduleRecoverApp(StateReason::JS_ERROR);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name:  ScheduleRecoverApp_009
+ * @tc.desc:  ScheduleRecoverApp when isEnable_ is false with DEVELOPER_REQUEST reason.
+ *            sub_health_recovery.enable is not "true" in test env, returns false.
+ * @tc.type: FUNC
+ * @tc.require: I7UL6H
+ */
+HWTEST_F(AppRecoveryUnitTest, ScheduleRecoverApp_009, TestSize.Level1)
+{
+    AppRecovery::GetInstance().isEnable_ = false;
+    AppRecovery::GetInstance().restartFlag_ = RestartFlag::ALWAYS_RESTART;
+    bool ret = AppRecovery::GetInstance().ScheduleRecoverApp(StateReason::DEVELOPER_REQUEST);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name:  ScheduleRecoverApp_010
+ * @tc.desc:  ScheduleRecoverApp when isEnable_ is false with APP_FREEZE reason.
+ *            sub_health_recovery.enable is not "true" in test env, returns false.
+ * @tc.type: FUNC
+ * @tc.require: I7UL6H
+ */
+HWTEST_F(AppRecoveryUnitTest, ScheduleRecoverApp_010, TestSize.Level1)
+{
+    AppRecovery::GetInstance().isEnable_ = false;
+    AppRecovery::GetInstance().restartFlag_ = RestartFlag::ALWAYS_RESTART;
+    bool ret = AppRecovery::GetInstance().ScheduleRecoverApp(StateReason::APP_FREEZE);
+    EXPECT_FALSE(ret);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
