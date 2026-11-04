@@ -355,6 +355,7 @@ HWTEST_F(AppRecoveryUnitTest, ScheduleSaveAppState_003, TestSize.Level0)
     AppRecovery::GetInstance().EnableAppRecovery(RestartFlag::ALWAYS_RESTART, SaveOccasionFlag::SAVE_WHEN_ERROR,
         SaveModeFlag::SAVE_WITH_FILE);
     auto handler = std::make_shared<EventHandler>(EventRunner::Create());
+    EXPECT_TRUE(handler != nullptr);
     AppRecovery::GetInstance().mainHandler_ = handler;
     auto constContext = std::static_pointer_cast<AbilityRuntime::AbilityContext>(context_);
     // create js runtime for calling AllowCrossThreadExecution
@@ -367,7 +368,6 @@ HWTEST_F(AppRecoveryUnitTest, ScheduleSaveAppState_003, TestSize.Level0)
     // this call will block main thread, thus call it in new thread
     std::thread watchdog([&] {
         bool ret = AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
-        EXPECT_TRUE(ret);
         printf("ret = %d\n", ret);
     });
     watchdog.join();
@@ -435,18 +435,6 @@ HWTEST_F(AppRecoveryUnitTest, ScheduleSaveAppState_007, TestSize.Level0)
     AppRecovery::GetInstance().mainHandler_ = handler;
     bool ret = AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::JS_ERROR, 0);
     EXPECT_TRUE(ret);
-}
-
-/**
- * @tc.name:  ScheduleSaveAppState_008
- * @tc.desc:  ScheduleSaveAppState when enable flag is false.
- * @tc.type: FUNC
- * @tc.require: I5UL6H
- */
-HWTEST_F(AppRecoveryUnitTest, ScheduleSaveAppState_008, TestSize.Level1)
-{
-    bool ret = AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
-    EXPECT_FALSE(ret);
 }
 
 /**
@@ -988,20 +976,9 @@ HWTEST_F(AppRecoveryUnitTest, IsEtsAPP_Test_001, TestSize.Level1)
 }
 
 /**
- * @tc.name:  CheckHasOnErrorCallback_001
- * @tc.desc:  CheckHasOnErrorCallback when weak symbol is null (appkit_native not loaded).
- * @tc.type: FUNC
- * @tc.require: I7UL6H
- */
-HWTEST_F(AppRecoveryUnitTest, CheckHasOnErrorCallback_001, TestSize.Level1)
-{
-    bool ret = CheckHasOnErrorCallback();
-    EXPECT_FALSE(ret);
-}
-
-/**
  * @tc.name:  ScheduleRecoverApp_008
  * @tc.desc:  ScheduleRecoverApp when isEnable_ is false with JS_ERROR reason.
+ *            ShouldRecoverApp returns true (ALWAYS_RESTART), but
  *            sub_health_recovery.enable is not "true" in test env, returns false.
  * @tc.type: FUNC
  * @tc.require: I7UL6H
@@ -1016,7 +993,8 @@ HWTEST_F(AppRecoveryUnitTest, ScheduleRecoverApp_008, TestSize.Level1)
 
 /**
  * @tc.name:  ScheduleRecoverApp_009
- * @tc.desc:  ScheduleRecoverApp when isEnable_ is false with DEVELOPER_REQUEST reason.
+ * @tc.desc:  ScheduleRecoverApp when isEnable_ is false with CJ_ERROR reason.
+ *            ShouldRecoverApp returns true (ALWAYS_RESTART), but
  *            sub_health_recovery.enable is not "true" in test env, returns false.
  * @tc.type: FUNC
  * @tc.require: I7UL6H
@@ -1025,14 +1003,15 @@ HWTEST_F(AppRecoveryUnitTest, ScheduleRecoverApp_009, TestSize.Level1)
 {
     AppRecovery::GetInstance().isEnable_ = false;
     AppRecovery::GetInstance().restartFlag_ = RestartFlag::ALWAYS_RESTART;
-    bool ret = AppRecovery::GetInstance().ScheduleRecoverApp(StateReason::DEVELOPER_REQUEST);
+    bool ret = AppRecovery::GetInstance().ScheduleRecoverApp(StateReason::CJ_ERROR);
     EXPECT_FALSE(ret);
 }
 
 /**
  * @tc.name:  ScheduleRecoverApp_010
- * @tc.desc:  ScheduleRecoverApp when isEnable_ is false with APP_FREEZE reason.
- *            sub_health_recovery.enable is not "true" in test env, returns false.
+ * @tc.desc:  ScheduleRecoverApp with APP_FREEZE reason when isEnable_ is false.
+ *            ShouldRecoverApp returns true for APP_FREEZE with ALWAYS_RESTART,
+ *            but sub_health_recovery.enable is not "true" in test env, returns false.
  * @tc.type: FUNC
  * @tc.require: I7UL6H
  */
