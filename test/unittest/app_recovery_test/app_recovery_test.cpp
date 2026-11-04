@@ -437,7 +437,6 @@ HWTEST_F(AppRecoveryUnitTest, ScheduleSaveAppState_007, TestSize.Level0)
     EXPECT_TRUE(ret);
 }
 
-
 /**
  * @tc.name:  ScheduleSaveAppState_008
  * @tc.desc:  ScheduleSaveAppState when enable flag is false.
