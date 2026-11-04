@@ -136,6 +136,7 @@
 #include "uri_utils.h"
 #include "user_controller/user_controller.h"
 #include "utils/agent_ability_util.h"
+#include "agent_extension/agent_card_migration_helper.h"
 #include "utils/agent_caller_identity_util.h"
 #include "utils/ability_permission_util.h"
 #include "utils/dump_utils.h"
@@ -1173,7 +1174,7 @@ int AbilityManagerService::StartAbilityByUIContentSession(const Want &want, cons
 }
 
 int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
-    uint32_t specifyTokenId)
+    uint32_t specifyTokenId, int32_t userId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
@@ -1213,6 +1214,7 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
         .callerToken = callerToken,
         .specifyTokenId = specifyTokenId,
         .isUIAbilityOnly = true,
+        .userId = userId,
     };
     int32_t ret = StartAbilityInner(startAbilityWrapParam);
     if (ret != ERR_OK) {
@@ -1555,7 +1557,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         return cloneRet;
     }
 
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     if (!sandboxAbilityInfo.bundleName.empty()) {
         appIndex = sandboxAbilityInfo.applicationInfo.appIndex;
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Using sandbox clone appIndex: %{public}d from sandboxAbilityInfo", appIndex);
@@ -2305,7 +2307,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
 
     int32_t validUserId = oriValidUserId;
     StartAbilityUtils::ResolveTargetAppCloneIndex(want, callerToken, validUserId);
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, validUserId, appIndex)) {
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
         return ERR_APP_CLONE_INDEX_INVALID;
@@ -3053,7 +3055,7 @@ int32_t AbilityManagerService::StartUIAbilitiesInSplitWindowModeHandleWant(const
     int32_t validUserId = GetValidUserId(userId);
     uint32_t specifyTokenId = 0;
     int32_t requestCode = DEFAULT_INVAL_VALUE;
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
     CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(secondaryWant), validUserId),
         RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
@@ -3241,7 +3243,7 @@ int32_t AbilityManagerService::StartUIAbilitiesHandleWant(const Want &want, sptr
         return ret;
     }
 
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     ret = StartAbilityUtils::StartUIAbilitiesProcessAppIndex(const_cast<Want &>(want), callerToken, validUserId, appIndex);
     if (ret != ERR_OK) {
         return ret;
@@ -3668,7 +3670,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
     SendAbilityEvent(EventName::START_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
 
     auto requestCode = sessionInfo->requestCode;
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     auto sandboxCloneParams = std::make_shared<SandboxCloneParams>();
     AbilitySessionInfo abilitySessionInfo;
     auto uiAbilityManager = GetUIAbilityManagerByUserId(currentUserId);
@@ -4607,13 +4609,10 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(
     CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
     int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     int32_t callerAppIndex = 0;
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
+    bms->GetDualModeBundleInfo(hostBundleName, userId, appIndex);
     if (want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
-        appIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
-    }
- 
-    if (appIndex == -1) {
-        bms->GetDualModeBundleInfo(hostBundleName, userId, appIndex);
+        appIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
     }
 
     if (IN_PROCESS_CALL(bms->GetNameAndIndexForUid(callerUid, hostBundleName, callerAppIndex)) == ERR_OK) {
@@ -4912,7 +4911,7 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
     CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), validUserId, true),
         RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
 #endif
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, validUserId, appIndex)) {
         if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
             eventInfo->errReason = "GetAppIndex error";
@@ -7345,6 +7344,8 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
     int32_t userId = -1;
     int32_t appUid = -1;
     int32_t appIndex = 0;
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    bms->GetDualModeBundleInfo(bundleName, userId, appIndex);
     if (isSACall || callerUserId == U0_USER_ID) {
         if (isSpecifyUserId) {
             userId = wantSenderInfo.userId;
@@ -7416,6 +7417,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
     if (!wantSenderInfo.allWants.empty()) {
         bundleName = wantSenderInfo.allWants.back().want.GetBundleNameRef();
     }
+    bms->GetDualModeBundleInfo(bundleName, userId, appIndex);
     if (!bundleName.empty()) {
         if (!isSpecifyUidBySa) {
             AppExecFwk::BundleInfo bundleInfo;
@@ -9278,7 +9280,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
 
     auto abilityInfo = ctx.startAbilityInfo;
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetBundleNameRef()) {
-        int32_t appIndex = -1;
+        int32_t appIndex = 0;
         if (!StartAbilityUtils::GetAppIndex(want, callerToken, userId, appIndex)) {
             return ERR_APP_CLONE_INDEX_INVALID;
         }
@@ -9383,9 +9385,11 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(const Want &want, Abi
     if (abilityRecord != nullptr) {
         request.callerTokenRecordId = abilityRecord->GetRecordId();
         std::string extensionTypeStr = want.GetStringParam(UIEXTENSION_TYPE_KEY);
-        int32_t appIndex = -1;
+        int32_t appIndex = 0;
+        auto bms = AbilityUtil::GetBundleManagerHelper();
+        bms->GetDualModeBundleInfo(hostBundleName, userId, appIndex);
         if (want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
-            appIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+            appIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
         }
 
         if (AppExecFwk::ConvertToExtensionAbilityType(extensionTypeStr) ==
@@ -9411,7 +9415,7 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(const Want &want, Abi
 
     auto abilityInfo = ctx.startAbilityInfo;
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetBundleNameRef()) {
-        int32_t appIndex = -1;
+        int32_t appIndex = 0;
         if (!StartAbilityUtils::GetAppIndex(want, callerToken, userId, appIndex)) {
             return ERR_APP_CLONE_INDEX_INVALID;
         }
@@ -9618,8 +9622,8 @@ int AbilityManagerService::KillProcessWithUserId(const std::string &bundleName, 
     const std::string& reason, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Kill process, bundleName: %{public}s, clearPageStack: %{public}d"
-        "callingUid: %{public}d, callingPid: %{public}d", bundleName.c_str(), clearPageStack,
-        IPCSkeleton::GetCallingAppUid(), IPCSkeleton::GetCallingPid());
+        "callingUid: %{public}d, callingPid: %{public}d  appindex %{public}d", bundleName.c_str(), clearPageStack,
+        IPCSkeleton::GetCallingAppUid(), IPCSkeleton::GetCallingPid(), appIndex);
     // check permission first
     auto isAllowKillProcessForCollaborator = CheckPermissionForKillCollaborator();
     if (!isAllowKillProcessForCollaborator &&
@@ -9643,8 +9647,9 @@ int AbilityManagerService::KillProcessWithUserId(const std::string &bundleName, 
         }
     }
 #endif
-    if (appIndex == -1) {
+    if (appIndex == 0) {
         bms->GetDualModeBundleInfo(bundleName, userId, appIndex);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "GetDualModeBundleInfo defaultAppIndex:%{public}d", appIndex);
     }
     if (IN_PROCESS_CALL(bms->GetCloneBundleInfoExt(bundleName,
         static_cast<uint32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
@@ -9716,7 +9721,7 @@ int32_t AbilityManagerService::UninstallAppInner(const std::string &bundleName, 
     }
 
     auto userId = uid / BASE_USER_RANGE;
-    if (appIndex == -1) {
+    if (appIndex == 0) {
         auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
         bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appIndex);
     }
@@ -10877,7 +10882,7 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
     }
 #endif
     AbilityUtil::RemoveWantKey(const_cast<Want &>(want));
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, oriValidUserId, appIndex)) {
         errMsg = "app index is error";
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_APP_CLONE_INDEX_INVALID,
@@ -12275,7 +12280,7 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
     CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want),
         GetValidUserId(DEFAULT_INVAL_VALUE)), RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
 #endif
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, nullptr, userId, appIndex) || (appIndex != 0 &&
         appIndex != AbilityRuntime::GlobalConstant::PC_TABLET_INDEX)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support app clone");
@@ -16467,6 +16472,17 @@ int32_t AbilityManagerService::UnregisterWillInsightIntentExecuteCallback()
         ->UnregisterWillInsightIntentExecuteCallback(pid);
 }
 
+int32_t AbilityManagerService::GetDynamicAgentCardsForMigration(std::string &jsonStr)
+{
+    constexpr const char *SUBFOUNDATION_PROCESS_NAME = "subfoundation";
+    if (!PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        SUBFOUNDATION_PROCESS_NAME)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "non-subfoundation caller, denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+    return AgentCardMigrationHelper::GetInstance().GetDynamicAgentCardsAsJson(jsonStr);
+}
+
 int32_t AbilityManagerService::QuerySkillType(const std::string &bundleName, const std::string &moduleName,
     const std::string &skillName, int32_t &skillType)
 {
@@ -18003,7 +18019,7 @@ int32_t AbilityManagerService::PreStartInner(const FreeInstallInfo& taskInfo)
 
     int32_t oriValidUserId = GetValidUserId(taskInfo.userId);
 
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     StartAbilityUtils::GetAppIndex(want, callerToken, oriValidUserId, appIndex);
     StartAbilityUtils::ResolveAndCacheStartAbilityInfo(ctx, want, oriValidUserId, appIndex, callerToken);
 
@@ -18170,7 +18186,7 @@ int AbilityManagerService::StartUIAbilityByPreInstallInner(sptr<SessionInfo> ses
     int32_t oriValidUserId = GetValidUserId(userId);
     int32_t validUserId = oriValidUserId;
 
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, validUserId, appIndex)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s GetAppIndex failed", __func__);
         return ERR_APP_CLONE_INDEX_INVALID;

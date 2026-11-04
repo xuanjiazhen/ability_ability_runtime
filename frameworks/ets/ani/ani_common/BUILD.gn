@@ -24,6 +24,7 @@ config("ani_common_exception_config") {
 }
 
 ohos_shared_library("ani_common") {
+  version_script = "libani_common.map"
   branch_protector_ret = "pac_ret"
   branch_protector_frt = "bti"
   sanitize = {
@@ -132,6 +133,7 @@ ohos_shared_library("ani_common") {
     "resource_management:resourceManager_ani",
     "runtime_core:ani",
     "runtime_core:ani_helpers",
+    "samgr:samgr_proxy",
     "window_manager:ani_window_animation_utils",
   ]
 
