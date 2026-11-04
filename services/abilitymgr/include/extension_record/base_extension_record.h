@@ -16,6 +16,10 @@
 #ifndef OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_BASE_H
 #define OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_BASE_H
 
+#include <map>
+#include <utility>
+#include <vector>
+
 #include "ability_record.h"
 
 namespace OHOS {
@@ -149,6 +153,24 @@ public:
     void SetRequestId(const std::string &requestId);
     std::string GetRequestId() const;
 
+    /**
+     * add a task attribution entry keyed by the connection record id.
+     *
+     */
+    void AddTaskAttribution(int32_t recordId, const std::string &taskId, int64_t attributionId);
+
+    /**
+     * get the task attribution entry (taskId, attributionId) matching recordId.
+     *
+     */
+    std::pair<std::string, int64_t> GetTaskAttribution(int32_t recordId) const;
+
+    /**
+     * remove the task attribution entry matching recordId.
+     *
+     */
+    void RemoveTaskAttribution(int32_t recordId);
+
 private:
     void DumpUIExtensionRootHostInfo(std::vector<std::string> &info) const;
 
@@ -163,6 +185,8 @@ private:
     sptr<IRemoteObject> connRemoteObject_ = {};
     bool isConnected = false;
     std::string requestId_;
+    mutable ffrt::mutex taskAttributionsMutex_;
+    std::map<int32_t, std::pair<std::string, int64_t>> taskAttributions_;
 };
 } // namespace AAFwk
 } // namespace OHOS
