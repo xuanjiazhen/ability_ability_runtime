@@ -1,11 +1,11 @@
 ---
-phase_status: awaiting_approval
+phase_status: approved
 approval:
-  status: pending
-  approver: ""
-  evidence: ""
-  approved_at: ""
-  baseline_digest: "9b7f00e16828ab0d0affd209707d85664565a79c84c6eaf30076066ce871db2b"
+  status: approved
+  approver: "yangzk"
+  evidence: "用户评审明确回复『批准基线』（2026-11-04 会话记录）"
+  approved_at: "2026-11-04"
+  baseline_digest: "5cd245f33aba6f76d10bb8f1e08fb01e6de0dd14a852997854d94c5677189a93"
 target_release:
   id: OpenHarmony-7.1-Release
   status: proposed
@@ -24,11 +24,11 @@ target_release:
 | 需求ID | 20260914692273 |
 | 需求名称 | 任务优先级系统判定、多任务并发与进程多任务归属（按最高优先级） |
 | 来源 | 需求前置分析（本仓 `20260914692273/` 目录，含 proposal/spec/design/execution-plan/spec-check-report）；关联 Feature FEAT-AI-TASK-MGR-001（RR 30096095） |
-| 提出人 | 待确认（元能力 SIG 需求池） |
+| 提出人 | yangzk |
 | 目标发行版本 | OpenHarmony-7.1-Release |
 | 候选 Profile | none（本仓 ability_ability_runtime 无匹配 profile） |
 | 优先级 | P1 |
-| Define 阶段状态 | AwaitingApproval |
+| Define 阶段状态 | Approved |
 
 ### 原始描述
 
@@ -60,13 +60,13 @@ target_release:
 | 基线版本 | v1.0 |
 | 基线日期 | 2026-11-04 |
 | Owner | yangzk |
-| 确认人 | 待确认（需求方/模块 Owner/SIG 代表，评审时填写） |
-| 确认依据 | 待补充（评审记录/评论链接/会议纪要） |
+| 确认人 | yangzk |
+| 确认依据 | 用户评审明确回复『批准基线』（2026-11-04 会话记录） |
 | 复杂度 | 标准 |
 | Profile | none |
 | 目标发行版本 | OpenHarmony-7.1-Release（proposed） |
 | 版本状态 | proposed |
-| 基线结论 | 通过（候选基线，待需求方确认） |
+| 基线结论 | 通过 |
 
 ### 问题、目标与成功指标
 
@@ -200,7 +200,7 @@ target_release:
 - [x] `proposal.target_release` 已确认或明确 TBD
 - [x] `manifest.profile` 已确认或明确 none
 - [x] Agent Scope Guard 已基线化，未复制 Plan/Task 的实现文件清单
-- [ ] 基线结论为"通过"，且确认人和确认依据完整（待评审）
+- [x] 基线结论为"通过"，且确认人和确认依据完整
 - [ ] 条件附录触发时，待澄清项和争议决策已关闭（未触发，N/A）
 
 ## 附录：澄清与决策记录（条件启用）
