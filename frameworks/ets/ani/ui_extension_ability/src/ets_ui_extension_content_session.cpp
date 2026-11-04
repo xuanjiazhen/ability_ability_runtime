@@ -328,7 +328,7 @@ EtsUIExtensionContentSession::EtsUIExtensionContentSession(
     if (abilityResultListeners == nullptr || sessionInfo == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null params");
     } else {
-        abilityResultListeners->AddListener(sessionInfo->uiExtensionComponentId, listener_);
+        abilityResultListeners->AddListener(AAFwk::GetEffectiveComponentId(sessionInfo), listener_);
     }
 }
 

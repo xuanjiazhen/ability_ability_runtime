@@ -96,6 +96,20 @@ public:
         return context_.lock();
     }
 
+    /**
+     * @brief Update the host window binding after UEC migration between host windows.
+     *
+     * Re-parents the reused window and every extension window proxy the application holds via
+     * the window manager C++ interface UpdateExtensionParent, then replaces the cached session
+     * info. Fail-isolated: on re-parent failure nothing is changed and false is returned, so
+     * the caller can skip Show and keep the session backgrounded instead of showing content
+     * under the old host window. No napi API is exposed.
+     *
+     * @param sessionInfo The migrated session info carrying the new host window id.
+     * @return true when the window now lives under the new host; false when re-parent failed.
+     */
+    bool DoUpdateExtensionParent(const sptr<AAFwk::SessionInfo> &sessionInfo);
+
 protected:
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityAsCaller(napi_env env, NapiCallbackInfo& info);
@@ -148,6 +162,10 @@ private:
     std::shared_ptr<UISessionAbilityResultListener> listener_;
     sptr<JsFreeInstallObserver> freeInstallObserver_ = nullptr;
     bool isFirstTriggerBindModal_ = true;
+    // Proxies of extension windows handed out to the application via getUIExtension*Proxy,
+    // refreshed together with the reused window on migration.
+    std::vector<napi_ref> jsExtensionWindowRefs_;
+    napi_env env_ = nullptr;
 #ifdef SUPPORT_SCREEN
     void InitDisplayId(AAFwk::Want &want);
     void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions, napi_env &env, NapiCallbackInfo& info);

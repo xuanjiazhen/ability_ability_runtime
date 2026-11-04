@@ -395,14 +395,14 @@ bool EtsUIExtension::ForegroundWindowInitInsightIntentExecutorInfo(const AAFwk::
     executorInfo.token = context->GetToken();
     if (arkTSmode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2) {
         executorInfo.etsPageLoader =
-            reinterpret_cast<void *>(contentSessions_[sessionInfo->uiExtensionComponentId].etsContentSession);
+            reinterpret_cast<void *>(contentSessions_[AAFwk::GetEffectiveComponentId(sessionInfo)].etsContentSession);
     } else {
         auto aniEnv = etsRuntime_.GetAniEnv();
         if (aniEnv == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null aniEnv");
             return false;
         }
-        ani_ref etsContentSessionTemp = contentSessions_[sessionInfo->uiExtensionComponentId].etsContentSession;
+        ani_ref etsContentSessionTemp = contentSessions_[AAFwk::GetEffectiveComponentId(sessionInfo)].etsContentSession;
         if (etsContentSessionTemp == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null etsContentSessionTemp");
             return false;
@@ -430,9 +430,9 @@ bool EtsUIExtension::ForegroundWindowInitInsightIntentExecutorInfo(const AAFwk::
             env, etsContentSession->GetSessionInfo(), etsContentSession->GetUIWindow(), wkctx, abilityResultListeners);
         napi_ref ref = nullptr;
         napi_create_reference(env, nativeContentSession, 1, &ref);
-        contentSessions_[sessionInfo->uiExtensionComponentId].jsContentSession =
+        contentSessions_[AAFwk::GetEffectiveComponentId(sessionInfo)].jsContentSession =
             std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref));
-        executorInfo.pageLoader = contentSessions_[sessionInfo->uiExtensionComponentId].jsContentSession;
+        executorInfo.pageLoader = contentSessions_[AAFwk::GetEffectiveComponentId(sessionInfo)].jsContentSession;
     }
     executorInfo.executeParam = std::make_shared<InsightIntentExecuteParam>();
     InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
@@ -686,7 +686,7 @@ void EtsUIExtension::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
         return;
     }
     std::lock_guard<std::mutex> lock(uiWindowMutex_);
-    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Wrong to find uiWindow");
         return;

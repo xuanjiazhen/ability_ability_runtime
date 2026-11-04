@@ -37,6 +37,23 @@ void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord_");
         return;
     }
+    // UIExtension-only stable component id maintenance, paired with the same logic before
+    // UIExtensionAbilityManager::StartAbilityLocked replaces the session info: inherit the id
+    // locked at first creation, or lock it now when neither side carries it yet (first reuse
+    // after a degraded creation). Keeping this id identical lets provider-side window maps
+    // hit across host window migrations.
+    if (abilityRequest.sessionInfo != nullptr &&
+        abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId == 0) {
+        auto savedSessionInfo = abilityRecord_->GetSessionInfo();
+        if (savedSessionInfo != nullptr &&
+            savedSessionInfo->originalCallerInfo.uiExtensionComponentId != 0) {
+            abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId =
+                savedSessionInfo->originalCallerInfo.uiExtensionComponentId;
+        } else {
+            abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId =
+                abilityRequest.sessionInfo->uiExtensionComponentId;
+        }
+    }
     abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
 }
 

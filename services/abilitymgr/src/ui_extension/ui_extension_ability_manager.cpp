@@ -708,6 +708,23 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
     targetService->DoBackgroundAbilityWindowDelayed(false);
+    // UIExtension-only stable component id maintenance. The id in originalCallerInfo is locked
+    // at first creation and kept identical across all later migrations (by the migration branch)
+    // and ordinary reuses (inherited here). Lock-on-first: when neither the request nor the
+    // record carries it yet, lock to the current componentId — this covers the first creation
+    // and the first reuse after a degraded (fallback) creation whose declaration carried no id.
+    if (abilityRequest.sessionInfo != nullptr &&
+        abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId == 0) {
+        auto savedSessionInfo = targetService->GetSessionInfo();
+        if (savedSessionInfo != nullptr &&
+            savedSessionInfo->originalCallerInfo.uiExtensionComponentId != 0) {
+            abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId =
+                savedSessionInfo->originalCallerInfo.uiExtensionComponentId;
+        } else {
+            abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId =
+                abilityRequest.sessionInfo->uiExtensionComponentId;
+        }
+    }
     targetService->SetSessionInfo(abilityRequest.sessionInfo);
 
     if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {

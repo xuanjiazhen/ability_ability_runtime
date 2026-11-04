@@ -215,6 +215,83 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
     const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded)
 {
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
+    // Migration update: the uiExtensionComponentId changes across host window migration while
+    // persistentId stays stable, so match the original record by persistentId instead of
+    // creating a new one. Records whose termination has been triggered are not reusable.
+    if (IsMigrationUpdateRequest(abilityRequest.sessionInfo)) {
+        bool hasTerminatingMatch = false;
+        auto migrationRecord = GetAbilityRecordByPersistentId(abilityRequest.sessionInfo, hostBundleName,
+            hasTerminatingMatch);
+        if (migrationRecord == nullptr && hasTerminatingMatch) {
+            // The target record's termination has been triggered (death rule: it will be driven
+            // to its final state and destroyed). Reject visibly instead of re-creating a second
+            // instance while the old one is still dying; wm may retry after it is fully
+            // destroyed, which then naturally resolves as a fresh creation.
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "migration update: record terminating, persistentId: %{public}d, rejected",
+                abilityRequest.sessionInfo->persistentId);
+            return ERR_INVALID_VALUE;
+        }
+        if (migrationRecord != nullptr) {
+            auto recordSessionInfo = migrationRecord->GetSessionInfo();
+            // Credential gate: the declared previous host token must equal the host token
+            // recorded in the record. This is a binder-level credential — a forged
+            // callerToken from another process can never equal the recorded one, because
+            // the recorded token object is only obtainable by the recorded host process.
+            bool declarationMatched = recordSessionInfo != nullptr &&
+                abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken;
+            if (!declarationMatched) {
+                // No legal timing can produce a mismatched declaration. A mismatch means
+                // forgery or a seriously broken caller: reject visibly instead of falling
+                // back, otherwise a silent record re-creation would hide the failure from wm.
+                TAG_LOGW(AAFwkTag::ABILITYMGR,
+                    "migration declaration mismatch, persistentId: %{public}d, rejected",
+                    abilityRequest.sessionInfo->persistentId);
+                return ERR_INVALID_VALUE;
+            } else {
+            // Window gate: a migration always changes hostWindowId (both cross-host and
+            // same-host window switches), so a validated declaration with an unchanged
+            // hostWindowId has no legal path in the main flow (plain starts carry no
+            // declaration and never reach here). Reject for consistency with the credential
+            // gate: a state with no legal explanation must fail visibly, not pass silently.
+            if (recordSessionInfo->hostWindowId == abilityRequest.sessionInfo->hostWindowId) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR,
+                    "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
+                    abilityRequest.sessionInfo->persistentId);
+                return ERR_INVALID_VALUE;
+            }
+                // Backfill the stable component id: the id in originalCallerInfo is locked at
+                // first creation (by the retention logic in StartAbilityLocked/UIExtensionRecord)
+                // and must stay identical across every migration. Prefer the locked id; the
+                // fallback to the record's current componentId covers the narrow window where
+                // a degraded (fallback) creation is migrated again before any retention logic
+                // has run (this branch executes before those retention points).
+                uint64_t stableId = 0;
+                if (recordSessionInfo != nullptr) {
+                    stableId = recordSessionInfo->originalCallerInfo.uiExtensionComponentId != 0
+                        ? recordSessionInfo->originalCallerInfo.uiExtensionComponentId
+                        : recordSessionInfo->uiExtensionComponentId;
+                }
+                if (stableId != 0) {
+                    abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId = stableId;
+                }
+                // Clean the stale window state entry keyed by the pre-migration componentId: the map
+                // key is the raw componentId which changes on every migration, and nothing else
+                // erases it (AMS never sends WIN_CMD_DESTROY for the old id after migration).
+                if (recordSessionInfo != nullptr) {
+                    migrationRecord->RemoveAbilityWindowStateMap(recordSessionInfo->uiExtensionComponentId);
+                }
+                abilityRecord = migrationRecord;
+                isLoaded = true;
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d, "
+                    "stableId: %{public}" PRIu64, abilityRequest.sessionInfo->persistentId, stableId);
+                return ERR_OK;
+            }
+        }
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration update: record not found, persistentId: %{public}d, fallback",
+            abilityRequest.sessionInfo->persistentId);
+    }
     abilityRecord = GetAbilityRecordBySessionInfo(abilityRequest.sessionInfo);
     if (abilityRecord != nullptr) {
         isLoaded = true;
@@ -291,6 +368,60 @@ std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRe
         }
     }
     return nullptr;
+}
+
+std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRecordByPersistentId(
+    const sptr<AAFwk::SessionInfo> &sessionInfo, const std::string &hostBundleName,
+    bool &hasTerminatingMatch)
+{
+    CHECK_POINTER_AND_RETURN(sessionInfo, nullptr);
+    hasTerminatingMatch = false;
+    if (sessionInfo->persistentId == 0) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "persistentId invalid.");
+        return nullptr;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto& it : extensionRecords_) {
+        if (it.second == nullptr) {
+            continue;
+        }
+        std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord = it.second->abilityRecord_;
+        if (abilityRecord == nullptr) {
+            continue;
+        }
+        sptr<AAFwk::SessionInfo> recordSessionInfo = abilityRecord->GetSessionInfo();
+        if (recordSessionInfo == nullptr) {
+            continue;
+        }
+        if (recordSessionInfo->persistentId != sessionInfo->persistentId) {
+            continue;
+        }
+        // A terminating match never shadows a possible live one with the same persistentId:
+        // keep scanning, but report it so the caller rejects instead of re-creating silently.
+        if (abilityRecord->IsTerminating()) {
+            hasTerminatingMatch = true;
+            continue;
+        }
+        // Cross-bundle host migration is legal in the same process (an extension of bundle Y
+        // living in host process X), so bundle mismatch is observed, not rejected. Security
+        // is enforced by the callerToken reconciliation in the migration branch instead.
+        if (it.second->hostBundleName_ != hostBundleName) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "cross-bundle host migration, persistentId: %{public}d, from: %{public}s, to: %{public}s",
+                sessionInfo->persistentId, it.second->hostBundleName_.c_str(), hostBundleName.c_str());
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "found record, persistentId: %{public}d", sessionInfo->persistentId);
+        return abilityRecord;
+    }
+    return nullptr;
+}
+
+bool ExtensionRecordManager::IsMigrationUpdateRequest(const sptr<AAFwk::SessionInfo> &sessionInfo) const
+{
+    return sessionInfo != nullptr &&
+        sessionInfo->originalCallerInfo.callerToken != nullptr &&
+        sessionInfo->originalCallerInfo.persistentId != 0;
 }
 
 bool ExtensionRecordManager::IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,

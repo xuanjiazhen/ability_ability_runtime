@@ -550,7 +550,7 @@ bool JsUIExtension::ForegroundWindowInitInsightIntentExecutorInfo(const AAFwk::W
         executorInfo.windowMode = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     }
     executorInfo.token = context->GetToken();
-    executorInfo.pageLoader = contentSessions_[sessionInfo->uiExtensionComponentId];
+    executorInfo.pageLoader = contentSessions_[AAFwk::GetEffectiveComponentId(sessionInfo)];
     executorInfo.executeParam = std::make_shared<InsightIntentExecuteParam>();
     InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
     executorInfo.executeParam->executeMode_ = UI_EXTENSION_ABILITY;
@@ -710,7 +710,7 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
         sessionInfo->uiExtensionComponentId, want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str());
     std::shared_ptr<AAFwk::Want> sharedWant = std::make_shared<AAFwk::Want>(want);
-    auto compId = sessionInfo->uiExtensionComponentId;
+    auto compId = AAFwk::GetEffectiveComponentId(sessionInfo);
     if (uiWindowMap_.find(compId) == uiWindowMap_.end()) {
         auto context = GetContext();
         auto uiWindow = CreateUIWindow(context, sessionInfo, want);
@@ -757,6 +757,35 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // Host window migration (marked by originalCallerInfo): the session already exists so
+        // onSessionCreate is not triggered here; refresh the parent binding of the reused window
+        // and cached proxies instead. Fail-isolated: on re-parent failure the whole session
+        // create is reported failed so ForegroundWindow skips Show, keeping the session
+        // backgrounded (content never flashes under the old host window).
+        if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{private}d",
+                sessionInfo->persistentId);
+            auto sessionIt = contentSessions_.find(compId);
+            if (sessionIt == contentSessions_.end() || sessionIt->second == nullptr) {
+                TAG_LOGW(AAFwkTag::UI_EXT, "migration update parent skipped, content session not found, "
+                    "compId: %{public}" PRIu64, compId);
+                return false;
+            }
+            HandleScope handleScope(jsRuntime_);
+            napi_env env = jsRuntime_.GetNapiEnv();
+            napi_value contentSession = sessionIt->second->GetNapiValue();
+            void* nativeObject = nullptr;
+            napi_unwrap(env, contentSession, &nativeObject);
+            auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
+            if (contentSessionPtr == nullptr) {
+                TAG_LOGW(AAFwkTag::UI_EXT, "migration update parent skipped, unwrap failed");
+                return false;
+            }
+            if (!contentSessionPtr->DoUpdateExtensionParent(sessionInfo)) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "migration update parent failed, keep session backgrounded");
+                return false;
+            }
+        }
     }
     return true;
 }
@@ -825,7 +854,7 @@ void JsUIExtension::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
         return;
     }
     std::lock_guard<std::mutex> lock(uiWindowMutex_);
-    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "find uiWindow wrong");
         return;
