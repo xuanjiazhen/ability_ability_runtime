@@ -193,7 +193,7 @@ void EtsUIExtensionBase::RegisterAbilityConfigUpdateCallback()
         }
         if (abilityContext->GetAbilityConfiguration() == nullptr) {
             auto abilityModuleContext = abilityContext->CreateModuleContext(
-                abilityContext->GetAbilityInfo()->moduleName);
+                abilityContext->GetAbilityInfo()->moduleName, abilityContext);
             if (abilityModuleContext == nullptr) {
                 TAG_LOGE(AAFwkTag::UI_EXT, "null abilityModuleContext");
                 return;
@@ -322,7 +322,7 @@ void EtsUIExtensionBase::OnStart(
     CallObjectMethod(false, "onCreate", UIEXT_ONCREATE_SIGNATURE, launchParamObj, wantObj);
 
     if (!OnGetConfigurationStrategy(sessionInfo)) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "OnGetConfigurationStrategy failed");
+        TAG_LOGW(AAFwkTag::UI_EXT, "OnGetConfigurationStrategy failed");
     }
 }
 
@@ -1043,13 +1043,17 @@ int32_t EtsUIExtensionBase::WindowNotifeBrandColorChange(Rosen::SubSystemId id, 
 
     AppExecFwk::Configuration config;
     config.AddItem(AAFwk::GlobalConfigurationKey::BRAND_COLOR_CHANGED, "true");
-    context_->SetAbilityConfiguration(config);
     auto self = std::static_pointer_cast<EtsUIExtensionBase>(shared_from_this());
     auto task = [self, config]() {
         if (self == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null self");
             return;
         }
+        if (self->context_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+            return;
+        }
+        self->context_->SetAbilityConfiguration(config);
         self->OnAbilityConfigurationUpdated(config);
         auto abilityConfig = self->context_->GetAbilityConfiguration();
         if (abilityConfig != nullptr) {
@@ -1098,6 +1102,10 @@ void EtsUIExtensionBase::OnConfigurationUpdated(const AppExecFwk::Configuration 
     }
 
     ConfigurationUpdated();
+    if (context_->GetConfiguration() != nullptr &&
+        !context_->GetConfiguration()->GetItem(AAFwk::GlobalConfigurationKey::BRAND_COLOR_CHANGED).empty()) {
+        context_->GetConfiguration()->RemoveItem(AAFwk::GlobalConfigurationKey::BRAND_COLOR_CHANGED);
+    }
 }
 
 void EtsUIExtensionBase::OnAbilityConfigurationUpdated(const AppExecFwk::Configuration& configuration)
