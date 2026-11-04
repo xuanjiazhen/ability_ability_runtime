@@ -220,8 +220,18 @@ void UIAbility::AttachAbilityContext(const std::shared_ptr<AbilityRuntime::Abili
             return;
         }
         if (abilityContext->GetAbilityConfiguration() == nullptr) {
-            auto abilityModuleContext = abilityContext->CreateModuleContext(
-                abilityContext->GetAbilityInfo()->moduleName);
+            auto abilityContextImpl = std::static_pointer_cast<AbilityContextImpl>(abilityContext);
+            if (abilityContextImpl == nullptr) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContextImpl");
+                return;
+            }
+            auto abilityContextBase = std::static_pointer_cast<AbilityRuntime::Context>(abilityContext);
+            if (abilityContextBase == nullptr) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContextBase");
+                return;
+            }
+            auto abilityModuleContext = abilityContextImpl->CreateModuleContext(
+                abilityContext->GetAbilityInfo()->moduleName, abilityContextBase);
             if (abilityModuleContext == nullptr) {
                 TAG_LOGE(AAFwkTag::UIABILITY, "null abilityModuleContext");
                 return;

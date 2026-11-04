@@ -21,6 +21,7 @@
 
 #include "ability_business_error.h"
 #include "ability_manager_client.h"
+#include "ability_stage_context.h"
 #include "app_utils.h"
 #include "application_configuration_manager.h"
 #include "configuration_convertor.h"
@@ -679,6 +680,19 @@ std::shared_ptr<Context> AbilityContextImpl::CreateModuleContext(const std::stri
     const std::string& moduleName)
 {
     return stageContext_ ? stageContext_->CreateModuleContext(bundleName, moduleName) : nullptr;
+}
+
+std::shared_ptr<Context> AbilityContextImpl::CreateModuleContext(const std::string& moduleName,
+    std::shared_ptr<Context> inputContext)
+{
+    if (stageContext_ == nullptr) {
+        return nullptr;
+    }
+    auto stageContext = Context::ConvertTo<AbilityStageContext>(stageContext_);
+    if (stageContext == nullptr) {
+        return stageContext_->CreateModuleContext(moduleName);
+    }
+    return stageContext->CreateModuleContext(moduleName, inputContext);
 }
 
 std::shared_ptr<Global::Resource::ResourceManager> AbilityContextImpl::CreateModuleResourceManager(
