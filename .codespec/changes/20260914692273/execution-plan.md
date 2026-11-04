@@ -106,7 +106,7 @@
 | TASK-1 | API 声明文件变更（d.ts，跨仓） | interface_sdk-js api/@ohos.app.agent.taskManager.d.ts | AC-6.5 | 无 | d.ts 移除 priority 入参与 TaskPriority 导出，@since 26.2.0 不变 | oh-api-definition（可选）+ d.ts diff 审阅 | Pending |
 | TASK-2 | 优先级判定器（映射矩阵+感知+兜底） | services/appmgr/src/task_mgr/（task_priority_judge.*、system_load_provider.*）、test/unittest/task_mgr/ | AC-6.5、AC-6.6 | 任务记录模块（20260914692191，已合入 master） | 判定矩阵/兜底单测全绿 | `run -t UT -tp ability_runtime` | Pending |
 | TASK-3 | startTask 接口变更与判定接入（IAppMgr IPC/NAPI/ANI/ETS/Service） | interfaces/inner_api/app_manager、frameworks/ets/ets、frameworks/ets/ani/task_manager/、frameworks/js/napi/task_manager/、services/appmgr/（app_mgr_service、task_mgr）、test/mock/、test/integration/ | AC-6.5 | TASK-1、TASK-2 | 新签名集成 demo 通过；多传入参返回 401 | 集成 demo + `run -t UT -tp ability_runtime` | Pending |
-| TASK-4 | 双向索引 + max 合并 + 幂等 + 并发上限 | services/appmgr/src/process_schedule/、test/unittest/process_schedule/ | AC-6.1、AC-6.2、AC-6.4 | TASK-3；20260914692272 管控代理层 | AC 用例全绿 | `run -t UT -tp ability_runtime` | Pending |
+| TASK-4 | 双向索引 + max 合并 + 幂等 + 并发上限 + 索引 dump 区段 | services/appmgr/src/process_schedule/、test/unittest/process_schedule/ | AC-6.1、AC-6.2、AC-6.4 | TASK-3；20260914692272 管控代理层 | AC 用例全绿 | `run -t UT -tp ability_runtime` | Pending |
 | TASK-5 | 动态重判与档位传播 | services/appmgr/src/task_mgr/、services/appmgr/src/process_schedule/、test/unittest/task_mgr/ | AC-6.7 | TASK-3、TASK-4 | 动态重判/防抖用例全绿 | `run -t UT -tp ability_runtime` | Pending |
 | TASK-6 | 进程死亡清理挂点 | services/appmgr/（AppDeathRecipient 挂点）、test/integration/ | AC-6.3 | TASK-4 | 清理 ≤1s、任务存续用例全绿 | 集成用例 + `run -t UT -tp ability_runtime` | Pending |
 
@@ -263,8 +263,8 @@
 | Create | services/appmgr/src/task_mgr/task_priority_judge.cpp | 判定实现+兜底 |
 | Create | services/appmgr/include/task_mgr/system_load_provider.h | 负载适配层抽象 |
 | Create | services/appmgr/src/task_mgr/system_load_provider.cpp | 默认实现+测试桩 |
-| Modify | services/appmgr/BUILD.gn、test/unittest/task_mgr/BUILD.gn | 源文件与单测 target |
-| Test | test/unittest/task_mgr/ | PriorityJudgeMatrix_0100、PriorityJudgeFallback_0100 |
+| Modify | services/appmgr/BUILD.gn、test/unittest/task_mgr/BUILD.gn | 源文件与单测 target；external_deps 新增 "resource_schedule_service:ressched_client" |
+| Test | test/unittest/task_mgr/ | PriorityJudgeMatrix_0100（含融合档位边界 4/5）、PriorityJudgeFallback_0100 |
 
 **禁止修改文件**
 
@@ -385,7 +385,7 @@
 | Modify | interfaces/inner_api/app_manager/include/appmgr/app_mgr_stub.h、src/appmgr/app_mgr_stub.cpp | Stub/HandleStartTask 移除 priority 序列化 |
 | Modify | interfaces/inner_api/app_manager/include/appmgr/app_mgr_client.h、src/appmgr/app_mgr_client.cpp | Client 移除 priority |
 | Modify | services/appmgr/include/appmgr/app_mgr_service.h、src/app_mgr_service.cpp | AppMgrService::StartTask 签名同步 |
-| Modify | services/appmgr/include/task_mgr/task_manager_service.h、src/task_mgr/task_manager_service.cpp | StartTask/StartTaskInner 移除 priority 形参、CheckParam 移除 priority 校验、接入 DetermineLevel |
+| Modify | services/appmgr/include/task_mgr/task_manager_service.h、src/task_mgr/task_manager_service.cpp | StartTask/StartTaskInner 移除 priority 形参、CheckParam 移除 priority 校验、接入 DetermineLevel；DumpActiveTasks 填充任务 sched level（不改字段布局） |
 | Modify | frameworks/ets/ets/@ohos.app.agent.taskManager.ets | startTask 框架实现移除 priority |
 | Modify | frameworks/ets/ani/task_manager/include/、src/ | NativeStartTask 移除 aniPriority |
 | Modify | frameworks/js/napi/task_manager/js_task_manager.{h,cpp} | OnStartTask 移除 priority 解析；多传入参 401 |
@@ -833,5 +833,5 @@
 
 | Task ID | 类型 | 问题/偏差 | 处理状态 | 回退能力/Owner |
 |---------|------|-----------|----------|----------------|
-| TASK-2 | dependency | 系统负载接口与资源调度领域确认（design 风险表 R1） | Open | ohos-design / yangzk |
-| TASK-4 | dependency | 20260914692272 管控代理层交付时序 | Open | ohos-plan / yangzk |
+| TASK-2 | dependency | 系统负载接口与资源调度领域确认（design ADR-7） | Resolved（ressched_client 融合档位接入方式已确认；实现时以 resourceschedule 仓头文件复核） | ohos-design / yangzk |
+| TASK-4 | dependency | 20260914692272 管控代理层交付时序 | Open（事件载荷与通知时序契约已按 design ADR-9 固化） | ohos-plan / yangzk |
