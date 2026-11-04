@@ -808,6 +808,22 @@ private:
      */
     void RemoveExtensionDelayDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
 
+    /**
+     * @brief Best-effort attribution of the target Agent process into the task
+     *        claimed via Want.parameters[ohos.aafwk.param.taskId]. Called from
+     *        ScheduleConnectAbilityDoneLocked after the Agent extension process is
+     *        spawned and onConnect has returned. Resolves taskId and target pid
+     *        from the ability record, then calls AppMgrClient::AttributeTaskForA2A.
+     *        On success records the attribution on the extension record, keyed by
+     *        the connecting record id for precise per-connection cleanup on disconnect.
+     *        Failure here does NOT fail the connect result.
+     * @param abilityRecord Indicates the connected Agent extension record.
+     * @param connectingRecord Indicates the connecting record resolved before
+     *        ScheduleConnectAbilityDoneLocked transitions it to CONNECTED.
+     */
+    void TryAttributeTargetAgentForA2A(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+        const std::shared_ptr<ConnectionRecord> &connectingRecord);
+
 private:
     bool IsNeedToRestart(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         const std::string &bundleName, const std::string &abilityName);

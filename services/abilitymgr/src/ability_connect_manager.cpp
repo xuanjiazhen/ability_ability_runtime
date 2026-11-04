@@ -21,7 +21,9 @@
 #include "ability_manager_service.h"
 #include "ability_permission_util.h"
 #include "ability_resident_process_rdb.h"
+#include "app_mgr_client.h"
 #include "ability_util.h"
+#include "utils/agent_ability_util.h"
 #include "agent_card.h"
 #include "agent_extension_connection_constants.h"
 #include "agent_manager_client.h"
@@ -87,6 +89,7 @@ constexpr char BUNDLE_NAME_DIALOG[] = "com.ohos.amsdialog";
 constexpr char ABILITY_NAME_ASSERT_FAULT_DIALOG[] = "AssertFaultDialog";
 constexpr const char* WANT_PARAMS_APP_RESTART_FLAG = "ohos.aafwk.app.restart";
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
+constexpr const char* WANT_PARAMS_TASK_ID_KEY = "ohos.aafwk.param.taskId";
 constexpr int32_t HALF_TIMEOUT = 2;
 const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 
@@ -959,7 +962,58 @@ int AbilityConnectManager::ScheduleConnectAbilityDoneLocked(
     }
     CompleteStartServiceReq(abilityRecord->GetURI());
     ReportConnectEventToRss(LoadingStage::CONNECT_END, abilityRecord, connectingRecord, 0);
+    TryAttributeTargetAgentForA2A(abilityRecord, connectingRecord);
     return ERR_OK;
+}
+
+void AbilityConnectManager::TryAttributeTargetAgentForA2A(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+    const std::shared_ptr<ConnectionRecord> &connectingRecord)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A abilityRecord is nullptr, skipping attribution");
+        return;
+    }
+    if (connectingRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A connectingRecord is nullptr, skipping attribution");
+        return;
+    }
+    const auto &abilityInfo = abilityRecord->GetAbilityInfo();
+    if (!AgentAbilityUtil::IsAgentExtensionType(abilityInfo.extensionAbilityType)) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "A2A not agent extension type, skipping attribution, type: %{public}d",
+            static_cast<int32_t>(abilityInfo.extensionAbilityType));
+        return;
+    }
+    std::string taskId = abilityRecord->GetWant().GetStringParam(WANT_PARAMS_TASK_ID_KEY);
+    if (taskId.empty()) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A taskId is empty, skipping attribution");
+        return;
+    }
+    pid_t targetPid = abilityRecord->GetPid();
+    if (targetPid <= 0) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "A2A target pid not resolved, skipping attribution, taskId: %{public}s", taskId.c_str());
+        return;
+    }
+    uint32_t callerTokenId = connectingRecord->GetCallerTokenId();
+    if (callerTokenId == 0) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "A2A callerTokenId not resolved, skipping attribution, taskId: %{public}s", taskId.c_str());
+        return;
+    }
+    int32_t recordId = connectingRecord->GetRecordId();
+    int64_t attributionId = 0;
+    int32_t ret = IN_PROCESS_CALL(
+        DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->AttributeTaskForA2A(
+            taskId, callerTokenId, targetPid, attributionId));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "A2A attribute failed, taskId: %{public}s, ret: %{public}d", taskId.c_str(), ret);
+        return;
+    }
+    abilityRecord->AddTaskAttribution(recordId, taskId, attributionId);
 }
 
 void AbilityConnectManager::ProcessEliminateAbilityRecord(std::shared_ptr<BaseExtensionRecord> eliminateRecord)
@@ -1031,6 +1085,22 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
     }
 
     UpdateStateAndCompleteDisconnect(abilityRecord, connect, token);
+
+    if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        int32_t recordId = connect->GetRecordId();
+        auto attribution = abilityRecord->GetTaskAttribution(recordId);
+        if (!attribution.first.empty() && attribution.second > 0) {
+            int32_t ret = IN_PROCESS_CALL(
+                DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterTaskForA2A(
+                    attribution.first, attribution.second));
+            if (ret == ERR_OK) {
+                abilityRecord->RemoveTaskAttribution(recordId);
+            } else {
+                TAG_LOGE(AAFwkTag::EXT,
+                    "A2A unregister failed, recordId=%{public}d, ret=%{public}d", recordId, ret);
+            }
+        }
+    }
 
     CleanupConnectionAndTerminateIfNeeded(abilityRecord);
 

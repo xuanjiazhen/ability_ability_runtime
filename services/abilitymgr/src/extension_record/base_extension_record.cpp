@@ -392,5 +392,28 @@ void BaseExtensionRecord::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
         }
     }
 }
+
+void BaseExtensionRecord::AddTaskAttribution(int32_t recordId, const std::string &taskId,
+    int64_t attributionId)
+{
+    std::lock_guard<ffrt::mutex> lock(taskAttributionsMutex_);
+    taskAttributions_[recordId] = std::make_pair(taskId, attributionId);
+}
+
+std::pair<std::string, int64_t> BaseExtensionRecord::GetTaskAttribution(int32_t recordId) const
+{
+    std::lock_guard<ffrt::mutex> lock(taskAttributionsMutex_);
+    auto it = taskAttributions_.find(recordId);
+    if (it != taskAttributions_.end()) {
+        return it->second;
+    }
+    return std::make_pair(std::string(), 0);
+}
+
+void BaseExtensionRecord::RemoveTaskAttribution(int32_t recordId)
+{
+    std::lock_guard<ffrt::mutex> lock(taskAttributionsMutex_);
+    taskAttributions_.erase(recordId);
+}
 } // namespace AAFwk
 } // namespace OHOS
