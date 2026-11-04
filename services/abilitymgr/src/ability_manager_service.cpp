@@ -16484,6 +16484,37 @@ int32_t AbilityManagerService::GetDynamicAgentCardsForMigration(std::string &jso
     return AgentCardMigrationHelper::GetInstance().GetDynamicAgentCardsAsJson(jsonStr);
 }
 
+int32_t AbilityManagerService::AttributeSameConnectionRecordTaskID(const Want &want,
+    sptr<IAbilityConnection> connect)
+{
+    // Best-effort: a reused agent connect hit an already-connected AgentConnection on the
+    // caller side, so ScheduleConnectAbilityDoneLocked will NOT fire again for this connection.
+    // Resolve the target connectManager the same way as the original connect path, then delegate
+    // to the connect manager to attribute the task id onto the existing ConnectionRecord.
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (connect == nullptr || connect->AsObject() == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AttributeSameConnectionRecordTaskID null connect");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t validUserId = GetValidUserId(DEFAULT_INVAL_VALUE);
+    AbilityRequest abilityRequest;
+    auto result = GenerateExtensionAbilityRequest(want, abilityRequest, nullptr, validUserId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "AttributeSameConnectionRecordTaskID generate request failed: %{public}d", result);
+        return result;
+    }
+    const auto &abilityInfo = abilityRequest.abilityInfo;
+    validUserId = abilityInfo.applicationInfo.uid / BASE_USER_RANGE;
+    auto connectManager = GetConnectManagerByUserId(validUserId, abilityInfo.extensionAbilityType);
+    if (connectManager == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "AttributeSameConnectionRecordTaskID connectManager null userId=%{public}d", validUserId);
+        return ERR_INVALID_VALUE;
+    }
+    return connectManager->AttributeSameConnectionRecordTaskID(abilityRequest, connect);
+}
+
 int32_t AbilityManagerService::QuerySkillType(const std::string &bundleName, const std::string &moduleName,
     const std::string &skillName, int32_t &skillType)
 {

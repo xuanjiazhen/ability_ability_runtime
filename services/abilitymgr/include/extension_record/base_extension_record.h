@@ -16,11 +16,21 @@
 #ifndef OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_BASE_H
 #define OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_BASE_H
 
+#include <map>
+#include <utility>
+#include <vector>
+
 #include "ability_record.h"
 
 namespace OHOS {
 namespace AAFwk {
 class ConnectionRecord;
+
+struct AgentTaskAttribution {
+    std::string taskId;
+    int64_t attributionId = 0;
+    std::string agentId;
+};
 
 class BaseExtensionRecord : public AbilityRecord {
 public:
@@ -149,6 +159,25 @@ public:
     void SetRequestId(const std::string &requestId);
     std::string GetRequestId() const;
 
+    /**
+     * add a task attribution entry keyed by the connection record id. A recordId may carry
+     * multiple attributions (one per task), so entries are appended to a vector.
+     *
+     */
+    void AddTaskAttribution(int32_t recordId, const AgentTaskAttribution &attribution);
+
+    /**
+     * get all task attribution entries matching recordId.
+     *
+     */
+    std::vector<AgentTaskAttribution> GetTaskAttributions(int32_t recordId) const;
+
+    /**
+     * remove the task attribution entry matching taskId from the recordId's vector.
+     *
+     */
+    void RemoveTaskAttribution(int32_t recordId, const std::string &taskId);
+
 private:
     void DumpUIExtensionRootHostInfo(std::vector<std::string> &info) const;
 
@@ -163,6 +192,8 @@ private:
     sptr<IRemoteObject> connRemoteObject_ = {};
     bool isConnected = false;
     std::string requestId_;
+    mutable ffrt::mutex taskAttributionsMutex_;
+    std::map<int32_t, std::vector<AgentTaskAttribution>> taskAttributions_;
 };
 } // namespace AAFwk
 } // namespace OHOS
