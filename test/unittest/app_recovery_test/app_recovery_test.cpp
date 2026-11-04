@@ -355,7 +355,6 @@ HWTEST_F(AppRecoveryUnitTest, ScheduleSaveAppState_003, TestSize.Level0)
     AppRecovery::GetInstance().EnableAppRecovery(RestartFlag::ALWAYS_RESTART, SaveOccasionFlag::SAVE_WHEN_ERROR,
         SaveModeFlag::SAVE_WITH_FILE);
     auto handler = std::make_shared<EventHandler>(EventRunner::Create());
-    EXPECT_TRUE(handler != nullptr);
     AppRecovery::GetInstance().mainHandler_ = handler;
     auto constContext = std::static_pointer_cast<AbilityRuntime::AbilityContext>(context_);
     // create js runtime for calling AllowCrossThreadExecution
@@ -368,6 +367,7 @@ HWTEST_F(AppRecoveryUnitTest, ScheduleSaveAppState_003, TestSize.Level0)
     // this call will block main thread, thus call it in new thread
     std::thread watchdog([&] {
         bool ret = AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
+        EXPECT_TRUE(ret);
         printf("ret = %d\n", ret);
     });
     watchdog.join();
@@ -437,7 +437,20 @@ HWTEST_F(AppRecoveryUnitTest, ScheduleSaveAppState_007, TestSize.Level0)
     EXPECT_TRUE(ret);
 }
 
+
 /**
+ * @tc.name:  ScheduleSaveAppState_008
+ * @tc.desc:  ScheduleSaveAppState when enable flag is false.
+ * @tc.type: FUNC
+ * @tc.require: I5UL6H
+ */
+HWTEST_F(AppRecoveryUnitTest, ScheduleSaveAppState_008, TestSize.Level1)
+{
+    bool ret = AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE);
+    EXPECT_FALSE(ret);
+}
+ 
+ /**
  * @tc.name:  ShouldRecoverApp_001
  * @tc.desc:  ShouldRecoverApp when state is not support save,RestartFlag = NO_RESTART.
  * @tc.type: FUNC
