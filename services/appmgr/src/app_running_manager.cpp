@@ -584,8 +584,12 @@ bool AppRunningManager::ProcessExitByBundleNameAndUid(
             continue;
         }
         auto appInfoList = appRecord->GetAppInfoList();
+        // uid-fork: `uid` comes from BMS GetUidByBundleName (composite appUid domain) while
+        // a running record's uid is the runtime uid (bare userId for forked apps). The
+        // bundleName equality already pins the application; accept either domain.
         auto isExist = [&bundleName, &uid](const std::shared_ptr<ApplicationInfo> &appInfo) {
-            return appInfo->bundleName == bundleName && appInfo->uid == uid;
+            return appInfo->bundleName == bundleName &&
+                (appInfo->uid == uid || appInfo->uid == uid / BASE_USER_RANGE);
         };
         auto iter = std::find_if(appInfoList.begin(), appInfoList.end(), isExist);
         pid_t pid = appRecord->GetPid();
@@ -1079,7 +1083,9 @@ void AppRunningManager::NotifyAppPreCache(const std::shared_ptr<AppRunningRecord
         return;
     }
     int32_t pid = appRecord->GetPid();
-    int32_t userId = appRecord->GetUid() / BASE_USER_RANGE;
+    // uid-fork: derive the account id from the record's own userId (the record uid is
+    // the runtime uid, i.e. the bare userId for forked apps, not the composite one).
+    int32_t userId = appRecord->GetUserId();
     auto notifyAppPreCache = [pid, userId, inner = appMgrServiceInner]() {
         if (inner == nullptr) {
             return;
@@ -1529,7 +1535,7 @@ bool AppRunningManager::GetAppRunningStateByBundleName(const std::string &bundle
         if (appRecord && appRecord->GetBundleName() == bundleName) {
             TAG_LOGD(AAFwkTag::APPMGR, "Process of [%{public}s] is running, processName: %{public}s.",
                 bundleName.c_str(), appRecord->GetProcessName().c_str());
-            if (IPCSkeleton::GetCallingUid() == QUICKFIX_UID && appRecord->GetPriorityObject() != nullptr) {
+            if (IPCSkeleton::GetCallingAppUid() == QUICKFIX_UID && appRecord->GetPriorityObject() != nullptr) {
                 TAG_LOGI(AAFwkTag::APPMGR, "pid: %{public}d", appRecord->GetPid());
             }
             return true;

@@ -91,7 +91,7 @@ public:
     {
         MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
         MyFlag::retDisconnectAbility = ERR_OK;
-        MyFlag::extensionAbilityUid = IPCSkeleton::GetCallingUid();
+        MyFlag::extensionAbilityUid = IPCSkeleton::GetCallingAppUid();
         AgentConnectManager::GetInstance().Clear();
     }
 };
@@ -105,7 +105,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_001, TestSize.Level1)
 {
     auto &manager = AgentConnectManager::GetInstance();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
@@ -114,10 +114,10 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_001, TestSize.Level1)
     auto callerRemote = callback->AsObject();
     auto session = std::make_shared<AgentHostSession>();
     session->key = hostKey;
-    session->hostUid = IPCSkeleton::GetCallingUid();
+    session->hostUid = IPCSkeleton::GetCallingAppUid();
     session->hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey, callerRemote, "agentA");
     session->callerConnections[callerRemote] = callback;
-    session->agents["agentA"] = LowCodeAgentRecord { callerRemote, IPCSkeleton::GetCallingUid(), true,
+    session->agents["agentA"] = LowCodeAgentRecord { callerRemote, IPCSkeleton::GetCallingAppUid(), true,
         session->hostConnection };
     manager.agentHostSessions_[hostKey] = session;
     manager.agentOwners_[{session->hostUid, "agentA"}] = session;
@@ -143,7 +143,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_001, TestSize.Level1)
 HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_002, TestSize.Level1)
 {
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
@@ -170,7 +170,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_003, TestSize.Level1)
 {
     auto &manager = AgentConnectManager::GetInstance();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
@@ -198,7 +198,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_004, TestSize.Level1)
 {
     auto &manager = AgentConnectManager::GetInstance();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
@@ -207,15 +207,15 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_004, TestSize.Level1)
     auto callerRemote = callback->AsObject();
     auto session = std::make_shared<AgentHostSession>();
     session->key = hostKey;
-    session->hostUid = IPCSkeleton::GetCallingUid();
+    session->hostUid = IPCSkeleton::GetCallingAppUid();
     session->hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey, callerRemote, "agentA");
     session->callerConnections[callerRemote] = callback;
-    session->agents["agentA"] = LowCodeAgentRecord { callerRemote, IPCSkeleton::GetCallingUid(), true,
+    session->agents["agentA"] = LowCodeAgentRecord { callerRemote, IPCSkeleton::GetCallingAppUid(), true,
         session->hostConnection };
     manager.agentHostSessions_[hostKey] = session;
     manager.agentOwners_[{session->hostUid, "agentA"}] = session;
     TrackedConnectionRecord record;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.callerRemote = callerRemote;
     record.serviceConnection = session->hostConnection;
     record.hostKey = hostKey;
@@ -245,7 +245,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_005, TestSize.Level1)
 {
     auto &manager = AgentConnectManager::GetInstance();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
@@ -254,10 +254,10 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_005, TestSize.Level1)
     auto callerRemote = callback->AsObject();
     auto session = std::make_shared<AgentHostSession>();
     session->key = hostKey;
-    session->hostUid = IPCSkeleton::GetCallingUid();
+    session->hostUid = IPCSkeleton::GetCallingAppUid();
     session->hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey, callerRemote, "agentA");
     session->callerConnections[callerRemote] = callback;
-    session->agents["agentA"] = LowCodeAgentRecord { callerRemote, IPCSkeleton::GetCallingUid(), true,
+    session->agents["agentA"] = LowCodeAgentRecord { callerRemote, IPCSkeleton::GetCallingAppUid(), true,
         session->hostConnection };
     manager.agentHostSessions_[hostKey] = session;
     manager.agentOwners_[{session->hostUid, "agentA"}] = session;
@@ -285,7 +285,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_006, TestSize.Level1)
 {
     auto &manager = AgentConnectManager::GetInstance();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
@@ -294,10 +294,10 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_006, TestSize.Level1)
     auto callerRemote = callback->AsObject();
     auto session = std::make_shared<AgentHostSession>();
     session->key = hostKey;
-    session->hostUid = IPCSkeleton::GetCallingUid();
+    session->hostUid = IPCSkeleton::GetCallingAppUid();
     session->hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey, callerRemote, "agentA");
     session->callerConnections[callerRemote] = callback;
-    session->agents["agentA"] = LowCodeAgentRecord { callerRemote, IPCSkeleton::GetCallingUid(), true,
+    session->agents["agentA"] = LowCodeAgentRecord { callerRemote, IPCSkeleton::GetCallingAppUid(), true,
         session->hostConnection };
     manager.agentHostSessions_[hostKey] = session;
     manager.agentOwners_[{session->hostUid, "agentA"}] = session;
@@ -325,7 +325,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_001, TestSize.Level1)
     auto service = AgentManagerService::GetInstance();
     auto &manager = AgentConnectManager::GetInstance();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
@@ -334,10 +334,10 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_001, TestSize.Level1)
     auto callerRemote = callback->AsObject();
     auto session = std::make_shared<AgentHostSession>();
     session->key = hostKey;
-    session->hostUid = IPCSkeleton::GetCallingUid();
+    session->hostUid = IPCSkeleton::GetCallingAppUid();
     session->hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey, callerRemote, "agentA");
     session->callerConnections[callerRemote] = callback;
-    session->agents["agentA"] = LowCodeAgentRecord { callerRemote, IPCSkeleton::GetCallingUid(), false,
+    session->agents["agentA"] = LowCodeAgentRecord { callerRemote, IPCSkeleton::GetCallingAppUid(), false,
         session->hostConnection };
     session->agents["agentA"].isDisconnecting = true;
     session->agents["agentA"].originalIdentity = "caller.identity";
@@ -351,7 +351,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_001, TestSize.Level1)
     manager.agentHostSessions_[hostKey] = session;
     manager.agentOwners_[{session->hostUid, "agentA"}] = session;
     TrackedConnectionRecord record;
-    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.callerUid = IPCSkeleton::GetCallingAppUid();
     record.callerRemote = callerRemote;
     record.serviceConnection = session->hostConnection;
     record.hostKey = hostKey;
@@ -384,7 +384,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_001, TestSize.Level1)
 HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_002, TestSize.Level1)
 {
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";
@@ -409,7 +409,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_003, TestSize.Level1)
 {
     auto &manager = AgentConnectManager::GetInstance();
     AgentHostKey hostKey;
-    hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+    hostKey.userId = IPCSkeleton::GetCallingAppUid() / 200000;
     hostKey.bundleName = "lowcode.bundle";
     hostKey.moduleName = "entry";
     hostKey.abilityName = "LowCodeExtAbility";

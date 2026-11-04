@@ -27,6 +27,11 @@ pid_t IPCSkeleton::GetCallingUid()
     return AAFwk::MyStatus::GetInstance().getCallingUid_;
 }
 
+pid_t IPCSkeleton::GetCallingAppUid()
+{
+    return GetCallingUid();
+}
+
 pid_t IPCSkeleton::GetCallingPid()
 {
     AAFwk::MyStatus::GetInstance().getCallingPid_++;

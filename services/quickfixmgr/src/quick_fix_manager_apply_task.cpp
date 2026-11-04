@@ -357,7 +357,7 @@ void QuickFixManagerApplyTask::Run(const std::vector<std::string> &quickFixFiles
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::QUICKFIX, "Run apply task");
     taskType_ = TaskType::QUICK_FIX_APPLY;
-    callerUid_ = IPCSkeleton::GetCallingUid();
+    callerUid_ = IPCSkeleton::GetCallingAppUid();
     callerUserId_ = callerUid_ / AppExecFwk::Constants::BASE_USER_RANGE;
     isCheckDebugApp_ = isCheckDebugApp;
     PostDeployQuickFixTask(quickFixFiles, isDebug, isReplace, isCheckDebugApp);
@@ -368,7 +368,7 @@ void QuickFixManagerApplyTask::RunRevoke()
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::QUICKFIX, "Run apply revoke task");
     taskType_ = TaskType::QUICK_FIX_REVOKE;
-    callerUid_ = IPCSkeleton::GetCallingUid();
+    callerUid_ = IPCSkeleton::GetCallingAppUid();
     PostRevokeQuickFixTask();
 }
 
@@ -463,7 +463,7 @@ void QuickFixManagerApplyTask::PostDeployQuickFixTask(const std::vector<std::str
     }
 
     std::weak_ptr<QuickFixManagerApplyTask> thisWeakPtr(weak_from_this());
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     auto deployTask = [thisWeakPtr, quickFixFiles, callback, isDebug, isReplace, isCheckDebugApp, callerUid]() {
         auto applyTask = thisWeakPtr.lock();
         if (applyTask == nullptr) {

@@ -33,6 +33,7 @@ public:
     static pid_t GetCallingPid();
 
     static pid_t GetCallingUid();
+    static pid_t GetCallingAppUid();
 
     static uint32_t GetCallingTokenID();
 

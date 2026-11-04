@@ -140,7 +140,7 @@ int FreeInstallManager::StartFreeInstall(const Want &want, int32_t userId, int r
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, GET_ABILITY_SERVICE_FAILED);
     if (!PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)) {
-        info.want.SetParam(PARAM_FREEINSTALL_UID, IPCSkeleton::GetCallingUid());
+        info.want.SetParam(PARAM_FREEINSTALL_UID, IPCSkeleton::GetCallingAppUid());
     }
     int result = SetAppRunningState(info.want);
     if (result != ERR_OK) {
@@ -190,7 +190,7 @@ int FreeInstallManager::RemoteFreeInstall(const Want &want, int32_t userId, int 
     }
     int32_t recordId = GetRecordIdByToken(callerToken);
     sptr<AtomicServiceStatusCallback> callback = new AtomicServiceStatusCallback(weak_from_this(), false, recordId);
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     uint32_t accessToken = IPCSkeleton::GetCallingTokenID();
 #ifdef SUPPORT_UPMS
     UriUtils::GetInstance().CheckUriPermission(accessToken, info.want);
@@ -600,7 +600,7 @@ int FreeInstallManager::ConnectFreeInstall(const Want &want, int32_t userId,
             }
             isVerifiedAgentCaller = true;
         } else {
-            int callerUid = IPCSkeleton::GetCallingUid();
+            int callerUid = IPCSkeleton::GetCallingAppUid();
             std::string localBundleName;
             auto res = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, localBundleName));
             if (res != ERR_OK || localBundleName != want.GetBundleNameRef()) {

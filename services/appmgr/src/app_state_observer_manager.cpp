@@ -81,13 +81,13 @@ int32_t AppStateObserverManager::RegisterApplicationStateObserver(const sptr<IAp
         return ERR_INVALID_VALUE;
     }
     std::lock_guard lockRegister(observerLock_);
-    appStateObserverMap_.emplace(observer, AppStateObserverInfo{IPCSkeleton::GetCallingUid(),
+    appStateObserverMap_.emplace(observer, AppStateObserverInfo{IPCSkeleton::GetCallingAppUid(),
         bundleNameList, appStateFilter});
     if (appStateObserverMap_.size() >= OBSERVER_SINGLE_COUNT_LOG &&
         appStateObserverMap_.size() % OBSERVER_SINGLE_STEP_LOG == 0) {
         TAG_LOGW(AAFwkTag::APPMGR, "appStateObserverMap_ size:%{public}zu", appStateObserverMap_.size());
     }
-    AddObserverCount(IPCSkeleton::GetCallingUid());
+    AddObserverCount(IPCSkeleton::GetCallingAppUid());
     AddObserverDeathRecipient(observer, ObserverType::APPLICATION_STATE_OBSERVER);
     return ERR_OK;
 }
@@ -135,9 +135,9 @@ int32_t AppStateObserverManager::RegisterImageProcessStateObserver(const sptr<II
         return ERR_INVALID_VALUE;
     }
     std::lock_guard lockRegister(imageProcessObserverLock_);
-    imageProcessStateObserverMap_.emplace(observer, IPCSkeleton::GetCallingUid());
+    imageProcessStateObserverMap_.emplace(observer, IPCSkeleton::GetCallingAppUid());
     AddObserverDeathRecipient(observer, ObserverType::IMAGE_PROCESS_STATE_OBSERVER);
-    AddObserverCount(IPCSkeleton::GetCallingUid());
+    AddObserverCount(IPCSkeleton::GetCallingAppUid());
     if (imageProcessStateObserverMap_.size() >= OBSERVER_SINGLE_COUNT_LOG &&
         imageProcessStateObserverMap_.size() % OBSERVER_SINGLE_STEP_LOG == 0) {
         TAG_LOGW(AAFwkTag::APPMGR, "imageProcessStateObserverMap_ size:%{public}zu",
@@ -188,9 +188,9 @@ int32_t AppStateObserverManager::RegisterAppForegroundStateObserver(const sptr<I
     }
 
     std::lock_guard lockRegister(appForegroundObserverLock_);
-    appForegroundStateObserverMap_.emplace(observer, IPCSkeleton::GetCallingUid());
+    appForegroundStateObserverMap_.emplace(observer, IPCSkeleton::GetCallingAppUid());
     AddObserverDeathRecipient(observer, ObserverType::APP_FOREGROUND_STATE_OBSERVER);
-    AddObserverCount(IPCSkeleton::GetCallingUid());
+    AddObserverCount(IPCSkeleton::GetCallingAppUid());
     if (appForegroundStateObserverMap_.size() >= OBSERVER_SINGLE_COUNT_LOG &&
         appForegroundStateObserverMap_.size() % OBSERVER_SINGLE_STEP_LOG == 0) {
         TAG_LOGW(AAFwkTag::APPMGR, "appForegroundObserver size:%{public}zu", appForegroundStateObserverMap_.size());
@@ -230,7 +230,7 @@ int32_t AppStateObserverManager::RegisterProcessLifecycleObserver(const sptr<IPr
         TAG_LOGE(AAFwkTag::APPMGR, "null observer");
         return ERR_INVALID_VALUE;
     }
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingUid = IPCSkeleton::GetCallingAppUid();
     pid_t callingPid = IPCSkeleton::GetCallingPid();
     std::lock_guard lockRegister(processLifecycleObserverLock_);
     for (const auto &[it, info] : processLifecycleObserverMap_) {
@@ -285,7 +285,7 @@ int32_t AppStateObserverManager::RegisterFocusedApplicationObserver(const sptr<I
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
         return ERR_PERMISSION_DENIED;
     }
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingUid = IPCSkeleton::GetCallingAppUid();
     std::lock_guard lockRegister(focusedApplicationObserverLock_);
     bool exist = false;
     for (const auto &[it, uid] : focusedApplicationObserverMap_) {
@@ -357,9 +357,9 @@ int32_t AppStateObserverManager::RegisterAbilityForegroundStateObserver(
     }
 
     std::lock_guard lockRegister(abilityForegroundObserverLock_);
-    abilityForegroundObserverMap_.emplace(observer, IPCSkeleton::GetCallingUid());
+    abilityForegroundObserverMap_.emplace(observer, IPCSkeleton::GetCallingAppUid());
     AddObserverDeathRecipient(observer, ObserverType::ABILITY_FOREGROUND_STATE_OBSERVER);
-    AddObserverCount(IPCSkeleton::GetCallingUid());
+    AddObserverCount(IPCSkeleton::GetCallingAppUid());
     if (abilityForegroundObserverMap_.size() >= OBSERVER_SINGLE_COUNT_LOG &&
         abilityForegroundObserverMap_.size() % OBSERVER_SINGLE_STEP_LOG == 0) {
         TAG_LOGW(AAFwkTag::APPMGR, "abilityForegroundObserver size:%{public}zu", abilityForegroundObserverMap_.size());

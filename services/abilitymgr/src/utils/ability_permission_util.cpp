@@ -416,7 +416,7 @@ bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::strin
         TAG_LOGW(AAFwkTag::ABILITYMGR, "empty name");
         return true;
     }
-    auto userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(userId);
     if (userLockStatus == AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED) {
         return true;

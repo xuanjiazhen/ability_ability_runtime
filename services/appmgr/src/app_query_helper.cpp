@@ -150,7 +150,7 @@ bool AppQueryHelper::IsSceneBoardCall()
     }
     auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
     if (bundleMgrHelper != nullptr) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        int32_t callingUid = IPCSkeleton::GetCallingAppUid();
         std::string callerBundleName;
         IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, callerBundleName));
         return callerBundleName == SCENE_BOARD_BUNDLE_NAME;
@@ -223,13 +223,13 @@ int32_t AppQueryHelper::GetAllRunningInstanceKeysBySelf(std::vector<std::string>
         return ERR_INVALID_VALUE;
     }
     std::string bundleName;
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, bundleName));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetNameForUid failed, ret=%{public}d", ret);
         return AAFwk::ERR_BUNDLE_NOT_EXIST;
     }
-    int32_t userId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+    int32_t userId = GetUserIdByUid(IPCSkeleton::GetCallingAppUid());
     return GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
 }
 
@@ -710,7 +710,7 @@ int AppQueryHelper::GetApplicationInfoByProcessID(const int pid, AppExecFwk::App
 }
 int AppQueryHelper::VerifyAccountPermission(const std::string &permissionName, const int userId) const
 {
-    int32_t callerUser = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t callerUser = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     if (((callerUser != U0_USER_ID && callerUser != U1_USER_ID) ||
         !UserController::GetInstance().IsForegroundUser(userId)) &&
         callerUser != userId) {
@@ -850,7 +850,7 @@ int32_t AppQueryHelper::IsAppRunning(const std::string &bundleName, int32_t appC
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Called, bundleName: %{public}s, appCloneIndex: %{public}d, userId: %{public}d",
         bundleName.c_str(), appCloneIndex, userId);
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     if (callingUid != FOUNDATION_UID && callingUid != FILE_SYSTEM_SERVICE_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation or file system service call");
         return ERR_PERMISSION_DENIED;
@@ -877,7 +877,7 @@ int32_t AppQueryHelper::IsAppRunningByBundleNameAndUserId(const std::string &bun
     bool &isRunning)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Called, bundleName=%{public}s,userId=%{public}d", bundleName.c_str(), userId);
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return ERR_PERMISSION_DENIED;
     }
@@ -1126,7 +1126,7 @@ int32_t AppQueryHelper::CheckCallingIsUserTestModeInner(const pid_t pid, bool &i
 
 bool AppQueryHelper::IsKilledForUpgradeWeb(const std::string &bundleName) const
 {
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     if (callerUid != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return false;
@@ -1163,7 +1163,7 @@ bool AppQueryHelper::IsProcessContainsOnlyUIAbility(const pid_t pid)
 bool AppQueryHelper::IsProcessAttached(sptr<IRemoteObject> token) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return false;
     }
@@ -1178,7 +1178,7 @@ bool AppQueryHelper::IsProcessAttached(sptr<IRemoteObject> token) const
 bool AppQueryHelper::IsCallerKilling(const std::string& callerKey) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
         return false;
     }
@@ -1196,7 +1196,7 @@ int32_t AppQueryHelper::GetSupportedProcessCachePids(const std::string &bundleNa
     pidList.clear();
     int32_t callderUserId = -1;
     int32_t getOsAccountRet = OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(
-        IPCSkeleton::GetCallingUid(), callderUserId);
+        IPCSkeleton::GetCallingAppUid(), callderUserId);
     if (getOsAccountRet != 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "get caller local id fail. ret: %{public}d", getOsAccountRet);
         return AAFwk::INNER_ERR;

@@ -100,7 +100,7 @@ HWTEST_F(AppExitReasonHelperTest, RecordAppExitReason_0100, TestSize.Level1)
     auto abilityRecord = std::make_shared<UIAbilityRecord>(want, abilityInfo, applicationInfo, -1);
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->SetPid(IPCSkeleton::GetCallingPid());
-    abilityRecord->abilityInfo_.applicationInfo.uid = IPCSkeleton::GetCallingUid();
+    abilityRecord->abilityInfo_.applicationInfo.uid = IPCSkeleton::GetCallingAppUid();
     abilityRecord->abilityInfo_.name = "test";
     abilityRecord->abilityInfo_.launchMode = AppExecFwk::LaunchMode::STANDARD;
     abilityRecord->sessionInfo_ = new SessionInfo();

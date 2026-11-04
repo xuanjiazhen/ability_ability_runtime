@@ -1595,7 +1595,7 @@ void SystemAbilityCallerRecord::SendResultToSystemAbility(int requestCode,
     Want resultWant = callerSystemAbilityRecord->GetResultWant();
     sptr<IRemoteObject> callerToken = callerSystemAbilityRecord->GetCallerToken();
     if (!schedulerdied) {
-        callerUid = IPCSkeleton::GetCallingUid();
+        callerUid = IPCSkeleton::GetCallingAppUid();
         accessToken = IPCSkeleton::GetCallingTokenID();
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Try to SendResult");
@@ -2988,7 +2988,7 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
     grantInfo.flag = want.GetFlags();
     grantInfo.isNotifyCollaborator = isNotifyCollaborator;
     grantInfo.targetUid = uid_;
-    grantInfo.callerUid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
+    grantInfo.callerUid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingAppUid());
     if (!isNotifyCollaborator) {
         grantInfo.targetAbilityName = abilityInfo_.name;
     }
@@ -3620,7 +3620,7 @@ void AbilityRecord::SetPromotePriority(bool promotePriority)
         uiAbilityProperty_ = std::make_shared<UIAbilityProperty>();
     }
     uiAbilityProperty_->promotePriority = promotePriority;
-    uiAbilityProperty_->byCallCallerSaUid = IPCSkeleton::GetCallingUid();
+    uiAbilityProperty_->byCallCallerSaUid = IPCSkeleton::GetCallingAppUid();
     uiAbilityProperty_->byCallCallerSaPid = IPCSkeleton::GetCallingPid();
 }
 

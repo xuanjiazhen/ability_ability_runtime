@@ -80,7 +80,7 @@ HWTEST_F(AppMgrServiceDumpArkWebTest, AppMgrServiceDumpArkWeb_0100, TestSize.Lev
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -114,7 +114,7 @@ HWTEST_F(AppMgrServiceDumpArkWebTest, AppMgrServiceDumpArkWeb_0200, TestSize.Lev
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     IPCSkeleton::SetCallingUid(RANDOM_SERVICE_UID);
-    EXPECT_FALSE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_FALSE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -153,7 +153,7 @@ HWTEST_F(AppMgrServiceDumpArkWebTest, AppMgrServiceDumpArkWeb_0300, TestSize.Lev
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;
@@ -196,7 +196,7 @@ HWTEST_F(AppMgrServiceDumpArkWebTest, AppMgrServiceDumpArkWeb_0400, TestSize.Lev
 
     // IsHidumperServiceCall
     IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
-    EXPECT_TRUE((IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID));
+    EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
     std::vector<std::u16string> args;

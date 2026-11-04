@@ -425,7 +425,7 @@ bool UriUtils::GrantUriPermission(Want &want, const GrantUriPermissionInfo &gran
 
     auto callerPkg = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
     bool isBrokerCall = (IsInAncoAppIdentifier(callerPkg) ||
-        IPCSkeleton::GetCallingUid() == AppUtils::GetInstance().GetCollaboratorBrokerUID());
+        IPCSkeleton::GetCallingAppUid() == AppUtils::GetInstance().GetCollaboratorBrokerUID());
     if (isBrokerCall && GrantShellUriPermission(uriVec, grantInfo.flag, grantInfo.targetBundleName,
         grantInfo.appIndex, grantInfo.userId)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "permission to shell");

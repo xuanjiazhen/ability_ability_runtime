@@ -156,7 +156,7 @@ int32_t QuickFixManagerService::GetApplyedQuickFixInfo(const std::string &bundle
         isCheckDebugApp = true;
     }
 
-    int32_t userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+    int32_t userId = IPCSkeleton::GetCallingAppUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     return GetApplyedQuickFixInfoInner(bundleName, quickFixInfo, userId, isCheckDebugApp);
 }
 

@@ -70,6 +70,11 @@ pid_t IPCSkeleton::GetCallingUid()
     return state.active ? state.callingUid : getuid();
 }
 
+pid_t IPCSkeleton::GetCallingAppUid()
+{
+    return GetCallingUid();
+}
+
 uint32_t IPCSkeleton::GetCallingTokenID()
 {
     return AAFwk::GetDirectBootTestState().active ? AAFwk::DIRECT_BOOT_TEST_CALLER_TOKEN : GetSelfTokenID();

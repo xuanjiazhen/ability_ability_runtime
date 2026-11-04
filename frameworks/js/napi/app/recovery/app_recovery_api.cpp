@@ -179,7 +179,7 @@ private:
         exitReason.killMsg = RESTART_REASON;
         exitReason.innerMsg = RESTART_APP_REASON;
         int32_t pid = IPCSkeleton::GetCallingPid();
-        int32_t uid = IPCSkeleton::GetCallingUid();
+        int32_t uid = IPCSkeleton::GetCallingAppUid();
         auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, uid, exitReason);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Record recovery restart result=%{public}d, "
             "pid=%{public}d, uid=%{public}d, killId=%{public}d", result, pid, uid, exitReason.killId);

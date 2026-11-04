@@ -488,7 +488,7 @@ void EtsAppManager::GetRunningProcessInfoByBundleName(ani_env *env, ani_string a
         TAG_LOGE(AAFwkTag::APPMGR, "callback null ptr");
         return;
     }
-    int userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+    int userId = IPCSkeleton::GetCallingAppUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     GetRunningProcessInfoByBundleNameAndUserId(env, aniBundleName, userId, callback);
 }
 

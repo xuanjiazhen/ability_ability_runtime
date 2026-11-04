@@ -28,7 +28,7 @@ LocalPendingWant::LocalPendingWant(const std::string &bundleName,
 {
     static std::atomic_int id(0);
     hashCode_ = ++id;
-    uid_ = IPCSkeleton::GetCallingUid();
+    uid_ = IPCSkeleton::GetCallingAppUid();
     tokenId_ = IPCSkeleton::GetCallingTokenID();
 }
 

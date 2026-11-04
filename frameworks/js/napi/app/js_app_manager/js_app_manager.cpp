@@ -1438,7 +1438,7 @@ private:
         }
 
         std::string bundleName;
-        int userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+        int userId = IPCSkeleton::GetCallingAppUid() / AppExecFwk::Constants::BASE_USER_RANGE;
         bool isPromiseType = false;
         if (!ConvertFromJsValue(env, argv[0], bundleName)) {
             TAG_LOGE(AAFwkTag::APPMGR, "First param need string");

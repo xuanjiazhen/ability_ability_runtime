@@ -4045,7 +4045,7 @@ int32_t MissionListManager::IsValidMissionIds(
     const std::vector<int32_t> &missionIds, std::vector<MissionValidResult> &results)
 {
     constexpr int32_t searchCount = 20;
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     auto missionInfoMgr = DelayedSingleton<MissionInfoMgr>::GetInstance();
     if (missionInfoMgr == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionInfoMgr null");

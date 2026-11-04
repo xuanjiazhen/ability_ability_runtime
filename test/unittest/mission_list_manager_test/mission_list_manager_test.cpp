@@ -6273,8 +6273,8 @@ HWTEST_F(MissionListManagerTest, IsValidMissionIds_001, TestSize.Level1)
     constexpr int32_t userId = 3;
     constexpr int32_t missionIdFirst = 1;
     constexpr int32_t missionIdSecond = 2;
-    const int32_t missionUidFirst = IPCSkeleton::GetCallingUid();
-    const int32_t missionUidSecond = IPCSkeleton::GetCallingUid() + 1;
+    const int32_t missionUidFirst = IPCSkeleton::GetCallingAppUid();
+    const int32_t missionUidSecond = IPCSkeleton::GetCallingAppUid() + 1;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     auto missionInfoMgr = DelayedSingleton<MissionInfoMgr>::GetInstance();
     missionInfoMgr->missionIdMap_.clear();
@@ -6311,8 +6311,8 @@ HWTEST_F(MissionListManagerTest, IsValidMissionIds_002, TestSize.Level1)
     constexpr int32_t userId = 3;
     constexpr int32_t missionIdFirst = 1;
     constexpr int32_t missionIdSecond = 2;
-    const int32_t missionUidFirst = IPCSkeleton::GetCallingUid();
-    const int32_t missionUidSecond = IPCSkeleton::GetCallingUid() + 1;
+    const int32_t missionUidFirst = IPCSkeleton::GetCallingAppUid();
+    const int32_t missionUidSecond = IPCSkeleton::GetCallingAppUid() + 1;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     auto missionInfoMgr = DelayedSingleton<MissionInfoMgr>::GetInstance();
     missionInfoMgr->missionIdMap_.clear();

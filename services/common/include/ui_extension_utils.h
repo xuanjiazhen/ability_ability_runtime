@@ -164,7 +164,7 @@ inline bool IsPublicForConstrainedEmbedded(const AppExecFwk::ExtensionAbilityTyp
 
 inline bool IsEnterpriseAdmin(const AppExecFwk::ExtensionAbilityType type)
 {
-    bool enterpriseAdminSa = (IPCSkeleton::GetCallingUid() == EDM_SA_UID);
+    bool enterpriseAdminSa = (IPCSkeleton::GetCallingAppUid() == EDM_SA_UID);
     bool isEnterpriseAdmin = (type == AppExecFwk::ExtensionAbilityType::ENTERPRISE_ADMIN);
     return enterpriseAdminSa && isEnterpriseAdmin;
 }

@@ -165,7 +165,7 @@ void StartAbilityUtils::ResolveAndCacheStartAbilityInfo(StartAbilityContext &ctx
         localWant.RemoveParam(Want::PARAM_RESV_CALLER_UID);
         localWant.RemoveParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
         localWant.SetParam(Want::PARAM_RESV_CALLER_TOKEN, static_cast<int32_t>(IPCSkeleton::GetCallingTokenID()));
-        localWant.SetParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
+        localWant.SetParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingAppUid());
     }
     if (isExtension) {
         ctx.startAbilityInfo = StartAbilityInfo::CreateStartExtensionInfo(localWant, validUserId, appIndex);
@@ -395,7 +395,7 @@ std::shared_ptr<AppExecFwk::AbilityInfo> StartAbilityInfo::CreateCallerAbilityIn
 bool StartAbilityUtils::IsCallFromAncoShellOrBroker(const sptr<IRemoteObject> &callerToken,
     const StartAbilityContext &ctx)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingUid = IPCSkeleton::GetCallingAppUid();
     if (callingUid == AppUtils::GetInstance().GetCollaboratorBrokerUID()) {
         return true;
     }

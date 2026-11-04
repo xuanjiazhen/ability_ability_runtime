@@ -69,6 +69,7 @@ struct RetApplicationInfoV2 {
     bool removable;
     uint32_t accessTokenId;
     int32_t uid;
+    int32_t appUid;
     CResource iconResource;
     CResource labelResource;
     CResource descriptionResource;
@@ -251,6 +252,7 @@ struct RetHapModuleInfoV2 {
     CArrRouterItem routerMap;
     char* codePath;
     char* nativeLibraryPath;
+    bool sharedUID;
 };
 }
 }

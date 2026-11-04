@@ -1768,7 +1768,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, SetGamePreLaunchCompleteTime_001, 
     EXPECT_NE(abilityMs_, nullptr);
     auto result = abilityMs_->SetGamePreLaunchCompleteTime(userId, completeTime);
     // Should fail due to permission check (unless running as GAME_SA_UID)
-    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != GAME_SA_UID) {
         EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     } else {
         EXPECT_EQ(result, ERR_OK);
@@ -1789,7 +1789,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_001, Te
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
-    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != GAME_SA_UID) {
         EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_001 end");
@@ -1808,7 +1808,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_002, Te
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
-    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != GAME_SA_UID) {
         EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     } else {
         EXPECT_EQ(result, ERR_INVALID_VALUE);
@@ -1829,7 +1829,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_003, Te
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
-    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != GAME_SA_UID) {
         EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     } else {
         EXPECT_EQ(result, ERR_INVALID_VALUE);

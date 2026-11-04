@@ -232,7 +232,7 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
     std::string intentName = want.GetStringParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME);
     ExtractInsightIntentInfo info;
     if (userId == DEFAULT_INVAL_VALUE) {
-        userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+        userId = IPCSkeleton::GetCallingAppUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
         AbilityRuntime::IntentKey{want.GetBundleNameRef(), want.GetModuleNameRef(), intentName, userId}, info);
@@ -532,7 +532,7 @@ std::string InsightIntentExecuteManager::GetMainElementName(const std::string &b
     }
 
     if (userId == DEFAULT_INVAL_VALUE) {
-        userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+        userId = IPCSkeleton::GetCallingAppUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
     if (IN_PROCESS_CALL(bms->GetLauncherAbilityInfoSync(bundleName, userId, abilityInfos)) != ERR_OK) {
@@ -816,7 +816,7 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
 
 std::string InsightIntentExecuteManager::GetCallerBundleNameByUid()
 {
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
     std::string bundleName;
     if (bundleMgr != nullptr) {
@@ -1061,7 +1061,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateQueryEntityParam(uint64_t key
     }
 
     if (param->userId_ == DEFAULT_INVAL_VALUE) {
-        param->userId_ = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+        param->userId_ = IPCSkeleton::GetCallingAppUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
 
     uint64_t intentId = 0;

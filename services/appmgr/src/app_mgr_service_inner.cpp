@@ -709,7 +709,7 @@ int32_t AppMgrServiceInner::PreloadApplication(const AAFwk::Want &want, int32_t 
         return ERR_INVALID_VALUE;
     }
     if (userId == DEFAULT_INVAL_VALUE) {
-        userId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+        userId = GetUserIdByUid(IPCSkeleton::GetCallingAppUid());
         if (userId == U0_USER_ID || userId == U1_USER_ID) {
             userId = UserController::GetInstance().GetForegroundUserId(DEFAULT_DISPLAY_ID);
         }
@@ -801,7 +801,7 @@ int32_t AppMgrServiceInner::PreloadApplication(const AAFwk::Want &want, int32_t 
 int32_t AppMgrServiceInner::GetValidUserId(int32_t userId)
 {
     if (userId == DEFAULT_INVAL_VALUE) {
-        userId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+        userId = GetUserIdByUid(IPCSkeleton::GetCallingAppUid());
         if (userId == U0_USER_ID || userId == U1_USER_ID) {
             userId = UserController::GetInstance().GetForegroundUserId(DEFAULT_DISPLAY_ID);
         }
@@ -1847,7 +1847,7 @@ int32_t AppMgrServiceInner::PreloadExtension(const AAFwk::Want &want, int32_t ap
         bundleName.c_str(), abilityName.c_str(), appIndex, userId);
 
     if (userId == DEFAULT_INVAL_VALUE) {
-        userId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+        userId = GetUserIdByUid(IPCSkeleton::GetCallingAppUid());
         if (userId == U0_USER_ID || userId == U1_USER_ID) {
             userId = UserController::GetInstance().GetForegroundUserId(DEFAULT_DISPLAY_ID);
         }
@@ -3143,7 +3143,9 @@ void AppMgrServiceInner::LaunchApplication(const std::shared_ptr<AppRunningRecor
         TAG_LOGE(AAFwkTag::APPMGR, "multiUserConfigurationMgr_ null");
         return;
     }
-    int32_t userId = appRecord->GetUid() / BASE_USER_RANGE;
+    // uid-fork: the running record's uid is the runtime uid (bare userId for forked
+    // apps) — derive the account id from the record's own userId, never from uid.
+    int32_t userId = appRecord->GetUserId();
     auto config = multiUserConfigurationMgr_->GetConfigurationByUserId(userId);
     if (config == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "config null");
@@ -3545,7 +3547,7 @@ int32_t AppMgrServiceInner::ForceKillApplicationInner(const std::string &bundleN
     std::list<pid_t> pids;
     int32_t newUserId = userId;
     if (userId == DEFAULT_INVAL_VALUE) {
-        newUserId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+        newUserId = GetUserIdByUid(IPCSkeleton::GetCallingAppUid());
     }
     int32_t result = ERR_OK;
     if (!appRunningManager_->GetPidsByBundleNameUserIdAndAppIndex(bundleName, newUserId, appIndex, pids)) {
@@ -3572,7 +3574,7 @@ int32_t AppMgrServiceInner::KillApplicationWithUserIdInner(const std::string &bu
     std::list<pid_t> pids;
     int32_t newUserId = userId;
     if (userId == DEFAULT_INVAL_VALUE) {
-        newUserId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+        newUserId = GetUserIdByUid(IPCSkeleton::GetCallingAppUid());
     }
     int32_t result = ERR_OK;
     if (!appRunningManager_->GetPidsByBundleNameUserIdAndAppIndex(bundleName, newUserId, appIndex, pids)) {
@@ -3875,7 +3877,7 @@ int32_t AppMgrServiceInner::KillApplicationSelf(const bool clearPageStack, const
     }
     int64_t startTime = SystemTimeMillisecond();
     auto bundleName = appRecord->GetBundleName();
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingUid = IPCSkeleton::GetCallingAppUid();
     TAG_LOGI(AAFwkTag::APPMGR, "KillApplicationSelf value: %{public}d", callingUid);
     std::list<pid_t> pids;
     KillProcessConfig config{clearPageStack, false, reason};
@@ -4920,7 +4922,7 @@ void AppMgrServiceInner::RegisterAppStateCallback(const sptr<IAppStateCallback>&
         std::lock_guard lock(appStateCallbacksLock_);
         TAG_LOGI(AAFwkTag::APPMGR, "RegisterAppStateCallback");
         appStateCallbacks_.push_back(
-            AppStateCallbackWithUserId { callback, GetUserIdByUid(IPCSkeleton::GetCallingUid()) });
+            AppStateCallbackWithUserId { callback, GetUserIdByUid(IPCSkeleton::GetCallingAppUid()) });
         auto remoteObjedct = callback->AsObject();
         if (remoteObjedct) {
             remoteObjedct->AddDeathRecipient(
@@ -5739,6 +5741,9 @@ void AppMgrServiceInner::SetAppInfo(const BundleInfo &bundleInfo, AppSpawnStartM
     StartProcessVerifyPermission(bundleInfo, hasAccessBundleDirReq, setAllowInternet, allowInternet, gids);
     startMsg.uid = bundleInfo.uid;
     startMsg.gid = bundleInfo.gid;
+    // uid-fork: hand the composite app identity to appspawn (it writes the value into
+    // the kernel cred appuid after setresuid); equals uid while the fork switch is off.
+    startMsg.appUid = static_cast<uint32_t>(bundleInfo.applicationInfo.appUid);
     startMsg.hapFlags = bundleInfo.isPreInstallApp ? 1 : 0;
     startMsg.accessTokenId = bundleInfo.applicationInfo.accessTokenId;
     startMsg.accessTokenIdEx = bundleInfo.applicationInfo.accessTokenIdEx;
@@ -7525,7 +7530,7 @@ void AppMgrServiceInner::ScheduleAcceptWantDone(
 void AppMgrServiceInner::SchedulePrepareTerminate(const pid_t pid, const std::string &moduleName)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return;
     }
@@ -7862,7 +7867,7 @@ int32_t AppMgrServiceInner::RegisterConfigurationObserver(const sptr<IConfigurat
         configurationObservers_.push_back(ConfigurationObserverWithUserId { observer, userId });
     } else {
         configurationObservers_.push_back(
-            ConfigurationObserverWithUserId { observer, GetUserIdByUid(IPCSkeleton::GetCallingUid()) });
+            ConfigurationObserverWithUserId { observer, GetUserIdByUid(IPCSkeleton::GetCallingAppUid()) });
     }
     return NO_ERROR;
 }
@@ -8125,7 +8130,7 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReason(int32_t pid, int32_t re
 {
     TAG_LOGD(AAFwkTag::APPMGR, "NotifyAppMgrRecordExitReason pid:%{public}d, reason:%{public}d, exitMsg:%{public}s.",
         pid, reason, exitMsg.c_str());
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     if (callerUid != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return ERR_PERMISSION_DENIED;
@@ -8148,7 +8153,7 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
 {
     TAG_LOGD(AAFwkTag::APPMGR, "NotifyAppMgrRecordExitReasonCompability pid:%{public}d, killId:%{public}d,"
         "reason:%{public}s, exitMsg:%{public}s.", pid, killId, killMsg.c_str(), innerMsg.c_str());
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     if (callerUid != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return ERR_PERMISSION_DENIED;
@@ -8185,7 +8190,7 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
 int AppMgrServiceInner::VerifyKillProcessPermission(const std::string &bundleName) const
 {
     TAG_LOGI(AAFwkTag::APPMGR, "callerUid:%{public}d, callerPid:%{public}d",
-        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+        IPCSkeleton::GetCallingAppUid(), IPCSkeleton::GetCallingPid());
     int32_t ret = VerifyKillProcessPermissionCommon();
     if (ret != ERR_PERMISSION_DENIED) {
         return ret;
@@ -8211,7 +8216,7 @@ int AppMgrServiceInner::VerifyKillProcessPermission(const std::string &bundleNam
 int AppMgrServiceInner::VerifyKillProcessPermission(const sptr<IRemoteObject> &token) const
 {
     TAG_LOGI(AAFwkTag::APPMGR, "callerUid:%{public}d, callerPid:%{public}d",
-        IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
+        IPCSkeleton::GetCallingAppUid(), IPCSkeleton::GetCallingPid());
     int32_t ret = VerifyKillProcessPermissionCommon();
     if (ret != ERR_PERMISSION_DENIED) {
         return ret;
@@ -8220,7 +8225,7 @@ int AppMgrServiceInner::VerifyKillProcessPermission(const sptr<IRemoteObject> &t
     auto isCallingPerm = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
         AAFwk::PermissionConstants::PERMISSION_CLEAN_BACKGROUND_PROCESSES);
     if (isCallingPerm) {
-        auto callerUid = IPCSkeleton::GetCallingUid();
+        auto callerUid = IPCSkeleton::GetCallingAppUid();
         auto appRecord = GetAppRunningRecordByAbilityToken(token);
         if (!appRecord || appRecord->GetUid() != callerUid) {
             TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
@@ -8306,7 +8311,7 @@ int AppMgrServiceInner::VerifyAccountPermission(const std::string &permissionNam
 
 int AppMgrServiceInner::VerifyRequestPermission() const
 {
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     if (callerUid == ROOT_UID || callerUid == FOUNDATION_UID) {
         return ERR_OK;
     } else {
@@ -8317,7 +8322,7 @@ int AppMgrServiceInner::VerifyRequestPermission() const
 
 bool AppMgrServiceInner::IsFoundationCall() const
 {
-    return IPCSkeleton::GetCallingUid() == FOUNDATION_UID;
+    return IPCSkeleton::GetCallingAppUid() == FOUNDATION_UID;
 }
 
 int AppMgrServiceInner::PreStartNWebSpawnProcess(const pid_t hostPid)
@@ -8333,7 +8338,7 @@ int AppMgrServiceInner::PreStartNWebSpawnProcess(const pid_t hostPid)
         TAG_LOGE(AAFwkTag::APPMGR, "nwebSpawnClient null");
         return ERR_INVALID_VALUE;
     }
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(IPCSkeleton::GetCallingUid()))) {
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(IPCSkeleton::GetCallingAppUid()))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return ERR_INVALID_OPERATION;
     }
@@ -8365,7 +8370,7 @@ int AppMgrServiceInner::StartRenderProcess(const pid_t hostPid, const std::strin
         return ERR_INVALID_VALUE;
     }
     CHECK_POINTER_AND_RETURN_VALUE(appRunningManager_, ERR_INVALID_VALUE);
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(IPCSkeleton::GetCallingUid()))) {
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(IPCSkeleton::GetCallingAppUid()))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return ERR_INVALID_OPERATION;
     }
@@ -9043,7 +9048,7 @@ int32_t AppMgrServiceInner::NotifyLoadRepairPatch(const std::string &bundleName,
         return ERR_INVALID_OPERATION;
     }
 
-    if (IPCSkeleton::GetCallingUid() != QUICKFIX_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != QUICKFIX_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not quick_fix");
         return ERR_PERMISSION_DENIED;
     }
@@ -9060,7 +9065,7 @@ int32_t AppMgrServiceInner::NotifyHotReloadPage(const std::string &bundleName, c
         return ERR_INVALID_OPERATION;
     }
 
-    if (IPCSkeleton::GetCallingUid() != QUICKFIX_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != QUICKFIX_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not quick_fix");
         return ERR_PERMISSION_DENIED;
     }
@@ -9098,7 +9103,7 @@ int32_t AppMgrServiceInner::NotifyUnLoadRepairPatch(const std::string &bundleNam
         return ERR_INVALID_OPERATION;
     }
 
-    if (IPCSkeleton::GetCallingUid() != QUICKFIX_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != QUICKFIX_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not quick_fix");
         return ERR_PERMISSION_DENIED;
     }
@@ -9243,7 +9248,7 @@ int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const
         bundleName, pid, faultData.errorObject.name)) {
         return ERR_OK;
     }
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     std::string processName = appRecord->GetProcessName();
     int exceptionId = GetExceptionTimerId(faultData, bundleName, appRecord, pid, callerUid);
     auto notifyAppTask = [appRecord, pid, callerUid, bundleName, processName, faultData, exceptionId,
@@ -9397,7 +9402,7 @@ int32_t AppMgrServiceInner::SubmitAppFault(FaultData& nonConstFaultData,
             return ERR_OK;
         }
     } else if (AppfreezeManager::GetInstance()->CheckAppfreezeHappend(std::to_string(pid) + "_" +
-        std::to_string(IPCSkeleton::GetCallingUid()) + "_" + bundleName, eventName)) {
+        std::to_string(IPCSkeleton::GetCallingAppUid()) + "_" + bundleName, eventName)) {
         return ERR_OK;
     }
     if (appRunningManager_ && AppExecFwk::AppfreezeManager::GetInstance()->CheckNeedRecordAppRunningUnquieId(eventName)) {
@@ -9424,7 +9429,7 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         std::chrono::steady_clock::now().time_since_epoch()).count();
     TAG_LOGI(AAFwkTag::APPMGR, "call");
     int32_t pid = IPCSkeleton::GetCallingPid();
-    int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t uid = IPCSkeleton::GetCallingAppUid();
     if (pid <= 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid calling pid:%{public}d", pid);
         return ERR_INVALID_VALUE;
@@ -9673,7 +9678,7 @@ int32_t AppMgrServiceInner::NotifyAppFaultBySA(const AppFaultDataBySA &faultData
     }
     std::string callerBundleName;
     if (auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper(); bundleMgrHelper != nullptr) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        int32_t callingUid = IPCSkeleton::GetCallingAppUid();
         IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, callerBundleName));
     }
 #ifdef ABILITY_FAULT_AND_EXIT_TEST
@@ -9966,7 +9971,7 @@ int32_t AppMgrServiceInner::GetBundleNameByPid(const int32_t pid, std::string &b
 
 bool AppMgrServiceInner::IsMainProcessDebug(int32_t uid)
 {
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGW(AAFwkTag::APPMGR, "not foundation call");
         return false;
     }
@@ -9983,7 +9988,7 @@ bool AppMgrServiceInner::IsMainProcessDebug(int32_t uid)
 
 bool AppMgrServiceInner::IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo)
 {
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGW(AAFwkTag::APPMGR, "not foundation call");
         return false;
     }
@@ -10060,7 +10065,7 @@ int32_t AppMgrServiceInner::GetRunningProcessInformation(
 
 int32_t AppMgrServiceInner::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
 {
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     TAG_LOGD(AAFwkTag::APPMGR, "called, pid:%{public}d, state:%{public}d, uid:%{public}d.", pid, state, callerUid);
     bool isMemmgrCall = AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
         MEMMGR_PROC_NAME);
@@ -10305,7 +10310,7 @@ bool AppMgrServiceInner::IsWaitingDebugApp(const std::string &bundleName)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
 
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return false;
     }
@@ -10336,7 +10341,7 @@ void AppMgrServiceInner::ClearNonPersistWaitingDebugFlag()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
 
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return;
     }
@@ -10362,7 +10367,7 @@ void AppMgrServiceInner::ClearNonPersistWaitingDebugFlag()
 
 int32_t AppMgrServiceInner::RegisterAbilityDebugResponse(const sptr<IAbilityDebugResponse> &response)
 {
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return ERR_PERMISSION_DENIED;
     }
@@ -10620,7 +10625,7 @@ int32_t AppMgrServiceInner::NotifyPageShow(const sptr<IRemoteObject> &token, con
         return ERR_PERMISSION_DENIED;
     }
 
-    const_cast<PageStateData &>(pageStateData).uid = IPCSkeleton::GetCallingUid();
+    const_cast<PageStateData &>(pageStateData).uid = IPCSkeleton::GetCallingAppUid();
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnPageShow(pageStateData);
     return ERR_OK;
 }
@@ -10701,7 +10706,7 @@ int32_t AppMgrServiceInner::StartChildProcess(const pid_t callingPid, pid_t &chi
         TAG_LOGE(AAFwkTag::APPMGR, "invalid callingPid:%{public}d srcEntry:%{private}s", callingPid, srcEntry.c_str());
         return ERR_INVALID_VALUE;
     }
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(IPCSkeleton::GetCallingUid()))) {
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(IPCSkeleton::GetCallingAppUid()))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return ERR_INVALID_OPERATION;
     }
@@ -11664,7 +11669,7 @@ void AppMgrServiceInner::SetKeepAliveEnableState(const std::string &bundleName, 
         return;
     }
 
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     if (callerUid != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return;
@@ -11709,7 +11714,7 @@ void AppMgrServiceInner::SetKeepAliveDkv(const std::string &bundleName, bool ena
         return;
     }
 
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     if (callerUid != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return;
@@ -11739,7 +11744,7 @@ void AppMgrServiceInner::SetKeepAliveAppService(const std::string& bundleName, b
         return;
     }
 
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     if (callerUid != FOUNDATION_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "SetKeepAliveAppService not foundation call");
         return;
@@ -11910,7 +11915,7 @@ bool AppMgrServiceInner::IsSceneBoardCall() {
     }
     auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
     if (bundleMgrHelper != nullptr) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        int32_t callingUid = IPCSkeleton::GetCallingAppUid();
         std::string callerBundleName;
         IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, callerBundleName));
         return callerBundleName == SCENE_BOARD_BUNDLE_NAME;
@@ -11959,7 +11964,7 @@ int32_t AppMgrServiceInner::CreateNativeChildProcess(const pid_t hostPid, const 
         return errCode;
     }
 
-    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(IPCSkeleton::GetCallingUid()))) {
+    if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(IPCSkeleton::GetCallingAppUid()))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
         return ERR_INVALID_OPERATION;
     }
@@ -13120,7 +13125,7 @@ int32_t AppMgrServiceInner::GetHyperSnapLastError(HyperSnapErrorType errType, Hy
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
 
-    auto uid = IPCSkeleton::GetCallingUid();
+    auto uid = IPCSkeleton::GetCallingAppUid();
     if (uid < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetHyperSnapLastError invalid uid: %{public}d", uid);
         return ERR_INVALID_VALUE;

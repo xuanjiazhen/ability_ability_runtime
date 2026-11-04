@@ -28,6 +28,11 @@ public:
     {
         return 0;
     }
+
+    static int32_t GetCallingAppUid()
+    {
+        return GetCallingUid();
+    }
 };
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_IPC_SKELETON_H

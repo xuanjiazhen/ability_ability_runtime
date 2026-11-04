@@ -797,7 +797,7 @@ void SystemAbilityCallerRecord::SendResultToSystemAbility(int requestCode,
     Want resultWant = callerSystemAbilityRecord->GetResultWant();
     sptr<IRemoteObject> callerToken = callerSystemAbilityRecord->GetCallerToken();
     if (!schedulerdied) {
-        callerUid = IPCSkeleton::GetCallingUid();
+        callerUid = IPCSkeleton::GetCallingAppUid();
         accessToken = IPCSkeleton::GetCallingTokenID();
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Try to SendResult");

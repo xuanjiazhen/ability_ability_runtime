@@ -22,6 +22,7 @@ namespace OHOS {
 class IPCSkeleton {
 public:
     static int32_t GetCallingUid() { return 0; }
+    static int32_t GetCallingAppUid() { return GetCallingUid(); }
     static pid_t GetCallingPid() { return 0; }
     static std::string ResetCallingIdentity() { return ""; }
     static void SetCallingIdentity(const std::string &identity) {}

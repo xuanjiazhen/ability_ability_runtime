@@ -56,6 +56,11 @@ pid_t IPCSkeleton::GetCallingUid()
                                                          : OHOS::AgentRuntime::MyFlag::cliToolUid);
 }
 
+pid_t IPCSkeleton::GetCallingAppUid()
+{
+    return GetCallingUid();
+}
+
 bool IPCSkeleton::SetCallingIdentity(std::string &identity, bool flag)
 {
     // Mirrors the real no-op (returns true without an active invoker) while toggling the

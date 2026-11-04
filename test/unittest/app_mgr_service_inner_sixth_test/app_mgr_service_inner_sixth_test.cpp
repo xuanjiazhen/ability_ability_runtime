@@ -530,7 +530,7 @@ HWTEST_F(AppMgrServiceInnerSixthTest, IsAppRunningByBundleNameAndUserId_006, Tes
     IPCSkeleton::SetCallingUid(FOUNDATION_UID);
     appMgrServiceInner->appRunningManager_ = nullptr;
     appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
-    EXPECT_EQ(IPCSkeleton::GetCallingUid(), FOUNDATION_UID);
+    EXPECT_EQ(IPCSkeleton::GetCallingAppUid(), FOUNDATION_UID);
     result = appMgrServiceInner->IsAppRunningByBundleNameAndUserId("", userId, isRunning);
     EXPECT_NE(result, 0);
 

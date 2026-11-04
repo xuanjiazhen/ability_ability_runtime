@@ -1,0 +1,4 @@
+# DevEco/hvigor local build artifacts (generated, machine-specific)
+.hvigor/
+build/
+local.properties

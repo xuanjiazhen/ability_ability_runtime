@@ -1636,7 +1636,7 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
             appThread->applicationImpl_->GetState() == ApplicationImpl::APP_STATE_FOREGROUND) {
             foreground = true;
         }
-        auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, getuid(), exitReason);
+        auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, getappuid(), exitReason);
         TAG_LOGW(AAFwkTag::APPKIT, "Record result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
             "pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d",
             result, pid, processName.c_str(), eventKeyReason.c_str(), foreground);
@@ -2312,7 +2312,7 @@ void MainThread::ProcessExit(const ProcessExitInfo& info)
         "%{public}s", info.bundleName.c_str(), info.errorObjectName.c_str(), info.summary.c_str());
     AAFwk::ExitReasonCompability exitReason = { REASON_JS_ERROR, info.errorObjectName };
     exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_ERROR;
-    auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, getuid(), exitReason);
+    auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, getappuid(), exitReason);
 
     TAG_LOGW(AAFwkTag::APPKIT, "Record result=%{public}d, send event [FRAMEWORK,PROCESS_KILL,JS_ERROR],"
         " pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d",
@@ -4785,7 +4785,7 @@ void MainThread::SleepCleanKill()
             exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_HEAP_SLEEP_CLEAN_KILL;
             exitReason.killMsg = "Js_Heap_Sleep_Clean_Kill";
             exitReason.innerMsg = "Js_Heap_Sleep_Clean_Kill";
-            AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, getuid(), exitReason);
+            AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, getappuid(), exitReason);
             _exit(0);
         }
     };

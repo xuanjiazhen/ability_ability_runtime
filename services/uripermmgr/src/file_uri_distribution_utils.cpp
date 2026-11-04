@@ -126,7 +126,7 @@ int32_t FUDUtils::GetCurrentAccountId()
 
 bool FUDUtils::IsFoundationCall()
 {
-    return IPCSkeleton::GetCallingUid() == FOUNDATION_UID;
+    return IPCSkeleton::GetCallingAppUid() == FOUNDATION_UID;
 }
 
 bool FUDUtils::IsSAOrSystemAppCall()
@@ -394,19 +394,19 @@ bool FUDUtils::IsDocsCloudUri(Uri &uri)
 
 bool FUDUtils::IsUdmfOrPasteboardCall()
 {
-    auto uid = IPCSkeleton::GetCallingUid();
+    auto uid = IPCSkeleton::GetCallingAppUid();
     return uid == UDMF_UID || uid == PASTEBOARD_UID || uid == BROKER_PASTEBOARD_UID;
 }
 
 bool FUDUtils::IsBrokerCaller()
 {
-    auto uid = IPCSkeleton::GetCallingUid();
+    auto uid = IPCSkeleton::GetCallingAppUid();
     return uid == BROKER_PASTEBOARD_UID;
 }
 
 bool FUDUtils::IsDFSCall()
 {
-    return IPCSkeleton::GetCallingUid() == DFS_UID;
+    return IPCSkeleton::GetCallingAppUid() == DFS_UID;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

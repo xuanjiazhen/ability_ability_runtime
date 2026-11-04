@@ -234,7 +234,7 @@ int32_t AgentManagerService::GetAgentCardsByBundleName(const std::string &bundle
     auto ret = AgentCardMgr::GetInstance().GetAgentCardsByBundleName(bundleName, cardVec);
     if (ret == ERR_NAME_NOT_FOUND) {
         TAG_LOGW(AAFwkTag::SER_ROUTER, "no AgentCards of bundle %{public}s", bundleName.c_str());
-        int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        int32_t userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
         AppExecFwk::ApplicationInfo appInfo;
         auto queryRet = IN_PROCESS_CALL(
             DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->GetApplicationInfo(
@@ -266,7 +266,7 @@ int32_t AgentManagerService::GetAgentCardByAgentId(const std::string &bundleName
     }
     auto ret = AgentCardMgr::GetInstance().GetAgentCardByAgentId(bundleName, agentId, card);
     if (ret == ERR_NAME_NOT_FOUND) {
-        int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        int32_t userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
         AppExecFwk::ApplicationInfo appInfo;
         auto queryRet = IN_PROCESS_CALL(
             DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->GetApplicationInfo(
@@ -295,7 +295,7 @@ int32_t AgentManagerService::GetCallerAgentCardByAgentId(const std::string &agen
     }
     ret = AgentCardMgr::GetInstance().GetAgentCardByAgentId(callerBundleName, agentId, card);
     if (ret == ERR_NAME_NOT_FOUND) {
-        int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        int32_t userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
         AppExecFwk::ApplicationInfo appInfo;
         auto queryRet = IN_PROCESS_CALL(
             DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->GetApplicationInfo(
@@ -417,7 +417,7 @@ int32_t AgentManagerService::ConnectAgentExtensionAbilityForCli(const AAFwk::Wan
         TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli connect: invalid connection");
         return ERR_INVALID_VALUE;
     }
-    int32_t cliToolUid = IPCSkeleton::GetCallingUid();  // app A's uid (claw_sandbox setresuid), unforgeable
+    int32_t cliToolUid = IPCSkeleton::GetCallingAppUid();  // app A's uid (claw_sandbox setresuid), unforgeable
     std::string savedIdentity = IPCSkeleton::ResetCallingIdentity();
     std::string identity = callerIdentity;
     if (!IPCSkeleton::SetCallingIdentity(identity)) {
@@ -433,7 +433,7 @@ int32_t AgentManagerService::ConnectAgentExtensionAbilityForCli(const AAFwk::Wan
         // via binder). GetHapTokenInfo().uid is deliberately NOT used here: for bin/instance HAP tokens it
         // resolves to the parent (bundle-level) token whose uid is 0, never the instance process uid, so
         // comparing it would always fail for legitimate callers.
-        if (IPCSkeleton::GetCallingUid() != cliToolUid) {
+        if (IPCSkeleton::GetCallingAppUid() != cliToolUid) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli: callerIdentity uid mismatch (spoof)");
             ret = ERR_PERMISSION_DENIED;
             break;
@@ -442,7 +442,7 @@ int32_t AgentManagerService::ConnectAgentExtensionAbilityForCli(const AAFwk::Wan
         AAFwk::Want connectWant;
         std::string agentId;
         AgentCard card;
-        int32_t callerUid = IPCSkeleton::GetCallingUid();  // app A's real process uid (from callerIdentity)
+        int32_t callerUid = IPCSkeleton::GetCallingAppUid();  // app A's real process uid (from callerIdentity)
         ret = ResolveConnectAgentTarget(want, connectWant, agentId, card, callerUid);
         if (ret != ERR_OK) {
             break;
@@ -485,7 +485,7 @@ int32_t AgentManagerService::DisconnectAgentExtensionAbilityForCli(
     if (connection == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    int32_t cliToolUid = IPCSkeleton::GetCallingUid();
+    int32_t cliToolUid = IPCSkeleton::GetCallingAppUid();
     std::string savedIdentity = IPCSkeleton::ResetCallingIdentity();
     std::string identity = callerIdentity;
     if (!IPCSkeleton::SetCallingIdentity(identity)) {
@@ -497,7 +497,7 @@ int32_t AgentManagerService::DisconnectAgentExtensionAbilityForCli(
     do {
         // anti-spoof (symmetric to connect): callerIdentity uid must equal the CLI tool's real
         // process uid. See ConnectAgentExtensionAbilityForCli for why GetHapTokenInfo().uid is not used.
-        if (IPCSkeleton::GetCallingUid() != cliToolUid) {
+        if (IPCSkeleton::GetCallingAppUid() != cliToolUid) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli disconnect: callerIdentity uid mismatch (spoof)");
             ret = ERR_PERMISSION_DENIED;
             break;
@@ -610,7 +610,7 @@ int32_t AgentManagerService::ConnectServiceExtensionAbility(const sptr<IRemoteOb
 
     sptr<AAFwk::IAbilityConnection> serviceConnection;
     ret = AgentConnectManager::GetInstance().RegisterTrackedConnectionAndGetServiceConnection(
-        connection, IPCSkeleton::GetCallingUid(), [](const sptr<IRemoteObject> &remote) {
+        connection, IPCSkeleton::GetCallingAppUid(), [](const sptr<IRemoteObject> &remote) {
             auto service = AgentManagerService::GetInstance();
             if (service != nullptr) {
                 service->HandleCallerConnectionDied(remote);
@@ -717,7 +717,7 @@ int32_t AgentManagerService::ValidateConnectAgentPermission(int32_t &callerUid) 
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Permission verification failed");
         return ERR_PERMISSION_DENIED;
     }
-    callerUid = IPCSkeleton::GetCallingUid();
+    callerUid = IPCSkeleton::GetCallingAppUid();
     return ERR_OK;
 }
 
@@ -769,7 +769,7 @@ int32_t AgentManagerService::ResolveConnectAgentTarget(const AAFwk::Want &want, 
     NormalizeAgentConnectWant(connectWant, card);
 
     // Capture the caller UID once the target metadata is known-good.
-    callingUid = IPCSkeleton::GetCallingUid();
+    callingUid = IPCSkeleton::GetCallingAppUid();
     return ERR_OK;
 }
 
@@ -827,7 +827,7 @@ int32_t AgentManagerService::PrepareServiceConnectWant(const AAFwk::Want &want, 
 {
     connectWant = want;
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-    auto userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     bool queryResult = IN_PROCESS_CALL(
         DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->QueryExtensionAbilityInfos(
             connectWant, AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, extensionInfos));
@@ -861,7 +861,7 @@ int32_t AgentManagerService::DisconnectAgentExtensionAbility(const sptr<AAFwk::I
 
     AgentDisconnectRequest request;
     ret = AgentConnectManager::GetInstance().PrepareAgentDisconnectRequest(
-        connection, IPCSkeleton::GetCallingUid(), request);
+        connection, IPCSkeleton::GetCallingAppUid(), request);
     if (ret != ERR_OK || request.alreadyDisconnecting) {
         return ret;
     }
@@ -1023,7 +1023,7 @@ int32_t AgentManagerService::ValidateNotifyLowCodeAgentCompleteRequest(
         TAG_LOGE(AAFwkTag::SER_ROUTER, "empty agentId");
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
-    callingUid = IPCSkeleton::GetCallingUid();
+    callingUid = IPCSkeleton::GetCallingAppUid();
     return ERR_OK;
 }
 

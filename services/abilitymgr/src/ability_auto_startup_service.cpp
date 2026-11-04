@@ -468,7 +468,7 @@ std::string AbilityAutoStartupService::GetSelfApplicationBundleName()
     }
 
     std::string bundleName;
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUid = IPCSkeleton::GetCallingAppUid();
     if (IN_PROCESS_CALL(bundleMgrClient->GetNameForUid(callerUid, bundleName)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "get bundleName fail");
         return "";
@@ -489,7 +489,7 @@ int32_t AbilityAutoStartupService::GetValidUserId(int32_t userId)
     int32_t validUserId = userId;
 
     if (userId == -1) {
-        validUserId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+        validUserId = IPCSkeleton::GetCallingAppUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
     if (validUserId == U0_USER_ID || validUserId == U1_USER_ID) {
         validUserId = UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
@@ -550,7 +550,7 @@ bool AbilityAutoStartupService::GetAbilityData(const AutoStartupInfo &info, Auto
     }
     auto accessTokenIdStr = bundleInfo.applicationInfo.accessTokenId;
     abilityData.accessTokenId = std::to_string(accessTokenIdStr);
-    abilityData.setterUserId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+    abilityData.setterUserId = IPCSkeleton::GetCallingAppUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     abilityData.userId = bundleInfo.applicationInfo.uid / AppExecFwk::Constants::BASE_USER_RANGE;
     abilityData.hasStatusBarExtension = MainElementUtils::CheckStatusBarAbility(bundleInfo);
     for (const auto& hapModuleInfo : bundleInfo.hapModuleInfos) {

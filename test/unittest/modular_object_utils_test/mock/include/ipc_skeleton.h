@@ -27,6 +27,10 @@ public:
     {
         return MockFlag::callingUid;
     }
+    static int32_t GetCallingAppUid()
+    {
+        return GetCallingUid();
+    }
     static pid_t GetCallingPid()
     {
         return MockFlag::callingPid;

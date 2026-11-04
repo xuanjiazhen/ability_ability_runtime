@@ -32,6 +32,11 @@ uint32_t IPCSkeleton::GetCallingUid()
     return IPCSkeleton::callerUId;
 }
 
+uint32_t IPCSkeleton::GetCallingAppUid()
+{
+    return GetCallingUid();
+}
+
 void IPCSkeleton::SetCallingTokenId(uint32_t tokenId)
 {
     IPCSkeleton::callerTokenId = tokenId;

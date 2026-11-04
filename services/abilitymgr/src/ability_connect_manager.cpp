@@ -363,7 +363,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     auto connectObject = connect->AsObject();
 #ifdef SUPPORT_UPMS
     // grant uri to service extension by connect, must call out of serialMutex_
-    int32_t callerUser = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t callerUser = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     if (userId_ == U0_USER_ID || callerUser == U0_USER_ID || callerUser == U1_USER_ID ||
         userId_ == AbilityRuntime::UserController::GetInstance().GetCallerUserId()) {
         UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);

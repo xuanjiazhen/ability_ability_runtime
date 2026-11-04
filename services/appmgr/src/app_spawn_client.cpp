@@ -205,6 +205,7 @@ int32_t AppSpawnClient::SetDacInfo(const AppSpawnStartMsg &startMsg, AppSpawnReq
     AppDacInfo appDacInfo = {0};
     appDacInfo.uid = startMsg.uid;
     appDacInfo.gid = startMsg.gid;
+    appDacInfo.appUid = startMsg.appUid; // composite identity for the kernel cred appuid write
     if (startMsg.gids.size() > APP_MAX_GIDS ||
         startMsg.dataGroupInfoList.size() > APP_MAX_GIDS) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid gidCount, exceeds APP_MAX_GIDS");

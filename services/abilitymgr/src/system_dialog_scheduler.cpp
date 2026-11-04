@@ -559,7 +559,7 @@ bool SystemDialogScheduler::GetAssertFaultDialogWant(Want &want)
     }
 
     std::string bundleName;
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingUid = IPCSkeleton::GetCallingAppUid();
     if (IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, bundleName)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::DIALOG, "VerifyPermission get bundle name failed");
         return false;

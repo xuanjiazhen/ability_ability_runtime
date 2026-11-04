@@ -374,7 +374,7 @@ int32_t AppMgrService::NotifyTemplateProcessDeepFrozen(int32_t pid)
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    if (IPCSkeleton::GetCallingUid() != RESOURCE_MANAGER_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != RESOURCE_MANAGER_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not rss");
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
@@ -399,7 +399,7 @@ int32_t AppMgrService::PreTemplateProcessDeepFrozen(int32_t pid)
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    if (IPCSkeleton::GetCallingUid() != RESOURCE_MANAGER_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != RESOURCE_MANAGER_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not rss");
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
@@ -488,7 +488,7 @@ void AppMgrService::AbilityCleaned(const sptr<IRemoteObject> &token)
         return;
     }
 
-    auto callerUid = IPCSkeleton::GetCallingUid();
+    auto callerUid = IPCSkeleton::GetCallingAppUid();
     auto appRecord = appMgrServiceInner_->GetTerminatingAppRunningRecord(token);
     if (!appRecord || appRecord->GetUid() != callerUid) {
         TAG_LOGW(AAFwkTag::APPMGR, "verification failed");
@@ -562,7 +562,7 @@ int32_t AppMgrService::ClearUpApplicationData(const std::string &bundleName, int
         TAG_LOGE(AAFwkTag::APPMGR, "null bundleMgrHelper");
         return ERR_INVALID_OPERATION;
     }
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     bool isCheckDebugApp = false;
     if ((callingUid != 0 && callingUid != USER_UID) || userId < 0) {
         auto isCallingPerm = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
@@ -596,7 +596,7 @@ int32_t AppMgrService::ClearUpApplicationDataBySelf(int32_t userId)
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
-    int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t uid = IPCSkeleton::GetCallingAppUid();
     pid_t pid = IPCSkeleton::GetCallingPid();
     return appMgrServiceInner_->ClearUpApplicationDataBySelf(uid, pid, userId);
 }
@@ -946,7 +946,7 @@ int AppMgrService::StartUserTestProcess(const AAFwk::Want &want, const sptr<IRem
         return ERR_INVALID_OPERATION;
     }
     if (!isShellCall && !isSACall && isAllowLocalDebug) {
-        int32_t callingUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        int32_t callingUserId = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
         if (callingUserId > 1 && userId != callingUserId) {
             TAG_LOGE(AAFwkTag::APPMGR, "cross-user StartUserTestProcess not allowed");
             return ERR_INVALID_OPERATION;
@@ -976,7 +976,7 @@ int AppMgrService::FinishUserTest(const std::string &msg, const int64_t &resultC
         TAG_LOGE(AAFwkTag::APPMGR, "null bundleMgrHelper");
         return ERR_INVALID_OPERATION;
     }
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     std::string callerBundleName;
     auto result = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, callerBundleName));
     if (result == ERR_OK) {
@@ -1070,7 +1070,7 @@ int AppMgrService::ShowHelp(const std::vector<std::u16string>& args, std::string
 int AppMgrService::DumpTask(const std::vector<std::u16string>& args, std::string& result)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    auto isHidumperServiceCall = (IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID);
+    auto isHidumperServiceCall = (IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID);
     if (!isHidumperServiceCall) {
         result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_PERMISSION_DENY, strlen(MSG_DUMP_FAIL_REASON_PERMISSION_DENY));
@@ -1231,7 +1231,7 @@ int AppMgrService::DumpIpc(const std::vector<std::u16string>& args, std::string&
         TAG_LOGE(AAFwkTag::APPMGR, "invalid arguments");
         return DumpErrorCode::ERR_INVALID_NUM_ARGS_ERROR;
     }
-    auto isHidumperServiceCall = (IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID);
+    auto isHidumperServiceCall = (IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID);
     if (!isHidumperServiceCall) {
         result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_PERMISSION_DENY, strlen(MSG_DUMP_FAIL_REASON_PERMISSION_DENY));
@@ -1267,7 +1267,7 @@ int AppMgrService::DumpFfrt(const std::vector<std::u16string>& args, std::string
         TAG_LOGE(AAFwkTag::APPMGR, "invalid arguments");
         return DumpErrorCode::ERR_INVALID_NUM_ARGS_ERROR;
     }
-    auto isHidumperServiceCall = (IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID);
+    auto isHidumperServiceCall = (IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID);
     if (!isHidumperServiceCall) {
         result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_PERMISSION_DENY, strlen(MSG_DUMP_FAIL_REASON_PERMISSION_DENY));
@@ -1327,7 +1327,7 @@ int32_t AppMgrService::DumpArkWeb(const std::vector<std::u16string> &args, std::
         return DumpErrorCode::ERR_INVALID_NUM_ARGS_ERROR;
     }
 
-    auto isHidumperServiceCall = (IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID);
+    auto isHidumperServiceCall = (IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID);
     if (!isHidumperServiceCall) {
         result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_PERMISSION_DENY, strlen(MSG_DUMP_FAIL_REASON_PERMISSION_DENY));
@@ -1747,7 +1747,7 @@ void AppMgrService::UpdateFreezeExcludedPid(bool isAdd, int32_t targetPid, int32
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return;
     }
-    if (IPCSkeleton::GetCallingUid() != HIPROFILER_UID) {
+    if (IPCSkeleton::GetCallingAppUid() != HIPROFILER_UID) {
         TAG_LOGE(AAFwkTag::APPMGR, "Not hiprofiler call.");
         return;
     }
@@ -2587,7 +2587,7 @@ void AppMgrService::SetTerminateTimeOutFlag(const sptr<IRemoteObject> token)
 
 int32_t AppMgrService::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingUid = IPCSkeleton::GetCallingAppUid();
     bool isRssCalling = AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
         BS_PROCESS_NAME) && (callingUid == RESOURCE_MANAGER_UID);
     if (!isRssCalling) {

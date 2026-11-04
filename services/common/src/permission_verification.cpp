@@ -486,7 +486,7 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
         // Only report when: 1) shell call, 2) ability is invisible (exported=false)
         if (IsShellCall() && !verificationInfo.visible) {
             EventInfo eventInfo;
-            eventInfo.uri = "ShellCall://" + std::to_string(IPCSkeleton::GetCallingUid());
+            eventInfo.uri = "ShellCall://" + std::to_string(IPCSkeleton::GetCallingAppUid());
             EventReport::SendGrantUriPermissionEvent(EventName::GRANT_URI_PERMISSION, eventInfo);
         }
         return ERR_OK;
@@ -726,7 +726,7 @@ bool PermissionVerification::IsCrossUserForSandboxCall(int32_t targetUserId) con
         return false;
     }
     constexpr int32_t BASE_USER_RANGE = 200000;
-    int32_t callerUser = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t callerUser = IPCSkeleton::GetCallingAppUid() / BASE_USER_RANGE;
     if (callerUser <= 1) {
         return false;
     }

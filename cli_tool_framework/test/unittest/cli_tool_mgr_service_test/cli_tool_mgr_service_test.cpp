@@ -1518,7 +1518,7 @@ HWTEST_F(CliToolManagerServiceTest, SkillCallbackAdapter_0100, TestSize.Level1)
 
     AppExecFwk::SkillExecuteResult result;
     SkillCallbackAdapter missingAdapter("missing_callback_session",
-        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), "missing_event");
+        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingAppUid(), "missing_event");
     missingAdapter.OnExecuteDone("request", ERR_OK, result);
 
     auto record = std::make_shared<SessionRecord>();
@@ -1529,7 +1529,7 @@ HWTEST_F(CliToolManagerServiceTest, SkillCallbackAdapter_0100, TestSize.Level1)
     record->SetBackground(true);
     service_->AddSessionRecord(record);
 
-    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->callerUid = IPCSkeleton::GetCallingAppUid();
     SkillCallbackAdapter adapter(record->sessionId, record->callerPid, record->callerUid, record->eventId);
     adapter.OnExecuteDone("request", ERR_OK, result);
 

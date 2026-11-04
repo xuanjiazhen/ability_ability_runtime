@@ -242,7 +242,7 @@ bool ServiceRouterMgrService::VerifySystemApp()
     Security::AccessToken::ATokenTypeEnum tokenType =
         Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
     if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE
-        || IPCSkeleton::GetCallingUid() == Constants::ROOT_UID) {
+        || IPCSkeleton::GetCallingAppUid() == Constants::ROOT_UID) {
         return true;
     }
     uint64_t accessTokenIdEx = IPCSkeleton::GetCallingFullTokenID();

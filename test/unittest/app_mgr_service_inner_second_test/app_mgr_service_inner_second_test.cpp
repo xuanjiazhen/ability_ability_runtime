@@ -755,7 +755,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAppFau
     auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
         TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
     appRecord->GetPriorityObject()->SetPid(1);
-    appRecord->SetUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetUid(IPCSkeleton::GetCallingAppUid());
     appRecord->SetState(ApplicationState::APP_STATE_TERMINATED);
 
     FaultData faultData;
@@ -807,7 +807,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAppFau
     auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
         TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
     appRecord->GetPriorityObject()->SetPid(1);
-    appRecord->SetUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetUid(IPCSkeleton::GetCallingAppUid());
     appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
 
     FaultData faultData;
@@ -837,7 +837,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAppFau
     auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
         TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
     appRecord->GetPriorityObject()->SetPid(1);
-    appRecord->SetUid(IPCSkeleton::GetCallingUid());
+    appRecord->SetUid(IPCSkeleton::GetCallingAppUid());
     appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
 
     FaultData faultData;
