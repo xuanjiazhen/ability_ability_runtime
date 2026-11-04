@@ -302,9 +302,11 @@ private:
         const std::vector<FunctionInfo> &functionList, std::vector<FunctionInfo> &validFunctions);
 
     /**
-     * @brief Visibility hook for third-party function queries. System apps/SAs keep the full
-     * list; third-party callers only see functions marked exported=true. The function
-     * never gates permission: the caller identity/permission check is handled separately.
+     * @brief Reserved visibility hook for the upcoming database-backed third-party query
+     * interface. System apps/SAs keep the full list; third-party callers only see functions
+     * marked exported=true. Today GetAllFunctions is gated by CheckSystemAndPermission, so
+     * the third-party branch is not yet reachable. Never gates permission: the caller
+     * identity/permission check is handled separately.
      */
     void FilterFunctionsByVisibility(std::vector<FunctionInfo> &functionList);
 

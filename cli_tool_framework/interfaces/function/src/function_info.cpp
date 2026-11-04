@@ -264,9 +264,14 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Read userId failed");
         return nullptr;
     }
-    if (!parcel.ReadBool(function->exported)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Read exported failed");
-        return nullptr;
+    // exported is an optional tail field: legacy parcels without it keep the fail-closed
+    // default (false). Only read it when trailing bytes remain, mirroring the tolerant
+    // tail reads used by other Parcelable types in this repository.
+    if (parcel.GetReadableBytes() > 0) {
+        if (!parcel.ReadBool(function->exported)) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Read exported failed");
+            return nullptr;
+        }
     }
     return function.release();
 }

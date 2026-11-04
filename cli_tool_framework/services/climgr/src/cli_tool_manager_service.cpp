@@ -902,9 +902,12 @@ int32_t CliToolManagerService::ResetNamespaceFunctions(int32_t userId, const std
 
 void CliToolManagerService::FilterFunctionsByVisibility(std::vector<FunctionInfo> &functionList)
 {
-    // System apps and system SAs keep the full list; only third-party callers are narrowed
-    // to exported=true. This is a visibility hook only — it does not grant or deny
-    // access, which is handled by the permission gate on the calling path.
+    // Reserved visibility hook for the upcoming database-backed third-party query
+    // interface. Today GetAllFunctions is gated by CheckSystemAndPermission, so only
+    // system apps/SAs reach here and the third-party branch below is a no-op. Once the
+    // third-party query interface lands, it reuses this filter: system apps/SAs keep the
+    // full list; third-party callers only see functions marked exported=true. This hook
+    // never grants or denies access — that stays with the permission gate.
     if (PermissionUtil::IsSystemApp() || PermissionUtil::IsSystemSA()) {
         return;
     }

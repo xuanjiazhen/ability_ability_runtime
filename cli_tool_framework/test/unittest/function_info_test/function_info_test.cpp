@@ -367,6 +367,39 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Unmarshalling_0700, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_Unmarshalling_0700 end");
 }
 
+/**
+ * @tc.name: FunctionInfo_Unmarshalling_TolerantTail_0800
+ * @tc.desc: Test a legacy parcel without the trailing exported field unmarshals with
+ *           exported defaulting to false (version tolerance)
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_Unmarshalling_TolerantTail_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_Unmarshalling_TolerantTail_0800 start");
+
+    Parcel parcel;
+    ASSERT_TRUE(parcel.WriteString("legacyFunction"));
+    ASSERT_TRUE(parcel.WriteString("com.test.legacy"));
+    ASSERT_TRUE(parcel.WriteString("1.0.0"));
+    ASSERT_TRUE(parcel.WriteString("Legacy function without exported"));
+    ASSERT_TRUE(parcel.WriteString("{}"));
+    ASSERT_TRUE(parcel.WriteString("{}"));
+    ASSERT_TRUE(parcel.WriteInt32(static_cast<int32_t>(FunctionType::INTENT_FUNCTION)));
+    ASSERT_TRUE(parcel.WriteInt32(100));  // userId
+    // Legacy parcel omits the trailing exported bool.
+
+    parcel.RewindRead(0);
+    FunctionInfo *result = FunctionInfo::Unmarshalling(parcel);
+
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->functionName, "legacyFunction");
+    EXPECT_FALSE(result->exported);
+
+    delete result;
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_Unmarshalling_TolerantTail_0800 end");
+}
+
 // ==================== RoundTrip Tests ====================
 
 /**

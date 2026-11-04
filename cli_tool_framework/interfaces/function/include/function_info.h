@@ -31,10 +31,6 @@ enum class FunctionType : int32_t {
     END,
 };
 
-// Exported visibility of an insight intent function. When `false` (default) the
-// function is visible only to system callers; when `true` it is additionally exposed
-// to third-party agents. It is declarative and never constitutes a permission gate.
-
 /**
  * @brief Function information structure
  */
@@ -48,6 +44,9 @@ public:
     std::string outputSchema;
     FunctionType functionType;
     int32_t userId;
+    // Exported visibility of an insight intent function. When `false` (default) the
+    // function is visible only to system callers; when `true` it is additionally exposed
+    // to third-party agents. It is declarative and never constitutes a permission gate.
     bool exported = false;
 
     FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION), userId(-1) {}
