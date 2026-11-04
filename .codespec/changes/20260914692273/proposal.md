@@ -5,7 +5,7 @@ approval:
   approver: "yangzk"
   evidence: "用户评审明确回复『批准基线』（2026-11-04 会话记录）"
   approved_at: "2026-11-04"
-  baseline_digest: "5cd245f33aba6f76d10bb8f1e08fb01e6de0dd14a852997854d94c5677189a93"
+  baseline_digest: "e3202fff57bf7da210432b084e9be891cc92a491ada2ddf6d68e3a98677ce9df"
 target_release:
   id: OpenHarmony-7.1-Release
   status: proposed
@@ -197,7 +197,7 @@ target_release:
 
 - [x] 所有 P0/P1 用户故事有可测试、可度量的 AC
 - [x] 范围内外、影响范围、API 变化和不涉及项已确认
-- [x] `proposal.target_release` 已确认或明确 TBD
+- [x] `proposal.target_release` 已确认（OpenHarmony-7.1-Release）
 - [x] `manifest.profile` 已确认或明确 none
 - [x] Agent Scope Guard 已基线化，未复制 Plan/Task 的实现文件清单
 - [x] 基线结论为"通过"，且确认人和确认依据完整
