@@ -166,7 +166,7 @@ HWTEST_F(AppMgrServiceInnerSixthTest, IsWaitingDebugApp_001, TestSize.Level0)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     std::string bundleName = "bundleName";
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     auto ret1 = appMgrServiceInner->IsWaitingDebugApp(bundleName);
     EXPECT_EQ(ret1, false);
 
@@ -521,13 +521,13 @@ HWTEST_F(AppMgrServiceInnerSixthTest, IsAppRunningByBundleNameAndUserId_006, Tes
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
 
-    IPCSkeleton::SetCallingUid(1);
+    IPCSkeleton::SetCallingAppUid(1);
     int32_t userId = 0;
     bool isRunning = false;
     int32_t result = appMgrServiceInner->IsAppRunningByBundleNameAndUserId("", userId, isRunning);
     EXPECT_NE(result, 0);
 
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     appMgrServiceInner->appRunningManager_ = nullptr;
     appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     EXPECT_EQ(IPCSkeleton::GetCallingAppUid(), FOUNDATION_UID);

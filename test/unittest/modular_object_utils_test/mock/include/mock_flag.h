@@ -30,6 +30,7 @@ public:
 
     // IPCSkeleton
     static int32_t callingUid;
+    static int32_t callingAppUid;
     static pid_t callingPid;
 
     // AppMgrClient

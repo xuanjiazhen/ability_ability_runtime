@@ -86,13 +86,16 @@ public:
     static int32_t retGetHapTokenInfo;         // AccessTokenKit::GetHapTokenInfo return code (0 = ok)
     static int32_t hapTokenInfoUid;             // uid returned by the mocked GetHapTokenInfo
     // ForCli anti-spoof test seams (issue-16055 fix): IPCSkeleton::GetCallingAppUid() returns different
-    // values before vs after SetCallingIdentity — cliToolUid (real process uid, captured before
-    // SetCallingIdentity) vs identityUid (uid parsed from the callerIdentity string). When
-    // overrideCallingUid is false GetCallingAppUid() falls back to getuid() (preserves prior behavior).
-    static bool overrideCallingUid;             // when true, GetCallingAppUid() uses the seam values
+    // values before vs after SetCallingIdentity — cliToolAppUid (application identity, captured before
+    // SetCallingIdentity) vs identityAppUid (uid parsed from the callerIdentity string). When
+    // overrideCallingAppUid is false GetCallingAppUid() falls back to the process appUid via getappuid().
+    static bool overrideCallingUid;
+    static bool overrideCallingAppUid;             // when true, GetCallingAppUid() uses the seam values
     static bool setIdentityActive;              // toggled by SetCallingIdentity/ResetCallingIdentity
-    static int32_t cliToolUid;                  // GetCallingAppUid() before SetCallingIdentity
-    static int32_t identityUid;                 // GetCallingAppUid() after SetCallingIdentity
+    static int32_t cliToolUid;
+    static int32_t cliToolAppUid;                  // GetCallingAppUid() before SetCallingIdentity
+    static int32_t identityUid;
+    static int32_t identityAppUid;                 // GetCallingAppUid() after SetCallingIdentity
     static bool retSetCallingIdentity;          // IPCSkeleton::SetCallingIdentity -> this
 };
 }  // namespace AgentRuntime

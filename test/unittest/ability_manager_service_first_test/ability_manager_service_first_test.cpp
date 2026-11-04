@@ -192,7 +192,7 @@ public:
     void PrepareSceneBoard()
     {
         abilityManager_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-        int32_t userId = GetDirectBootTestState().callingUid / AppExecFwk::Constants::BASE_USER_RANGE;
+        int32_t userId = GetDirectBootTestState().callingAppUid / AppExecFwk::Constants::BASE_USER_RANGE;
         auto connect = std::make_shared<CommonExtensionManager>(userId);
         connect->sceneBoardTokenId_ = DIRECT_BOOT_TEST_CALLER_TOKEN;
         abilityManager_->subManagersHelper_->commonExtensionManagers_[userId] = connect;
@@ -4398,7 +4398,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, DirectBoot_SceneBoardDoesNotRemapUserZe
     info.setterUserId = 0;
     GetDirectBootTestState().targets.at(info.bundleName).userId = 0;
     context.Register(info);
-    GetDirectBootTestState().callingUid = 0;
+    GetDirectBootTestState().callingAppUid = 0;
     context.PrepareSceneBoard();
     context.abilityManager_->SetRootSceneSession(context.rootSession_);
     ASSERT_EQ(context.tasks_.size(), 1);
@@ -4416,7 +4416,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, DirectBoot_SceneBoardUsesCallingUserWit
     info.setterUserId = OTHER_USER;
     GetDirectBootTestState().targets.at(info.bundleName).userId = OTHER_USER;
     context.Register(info);
-    GetDirectBootTestState().callingUid = OTHER_USER * 200000 + 12345;
+    GetDirectBootTestState().callingAppUid = OTHER_USER * 200000 + 12345;
     context.PrepareSceneBoard();
     auto foregroundManager = std::make_shared<UIAbilityLifecycleManager>(DIRECT_BOOT_TEST_USER);
     context.abilityManager_->subManagersHelper_->uiAbilityManagers_[DIRECT_BOOT_TEST_USER] = foregroundManager;

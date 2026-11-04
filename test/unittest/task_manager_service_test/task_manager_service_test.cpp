@@ -62,7 +62,7 @@ std::string MakeTaskId(const std::string &tag)
 
 void SetTestCaller(int32_t uid, pid_t pid)
 {
-    IPCSkeleton::SetCallingUid(uid);
+    IPCSkeleton::SetCallingAppUid(uid);
     IPCSkeleton::SetCallingPid(pid);
 }
 
@@ -827,7 +827,7 @@ HWTEST_F(AppMgrServiceTaskTest, AppMgrServiceTask_StartFinishTask_0200, TestSize
  */
 HWTEST_F(AppMgrServiceTaskTest, AppMgrServiceTask_DumpTask_0100, TestSize.Level1)
 {
-    IPCSkeleton::SetCallingUid(TEST_HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(TEST_HIDUMPER_SERVICE_UID);
     std::string result;
     EXPECT_EQ(appMgrService_->Dump(MakeDumpArgs({"--task"}), result), ERR_OK);
     EXPECT_NE(result.find("TaskManager active tasks: total="), std::string::npos);
@@ -849,7 +849,7 @@ HWTEST_F(AppMgrServiceTaskTest, AppMgrServiceTask_DumpTask_0200, TestSize.Level1
     std::string taskId = MakeTaskId("dump_task_0200");
     EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
 
-    IPCSkeleton::SetCallingUid(TEST_HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(TEST_HIDUMPER_SERVICE_UID);
     std::string result;
     EXPECT_EQ(appMgrService_->Dump(MakeDumpArgs({"--task", "register", taskId,
         std::to_string(TEST_MANAGED_PID), "insight"}), result), ERR_OK);
@@ -874,7 +874,7 @@ HWTEST_F(AppMgrServiceTaskTest, AppMgrServiceTask_DumpTask_0200, TestSize.Level1
  */
 HWTEST_F(AppMgrServiceTaskTest, AppMgrServiceTask_DumpTask_0300, TestSize.Level1)
 {
-    IPCSkeleton::SetCallingUid(TEST_HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(TEST_HIDUMPER_SERVICE_UID);
     std::string result;
     EXPECT_EQ(appMgrService_->Dump(MakeDumpArgs({"--task", "register", "x"}), result),
         DumpErrorCode::ERR_INVALID_NUM_ARGS_ERROR);

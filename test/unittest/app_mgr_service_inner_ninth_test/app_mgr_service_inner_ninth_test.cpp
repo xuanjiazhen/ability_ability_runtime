@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include "ipc_skeleton.h"
 #include "ability_util.h"  // Mock header to override CHECK_POINTER_AND_RETURN_LOG
 #include "mock_task_handler_wrap.h"  // Mock TaskHandlerWrap for testing
 #define private public
@@ -139,6 +140,36 @@ void AppMgrServiceInnerNinthTest::TearDownTestCase() {}
 void AppMgrServiceInnerNinthTest::SetUp() {}
 
 void AppMgrServiceInnerNinthTest::TearDown() {}
+
+/**
+ * @tc.name: CallingIdentityMockCountersAreIndependent
+ * @tc.desc: Reading one identity does not read or count the other identity.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerNinthTest, CallingIdentityMockCountersAreIndependent, TestSize.Level1)
+{
+    auto &status = AAFwk::MyStatus::GetInstance();
+    const auto oldUid = status.getCallingUid_;
+    const auto oldAppUid = status.getCallingAppUid_;
+    const auto oldUidCalls = status.getCallingUidCalledTimes_;
+    const auto oldAppUidCalls = status.getCallingAppUidCalledTimes_;
+    status.getCallingUid_ = 100;
+    status.getCallingAppUid_ = 20012345;
+    status.getCallingUidCalledTimes_ = 0;
+    status.getCallingAppUidCalledTimes_ = 0;
+
+    EXPECT_EQ(IPCSkeleton::GetCallingUid(), 100);
+    EXPECT_EQ(status.getCallingUidCalledTimes_, 1);
+    EXPECT_EQ(status.getCallingAppUidCalledTimes_, 0);
+    EXPECT_EQ(IPCSkeleton::GetCallingAppUid(), 20012345);
+    EXPECT_EQ(status.getCallingUidCalledTimes_, 1);
+    EXPECT_EQ(status.getCallingAppUidCalledTimes_, 1);
+
+    status.getCallingUid_ = oldUid;
+    status.getCallingAppUid_ = oldAppUid;
+    status.getCallingUidCalledTimes_ = oldUidCalls;
+    status.getCallingAppUidCalledTimes_ = oldAppUidCalls;
+}
 
 /**
  * @tc.name: PreloadApplication_001

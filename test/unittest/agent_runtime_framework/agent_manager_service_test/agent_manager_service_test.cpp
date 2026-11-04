@@ -248,12 +248,15 @@ void AgentManagerServiceTest::SetUp(void)
     MyFlag::retIsCliToolToken = true;
     MyFlag::retGetHapTokenInfo = 0;
     MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingAppUid();
-    // anti-spoof seams: default off so GetCallingAppUid() behaves as getuid() for non-ForCli tests.
+    // anti-spoof seams: default off so GetCallingAppUid() uses process appUid for non-ForCli tests.
     MyFlag::overrideCallingUid = false;
+    MyFlag::cliToolUid = 0;
+    MyFlag::identityUid = 0;
+    MyFlag::overrideCallingAppUid = false;
     MyFlag::setIdentityActive = false;
     MyFlag::retSetCallingIdentity = true;
-    MyFlag::cliToolUid = IPCSkeleton::GetCallingAppUid();
-    MyFlag::identityUid = IPCSkeleton::GetCallingAppUid();
+    MyFlag::cliToolAppUid = IPCSkeleton::GetCallingAppUid();
+    MyFlag::identityAppUid = IPCSkeleton::GetCallingAppUid();
     MyFlag::lastConnectAbilityWant = Want();
     MyFlag::shouldFillExtensionAbilityInfos = true;
     MyFlag::retGetApplicationInfo = false;
@@ -5431,9 +5434,9 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_035, TestSize.Lev
 // branch coverage: CCM gate, IsCliToolToken gate, anti-spoof (callerIdentity uid, obtained via
 // GetCallingAppUid after SetCallingIdentity, == the CLI tool's real process uid captured before
 // SetCallingIdentity), APP-type enforcement, app-A CONNECT_AGENT / system-app / foreground
-// enforcement, success. Legit-path tests rely on the default overrideCallingUid=false, so
-// GetCallingAppUid() returns getuid() both before and after SetCallingIdentity and the anti-spoof
-// passes; the spoof tests set overrideCallingUid=true with a mismatched identityUid.
+// enforcement, success. Legit-path tests rely on the default overrideCallingAppUid=false, so
+// GetCallingAppUid() returns getappuid() both before and after SetCallingIdentity and the anti-spoof
+// passes; the spoof tests set overrideCallingAppUid=true with a mismatched identityAppUid.
 // All error codes are asserted against the exact values the production ForCli code returns so the
 // test guards against a silent relaxation of any branch.
 static Want BuildForCliConnectWant()
@@ -5496,10 +5499,10 @@ HWTEST_F(AgentManagerServiceTest, ConnectForCli_UidSpoof_ReturnsPermissionDenied
 {
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
-    // anti-spoof (fix): GetCallingAppUid before SetCallingIdentity (cliToolUid) != after (identityUid).
-    MyFlag::overrideCallingUid = true;
-    MyFlag::cliToolUid = IPCSkeleton::GetCallingAppUid();
-    MyFlag::identityUid = MyFlag::cliToolUid + 1;  // forged identity uid != real CLI tool uid
+    // anti-spoof (fix): GetCallingAppUid before SetCallingIdentity (cliToolAppUid) != after (identityAppUid).
+    MyFlag::overrideCallingAppUid = true;
+    MyFlag::cliToolAppUid = IPCSkeleton::GetCallingAppUid();
+    MyFlag::identityAppUid = MyFlag::cliToolAppUid + 1;  // forged identity uid != real CLI tool uid
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
         BuildForCliConnectWant(), connection, std::string("callerIdentity")), ERR_PERMISSION_DENIED);
@@ -5666,10 +5669,10 @@ HWTEST_F(AgentManagerServiceTest, DisconnectForCli_Spoof_ReturnsPermissionDenied
 {
     MyFlag::retGetBoolParameterCliEnabled = true;
     MyFlag::retIsCliToolToken = true;
-    // anti-spoof (fix): GetCallingAppUid before SetCallingIdentity (cliToolUid) != after (identityUid).
-    MyFlag::overrideCallingUid = true;
-    MyFlag::cliToolUid = IPCSkeleton::GetCallingAppUid();
-    MyFlag::identityUid = MyFlag::cliToolUid + 1;  // forged identity uid != real CLI tool uid
+    // anti-spoof (fix): GetCallingAppUid before SetCallingIdentity (cliToolAppUid) != after (identityAppUid).
+    MyFlag::overrideCallingAppUid = true;
+    MyFlag::cliToolAppUid = IPCSkeleton::GetCallingAppUid();
+    MyFlag::identityAppUid = MyFlag::cliToolAppUid + 1;  // forged identity uid != real CLI tool uid
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbilityForCli(
         connection, std::string("callerIdentity")), ERR_PERMISSION_DENIED);

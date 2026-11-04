@@ -406,7 +406,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityWithSpecifyTokenId_002, Te
     uint32_t specifyTokenId = 0;
     int32_t userId = 0;
     int32_t requestCode = 0;
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     auto result = abilityMs->StartAbilityWithSpecifyTokenId(want, callerToken, specifyTokenId, userId, requestCode);
     EXPECT_NE(result, ERR_INVALID_CONTINUATION_FLAG);
 }
@@ -1013,14 +1013,14 @@ HWTEST_F(AbilityManagerServiceFourthTest, CheckCallPermission_001, TestSize.Leve
     MyFlag::flag_ = 1;
     abilityInfo.type = AppExecFwk::AbilityType::UNKNOWN;
     constexpr int32_t BROKER_UID = 5557;
-    IPCSkeleton::SetCallingUid(BROKER_UID);
+    IPCSkeleton::SetCallingAppUid(BROKER_UID);
     auto ret3 = abilityMs_->CheckCallPermission(
         want, abilityInfo, abilityRequest, isForegroundToRestartApp, isSendDialogResult, specifyTokenId,
         callerBundleName, false);
     EXPECT_EQ(ret3, CHECK_PERMISSION_FAILED);
 
     abilityInfo.type = AppExecFwk::AbilityType::UNKNOWN;
-    IPCSkeleton::SetCallingUid(0);
+    IPCSkeleton::SetCallingAppUid(0);
     auto ret4 = abilityMs_->CheckCallPermission(
         want, abilityInfo, abilityRequest, isForegroundToRestartApp, isSendDialogResult, specifyTokenId,
         callerBundleName, false);
@@ -1842,7 +1842,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityWithCallback_002, TestSi
     want.SetElementName("com.test.bundle", "NonExistAbility");
     sptr<IRemoteObject> callerToken = MockToken(AbilityType::PAGE);
     sptr<RequestAbilityImplCallback> callback = new RequestAbilityImplCallback();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     MyFlag::flag_ = 1;
     auto result = abilityMs->StartUIAbilityWithCallback(want, callerToken, callback);
     EXPECT_NE(result, ERR_OK);
@@ -1864,7 +1864,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, GetUserLockedBundleList_001, TestSize.
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
     AbilityRuntime::UserController::GetInstance().userLockedBundleMap_.clear();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     auto userId = TEST_VALID_USER_ID;
     std::unordered_set<std::string> userLockedBundleList;
     auto result = abilityMs->GetUserLockedBundleList(userId, userLockedBundleList);
@@ -1872,7 +1872,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, GetUserLockedBundleList_001, TestSize.
     AbilityRuntime::UserController::GetInstance().userLockedBundleMap_[TEST_VALID_USER_ID].insert("com.ohos.test");
     result = abilityMs->GetUserLockedBundleList(userId, userLockedBundleList);
     EXPECT_EQ(result, ERR_OK);
-    IPCSkeleton::SetCallingUid(0);
+    IPCSkeleton::SetCallingAppUid(0);
     result = abilityMs->GetUserLockedBundleList(userId, userLockedBundleList);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest GetUserLockedBundleList_001 end");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -573,7 +573,7 @@ HWTEST_F(AppMgrServiceSecondTest, UpdateFreezeExcludedPid_0100, TestSize.Level2)
     int32_t pid = 1;
     int32_t profilerPid = 2;
     constexpr int32_t HIPROFILER_UID = 3063;
-    IPCSkeleton::uid_ = HIPROFILER_UID;
+    IPCSkeleton::appUid_ = HIPROFILER_UID;
     appMgrService->UpdateFreezeExcludedPid(true, pid, profilerPid);
 }
 

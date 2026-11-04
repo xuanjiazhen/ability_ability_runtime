@@ -117,6 +117,28 @@ void ToolUtilTest::TearDown()
 }
 
 /**
+ * @tc.name: CallingIdentityMocksAreIndependent
+ * @tc.desc: OS UID and application UID remain independent and reset separately.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, CallingIdentityMocksAreIndependent, TestSize.Level1)
+{
+    IPCSkeleton::callingUid = 100;
+    IPCSkeleton::callingAppUid = 20012345;
+    EXPECT_EQ(IPCSkeleton::GetCallingUid(), 100);
+    EXPECT_EQ(IPCSkeleton::GetCallingAppUid(), 20012345);
+
+    IPCSkeleton::callingUid = 101;
+    EXPECT_EQ(IPCSkeleton::GetCallingAppUid(), 20012345);
+    IPCSkeleton::callingAppUid = 20054321;
+    EXPECT_EQ(IPCSkeleton::GetCallingUid(), 101);
+
+    IPCSkeleton::Reset();
+    EXPECT_EQ(IPCSkeleton::GetCallingUid(), 0);
+    EXPECT_EQ(IPCSkeleton::GetCallingAppUid(), 0);
+}
+
+/**
  * @tc.name: ToolUtil_ValidateInputSchemaProperties_0100
  * @tc.desc: Test ValidateInputSchemaProperties with empty schema
  * @tc.type: FUNC
@@ -2217,7 +2239,7 @@ HWTEST_F(ToolUtilTest, GenerateSandboxConfig_InjectsCallerIdentityEnv_0100, Test
     AppExecFwk::BundleMgrHelper::appId = "app-id-xxx";
     AppExecFwk::BundleMgrHelper::bundleName = "com.test.agent";
     IPCSkeleton::callingIdentity = "caller-id-str";
-    IPCSkeleton::callingUid = 12345;
+    IPCSkeleton::callingAppUid = 12345;
     IPCSkeleton::callingPid = 1000;
     IPCSkeleton::callingTokenId = 999;
     IPCSkeleton::callingFullTokenId = 88888;

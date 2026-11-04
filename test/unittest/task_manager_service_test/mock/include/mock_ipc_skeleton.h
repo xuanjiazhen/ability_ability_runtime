@@ -26,6 +26,8 @@ public:
 
     static pid_t GetCallingPid();
 
+    static pid_t GetCallingUid();
+
     static pid_t GetCallingAppUid();
 
 
@@ -34,6 +36,8 @@ public:
     static uint64_t GetCallingFullTokenID();
 
     static void SetCallingUid(pid_t uid);
+
+    static void SetCallingAppUid(pid_t appUid);
 
     static void SetCallingPid(pid_t pid);
 

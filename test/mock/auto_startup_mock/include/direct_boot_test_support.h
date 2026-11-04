@@ -55,6 +55,7 @@ struct DirectBootTestState {
     bool bundleAvailable = true;
     std::string deviceType = "2in1";
     int32_t callingUid = DIRECT_BOOT_TEST_UID;
+    int32_t callingAppUid = DIRECT_BOOT_TEST_UID;
     int32_t accountCalls = 0;
     int32_t accountFailureCall = 0;
     int32_t accountSecondUser = DIRECT_BOOT_TEST_USER;

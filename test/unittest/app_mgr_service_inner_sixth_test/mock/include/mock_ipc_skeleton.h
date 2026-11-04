@@ -35,6 +35,8 @@ public:
 
     static pid_t GetCallingPid();
 
+    static pid_t GetCallingUid();
+
     static pid_t GetCallingAppUid();
 
 
@@ -59,6 +61,8 @@ public:
     static bool SetCallingIdentity(std::string& identity);
 
     static void SetCallingUid(pid_t uid);
+
+    static void SetCallingAppUid(pid_t appUid);
 
     static void SetCallingPid(pid_t pid);
 

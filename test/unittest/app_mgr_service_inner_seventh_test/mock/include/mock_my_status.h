@@ -38,6 +38,7 @@ public:
     bool getHapModuleInfo_ = false;
     ErrCode getSandboxHapModuleInfo_ = ERR_OK;
     bool isLogoutUser_ = false;
+    pid_t getCallingUid_ = 0;
     pid_t getCallingAppUid_ = 0;
     ErrCode processUpdate_ = ERR_OK;
     bool verifyCallingPermission_ = false;

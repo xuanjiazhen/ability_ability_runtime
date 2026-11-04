@@ -18,6 +18,7 @@
 namespace OHOS {
 namespace {
 pid_t g_mockUid = 0;
+pid_t g_mockAppUid = 0;
 uint32_t g_mockTokenId = 0;
 }
 
@@ -34,9 +35,14 @@ pid_t IPCSkeleton::GetCallingPid()
     return 1;
 }
 
-pid_t IPCSkeleton::GetCallingAppUid()
+pid_t IPCSkeleton::GetCallingUid()
 {
     return g_mockUid;
+}
+
+pid_t IPCSkeleton::GetCallingAppUid()
+{
+    return g_mockAppUid;
 }
 
 uint32_t IPCSkeleton::GetCallingTokenID()
@@ -93,6 +99,11 @@ bool IPCSkeleton::SetCallingIdentity(std::string &identity)
 void IPCSkeleton::SetCallingUid(pid_t uid)
 {
     g_mockUid = uid;
+}
+
+void IPCSkeleton::SetCallingAppUid(pid_t appUid)
+{
+    g_mockAppUid = appUid;
 }
 
 uint32_t IPCSkeleton::SetCallingTokenID(pid_t tokenId)

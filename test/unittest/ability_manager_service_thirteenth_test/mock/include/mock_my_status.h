@@ -51,6 +51,7 @@ public:
     std::shared_ptr<AbilityRecord> arGetAbilityRecord_ = nullptr;
     AppExecFwk::AbilityInfo arGetAbilityInfo_ = {};
     bool sbjIsSceneBoardEnabled_ = false;
+    int ipcGetCallingUid_ = 1;
     int ipcGetCallingAppUid_ = 1;
     int ipcGetCallingPid_ = 1;
     uint32_t ipcGetCallingTokenID_ = 1;

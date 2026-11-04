@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,7 +38,7 @@ constexpr int32_t FOUNDATION_UID = OHOS::AbilityRuntime::GlobalConstant::FOUNDAT
 
 // Concrete subclass that satisfies the pure-virtual OnExecuteDone so the stub can
 // be instantiated. Trust dispatch is driven entirely by mock IPCSkeleton state in
-// each test case (SetCallingUid), not by subclassing. OnExecuteDone captures the
+// each test case (SetCallingAppUid), not by subclassing. OnExecuteDone captures the
 // forwarded (key, resultCode, executeResult.code) so success-path cases can verify
 // the stub actually forwards the deserialized payload to the callback.
 class InsightIntentExecuteCallbackStubTests : public InsightIntentExecuteCallbackStub {
@@ -84,12 +84,12 @@ void InsightIntentExecuteCallbackStubTest::SetUp()
 {
     // Default to a trusted (foundation) caller; individual cases that exercise the
     // rejection path override this with a non-foundation uid.
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
 }
 
 void InsightIntentExecuteCallbackStubTest::TearDown()
 {
-    IPCSkeleton::SetCallingUid(0);
+    IPCSkeleton::SetCallingAppUid(0);
 }
 
 /**
@@ -123,7 +123,7 @@ HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0100, TestSize.Le
 HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0200, TestSize.Level1)
 {
     TAG_LOGE(AAFwkTag::TEST, "OnRemoteRequest_0200 begin.");
-    IPCSkeleton::SetCallingUid(0);  // simulate a non-foundation caller
+    IPCSkeleton::SetCallingAppUid(0);  // simulate a non-foundation caller
     std::shared_ptr<InsightIntentExecuteCallbackStub> backStub
         = std::make_shared<InsightIntentExecuteCallbackStubTests>();
     uint32_t code = IInsightIntentExecuteCallback::ON_INSIGHT_INTENT_EXECUTE_DONE;
@@ -185,7 +185,7 @@ HWTEST_F(InsightIntentExecuteCallbackStubTest, OnExecuteDoneInner_0200, TestSize
 HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0300, TestSize.Level1)
 {
     TAG_LOGE(AAFwkTag::TEST, "OnRemoteRequest_0300 begin.");
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     auto backStub = std::make_shared<InsightIntentExecuteCallbackStubTests>();
     uint32_t code = IInsightIntentExecuteCallback::ON_INSIGHT_INTENT_EXECUTE_DONE;
     MessageParcel data;
@@ -214,7 +214,7 @@ HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0300, TestSize.Le
 HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0400, TestSize.Level1)
 {
     TAG_LOGE(AAFwkTag::TEST, "OnRemoteRequest_0400 begin.");
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     std::shared_ptr<InsightIntentExecuteCallbackStub> backStub
         = std::make_shared<InsightIntentExecuteCallbackStubTests>();
     uint32_t code = 9999;  // not ON_INSIGHT_INTENT_EXECUTE_DONE
@@ -235,7 +235,7 @@ HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0400, TestSize.Le
 HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0500, TestSize.Level1)
 {
     TAG_LOGE(AAFwkTag::TEST, "OnRemoteRequest_0500 begin.");
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     std::shared_ptr<InsightIntentExecuteCallbackStub> backStub
         = std::make_shared<InsightIntentExecuteCallbackStubTests>();
     uint32_t code = IInsightIntentExecuteCallback::ON_INSIGHT_INTENT_EXECUTE_DONE;
@@ -255,7 +255,7 @@ HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0500, TestSize.Le
 HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0600, TestSize.Level1)
 {
     TAG_LOGE(AAFwkTag::TEST, "OnRemoteRequest_0600 begin.");
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     std::shared_ptr<InsightIntentExecuteCallbackStub> backStub
         = std::make_shared<InsightIntentExecuteCallbackStubTests>();
     uint32_t code = IInsightIntentExecuteCallback::ON_INSIGHT_INTENT_EXECUTE_DONE;
@@ -309,7 +309,7 @@ HWTEST_F(InsightIntentExecuteCallbackStubTest, OnExecuteDoneInner_0400, TestSize
 HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0700, TestSize.Level1)
 {
     TAG_LOGE(AAFwkTag::TEST, "OnRemoteRequest_0700 begin.");
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     auto backStub = std::make_shared<InsightIntentExecuteCallbackStubTests>();
     uint32_t code = IInsightIntentExecuteCallback::ON_INSIGHT_INTENT_EXECUTE_DONE;
     MessageParcel data;
@@ -338,7 +338,7 @@ HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0700, TestSize.Le
 HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0800, TestSize.Level1)
 {
     TAG_LOGE(AAFwkTag::TEST, "OnRemoteRequest_0800 begin.");
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     std::shared_ptr<InsightIntentExecuteCallbackStub> backStub
         = std::make_shared<InsightIntentExecuteCallbackStubTests>();
     uint32_t code = IInsightIntentExecuteCallback::ON_INSIGHT_INTENT_EXECUTE_DONE;

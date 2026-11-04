@@ -20,14 +20,20 @@ namespace OHOS {
 constexpr pid_t DEFAULT_CALLING_PID = 1000;
 
 pid_t IPCSkeleton::callingUid = FOUNDATION_UID;
+pid_t IPCSkeleton::callingAppUid = FOUNDATION_UID;
 pid_t IPCSkeleton::callingPid = DEFAULT_CALLING_PID;
 uint64_t IPCSkeleton::callingFullTokenId = 0;
 uint64_t IPCSkeleton::callingTokenId = TOKEN_NATIVE;
 std::string IPCSkeleton::callingIdentity;
 
-pid_t IPCSkeleton::GetCallingAppUid()
+pid_t IPCSkeleton::GetCallingUid()
 {
     return callingUid;
+}
+
+pid_t IPCSkeleton::GetCallingAppUid()
+{
+    return callingAppUid;
 }
 
 pid_t IPCSkeleton::GetCallingPid()
@@ -48,6 +54,7 @@ uint64_t IPCSkeleton::GetCallingTokenID()
 void IPCSkeleton::Reset()
 {
     callingUid = FOUNDATION_UID;
+    callingAppUid = FOUNDATION_UID;
     callingPid = DEFAULT_CALLING_PID;
     callingFullTokenId = 0;
     callingTokenId = TOKEN_NATIVE;
@@ -63,6 +70,11 @@ void IPCSkeleton::SetCallingTokenID(uint64_t tokenID)
 void IPCSkeleton::SetCallingUid(pid_t uid)
 {
     callingUid = uid;
+}
+
+void IPCSkeleton::SetCallingAppUid(pid_t appUid)
+{
+    callingAppUid = appUid;
 }
 
 std::string IPCSkeleton::ResetCallingIdentity()

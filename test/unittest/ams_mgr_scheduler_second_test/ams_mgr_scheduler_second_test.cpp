@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -153,7 +153,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_LoadAbility_003, T
      * @tc.steps: step2. LoadAbility with error permission
      * @tc.expected: step2. expect GetSceneBoardAttachFlag true
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     amsMgrScheduler->LoadAbility(abilityInfo, appInfo, want, loadParam);
     EXPECT_TRUE(appMgrServiceInner_->GetSceneBoardAttachFlag());
 }
@@ -180,7 +180,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_LoadAbility_004, T
      * @tc.steps: step2. LoadAbility with permission FOUNDATION_UID
      * @tc.expected: step2. expect taskhandler executed at least one time
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     amsMgrScheduler->LoadAbility(abilityInfo, appInfo, want, loadParam);
     EXPECT_TRUE(appMgrServiceInner_->GetSceneBoardAttachFlag());
 }
@@ -210,7 +210,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_LoadAbility_005, T
      * @tc.steps: step2. LoadAbility with permission FOUNDATION_UID
      * @tc.expected: step2. expect appMgrServiceInner_ GetSceneBoardAttachFlag false
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     amsMgrScheduler->LoadAbility(abilityInfo, appInfo, want, loadParam);
     EXPECT_FALSE(appMgrServiceInner_->GetSceneBoardAttachFlag()); // false
 }
@@ -240,7 +240,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_LoadAbility_006, T
      * @tc.steps: step2. LoadAbility with permission FOUNDATION_UID
      * @tc.expected: step2. expect appMgrServiceInner_ GetSceneBoardAttachFlag true
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     amsMgrScheduler->LoadAbility(abilityInfo, appInfo, want, loadParam);
     EXPECT_TRUE(appMgrServiceInner_->GetSceneBoardAttachFlag());
 }
@@ -272,7 +272,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_UpdateAbilityState
     std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
         std::make_shared<AmsMgrScheduler>(appMgrServiceInner_, taskHandler_);
 
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     amsMgrScheduler->UpdateAbilityState(nullptr, AbilityState::ABILITY_STATE_CREATE);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_UpdateAbilityState_002 end");
@@ -289,7 +289,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_UpdateAbilityState
     std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
         std::make_shared<AmsMgrScheduler>(appMgrServiceInner_, taskHandler_);
 
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     amsMgrScheduler->UpdateAbilityState(nullptr, AbilityState::ABILITY_STATE_CREATE);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_UpdateAbilityState_003 end");
@@ -331,7 +331,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessesByUse
     std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
         std::make_shared<AmsMgrScheduler>(appMgrServiceInner_, taskHandler_);
     MyFlag::flag_ = 0;
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     amsMgrScheduler->KillProcessesByUserId(-1, false, nullptr);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessesByUserId_002 end");
@@ -353,7 +353,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessesByUse
         std::make_shared<AmsMgrScheduler>(appMgrServiceInner_, taskHandler_);
 
     MyFlag::flag_ = 0;
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     amsMgrScheduler->KillProcessesByUserId(-1, false, nullptr);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_KillProcessesByUserId_003 end");
@@ -374,7 +374,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_KillProcessesByUse
     std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
         std::make_shared<AmsMgrScheduler>(appMgrServiceInner_, taskHandler_);
 
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     MockNativeToken::SetNativeToken();
     MyFlag::flag_ = 1;
     amsMgrScheduler->KillProcessesByUserId(-1, false, nullptr);
@@ -555,7 +555,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_AbilityAttachTimeO
      * @tc.steps: step1. amsMgrScheduler isReady
      * @tc.expected: step1. expect taskHandler times 0
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     const sptr<IRemoteObject> token = nullptr;
     amsMgrScheduler->AbilityAttachTimeOut(token);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
@@ -579,7 +579,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_AbilityAttachTimeO
      * @tc.steps: step1. amsMgrScheduler isReady
      * @tc.expected: step1. expect ret ERR_OK
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     const sptr<IRemoteObject> token = nullptr;
     amsMgrScheduler->AbilityAttachTimeOut(token);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
@@ -625,7 +625,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_PrepareTerminate_0
      * @tc.steps: step1. amsMgrScheduler isReady
      * @tc.expected: step1. expect taskHandler times 0
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     const sptr<IRemoteObject> token = nullptr;
     amsMgrScheduler->PrepareTerminate(token, false);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
@@ -650,7 +650,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_PrepareTerminate_0
      * @tc.steps: step1. amsMgrScheduler isReady
      * @tc.expected: step1. expect ret ERR_OK
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     const sptr<IRemoteObject> token = nullptr;
     amsMgrScheduler->PrepareTerminate(token, false);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
@@ -829,7 +829,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_StartSpecifiedAbil
      * @tc.steps: step1. amsMgrScheduler isReady
      * @tc.expected: step1. expect ERR_OK
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     const AAFwk::Want want;
     const AppExecFwk::AbilityInfo abilityInfo;
     AbilityRuntime::StartSpecifiedParam param;
@@ -855,7 +855,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_StartSpecifiedAbil
      * @tc.steps: step1. amsMgrScheduler isReady
      * @tc.expected: step1. expect ERR_OK
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     const AAFwk::Want want;
     const AppExecFwk::AbilityInfo abilityInfo;
     AbilityRuntime::StartSpecifiedParam param;
@@ -904,7 +904,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_StartSpecifiedProc
      * @tc.steps: step1. amsMgrScheduler isReady
      * @tc.expected: step1. expect ERR_OK
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     const AAFwk::Want want;
     const AppExecFwk::AbilityInfo abilityInfo;
     amsMgrScheduler->StartSpecifiedProcess(want, abilityInfo, 0);
@@ -929,7 +929,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_StartSpecifiedProc
      * @tc.steps: step1. amsMgrScheduler isReady
      * @tc.expected: step1. expect ERR_OK
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     const AAFwk::Want want;
     const AppExecFwk::AbilityInfo abilityInfo;
     amsMgrScheduler->StartSpecifiedProcess(want, abilityInfo, 0);
@@ -1136,7 +1136,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_SetEnableStartProc
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     amsMgrScheduler->SetEnableStartProcessFlagByUserId(0, false);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_SetEnableStartProcessFlagByUserId_002 end");
@@ -1158,7 +1158,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_SetEnableStartProc
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     amsMgrScheduler->SetEnableStartProcessFlagByUserId(0, false);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_SetEnableStartProcessFlagByUserId_003 end");
@@ -1554,7 +1554,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsWaitingDebugApp_
      * @tc.expected: step1. expect ERR_OK
      */
     appMgrServiceInner->waitingDebugBundleList_.emplace("testBundleName", true);
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     auto ret = amsMgrScheduler->IsWaitingDebugApp("testBundleName");
     EXPECT_EQ(ret, true);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsWaitingDebugApp_002 end");
@@ -1598,7 +1598,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_RegisterAbilityDeb
      * @tc.steps: step1. amsMgrScheduler isReady
      * @tc.expected: step1. expect ERR_OK
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     auto ret = amsMgrScheduler->RegisterAbilityDebugResponse(nullptr);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_RegisterAbilityDebugResponse_002 end");
@@ -1729,7 +1729,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsMemorySizeSuffic
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     auto ret = amsMgrScheduler->IsMemorySizeSufficient();
     EXPECT_TRUE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsMemorySizeSufficient_002 end");
@@ -1751,7 +1751,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsMemorySizeSuffic
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     auto ret = amsMgrScheduler->IsMemorySizeSufficient();
     EXPECT_TRUE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsMemorySizeSufficient_003 end");
@@ -1924,7 +1924,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsKilledForUpgrade
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     auto ret = amsMgrScheduler->IsKilledForUpgradeWeb("");
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsKilledForUpgradeWeb_002 end");
@@ -1946,7 +1946,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsKilledForUpgrade
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     auto ret = amsMgrScheduler->IsKilledForUpgradeWeb("");
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsKilledForUpgradeWeb_003 end");
@@ -1989,7 +1989,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsProcessContainsO
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     auto ret = amsMgrScheduler->IsProcessContainsOnlyUIAbility(0);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsProcessContainsOnlyUIAbility_002 end");
@@ -2033,7 +2033,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsProcessAttached_
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     sptr<IRemoteObject> token = nullptr;
     auto ret = amsMgrScheduler->IsProcessAttached(token);
     EXPECT_FALSE(ret);
@@ -2056,7 +2056,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsProcessAttached_
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     sptr<IRemoteObject> token = nullptr;
     auto ret = amsMgrScheduler->IsProcessAttached(token);
     EXPECT_FALSE(ret);
@@ -2100,7 +2100,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsCallerKilling_00
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     auto ret = amsMgrScheduler->IsCallerKilling("");
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsCallerKilling_002 end");
@@ -2122,7 +2122,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_IsCallerKilling_00
      * @tc.steps: step1. amsMgrScheduler isReady false
      * @tc.expected: step1. expect ERR_INVALID_OPERATION
      */
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     auto ret = amsMgrScheduler->IsCallerKilling("");
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_IsCallerKilling_003 end");
@@ -2274,7 +2274,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, IsNoRequireBigMemory_002, TestSize.Level1)
     std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
         std::make_shared<AmsMgrScheduler>(appMgrServiceInner, taskHandler_);
     ASSERT_NE(amsMgrScheduler, nullptr);
-    IPCSkeleton::SetCallingUid(-1);
+    IPCSkeleton::SetCallingAppUid(-1);
     bool ret = amsMgrScheduler->IsNoRequireBigMemory();
     EXPECT_TRUE(ret);
 }
@@ -2293,7 +2293,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, IsNoRequireBigMemory_003, TestSize.Level1)
     std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
         std::make_shared<AmsMgrScheduler>(appMgrServiceInner, taskHandler_);
     ASSERT_NE(amsMgrScheduler, nullptr);
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     bool ret = amsMgrScheduler->IsNoRequireBigMemory();
     EXPECT_TRUE(ret);
 }
@@ -2331,7 +2331,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_SetKeepAliveAppSer
      * @tc.expected: step2. expect isKeepAliveAppService_ is true
      */
     amsMgrScheduler->amsHandler_ = taskHandler_;
-    IPCSkeleton::SetCallingUid(Constants::FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(Constants::FOUNDATION_UID);
     amsMgrScheduler->SetKeepAliveAppService(SCENE_BOARD_BUNDLE_NAME, true, 0);
     EXPECT_TRUE(appRecord->isKeepAliveAppService_);
 

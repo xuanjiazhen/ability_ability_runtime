@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -337,7 +337,7 @@ HWTEST_F(AppMgrServiceFourthTest, GetAllAbilityInfos_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "GetAllAbilityInfos_001 start");
     appMgrService_->appMgrServiceInner_ = nullptr;
     AAFwk::MyStatus::GetInstance().isCheckSpecificSystemAbilityAccessPermission_ = true;
-    IPCSkeleton::SetCallingUid(RSS_UID);
+    IPCSkeleton::SetCallingAppUid(RSS_UID);
     std::vector<AppExecFwk::AbilityStateData> infos;
     int32_t result = appMgrService_->GetAllAbilityInfos(-1, infos);
     EXPECT_EQ(result, AAFwk::ERR_APP_MGR_SERVICE_NOT_READY);
@@ -397,13 +397,13 @@ HWTEST_F(AppMgrServiceFourthTest, GetHyperSnapLastError_0200, TestSize.Level2)
 HWTEST_F(AppMgrServiceFourthTest, GetHyperSnapLastError_0300, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetHyperSnapLastError_0300 start");
-    IPCSkeleton::SetCallingUid(UID);
+    IPCSkeleton::SetCallingAppUid(UID);
     HyperSnapErrorRecord record;
     EXPECT_EQ(appMgrService_->GetHyperSnapLastError(
         static_cast<int32_t>(HyperSnapErrorType::FORK_FROM_SNAPSHOT), record), ERR_OK);
     EXPECT_EQ(record.code, HyperSnapErrorCode::ERR_OK);
     EXPECT_EQ(record.msg, "No error");
-    IPCSkeleton::SetCallingUid(0);
+    IPCSkeleton::SetCallingAppUid(0);
     TAG_LOGI(AAFwkTag::TEST, "GetHyperSnapLastError_0300 end");
 }
 } // namespace AppExecFwk

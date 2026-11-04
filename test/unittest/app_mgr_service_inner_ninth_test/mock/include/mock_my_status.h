@@ -39,6 +39,7 @@ public:
     bool getHapModuleInfo_ = false;
     ErrCode getSandboxHapModuleInfo_ = ERR_OK;
     bool isLogoutUser_ = false;
+    pid_t getCallingUid_ = 0;
     pid_t getCallingAppUid_ = 0;
     pid_t getCallingTokenID_ = 0;
     ErrCode processUpdate_ = ERR_OK;
@@ -225,6 +226,7 @@ public:
     bool notifyStartResidentProcessCalled_ = false;
     bool notifyStartKeepAliveProcessCalled_ = false;
     bool recordAppExitSignalReasonCall_ = false;
+    int getCallingUidCalledTimes_ = 0;
     int getCallingAppUidCalledTimes_ = 0;
     int getAppRunningRecordMapCall_ = 0;
     bool setKeepAliveEnableStateCalled_ = false;

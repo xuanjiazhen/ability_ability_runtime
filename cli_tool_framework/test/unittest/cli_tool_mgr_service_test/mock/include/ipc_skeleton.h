@@ -28,6 +28,8 @@ constexpr int32_t FOUNDATION_UID = 5523;
 
 class IPCSkeleton {
 public:
+    static pid_t GetCallingUid();
+
     static pid_t GetCallingAppUid();
     static pid_t GetCallingPid();
     static uint64_t GetCallingFullTokenID();
@@ -35,11 +37,13 @@ public:
     static void Reset();
     static void SetCallingTokenID(uint64_t tokenID);
     static void SetCallingUid(pid_t uid);
+    static void SetCallingAppUid(pid_t appUid);
     static std::string ResetCallingIdentity();
     static bool SetCallingIdentity(const std::string &identity);
     static bool setCallingIdentityRet;  // return seam (malformed identity -> false)
 
     static pid_t callingUid;
+    static pid_t callingAppUid;
     static pid_t callingPid;
     static uint64_t callingFullTokenId;
     static uint64_t callingTokenId;

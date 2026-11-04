@@ -25,8 +25,11 @@ public:
     ~IPCSkeleton() = default;
     static pid_t GetCallingPid();
     static int pid_;
+    static pid_t GetCallingUid();
+
     static pid_t GetCallingAppUid();
     static int uid_;
+    static int appUid_;
 };
 }  // namespace OHOS
 #endif // OHOS_IPC_IPC_SKELETON_H

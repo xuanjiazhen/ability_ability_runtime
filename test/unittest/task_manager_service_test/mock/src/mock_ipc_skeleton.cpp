@@ -17,13 +17,19 @@
 
 namespace OHOS {
 pid_t uid_ = 0;
+pid_t appUid_ = 0;
 pid_t pid_ = 1;
 pid_t tokenId_ = 0;
 uint64_t fullTokenId_ = 0;
 
-pid_t IPCSkeleton::GetCallingAppUid()
+pid_t IPCSkeleton::GetCallingUid()
 {
     return uid_;
+}
+
+pid_t IPCSkeleton::GetCallingAppUid()
+{
+    return appUid_;
 }
 
 pid_t IPCSkeleton::GetCallingPid()
@@ -34,6 +40,11 @@ pid_t IPCSkeleton::GetCallingPid()
 void IPCSkeleton::SetCallingUid(pid_t uid)
 {
     uid_ = uid;
+}
+
+void IPCSkeleton::SetCallingAppUid(pid_t appUid)
+{
+    appUid_ = appUid;
 }
 
 void IPCSkeleton::SetCallingPid(pid_t pid)

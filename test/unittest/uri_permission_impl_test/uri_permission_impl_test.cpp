@@ -75,7 +75,7 @@ void UriPermissionImplTest::SetUp()
     AppUtils::Init();
     SandboxManagerKit::Init();
     IPCSkeleton::callerTokenId = 0;
-    IPCSkeleton::callerUId = 0;
+    IPCSkeleton::callerAppUid = 0;
     StorageManager::StorageManagerServiceMock::isZero = true;
     MockSystemAbilityManager::isNullptr = false;
     AbilityManagerClient::collaborator_ = nullptr;
@@ -1230,7 +1230,7 @@ HWTEST_F(UriPermissionImplTest, RevokeAllUriPermission_001, TestSize.Level1)
 {
     auto upms = std::make_unique<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
-    IPCSkeleton::callerUId = 5523;
+    IPCSkeleton::callerAppUid = 5523;
     int32_t funcResult = -1;
     AbilityManagerClient::collaborator_ = std::make_shared<IAbilityManagerCollaborator>();
     auto collaborator = AbilityManagerClient::collaborator_;
@@ -1238,7 +1238,7 @@ HWTEST_F(UriPermissionImplTest, RevokeAllUriPermission_001, TestSize.Level1)
     AbilityManagerClient::collaborator_ = nullptr;
     MyFlag::upmsUtilsIsFoundationCallRet_ = true;
     upms->RevokeAllUriPermissions(1002, funcResult);
-    IPCSkeleton::callerUId = 0;
+    IPCSkeleton::callerAppUid = 0;
     EXPECT_EQ(funcResult, ERR_OK);
 }
 
@@ -1514,7 +1514,7 @@ HWTEST_F(UriPermissionImplTest, GrantUriPermissionPrivileged_005, TestSize.Level
     ASSERT_NE(upms, nullptr);
     MyFlag::tokenInfos[1001] = TokenInfo(1001, MyATokenTypeEnum::TOKEN_NATIVE, "foundation");
     IPCSkeleton::callerTokenId = 1001;
-    IPCSkeleton::callerUId = 5523;
+    IPCSkeleton::callerAppUid = 5523;
     MyFlag::permissionPrivileged_ = true;
     MyFlag::isSAOrBrokerCall_ = true;
     MyFlag::permissionAllMedia_ = true;

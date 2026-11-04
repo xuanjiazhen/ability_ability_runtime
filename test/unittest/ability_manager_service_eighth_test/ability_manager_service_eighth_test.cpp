@@ -148,7 +148,7 @@ HWTEST_F(AbilityManagerServiceEighthTest, StopUser_001, TestSize.Level1)
     int userId = 10;
     sptr<IUserCallback> callback = new MockIUserCallback();
     EXPECT_EQ(abilityMs->StopUser(userId, callback), CHECK_PERMISSION_FAILED);
-    IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(ACCOUNT_MGR_SERVICE_UID);
 
     userId = 100;
     EXPECT_EQ(abilityMs->StopUser(userId, callback), INVALID_USERID_VALUE);
@@ -172,12 +172,12 @@ HWTEST_F(AbilityManagerServiceEighthTest, LogoutUser_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest LogoutUser_001 start");
     std::shared_ptr<AbilityManagerService> abilityMs = std::make_shared<AbilityManagerService>();
     int userId = 10;
-    IPCSkeleton::SetCallingUid(TEST_UID);
+    IPCSkeleton::SetCallingAppUid(TEST_UID);
     sptr<IUserCallback> callback = nullptr;
     EXPECT_EQ(abilityMs->LogoutUser(userId, callback), INVALID_PARAMETERS_ERR);
     sptr<IUserCallback> callback1 = new MockIUserCallback();
     EXPECT_EQ(abilityMs->LogoutUser(userId, callback1), CHECK_PERMISSION_FAILED);
-    IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(ACCOUNT_MGR_SERVICE_UID);
     userId = 0;
     EXPECT_EQ(abilityMs->LogoutUser(userId, callback1), INVALID_USERID_VALUE);
     userId = 1000;
@@ -200,9 +200,9 @@ HWTEST_F(AbilityManagerServiceEighthTest, LogoutUser_002, TestSize.Level1)
     std::shared_ptr<AbilityManagerService> abilityMs = std::make_shared<AbilityManagerService>();
     abilityMs->abilityAutoStartupService_ = std::make_shared<AbilityRuntime::AbilityAutoStartupService>();
     EXPECT_NE(abilityMs->abilityAutoStartupService_, nullptr);
-    IPCSkeleton::SetCallingUid(TEST_UID);
+    IPCSkeleton::SetCallingAppUid(TEST_UID);
     sptr<IUserCallback> callback1 = new MockIUserCallback();
-    IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(ACCOUNT_MGR_SERVICE_UID);
     system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     int32_t userId = 100;
     abilityMs->abilityAutoStartupService_->AddHandledAutoStartupUsers(userId);
@@ -223,9 +223,9 @@ HWTEST_F(AbilityManagerServiceEighthTest, LogoutUser_003, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest LogoutUser_003 start");
     std::shared_ptr<AbilityManagerService> abilityMs = std::make_shared<AbilityManagerService>();
     abilityMs->abilityAutoStartupService_ = nullptr;
-    IPCSkeleton::SetCallingUid(TEST_UID);
+    IPCSkeleton::SetCallingAppUid(TEST_UID);
     sptr<IUserCallback> callback1 = new MockIUserCallback();
-    IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(ACCOUNT_MGR_SERVICE_UID);
     system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     int32_t userId = 100;
     EXPECT_EQ(abilityMs->LogoutUser(userId, callback1), ERR_OK);
@@ -243,9 +243,9 @@ HWTEST_F(AbilityManagerServiceEighthTest, LogoutUser_004, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest LogoutUser_004 start");
     std::shared_ptr<AbilityManagerService> abilityMs = std::make_shared<AbilityManagerService>();
     abilityMs->abilityAutoStartupService_ = std::make_shared<AbilityRuntime::AbilityAutoStartupService>();
-    IPCSkeleton::SetCallingUid(TEST_UID);
+    IPCSkeleton::SetCallingAppUid(TEST_UID);
     sptr<IUserCallback> callback1 = new MockIUserCallback();
-    IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(ACCOUNT_MGR_SERVICE_UID);
     system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false);
     int32_t userId = 100;
     abilityMs->abilityAutoStartupService_->AddHandledAutoStartupUsers(userId);
@@ -267,9 +267,9 @@ HWTEST_F(AbilityManagerServiceEighthTest, LogoutUser_005, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest LogoutUser_005 start");
     std::shared_ptr<AbilityManagerService> abilityMs = std::make_shared<AbilityManagerService>();
     abilityMs->abilityAutoStartupService_ = nullptr;
-    IPCSkeleton::SetCallingUid(TEST_UID);
+    IPCSkeleton::SetCallingAppUid(TEST_UID);
     sptr<IUserCallback> callback1 = new MockIUserCallback();
-    IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(ACCOUNT_MGR_SERVICE_UID);
     system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false);
     int32_t userId = 100;
     EXPECT_EQ(abilityMs->LogoutUser(userId, callback1), ERR_OK);
@@ -361,10 +361,10 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartAbilityOnlyUIAbility_001, TestSiz
     Want want;
     sptr<IRemoteObject> callerToken;
     uint32_t specifyTokenId = 0;
-    IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(ACCOUNT_MGR_SERVICE_UID);
     int result = abilityMs_->StartAbilityOnlyUIAbility(want, callerToken, specifyTokenId);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     result = abilityMs_->StartAbilityOnlyUIAbility(want, callerToken, specifyTokenId);
     EXPECT_NE(result, ERR_OK);
     want.SetFlags(TEST_FLAG_ABILITY_CONTINUATION);
@@ -397,7 +397,7 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartUIAbilityBySCB_001, TestSize.Leve
     ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
     EXPECT_EQ(ret, ERR_WRONG_INTERFACE_CALL);
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
+    IPCSkeleton::SetCallingAppUid(BASE_USER_RANGE);
     std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(ONE);
     connectManager->sceneBoardTokenId_ = TEST_VALUE_ONE;
     abilityMs_->subManagersHelper_->commonExtensionManagers_.insert(std::make_pair(ONE, connectManager));
@@ -450,7 +450,7 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartUIAbilityBySCB_001_002, TestSize.
     Rosen::SessionInfo info;
     sessionInfo->sessionToken = new Rosen::Session(info);
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
+    IPCSkeleton::SetCallingAppUid(BASE_USER_RANGE);
     std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(ONE);
     connectManager->sceneBoardTokenId_ = TEST_VALUE_ONE;
     abilityMs_->subManagersHelper_->commonExtensionManagers_.insert(std::make_pair(ONE, connectManager));
@@ -703,7 +703,7 @@ HWTEST_F(AbilityManagerServiceEighthTest, TerminateUIServiceExtensionAbility_001
     result = abilityMs_->TerminateUIServiceExtensionAbility(token);
     EXPECT_EQ(result, ERR_WRONG_INTERFACE_CALL);
 
-    IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
+    IPCSkeleton::SetCallingAppUid(BASE_USER_RANGE);
     IPCSkeleton::SetCallingTokenID(1);
     result = abilityMs_->TerminateUIServiceExtensionAbility(token);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
@@ -727,7 +727,7 @@ HWTEST_F(AbilityManagerServiceEighthTest, TerminateUIServiceExtensionAbility_002
     std::string appName = "hiservcie";
     std::string bundleName = "com.ix.hiservcie";
     std::string moduleName = "entry";
-    IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
+    IPCSkeleton::SetCallingAppUid(BASE_USER_RANGE);
     IPCSkeleton::SetCallingTokenID(1);
     EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
         .WillRepeatedly(Return(true));

@@ -2655,7 +2655,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAlive
     EXPECT_FALSE(appRecord->isKeepAliveRdb_);
 
     // case 4, caller bundleName and appRecord bundleName are not equal.
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     appMgrServiceInner->SetKeepAliveEnableState("InvalidBundleName", true, 0);
     EXPECT_FALSE(appRecord->isKeepAliveRdb_);
 
@@ -2663,7 +2663,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAlive
     appMgrServiceInner->SetKeepAliveEnableState(TEST_BUNDLE_NAME, true, 0);
     EXPECT_TRUE(appRecord->isKeepAliveRdb_);
 
-    IPCSkeleton::SetCallingUid(0);
+    IPCSkeleton::SetCallingAppUid(0);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SetKeepAliveEnableState_0100 end");
 }
 
@@ -2703,7 +2703,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAlive
     EXPECT_FALSE(appRecord->isKeepAliveDkv_);
 
     // case 4, caller bundleName and appRecord bundleName are not equal.
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     appMgrServiceInner->SetKeepAliveDkv("InvalidBundleName", true, 0);
     EXPECT_FALSE(appRecord->isKeepAliveDkv_);
 
@@ -2718,7 +2718,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAlive
     appMgrServiceInner->SetKeepAliveDkv(TEST_BUNDLE_NAME, true, 0);
     EXPECT_TRUE(appRecord->isKeepAliveDkv_);
 
-    IPCSkeleton::SetCallingUid(0);
+    IPCSkeleton::SetCallingAppUid(0);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SetKeepAliveDkv_0100 end");
 }
 
@@ -2790,7 +2790,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAlive
     EXPECT_FALSE(appRecord->isKeepAliveAppService_);
 
     // case 4, caller bundleName and appRecord bundleName are not equal.
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     appMgrServiceInner->SetKeepAliveAppService("InvalidBundleName", true, -1);
     EXPECT_FALSE(appRecord->isKeepAliveAppService_);
 
@@ -2801,7 +2801,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAlive
     appMgrServiceInner->SetKeepAliveAppService(TEST_BUNDLE_NAME, true, uid);
     EXPECT_TRUE(appRecord->isKeepAliveAppService_);
 
-    IPCSkeleton::SetCallingUid(0);
+    IPCSkeleton::SetCallingAppUid(0);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SetKeepAliveAppService_0100 end");
 }
 
@@ -2906,7 +2906,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(0); // not foundation uid
+    IPCSkeleton::SetCallingAppUid(0); // not foundation uid
     int32_t uid = USER_SCALE * 101;
     EXPECT_FALSE(appMgrServiceInner->IsMainProcessDebug(uid));
     TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_001 end");
@@ -2922,7 +2922,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_002, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_002 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
     int32_t uid = USER_SCALE * 101;
     EXPECT_FALSE(appMgrServiceInner->IsMainProcessDebug(uid));
     TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_002 end");
@@ -2938,7 +2938,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_003, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_003 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
     int32_t uid = USER_SCALE * 102; // no record matches this uid
     EXPECT_FALSE(appMgrServiceInner->IsMainProcessDebug(uid));
     TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_003 end");
@@ -2954,7 +2954,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_004, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_004 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
 
     ApplicationInfo appInfo;
     appInfo.name = "testApp";
@@ -2986,7 +2986,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_005, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_005 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
 
     ApplicationInfo appInfo;
     appInfo.name = "testApp";
@@ -3018,7 +3018,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_006, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_006 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
 
     ApplicationInfo appInfo;
     appInfo.name = "testApp";
@@ -3050,7 +3050,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_001, Te
     TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(0); // not foundation uid
+    IPCSkeleton::SetCallingAppUid(0); // not foundation uid
     AbilityInfo abilityInfo;
     abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
     EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
@@ -3067,7 +3067,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_002, Te
     TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_002 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
     AbilityInfo abilityInfo;
     // default extensionAbilityType is not AGENT or AgentUI
     EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
@@ -3085,7 +3085,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_003, Te
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->remoteClientManager_ = nullptr;
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
     AbilityInfo abilityInfo;
     abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
     EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
@@ -3104,7 +3104,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_004, Te
     appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
     appMgrServiceInner->remoteClientManager_->SetSpawnClient(nullptr);
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
     AbilityInfo abilityInfo;
     abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
     EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
@@ -3123,7 +3123,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_005, Te
     appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
     // spawn client is created by RemoteClientManager constructor, but bundle manager helper is not set
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
     AbilityInfo abilityInfo;
     abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
     EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
@@ -3142,7 +3142,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_006, Te
     appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
     appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(bundleMgrHelper_);
     appMgrServiceInner->appRunningManager_ = nullptr;
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
     AbilityInfo abilityInfo;
     abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
     EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
@@ -3161,7 +3161,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_007, Te
     appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
     appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(bundleMgrHelper_);
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID); // foundation call
     AbilityInfo abilityInfo;
     abilityInfo.bundleName = "com.test.attachdebug";
     abilityInfo.applicationInfo.bundleName = "com.test.attachdebug";

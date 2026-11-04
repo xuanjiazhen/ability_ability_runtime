@@ -451,10 +451,10 @@ HWTEST_F(AppMgrServiceInnerFourthTest, UpdateApplicationInfoInstalled_0100, Test
     auto res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, false);
     EXPECT_EQ(res, ERR_NO_INIT);
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
-    IPCSkeleton::SetCallingUid(RECORD_ID);
+    IPCSkeleton::SetCallingAppUid(RECORD_ID);
     res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, false);
     EXPECT_EQ(res, ERR_PERMISSION_DENIED);
-    IPCSkeleton::SetCallingUid(ROOT_UID);
+    IPCSkeleton::SetCallingAppUid(ROOT_UID);
     appMgrServiceInner->remoteClientManager_ = nullptr;
     res = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, false);
     EXPECT_EQ(res, ERR_NO_INIT);
@@ -603,7 +603,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, GetValidUserId_ShouldReturn0WhenInputIsDe
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     int32_t userId = DEFAULT_INVAL_VALUE;
-    IPCSkeleton::SetCallingUid(BASE_USER_RANGE * 0);
+    IPCSkeleton::SetCallingAppUid(BASE_USER_RANGE * 0);
     int32_t resultId = appMgrServiceInner->GetValidUserId(userId);
     EXPECT_EQ(resultId, 0);
     TAG_LOGI(AAFwkTag::TEST, "GetValidUserId_ShouldReturn0WhenInputIsDefaultAndIpcCallingUidIs0 end");
@@ -621,7 +621,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, GetValidUserId_ShouldReturn0WhenInputIsDe
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     int32_t userId = DEFAULT_INVAL_VALUE;
-    IPCSkeleton::SetCallingUid(BASE_USER_RANGE * 1);
+    IPCSkeleton::SetCallingAppUid(BASE_USER_RANGE * 1);
     int32_t resultId = appMgrServiceInner->GetValidUserId(userId);
     EXPECT_EQ(resultId, 0);
     TAG_LOGI(AAFwkTag::TEST, "GetValidUserId_ShouldReturn0WhenInputIsDefaultAndIpcCallingUidIs200000 end");
@@ -639,7 +639,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, GetValidUserId_ShouldReturn2WhenInputIsDe
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     int32_t userId = DEFAULT_INVAL_VALUE;
-    IPCSkeleton::SetCallingUid(BASE_USER_RANGE * 2);
+    IPCSkeleton::SetCallingAppUid(BASE_USER_RANGE * 2);
     int32_t resultId = appMgrServiceInner->GetValidUserId(userId);
     EXPECT_EQ(resultId, 2);
     TAG_LOGI(AAFwkTag::TEST, "GetValidUserId_ShouldReturn2WhenInputIsDefaultAndIpcCallingUidIs400000 end");

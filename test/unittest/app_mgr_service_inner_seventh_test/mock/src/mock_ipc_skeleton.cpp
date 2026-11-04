@@ -21,6 +21,11 @@ namespace OHOS {
 using namespace IPC_SINGLE;
 #endif
 
+pid_t IPCSkeleton::GetCallingUid()
+{
+    return AAFwk::MyStatus::GetInstance().getCallingUid_;
+}
+
 pid_t IPCSkeleton::GetCallingAppUid()
 {
     return AAFwk::MyStatus::GetInstance().getCallingAppUid_;

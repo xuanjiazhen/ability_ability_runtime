@@ -8573,7 +8573,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunch_005, TestSiz
     auto record = UIAbilityRecord::CreateAbilityRecord(request);
     ASSERT_NE(record, nullptr);
     constexpr int32_t FOUNDATION_UID = 5523;
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     record->SetUid(100);
     // Foundation uid should pass uid check, then hit IsGameSAPreLaunch check
     auto result = mgr->NotifyCompleteGamePreLaunch(record->GetToken());

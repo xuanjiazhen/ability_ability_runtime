@@ -22,13 +22,16 @@ namespace AgentRuntime {
 bool MyFlag::retIsCliToolToken = true;
 int32_t MyFlag::retGetHapTokenInfo = 0;
 int32_t MyFlag::hapTokenInfoUid = 0;
-// ForCli anti-spoof seams (issue-16055 fix): default overrideCallingUid=false keeps GetCallingAppUid()
-// on the real getuid() for all non-ForCli tests; cliToolUid/identityUid default to the calling uid.
+// ForCli anti-spoof seams (issue-16055 fix): default overrideCallingAppUid=false keeps GetCallingAppUid()
+// on getappuid() for non-ForCli tests; application identity values are configured independently.
 bool MyFlag::overrideCallingUid = false;
+bool MyFlag::overrideCallingAppUid = false;
 bool MyFlag::setIdentityActive = false;
 bool MyFlag::retSetCallingIdentity = true;
 int32_t MyFlag::cliToolUid = 0;
+int32_t MyFlag::cliToolAppUid = 0;
 int32_t MyFlag::identityUid = 0;
+int32_t MyFlag::identityAppUid = 0;
 }  // namespace AgentRuntime
 
 namespace Security {

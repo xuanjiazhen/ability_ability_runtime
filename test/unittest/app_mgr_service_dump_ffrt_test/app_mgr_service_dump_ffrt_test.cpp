@@ -89,7 +89,7 @@ HWTEST_F(AppMgrServiceDumpFFRTTest, AppMgrServiceDumpFFRT_0100, TestSize.Level1)
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     // IsHidumperServiceCall
-    IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(HIDUMPER_SERVICE_UID);
     EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
@@ -124,7 +124,7 @@ HWTEST_F(AppMgrServiceDumpFFRTTest, AppMgrServiceDumpFFRT_0200, TestSize.Level1)
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     // Not HidumperServiceCall
-    IPCSkeleton::SetCallingUid(RANDOM_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(RANDOM_SERVICE_UID);
     EXPECT_FALSE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
@@ -161,7 +161,7 @@ HWTEST_F(AppMgrServiceDumpFFRTTest, AppMgrServiceDumpFFRT_0300, TestSize.Level1)
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     // IsHidumperServiceCall
-    IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(HIDUMPER_SERVICE_UID);
     EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
@@ -204,7 +204,7 @@ HWTEST_F(AppMgrServiceDumpFFRTTest, AppMgrServiceDumpFFRT_0400, TestSize.Level1)
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     // IsHidumperServiceCall
-    IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(HIDUMPER_SERVICE_UID);
     EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
@@ -246,7 +246,7 @@ HWTEST_F(AppMgrServiceDumpFFRTTest, AppMgrServiceDumpFFRT_0500, TestSize.Level1)
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     // IsHidumperServiceCall
-    IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(HIDUMPER_SERVICE_UID);
     EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
@@ -291,7 +291,7 @@ HWTEST_F(AppMgrServiceDumpFFRTTest, AppMgrServiceDumpFFRT_0600, TestSize.Level1)
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     // IsHidumperServiceCall
-    IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(HIDUMPER_SERVICE_UID);
     EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
@@ -336,7 +336,7 @@ HWTEST_F(AppMgrServiceDumpFFRTTest, AppMgrServiceDumpFFRT_0700, TestSize.Level1)
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     // IsHidumperServiceCall
-    IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(HIDUMPER_SERVICE_UID);
     EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
@@ -384,7 +384,7 @@ HWTEST_F(AppMgrServiceDumpFFRTTest, AppMgrServiceDumpFFRT_0800, TestSize.Level1)
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     // IsHidumperServiceCall
-    IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(HIDUMPER_SERVICE_UID);
     EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);
@@ -432,7 +432,7 @@ HWTEST_F(AppMgrServiceDumpFFRTTest, AppMgrServiceDumpFFRT_0900, TestSize.Level1)
     EXPECT_NE(appMgrService->eventHandler_, nullptr);
 
     // IsHidumperServiceCall
-    IPCSkeleton::SetCallingUid(HIDUMPER_SERVICE_UID);
+    IPCSkeleton::SetCallingAppUid(HIDUMPER_SERVICE_UID);
     EXPECT_TRUE((IPCSkeleton::GetCallingAppUid() == HIDUMPER_SERVICE_UID));
 
     constexpr int fd(1);

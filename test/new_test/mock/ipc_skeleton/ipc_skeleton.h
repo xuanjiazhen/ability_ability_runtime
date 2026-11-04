@@ -25,6 +25,11 @@ public:
     IPCSkeleton() = default;
     ~IPCSkeleton() = default;
 
+    static int32_t GetCallingUid()
+    {
+        return 0;
+    }
+
     static pid_t GetCallingAppUid()
     {
         return 0;

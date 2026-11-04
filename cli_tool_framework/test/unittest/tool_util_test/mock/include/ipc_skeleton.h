@@ -23,6 +23,8 @@
 namespace OHOS {
 class IPCSkeleton {
 public:
+    static pid_t GetCallingUid();
+
     static pid_t GetCallingAppUid();
     static pid_t GetCallingPid();
     static uint64_t GetCallingFullTokenID();
@@ -33,6 +35,7 @@ public:
     static uint32_t GetCallingTokenID();
 
     static pid_t callingUid;
+    static pid_t callingAppUid;
     static pid_t callingPid;
     static uint64_t callingFullTokenId;
     static std::string callingIdentity;

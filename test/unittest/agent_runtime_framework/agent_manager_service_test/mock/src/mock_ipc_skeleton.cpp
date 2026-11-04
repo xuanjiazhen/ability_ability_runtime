@@ -37,23 +37,23 @@ std::string IPCSkeleton::ResetCallingIdentity()
     return "mock-caller-identity";
 }
 
-// ForCli anti-spoof (issue-16055 fix): the production path captures cliToolUid via
-// GetCallingAppUid() BEFORE SetCallingIdentity, then compares GetCallingAppUid() AFTER
-// SetCallingIdentity. In production these come from two different sources (binder real
-// process uid vs the uid parsed from the callerIdentity string). With no active invoker
-// the real ipc_core returns getuid() for both, which can only model the legitimate
-// (equal) case. When a test sets MyFlag::overrideCallingUid=true, GetCallingAppUid() returns
-// cliToolUid before SetCallingIdentity is active and identityUid afterwards — enabling a
-// spoof (mismatch) case to be exercised. When overrideCallingUid is false (the default
-// for every non-ForCli test) GetCallingAppUid() falls back to getuid(), preserving prior
-// behavior.
-pid_t IPCSkeleton::GetCallingAppUid()
+// Keep OS caller UID and application identity independently configurable.
+pid_t IPCSkeleton::GetCallingUid()
 {
     if (!OHOS::AgentRuntime::MyFlag::overrideCallingUid) {
         return static_cast<pid_t>(getuid());
     }
     return static_cast<pid_t>(OHOS::AgentRuntime::MyFlag::setIdentityActive ? OHOS::AgentRuntime::MyFlag::identityUid
                                                          : OHOS::AgentRuntime::MyFlag::cliToolUid);
+}
+
+pid_t IPCSkeleton::GetCallingAppUid()
+{
+    if (!OHOS::AgentRuntime::MyFlag::overrideCallingAppUid) {
+        return static_cast<pid_t>(getappuid());
+    }
+    return static_cast<pid_t>(OHOS::AgentRuntime::MyFlag::setIdentityActive ? OHOS::AgentRuntime::MyFlag::identityAppUid
+                                                         : OHOS::AgentRuntime::MyFlag::cliToolAppUid);
 }
 
 bool IPCSkeleton::SetCallingIdentity(std::string &identity, bool flag)

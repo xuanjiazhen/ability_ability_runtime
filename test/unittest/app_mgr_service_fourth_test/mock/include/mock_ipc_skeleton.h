@@ -27,6 +27,8 @@ public:
     static void JoinWorkThread();
     static void StopWorkThread();
     static pid_t GetCallingPid();
+    static pid_t GetCallingUid();
+
     static pid_t GetCallingAppUid();
     static uint32_t GetCallingTokenID();
     static std::string GetLocalDeviceID();
@@ -39,6 +41,8 @@ public:
     static std::string ResetCallingIdentity();
     static bool SetCallingIdentity(std::string &identity);
     static void SetCallingUid(pid_t uid);
+
+    static void SetCallingAppUid(pid_t appUid);
     static void SetCallingPid(pid_t pid);
     static uint32_t SetCallingTokenID(pid_t tokenId);
 };

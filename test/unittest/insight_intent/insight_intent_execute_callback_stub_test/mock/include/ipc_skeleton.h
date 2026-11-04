@@ -29,6 +29,8 @@ public:
     static void StopWorkThread();
 
     static pid_t GetCallingPid();
+    static pid_t GetCallingUid();
+
     static pid_t GetCallingAppUid();
     static uint32_t GetCallingTokenID();
 
@@ -47,6 +49,8 @@ public:
     // Test-only setters so cases can simulate a foundation-caller / non-foundation-caller
     // without touching production code paths.
     static void SetCallingUid(pid_t uid);
+
+    static void SetCallingAppUid(pid_t appUid);
     static uint32_t SetCallingTokenID(pid_t tokenId);
 };
 } // namespace OHOS

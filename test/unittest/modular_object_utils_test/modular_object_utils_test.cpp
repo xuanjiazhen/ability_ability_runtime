@@ -31,7 +31,7 @@ namespace {
 void ResetFlags()
 {
     MockFlag::isSupportModularObjectExtension = true;
-    MockFlag::callingUid = 1000;
+    MockFlag::callingAppUid = 1000;
     MockFlag::callingPid = 1234;
     MockFlag::getRunningProcessInfoRet = 0;
     MockFlag::processState = 2; // APP_STATE_FOREGROUND
@@ -174,7 +174,7 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_004, TestSize.Level1)
     // Extension disabled and different uid
     MockFlag::extensionFound = true;
     MockFlag::extensionDisabled = true;
-    MockFlag::callingUid = 999; // different from request.uid
+    MockFlag::callingAppUid = 999; // different from request.uid
     AbilityRequest request;
     request.uid = 100;
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
@@ -313,7 +313,7 @@ HWTEST_F(ModularObjectUtilsTest, CheckExtensionEnabled_001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "CheckExtensionEnabled_001 start";
     // Disabled and different uid
-    MockFlag::callingUid = 999;
+    MockFlag::callingAppUid = 999;
     ModularObjectExtensionInfo info;
     info.isDisabled = true;
     info.bundleName = "com.test";
@@ -329,7 +329,7 @@ HWTEST_F(ModularObjectUtilsTest, CheckExtensionEnabled_002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "CheckExtensionEnabled_002 start";
     // Disabled but same uid - should pass
-    MockFlag::callingUid = 100;
+    MockFlag::callingAppUid = 100;
     ModularObjectExtensionInfo info;
     info.isDisabled = true;
     info.bundleName = "com.test";
@@ -345,7 +345,7 @@ HWTEST_F(ModularObjectUtilsTest, CheckExtensionEnabled_003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "CheckExtensionEnabled_003 start";
     // Not disabled - should pass regardless of uid
-    MockFlag::callingUid = 999;
+    MockFlag::callingAppUid = 999;
     ModularObjectExtensionInfo info;
     info.isDisabled = false;
     info.bundleName = "com.test";
@@ -653,7 +653,7 @@ HWTEST_F(ModularObjectUtilsTest,
 {
     GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnErrorWhenInProcessCrossApp start";
     MockFlag::launchMode = MoeLaunchMode::IN_PROCESS;
-    // callingUid is 1000 (from ResetFlags), request.uid is 100 (different)
+    // callingAppUid is 1000 (from ResetFlags), request.uid is 100 (different)
     AbilityRequest request;
     request.uid = 100;
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
@@ -671,7 +671,7 @@ HWTEST_F(ModularObjectUtilsTest,
 {
     GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnOkWhenInProcessSameUid start";
     MockFlag::launchMode = MoeLaunchMode::IN_PROCESS;
-    // callingUid is 1000, set request.uid to match
+    // callingAppUid is 1000, set request.uid to match
     AbilityRequest request;
     request.uid = 1000;
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
@@ -711,7 +711,7 @@ HWTEST_F(ModularObjectUtilsTest,
     CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerUidDiffersFromTarget, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerUidDiffersFromTarget start";
-    // callingUid is 1000 (from ResetFlags), targetUid is different
+    // callingAppUid is 1000 (from ResetFlags), targetUid is different
     auto ret = ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode::IN_PROCESS, 2000);
     EXPECT_EQ(ret, ERR_MOE_CROSS_APP_IN_PROCESS);
     GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerUidDiffersFromTarget end";
@@ -725,7 +725,7 @@ HWTEST_F(ModularObjectUtilsTest,
     CheckInProcessLaunchMode_ShouldReturnOkWhenCallerUidMatchesTarget, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnOkWhenCallerUidMatchesTarget start";
-    // callingUid is 1000 (from ResetFlags)
+    // callingAppUid is 1000 (from ResetFlags)
     auto ret = ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode::IN_PROCESS, 1000);
     EXPECT_EQ(ret, ERR_OK);
     GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnOkWhenCallerUidMatchesTarget end";

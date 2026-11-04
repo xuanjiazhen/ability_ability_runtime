@@ -2990,8 +2990,8 @@ HWTEST_F(CliToolManagerServiceTest, RegisterFunction_0300, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_RegisterFunction_0300 start");
 
-    // Set callingUid to non-FOUNDATION_UID
-    IPCSkeleton::callingUid = 9999;
+    // Set callingAppUid to non-FOUNDATION_UID
+    IPCSkeleton::callingAppUid = 9999;
 
     FunctionInfo function;
     function.functionName = "test_function";
@@ -3018,7 +3018,7 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0100, TestSize.Level1
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctions_0100 start");
 
     IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
 
     std::vector<FunctionInfo> functions;
     for (int i = 0; i < 3; i++) {
@@ -3053,7 +3053,7 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0200, TestSize.Level1
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctions_0200 start");
 
     IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
 
     std::vector<FunctionInfo> functions;
     FunctionsRawData rawData;
@@ -3080,7 +3080,7 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0300, TestSize.Level1
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctions_0300 start");
 
     IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
-    IPCSkeleton::SetCallingUid(9999); // Non-FOUNDATION UID
+    IPCSkeleton::SetCallingAppUid(9999); // Non-FOUNDATION UID
 
     std::vector<FunctionInfo> functions;
     FunctionInfo function;
@@ -3112,7 +3112,7 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0400, TestSize.Level1
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctions_0400 start");
 
     IPCSkeleton::SetCallingTokenID(TOKEN_HAP); // Non-SA token
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
 
     std::vector<FunctionInfo> functions;
     FunctionInfo function;
@@ -3144,7 +3144,7 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0500, TestSize.Level1
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctions_0500 start");
 
     IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
 
     std::vector<FunctionInfo> functions;
     FunctionInfo function;
@@ -3281,8 +3281,8 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterFunction_0300, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterFunction_0300 start");
 
-    // Set callingUid to non-FOUNDATION_UID
-    IPCSkeleton::callingUid = 9999;
+    // Set callingAppUid to non-FOUNDATION_UID
+    IPCSkeleton::callingAppUid = 9999;
 
     int32_t ret = service_->UnregisterFunction(0, "test_ns", "test_function");
 
@@ -3303,8 +3303,8 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespace_0200, T
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespace_0200 start");
 
-    // Set callingUid to non-FOUNDATION_UID
-    IPCSkeleton::callingUid = 9999;
+    // Set callingAppUid to non-FOUNDATION_UID
+    IPCSkeleton::callingAppUid = 9999;
 
     int32_t ret = service_->UnregisterIntentFunctionsByNamespace(0, "test_ns");
 
@@ -3727,8 +3727,8 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0600, TestSize.Level
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctions_0600 start");
 
-    // Set callingUid to non-FOUNDATION_UID
-    IPCSkeleton::callingUid = 9999;
+    // Set callingAppUid to non-FOUNDATION_UID
+    IPCSkeleton::callingAppUid = 9999;
 
     std::vector<FunctionInfo> functionList;
     FunctionInfo func;
@@ -3794,7 +3794,7 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0100, TestSize.L
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0100 start");
 
     IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
 
     std::vector<FunctionInfo> functions;
     for (int i = 0; i < 3; i++) {
@@ -3826,7 +3826,7 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0200, TestSize.L
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0200 start");
 
-    IPCSkeleton::callingUid = 9999;
+    IPCSkeleton::callingAppUid = 9999;
 
     std::vector<FunctionInfo> functions;
     FunctionInfo function;
@@ -3856,7 +3856,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_01
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0100 start");
 
     IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     CliFunctionDataManagerMock::unregisterByNamespaceResult = ERR_OK;
 
     int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync(0, "async_test_ns");
@@ -3877,7 +3877,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_02
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0200 start");
 
-    IPCSkeleton::callingUid = 9999;
+    IPCSkeleton::callingAppUid = 9999;
 
     int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync(0, "async_test_ns");
 
@@ -3898,7 +3898,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0100, TestSize.
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0100 start");
 
     IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingAppUid(FOUNDATION_UID);
     CliFunctionDataManagerMock::resetNamespaceFunctionsResult = ERR_OK;
     CliFunctionDataManagerMock::resetNamespaceFunctionsSuccessCount = 2;
 
@@ -3942,7 +3942,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0200, TestSize.
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0200 start");
 
-    IPCSkeleton::callingUid = 9999;
+    IPCSkeleton::callingAppUid = 9999;
 
     std::vector<FunctionInfo> functionList;
     FunctionInfo func;

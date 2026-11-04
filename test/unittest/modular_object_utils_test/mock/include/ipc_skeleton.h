@@ -23,9 +23,14 @@
 namespace OHOS {
 class IPCSkeleton {
 public:
-    static pid_t GetCallingAppUid()
+    static int32_t GetCallingUid()
     {
         return MockFlag::callingUid;
+    }
+
+    static pid_t GetCallingAppUid()
+    {
+        return MockFlag::callingAppUid;
     }
     static pid_t GetCallingPid()
     {

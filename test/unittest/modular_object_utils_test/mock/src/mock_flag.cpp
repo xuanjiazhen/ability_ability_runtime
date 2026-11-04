@@ -22,6 +22,7 @@
 
 bool MockFlag::isSupportModularObjectExtension = true;
 int32_t MockFlag::callingUid = 1000;
+int32_t MockFlag::callingAppUid = 1000;
 pid_t MockFlag::callingPid = 1234;
 int32_t MockFlag::getRunningProcessInfoRet = 0;
 int32_t MockFlag::processState = 2; // APP_STATE_FOREGROUND
