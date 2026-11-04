@@ -37,7 +37,7 @@
 
 前篇已详细拆解，这里只回收意图层会用到的五条：
 
-1. **栈的基本单元是组（Group）**，组的边界默认由 run loop 事件周期切分（`groupsByEvent`），不是由"一次函数调用"切分——这条在意图层会变成一个真实的坑（见 §7）。
+1. **栈的基本单元是组（Group）**，组的边界默认由 run loop 事件周期切分（`groupsByEvent`），不是由"一次函数调用"切分——这条在意图层会变成一个真实的坑（见 §8）。
 2. **注册的落点由状态机决定**：`isUndoing == true` 时注册写入 redoStack，否则写入 undoStack。这是 Redo 免费的唯一来源。
 3. **撤销执行 = 重新发送固化消息**（`target + selector + args`）**或执行闭包**，`withTarget` 把目标对象作为参数传回，避免闭包强捕获 `self`。
 4. **新操作注册的瞬间，redoStack 整体清空**（历史分叉失效）。
@@ -150,7 +150,127 @@ extension CollectionStore {
 
 ---
 
-## 5. 开发者体验：从零写一个可撤销意图
+## 5. 普通 AppIntent vs 可撤销 AppIntent：实现差异全景
+
+![同一业务两版代码的六处差异](images/plain-vs-undoable.svg)
+
+先给结论：**可撤销不是"加几个回调"，而是声明、线程、生命周期、内存、失败面、测试面六个维度同时改变性质**。业务代码（`store.delete`）一行没动——动的是它周围的一切。
+
+### 5.1 代码增量：+1 协议、+9 行、+1 个模型方法、+1 条隐式契约
+
+六处差异逐条对齐（编号对应上图右侧代码）：
+
+| # | 差异点 | 普通版 | 可撤销版 | 为什么必须改 |
+|---|---|---|---|---|
+| ① | 协议一致性 | `AppIntent` | `+ UndoableIntent` | 遵守协议即声明"可撤销"，无字段、无注册表 |
+| ② | 执行目标 | 系统自行决定 | `allowedExecutionTargets = .main` | 扩展进程里靠系统"找宿主"拿栈，失败即 nil |
+| ③ | 线程隔离 | 无要求 | `@MainActor` | `undoManager` 是主线程隔离属性，Swift 6 下违反即编译失败 |
+| ④ | 判空降级 | 不存在 | `guard let um = undoManager else` | 拿不到栈 ≠ 拒绝执行；业务照做，接受本次不可撤销 |
+| ⑤ | 快照 + 显式分组 | 不存在 | `snapshot()` + `begin/defer end` | 闭包将来要用"变更前状态"；防 `await` 拆组（§8 坑 1） |
+| ⑥ | 注册 + 命名 | 不存在 | `registerUndo` + `setActionName` | 撤销的凭据；先变更后注册，失败路径零污染 |
+
+还有两处**代码里看不见**的差异：
+
+- 模型层新增 `restore(_:)`（约 5 行）。意图协议不要求它，但 Redo 需要它——它属于业务层而非意图层，评估工作量时最容易漏算；
+- `restore` 内部必须再注册一次。协议不检查、编译器不报错，是整条链路唯一靠 code review 兜住的契约（§4.3）。
+
+### 5.2 声明面：从"零约束"到"三重编译期约束"
+
+遵守 `UndoableIntent` 不是只多写一个词——协议继承带来三个连带义务：
+
+| 约束 | 来源 | 对开发者的影响 |
+|---|---|---|
+| `Sendable` | `UndoableIntent : Sendable` | 意图结构体及其属性必须可安全跨并发域传递；引用类型的 `@Dependency` 要重新审视 |
+| `PersistentlyIdentifiable` | 协议继承 | 需要稳定的 `persistentIdentifier`，供系统跨启动识别同一意图 |
+| `@MainActor` | `undoManager` 属性标注 | `perform` 全函数或注册段必须主线程；严格并发下违反直接编译失败 |
+
+### 5.3 执行链路：三个本质差异
+
+![生命周期与失败面对比](images/lifecycle-compare.svg)
+
+1. **多了一个注入点**。普通意图的 `perform` 是纯业务函数；可撤销意图的 `perform` 开头多出系统注入的 `undoManager?`——它是 Optional，注入可能失败（nil），于是产生普通版不存在的第一条静默分支。
+2. **生命周期终点后移**。普通意图 `return` 即终结；可撤销意图 `return` 时实例销毁，但 undoStack 仍强持有闭包 + 快照 + target——**意图的"遗产"存活到用户下一次撤销**，可能是数分钟后，也可能永远不到来。
+3. **回放时意图已不在场**。`undo()` 触发时，调用栈上没有任何意图代码——回放的是当初注册的闭包。撤销逻辑必须完全不依赖意图实例状态；这也是 `withTarget` 把 target 作为参数回传（而非捕获）的设计动机。
+
+### 5.4 内存足迹：O(参数) → O(撤销深度 × 快照大小)
+
+| | 普通 | 可撤销 |
+|---|---|---|
+| 执行期间 | 意图实例 + 参数 | 同左 + 快照 |
+| 执行之后 | 0 | 闭包 + 快照 + target 强引用，直到被撤销或挤出栈 |
+| 上限 | 无 | `levelsOfUndo` 栈深，超限淘汰最老组 |
+| 放大风险 | 无 | 快照过大（全文/全树）即内存放大；对齐 UITextView 的增量做法（range + 片段） |
+
+附带一个静态分析陷阱：闭包捕获 `self`（视图模型、大对象）会让它被撤销栈延长生命周期，泄漏报告会指向一个"看似早已释放"的页面——排查方向应包含撤销栈。
+
+### 5.5 失败面：1 条 → 5 条，其中 3 条完全静默
+
+| # | 失败路径 | 普通版 | 可撤销版 | 可观测性 | 对策 |
+|---|---|---|---|---|---|
+| 1 | `perform` 抛错 | 有 | 有 | 用户可见 | —— |
+| 2 | `undoManager == nil` | 不存在 | 有 | **静默** | `guard` 降级 + 产品决策（§7.2） |
+| 3 | 注册成功、变更失败 | 不存在 | 有 | **静默**（悬挂条目） | 先变更后注册 |
+| 4 | 变更成功、注册被跳过 | 不存在 | 有 | **静默** | 顺序写进团队规范 + 单测 |
+| 5 | `restore` 忘记再注册 | 不存在 | 有 | Redo 置灰 | code review 清单（§4.3） |
+
+设计含义：普通意图的错误模型是"抛不抛"；可撤销意图的错误模型是"抛不抛 + 记不记 + 记对没有"。后三类错误不崩溃、不弹窗，直到用户几分钟后按下撤销才显现——**必须用测试兜住，不能靠运气**。
+
+### 5.6 可测试性：新增四个断言目标
+
+```swift
+func testUndoableDelete() async throws {
+    let um = UndoManager()
+    let intent = makeIntent(undoManager: um)      // 测试专用注入点，绕开系统挑选逻辑
+
+    try await intent.perform()
+    XCTAssertEqual(um.testTopLevelGroupCount(), 1) // ① 组数断言：await 没有把事务拆成多组
+
+    um.undo()
+    XCTAssertTrue(store.contains(original))        // ② undo 往返：状态回到变更前
+
+    um.redo()
+    XCTAssertFalse(store.contains(original))       // ③ redo 往返：等价变更后（验证对称注册）
+
+    um.undo(); um.registerUndo(withTarget: store) { _ in }
+    XCTAssertFalse(um.canRedo)                     // ④ 分叉清空：新操作后 redoStack 必须为空
+}
+```
+
+两条工程建议：
+
+- **把逆操作下沉到模型层**：`delete` / `restore` 成对、幂等，单测只测模型往返；意图层只剩胶水代码，端到端交给 UI 测试；
+- `undoManager` 是 get-only 注入属性，直接测试需要给意图开一个注入点（init 参数或 internal setter）。**"可测试"本身就是把 undoManager 设计成注入属性的理由之一**——普通意图没有这个诉求。
+
+### 5.7 迁移清单：把存量 AppIntent 升级为可撤销
+
+1. **先做模型层**：抽出成对且幂等的 `delete` / `restore`；`restore` 内注册反向操作——先写往返单测，再接意图；
+2. 声明 `UndoableIntent`，补 `persistentIdentifier`；`allowedExecutionTargets = .main`；
+3. `perform` 标 `@MainActor`；`guard let um` 分支写明降级策略（照常执行 or 拒绝执行，是产品决策）；
+4. 变更前快照（尽量增量）→ 变更 → 注册 → `setActionName`；显式 `beginUndoGrouping` + `defer end`；
+5. 回归 §5.6 的四类断言 + 真机验证三指手势路径。
+
+**不该迁移的意图**：已扣款/已外发的不可逆业务（撤销会"撒谎"）、纯导航/查询（无状态可撤）、后台自动化意图（无人撤销还污染栈，§7.4）。
+
+### 5.8 一页对照总表
+
+| 维度 | 普通 AppIntent | 可撤销 AppIntent（UndoableIntent） |
+|---|---|---|
+| 协议 | `AppIntent` | `+ UndoableIntent`（连带 Sendable / PersistentlyIdentifiable / SystemIntent） |
+| 新增成员 | 无 | 无存储属性；+1 个静态执行目标 |
+| 线程 | 无要求 | `@MainActor`（undoManager 隔离） |
+| 系统注入 | 无 | `undoManager?`（best-effort，可能 nil） |
+| 代码增量 | —— | 意图层 +9 行；模型层 +1 对方法；+1 条隐式契约 |
+| 生命周期终点 | `return` | 用户下一次撤销（或不到来） |
+| 执行后内存 | 0 | O(撤销深度 × 快照)，强持有 target |
+| 失败路径 | 1 条（可见） | 5 条（3 条静默） |
+| Redo | 不存在 | 隐式契约：回放方法必须对称注册 |
+| 撤销触发 | 不存在 | 仅 App 界面手势/菜单，不支持应用外入口 |
+| 测试面 | 副作用 + 返回值 | + 组数 / undo 往返 / redo 往返 / 分叉清空 |
+| 适用判断 | 一切意图 | 仅"可逆业务 + 用户在场"的意图 |
+
+---
+
+## 6. 开发者体验：从零写一个可撤销意图
 
 ![开发者视角六步](images/dev-experience.svg)
 
@@ -176,7 +296,7 @@ struct DeleteCollectionIntent: AppIntent, UndoableIntent {
 
         let backup = collection.snapshot()          // ⑤ 变更前快照
 
-        // 显式成组：防止 await 把一次意图拆成多个撤销组（见 §7 坑 1）
+        // 显式成组：防止 await 把一次意图拆成多个撤销组（见 §8 坑 1）
         um.beginUndoGrouping()
         defer { um.endUndoGrouping() }              // defer 保证异常路径也收口
 
@@ -205,16 +325,16 @@ struct DeleteCollectionIntent: AppIntent, UndoableIntent {
 
 ---
 
-## 6. 执行体验：运行时行为边界
+## 7. 执行体验：运行时行为边界
 
-### 6.1 与 UI 共栈：顺序保证的来源与代价
+### 7.1 与 UI 共栈：顺序保证的来源与代价
 
 WWDC 原文：系统给意图"最相关"的撤销管理器，"确保 App 在 UI 和 App Intents 中的撤销操作保持同步，从而按照正确的顺序撤销"。
 
 - **来源**：UI 编辑和意图变更落在**同一条时间线**上。用户改了字段 → 跑了意图 → 又改了字段，三步在同一个栈里按发生顺序排列，连续按撤销会按逆序精确回放。这是**任何"意图层独立建栈"的方案都做不到的**。
 - **代价**：意图的撤销项会与用户的手工编辑交错。若意图执行后触发自动同步、缓存刷新等"非用户操作"且这些操作也注册了撤销，栈就被污染——要用 `disableUndoRegistration` 区间包裹这些后台变更。
 
-### 6.2 nil 降级的三种真实场景
+### 7.2 nil 降级的三种真实场景
 
 | 场景 | 原因 | 表现 |
 |---|---|---|
@@ -224,11 +344,11 @@ WWDC 原文：系统给意图"最相关"的撤销管理器，"确保 App 在 UI 
 
 设计含义：**撤销能力必须被视为"尽力而为"（best-effort）**。任何依赖"撤销一定可用"的业务流程（如"删除前不确认，反正能撤"）都是错的。
 
-### 6.3 并发约束
+### 7.3 并发约束
 
 `undoManager` 属性标注 `@MainActor`。Swift 6 严格并发下，从非主线程访问直接编译失败；`perform` 若要触碰它，要么整个函数 `@MainActor`，要么注册段 `MainActor.run { }` 包裹。后台模式意图（`supportedModes = .background`）天然拿不到栈，与 6.2 第一行对应。
 
-### 6.4 一个 Apple 没有解决的场景：凌晨三点的自动化
+### 7.4 一个 Apple 没有解决的场景：凌晨三点的自动化
 
 快捷指令可以在无人交互时自动执行意图。此时撤销条目会照常入栈，但**没有任何用户会去撤销它**，它只是占据栈深（`levelsOfUndo`），还可能把用户手工编辑的撤销项挤出栈。缓解手段：
 
@@ -237,10 +357,7 @@ WWDC 原文：系统给意图"最相关"的撤销管理器，"确保 App 在 UI 
 
 ---
 
-## 7. 坑位清单（按踩中概率排序）
-
-![撤销组边界：同步 / 跨 await / 显式开组](images/grouping-boundary.svg)
-
+## 8. 坑位清单（按踩中概率排序）
 
 | # | 坑 | 后果 | 对策 |
 |---|---|---|---|
@@ -248,7 +365,7 @@ WWDC 原文：系统给意图"最相关"的撤销管理器，"确保 App 在 UI 
 | 2 | **`restore` 不再注册** | Redo 静默失效，无任何报错 | 把"回放方法必须对称注册"写进 code review 清单 |
 | 3 | **Swift 6 下跨线程访问 `undoManager`** | 编译失败（严格并发）或运行时未定义 | `perform` 标 `@MainActor`，或注册段 `MainActor.run` |
 | 4 | **失败路径的悬挂撤销条目** | 撤销一个"从未发生"的变更 | 先变更后注册；或 catch 清理（注意 `removeAllActions(withTarget:)` 的粗粒度） |
-| 5 | **后台自动化污染栈** | 撤销项爆炸、手工编辑被挤出栈 | §6.4 的分流或 discardable |
+| 5 | **后台自动化污染栈** | 撤销项爆炸、手工编辑被挤出栈 | §7.4 的分流或 discardable |
 | 6 | **扩展里执行、宿主拉起失败** | `undoManager == nil` 撤销能力消失 | `allowedExecutionTargets = .main` 钉死 |
 | 7 | **闭包强捕获大对象** | 撤销栈内存放大（整篇文本、整棵树） | 快照用增量结构（range + 文本片段），对齐 UITextView 做法 |
 | 8 | **依赖"撤销一定可用"的产品流程** | nil 场景下流程断裂 | 撤销是 best-effort，关键操作仍需确认 |
@@ -259,7 +376,7 @@ WWDC 原文：系统给意图"最相关"的撤销管理器，"确保 App 在 UI 
 
 ---
 
-## 8. 设计评价：Apple 为什么不给 `onUndo()` / `onRedo()`
+## 9. 设计评价：Apple 为什么不给 `onUndo()` / `onRedo()`
 
 把问题反过来看更清楚。假如 Apple 提供：
 
@@ -283,7 +400,7 @@ protocol UndoableIntent {
 |---|---|---|---|
 | 能力声明 | 协议一致性（编译期） | `undoable` 字段 + 实现探测（运行期） | 等价，各自适配语言特性 |
 | 撤销凭据 | 闭包捕获快照（内存对象） | `(params, executeResult)` 可序列化 | 各有取舍，见下 |
-| 撤销栈 | **共享** NSUndoManager 单时间线 | 意图层独立双栈 + 模型层嵌套 | **需吸收 Apple 的共享栈思想**（§9 修正 2） |
+| 撤销栈 | **共享** NSUndoManager 单时间线 | 意图层独立双栈 + 模型层嵌套 | **需吸收 Apple 的共享栈思想**（§10 修正 2） |
 | Redo | 无 API，靠对称注册（隐式契约） | 显式 `onRedo`（黑盒业务无法自动求逆） | 我们的显式方案更适合跨进程意图 |
 | 持久化 | 无（内存栈，杀进程即丢） | `ToJsonString` 落盘，跨会话撤销 | 我们的结构性优势 |
 | 撤销触发面 | App 界面手势 / 菜单 | 小艺 / 卡片 / 跨设备 / 应用内 | 我们的结构性优势 |
@@ -293,21 +410,21 @@ protocol UndoableIntent {
 
 ---
 
-## 9. 对 IntentUndo 提案的五条修正
+## 10. 对 IntentUndo 提案的五条修正
 
 1. **`onCancel` 改名 `onUndo`**。Apple 已把 `onCancel` 占用为"取消在途任务"语义（`CancellableIntent`），沿用旧名会让任何读过 App Intents 文档的评审者产生第一秒的误读。
-2. **放弃"意图层独立双栈"，改为挂接共享时间线**。意图撤销组应作为模型层撤销栈中的一种组类型存在（凭据作为组 payload），或引入全局单调序号合并两条栈。理由即 §6.1：独立栈无法保证 UI 操作与意图操作的撤销顺序。
+2. **放弃"意图层独立双栈"，改为挂接共享时间线**。意图撤销组应作为模型层撤销栈中的一种组类型存在（凭据作为组 payload），或引入全局单调序号合并两条栈。理由即 §7.1：独立栈无法保证 UI 操作与意图操作的撤销顺序。
 3. **`onRedo` 保留，但规范要写清它是"显式求逆"而非"对称注册"**。跨进程意图做不到 Apple 式的对称注册，这是显式回调存在的理由；同时规范应注明"能安全委托 `onExecute` 的意图，`onRedo` 只需一行"。
 4. **撤销组边界要绑定"意图执行起止"，而非事件回调边界**。Apple 的坑 1（await 拆组）在鸿蒙侧不存在对应物——这是意图天然事务边界的红利，应作为设计优点写进提案与 Apple 方案对照。
 5. **增加 best-effort 条款**。撤销可用性不设硬保证（executor 回收、跨设备环境缺失、凭据超限），产品流程不得依赖"撤销一定成功"；这与 Apple 的 `nil` 降级哲学一致。
 
 ---
 
-## 10. 参考来源
+## 11. 参考来源
 
 - Apple Developer：*UndoableIntent*、*UndoableIntent.undoManager*（含平台可用性与行为约束原文）
 - Apple Developer：*App Intents updates*（2026-06 更新页，UndoableIntent / CancellableIntent / LongRunningIntent 条目）
 - WWDC25 Session 275 *Explore new advances in App Intents*（三指左滑演示、共享栈与顺序保证原文、多选 API）
 - Apple Developer：*Adopting App Intents to support system experiences*（`UpdateFavoriteIntent` 示例、`allowedExecutionTargets`）
 - 前篇报告：*iOS UndoManager 实现洞察报告*（引擎层机制：命令模式、双栈、分组、消息转发）
-- 推论性结论（§7 坑 1）已标注验证方法，其余机制描述均有官方文档或 WWDC 原文支撑
+- 推论性结论（§8 坑 1）已标注验证方法，其余机制描述均有官方文档或 WWDC 原文支撑
