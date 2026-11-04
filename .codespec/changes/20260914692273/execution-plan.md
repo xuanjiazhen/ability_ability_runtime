@@ -10,7 +10,7 @@
 | 关联 Feature/Bug | FEAT-AI-TASK-MGR-001（RR 30096095） |
 | 关联文档 | proposal.md / spec.md / design.md |
 | 复杂度 | 标准 |
-| 状态 | Draft |
+| 状态 | ReadyForReview |
 | Owner | yangzk |
 
 ## 输入状态

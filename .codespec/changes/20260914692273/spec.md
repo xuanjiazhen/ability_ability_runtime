@@ -14,7 +14,7 @@
 | 优先级 | P1 |
 | 目标版本 | OpenHarmony-7.1-Release |
 | SIG 归属 | 元能力 SIG |
-| 状态 | Draft |
+| 状态 | ReadyForReview |
 | 复杂度 | 标准 |
 
 ## 本次变更范围（Delta）
