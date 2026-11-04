@@ -84,6 +84,8 @@ private:
     std::shared_ptr<NativeRdb::RdbStore> GetRdbStore();
     int32_t InsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore, int64_t &rowId,
         const NativeRdb::ValuesBucket &valuesBucket);
+    int32_t BatchInsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
+        const std::vector<NativeRdb::ValuesBucket> &valuesBuckets, int64_t &insertNum);
     bool IsRetryErrCode(int32_t errCode);
 
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;

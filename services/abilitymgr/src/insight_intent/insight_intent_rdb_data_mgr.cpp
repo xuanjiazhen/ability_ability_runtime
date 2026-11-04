@@ -15,6 +15,7 @@
 #include "insight_intent_rdb_data_mgr.h"
 #include "hilog_tag_wrapper.h"
 #include "scope_guard.h"
+#include "transaction.h"
 #include "utils/hmsf_utils.h"
 
 namespace OHOS {
@@ -128,15 +129,16 @@ bool InsightIntentRdbDataMgr::BatchInsertData(const std::vector<std::pair<std::s
     }
 
     std::vector<NativeRdb::ValuesBucket> valuesBuckets;
+    valuesBuckets.reserve(keyValues.size());
     for (const auto &[key, value] : keyValues) {
         NativeRdb::ValuesBucket valuesBucket;
         valuesBucket.PutString(INTENT_KEY, key);
         valuesBucket.PutString(INTENT_VALUE, value);
-        valuesBuckets.emplace_back(valuesBucket);
+        valuesBuckets.emplace_back(std::move(valuesBucket));
     }
 
-    auto [ret, insertNum] = rdbStore_->BatchInsert(intentRdbConfig_.tableName, valuesBuckets,
-        NativeRdb::ConflictResolution::ON_CONFLICT_REPLACE);
+    int64_t insertNum = 0;
+    int32_t ret = BatchInsertWithRetry(rdbStore_, valuesBuckets, insertNum);
     if (ret != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "BatchInsert error ret:%{public}d", ret);
         return false;
@@ -144,6 +146,50 @@ bool InsightIntentRdbDataMgr::BatchInsertData(const std::vector<std::pair<std::s
     TAG_LOGD(AAFwkTag::INTENT, "BatchInsert success, size:%{public}zu insertNum:%{public}d",
         keyValues.size(), static_cast<int32_t>(insertNum));
     return true;
+}
+
+int32_t InsightIntentRdbDataMgr::BatchInsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
+    const std::vector<NativeRdb::ValuesBucket> &valuesBuckets, int64_t &insertNum)
+{
+    int32_t retryCnt = 0;
+    int32_t ret = NativeRdb::E_OK;
+    do {
+        auto [errCode, transaction] = rdbStore->CreateTransaction(NativeRdb::Transaction::EXCLUSIVE);
+        if (errCode != NativeRdb::E_OK || transaction == nullptr) {
+            ret = (errCode != NativeRdb::E_OK) ? errCode : NativeRdb::E_ERROR;
+            TAG_LOGW(AAFwkTag::INTENT, "CreateTransaction failed, ret:%{public}d", ret);
+        } else {
+            auto [batchRet, count] = transaction->BatchInsert(intentRdbConfig_.tableName, valuesBuckets,
+                NativeRdb::ConflictResolution::ON_CONFLICT_REPLACE);
+            ret = batchRet;
+            insertNum = count;
+            if (batchRet == NativeRdb::E_OK) {
+                ret = transaction->Commit();
+            }
+            if (ret != NativeRdb::E_OK) {
+                transaction->Rollback();
+            }
+        }
+        if (ret == NativeRdb::E_OK) {
+            break;
+        }
+        if (ret == NativeRdb::E_SQLITE_CORRUPT) {
+            std::string rdbFilePath =
+                intentRdbConfig_.dbPath + std::string("/") + std::string(INTENT_BACK_UP_RDB_NAME);
+            int32_t restoreRet = rdbStore->Restore(rdbFilePath);
+            if (restoreRet != NativeRdb::E_OK) {
+                TAG_LOGE(AAFwkTag::INTENT, "rdb restore failed ret:%{public}d", restoreRet);
+                break;
+            }
+        } else if (!IsRetryErrCode(ret)) {
+            break;
+        }
+        if (++retryCnt < RETRY_TIMES) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_INTERVAL));
+        }
+        TAG_LOGW(AAFwkTag::INTENT, "rdb batch insert failed, retry count: %{public}d, ret: %{public}d", retryCnt, ret);
+    } while (retryCnt < RETRY_TIMES);
+    return ret;
 }
 
 bool InsightIntentRdbDataMgr::UpdateData(const std::string &key, const std::string &value)
