@@ -6,7 +6,7 @@ spec_schema: ohos-sdd/v1
 profile: none
 complexity: standard
 lineage: new
-status: draft
+status: approved
 owner: "yangzk"
 source_issue: "RR 30096095"
 created_at: 2026-11-04

@@ -13,7 +13,7 @@
 | 复杂度 | 标准 |
 | 目标版本 | OpenHarmony-7.1-Release |
 | Owner | yangzk |
-| 状态 | ReadyForReview |
+| 状态 | Approved（yangzk，2026-11-05） |
 
 ## 需求基线
 
