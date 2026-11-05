@@ -22,7 +22,7 @@
 | 项 | 补充说明 |
 |----|----------|
 | startTask 入参变更 | 本需求消费 20260914692191 交付的任务生命周期与 taskId 归因主键，承载 startTask 移除 priority 入参；鉴权、taskId 规格、错误码沿用 |
-| 档位机制边界 | 档位定义与 RSS 施加/撤销由 20260914692272 承载；本需求只负责归属合并与重算，经其代理层施加/撤销 |
+| 档位机制边界 | 档位定义与 RSS 施加/撤销由 20260914692272 承载；**交付顺序：本需求先交付，对 RSS 代理层的施加/撤销调用在本需求内留空（空实现桩，日志留痕），20260914692272 交付后接入**；本需求负责归属合并与重算及事件流输出 |
 | 档位抖动处理 | 第一线防抖为判定器"档位不变不重算"（ADR-6）；合并窗口防抖在 20260914692272 的 RSS 代理边界处理（通知时序策略见 ADR-9），风险 R3 随之移交 |
 | dump 能力 | 本需求实现任务 dump 基本字段（任务档位/归属/effectiveLevel/豁免摘要/判定器缓存，端到端确认状态用）；正式 DFX 观测面（事件/全景/日志规范）由 20260914692442 后续承载 |
 | DFX 观测面 | dump 字段布局沿用 20260914692191 已固定框架（task_manager_service.cpp:426-447 占位注释：field layout fixed so scripts can rely on it），本需求填充取值 |
@@ -102,7 +102,7 @@
 | 死亡通知链 | `app_death_recipient.h:27-29` `OnRemoteDied` | OH-ARCH-LAYERING | DeathRecipient 回调挂点 | 死亡清理最小挂点 | 无 | TASK-6 |
 | 前后台状态监听 | `app_state_observer_manager.h:127` `NotifyAppStateObservers` / `application_state_observer_stub.h:43` | OH-ARCH-LAYERING | 注册监听 + 回调驱动 | 判定器前后台输入 | 无 | TASK-5 |
 | 参数校验与错误码 | `task_manager_service.cpp:500-506` `CheckParam` | OH-ARCH-ERROR-LOG | 参数校验失败返 INVALID_PARAMETERS_ERR | startTask 多传入参 401 沿用同一校验口径 | 无 | TASK-3 |
-| 系统负载监听（外部领域） | 需求方提供接口说明：ressched_client 的 `ResSchedSystemloadNotifierClient::OnSystemloadLevel(int32_t)`、`ResSchedClient::RegisterSystemloadNotifier/UnRegisterSystemloadNotifier/GetSystemloadLevel`，档位定义见 resourceschedule 仓 res_type.h `SystemloadLevel`（0~7）；no prior art found（本仓内无 ressched 监听先例） | OH-ARCH-SUBSYSTEM | 注册/注销配对；回调线程不直接加业务锁 | SystemLoadProvider 默认实现按此接入 | 接口细节实现时以 resourceschedule 仓头文件为准核实（当前为需求方提供的二手资料，可信度中） | TASK-2 |
+| 系统负载监听（resourceschedule，已源码核实 2026-11-05） | `resource_schedule_service/ressched/interfaces/innerkits/ressched_client/include/res_sched_systemload_notifier_client.h:25,29` `ResSchedSystemloadNotifierClient::OnSystemloadLevel(int32_t)`；`res_sched_client.h:111,118,141` `RegisterSystemloadNotifier/UnRegisterSystemloadNotifier/GetSystemloadLevel`；`res_value.h:603-612` `SystemloadLevel`（0~7）；GN target `ressched_client`（ressched_client/BUILD.gn:116） | OH-ARCH-SUBSYSTEM | 注册/注销配对；回调线程不直接加业务锁 | SystemLoadProvider 默认实现按此接入；appmgr BUILD.gn `external_deps += [ "resource_schedule_service:ressched_client" ]` | 需求方提供的接口说明与源码一致；档位枚举实际定义在 res_value.h（非 res_type.h），以实现侧为准 | TASK-2 |
 
 ## 不涉及项承接
 
@@ -126,7 +126,7 @@
 | ADR-4 | 判定器归属 | task_mgr 内新增 TaskPriorityJudge，与任务记录同一锁域 | 判定逻辑并入 process_schedule | 档位是任务属性，owner 与任务记录一致；process_schedule 仅消费事件，合并职责单一 | 模块边界 |
 | ADR-5 | 映射矩阵形态与取值 | 编译期常量默认矩阵：**前台=HIGH（与负载无关）；后台 × 融合档位 0~4（低负载）=MEDIUM；后台 × 融合档位 5~7（高负载）=LOW** | 系统参数在线可配 | 无配置时行为确定；矩阵调整走版本迭代（避免运行期口径漂移）；前台不区分负载可保证交互关键路径最高响应 | 判定器实现 |
 | ADR-6 | 动态重判触发模型 | 事件驱动：前后台切换监听回调 + 融合档位跳变监听回调；档位变化才触发下游重算 | 周期全量重判（定时扫描） | 开销低、时延即时；档位不变不重算（第一线防抖）；注册监听模型无轮询 | TASK-5 |
-| ADR-7 | 系统负载获取 | SystemLoadProvider 适配层抽象；默认实现基于资源调度 ressched_client 接入**性能功耗热融合档位**（SystemloadLevel 0~7：继承 ResSchedSystemloadNotifierClient 注册 OnSystemloadLevel 监听并维护缓存，GetSystemloadLevel 查询兜底）；测试桩返回固定档位 | 判定器直接调用资源调度接口 | 融合档位由热系统当前热档位、CPU 负载档位与叠加场景综合决策（资源调度领域口径）；适配层隔离变化、可测 | TASK-2 |
+| ADR-7 | 系统负载获取 | SystemLoadProvider 适配层抽象；默认实现基于资源调度 ressched_client 接入**性能功耗热融合档位**（已源码核实：`ResSchedSystemloadNotifierClient::OnSystemloadLevel` 监听 + `GetSystemloadLevel` 查询兜底，`SystemloadLevel` 0~7 定义于 res_value.h:603-612）；测试桩返回固定档位 | 判定器直接调用资源调度接口 | 融合档位由热系统当前热档位、CPU 负载档位与叠加场景综合决策（资源调度领域口径）；适配层隔离变化、可测 | TASK-2 |
 | ADR-8 | startTask 变更范围 | IAppMgr StartTask 消息体、Stub/Proxy、NAPI/ANI/ETS 绑定与 d.ts 同步移除 priority 与 TaskPriority 导出，内部枚举值 100/200/300 保留 | 保留入参静默忽略 | 需求明确不再由调用方指定；静默忽略产生误导语义 | TASK-1/3 |
 | ADR-9 | RSS 通知时序策略（需求方确认基线，防抖第二线在 20260914692272 RSS 代理边界实现） | **立即路径**：注册纳管 APPLY、进程死亡 REVOKE、档位上升（effectiveLevel 提高）；**合并路径**：注销纳管（主动）、前后台状态变化、融合档位变化导致的档位下降，**合并 1s 窗口**后统一通知 RSS；窗口到期按当前状态重算（非合并事件队列）；**1s 窗口可配/可注入**（系统参数） | 全部立即（RSS 施加/撤销风暴）；全部延迟（建立链路时延）；仅按事件类型切分（助手切前台升 HIGH 慢 1s 的反例） | 建立链路要快、释放/变更要稳；升档立即不引起抖动（稳定上升），抖动来自降档往复；死亡立即保护 spec AC-6.3 ≤1s 与豁免无泄漏。本需求 process_schedule 对内重算始终同步立即（INV-2 与 dump 一致），仅对 RSS 输出按该契约 | 20260914692272 接口约定 |
 | ADR-10 | dump 能力承载 | 本需求扩展既有 DumpActiveTasks 框架（task_manager_service.cpp:426-447，字段布局已固定）填充 sched level/effectiveLevel/豁免摘要，并新增判定器缓存区段（前台 Ability 计数、融合档位缓存）；仅端到端确认状态用 | 等待 20260914692442 统一实现 | 前置分析已固定字段布局且脚本可依赖；DFX 正式观测面仍归 20260914692442 | TASK-4/6（dump 填充随对应能力落地） |
@@ -157,7 +157,7 @@
 | TASK-1 | API 声明文件变更（d.ts） | interface_sdk-js api/@ohos.app.agent.taskManager.d.ts | 无 |
 | TASK-2 | 优先级判定器（映射矩阵+感知+兜底） | services/appmgr/src/task_mgr/（task_priority_judge.*、system_load_provider.*）、test/unittest/task_mgr/ | 任务记录模块（20260914692191，已合入） |
 | TASK-3 | startTask 接口变更与判定接入（IAppMgr IPC/NAPI/ANI/Service） | interfaces/inner_api/app_manager、services/appmgr/src/app_mgr_service.cpp、services/appmgr/src/task_mgr/、frameworks/ets/ets、frameworks/ets/ani/task_manager/、frameworks/js/napi/task_manager/、test/integration/ | TASK-1、TASK-2 |
-| TASK-4 | 双向索引 + max 合并 + 幂等 + 并发上限 + 索引 dump 区段 | services/appmgr/src/process_schedule/、test/unittest/process_schedule/ | TASK-3；20260914692272 管控代理层 |
+| TASK-4 | 双向索引 + max 合并 + 幂等 + 并发上限 + 索引 dump 区段（RSS 施加/撤销调用留空桩） | services/appmgr/src/process_schedule/、test/unittest/process_schedule/ | TASK-3；20260914692272 管控代理层（本需求先交付，调用留空） |
 | TASK-5 | 动态重判与档位传播 | services/appmgr/src/task_mgr/、services/appmgr/src/process_schedule/、test/unittest/task_mgr/ | TASK-3、TASK-4 |
 | TASK-6 | 进程死亡清理挂点 + 死亡相关 dump/豁免摘要填充 | services/appmgr/（AppDeathRecipient 挂点）、test/integration/ | TASK-4 |
 
@@ -331,7 +331,7 @@ sequenceDiagram
 
 ### 与 20260914692272 的接口约定（事件载荷与通知时序）
 
-> 本需求经 process_schedule 向 20260914692272 RSS 代理层输出管控事件；施加/撤销机制由其承载，本节固化跨需求契约。
+> 本需求经 process_schedule 向 20260914692272 RSS 代理层输出管控事件；施加/撤销机制由其承载，本节固化跨需求契约。**交付顺序（需求方确认）：本需求先交付，process_schedule → RSS 的施加/撤销调用在本需求内留空（空实现桩 + 关键路径日志留痕，事件流正常产出），20260914692272 交付后接入真实施加/撤销。**
 
 **事件载荷（每纳管进程/任务一对施加/撤销）**：
 
@@ -405,7 +405,7 @@ Judge state:
 | 测试层级 | 测试目标 | Mock 策略 | 验证方式 |
 |----------|----------|-----------|----------|
 | 单元测试 | 判定矩阵/兜底（含融合档位边界 4/5）、归属矩阵/降级/幂等/上限、动态重判/防抖 | SystemLoadProvider 测试桩返回固定融合档位；前后台状态构造输入 | `run -t UT -tp ability_runtime` |
-| 集成测试 | 新签名 startTask 全链路、死亡清理 ≤1s、任务存续、dump 端到端确认 | 真实依赖（系统应用 demo）；hidumper dump 核对 | 集成用例 + hidumper dump + hilog |
+| 集成测试 | 新签名 startTask 全链路、死亡清理 ≤1s、任务存续、dump 端到端确认、归属/降级/重判代表场景 | 真实依赖（系统应用 demo）；**纳管操作先行使用既有 dump 调试钩子**（`DumpRegisterManagedProcess`，task_manager_service.cpp:450，master 已交付；真实纳管通道 20260914692192/193/194 交付后补充真实通道用例）；hidumper dump 核对 | 集成用例 + hidumper dump + hilog |
 | XTS | N/A（System API 无 XTS 面） | N/A | N/A |
 
 ## 风险和开放问题

@@ -477,9 +477,9 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | process_schedule 维护双向索引与档位缓存：事件驱动增量重算（max）；豁免合并幂等（taskId+pid+豁免类型，pid 引用计数）；≤10 并发上限沿用 TASK_MAX_ACTIVE_TASKS + 系统参数可配 |
+| 任务目标 | process_schedule 维护双向索引与档位缓存：事件驱动增量重算（max）；豁免合并幂等（taskId+pid+豁免类型，pid 引用计数）；≤10 并发上限沿用 TASK_MAX_ACTIVE_TASKS + 系统参数可配；索引 dump 区段；**RSS 施加/撤销调用留空桩（事件流正常产出 + 关键路径日志留痕，真实施加/撤销随 20260914692272 接入）** |
 | AC 映射 | AC-6.1、AC-6.2、AC-6.4 |
-| 前置依赖 | TASK-3；20260914692272 管控代理层 |
+| 前置依赖 | TASK-3；20260914692272 管控代理层（交付顺序：本需求先交付，调用留空） |
 | 非目标 | 死亡清理挂点（TASK-6）；动态重判订阅（TASK-5） |
 | 完成判据 | 归属矩阵/降级/幂等/上限用例全绿 |
 | 停止条件 | 需修改 20260914692272 管控代理层语义；并发上限口径与 common.h 冲突 |
@@ -837,5 +837,6 @@
 
 | Task ID | 类型 | 问题/偏差 | 处理状态 | 回退能力/Owner |
 |---------|------|-----------|----------|----------------|
-| TASK-2 | dependency | 系统负载接口与资源调度领域确认（design ADR-7） | Resolved（ressched_client 融合档位接入方式已确认；实现时以 resourceschedule 仓头文件复核） | ohos-design / yangzk |
-| TASK-4 | dependency | 20260914692272 管控代理层交付时序 | Open（事件载荷与通知时序契约已按 design ADR-9 固化） | ohos-plan / yangzk |
+| TASK-2 | dependency | 系统负载接口与资源调度领域确认（design ADR-7） | Resolved（2026-11-05 已源码核实：res_sched_systemload_notifier_client.h:25,29 / res_sched_client.h:111,118,141 / res_value.h:603-612） | ohos-design / yangzk |
+| TASK-4 | dependency | 20260914692272 管控代理层交付时序 | Resolved（需求方确认交付顺序：本需求先交付，RSS 施加/撤销调用留空桩；事件载荷与通知时序契约按 design ADR-9 固化） | ohos-plan / yangzk |
+| TASK-4/6 | dependency | 真实纳管通道（20260914692192/193/194）交付时序 | Resolved（集成用例先行使用既有 dump 调试钩子 DumpRegisterManagedProcess；真实通道交付后补充用例） | ohos-plan / yangzk |
