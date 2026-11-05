@@ -106,6 +106,30 @@ public:
     virtual int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch) override;
 
     /**
+     * AttributeProcessForAbility, report task attribution for a warm start-ability call
+     * through proxy object.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param callerUid, the uid of the start caller (system stamped).
+     * @param callerPid, the pid of the start caller (system stamped).
+     * @param targetPid, the pid of the target process.
+     * @param attributionId, the server-assigned handle of the created attribution.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+        int32_t targetPid, int64_t &attributionId) override;
+
+    /**
+     * UnregisterTaskAttribution, remove a warm-start attribution by its handle through
+     * proxy object.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param attributionId, the handle returned by AttributeProcessForAbility.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId) override;
+
+    /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
      * kill the processes by userId.
      * Send appSpawn uninstall debug hap message.
@@ -148,7 +172,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillProcessWithAccount(const std::string &bundleName, const int accountId,
-        const bool clearPageStack = false, int32_t appIndex = -1) override;
+        const bool clearPageStack = false, int32_t appIndex = 0) override;
 
     /**
      * KillProcessesInBatch, kill processes in batch, call KillProcessesInBatch() through proxy object;
@@ -177,7 +201,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillApplication(const std::string &bundleName, bool clearPageStack = false,
-        int32_t appIndex = -1, const std::string &reason = "KillApplication", int32_t userId = -1) override;
+        int32_t appIndex = 0, const std::string &reason = "KillApplication", int32_t userId = -1) override;
 
     /**
      * ForceKillApplication, call ForceKillApplication() through proxy object, force kill the application.
@@ -188,7 +212,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int ForceKillApplication(const std::string &bundleName, const int userId = -1,
-        const int appIndex = -1) override;
+        const int appIndex = 0) override;
 
     /**
      * KillApplicationWithUserId, call KillApplicationWithUserId() through proxy object, kill the application.
@@ -199,7 +223,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int KillApplicationWithUserId(const std::string &bundleName, const int userId = -1,
-        const int appIndex = -1) override;
+        const int appIndex = 0) override;
 
     /**
      * KillProcessesByAccessTokenId, call KillProcessesByAccessTokenId() through proxy object,

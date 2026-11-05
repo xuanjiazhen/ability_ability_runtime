@@ -50,6 +50,8 @@ struct AbilitySessionInfo {
     bool hasInsightIntentUserId = false;
     int32_t insightIntentParamUserId = 0;
     bool hasInsightIntentParamUserId = false;
+    // Task attribution key (ohos.aafwk.param.taskId) cached from the original caller want.
+    std::string taskId;
 };
 
 #endif // OHOS_ABILITY_RUNTIME_ABILITY_SESSION_INFO_H

@@ -314,6 +314,30 @@ public:
     int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch);
 
     /**
+     * AttributeProcessForAbility, report task attribution for a start-ability call
+     * (target process already exists) through the app manager service.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param callerUid, the uid of the start caller (system stamped).
+     * @param callerPid, the pid of the start caller (system stamped).
+     * @param targetPid, the pid of the target process.
+     * @param attributionId, the server-assigned handle of the created attribution.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+        int32_t targetPid, int64_t &attributionId);
+
+    /**
+     * UnregisterTaskAttribution, remove an attribution by its handle; called
+     * when the attributed ability dies unexpectedly.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param attributionId, the handle returned by AttributeProcessForAbility.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId);
+
+    /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
      * kill the process by user id.
      * Send appSpawn uninstall debug hap message.
@@ -364,7 +388,7 @@ public:
      *
      * @param bundleName.
      */
-    int KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+    int KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
         const std::string &reason = "KillApplication", int32_t userId = -1);
 
     /**
@@ -376,7 +400,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     int ForceKillApplication(const std::string &bundleName, const int userId = -1,
-        const int appIndex = -1);
+        const int appIndex = 0);
 
     /**
      * KillApplicationWithUserId, kill designated user application.
@@ -386,7 +410,7 @@ public:
      * @param  appIndex, appIndex.
      * @return ERR_OK, return back success, others fail.
      */
-    int KillApplicationWithUserId(const std::string &bundleName, const int userId = -1, const int appIndex = -1);
+    int KillApplicationWithUserId(const std::string &bundleName, const int userId = -1, const int appIndex = 0);
 
     /**
      * KillProcessesByAccessTokenId.

@@ -337,7 +337,8 @@ public:
     virtual int StartAbilityOnlyUIAbility(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
-        uint32_t specifyTokenId) override;
+        uint32_t specifyTokenId,
+        int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     /**
      * Start extension ability with want, send want to ability manager service.
@@ -735,7 +736,7 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+    virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
         const std::string& reason = "Abilityms::KillProcess") override;
 
     /**
@@ -746,7 +747,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false,
-        int32_t appIndex = -1, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1) override;
+        int32_t appIndex = 0, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1) override;
 
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
@@ -788,7 +789,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpgradeApp(const std::string &bundleName, const int32_t uid, const std::string &exitMsg,
-        int32_t appIndex = -1) override;
+        int32_t appIndex = 0) override;
 
     virtual sptr<IWantSender> GetWantSender(
         const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t uid = -1) override;
@@ -1504,7 +1505,7 @@ public:
      * @param appIndex app clone index. Currently, only appIndex = 0 is supported.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = -1) override;
+    virtual int32_t LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = 0) override;
 
     /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
@@ -2265,6 +2266,8 @@ private:
     bool UpdateAssociateConfigInner(const std::map<std::string, std::list<std::string>>& configs,
         MessageParcel& data);
     bool ExtendMaxIpcCapacityForWant(const Want &want, MessageParcel &data);
+
+    virtual int32_t GetDynamicAgentCardsForMigration(std::string &jsonStr) override;
 
 private:
     static inline BrokerDelegator<AbilityManagerProxy> delegator_;

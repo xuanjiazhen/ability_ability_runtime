@@ -54,6 +54,7 @@ private:
     void ClearProtectedWantParam(Want &want);
     void CacheInsightIntentParams(const Want &want, AbilitySessionInfo &info);
     void RestoreInsightIntentParams(Want &want, const AbilitySessionInfo &info);
+    void ClearCallerIdentityParam(Want &want);
 
     DISALLOW_COPY_AND_MOVE(UpdateCallerInfoUtil);
 };

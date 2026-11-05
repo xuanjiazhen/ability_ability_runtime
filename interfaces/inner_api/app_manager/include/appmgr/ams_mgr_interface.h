@@ -119,6 +119,31 @@ public:
     virtual int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch) = 0;
 
     /**
+     * AttributeProcessForAbility, report task attribution for a start-ability call (the cold
+     * case reports at attach time through the same method); caller identity is system-stamped.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param callerUid, the uid of the start caller (system stamped).
+     * @param callerPid, the pid of the start caller (system stamped).
+     * @param targetPid, the pid of the target process.
+     * @param attributionId, the server-assigned handle of the created attribution, handed
+     *        back to the caller for later unregistration.
+     * @return Returns ERR_OK on success, others on failure (attribution never blocks startup).
+     */
+    virtual int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+        int32_t targetPid, int64_t &attributionId) = 0;
+
+    /**
+     * UnregisterTaskAttribution, remove an attribution by its handle; called when the
+     * attributed ability dies unexpectedly so the attribution does not outlive the process.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param attributionId, the handle returned by AttributeProcessForAbility.
+     * @return Returns ERR_OK on success, others on failure (idempotent on missing record).
+     */
+    virtual int32_t UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId) = 0;
+
+    /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
      * kill the processes by userId.
      * Send appSpawn uninstall debug hap message.
@@ -168,7 +193,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int KillProcessWithAccount(const std::string &bundleName, const int accountId,
-        const bool clearPageStack = false, int32_t appIndex = -1) = 0;
+        const bool clearPageStack = false, int32_t appIndex = 0) = 0;
 
     /**
      * KillProcessesInBatch, kill processes in batch, call KillProcessesInBatch() through proxy object;
@@ -196,7 +221,7 @@ public:
      * @param  bundleName, bundle name in Application record.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+    virtual int KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
         const std::string &reason = "KillApplication", int32_t userId = -1) = 0;
 
     /**
@@ -207,7 +232,7 @@ public:
      * @param  appIndex, appIndex.
      * @return ERR_OK, return back success, others fail.
      */
-    virtual int ForceKillApplication(const std::string &bundleName, const int userId = -1, const int appIndex = -1) = 0;
+    virtual int ForceKillApplication(const std::string &bundleName, const int userId = -1, const int appIndex = 0) = 0;
 
     /**
      * KillApplicationWithUserId, call KillApplicationWithUserId() through proxy object, kill the application.
@@ -642,6 +667,8 @@ public:
         NOTIFY_LOAD_ABILITY_FINISHED,
         NOTIFY_APP_MGR_RECORD_EXIT_REASON_COMPABILITY,
         KILL_APPLICATION_WITH_USER_ID,
+        ATTRIBUTE_PROCESS_FOR_ABILITY,
+        UNREGISTER_TASK_ATTRIBUTION,
         // Add enumeration values above
         END
     };
