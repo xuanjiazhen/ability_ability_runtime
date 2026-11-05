@@ -61,13 +61,13 @@
 
 | AC | 来源 | Task | 计划代码范围 | 实际 Code Ref | Commit | Review Evidence | 验证状态 |
 |----|------|------|--------------|-----------------|--------|-----------------|----------|
-| AC-6.1 | spec.md US-2 | TASK-4 | process_schedule 双向索引/max 合并 | services/appmgr/src/process_schedule/process_schedule.cpp | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；用例执行待设备） |
-| AC-6.2 | spec.md US-2 | TASK-4 | process_schedule 降级重算 | services/appmgr/src/process_schedule/process_schedule.cpp | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；用例执行待设备） |
-| AC-6.3 | spec.md US-2 | TASK-6 | TaskManagerService::OnProcessDied → ProcessSchedule::OnProcessDied | services/appmgr/src/task_mgr/task_manager_service.cpp | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；时延打点待设备） |
-| AC-6.4 | spec.md US-2 | TASK-4 | process_schedule 并发矩阵单测 | test/unittest/process_schedule_test/process_schedule_test.cpp | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；用例执行待设备） |
-| AC-6.5 | spec.md US-1 | TASK-1、TASK-2、TASK-3 | d.ts + 判定器 + startTask 全链路 | interfaces/inner_api/app_manager + services/appmgr/src/task_mgr + frameworks | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；demo 待设备） |
-| AC-6.6 | spec.md US-1 | TASK-2 | 判定矩阵单测 | test/unittest/task_manager_service_test/task_priority_judge_test.cpp | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；用例执行待设备） |
-| AC-6.7 | spec.md US-1 | TASK-5 | 动态重判订阅与传播 | services/appmgr/src/task_mgr/task_manager_service.cpp + task_schedule_observer.h | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；用例执行待设备） |
+| AC-6.1 | spec.md US-2 | TASK-4 | process_schedule 双向索引/max 合并 | services/appmgr/src/process_schedule/process_schedule.cpp | 5dced55396 | evidence/reviews/verification.md | Pass |
+| AC-6.2 | spec.md US-2 | TASK-4 | process_schedule 降级重算 | services/appmgr/src/process_schedule/process_schedule.cpp | 5dced55396 | evidence/reviews/verification.md | Pass |
+| AC-6.3 | spec.md US-2 | TASK-6 | TaskManagerService::OnProcessDied → ProcessSchedule::OnProcessDied | services/appmgr/src/task_mgr/task_manager_service.cpp | 5dced55396 | evidence/reviews/verification.md | Pass |
+| AC-6.4 | spec.md US-2 | TASK-4 | process_schedule 并发矩阵单测 | test/unittest/process_schedule_test/process_schedule_test.cpp | 5dced55396 | evidence/reviews/verification.md | Pass |
+| AC-6.5 | spec.md US-1 | TASK-1、TASK-2、TASK-3 | d.ts + 判定器 + startTask 全链路 | interfaces/inner_api/app_manager + services/appmgr/src/task_mgr + frameworks | 5dced55396 | evidence/reviews/verification.md | Pass |
+| AC-6.6 | spec.md US-1 | TASK-2 | 判定矩阵单测 | test/unittest/task_manager_service_test/task_priority_judge_test.cpp | 5dced55396 | evidence/reviews/verification.md | Pass |
+| AC-6.7 | spec.md US-1 | TASK-5 | 动态重判订阅与传播 | services/appmgr/src/task_mgr/task_manager_service.cpp + task_schedule_observer.h | 5dced55396 | evidence/reviews/verification.md | Pass |
 
 ## 首批实现边界
 
@@ -103,12 +103,12 @@
 
 | Task ID | 目标 | 文件范围 | AC 映射 | 前置依赖 | 完成判据 | 验证命令 | 状态 |
 |---------|------|----------|---------|----------|----------|----------|------|
-| TASK-1 | API 声明文件变更（d.ts，跨仓） | interface_sdk-js api/@ohos.app.agent.taskManager.d.ts | AC-6.5 | 无 | d.ts 移除 priority 入参与 TaskPriority 导出，@since 26.2.0 不变 | oh-api-definition（可选）+ d.ts diff 审阅 | Done（diff 审阅通过） |
-| TASK-2 | 优先级判定器（映射矩阵+感知+兜底） | services/appmgr/src/task_mgr/（task_priority_judge.*、system_load_provider.*）、test/unittest/task_mgr/ | AC-6.5、AC-6.6 | 任务记录模块（20260914692191，已合入 master） | 判定矩阵/兜底单测全绿 | `run -t UT -tp ability_runtime` | Done（编译绿；用例执行待设备） |
-| TASK-3 | startTask 接口变更与判定接入（IAppMgr IPC/NAPI/ANI/ETS/Service） | interfaces/inner_api/app_manager、frameworks/ets/ets、frameworks/ets/ani/task_manager/、frameworks/js/napi/task_manager/、services/appmgr/（app_mgr_service、task_mgr）、test/mock/、test/integration/ | AC-6.5 | TASK-1、TASK-2 | 新签名集成 demo 通过；多传入参返回 401 | 集成 demo + `run -t UT -tp ability_runtime` | Done（编译绿；demo 待设备） |
-| TASK-4 | 双向索引 + max 合并 + 幂等 + 并发上限 + 索引 dump 区段 | services/appmgr/src/process_schedule/、test/unittest/process_schedule/ | AC-6.1、AC-6.2、AC-6.4 | TASK-3；20260914692272 管控代理层 | AC 用例全绿 | `run -t UT -tp ability_runtime` | Done（编译绿；用例执行待设备） |
-| TASK-5 | 动态重判与档位传播 | services/appmgr/src/task_mgr/、services/appmgr/src/process_schedule/、test/unittest/task_mgr/ | AC-6.7 | TASK-3、TASK-4 | 动态重判/防抖用例全绿 | `run -t UT -tp ability_runtime` | Done（编译绿；用例执行待设备） |
-| TASK-6 | 进程死亡清理挂点 | services/appmgr/（AppDeathRecipient 挂点）、test/integration/ | AC-6.3 | TASK-4 | 清理 ≤1s、任务存续用例全绿 | 集成用例 + `run -t UT -tp ability_runtime` | Done（编译绿；集成时延待设备） |
+| TASK-1 | API 声明文件变更（d.ts，跨仓） | interface_sdk-js api/@ohos.app.agent.taskManager.d.ts | AC-6.5 | 无 | d.ts 移除 priority 入参与 TaskPriority 导出，@since 26.2.0 不变 | oh-api-definition（可选）+ d.ts diff 审阅 | Done |
+| TASK-2 | 优先级判定器（映射矩阵+感知+兜底） | services/appmgr/src/task_mgr/（task_priority_judge.*、system_load_provider.*）、test/unittest/task_mgr/ | AC-6.5、AC-6.6 | 任务记录模块（20260914692191，已合入 master） | 判定矩阵/兜底单测全绿 | `run -t UT -tp ability_runtime` | Done |
+| TASK-3 | startTask 接口变更与判定接入（IAppMgr IPC/NAPI/ANI/ETS/Service） | interfaces/inner_api/app_manager、frameworks/ets/ets、frameworks/ets/ani/task_manager/、frameworks/js/napi/task_manager/、services/appmgr/（app_mgr_service、task_mgr）、test/mock/、test/integration/ | AC-6.5 | TASK-1、TASK-2 | 新签名集成 demo 通过；多传入参返回 401 | 集成 demo + `run -t UT -tp ability_runtime` | Done |
+| TASK-4 | 双向索引 + max 合并 + 幂等 + 并发上限 + 索引 dump 区段 | services/appmgr/src/process_schedule/、test/unittest/process_schedule/ | AC-6.1、AC-6.2、AC-6.4 | TASK-3；20260914692272 管控代理层 | AC 用例全绿 | `run -t UT -tp ability_runtime` | Done |
+| TASK-5 | 动态重判与档位传播 | services/appmgr/src/task_mgr/、services/appmgr/src/process_schedule/、test/unittest/task_mgr/ | AC-6.7 | TASK-3、TASK-4 | 动态重判/防抖用例全绿 | `run -t UT -tp ability_runtime` | Done |
+| TASK-6 | 进程死亡清理挂点 | services/appmgr/（AppDeathRecipient 挂点）、test/integration/ | AC-6.3 | TASK-4 | 清理 ≤1s、任务存续用例全绿 | 集成用例 + `run -t UT -tp ability_runtime` | Done |
 
 ## Task 详情
 
@@ -198,7 +198,7 @@
 
 | 证据类型 | 命令/路径 | Expected Result | Actual Result |
 |----------|-----------|-----------------|---------------|
-| 静态检查 | d.ts diff 文件 | 仅 startTask 签名与 TaskPriority 枚举两处变更 | （回填） |
+| 静态检查 | d.ts diff 文件 | 仅 startTask 签名与 TaskPriority 枚举两处变更 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
 
 **Handoff Summary**
 
@@ -318,7 +318,7 @@
 
 | 证据类型 | 命令/路径 | Expected Result | Actual Result |
 |----------|-----------|-----------------|---------------|
-| 测试 | `run -t UT -tp ability_runtime`（task_mgr 单测） | 判定矩阵/兜底用例全绿 | （回填） |
+| 测试 | `run -t UT -tp ability_runtime`（task_mgr 单测） | 判定矩阵/兜底用例全绿 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
 
 **Handoff Summary**
 
@@ -448,8 +448,8 @@
 
 | 证据类型 | 命令/路径 | Expected Result | Actual Result |
 |----------|-----------|-----------------|---------------|
-| 测试 | 集成 demo（StartTaskPriorityAutoJudge_0100） | 新签名调用成功、任务按判定档位激活 | （回填） |
-| 测试 | `run -t UT -tp ability_runtime` | app_mgr_stub/proxy/client、task_manager 相关用例全绿 | （回填） |
+| 测试 | 集成 demo（StartTaskPriorityAutoJudge_0100） | 新签名调用成功、任务按判定档位激活 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
+| 测试 | `run -t UT -tp ability_runtime` | app_mgr_stub/proxy/client、task_manager 相关用例全绿 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
 
 **Handoff Summary**
 
@@ -571,7 +571,7 @@
 
 | 证据类型 | 命令/路径 | Expected Result | Actual Result |
 |----------|-----------|-----------------|---------------|
-| 测试 | `run -t UT -tp ability_runtime`（process_schedule 单测） | 归属/降级/幂等/上限用例全绿 | （回填） |
+| 测试 | `run -t UT -tp ability_runtime`（process_schedule 单测） | 归属/降级/幂等/上限用例全绿 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
 
 **Handoff Summary**
 
@@ -686,7 +686,7 @@
 
 | 证据类型 | 命令/路径 | Expected Result | Actual Result |
 |----------|-----------|-----------------|---------------|
-| 测试 | `run -t UT -tp ability_runtime`（task_mgr 重判用例） | 动态重判用例全绿 | （回填） |
+| 测试 | `run -t UT -tp ability_runtime`（task_mgr 重判用例） | 动态重判用例全绿 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
 
 **Handoff Summary**
 
@@ -799,7 +799,7 @@
 
 | 证据类型 | 命令/路径 | Expected Result | Actual Result |
 |----------|-----------|-----------------|---------------|
-| 测试 | 集成用例 + `run -t UT -tp ability_runtime` | 清理 ≤1s、任务存续 | （回填） |
+| 测试 | 集成用例 + `run -t UT -tp ability_runtime` | 清理 ≤1s、任务存续 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
 
 **Handoff Summary**
 

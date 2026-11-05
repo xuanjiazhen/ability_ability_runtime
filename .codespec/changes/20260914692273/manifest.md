@@ -6,7 +6,7 @@ spec_schema: ohos-sdd/v1
 profile: none
 complexity: standard
 lineage: new
-status: approved
+status: verifying
 owner: "yangzk"
 source_issue: "RR 30096095"
 created_at: 2026-11-04
@@ -22,4 +22,5 @@ profile_source: inferred
 code_refs: []
 commits:
   - "345dd97d2225b2808729b449fe986ae4b38b5668"
+  - "5dced55396"
 ---
