@@ -60,6 +60,7 @@ ErrCode OhosAgentShellCommand::init()
 ErrCode OhosAgentShellCommand::CreateCommandMap()
 {
     commandMap_["help"] = std::bind(&OhosAgentShellCommand::RunAsHelpCommand, this);
+    commandMap_["--help"] = std::bind(&OhosAgentShellCommand::RunAsHelpCommand, this);
     commandMap_["connect"] = std::bind(&OhosAgentShellCommand::RunAsConnect, this);
     return ERR_OK;
 }
@@ -67,6 +68,9 @@ ErrCode OhosAgentShellCommand::CreateCommandMap()
 ErrCode OhosAgentShellCommand::RunAsHelpCommand()
 {
     resultReceiver_ = HELP_MSG;
+    // Explicit help is not a failure; no-args or an unknown subcommand exits non-zero.
+    helpOnly_ = argc_ > 1 && (cmd_ == "help" || cmd_ == "--help");
+    exitCode_ = helpOnly_ ? 0 : 1;
     return ERR_OK;
 }
 

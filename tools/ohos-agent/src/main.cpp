@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <unistd.h>
@@ -60,10 +61,14 @@ int main(int argc, char* argv[])
         CommandTimer commandTimer("ability::ohos_agent_cli_command", COMMAND_TIME_OUT, operation);
         OHOS::AAFwk::OhosAgentShellCommand cmd(argc, argv);
         cmd.CreateErrorInfoMap();
-        // Pre-loop argument errors never reach RunAsConnect's event emission; they surface via
-        // exitCode=1 -> CliToolEvent{EXIT} + status=FAILED (R-20 failure contract). The "result"
-        // event is reserved for the framework (tools may not declare/emit it).
-        (void)cmd.ExecCommand();
+        // Bare shell (no cliMgr-injected ohos_cli_callerIdentity): print the pre-loop help/error
+        // text. Under cliMgr stdout is reserved for session events, except a help-only request
+        // (no session events are emitted in that run).
+        std::string preLoopText = cmd.ExecCommand();
+        bool bareShell = getenv("ohos_cli_callerIdentity") == nullptr;
+        if (!preLoopText.empty() && (bareShell || cmd.IsHelpOnly())) {
+            std::cout << preLoopText;
+        }
         OHOS::AAFwk::DrainStdoutForExit();
         _exit(cmd.GetExitCode());
     }

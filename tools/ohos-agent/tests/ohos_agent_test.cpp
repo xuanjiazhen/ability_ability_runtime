@@ -15,14 +15,17 @@
 
 #include <gtest/gtest.h>
 
+#include <cstring>
 #include <fcntl.h>
 #include <sstream>
 #include <string>
 #include <unistd.h>
+#include <vector>
 
 #include "agent_receiver_stub.h"
 #include "cli_agent_connection.h"
 #include "ipc_object_stub.h"
+#include "ohos_agent_command.h"
 #include "session_protocol.h"
 #include "want.h"
 
@@ -626,4 +629,115 @@ HWTEST(OhosAgentCliTest, RunCommandLoop_EscapedNewlineInData_Preserved, TestSize
     EXPECT_FALSE(RunCommandLoop(conn, receiver, receiver->AsObject()));
     EXPECT_EQ(receiver->sendDataCount, 1);
     EXPECT_EQ(receiver->lastData, "line1\nline2");  // decoded real newline
+}
+
+// ---- Pre-IPC command surface (help/exit-code spec) ----
+// These paths return before any IPC, so no live agentmgr is needed.
+
+namespace {
+// argv_ is kept for getopt parsing; the vector must outlive the command object.
+std::vector<char *> MakeArgv(std::initializer_list<const char *> args)
+{
+    std::vector<char *> argv;
+    for (const char *arg : args) {
+        argv.push_back(const_cast<char *>(arg));
+    }
+    argv.push_back(nullptr);
+    return argv;
+}
+}  // namespace
+
+// "ohos-agent help": explicit help -> HELP_MSG, exit 0.
+HWTEST(OhosAgentCliTest, Command_Help_ExitZero, TestSize.Level1)
+{
+    auto argv = MakeArgv({"ohos-agent", "help"});
+    OhosAgentShellCommand cmd(2, argv.data());
+    cmd.CreateErrorInfoMap();
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG);
+    EXPECT_EQ(cmd.GetExitCode(), 0);
+    EXPECT_TRUE(cmd.IsHelpOnly());
+}
+
+// "ohos-agent --help": same spec via the double-dash form -> exit 0.
+HWTEST(OhosAgentCliTest, Command_DoubleDashHelp_ExitZero, TestSize.Level1)
+{
+    auto argv = MakeArgv({"ohos-agent", "--help"});
+    OhosAgentShellCommand cmd(2, argv.data());
+    cmd.CreateErrorInfoMap();
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG);
+    EXPECT_EQ(cmd.GetExitCode(), 0);
+    EXPECT_TRUE(cmd.IsHelpOnly());
+}
+
+// "ohos-agent" with no arguments (the ctor maps that to "help") -> exit 1.
+HWTEST(OhosAgentCliTest, Command_NoArgs_ExitNonZero, TestSize.Level1)
+{
+    auto argv = MakeArgv({"ohos-agent"});
+    OhosAgentShellCommand cmd(1, argv.data());
+    cmd.CreateErrorInfoMap();
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG);
+    EXPECT_EQ(cmd.GetExitCode(), 1);
+    EXPECT_FALSE(cmd.IsHelpOnly());
+}
+
+// Unknown subcommand falls back to help but is not an explicit help request -> exit 1.
+HWTEST(OhosAgentCliTest, Command_UnknownSubcommand_ExitNonZero, TestSize.Level1)
+{
+    auto argv = MakeArgv({"ohos-agent", "disconnect"});
+    OhosAgentShellCommand cmd(2, argv.data());
+    cmd.CreateErrorInfoMap();
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG);
+    EXPECT_EQ(cmd.GetExitCode(), 1);
+    EXPECT_FALSE(cmd.IsHelpOnly());
+}
+
+// Unknown subcommand with trailing arguments -> exit 1.
+HWTEST(OhosAgentCliTest, Command_UnknownSubcommandWithArgs_ExitNonZero, TestSize.Level1)
+{
+    auto argv = MakeArgv({"ohos-agent", "foo", "--bar"});
+    OhosAgentShellCommand cmd(3, argv.data());
+    cmd.CreateErrorInfoMap();
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG);
+    EXPECT_EQ(cmd.GetExitCode(), 1);
+    EXPECT_FALSE(cmd.IsHelpOnly());
+}
+
+// "connect --help": help wins regardless of other options -> exit 0.
+HWTEST(OhosAgentCliTest, Command_ConnectHelp_ExitZero, TestSize.Level1)
+{
+    optind = 0;  // reset getopt state
+    auto argv = MakeArgv({"ohos-agent", "connect", "--help"});
+    OhosAgentShellCommand cmd(3, argv.data());
+    cmd.CreateErrorInfoMap();
+    EXPECT_EQ(cmd.ExecCommand(), HELP_MSG_CONNECT);
+    EXPECT_EQ(cmd.GetExitCode(), 0);
+    EXPECT_TRUE(cmd.IsHelpOnly());
+}
+
+// "connect" with no options: required-args check fails -> error + usage, exit 1.
+HWTEST(OhosAgentCliTest, Command_ConnectMissingArgs_ExitNonZero, TestSize.Level1)
+{
+    optind = 0;
+    auto argv = MakeArgv({"ohos-agent", "connect"});
+    OhosAgentShellCommand cmd(2, argv.data());
+    cmd.CreateErrorInfoMap();
+    std::string result = cmd.ExecCommand();
+    EXPECT_EQ(result.compare(0, strlen("error:"), "error:"), 0);
+    EXPECT_NE(result.find(HELP_MSG_CONNECT), std::string::npos);
+    EXPECT_EQ(cmd.GetExitCode(), 1);
+    EXPECT_FALSE(cmd.IsHelpOnly());
+}
+
+// "connect --foo": unknown option -> error + usage, exit 1.
+HWTEST(OhosAgentCliTest, Command_ConnectUnknownOption_ExitNonZero, TestSize.Level1)
+{
+    optind = 0;
+    auto argv = MakeArgv({"ohos-agent", "connect", "--foo"});
+    OhosAgentShellCommand cmd(3, argv.data());
+    cmd.CreateErrorInfoMap();
+    std::string result = cmd.ExecCommand();
+    EXPECT_EQ(result.compare(0, strlen("error:"), "error:"), 0);
+    EXPECT_NE(result.find(HELP_MSG_CONNECT), std::string::npos);
+    EXPECT_EQ(cmd.GetExitCode(), 1);
+    EXPECT_FALSE(cmd.IsHelpOnly());
 }
