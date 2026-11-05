@@ -21,7 +21,9 @@
 #include "ability_manager_service.h"
 #include "ability_permission_util.h"
 #include "ability_resident_process_rdb.h"
+#include "app_mgr_client.h"
 #include "ability_util.h"
+#include "utils/agent_ability_util.h"
 #include "agent_card.h"
 #include "agent_extension_connection_constants.h"
 #include "agent_manager_client.h"
@@ -87,6 +89,7 @@ constexpr char BUNDLE_NAME_DIALOG[] = "com.ohos.amsdialog";
 constexpr char ABILITY_NAME_ASSERT_FAULT_DIALOG[] = "AssertFaultDialog";
 constexpr const char* WANT_PARAMS_APP_RESTART_FLAG = "ohos.aafwk.app.restart";
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
+constexpr const char* WANT_PARAMS_TASK_ID_KEY = "ohos.aafwk.param.agenttaskId";
 constexpr int32_t HALF_TIMEOUT = 2;
 const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 
@@ -420,6 +423,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
                 abilityRequest.want.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1),
                 static_cast<int32_t>(connectedRecord->GetConnectState()));
             connectedRecord->QueueLowCodeAgentInvocation(abilityRequest.want, connect);
+            AttributeSameConnectionRecordTaskID(abilityRequest, connect);
         } else if (isAgentConnect) {
             TAG_LOGI(AAFwkTag::SER_ROUTER,
                 "AGENT service/callback connected: agentId=%{public}s, cardType=%{public}d, "
@@ -428,6 +432,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
                 abilityRequest.want.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1),
                 static_cast<int32_t>(connectedRecord->GetConnectState()));
             connectedRecord->CompleteConnectAndOnlyCallConnectDone();
+            AttributeSameConnectionRecordTaskID(abilityRequest, connect);
         } else {
             TAG_LOGI(AAFwkTag::EXT, "service/callback connected");
             connectedRecord->CompleteConnectAndOnlyCallConnectDone();
@@ -959,6 +964,185 @@ int AbilityConnectManager::ScheduleConnectAbilityDoneLocked(
     }
     CompleteStartServiceReq(abilityRecord->GetURI());
     ReportConnectEventToRss(LoadingStage::CONNECT_END, abilityRecord, connectingRecord, 0);
+    TryAttributeTargetAgentForA2A(abilityRecord, connectingRecord);
+    return ERR_OK;
+}
+
+void AbilityConnectManager::TryAttributeTargetAgentForA2A(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+    const std::shared_ptr<ConnectionRecord> &connectingRecord)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A abilityRecord is nullptr, skipping attribution");
+        return;
+    }
+    if (connectingRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A connectingRecord is nullptr, skipping attribution");
+        return;
+    }
+    const auto &abilityInfo = abilityRecord->GetAbilityInfo();
+    if (!AgentAbilityUtil::IsAgentExtensionType(abilityInfo.extensionAbilityType)) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "A2A not agent extension type, skipping attribution, type: %{public}d",
+            static_cast<int32_t>(abilityInfo.extensionAbilityType));
+        return;
+    }
+    std::string taskId = abilityRecord->GetWant().GetStringParam(WANT_PARAMS_TASK_ID_KEY);
+    if (taskId.empty()) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A taskId is empty, skipping attribution");
+        return;
+    }
+    pid_t targetPid = abilityRecord->GetPid();
+    if (targetPid <= 0) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "A2A target pid not resolved, skipping attribution, taskId: %{public}s", taskId.c_str());
+        return;
+    }
+    uint32_t callerTokenId = connectingRecord->GetCallerTokenId();
+    if (callerTokenId == 0) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "A2A callerTokenId not resolved, skipping attribution, taskId: %{public}s", taskId.c_str());
+        return;
+    }
+    int32_t recordId = connectingRecord->GetRecordId();
+    int64_t attributionId = 0;
+    int32_t ret = IN_PROCESS_CALL(
+        DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->AttributeTaskForA2A(
+            taskId, callerTokenId, targetPid, attributionId));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "A2A attribute failed, taskId: %{public}s, ret: %{public}d", taskId.c_str(), ret);
+        return;
+    }
+    AgentTaskAttribution attribution;
+    attribution.taskId = taskId;
+    attribution.attributionId = attributionId;
+    attribution.agentId = connectingRecord->GetConnectWant().GetStringParam(AgentRuntime::AGENTID_KEY);
+    abilityRecord->AddTaskAttribution(recordId, attribution);
+}
+
+int32_t AbilityConnectManager::AttributeSameConnectionRecordTaskID(const AbilityRequest &abilityRequest,
+    sptr<IAbilityConnection> connect)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (connect == nullptr || connect->AsObject() == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A reused-attribution null connect");
+        return ERR_INVALID_VALUE;
+    }
+    std::string taskId = abilityRequest.want.GetStringParam(WANT_PARAMS_TASK_ID_KEY);
+    if (taskId.empty()) {
+        TAG_LOGD(AAFwkTag::EXT, "A2A reused-attribution empty taskId, skip");
+        return ERR_OK;
+    }
+    // 1. generate serviceKey from the resolved abilityRequest and look up the AbilityRecord.
+    std::string serviceKey = GetServiceKey(abilityRequest);
+    std::shared_ptr<BaseExtensionRecord> abilityRecord;
+    {
+        std::lock_guard lock(serviceMapMutex_);
+        auto it = serviceMap_.find(serviceKey);
+        if (it == serviceMap_.end()) {
+            TAG_LOGE(AAFwkTag::EXT, "A2A reused-attribution service not in map, key: %{public}s",
+                serviceKey.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        abilityRecord = it->second;
+    }
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A reused-attribution null abilityRecord");
+        return ERR_INVALID_VALUE;
+    }
+    // 2. in the AbilityRecord's recordList, find the connectRecord matching `connect`, then apply
+    //    case-specific filtering and dedup based on the incoming card type:
+    //    - LOW_CODE: connectRecord's connectWant_ must also be LOW_CODE; dedup checks same taskId
+    //      AND same agentId (shared host AbilityRecord holds multiple agentIds' records).
+    //    - non-LOW_CODE: connectRecord's connectWant_ must have same agentId AND same card type;
+    //      dedup checks same taskId only (AbilityRecord is already agent-specific).
+    auto connectRecordList = abilityRecord->GetConnectRecordList();
+    auto connectRemote = connect->AsObject();
+    auto requestAgentId = abilityRequest.want.GetStringParam(AgentRuntime::AGENTID_KEY);
+    auto requestCardType = abilityRequest.want.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1);
+    auto lowCodeType = static_cast<int32_t>(AgentRuntime::AgentCardType::LOW_CODE);
+    bool isLowCodeRequest = requestCardType == lowCodeType;
+    std::shared_ptr<ConnectionRecord> targetConnectRecord;
+    bool alreadyAttributed = false;
+    for (const auto &record : connectRecordList) {
+        if (!record || record->GetConnection() != connectRemote) {
+            continue;
+        }
+        auto recordWant = record->GetConnectWant();
+        auto recordCardType = recordWant.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1);
+        auto recordAgentId = recordWant.GetStringParam(AgentRuntime::AGENTID_KEY);
+        if (isLowCodeRequest) {
+            // Case 1: connectRecord's connectWant_ must also be LOW_CODE, else skip this record.
+            if (recordCardType != lowCodeType) {
+                continue;
+            }
+            auto attributions = abilityRecord->GetTaskAttributions(record->GetRecordId());
+            for (const auto &attr : attributions) {
+                if (attr.taskId == taskId && attr.agentId == requestAgentId && attr.attributionId > 0) {
+                    alreadyAttributed = true;
+                    break;
+                }
+            }
+        } else {
+            // Case 2: connectRecord's connectWant_ must have same agentId AND same card type,
+            // else skip this record.
+            if (recordAgentId != requestAgentId || recordCardType != requestCardType) {
+                continue;
+            }
+            auto attributions = abilityRecord->GetTaskAttributions(record->GetRecordId());
+            for (const auto &attr : attributions) {
+                if (attr.taskId == taskId && attr.attributionId > 0) {
+                    alreadyAttributed = true;
+                    break;
+                }
+            }
+        }
+        if (!alreadyAttributed && targetConnectRecord == nullptr) {
+            targetConnectRecord = record;
+        }
+        if (alreadyAttributed) {
+            break;
+        }
+    }
+    if (alreadyAttributed) {
+        TAG_LOGD(AAFwkTag::EXT,
+            "A2A reused-attribution taskId already attributed, skip: %{public}s", taskId.c_str());
+        return ERR_OK;
+    }
+    if (targetConnectRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A reused-attribution connectRecord not found in record list");
+        return ERR_INVALID_VALUE;
+    }
+    // 3. none matched — borrow this connectRecord's recordId + the new taskId to attribute.
+    pid_t targetPid = abilityRecord->GetPid();
+    if (targetPid <= 0) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A reused-attribution target pid not resolved, taskId: %{public}s",
+            taskId.c_str());
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t callerTokenId = targetConnectRecord->GetCallerTokenId();
+    if (callerTokenId == 0) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A reused-attribution callerTokenId not resolved, taskId: %{public}s",
+            taskId.c_str());
+        return ERR_INVALID_VALUE;
+    }
+    int32_t recordId = targetConnectRecord->GetRecordId();
+    int64_t attributionId = 0;
+    int32_t ret = IN_PROCESS_CALL(
+        DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->AttributeTaskForA2A(
+            taskId, callerTokenId, targetPid, attributionId));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::EXT, "A2A reused-attribution failed, taskId: %{public}s, ret: %{public}d",
+            taskId.c_str(), ret);
+        return ret;
+    }
+    AgentTaskAttribution attribution;
+    attribution.taskId = taskId;
+    attribution.attributionId = attributionId;
+    attribution.agentId = requestAgentId;
+    abilityRecord->AddTaskAttribution(recordId, attribution);
     return ERR_OK;
 }
 
@@ -1031,6 +1215,26 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
     }
 
     UpdateStateAndCompleteDisconnect(abilityRecord, connect, token);
+
+    if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        int32_t recordId = connect->GetRecordId();
+        auto attributions = abilityRecord->GetTaskAttributions(recordId);
+        for (const auto &attr : attributions) {
+            if (attr.taskId.empty() || attr.attributionId <= 0) {
+                continue;
+            }
+            int32_t ret = IN_PROCESS_CALL(
+                DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterTaskForA2A(
+                    attr.taskId, attr.attributionId));
+            if (ret == ERR_OK) {
+                abilityRecord->RemoveTaskAttribution(recordId, attr.taskId);
+            } else {
+                TAG_LOGE(AAFwkTag::EXT,
+                    "A2A unregister failed, recordId=%{public}d, taskId=%{public}s, ret=%{public}d",
+                    recordId, attr.taskId.c_str(), ret);
+            }
+        }
+    }
 
     CleanupConnectionAndTerminateIfNeeded(abilityRecord);
 
