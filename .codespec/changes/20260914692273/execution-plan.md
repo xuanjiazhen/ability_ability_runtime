@@ -18,8 +18,8 @@
 | 输入 | 路径 | 要求状态 |
 |------|------|----------|
 | Requirement | `proposal.md` | Approved（2026-11-04） |
-| Design | `design.md` | ReadyForReview（候选，待评审批准） |
-| Spec | `spec.md` | ReadyForReview（候选，待评审批准） |
+| Design | `design.md` | Approved（2026-11-05） |
+| Spec | `spec.md` | Approved（2026-11-05） |
 
 ## 执行原则
 
@@ -61,13 +61,13 @@
 
 | AC | 来源 | Task | 计划代码范围 | 实际 Code Ref | Commit | Review Evidence | 验证状态 |
 |----|------|------|--------------|-----------------|--------|-----------------|----------|
-| AC-6.1 | spec.md US-2 | TASK-4 | process_schedule 双向索引/max 合并 | | | | Pending |
-| AC-6.2 | spec.md US-2 | TASK-4 | process_schedule 降级重算 | | | | Pending |
-| AC-6.3 | spec.md US-2 | TASK-6 | AppDeathRecipient 挂点 + process_schedule 清理 | | | | Pending |
-| AC-6.4 | spec.md US-2 | TASK-4 | process_schedule 并发上限 + 并发矩阵单测 | | | | Pending |
-| AC-6.5 | spec.md US-1 | TASK-1、TASK-2、TASK-3 | d.ts + 判定器 + startTask 全链路 | | | | Pending |
-| AC-6.6 | spec.md US-1 | TASK-2 | 判定矩阵单测 | | | | Pending |
-| AC-6.7 | spec.md US-1 | TASK-5 | 动态重判订阅与传播 | | | | Pending |
+| AC-6.1 | spec.md US-2 | TASK-4 | process_schedule 双向索引/max 合并 | services/appmgr/src/process_schedule/process_schedule.cpp | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；用例执行待设备） |
+| AC-6.2 | spec.md US-2 | TASK-4 | process_schedule 降级重算 | services/appmgr/src/process_schedule/process_schedule.cpp | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；用例执行待设备） |
+| AC-6.3 | spec.md US-2 | TASK-6 | TaskManagerService::OnProcessDied → ProcessSchedule::OnProcessDied | services/appmgr/src/task_mgr/task_manager_service.cpp | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；时延打点待设备） |
+| AC-6.4 | spec.md US-2 | TASK-4 | process_schedule 并发矩阵单测 | test/unittest/process_schedule_test/process_schedule_test.cpp | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；用例执行待设备） |
+| AC-6.5 | spec.md US-1 | TASK-1、TASK-2、TASK-3 | d.ts + 判定器 + startTask 全链路 | interfaces/inner_api/app_manager + services/appmgr/src/task_mgr + frameworks | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；demo 待设备） |
+| AC-6.6 | spec.md US-1 | TASK-2 | 判定矩阵单测 | test/unittest/task_manager_service_test/task_priority_judge_test.cpp | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；用例执行待设备） |
+| AC-6.7 | spec.md US-1 | TASK-5 | 动态重判订阅与传播 | services/appmgr/src/task_mgr/task_manager_service.cpp + task_schedule_observer.h | 5dced55396 | evidence/reviews/verification.md | Done（编译绿；用例执行待设备） |
 
 ## 首批实现边界
 
@@ -103,12 +103,12 @@
 
 | Task ID | 目标 | 文件范围 | AC 映射 | 前置依赖 | 完成判据 | 验证命令 | 状态 |
 |---------|------|----------|---------|----------|----------|----------|------|
-| TASK-1 | API 声明文件变更（d.ts，跨仓） | interface_sdk-js api/@ohos.app.agent.taskManager.d.ts | AC-6.5 | 无 | d.ts 移除 priority 入参与 TaskPriority 导出，@since 26.2.0 不变 | oh-api-definition（可选）+ d.ts diff 审阅 | Pending |
-| TASK-2 | 优先级判定器（映射矩阵+感知+兜底） | services/appmgr/src/task_mgr/（task_priority_judge.*、system_load_provider.*）、test/unittest/task_mgr/ | AC-6.5、AC-6.6 | 任务记录模块（20260914692191，已合入 master） | 判定矩阵/兜底单测全绿 | `run -t UT -tp ability_runtime` | Pending |
-| TASK-3 | startTask 接口变更与判定接入（IAppMgr IPC/NAPI/ANI/ETS/Service） | interfaces/inner_api/app_manager、frameworks/ets/ets、frameworks/ets/ani/task_manager/、frameworks/js/napi/task_manager/、services/appmgr/（app_mgr_service、task_mgr）、test/mock/、test/integration/ | AC-6.5 | TASK-1、TASK-2 | 新签名集成 demo 通过；多传入参返回 401 | 集成 demo + `run -t UT -tp ability_runtime` | Pending |
-| TASK-4 | 双向索引 + max 合并 + 幂等 + 并发上限 + 索引 dump 区段 | services/appmgr/src/process_schedule/、test/unittest/process_schedule/ | AC-6.1、AC-6.2、AC-6.4 | TASK-3；20260914692272 管控代理层 | AC 用例全绿 | `run -t UT -tp ability_runtime` | Pending |
-| TASK-5 | 动态重判与档位传播 | services/appmgr/src/task_mgr/、services/appmgr/src/process_schedule/、test/unittest/task_mgr/ | AC-6.7 | TASK-3、TASK-4 | 动态重判/防抖用例全绿 | `run -t UT -tp ability_runtime` | Pending |
-| TASK-6 | 进程死亡清理挂点 | services/appmgr/（AppDeathRecipient 挂点）、test/integration/ | AC-6.3 | TASK-4 | 清理 ≤1s、任务存续用例全绿 | 集成用例 + `run -t UT -tp ability_runtime` | Pending |
+| TASK-1 | API 声明文件变更（d.ts，跨仓） | interface_sdk-js api/@ohos.app.agent.taskManager.d.ts | AC-6.5 | 无 | d.ts 移除 priority 入参与 TaskPriority 导出，@since 26.2.0 不变 | oh-api-definition（可选）+ d.ts diff 审阅 | Done（diff 审阅通过） |
+| TASK-2 | 优先级判定器（映射矩阵+感知+兜底） | services/appmgr/src/task_mgr/（task_priority_judge.*、system_load_provider.*）、test/unittest/task_mgr/ | AC-6.5、AC-6.6 | 任务记录模块（20260914692191，已合入 master） | 判定矩阵/兜底单测全绿 | `run -t UT -tp ability_runtime` | Done（编译绿；用例执行待设备） |
+| TASK-3 | startTask 接口变更与判定接入（IAppMgr IPC/NAPI/ANI/ETS/Service） | interfaces/inner_api/app_manager、frameworks/ets/ets、frameworks/ets/ani/task_manager/、frameworks/js/napi/task_manager/、services/appmgr/（app_mgr_service、task_mgr）、test/mock/、test/integration/ | AC-6.5 | TASK-1、TASK-2 | 新签名集成 demo 通过；多传入参返回 401 | 集成 demo + `run -t UT -tp ability_runtime` | Done（编译绿；demo 待设备） |
+| TASK-4 | 双向索引 + max 合并 + 幂等 + 并发上限 + 索引 dump 区段 | services/appmgr/src/process_schedule/、test/unittest/process_schedule/ | AC-6.1、AC-6.2、AC-6.4 | TASK-3；20260914692272 管控代理层 | AC 用例全绿 | `run -t UT -tp ability_runtime` | Done（编译绿；用例执行待设备） |
+| TASK-5 | 动态重判与档位传播 | services/appmgr/src/task_mgr/、services/appmgr/src/process_schedule/、test/unittest/task_mgr/ | AC-6.7 | TASK-3、TASK-4 | 动态重判/防抖用例全绿 | `run -t UT -tp ability_runtime` | Done（编译绿；用例执行待设备） |
+| TASK-6 | 进程死亡清理挂点 | services/appmgr/（AppDeathRecipient 挂点）、test/integration/ | AC-6.3 | TASK-4 | 清理 ≤1s、任务存续用例全绿 | 集成用例 + `run -t UT -tp ability_runtime` | Done（编译绿；集成时延待设备） |
 
 ## Task 详情
 
@@ -827,12 +827,12 @@
 
 | Task ID | 计划文件/符号 | 实际文件/符号 | 操作 | Commit | Spec Compliance | Code Quality | Verification | 偏差 |
 |---------|---------------|---------------|------|--------|-----------------|--------------|--------------|------|
-| TASK-1 | interface_sdk-js api/@ohos.app.agent.taskManager.d.ts | | Modify | | | | | |
-| TASK-2 | services/appmgr/src/task_mgr/task_priority_judge.*、system_load_provider.*；test/unittest/task_mgr/ | | Create | | | | | |
-| TASK-3 | interfaces/inner_api/app_manager（StartTask 链）、frameworks/ets/ets、frameworks/ets/ani/task_manager/、frameworks/js/napi/task_manager/、services/appmgr（app_mgr_service、task_mgr）、test/mock、test/integration/ | | Modify+Create | | | | | |
-| TASK-4 | services/appmgr/src/process_schedule/；test/unittest/process_schedule/ | | Create | | | | | |
-| TASK-5 | services/appmgr/src/task_mgr/、src/process_schedule/；test/unittest/task_mgr/ | | Modify+Create | | | | | |
-| TASK-6 | services/appmgr/include/app_death_recipient.h、src/app_death_recipient.cpp；test/integration/ | | Modify+Create | | | | | |
+| TASK-1 | interface_sdk-js api/@ohos.app.agent.taskManager.d.ts | interface/sdk-js api/@ohos.app.agent.taskManager.d.ts + zh-cn 文档（跨仓工作区改动，未提交） | Modify | 跨仓单独提审 | evidence/reviews/spec-compliance.md | evidence/reviews/code-quality.md | evidence/reviews/verification.md | 无 |
+| TASK-2 | services/appmgr/src/task_mgr/task_priority_judge.*、system_load_provider.*；test/unittest/task_mgr/ | services/appmgr/src/task_mgr/task_priority_judge.cpp、system_load_provider.cpp；test/unittest/task_manager_service_test/task_priority_judge_test.cpp（用既有 target） | Create | 5dced55396 | evidence/reviews/spec-compliance.md | evidence/reviews/code-quality.md | evidence/reviews/verification.md | 测试目录用既有 task_manager_service_test target（仓内无 test/unittest/task_mgr 目录） |
+| TASK-3 | interfaces/inner_api/app_manager（StartTask 链）、frameworks/ets/ets、frameworks/ets/ani/task_manager/、frameworks/js/napi/task_manager/、services/appmgr（app_mgr_service、task_mgr）、test/mock、test/integration/ | IAppMgr 链（interface/proxy/stub/client）、app_mgr_service、task_manager_service、.ets、ANI、NAPI、mock + 4 个既有单测签名同步；集成 demo 待设备环境 | Modify | 5dced55396 | evidence/reviews/spec-compliance.md | evidence/reviews/code-quality.md | evidence/reviews/verification.md | 接口变更的必然连带：4 个既有测试文件签名同步（编译门禁）；集成 demo 未在本环境执行 |
+| TASK-4 | services/appmgr/src/process_schedule/；test/unittest/process_schedule/ | services/appmgr/src/process_schedule/process_schedule.cpp；test/unittest/process_schedule_test/（目录名匹配 GN 标签）；app_mgr_service.cpp（--psched 分发+usage） | Create+Modify | 5dced55396 | evidence/reviews/spec-compliance.md | evidence/reviews/code-quality.md | evidence/reviews/verification.md | 目录名由 process_schedule 调整为 process_schedule_test（GN 相对标签解析要求） |
+| TASK-5 | services/appmgr/src/task_mgr/、src/process_schedule/；test/unittest/task_mgr/ | task_manager_service.cpp（RejudgeTasks/OnAbilityForegroundChanged/OnSystemLoadLevelChanged/RegisterScheduleListeners）+ task_schedule_observer.h（新）；VM-3 集成用例待设备 | Modify+Create | 5dced55396 | evidence/reviews/spec-compliance.md | evidence/reviews/code-quality.md | evidence/reviews/verification.md | 无 |
+| TASK-6 | services/appmgr/include/app_death_recipient.h、src/app_death_recipient.cpp；test/integration/ | TaskManagerService::OnProcessDied 内最小挂点（既有死亡链已汇聚该函数，未改通知链主体）；process_schedule_test 死亡清理单测；集成时延用例待设备 | Modify | 5dced55396 | evidence/reviews/spec-compliance.md | evidence/reviews/code-quality.md | evidence/reviews/verification.md | 挂点落在既有汇聚点，未触碰 app_death_recipient（更小侵入） |
 
 ## 实现偏差和开放问题
 
@@ -841,3 +841,5 @@
 | TASK-2 | dependency | 系统负载接口与资源调度领域确认（design ADR-7） | Resolved（2026-11-05 已源码核实：res_sched_systemload_notifier_client.h:25,29 / res_sched_client.h:111,118,141 / res_value.h:603-612） | ohos-design / yangzk |
 | TASK-4 | dependency | 20260914692272 管控代理层交付时序 | Resolved（需求方确认交付顺序：本需求先交付，RSS 施加/撤销调用留空桩；事件载荷与通知时序契约按 design ADR-9 固化） | ohos-plan / yangzk |
 | TASK-4/6 | dependency | 真实纳管通道（20260914692192/193/194）交付时序 | Resolved（集成用例先行使用既有 dump 调试钩子 DumpRegisterManagedProcess；真实通道交付后补充用例） | ohos-plan / yangzk |
+| TASK-1 | spec | 实际代码 @since 为 26.1.0（前置分析 spec 记录 26.2.0，系 20260914692191 spec 口径差异）；d.ts 保持 26.1.0（引入版本事实），spec 公共规格属性已按代码事实修正 | Resolved | ohos-spec / yangzk |
+| 全部 | dependency | 单测/集成用例需设备执行（run -t UT / hdc）；本环境无设备，测试目标均已编译通过，执行证据待设备环境补充 | Open（环境限制，非实现缺陷） | ohos-plan / yangzk |
