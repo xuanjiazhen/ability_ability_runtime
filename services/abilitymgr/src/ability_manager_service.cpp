@@ -3685,8 +3685,11 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         // Restore cached caller info and the insight intent identity snapshot so SCB-returned
         // IPC values don't override the originals.
         UpdateCallerInfoUtil::GetInstance().RestoreCallerInfoToWant(sessionInfo->want, abilitySessionInfo);
-    } else if (!IsInsightIntentCall(sessionInfo->want, sessionInfo->want.GetBundle())) {
-        // No cache and not a legitimate insight intent execute: strip injected identity params.
+    } else {
+        // No snapshot for this request: strip everything SCB returned. Do not re-judge intent
+        // validity here -- this runs in the SceneBoard IPC context (the only entry is guarded by
+        // IsCallerSceneBoard), so any caller-identity based judgment would be evaluated against
+        // the wrong principal, and a matching intentId on the returned want proves nothing.
         UpdateCallerInfoUtil::GetInstance().RemoveIntentIdentityParams(sessionInfo->want);
     }
     if (abilitySessionInfo.isWebSandBoxClone) {
