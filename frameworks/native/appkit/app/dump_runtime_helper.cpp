@@ -941,7 +941,7 @@ void DumpRuntimeHelper::DumpJsvmHeap(const OHOS::AppExecFwk::MemDumpInfo &info)
         return;
     }
     if (info.needGc) {
-        RequestJsvmGc(jsvmHandle);
+        RequestJsvmGc(jsvmHandle, tid);
         dlclose(jsvmHandle);
         return;
     }
