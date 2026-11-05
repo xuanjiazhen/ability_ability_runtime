@@ -84,6 +84,10 @@ private:
     struct PidEntry {
         int32_t level = 0;                       // effective level = max over taskLevels
         std::map<std::string, int32_t> taskLevels;
+        // Mirror of the task-side attribution records per (taskId, pid): the task manager
+        // allows several attribution records for one pid, so the schedule index keeps the
+        // same cardinality and only merges/applies on the 0->1 and 1->0 transitions (F-01).
+        std::map<std::string, int32_t> taskRefs;
     };
 
     static int32_t MergeLevel(const PidEntry &entry);
@@ -98,7 +102,10 @@ private:
     mutable std::mutex scheduleMutex_;
     std::map<std::string, std::set<pid_t>> taskToPids_;
     std::map<pid_t, PidEntry> pidEntries_;
-    // exemption reference count keyed by taskId + pid + exemption type (INV-3)
+    // Exemption reference count keyed by taskId + pid. The exemption type dimension of the
+    // idempotency key (spec R-4: taskId+pid+type) lands with 20260914692272, which owns the
+    // exemption types; until then a single implicit type is counted per (taskId, pid).
+    // The dump renders the implicit type as "CPU" as a placeholder label.
     std::map<std::string, std::map<pid_t, int32_t>> exemptions_;
 };
 

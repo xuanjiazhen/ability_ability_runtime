@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <map>
+#include <sys/types.h>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -53,14 +54,16 @@ public:
     static int32_t DetermineLevel(bool foreground, int32_t loadLevel);
 
     /**
-     * @brief Updates the foreground ability count of a caller uid; called from the
-     *        application state subscription hook whenever an ability of the uid moves to
-     *        or from the foreground.
-     * @param uid Indicates the caller app uid.
+     * @brief Updates the foreground ability count of a caller process; called from the
+     *        application state subscription hook whenever an ability of the process moves
+     *        to or from the foreground. Terminated/ended abilities are reported as
+     *        "left the foreground" so an abnormal death cannot leak the count (defense in
+     *        depth; the count guard already tolerates the extra decrement).
+     * @param pid Indicates the caller process id.
      * @param foreground Indicates true when an ability entered the foreground; false when
-     *        it left the foreground.
+     *        it left the foreground (including termination).
      */
-    void OnForegroundAbilityChanged(int32_t uid, bool foreground);
+    void OnForegroundAbilityChanged(pid_t pid, bool foreground);
 
     /**
      * @brief Updates the cached fusion level; called from the load listener callback and
@@ -71,19 +74,19 @@ public:
     void OnSystemLoadLevelChanged(int32_t loadLevel);
 
     /**
-     * @brief Judges the level for a caller uid from the cached inputs.
-     * @param uid Indicates the caller app uid.
+     * @brief Judges the level for a caller process from the cached inputs.
+     * @param pid Indicates the caller process id.
      * @return Returns the judged task level (HIGH/MEDIUM/LOW); falls back to the default
      *         level when the inputs are unavailable.
      */
-    int32_t JudgeLevel(int32_t uid) const;
+    int32_t JudgeLevel(pid_t pid) const;
 
     /**
-     * @brief Queries whether the caller uid currently hosts any foreground ability.
-     * @param uid Indicates the caller app uid.
+     * @brief Queries whether the caller process currently hosts any foreground ability.
+     * @param pid Indicates the caller process id.
      * @return Returns true when at least one foreground ability exists.
      */
-    bool IsForeground(int32_t uid) const;
+    bool IsForeground(pid_t pid) const;
 
     /**
      * @brief Queries the cached fusion level.
@@ -140,7 +143,7 @@ private:
     std::shared_ptr<ISystemLoadProvider> loadProvider_;
     std::function<void(int32_t)> levelChangedHook_;
     mutable std::mutex judgeMutex_;
-    std::map<int32_t, int32_t> fgAbilityCounts_;
+    std::map<pid_t, int32_t> fgAbilityCounts_;
     int32_t loadLevel_ = -1;
     bool loadListenerRegistered_ = false;
 };

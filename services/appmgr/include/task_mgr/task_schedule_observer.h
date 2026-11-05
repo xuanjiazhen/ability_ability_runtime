@@ -42,12 +42,19 @@ public:
             (abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND));
         bool background =
             (abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_BACKGROUND));
-        if (!foreground && !background) {
+        bool terminated =
+            (abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_TERMINATED) ||
+            abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_END));
+        if (!foreground && !background && !terminated) {
             return;
         }
-        TAG_LOGD(AAFwkTag::APPMGR, "ability state changed, uid: %{public}d fg: %{public}d",
-            abilityStateData.uid, foreground);
-        TaskManagerService::GetInstance().OnAbilityForegroundChanged(abilityStateData.uid, foreground);
+        // terminated/ended abilities are counted as "left the foreground": the judge count
+        // guard tolerates the extra decrement after a normal BACKGROUND transition, and an
+        // abnormal death that skips BACKGROUND no longer leaks the foreground count.
+        bool enteringForeground = foreground;
+        TAG_LOGD(AAFwkTag::APPMGR, "ability state changed, pid: %{public}d fg: %{public}d",
+            abilityStateData.pid, enteringForeground);
+        TaskManagerService::GetInstance().OnAbilityForegroundChanged(abilityStateData.pid, enteringForeground);
     }
 };
 

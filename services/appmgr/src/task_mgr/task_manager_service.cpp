@@ -136,7 +136,7 @@ int32_t TaskManagerService::StartTask(const std::string &taskId)
     }
     TaskCallerInfo caller = GetCallerInfo();
     RegisterScheduleListeners();
-    int32_t priority = TaskPriorityJudge::GetInstance().JudgeLevel(caller.uid);
+    int32_t priority = TaskPriorityJudge::GetInstance().JudgeLevel(caller.pid);
     TAG_LOGI(AAFwkTag::APPMGR, "judged priority: %{public}d for caller uid: %{public}d",
         priority, caller.uid);
     return StartTaskInner(caller, taskId, priority);
@@ -252,28 +252,28 @@ void TaskManagerService::OnProcessDied(pid_t pid, int32_t uid)
     ProcessSchedule::GetInstance().OnProcessDied(pid);
 }
 
-void TaskManagerService::OnAbilityForegroundChanged(int32_t uid, bool foreground)
+void TaskManagerService::OnAbilityForegroundChanged(pid_t pid, bool foreground)
 {
-    TaskPriorityJudge::GetInstance().OnForegroundAbilityChanged(uid, foreground);
-    RejudgeTasks(uid);
+    TaskPriorityJudge::GetInstance().OnForegroundAbilityChanged(pid, foreground);
+    RejudgeTasks(pid);
 }
 
-void TaskManagerService::OnSystemLoadLevelChanged(int32_t loadLevel)
+void TaskManagerService::OnSystemLoadLevelChanged(int32_t /* loadLevel: judge cache already updated by the hook */)
 {
     RejudgeTasks(SYSTEM_INITIATED_UID);
 }
 
-void TaskManagerService::RejudgeTasks(int32_t uid)
+void TaskManagerService::RejudgeTasks(pid_t pid)
 {
     std::vector<std::pair<std::string, int32_t>> changedTasks;
     {
         std::lock_guard<ffrt::mutex> lock(tasksMutex_);
         for (auto &item : tasks_) {
             TaskRecord &record = item.second;
-            if (uid > 0 && record.creatorUid != uid) {
+            if (pid > 0 && record.creatorPid != pid) {
                 continue;
             }
-            int32_t newLevel = TaskPriorityJudge::GetInstance().JudgeLevel(record.creatorUid);
+            int32_t newLevel = TaskPriorityJudge::GetInstance().JudgeLevel(record.creatorPid);
             if (newLevel == record.priority) {
                 continue;  // first-line anti-jitter: unchanged level is not propagated
             }
@@ -290,26 +290,37 @@ void TaskManagerService::RejudgeTasks(int32_t uid)
 
 void TaskManagerService::RegisterScheduleListeners()
 {
-    static std::once_flag onceFlag;
-    std::call_once(onceFlag, [this]() {
-        auto &judge = TaskPriorityJudge::GetInstance();
-        judge.SetLevelChangedHook([](int32_t level) {
-            TaskManagerService::GetInstance().OnSystemLoadLevelChanged(level);
-        });
-        if (!judge.RegisterSystemLoadListener()) {
-            TAG_LOGW(AAFwkTag::APPMGR, "system load listener unavailable, judge falls back to MEDIUM");
-        }
-        static sptr<TaskScheduleAbilityObserver> abilityObserver = new (std::nothrow) TaskScheduleAbilityObserver();
-        if (abilityObserver == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "create ability observer failed");
-            return;
-        }
-        int32_t ret = DelayedSingleton<AppStateObserverManager>::GetInstance()
-            ->RegisterApplicationStateObserver(abilityObserver, {}, AppStateFilter());
-        if (ret != ERR_OK) {
-            TAG_LOGW(AAFwkTag::APPMGR, "register ability state observer failed: %{public}d", ret);
-        }
+    auto &judge = TaskPriorityJudge::GetInstance();
+    judge.SetLevelChangedHook([](int32_t level) {
+        TaskManagerService::GetInstance().OnSystemLoadLevelChanged(level);
     });
+    // The judge guards re-registration with loadListenerRegistered_; retrying here covers
+    // the ressched late-start window instead of giving up forever after the first failure.
+    if (!judge.RegisterSystemLoadListener()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "system load listener unavailable, judge falls back to MEDIUM");
+    }
+    static std::mutex observerMutex;
+    static bool observerRegistered = false;
+    if (observerRegistered) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(observerMutex);
+    if (observerRegistered) {
+        return;
+    }
+    static sptr<TaskScheduleAbilityObserver> abilityObserver = new (std::nothrow) TaskScheduleAbilityObserver();
+    if (abilityObserver == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "create ability observer failed");
+        return;
+    }
+    int32_t ret = DelayedSingleton<AppStateObserverManager>::GetInstance()
+        ->RegisterApplicationStateObserver(abilityObserver, {}, AppStateFilter());
+    if (ret == ERR_OK) {
+        observerRegistered = true;
+    } else {
+        // retried on the next task start
+        TAG_LOGW(AAFwkTag::APPMGR, "register ability state observer failed: %{public}d", ret);
+    }
 }
 
 void TaskManagerService::FinishTasksByCreatorInner(pid_t pid, int32_t uid)

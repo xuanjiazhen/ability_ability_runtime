@@ -58,8 +58,8 @@ constexpr const char* OPTION_KEY_DUMP_IPC = "--ipc";
 constexpr const char* OPTION_KEY_DUMP_FFRT = "--ffrt";
 constexpr const char* OPTION_KEY_DUMP_WEB = "--web";
 constexpr const char* OPTION_KEY_DUMP_TASK = "--task";
-constexpr const char* OPTION_KEY_DUMP_PSCHED = "--psched";
 constexpr size_t SIZE_ONE = 1;
+constexpr size_t SIZE_TWO = 2;
 constexpr size_t SIZE_FOUR = 4;
 constexpr size_t SIZE_FIVE = 5;
 constexpr size_t INDEX_ONE = 1;
@@ -1033,9 +1033,6 @@ int AppMgrService::Dump(const std::vector<std::u16string>& args, std::string& re
     if (optionKey == OPTION_KEY_DUMP_TASK) {
         return DumpTask(args, result);
     }
-    if (optionKey == OPTION_KEY_DUMP_PSCHED) {
-        return DumpPsched(args, result);
-    }
     result.append("error: unkown option.\n");
     TAG_LOGE(AAFwkTag::APPMGR, "option key %{public}s does not exist", optionKey.c_str());
     return DumpErrorCode::ERR_UNKNOWN_OPTION_ERROR;
@@ -1055,8 +1052,8 @@ int AppMgrService::ShowHelp(const std::vector<std::u16string>& args, std::string
         .append("dump arkweb info, ARG must be one of (--all | --nweb | ...)\n")
         .append("--task                      ")
         .append("dump agent task manager active tasks\n")
-        .append("--psched                    ")
-        .append("dump process schedule index, effective levels and exemptions\n")
+        .append("--task psched               ")
+        .append("dump process schedule index, effective levels, exemptions and judge state\n")
         .append("--task register <taskId> <pid> <insight|cli|a2a|ability>    ")
         .append("test hook: attribute an entity into the task\n")
         .append("--task unregister <taskId> <attributionId>    ")
@@ -1096,25 +1093,19 @@ int AppMgrService::DumpTask(const std::vector<std::u16string>& args, std::string
                 Str16ToStr8(args[INDEX_TWO]), Str16ToStr8(args[INDEX_THREE]), result);
             return ret == ERR_OK ? ERR_OK : DumpErrorCode::ERR_INTERNAL_ERROR;
         }
+        if (subCmd == "psched") {
+            if (args.size() != SIZE_TWO) {
+                result.append("usage: --task psched\n");
+                return DumpErrorCode::ERR_INVALID_NUM_ARGS_ERROR;
+            }
+            result.append(ProcessSchedule::GetInstance().DumpSchedule());
+            result.append(TaskPriorityJudge::GetInstance().DumpJudgeState());
+            return ERR_OK;
+        }
         result.append("error: unknown task subcommand.\n");
         return DumpErrorCode::ERR_INVALID_CMD_ERROR;
     }
     result.append(TaskManagerService::GetInstance().DumpActiveTasks());
-    return ERR_OK;
-}
-
-int AppMgrService::DumpPsched(const std::vector<std::u16string>& args, std::string& result)
-{
-    TAG_LOGD(AAFwkTag::APPMGR, "called");
-    auto isHidumperServiceCall = (IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID);
-    if (!isHidumperServiceCall) {
-        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
-            .append(MSG_DUMP_FAIL_REASON_PERMISSION_DENY, strlen(MSG_DUMP_FAIL_REASON_PERMISSION_DENY));
-        TAG_LOGE(AAFwkTag::APPMGR, "permission deny");
-        return DumpErrorCode::ERR_PERMISSION_DENY_ERROR;
-    }
-    result.append(ProcessSchedule::GetInstance().DumpSchedule());
-    result.append(TaskPriorityJudge::GetInstance().DumpJudgeState());
     return ERR_OK;
 }
 

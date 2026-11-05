@@ -362,17 +362,17 @@ sequenceDiagram
 
 > 目的：端到端确认任务档位、归属与管控状态。**仅用于状态确认**；正式 DFX 观测面（事件/全景/日志规范）由 20260914692442 后续承载。前置分析已固定字段布局（task_manager_service.cpp:426-447 注释：field layout fixed so scripts can rely on it），本需求**只填充取值、不改布局**。
 
-**承载与入口**：`--task` 仅保留任务记录区段（含任务自身判定档位）；**新增 `--psched` subCmd** 承载进程调度归属区段（避免全部集中在 --task 输出）。分发沿用既有 dump 模式：`OPTION_KEY_DUMP_PSCHED` 常量 + `AppMgrService::Dump()` switch 分发到 `DumpPsched()` → `ProcessSchedule::Dump()`（先例：`OPTION_KEY_DUMP_TASK` + `DumpTask`，app_mgr_service.cpp:58、1030-1032），usage 文案同步追加。
+**承载与入口**：`--task` 承载任务记录区段（含任务自身判定档位）；**`--task psched` 子命令**承载进程调度归属区段（避免全部集中在 --task 裸输出，未知子命令与多余参数沿用 --task 的报错口径）。分发沿用既有 dump 模式：`DumpTask()` 内新增 `psched` 子命令分支（先例：`register`/`unregister`，app_mgr_service.cpp），usage 文案同步追加。
 
 **区段分配**：
 
 | 区段 | 内容 | 入口 | 填充 Task |
 |------|------|------|-----------|
 | TaskManager active tasks | 既有字段（taskId/priority/creator/managed processes/remain timeout/create time）+ 任务自身判定档位（sched level 任务维度） | `--task` | 20260914692191（已交付）/TASK-3 |
-| 归属索引 | taskToPids_ / pidToTasks_ 双向索引 | `--psched` | TASK-4 |
-| effectiveLevel | 各 managed pid 的实际管控档位（max 合并结果） | `--psched` | TASK-4 |
-| Exemption summary | 豁免总数与按 pid 引用计数明细 | `--psched` | TASK-4/TASK-6 |
-| Judge state | 调用方前台 Ability 计数表、融合档位缓存当前值、监听注册状态 | `--psched` | TASK-2/TASK-5 |
+| 归属索引 | taskToPids_ / pidToTasks_ 双向索引 | `--task psched` | TASK-4 |
+| effectiveLevel | 各 managed pid 的实际管控档位（max 合并结果） | `--task psched` | TASK-4 |
+| Exemption summary | 豁免总数与按 pid 引用计数明细（类型维度随 20260914692272 扩展，当前单类型以 CPU 占位标签渲染） | `--task psched` | TASK-4/TASK-6 |
+| Judge state | 调用方进程前台 Ability 计数表（pid 维度）、融合档位缓存当前值、监听注册状态 | `--task psched` | TASK-2/TASK-5 |
 
 **dump 输出示例（目标形态）**：
 
@@ -395,7 +395,7 @@ TaskManager active tasks: total=2
         create time [2026-11-04 10:16:47]
 ```
 
-`hidumper -s 501 --psched`：
+`hidumper -s 501 --task psched`：
 ```
 ProcessSchedule index: tasks=2 pids=2
       task #ai-assistant-task-1 -> pids [4312 4401]
@@ -406,12 +406,12 @@ Exemption summary: total=3
       pid:4312 count:2 keys:[task-1+4312+CPU task-2+4312+CPU]
       pid:4401 count:1 keys:[task-1+4401+CPU]
 Judge state:
-      foreground ability counts [uid:20010001 count:1]
+      foreground ability counts [pid:3268 count:1]
       cached systemload level [2]
       load listener [registered]
 ```
 
-> 示例说明：pid 4312 被 task-1(HIGH) 与 task-2(LOW) 共同纳管，effectiveLevel=HIGH(300)，体现 max 合并；task-2 自身档位 LOW 但进程档位取最高。该示例同时是 AC-6.1 的端到端确认依据。`--psched` 命名可按评审意见调整。
+> 示例说明：pid 4312 被 task-1(HIGH) 与 task-2(LOW) 共同纳管，effectiveLevel=HIGH(300)，体现 max 合并；task-2 自身档位 LOW 但进程档位取最高。该示例同时是 AC-6.1 的端到端确认依据。
 
 ### 测试性设计
 

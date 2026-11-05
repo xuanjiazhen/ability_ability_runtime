@@ -86,13 +86,13 @@ public:
     void OnProcessDied(pid_t pid, int32_t uid);
 
     /**
-     * @brief Feeds an ability foreground/background transition of a caller uid into the
-     *        judge and re-judges the tasks created by that uid (20260914692273 / spec
-     *        AC-6.7); unchanged levels are not propagated.
-     * @param uid Indicates the uid of the app whose ability changed state.
+     * @brief Feeds an ability foreground/background transition of a caller process into
+     *        the judge and re-judges the tasks created by that process (20260914692273 /
+     *        spec AC-6.7); unchanged levels are not propagated.
+     * @param pid Indicates the pid of the process whose ability changed state.
      * @param foreground Indicates true when an ability entered the foreground.
      */
-    void OnAbilityForegroundChanged(int32_t uid, bool foreground);
+    void OnAbilityForegroundChanged(pid_t pid, bool foreground);
 
     /**
      * @brief Feeds a fusion load level change into the judge and re-judges every running
@@ -341,10 +341,10 @@ private:
      * @brief Re-judges the priority of running tasks and propagates level changes to
      *        process_schedule; updates the records under tasksMutex_ and calls
      *        process_schedule only after the mutex is released (lock order).
-     * @param uid Indicates the caller uid whose tasks are re-judged; a non-positive value
-     *        re-judges every task (load changes affect all callers).
+     * @param pid Indicates the creator process whose tasks are re-judged; a non-positive
+     *        value re-judges every task (load changes affect all callers).
      */
-    void RejudgeTasks(int32_t uid);
+    void RejudgeTasks(pid_t pid);
 
     static std::atomic<AttributionId> attributionRecordId_;
     ffrt::mutex tasksMutex_;

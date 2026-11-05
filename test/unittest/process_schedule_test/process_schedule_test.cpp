@@ -255,9 +255,9 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionAdded_0100, TestSize.
 
 /**
  * @tc.number: ProcessSchedule_OnAttributionAdded_0200
- * @tc.name: a duplicated attribution is tracked once (already-tracked branch).
- * @tc.desc: adding the same taskId+pid twice must not duplicate the task level nor the
- *           exemption count; the pid keeps a single entry.
+ * @tc.name: a duplicated attribution grows the reference count, not the merge state.
+ * @tc.desc: adding the same taskId+pid twice mirrors the two task-side attribution records
+ *           (refs=2, exemption count=2) while the task level entry stays single.
  */
 HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionAdded_0200, TestSize.Level1)
 {
@@ -266,9 +266,57 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionAdded_0200, TestSize.
     sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].taskRefs[TEST_TASK_HIGH], 2);
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].taskLevels.size(), 1);
         EXPECT_EQ(sched.taskToPids_[TEST_TASK_HIGH].size(), 1);
+        EXPECT_EQ(sched.exemptions_[TEST_TASK_HIGH][TEST_PID_A], 2);
+    }
+}
+
+/**
+ * @tc.number: ProcessSchedule_RefCountRemoval_0100
+ * @tc.name: removing one of two same-pid attributions keeps the control (F-01 regression).
+ * @tc.desc: register the same taskId+pid twice, remove once: the pid must stay in the index
+ *           with its level and one exemption; only the second removal releases it.
+ */
+HWTEST_F(ProcessScheduleTest, ProcessSchedule_RefCountRemoval_0100, TestSize.Level1)
+{
+    auto &sched = ProcessSchedule::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
+    sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        ASSERT_EQ(sched.pidEntries_.count(TEST_PID_A), 1);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].level, TASK_PRIORITY_HIGH);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].taskRefs[TEST_TASK_HIGH], 1);
         EXPECT_EQ(sched.exemptions_[TEST_TASK_HIGH][TEST_PID_A], 1);
+    }
+    sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_TRUE(sched.pidEntries_.empty());
+        EXPECT_TRUE(sched.taskToPids_.empty());
+        EXPECT_TRUE(sched.exemptions_.empty());
+    }
+}
+
+/**
+ * @tc.number: ProcessSchedule_OnProcessDied_0200
+ * @tc.name: OnProcessDied guards: non-positive pid and unknown pid (no-op branches).
+ * @tc.desc: both calls must leave state untouched and must not crash.
+ */
+HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnProcessDied_0200, TestSize.Level1)
+{
+    auto &sched = ProcessSchedule::GetInstance();
+    sched.OnProcessDied(0);
+    sched.OnProcessDied(-1);
+    sched.OnProcessDied(TEST_PID_B);
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
+    sched.OnProcessDied(TEST_PID_B);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_EQ(sched.pidEntries_.count(TEST_PID_A), 1);
     }
 }
 

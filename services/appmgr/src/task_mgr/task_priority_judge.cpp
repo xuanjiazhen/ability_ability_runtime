@@ -48,17 +48,17 @@ int32_t TaskPriorityJudge::DetermineLevel(bool foreground, int32_t loadLevel)
     return TASK_PRIORITY_MEDIUM;
 }
 
-void TaskPriorityJudge::OnForegroundAbilityChanged(int32_t uid, bool foreground)
+void TaskPriorityJudge::OnForegroundAbilityChanged(pid_t pid, bool foreground)
 {
-    if (uid <= 0) {
+    if (pid <= 0) {
         return;
     }
     std::lock_guard<std::mutex> lock(judgeMutex_);
-    int32_t count = fgAbilityCounts_[uid] + (foreground ? 1 : -1);
+    int32_t count = fgAbilityCounts_[pid] + (foreground ? 1 : -1);
     if (count <= 0) {
-        fgAbilityCounts_.erase(uid);
+        fgAbilityCounts_.erase(pid);
     } else {
-        fgAbilityCounts_[uid] = count;
+        fgAbilityCounts_[pid] = count;
     }
 }
 
@@ -73,10 +73,10 @@ void TaskPriorityJudge::OnSystemLoadLevelChanged(int32_t loadLevel)
     loadLevel_ = loadLevel;
 }
 
-bool TaskPriorityJudge::IsForeground(int32_t uid) const
+bool TaskPriorityJudge::IsForeground(pid_t pid) const
 {
     std::lock_guard<std::mutex> lock(judgeMutex_);
-    auto it = fgAbilityCounts_.find(uid);
+    auto it = fgAbilityCounts_.find(pid);
     return it != fgAbilityCounts_.end() && it->second > 0;
 }
 
@@ -86,10 +86,10 @@ int32_t TaskPriorityJudge::CurrentLoadLevel() const
     return loadLevel_;
 }
 
-int32_t TaskPriorityJudge::JudgeLevel(int32_t uid) const
+int32_t TaskPriorityJudge::JudgeLevel(pid_t pid) const
 {
     std::lock_guard<std::mutex> lock(judgeMutex_);
-    auto it = fgAbilityCounts_.find(uid);
+    auto it = fgAbilityCounts_.find(pid);
     bool foreground = (it != fgAbilityCounts_.end() && it->second > 0);
     return DetermineLevel(foreground, loadLevel_);
 }
@@ -174,7 +174,7 @@ std::string TaskPriorityJudge::DumpJudgeState() const
         if (!first) {
             result += " ";
         }
-        result += "uid:" + std::to_string(item.first) + " count:" + std::to_string(item.second);
+        result += "pid:" + std::to_string(item.first) + " count:" + std::to_string(item.second);
         first = false;
     }
     if (first) {

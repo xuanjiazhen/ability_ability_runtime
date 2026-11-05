@@ -655,7 +655,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_JudgedHigh_0100, T
     ResetJudgeState();
     ResetScheduleState();
     auto &judge = TaskPriorityJudge::GetInstance();
-    judge.OnForegroundAbilityChanged(TEST_CREATOR_UID, true);
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, true);
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("judged_high_0100");
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
@@ -667,7 +667,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_JudgedHigh_0100, T
     EXPECT_NE(dump.find("priority [HIGH(300)]"), std::string::npos);
     EXPECT_NE(dump.find("sched level [task:HIGH(300)]"), std::string::npos);
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
-    judge.OnForegroundAbilityChanged(TEST_CREATOR_UID, false);
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, false);
     ResetJudgeState();
 }
 
@@ -697,7 +697,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeOnForeground_0100, Te
     }
 
     // ability enters the foreground -> re-judge -> HIGH
-    service.OnAbilityForegroundChanged(TEST_CREATOR_UID, true);
+    service.OnAbilityForegroundChanged(TEST_CREATOR_PID, true);
     {
         std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
         EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_HIGH);
@@ -709,7 +709,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeOnForeground_0100, Te
     }
 
     // ability leaves the foreground -> re-judge back to MEDIUM
-    service.OnAbilityForegroundChanged(TEST_CREATOR_UID, false);
+    service.OnAbilityForegroundChanged(TEST_CREATOR_PID, false);
     {
         std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
         EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_MEDIUM);
@@ -734,17 +734,17 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeUnchanged_0100, TestS
     ResetJudgeState();
     ResetScheduleState();
     auto &judge = TaskPriorityJudge::GetInstance();
-    judge.OnForegroundAbilityChanged(TEST_CREATOR_UID, true);
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, true);
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("rejudge_same_0100");
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
-    service.OnAbilityForegroundChanged(TEST_CREATOR_UID, true);
+    service.OnAbilityForegroundChanged(TEST_CREATOR_PID, true);
     {
         std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
         EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_HIGH);
     }
-    judge.OnForegroundAbilityChanged(TEST_CREATOR_UID, false);
-    judge.OnForegroundAbilityChanged(TEST_CREATOR_UID, false);
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, false);
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, false);
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
     ResetJudgeState();
 }
@@ -786,6 +786,135 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_OnProcessDied_KeepsTask_0100
         EXPECT_TRUE(sched.exemptions_.empty());
     }
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
+    ResetJudgeState();
+    ResetScheduleState();
+}
+
+/**
+ * @tc.number: TaskManagerService_RejudgeOnLoadLevel_0100
+ * @tc.name: a fusion level change re-judges every task through the judge hook (F-02/AC-6.7)
+ * @tc.desc: with the level-changed hook wired, a load jump 4->5 moves a background task from
+ *           MEDIUM to LOW and the managed pid's effective level follows; a jump back restores
+ *           MEDIUM. Mirrors the real provider-callback wiring.
+ */
+HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeOnLoadLevel_0100, TestSize.Level1)
+{
+    ResetJudgeState();
+    ResetScheduleState();
+    auto &judge = TaskPriorityJudge::GetInstance();
+    auto &service = TaskManagerService::GetInstance();
+    std::string taskId = MakeTaskId("rejudge_load_0100");
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
+    AttributionRecord attribution;
+    attribution.pid = TEST_MANAGED_PID;
+    attribution.tool = AttributionTool::ABILITY;
+    AttributionId attributionId = 0;
+    EXPECT_EQ(service.RegisterManagedProcess(taskId, attribution, attributionId), ERR_OK);
+
+    // wire the hook exactly like RegisterScheduleListeners does
+    judge.SetLevelChangedHook([](int32_t level) {
+        TaskManagerService::GetInstance().OnSystemLoadLevelChanged(level);
+    });
+    // seed an initial valid level, then jump across the 4/5 boundary
+    judge.OnSystemLoadLevelChanged(4);
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_MEDIUM);
+    }
+    judge.OnSystemLoadLevelChanged(5);
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_LOW);
+    }
+    {
+        auto &sched = ProcessSchedule::GetInstance();
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        ASSERT_EQ(sched.pidEntries_.count(TEST_MANAGED_PID), 1);
+        EXPECT_EQ(sched.pidEntries_[TEST_MANAGED_PID].level, TASK_PRIORITY_LOW);
+    }
+    judge.OnSystemLoadLevelChanged(2);
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_MEDIUM);
+    }
+    judge.SetLevelChangedHook(nullptr);
+    EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
+    ResetJudgeState();
+    ResetScheduleState();
+}
+
+/**
+ * @tc.number: TaskManagerService_DoubleAttributionRefCount_0100
+ * @tc.name: a double registration of one pid is released only after both attributions end
+ *           (F-01 regression, service level)
+ * @tc.desc: registering the same pid twice then unregistering one keeps the process in the
+ *           schedule index; the second unregister fully releases it.
+ */
+HWTEST_F(TaskManagerServiceTest, TaskManagerService_DoubleAttributionRefCount_0100, TestSize.Level1)
+{
+    ResetJudgeState();
+    ResetScheduleState();
+    auto &service = TaskManagerService::GetInstance();
+    std::string taskId = MakeTaskId("dbl_attr_0100");
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
+    AttributionRecord attribution;
+    attribution.pid = TEST_MANAGED_PID;
+    attribution.tool = AttributionTool::ABILITY;
+    AttributionId firstId = 0;
+    AttributionId secondId = 0;
+    EXPECT_EQ(service.RegisterManagedProcess(taskId, attribution, firstId), ERR_OK);
+    attribution.tool = AttributionTool::CLI;
+    EXPECT_EQ(service.RegisterManagedProcess(taskId, attribution, secondId), ERR_OK);
+    ASSERT_NE(firstId, secondId);
+
+    auto &sched = ProcessSchedule::GetInstance();
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_EQ(sched.pidEntries_[TEST_MANAGED_PID].taskRefs[taskId], 2);
+    }
+    EXPECT_EQ(service.UnregisterManagedProcess(taskId, firstId), ERR_OK);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        ASSERT_EQ(sched.pidEntries_.count(TEST_MANAGED_PID), 1);
+        EXPECT_EQ(sched.pidEntries_[TEST_MANAGED_PID].taskRefs[taskId], 1);
+    }
+    EXPECT_EQ(service.UnregisterManagedProcess(taskId, secondId), ERR_OK);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_TRUE(sched.pidEntries_.empty());
+    }
+    EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
+    ResetJudgeState();
+    ResetScheduleState();
+}
+
+/**
+ * @tc.number: TaskManagerService_CreatorDeathCleanup_0100
+ * @tc.name: creator death ends the task and releases its schedule attributions (F-08/AC-6.3)
+ * @tc.desc: killing the creator process removes the task from the dump and cleans every
+ *           schedule entry of the task's managed pids.
+ */
+HWTEST_F(TaskManagerServiceTest, TaskManagerService_CreatorDeathCleanup_0100, TestSize.Level1)
+{
+    ResetJudgeState();
+    ResetScheduleState();
+    auto &service = TaskManagerService::GetInstance();
+    std::string taskId = MakeTaskId("creator_death_0100");
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
+    AttributionRecord attribution;
+    attribution.pid = TEST_MANAGED_PID;
+    attribution.tool = AttributionTool::INSIGHT;
+    AttributionId attributionId = 0;
+    EXPECT_EQ(service.RegisterManagedProcess(taskId, attribution, attributionId), ERR_OK);
+
+    service.OnProcessDied(TEST_CREATOR_PID, TEST_CREATOR_UID);
+    EXPECT_EQ(service.DumpActiveTasks().find("task ID #" + taskId), std::string::npos);
+    auto &sched = ProcessSchedule::GetInstance();
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_TRUE(sched.pidEntries_.empty());
+        EXPECT_TRUE(sched.exemptions_.empty());
+    }
     ResetJudgeState();
     ResetScheduleState();
 }

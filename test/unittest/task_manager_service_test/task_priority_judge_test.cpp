@@ -31,7 +31,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-constexpr int32_t TEST_UID = 20000011;
+constexpr pid_t TEST_FG_PID = 4100;
 
 class StubLoadProvider : public ISystemLoadProvider {
 public:
@@ -135,21 +135,21 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_Matrix_0300, TestSize.Level1)
     auto &judge = TaskPriorityJudge::GetInstance();
     // no foreground ability, load 2 -> MEDIUM
     judge.OnSystemLoadLevelChanged(2);
-    EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_MEDIUM);
+    EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_MEDIUM);
     // one foreground ability -> HIGH
-    judge.OnForegroundAbilityChanged(TEST_UID, true);
-    EXPECT_TRUE(judge.IsForeground(TEST_UID));
-    EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_HIGH);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, true);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_HIGH);
     // load jumps to 6 while foreground -> still HIGH (foreground ignores load)
     judge.OnSystemLoadLevelChanged(6);
-    EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_HIGH);
+    EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_HIGH);
     // ability leaves foreground with load 6 -> LOW
-    judge.OnForegroundAbilityChanged(TEST_UID, false);
-    EXPECT_FALSE(judge.IsForeground(TEST_UID));
-    EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_LOW);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, false);
+    EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
+    EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_LOW);
     // load drops back to 4 -> MEDIUM (boundary)
     judge.OnSystemLoadLevelChanged(4);
-    EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_MEDIUM);
+    EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_MEDIUM);
 }
 
 /**
@@ -162,21 +162,21 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_Fallback_0100, TestSize.Level1
     auto &judge = TaskPriorityJudge::GetInstance();
     // load never updated (-1): background -> MEDIUM
     EXPECT_EQ(judge.CurrentLoadLevel(), -1);
-    EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_MEDIUM);
+    EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_MEDIUM);
     // out-of-range values are treated as unavailable
     judge.OnSystemLoadLevelChanged(8);
     EXPECT_EQ(judge.CurrentLoadLevel(), -1);
-    EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_MEDIUM);
+    EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_MEDIUM);
     judge.OnSystemLoadLevelChanged(-5);
     EXPECT_EQ(judge.CurrentLoadLevel(), -1);
     // foreground stays HIGH even with unavailable load
-    judge.OnForegroundAbilityChanged(TEST_UID, true);
-    EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_HIGH);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, true);
+    EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_HIGH);
     // provider registration failure keeps the listener unregistered and the load unavailable
     judge.SetLoadProvider(std::make_shared<StubLoadProvider>(-1, false));
     EXPECT_FALSE(judge.RegisterSystemLoadListener());
     EXPECT_EQ(judge.CurrentLoadLevel(), -1);
-    EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_HIGH);
+    EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_HIGH);
 }
 
 /**
@@ -187,16 +187,16 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_Fallback_0100, TestSize.Level1
 HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_ForegroundCount_0100, TestSize.Level1)
 {
     auto &judge = TaskPriorityJudge::GetInstance();
-    judge.OnForegroundAbilityChanged(TEST_UID, true);
-    judge.OnForegroundAbilityChanged(TEST_UID, true);
-    EXPECT_TRUE(judge.IsForeground(TEST_UID));
-    judge.OnForegroundAbilityChanged(TEST_UID, false);
-    EXPECT_TRUE(judge.IsForeground(TEST_UID));
-    judge.OnForegroundAbilityChanged(TEST_UID, false);
-    EXPECT_FALSE(judge.IsForeground(TEST_UID));
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, true);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, false);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, false);
+    EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
     // defensive: an extra foreground=false must not produce a negative count
-    judge.OnForegroundAbilityChanged(TEST_UID, false);
-    EXPECT_FALSE(judge.IsForeground(TEST_UID));
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, false);
+    EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
 }
 
 /**
@@ -210,7 +210,7 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_LoadListener_0100, TestSize.Le
     judge.SetLoadProvider(std::make_shared<StubLoadProvider>(5));
     EXPECT_TRUE(judge.RegisterSystemLoadListener());
     EXPECT_EQ(judge.CurrentLoadLevel(), 5);
-    EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_LOW);
+    EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_LOW);
     judge.UnregisterSystemLoadListener();
 }
 
@@ -315,12 +315,12 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_DumpJudgeState_0100, TestSize.
     EXPECT_NE(emptyDump.find("cached systemload level [-1]"), std::string::npos);
     EXPECT_NE(emptyDump.find("load listener [not registered]"), std::string::npos);
 
-    judge.OnForegroundAbilityChanged(TEST_UID, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, true);
     auto provider = std::make_shared<StubLoadProvider>(4);
     judge.SetLoadProvider(provider);
     EXPECT_TRUE(judge.RegisterSystemLoadListener());
     std::string populatedDump = judge.DumpJudgeState();
-    EXPECT_NE(populatedDump.find("uid:" + std::to_string(TEST_UID) + " count:1"), std::string::npos);
+    EXPECT_NE(populatedDump.find("pid:" + std::to_string(TEST_FG_PID) + " count:1"), std::string::npos);
     EXPECT_NE(populatedDump.find("cached systemload level [4]"), std::string::npos);
     EXPECT_NE(populatedDump.find("load listener [registered]"), std::string::npos);
     judge.UnregisterSystemLoadListener();

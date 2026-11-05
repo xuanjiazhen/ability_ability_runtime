@@ -84,7 +84,7 @@ private:
             if (napi_typeof(env, info.argv[INDEX_ONE], &valueType) != napi_ok ||
                 valueType != napi_function) {
                 TAG_LOGW(AAFwkTag::JSNAPI, "unexpected extra parameter");
-                ThrowInvalidParamError(env, "extra parameters are not allowed");
+                ThrowInvalidParamError(env, "task priority is judged by the system now; remove the extra parameter");
                 return handleEscape.Escape(CreateJsUndefined(env));
             }
             lastParam = info.argv[INDEX_ONE];

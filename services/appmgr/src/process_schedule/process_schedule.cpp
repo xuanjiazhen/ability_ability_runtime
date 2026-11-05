@@ -51,16 +51,18 @@ void ProcessSchedule::OnAttributionAdded(const std::string &taskId, int32_t task
     }
     std::lock_guard<std::mutex> lock(scheduleMutex_);
     auto &entry = pidEntries_[pid];
-    auto it = entry.taskLevels.find(taskId);
-    if (it != entry.taskLevels.end()) {
-        TAG_LOGW(AAFwkTag::APPMGR, "attribution already tracked, taskId: %{public}s pid: %{public}d",
-            taskId.c_str(), pid);
+    int32_t refs = ++entry.taskRefs[taskId];
+    // every registration holds one exemption (idempotency key taskId+pid+type, INV-3)
+    exemptions_[taskId][pid]++;
+    if (refs > 1) {
+        // the merge state already reflects this (taskId, pid); only the reference grew
+        TAG_LOGD(AAFwkTag::APPMGR, "attribution refcount grown, taskId: %{public}s pid: %{public}d refs: %{public}d",
+            taskId.c_str(), pid, refs);
         return;
     }
     entry.taskLevels.emplace(taskId, taskLevel);
     taskToPids_[taskId].insert(pid);
     int32_t newLevel = MergeLevel(entry);
-    exemptions_[taskId][pid]++;
     TAG_LOGI(AAFwkTag::APPMGR,
         "sched attribution added, taskId: %{public}s pid: %{public}d tool: %{public}s level: %{public}d, "
         "exemption applied (taskId+pid+type)", taskId.c_str(), pid, AttributionToolToString(tool), taskLevel);
@@ -121,7 +123,15 @@ void ProcessSchedule::OnProcessDied(pid_t pid)
     }
     int32_t oldLevel = entryIt->second.level;
     for (const auto &taskId : taskIds) {
-        RevokeExemptionLocked(pid, taskId);
+        // the pid is gone: drop its whole exemption key (mirrors the task side removing
+        // every attribution record of the dead pid at once)
+        auto exIt = exemptions_.find(taskId);
+        if (exIt != exemptions_.end()) {
+            exIt->second.erase(pid);
+            if (exIt->second.empty()) {
+                exemptions_.erase(exIt);
+            }
+        }
     }
     RevokeControlLocked(pid, oldLevel);
     for (const auto &taskId : taskIds) {
@@ -145,13 +155,24 @@ void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t p
     if (entryIt == pidEntries_.end()) {
         return;
     }
-    if (entryIt->second.taskLevels.erase(taskId) == 0) {
+    auto refIt = entryIt->second.taskRefs.find(taskId);
+    if (refIt == entryIt->second.taskRefs.end()) {
         return;
     }
+    if (--refIt->second > 0) {
+        // one of several attribution records of this (taskId, pid) is gone; the merge state
+        // is unchanged, only the reference and the exemption count shrink
+        RevokeExemptionLocked(pid, taskId);
+        TAG_LOGD(AAFwkTag::APPMGR, "attribution refcount shrunk, taskId: %{public}s pid: %{public}d refs: %{public}d",
+            taskId.c_str(), pid, refIt->second);
+        return;
+    }
+    entryIt->second.taskRefs.erase(refIt);
+    entryIt->second.taskLevels.erase(taskId);
     int32_t oldLevel = entryIt->second.level;
     int32_t newLevel = MergeLevel(entryIt->second);
     RevokeExemptionLocked(pid, taskId);
-    if (entryIt->second.taskLevels.empty()) {
+    if (entryIt->second.taskRefs.empty()) {
         RevokeControlLocked(pid, oldLevel);
         pidEntries_.erase(entryIt);
     } else {

@@ -1142,7 +1142,6 @@ private:
     int Dump(const std::vector<std::u16string>& args, std::string& result);
     int ShowHelp(const std::vector<std::u16string>& args, std::string& result);
     int DumpTask(const std::vector<std::u16string>& args, std::string& result);
-    int DumpPsched(const std::vector<std::u16string>& args, std::string& result);
     int DumpIpc(const std::vector<std::u16string>& args, std::string& result);
     int DumpIpcAllStart(std::string& result);
     int DumpIpcAllStop(std::string& result);
