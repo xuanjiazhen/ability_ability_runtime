@@ -64,6 +64,11 @@ void AbilityBundleEventCallback::OnReceiveEvent(const EventFwk::CommonEventData 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "OnReceiveEvent failed, empty action/bundleName");
         return;
     }
+    if (uid <= 0 || userId < 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnReceiveEvent failed, invalid uid: %{public}d, userId: %{public}d",
+            uid, userId);
+        return;
+    }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "OnReceiveEvent, action:%{public}s.", action.c_str());
     if (bundleType == static_cast<int32_t>(AppExecFwk::BundleType::APP_PLUGIN)) {
         if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_ADDED ||

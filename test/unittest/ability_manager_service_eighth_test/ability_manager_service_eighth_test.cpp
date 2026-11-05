@@ -27,6 +27,8 @@
 #include "mock_app_mgr_service.h"
 #include "mock_parameters.h"
 #include "mock_scene_board_judgement.h"
+#include "keep_alive_process_manager.h"
+#include "user_controller/user_controller.h"
 #include "start_params_by_SCB.h"
 #include "session/host/include/session.h"
 
@@ -667,6 +669,123 @@ HWTEST_F(AbilityManagerServiceEighthTest, NotifyStartKeepAliveProcess_0500, Test
     abilityMs->NotifyStartKeepAliveProcess(bundleInfos, diedPid);
     system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, beforeValue);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest NotifyStartKeepAliveProcess_0500 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceEighthTest_NotifyStartKeepAliveProcess_0600
+ * @tc.desc: upgrade marker hit for foreground user, restart is suppressed and not parked.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceEighthTest, NotifyStartKeepAliveProcess_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest NotifyStartKeepAliveProcess_0600 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    bool beforeValue = system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false);
+    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, true);
+    int32_t foregroundUserId = 100;
+    int32_t foregroundUid = foregroundUserId * BASE_USER_RANGE + 1000;
+    AbilityRuntime::UserController::GetInstance().SetForegroundUserId(foregroundUserId, 0);
+    KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.emplace(foregroundUid);
+    std::vector<AppExecFwk::BundleInfo> bundleInfos;
+    AppExecFwk::BundleInfo bundleInfo;
+    bundleInfo.uid = foregroundUid;
+    bundleInfos.emplace_back(bundleInfo);
+    abilityMs->NotifyStartKeepAliveProcess(bundleInfos, -1);
+    EXPECT_TRUE(KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.empty());
+    EXPECT_TRUE(KeepAliveProcessManager::GetInstance().KeepAliveIsRestartAfterUpdate(foregroundUid));
+    KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.clear();
+    AbilityRuntime::UserController::GetInstance().ClearUserId(foregroundUserId);
+    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, beforeValue);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest NotifyStartKeepAliveProcess_0600 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceEighthTest_NotifyStartKeepAliveProcess_0700
+ * @tc.desc: mixed batch, background user with upgrade marker is parked and the whole batch is not skipped.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceEighthTest, NotifyStartKeepAliveProcess_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest NotifyStartKeepAliveProcess_0700 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    bool beforeValue = system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false);
+    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, true);
+    int32_t foregroundUserId = 100;
+    int32_t backgroundUserId = 300;
+    int32_t foregroundUid = foregroundUserId * BASE_USER_RANGE + 1000;
+    int32_t backgroundUid = backgroundUserId * BASE_USER_RANGE + 2000;
+    int32_t backgroundNoMarkerUid = backgroundUserId * BASE_USER_RANGE + 3000;
+    int32_t foregroundNoMarkerUid = foregroundUserId * BASE_USER_RANGE + 4000;
+    AbilityRuntime::UserController::GetInstance().SetForegroundUserId(foregroundUserId, 0);
+    KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.emplace(foregroundUid);
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.emplace(backgroundUid);
+    std::vector<AppExecFwk::BundleInfo> bundleInfos;
+    for (int32_t uid : { foregroundUid, backgroundUid, backgroundNoMarkerUid, foregroundNoMarkerUid }) {
+        AppExecFwk::BundleInfo bundleInfo;
+        bundleInfo.uid = uid;
+        bundleInfos.emplace_back(bundleInfo);
+    }
+    abilityMs->NotifyStartKeepAliveProcess(bundleInfos, -1);
+    EXPECT_EQ(KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.count(backgroundUid), 1u);
+    EXPECT_EQ(KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.count(backgroundNoMarkerUid), 1u);
+    EXPECT_EQ(KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.count(foregroundUid), 0u);
+    EXPECT_EQ(KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.count(foregroundNoMarkerUid), 0u);
+    KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.clear();
+    AbilityRuntime::UserController::GetInstance().ClearUserId(foregroundUserId);
+    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, beforeValue);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest NotifyStartKeepAliveProcess_0700 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceEighthTest_HandleUpgradeCompletedForBackgroundUser_0100
+ * @tc.desc: upgrade marker is cleared and the uid is parked for background user.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceEighthTest, HandleUpgradeCompletedForBackgroundUser_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest HandleUpgradeCompletedForBackgroundUser_0100 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    int32_t userId = 300;
+    int32_t uid = userId * BASE_USER_RANGE + 1000;
+    KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.emplace(uid);
+    abilityMs->HandleUpgradeCompletedForBackgroundUser(uid, userId);
+    EXPECT_FALSE(KeepAliveProcessManager::GetInstance().KeepAliveIsRestartAfterUpdate(uid));
+    EXPECT_EQ(KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.count(uid), 1u);
+    KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest HandleUpgradeCompletedForBackgroundUser_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceEighthTest_HandleUpgradeCompletedForBackgroundUser_0200
+ * @tc.desc: no upgrade marker, nothing is parked.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceEighthTest, HandleUpgradeCompletedForBackgroundUser_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest HandleUpgradeCompletedForBackgroundUser_0200 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    int32_t userId = 300;
+    int32_t uid = userId * BASE_USER_RANGE + 1000;
+    KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.clear();
+    abilityMs->HandleUpgradeCompletedForBackgroundUser(uid, userId);
+    EXPECT_EQ(KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.count(uid), 0u);
+    KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.clear();
+    KeepAliveProcessManager::GetInstance().keepAliveRestartAfterUpgradeList_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest HandleUpgradeCompletedForBackgroundUser_0200 end");
 }
 
 /*
