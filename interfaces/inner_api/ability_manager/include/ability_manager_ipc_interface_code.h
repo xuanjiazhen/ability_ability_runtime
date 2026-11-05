@@ -812,6 +812,9 @@ enum class AbilityManagerInterfaceCode {
 
     // get dynamic agent cards (API-source) from the old KV store for migration
     GET_DYNAMIC_AGENT_CARDS_FOR_MIGRATION = 6188,
+
+    // get ui extension root host info by ability record id
+    GET_UI_EXTENSION_HOST_INFO_BY_ID = 6189,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
