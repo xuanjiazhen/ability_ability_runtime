@@ -1200,6 +1200,58 @@ int32_t AgentManagerService::VerifyAgentDisconnectRequests(const std::vector<AAF
     return AgentConnectManager::GetInstance().VerifyAgentDisconnectRequests(remote, wants, callerIdentity);
 }
 
+int32_t AgentManagerService::AttributeSameConnectionRecordTaskID(const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connection)
+{
+    // Best-effort, oneway notification: a client-side connect hit an already-connected
+    // AgentConnection (reused). Resolve the tracked AgentServiceConnection (the wrapper
+    // AMS already knows) and forward so AMS can attribute the task id onto the same
+    // ConnectionRecord. Failures are logged and must NOT affect the connect result.
+    AAFwk::Want connectWant;
+    std::string agentId;
+    AgentCard card;
+    int32_t callerUid = 0;
+    int32_t permRet = ValidateConnectAgentPermission(callerUid);
+    if (permRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER,
+            "AttributeSameConnectionRecordTaskID permission denied: %{public}d", permRet);
+        return permRet;
+    }
+    int32_t ret = ResolveConnectAgentTarget(want, connectWant, agentId, card, callerUid);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    connectWant.SetParam(AGENT_CARD_TYPE_KEY, static_cast<int32_t>(card.type));
+
+    // Step 3: low-code agents use dedicated shared-host session management.
+    if (card.type == AgentCardType::LOW_CODE) {
+        int32_t hostUid = 0;
+        ret = ResolveLowCodeHostInfo(connectWant, callerUid / BASE_USER_RANGE, hostUid);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ResolveLowCodeHostInfo error");
+            return ret;
+        }
+    }
+
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "AttributeSameConnectionRecordTaskID null connection");
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceConnection = AgentConnectManager::GetInstance().GetServiceConnectionForTracked(connection);
+    if (serviceConnection == nullptr) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER,
+            "AttributeSameConnectionRecordTaskID tracked serviceConnection not found, skip");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->AttributeSameConnectionRecordTaskID(
+        connectWant, serviceConnection);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER,
+            "AttributeSameConnectionRecordTaskID forward to AMS failed: %{public}d", ret);
+    }
+    return ERR_OK;
+}
+
 void AgentManagerService::HandleCallerConnectionDied(const sptr<IRemoteObject> &remote)
 {
     AgentCallerDeathRequest request;
