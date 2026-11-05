@@ -9545,7 +9545,6 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
     }
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(abilityRecord->GetPid());
     if (abilityRecord->IsSceneBoard()) {
-        // Finish issuing the kill requests before the connect manager restarts SceneBoard.
         KillDirectBootApps(abilityRecord->GetOwnerMissionUserId());
     }
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
@@ -10320,11 +10319,13 @@ bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart
 void AbilityManagerService::KillDirectBootApps(int32_t userId)
 {
     if (userId < 0 || abilityAutoStartupService_ == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "skip direct boot cleanup, user:%{public}d or service invalid", userId);
         return;
     }
     std::vector<AutoStartupInfo> infoList;
     int32_t result = abilityAutoStartupService_->QueryAllAutoStartupApplicationsWithoutPermission(infoList, userId);
     if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "query direct boot apps failed, user:%{public}d ret:%{public}d", userId, result);
         return;
     }
     std::set<std::pair<std::string, int32_t>> handledApps;
@@ -10336,9 +10337,10 @@ void AbilityManagerService::KillDirectBootApps(int32_t userId)
         if (!handledApps.emplace(info.bundleName, info.appCloneIndex).second) {
             continue;
         }
-        // Match the execution user used by StartAutoStartupApps, including shared user records.
-        DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(
+        result = DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(
             info.bundleName, false, info.appCloneIndex, "SceneBoardDiedDirectBoot", userId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "SCB died, kill direct boot app user:%{public}d bundle:%{public}s "
+            "appIndex:%{public}d ret:%{public}d", userId, info.bundleName.c_str(), info.appCloneIndex, result);
     }
 }
 
