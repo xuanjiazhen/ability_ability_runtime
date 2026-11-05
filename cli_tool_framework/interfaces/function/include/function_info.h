@@ -44,8 +44,9 @@ public:
     std::string outputSchema;
     FunctionType functionType;
     int32_t userId;
+    std::string visibility;
 
-    FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION), userId(-1) {}
+    FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION), userId(-1), visibility("private") {}
     ~FunctionInfo() override = default;
 
     bool Marshalling(Parcel &parcel) const override;

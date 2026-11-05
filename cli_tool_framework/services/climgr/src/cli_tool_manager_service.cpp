@@ -766,19 +766,25 @@ int32_t CliToolManagerService::GetFunctionInfo(const std::string &functionNamesp
         functionNamespace.c_str(), functionName.c_str());
     InterfaceCallCounter counter(interfaceCalledCount_);
 
-    int32_t ret = PermissionUtil::CheckSystemAndPermission(PERMISSION_ACCESS_FUNCTION);
-    if (ret != ERR_OK) {
-        return ret;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_ACCESS_FUNCTION)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: permission denied");
+        return ERR_PERMISSION_DENIED;
     }
 
-    // Function data is strictly per-user: queries always resolve to the IPC caller's
-    // own user, cross-user access is not supported
     int32_t queryUserId = GetCallingUserId();
-    ret = CliFunctionDataManager::GetInstance().GetFunctionByName(
+    int32_t ret = CliFunctionDataManager::GetInstance().GetFunctionByName(
         queryUserId, functionNamespace, functionName, function);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Failed to get function, ret=%{public}d", ret);
         return ret;
+    }
+
+    bool isSystemApp = PermissionUtil::IsSystemApp();
+    bool isSA = PermissionUtil::IsSystemSA();
+    if (!isSystemApp && !isSA && function.visibility == "private") {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Not system app, function is private");
+        return ERR_FUNCTION_NOT_EXIST;
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got function: %{public}s/%{public}s",
@@ -926,6 +932,37 @@ int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
         return ret;
     }
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got all functions (raw): %{public}zu", functionList.size());
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::GetPublicFunctions(FunctionsRawData &functions)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "GetPublicFunctions called");
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_ACCESS_FUNCTION)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetPublicFunctions: permission denied");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    int32_t queryUserId = GetCallingUserId();
+    std::vector<FunctionInfo> functionList;
+    int32_t ret = CliFunctionDataManager::GetInstance().GetAllFunctions(queryUserId, functionList);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetPublicFunctions: Failed to get functions, ret=%{public}d", ret);
+        return ret;
+    }
+
+    functionList.erase(std::remove_if(functionList.begin(), functionList.end(),
+        [](const FunctionInfo &f) { return f.visibility != "public"; }), functionList.end());
+
+    ret = FunctionsRawData::FromFunctionInfoVec(functionList, functions);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetPublicFunctions: FromFunctionInfoVec failed: %{public}d", ret);
+        return ret;
+    }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetPublicFunctions: got %{public}zu public functions", functionList.size());
     return ERR_OK;
 }
 

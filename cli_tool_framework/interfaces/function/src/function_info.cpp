@@ -159,6 +159,19 @@ bool ParseUserId(const nlohmann::json &json, int32_t &output)
     return true;
 }
 
+bool ParseVisibility(const nlohmann::json &json, std::string &output)
+{
+    if (!json.contains("visibility")) {
+        return true;
+    }
+    if (!json["visibility"].is_string()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid visibility in JSON, must be string");
+        return false;
+    }
+    output = json["visibility"].get<std::string>();
+    return true;
+}
+
 } // namespace
 
 bool FunctionInfo::Marshalling(Parcel &parcel) const
@@ -194,6 +207,10 @@ bool FunctionInfo::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteInt32(userId)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write userId failed");
+        return false;
+    }
+    if (!parcel.WriteString(visibility)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write visibility failed");
         return false;
     }
     return true;
@@ -244,6 +261,10 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Read userId failed");
         return nullptr;
     }
+    if (!parcel.ReadString(function->visibility)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Read visibility failed");
+        return nullptr;
+    }
     return function.release();
 }
 
@@ -256,7 +277,8 @@ bool FunctionInfo::ParseFromJson(const nlohmann::json &json, FunctionInfo &funct
            ParseInputSchema(json, function.inputSchema) &&
            ParseOutputSchema(json, function.outputSchema) &&
            ParseFunctionType(json, function.functionType) &&
-           ParseUserId(json, function.userId);
+           ParseUserId(json, function.userId) &&
+           ParseVisibility(json, function.visibility);
 }
 
 nlohmann::json FunctionInfo::ParseToJson() const
@@ -282,6 +304,8 @@ nlohmann::json FunctionInfo::ParseToJson() const
     if (userId >= 0) {
         j["userId"] = userId;
     }
+
+    j["visibility"] = visibility;
 
     return j;
 }
@@ -313,6 +337,12 @@ bool FunctionInfo::Validate(const FunctionInfo &function)
     if (function.userId < 0 || function.userId >= MAX_USER_ID) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: userId out of range: %{public}d, must be [0, %{public}d)",
             function.userId, MAX_USER_ID);
+        return false;
+    }
+
+    if (function.visibility != "public" && function.visibility != "private") {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: visibility must be 'public' or 'private', actual: %{public}s",
+            function.visibility.c_str());
         return false;
     }
 

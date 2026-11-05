@@ -50,6 +50,8 @@ public:
      */
     static napi_value QueryFunctions(napi_env env, napi_callback_info info);
 
+    static napi_value QueryPublicFunctions(napi_env env, napi_callback_info info);
+
     /**
      * @brief Native method for invoking a function.
      *
@@ -73,6 +75,8 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnQueryFunctions(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnQueryPublicFunctions(napi_env env, size_t argc, napi_value *argv);
 
     /**
      * @brief Implementation for invoking a function.
