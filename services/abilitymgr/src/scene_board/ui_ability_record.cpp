@@ -15,7 +15,10 @@
 
 #include "ui_ability_record.h"
 
+#include <cinttypes>
+
 #include "ability_util.h"
+#include "app_scheduler.h"
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "native_ability_util.h"
@@ -25,6 +28,35 @@ namespace AAFwk {
 UIAbilityRecord::UIAbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode)
     : AbilityRecord(want, abilityInfo, applicationInfo, requestCode) {}
+
+UIAbilityRecord::~UIAbilityRecord()
+{
+    // Backstop only: warn for attributions leaked past all release hooks; no IPC in destructor.
+    if (!taskAttributions_.empty()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "task attributions not released before destructor, "
+            "count: %{public}zu", taskAttributions_.size());
+    }
+}
+
+void UIAbilityRecord::ReleaseTaskAttributions()
+{
+    if (taskAttributions_.empty()) {
+        return;
+    }
+    for (const auto &item : taskAttributions_) {
+        int32_t result = DelayedSingleton<AppScheduler>::GetInstance()->UnregisterTaskAttribution(
+            item.first, item.second);
+        if (result != ERR_OK) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "task attribution unregister failed, taskId: %{public}s, "
+                "attributionId: %{public}" PRId64 ", result: %{public}d",
+                item.first.c_str(), item.second, result);
+            continue;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "task attribution unregistered, taskId: %{public}s, "
+            "attributionId: %{public}" PRId64, item.first.c_str(), item.second);
+    }
+    taskAttributions_.clear();
+}
 
 std::shared_ptr<UIAbilityRecord> UIAbilityRecord::CreateAbilityRecord(const AbilityRequest &abilityRequest)
 {

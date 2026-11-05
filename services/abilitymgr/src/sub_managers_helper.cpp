@@ -181,6 +181,11 @@ void SubManagersHelper::ClearSubManagers(int userId)
 {
     std::lock_guard<ffrt::mutex> lock(managersMutex_);
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto it = uiAbilityManagers_.find(userId);
+        if (it != uiAbilityManagers_.end() && it->second != nullptr) {
+            // Deterministic release before the manager and its records are destroyed.
+            it->second->ReleaseAllTaskAttributions();
+        }
         uiAbilityManagers_.erase(userId);
     } else {
         missionListManagers_.erase(userId);
