@@ -390,6 +390,7 @@
 | Modify | frameworks/ets/ani/task_manager/include/、src/ | NativeStartTask 移除 aniPriority |
 | Modify | frameworks/js/napi/task_manager/js_task_manager.{h,cpp} | OnStartTask 移除 priority 解析；多传入参 401 |
 | Modify | test/mock/services_appmgr_test/include/mock_app_mgr_service.h | MOCK_METHOD2→MOCK_METHOD1 同步 |
+| Test | test/unittest/task_mgr/ | StartTaskAutoJudgeUnit_0100（判定接入单测） |
 | Test | test/integration/ | StartTaskPriorityAutoJudge_0100 |
 
 **禁止修改文件**
@@ -743,6 +744,7 @@
 | 操作 | 文件 | 说明 |
 |------|------|------|
 | Modify | services/appmgr/include/app_death_recipient.h、src/app_death_recipient.cpp（或既有挂点注册处） | 死亡→process_schedule 清理回调 |
+| Test | test/unittest/process_schedule/ | ProcessDeathCleanupUnit_0100、AllProcessesDeadTaskAliveUnit_0100（死亡清理/任务存续单测） |
 | Test | test/integration/ | ProcessDeathCleanup_0100、AllProcessesDeadTaskAlive_0100 |
 
 **禁止修改文件**

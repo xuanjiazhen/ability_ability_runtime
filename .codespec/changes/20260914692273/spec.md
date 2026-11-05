@@ -99,15 +99,15 @@
 
 | 编号 | 对应规格项 | 测试入口 | 验证方式 | Red 条件（实现前失败信号） | 通过标准 |
 |------|------------|----------|----------|---------------------------|----------|
-| VM-1 | R-1 / AC-6.5 | `test/integration/` StartTaskPriorityAutoJudge_0100（系统应用 demo 调用无 priority 入参的 startTask） | 集成+demo | 未实现前 startTask 声明含 priority 入参/档位固定为默认 MEDIUM，dump 无判定档位字段 | demo 调用成功（Promise 完成），任务 dump 与调度策略查询显示判定档位 |
-| VM-2 | R-1 / AC-6.6 | `test/unittest/task_mgr/` PriorityJudgeMatrix_0100（构造前台/后台 × 负载高/低四组合创建任务） | 单测 | 未实现前判定结果无状态差异（四组合档位相同），矩阵断言失败 | 各组合判定档位与设计映射矩阵一致（含兜底档位断言） |
-| VM-3 | R-1、R-2 / AC-6.7 | `test/unittest/task_mgr/` PriorityRejudgeOnStateChange_0100（运行中任务切前后台/负载变化） | 单测+集成 | 未实现前任务档位静止不重判，重判断言失败 | 任务档位按映射重判，进程实际档位随归属重算（取最高档） |
+| VM-1 | R-1 / AC-6.5 | 单测：`test/unittest/task_mgr/StartTaskAutoJudgeUnit_0100`（mock 判定输入，断言任务记录档位=判定档位并立即激活）；集成：`test/integration/` StartTaskPriorityAutoJudge_0100（系统应用 demo 调用无 priority 入参的 startTask） | 单测+集成+demo | 未实现前 startTask 声明含 priority 入参/档位固定为默认 MEDIUM，dump 无判定档位字段 | 单测断言任务记录档位精确等于判定值；demo 调用成功（Promise 完成），任务 dump 与调度策略查询显示判定档位 |
+| VM-2 | R-1 / AC-6.6 | `test/unittest/task_mgr/` PriorityJudgeMatrix_0100（构造前台/后台 × 融合档位低（0~4)/高（5~7）组合创建任务，含边界档位 4/5） | 单测 | 未实现前判定结果无状态差异（各组合档位相同），矩阵断言失败 | 各组合判定档位与设计映射矩阵一致（前台=HIGH；后台×0~4=MEDIUM；后台×5~7=LOW；兜底 MEDIUM） |
+| VM-3 | R-1、R-2 / AC-6.7 | 单测：`test/unittest/task_mgr/` PriorityRejudgeOnStateChange_0100（运行中任务切前后台/负载跳变）；集成：动态重判链路用例 | 单测+集成 | 未实现前任务档位静止不重判，重判断言失败 | 单测断言任务档位按映射重判、进程实际档位随归属重算（取最高档）；集成观测一致 |
 | VM-4 | R-2、R-4 / AC-6.1 | `test/unittest/process_schedule/` MultiTaskHighestPriority_0100（3 个不同档位任务纳管同一进程） | 单测 | 未实现前进程档位错配（非最高档），断言失败 | 进程实际档位=纳管任务最高档 |
 | VM-5 | R-3 / AC-6.2 | `test/unittest/process_schedule/` DegradeToNextPriority_0100（最高档位任务结束） | 单测 | 未实现前最高档结束后档位滞留，降级断言失败 | 档位降至次高；全部结束完全恢复 |
-| VM-6 | R-5 / AC-6.3 | `test/integration/` ProcessDeathCleanup_0100（纳管进程 exit） | 集成 | 未实现前任务误结束或豁免滞留 | ≤1s 清理完成且任务存续；dump 显示进程移出 |
-| VM-7 | R-6 / AC-6.4 | `test/unittest/process_schedule/` Concurrent10Tasks_0100（10 并发任务全操作矩阵） | 并发单测+集成 | 未实现前出现竞态（档位错配/豁免泄漏） | 矩阵用例通过，hilog 事件序列无竞态告警 |
-| VM-8 | R-7 / AC-6.5、AC-6.7 | `test/unittest/task_mgr/` PriorityJudgeFallback_0100（mock 感知失败） | 单测 | 未实现前感知失败导致任务创建失败 | 按兜底档位判定，任务正常创建/存续 |
-| VM-9 | R-8 / AC-6.3 | `test/integration/` AllProcessesDeadTaskAlive_0100（任务内全部进程死亡） | 集成 | 未实现前任务随进程死亡自动结束 | 任务存续，超时口径正确 |
+| VM-6 | R-5 / AC-6.3 | 单测：`test/unittest/process_schedule/` ProcessDeathCleanupUnit_0100（模拟死亡事件，断言索引移除+豁免释放+重算+任务存续）；集成：`test/integration/` ProcessDeathCleanup_0100（纳管进程 exit） | 单测+集成 | 未实现前任务误结束或豁免滞留 | 单测断言死亡后索引/豁免/重算正确且任务存续；集成 ≤1s 清理完成且任务存续；dump 显示进程移出 |
+| VM-7 | R-6 / AC-6.4 | 单测：`test/unittest/process_schedule/` Concurrent10Tasks_0100（10 并发任务全操作矩阵）；集成：并发链路用例 | 并发单测+集成 | 未实现前出现竞态（档位错配/豁免泄漏） | 矩阵用例通过，hilog 事件序列无竞态告警 |
+| VM-8 | R-7 / AC-6.5、AC-6.7 | `test/unittest/task_mgr/` PriorityJudgeFallback_0100（mock 感知失败：监听注册失败/回调数据获取失败） | 单测 | 未实现前感知失败导致任务创建失败 | 按兜底档位（MEDIUM）判定，任务正常创建/存续 |
+| VM-9 | R-8 / AC-6.3 | 单测：`test/unittest/process_schedule/` AllProcessesDeadTaskAliveUnit_0100（任务内全部进程死亡，断言任务存续与超时窗口口径）；集成：`test/integration/` AllProcessesDeadTaskAlive_0100 | 单测+集成 | 未实现前任务随进程死亡自动结束 | 单测断言任务存续、超时口径正确；集成记录任务存续 |
 
 ## API 变更分析
 
