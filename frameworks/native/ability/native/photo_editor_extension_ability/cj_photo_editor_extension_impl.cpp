@@ -30,7 +30,7 @@ void CJPhotoEditorExtensionImpl::OnForeground(const Want &want, sptr<AAFwk::Sess
         TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
         return;
     }
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     if (uiExtensionComponentIdSet_.find(componentId) == uiExtensionComponentIdSet_.end()) {
         OnStartContentEditing(want, sessionInfo);
         uiExtensionComponentIdSet_.emplace(componentId);
@@ -65,7 +65,7 @@ void CJPhotoEditorExtensionImpl::OnStartContentEditing(const AAFwk::Want &want,
         return;
     }
 
-    cjObj.OnStartContentEditing(imageUri, want, contentSessions_[AAFwk::GetEffectiveComponentId(sessionInfo)]->GetID());
+    cjObj.OnStartContentEditing(imageUri, want, contentSessions_[sessionInfo->uiExtensionComponentId]->GetID());
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -209,7 +209,7 @@ bool CJUIExtensionBase::ForegroundWindowWithInsightIntent(const AAFwk::Want &wan
         executorInfo.windowMode = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     }
     executorInfo.token = context_->GetToken();
-    executorInfo.pageLoader.sessionPageLoader = contentSessions_[AAFwk::GetEffectiveComponentId(sessionInfo)]->GetID();
+    executorInfo.pageLoader.sessionPageLoader = contentSessions_[sessionInfo->uiExtensionComponentId]->GetID();
     executorInfo.executeParam = std::make_shared<InsightIntentExecuteParam>();
     InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
     executorInfo.executeParam->executeMode_ = UI_EXTENSION_ABILITY;
@@ -234,7 +234,7 @@ void CJUIExtensionBase::ForegroundWindow(const AAFwk::Want &want, const sptr<AAF
         return;
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     auto &uiWindow = uiWindowMap_[componentId];
     if (uiWindow) {
         HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::show");
@@ -252,7 +252,7 @@ void CJUIExtensionBase::BackgroundWindow(const sptr<AAFwk::SessionInfo> &session
     }
 
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "not find uiWindow");
         return;
@@ -273,7 +273,7 @@ void CJUIExtensionBase::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInf
     }
 
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "not find uiWindow");
         return;
@@ -327,7 +327,7 @@ bool CJUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
         TAG_LOGE(AAFwkTag::UI_EXT, "Invalid sessionInfo");
         return false;
     }
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         if (context_ == nullptr || context_->GetAbilityInfo() == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null context");
@@ -401,7 +401,7 @@ void CJUIExtensionBase::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo
     }
 
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     auto res = uiWindowMap_.find(componentId);
     if (res != uiWindowMap_.end() && res->second != nullptr) {
         WantParams params;

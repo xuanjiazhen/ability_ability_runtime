@@ -131,7 +131,7 @@ void UIExtension::ForegroundWindow(const AAFwk::Want &want, const sptr<AAFwk::Se
     std::lock_guard<std::mutex> lock(uiWindowMutex_);
     TAG_LOGI(AAFwkTag::UI_EXT, "Before window show UIExtcomponent id: %{public}" PRId64,
         sessionInfo->uiExtensionComponentId);
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     auto& uiWindow = uiWindowMap_[componentId];
     if (uiWindow) {
         HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::show");
@@ -150,7 +150,7 @@ void UIExtension::BackgroundWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
         return;
     }
     std::lock_guard<std::mutex> lock(uiWindowMutex_);
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "find uiWindow failed");
         return;
@@ -328,7 +328,7 @@ void UIExtension::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo> &ses
     }
     std::lock_guard<std::mutex> lock(uiWindowMutex_);
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     auto res = uiWindowMap_.find(componentId);
     if (res != uiWindowMap_.end() && res->second != nullptr) {
         if (!result.isNeedDelayResult) {
@@ -345,7 +345,7 @@ void UIExtension::RegisterUiExtensionDelayResultCallback(uint64_t intentId, cons
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "intentId %{public}" PRIu64"", intentId);
     std::lock_guard<std::mutex> lock(uiWindowMutex_);
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     auto res = uiWindowMap_.find(componentId);
     if (res != uiWindowMap_.end() && res->second != nullptr) {
         auto window = res->second;

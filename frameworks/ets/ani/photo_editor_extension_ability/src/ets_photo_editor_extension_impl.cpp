@@ -94,7 +94,7 @@ void EtsPhotoEditorExtensionImpl::BindContext()
 void EtsPhotoEditorExtensionImpl::OnForeground(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     EtsUIExtensionBase::OnForeground(want, sessionInfo);
-    auto componentId = AAFwk::GetEffectiveComponentId(sessionInfo);
+    auto componentId = sessionInfo->uiExtensionComponentId;
     if (uiExtensionComponentIdSet_.find(componentId) == uiExtensionComponentIdSet_.end()) {
         OnStartContentEditing(want, sessionInfo);
         uiExtensionComponentIdSet_.emplace(componentId);
@@ -132,7 +132,7 @@ void EtsPhotoEditorExtensionImpl::OnStartContentEditing(const AAFwk::Want &want,
 
     ani_string aniImageUri {};
     env->String_NewUTF8(imageUri.c_str(), imageUri.size(), &aniImageUri);
-    ani_ref sessionObj = contentSessions_[AAFwk::GetEffectiveComponentId(sessionInfo)];
+    ani_ref sessionObj = contentSessions_[sessionInfo->uiExtensionComponentId];
     if (sessionObj == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null session Obj");
         return;

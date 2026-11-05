@@ -148,7 +148,7 @@ JsUIExtensionContentSession::JsUIExtensionContentSession(
     if (abilityResultListeners == nullptr || sessionInfo == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null params");
     } else {
-        abilityResultListeners->AddListener(AAFwk::GetEffectiveComponentId(sessionInfo), listener_);
+        abilityResultListeners->AddListener(sessionInfo->uiExtensionComponentId, listener_);
     }
 }
 

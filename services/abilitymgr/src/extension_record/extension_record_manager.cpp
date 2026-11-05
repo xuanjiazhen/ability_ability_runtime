@@ -249,42 +249,24 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
                     abilityRequest.sessionInfo->persistentId);
                 return ERR_INVALID_VALUE;
             } else {
-            // Window gate: a migration always changes hostWindowId (both cross-host and
-            // same-host window switches), so a validated declaration with an unchanged
-            // hostWindowId has no legal path in the main flow (plain starts carry no
-            // declaration and never reach here). Reject for consistency with the credential
-            // gate: a state with no legal explanation must fail visibly, not pass silently.
-            if (recordSessionInfo->hostWindowId == abilityRequest.sessionInfo->hostWindowId) {
-                TAG_LOGW(AAFwkTag::ABILITYMGR,
-                    "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
-                    abilityRequest.sessionInfo->persistentId);
-                return ERR_INVALID_VALUE;
-            }
-                // Backfill the stable component id: the id in originalCallerInfo is locked at
-                // first creation (by the retention logic in StartAbilityLocked/UIExtensionRecord)
-                // and must stay identical across every migration. Prefer the locked id; the
-                // fallback to the record's current componentId covers the narrow window where
-                // a degraded (fallback) creation is migrated again before any retention logic
-                // has run (this branch executes before those retention points).
-                uint64_t stableId = 0;
-                if (recordSessionInfo != nullptr) {
-                    stableId = recordSessionInfo->originalCallerInfo.uiExtensionComponentId != 0
-                        ? recordSessionInfo->originalCallerInfo.uiExtensionComponentId
-                        : recordSessionInfo->uiExtensionComponentId;
+                // Window gate: a migration always changes hostWindowId (both cross-host and
+                // same-host window switches), so a validated declaration with an unchanged
+                // hostWindowId has no legal path in the main flow (plain starts carry no
+                // declaration and never reach here). Reject for consistency with the credential
+                // gate: a state with no legal explanation must fail visibly, not pass silently.
+                if (recordSessionInfo->hostWindowId == abilityRequest.sessionInfo->hostWindowId) {
+                    TAG_LOGW(AAFwkTag::ABILITYMGR,
+                        "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
+                        abilityRequest.sessionInfo->persistentId);
+                    return ERR_INVALID_VALUE;
                 }
-                if (stableId != 0) {
-                    abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId = stableId;
-                }
-                // Clean the stale window state entry keyed by the pre-migration componentId: the map
-                // key is the raw componentId which changes on every migration, and nothing else
-                // erases it (AMS never sends WIN_CMD_DESTROY for the old id after migration).
-                if (recordSessionInfo != nullptr) {
-                    migrationRecord->RemoveAbilityWindowStateMap(recordSessionInfo->uiExtensionComponentId);
-                }
+                // No stable-id backfill and no stale window-state cleanup are needed: with the
+                // pid-based componentId the id is migration-stable by construction, so every
+                // window-state entry and provider-side map key keeps hitting unchanged.
                 abilityRecord = migrationRecord;
                 isLoaded = true;
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d, "
-                    "stableId: %{public}" PRIu64, abilityRequest.sessionInfo->persistentId, stableId);
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d",
+                    abilityRequest.sessionInfo->persistentId);
                 return ERR_OK;
             }
         }

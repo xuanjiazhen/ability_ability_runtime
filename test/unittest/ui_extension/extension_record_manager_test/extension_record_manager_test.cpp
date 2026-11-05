@@ -531,13 +531,8 @@ HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationUpdate_
     // Reconciliation prerequisite: the recorded host token equals the declared previous host.
     auto previousHostToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     createSessionInfo->callerToken = previousHostToken;
+    createSessionInfo->hostWindowId = 7;
     createdRecord->SetSessionInfo(createSessionInfo);
-
-    // P-05: stale window state entry keyed by the pre-migration componentId (100).
-    sptr<AAFwk::SessionInfo> oldStateInfo(new AAFwk::SessionInfo());
-    oldStateInfo->uiExtensionComponentId = 100;
-    createdRecord->SetAbilityWindowState(oldStateInfo, AAFwk::WIN_CMD_BACKGROUND, false);
-    EXPECT_FALSE(createdRecord->IsAbilityWindowReady());
 
     AAFwk::AbilityRequest migrationRequest;
     migrationRequest.appInfo.bundleName = hostBundle;
@@ -546,6 +541,7 @@ HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationUpdate_
     sptr<AAFwk::SessionInfo> migrationSessionInfo(new AAFwk::SessionInfo());
     migrationSessionInfo->uiExtensionComponentId = 200;
     migrationSessionInfo->persistentId = 10;
+    migrationSessionInfo->hostWindowId = 9;  // different from the recorded 7
     migrationSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();  // new host
     migrationSessionInfo->originalCallerInfo.callerToken = previousHostToken;            // declared
     migrationSessionInfo->originalCallerInfo.persistentId = 10;
@@ -557,15 +553,9 @@ HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationUpdate_
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_TRUE(isLoaded);
     EXPECT_EQ(resultRecord, createdRecord);
-    // Stable component id locked at first creation is backfilled to originalCallerInfo.
-    EXPECT_EQ(migrationSessionInfo->originalCallerInfo.uiExtensionComponentId, 100ULL);
-    // P-05: stale entry under the pre-migration componentId is removed by the migration branch.
-    EXPECT_TRUE(createdRecord->IsAbilityWindowReady());
-    // Second migration keeps the backfilled stable id instead of overwriting it.
     ret = extRecordMgr->GetOrCreateExtensionRecord(migrationRequest, hostBundle, resultRecord, isLoaded);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(resultRecord, createdRecord);
-    EXPECT_EQ(migrationSessionInfo->originalCallerInfo.uiExtensionComponentId, 100ULL);
 }
 
 /**
@@ -616,7 +606,6 @@ HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationDeclara
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     EXPECT_EQ(resultRecord, createdRecord);  // untouched
     EXPECT_FALSE(isLoaded);
-    EXPECT_EQ(forgedSessionInfo->originalCallerInfo.uiExtensionComponentId, 0ULL);  // no backfill
 }
 
 /**
@@ -670,7 +659,6 @@ HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationWindowU
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     EXPECT_EQ(resultRecord, createdRecord);
     EXPECT_FALSE(isLoaded);
-    EXPECT_EQ(noOpSessionInfo->originalCallerInfo.uiExtensionComponentId, 0ULL);
 }
 
 /**
@@ -719,7 +707,6 @@ HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationTermina
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     EXPECT_EQ(resultRecord, createdRecord);  // untouched
     EXPECT_FALSE(isLoaded);
-    EXPECT_EQ(migrationSessionInfo->originalCallerInfo.uiExtensionComponentId, 0ULL);  // no backfill
 }
 
 /**
@@ -741,7 +728,6 @@ HWTEST_F(ExtensionRecordManagerTest, UIExtensionRecord_Update_MigrationRetention
     savedSessionInfo->persistentId = 10;
     savedSessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     savedSessionInfo->originalCallerInfo.persistentId = 10;
-    savedSessionInfo->originalCallerInfo.uiExtensionComponentId = 100;
     savedRequest.sessionInfo = savedSessionInfo;
     auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(savedRequest);
     ASSERT_NE(abilityRecord, nullptr);
@@ -759,26 +745,10 @@ HWTEST_F(ExtensionRecordManagerTest, UIExtensionRecord_Update_MigrationRetention
     reuseRequest.sessionInfo = reuseSessionInfo;
 
     extRecord->Update(reuseRequest);
-    // Reuse request inherits only the stable id, not the callerToken migration flag:
-    // window maps keyed by the stable id keep hitting, while normal requests do not
-    // falsely trigger the provider-side migration detection.
-    EXPECT_EQ(reuseSessionInfo->originalCallerInfo.callerToken, nullptr);
-    EXPECT_EQ(reuseSessionInfo->originalCallerInfo.uiExtensionComponentId, 100ULL);
-    EXPECT_EQ(abilityRecord->GetSessionInfo()->originalCallerInfo.uiExtensionComponentId, 100ULL);
-
-    // Lock-on-first: a record that carries no stable id yet gets it locked to the current
-    // componentId on the first reuse (covers first creation / degraded creation cases).
-    sptr<AAFwk::SessionInfo> lockSessionInfo(new AAFwk::SessionInfo());
-    lockSessionInfo->uiExtensionComponentId = 300;
-    lockSessionInfo->persistentId = 10;
-    AAFwk::AbilityRequest lockRequest = reuseRequest;
-    lockRequest.sessionInfo = lockSessionInfo;
-    auto freshRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(lockRequest);
-    ASSERT_NE(freshRecord, nullptr);
-    auto freshExtRecord = std::make_shared<UIExtensionRecord>(freshRecord);
-    freshExtRecord->Update(lockRequest);
-    EXPECT_EQ(lockSessionInfo->originalCallerInfo.uiExtensionComponentId, 300ULL);
-    EXPECT_EQ(freshRecord->GetSessionInfo()->originalCallerInfo.uiExtensionComponentId, 300ULL);
+    // At-least-once re-delivery: while the migration is unconfirmed (declaration kept in the
+    // record), a reuse request carries the FULL declaration so the provider keeps getting
+    // re-parent chances.
+    EXPECT_EQ(reuseSessionInfo->originalCallerInfo.callerToken, previousHostToken);
 }
 
 /**
