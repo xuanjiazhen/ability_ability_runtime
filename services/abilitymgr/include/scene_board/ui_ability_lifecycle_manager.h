@@ -83,6 +83,12 @@ public:
 
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery = false);
     void SignRestartProcess(int32_t pid);
+
+    /**
+     * @brief Release attribution handles of all records before user teardown
+     */
+    void ReleaseAllTaskAttributions();
+
     ErrCode QueryCallerTokenIdForAnco(const std::string &asCallerForAncoSessionId, uint32_t &callerTokenId);
     void UpdateTokenIdAndWantWithRealCallerInfo(AAFwk::Want &want, uint32_t &realCallerTokenId);
 
@@ -824,6 +830,7 @@ private:
      * @param abilityRecord The ability record to terminate
      */
     void CompleteTerminate(const UIAbilityRecordPtr &abilityRecord);
+
 
     /**
      * @brief Check if token is contained in internal storage
