@@ -23,4 +23,5 @@ code_refs: []
 commits:
   - "345dd97d2225b2808729b449fe986ae4b38b5668"
   - "5dced55396"
+  - "97f737227"  # interface_sdk-js 跨仓 d.ts 提交（yzk fork 分支 feat/task-priority-judgment-v1.0）
 ---
