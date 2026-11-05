@@ -48,7 +48,7 @@
 | 并发与资源（锁域/生命周期） | PASS | 三层状态域（STATE-1/2/3）owner 唯一，锁顺序单向无重入；死亡清理复用既有链 |
 | 性能（路径开销） | PASS | 判定/重判为事件驱动低频调用，无轮询；合并 O(变更任务数)；并发上限常量可配 |
 | 可维护性（结构/命名/文档） | PASS | 模块边界清晰（task_mgr 判定器 vs process_schedule 归属）；目录命名遵循仓内惯例；doc 注释完整 |
-| 可测试性（断言点/观测面） | PASS | 13 新增单测用例编译通过；dump（--task/--psched）+ hilog 提供端到端断言点 |
+| 可测试性（断言点/观测面） | PASS | 28 新增分支用例编译通过（judge 11 + process_schedule 13 + service 4，按 app_startup 分支方法论，禁虚假断言）；dump（--task/--psched）+ hilog 提供端到端断言点 |
 | 兼容性（API/IPC/数据） | PASS | 仅 START_TASK(147) 消息体变更（版本内）；@since 26.1.0 不变；无持久化数据 |
 | 跨需求边界 | PASS | RSS 施加/撤销留空桩（交付顺序确认项）；纳管通道依赖 dump 调试钩子先行 |
 
