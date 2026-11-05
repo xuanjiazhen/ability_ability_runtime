@@ -36,6 +36,8 @@ public:
         sptr<IRemoteObject> callerToken, int32_t userId, AppExecFwk::ExtensionAbilityType extensionType);
 
     ErrCode DisconnectAbility(sptr<IAbilityConnection> connect);
+
+    ErrCode AttributeSameConnectionRecordTaskID(const Want &want, sptr<IAbilityConnection> connect);
 };
 }  // namespace AAFwk
 }  // namespace OHOS
