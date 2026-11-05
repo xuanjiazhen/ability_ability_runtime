@@ -916,18 +916,19 @@ void DumpRuntimeHelper::DumpKmpSnapshot(int32_t fd, bool mayReportToOEM)
     }
 }
 
-void DumpRuntimeHelper::RequestJsvmGc(void *jsvmHandle)
+void DumpRuntimeHelper::RequestJsvmGc(void *jsvmHandle,uint32_t tid)
 {
-    using JsvmGcFunc = int32_t (*)(void);
-    auto jsvmGc = reinterpret_cast<JsvmGcFunc>(dlsym(jsvmHandle, "jsvm_request_gc"));
+    typedef int (*JsvmRequestGcFn)(uint32_t);
+    JsvmRequestGcFn jsvmGc = (JsvmRequestGcFn)dlsym(jsvmHandle, "JsvmRequestGc");
     if (jsvmGc == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "jsvm request gc dlsym failed");
         return;
     }
-    int32_t gcRet = jsvmGc();
+    int32_t gcRet = jsvmGc(tid);
     if (gcRet != 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "jsvm request gc failed, ret:%{public}d", gcRet);
     }
+    TAG_LOGE(AAFwkTag::APPKIT, "jsvm request gc done");
 }
 
 void DumpRuntimeHelper::DumpJsvmHeap(const OHOS::AppExecFwk::MemDumpInfo &info)
