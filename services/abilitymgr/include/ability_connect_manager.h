@@ -296,6 +296,28 @@ public:
     {
         return sceneBoardTokenId_;
     }
+
+    /**
+     * @brief Best-effort attribution of the task id onto an existing ConnectionRecord after a
+     *        reused agent connect. Called by AMS when a client-side connect hit an already-
+     *        connected AgentConnection (so ScheduleConnectAbilityDoneLocked did not fire again).
+     *        Flow: generate serviceKey from abilityRequest, look up AbilityRecord in serviceMap_;
+     *        in that record's connect list find the connectRecord matching `connect`, then apply
+     *        case-specific filtering and dedup based on the incoming card type:
+     *        - LOW_CODE: connectRecord's connectWant_ must also be LOW_CODE; dedup checks same
+     *          taskId AND same agentId.
+     *        - non-LOW_CODE: connectRecord's connectWant_ must have same agentId AND same card
+     *          type; dedup checks same taskId only.
+     *        If dedup finds a match, skip; otherwise borrow this connectRecord's recordId + the
+     *        new taskId to call AppMgrClient::AttributeTaskForA2A and store the attribution.
+     * @param abilityRequest Indicates the resolved request (carries want with taskId + agentId +
+     *        card type + abilityInfo used to build the serviceMap_ key).
+     * @param connect Indicates the AgentServiceConnection AMS already holds for this connection.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t AttributeSameConnectionRecordTaskID(const AbilityRequest &abilityRequest,
+        sptr<IAbilityConnection> connect);
+
 protected:
 
     /**
@@ -557,6 +579,7 @@ protected:
     virtual void TerminateOrCacheAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
     virtual void HandleCommandDestroy(const sptr<SessionInfo> &sessionInfo);
     virtual void CompleteBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
 protected:
 
     /**
@@ -632,6 +655,7 @@ protected:
     {
         return 0;
     }
+
 protected:
     int userId_;
     ServiceMapType serviceMap_;
@@ -807,6 +831,22 @@ private:
      * Remove the extension's disconnect task.
      */
     void RemoveExtensionDelayDisconnectTask(const std::shared_ptr<ConnectionRecord> &connectRecord);
+
+    /**
+     * @brief Best-effort attribution of the target Agent process into the task
+     *        claimed via Want.parameters[ohos.aafwk.param.taskId]. Called from
+     *        ScheduleConnectAbilityDoneLocked after the Agent extension process is
+     *        spawned and onConnect has returned. Resolves taskId and target pid
+     *        from the ability record, then calls AppMgrClient::AttributeTaskForA2A.
+     *        On success records the attribution on the extension record, keyed by
+     *        the connecting record id for precise per-connection cleanup on disconnect.
+     *        Failure here does NOT fail the connect result.
+     * @param abilityRecord Indicates the connected Agent extension record.
+     * @param connectingRecord Indicates the connecting record resolved before
+     *        ScheduleConnectAbilityDoneLocked transitions it to CONNECTED.
+     */
+    void TryAttributeTargetAgentForA2A(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+        const std::shared_ptr<ConnectionRecord> &connectingRecord);
 
 private:
     bool IsNeedToRestart(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
