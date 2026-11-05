@@ -419,12 +419,11 @@ public:
     int Dump(int fd, const std::vector<std::u16string>& args) override;
 
     /**
-     * @brief Starts a task with the specified task id and priority.
+     * @brief Starts a task with the specified task id.
      * @param taskId Indicates the attribution key of the task.
-     * @param priority Indicates the task priority.
      * @return Returns ERR_OK on success; others on failure.
      */
-    int32_t StartTask(const std::string &taskId, int32_t priority) override;
+    int32_t StartTask(const std::string &taskId) override;
 
     /**
      * @brief Finishes the task with the specified task id.
@@ -1143,6 +1142,7 @@ private:
     int Dump(const std::vector<std::u16string>& args, std::string& result);
     int ShowHelp(const std::vector<std::u16string>& args, std::string& result);
     int DumpTask(const std::vector<std::u16string>& args, std::string& result);
+    int DumpPsched(const std::vector<std::u16string>& args, std::string& result);
     int DumpIpc(const std::vector<std::u16string>& args, std::string& result);
     int DumpIpcAllStart(std::string& result);
     int DumpIpcAllStop(std::string& result);

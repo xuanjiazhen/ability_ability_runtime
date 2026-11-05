@@ -28,8 +28,12 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "in_process_call_wrapper.h"
+#include "app_state_observer_manager.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
+#include "process_schedule/process_schedule.h"
+#include "task_mgr/task_priority_judge.h"
+#include "task_mgr/task_schedule_observer.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -122,16 +126,19 @@ TaskManagerService &TaskManagerService::GetInstance()
     return instance;
 }
 
-int32_t TaskManagerService::StartTask(const std::string &taskId, int32_t priority)
+int32_t TaskManagerService::StartTask(const std::string &taskId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (!CheckParam(taskId, priority)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, priority: %{public}d",
-            taskId.size(), priority);
+    if (!CheckParam(taskId)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu", taskId.size());
         return INVALID_PARAMETERS_ERR;
     }
     TaskCallerInfo caller = GetCallerInfo();
+    RegisterScheduleListeners();
+    int32_t priority = TaskPriorityJudge::GetInstance().JudgeLevel(caller.uid);
+    TAG_LOGI(AAFwkTag::APPMGR, "judged priority: %{public}d for caller uid: %{public}d",
+        priority, caller.uid);
     return StartTaskInner(caller, taskId, priority);
 }
 
@@ -230,6 +237,70 @@ void TaskManagerService::OnProcessDied(pid_t pid, int32_t uid)
 {
     FinishTasksByCreatorInner(pid, uid);
     RemoveManagedProcessFromAllTasksInner(pid);
+    // Minimal death hook (20260914692273 / spec AC-6.3): clean the schedule index and the
+    // exemptions of the dead pid; the task records themselves survive and only lose the
+    // attribution, so the task is not finished.
+    ProcessSchedule::GetInstance().OnProcessDied(pid);
+}
+
+void TaskManagerService::OnAbilityForegroundChanged(int32_t uid, bool foreground)
+{
+    TaskPriorityJudge::GetInstance().OnForegroundAbilityChanged(uid, foreground);
+    RejudgeTasks(uid);
+}
+
+void TaskManagerService::OnSystemLoadLevelChanged(int32_t loadLevel)
+{
+    RejudgeTasks(SYSTEM_INITIATED_UID);
+}
+
+void TaskManagerService::RejudgeTasks(int32_t uid)
+{
+    std::vector<std::pair<std::string, int32_t>> changedTasks;
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        for (auto &item : tasks_) {
+            TaskRecord &record = item.second;
+            if (uid > 0 && record.creatorUid != uid) {
+                continue;
+            }
+            int32_t newLevel = TaskPriorityJudge::GetInstance().JudgeLevel(record.creatorUid);
+            if (newLevel == record.priority) {
+                continue;  // first-line anti-jitter: unchanged level is not propagated
+            }
+            TAG_LOGI(AAFwkTag::APPMGR, "task level re-judged, taskId: %{public}s %{public}d -> %{public}d",
+                record.taskId.c_str(), record.priority, newLevel);
+            record.priority = newLevel;
+            changedTasks.emplace_back(record.taskId, newLevel);
+        }
+    }
+    for (const auto &changed : changedTasks) {
+        ProcessSchedule::GetInstance().OnTaskLevelChanged(changed.first, changed.second);
+    }
+}
+
+void TaskManagerService::RegisterScheduleListeners()
+{
+    static std::once_flag onceFlag;
+    std::call_once(onceFlag, [this]() {
+        auto &judge = TaskPriorityJudge::GetInstance();
+        judge.SetLevelChangedHook([](int32_t level) {
+            TaskManagerService::GetInstance().OnSystemLoadLevelChanged(level);
+        });
+        if (!judge.RegisterSystemLoadListener()) {
+            TAG_LOGW(AAFwkTag::APPMGR, "system load listener unavailable, judge falls back to MEDIUM");
+        }
+        static sptr<TaskScheduleAbilityObserver> abilityObserver = new (std::nothrow) TaskScheduleAbilityObserver();
+        if (abilityObserver == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "create ability observer failed");
+            return;
+        }
+        int32_t ret = DelayedSingleton<AppStateObserverManager>::GetInstance()
+            ->RegisterApplicationStateObserver(abilityObserver, {}, AppStateFilter());
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::APPMGR, "register ability state observer failed: %{public}d", ret);
+        }
+    });
 }
 
 void TaskManagerService::FinishTasksByCreatorInner(pid_t pid, int32_t uid)
@@ -437,7 +508,7 @@ std::string TaskManagerService::DumpActiveTasks()
         result += "        creator uid [" + std::to_string(record.creatorUid) + "] pid [" +
             std::to_string(record.creatorPid) + "] bundle [" + record.creatorBundleName + "]\n";
         result += "        managed processes [" + AttributionsToString(record.attributions) + "]\n";
-        result += "        sched level [-]\n";
+        result += std::string("        sched level [task:") + TaskPriorityToString(record.priority) + "]\n";
         result += "        remain timeout [" + std::to_string(remainSeconds) + "s]\n";
         result += "        create time [" + FormatCreateTime(record.createTimeMillis) + "]\n";
     }
@@ -497,12 +568,9 @@ TaskManagerService::TaskCallerInfo TaskManagerService::GetCallerInfo()
     return caller;
 }
 
-bool TaskManagerService::CheckParam(const std::string &taskId, int32_t priority)
+bool TaskManagerService::CheckParam(const std::string &taskId)
 {
-    if (taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN) {
-        return false;
-    }
-    return priority == TASK_PRIORITY_LOW || priority == TASK_PRIORITY_MEDIUM || priority == TASK_PRIORITY_HIGH;
+    return taskId.size() >= TASK_ID_MIN_LEN && taskId.size() <= TASK_ID_MAX_LEN;
 }
 
 int64_t TaskManagerService::NowMillis()

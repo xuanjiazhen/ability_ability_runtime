@@ -41,6 +41,8 @@
 #include "permission_verification.h"
 #include "system_ability_definition.h"
 #include "task_mgr/task_manager_service.h"
+#include "task_mgr/task_priority_judge.h"
+#include "process_schedule/process_schedule.h"
 #include "accesstoken_kit.h"
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
@@ -56,6 +58,7 @@ constexpr const char* OPTION_KEY_DUMP_IPC = "--ipc";
 constexpr const char* OPTION_KEY_DUMP_FFRT = "--ffrt";
 constexpr const char* OPTION_KEY_DUMP_WEB = "--web";
 constexpr const char* OPTION_KEY_DUMP_TASK = "--task";
+constexpr const char* OPTION_KEY_DUMP_PSCHED = "--psched";
 constexpr size_t SIZE_ONE = 1;
 constexpr size_t SIZE_FOUR = 4;
 constexpr size_t SIZE_FIVE = 5;
@@ -172,13 +175,13 @@ void AppMgrService::SetInnerService(const std::shared_ptr<AppMgrServiceInner> &i
     appMgrServiceInner_ = innerService;
 }
 
-int32_t AppMgrService::StartTask(const std::string &taskId, int32_t priority)
+int32_t AppMgrService::StartTask(const std::string &taskId)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
         TAG_LOGW(AAFwkTag::APPMGR, "caller is not system app, rejected");
         return AAFwk::ERR_NOT_SYSTEM_APP;
     }
-    return TaskManagerService::GetInstance().StartTask(taskId, priority);
+    return TaskManagerService::GetInstance().StartTask(taskId);
 }
 
 int32_t AppMgrService::FinishTask(const std::string &taskId)
@@ -1030,6 +1033,9 @@ int AppMgrService::Dump(const std::vector<std::u16string>& args, std::string& re
     if (optionKey == OPTION_KEY_DUMP_TASK) {
         return DumpTask(args, result);
     }
+    if (optionKey == OPTION_KEY_DUMP_PSCHED) {
+        return DumpPsched(args, result);
+    }
     result.append("error: unkown option.\n");
     TAG_LOGE(AAFwkTag::APPMGR, "option key %{public}s does not exist", optionKey.c_str());
     return DumpErrorCode::ERR_UNKNOWN_OPTION_ERROR;
@@ -1049,6 +1055,8 @@ int AppMgrService::ShowHelp(const std::vector<std::u16string>& args, std::string
         .append("dump arkweb info, ARG must be one of (--all | --nweb | ...)\n")
         .append("--task                      ")
         .append("dump agent task manager active tasks\n")
+        .append("--psched                    ")
+        .append("dump process schedule index, effective levels and exemptions\n")
         .append("--task register <taskId> <pid> <insight|cli|a2a|ability>    ")
         .append("test hook: attribute an entity into the task\n")
         .append("--task unregister <taskId> <attributionId>    ")
@@ -1092,6 +1100,21 @@ int AppMgrService::DumpTask(const std::vector<std::u16string>& args, std::string
         return DumpErrorCode::ERR_INVALID_CMD_ERROR;
     }
     result.append(TaskManagerService::GetInstance().DumpActiveTasks());
+    return ERR_OK;
+}
+
+int AppMgrService::DumpPsched(const std::vector<std::u16string>& args, std::string& result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    auto isHidumperServiceCall = (IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID);
+    if (!isHidumperServiceCall) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_PERMISSION_DENY, strlen(MSG_DUMP_FAIL_REASON_PERMISSION_DENY));
+        TAG_LOGE(AAFwkTag::APPMGR, "permission deny");
+        return DumpErrorCode::ERR_PERMISSION_DENY_ERROR;
+    }
+    result.append(ProcessSchedule::GetInstance().DumpSchedule());
+    result.append(TaskPriorityJudge::GetInstance().DumpJudgeState());
     return ERR_OK;
 }
 
