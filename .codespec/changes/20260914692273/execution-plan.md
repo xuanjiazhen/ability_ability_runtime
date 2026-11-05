@@ -511,7 +511,8 @@
 
 | 操作 | 文件 | 说明 |
 |------|------|------|
-| Create | services/appmgr/include/process_schedule/、src/process_schedule/ | 索引/合并/重算/幂等/上限 |
+| Create | services/appmgr/include/process_schedule/、src/process_schedule/ | 索引/合并/重算/幂等/上限 + `--psched` 区段输出（ProcessSchedule::Dump） |
+| Modify | services/appmgr/src/app_mgr_service.cpp | 新增 OPTION_KEY_DUMP_PSCHED 常量、DumpPsched 分发与 usage 文案（先例 --task：app_mgr_service.cpp:58、1030-1032） |
 | Modify | services/appmgr/BUILD.gn | 源文件接入 |
 | Test | test/unittest/process_schedule/（BUILD.gn 新建） | MultiTaskHighestPriority_0100、DegradeToNextPriority_0100、Concurrent10Tasks_0100、豁免幂等用例 |
 | Test | test/integration/ | MultiTaskHighestPriorityIntegration_0100、DegradeToNextPriorityIntegration_0100（dump 复核 effectiveLevel 与降级序列） |

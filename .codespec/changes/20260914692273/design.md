@@ -82,6 +82,8 @@
 - [x] 每层职责边界清晰，无跨层违规调用
 - [x] 每层修改类型明确
 
+**模块划分依据：** process_schedule 与 task_mgr 同级（services/appmgr/src/ 下）的原因：①状态域/锁域分离——task_mgr 为任务生命周期域（20260914692191 owner，tasksMutex_ 锁域），process_schedule 为进程归属域（STATE-2 独立锁域），两者不变量与并发模型不同；②与 20260914692272 同模块（前置分析既定）——RSS 管控代理层后续放入 process_schedule，独立目录使其交付时不侵入 task_mgr；③结构对称与构建边界——与 app_running_manager/task_mgr 同级符合 appmgr 目录惯例，独立源文件集合便于 BUILD.gn 管理。
+
 ### 适用架构规则
 
 | Rule ID | 适用原因 | 设计结论 | 验证方式 |
@@ -129,7 +131,7 @@
 | ADR-7 | 系统负载获取 | SystemLoadProvider 适配层抽象；默认实现基于资源调度 ressched_client 接入**性能功耗热融合档位**（已源码核实：`ResSchedSystemloadNotifierClient::OnSystemloadLevel` 监听 + `GetSystemloadLevel` 查询兜底，`SystemloadLevel` 0~7 定义于 res_value.h:603-612）；测试桩返回固定档位 | 判定器直接调用资源调度接口 | 融合档位由热系统当前热档位、CPU 负载档位与叠加场景综合决策（资源调度领域口径）；适配层隔离变化、可测 | TASK-2 |
 | ADR-8 | startTask 变更范围 | IAppMgr StartTask 消息体、Stub/Proxy、NAPI/ANI/ETS 绑定与 d.ts 同步移除 priority 与 TaskPriority 导出，内部枚举值 100/200/300 保留 | 保留入参静默忽略 | 需求明确不再由调用方指定；静默忽略产生误导语义 | TASK-1/3 |
 | ADR-9 | RSS 通知时序策略（需求方确认基线，防抖第二线在 20260914692272 RSS 代理边界实现） | **立即路径**：注册纳管 APPLY、进程死亡 REVOKE、档位上升（effectiveLevel 提高）；**合并路径**：注销纳管（主动）、前后台状态变化、融合档位变化导致的档位下降，**合并 1s 窗口**后统一通知 RSS；窗口到期按当前状态重算（非合并事件队列）；**1s 窗口可配/可注入**（系统参数） | 全部立即（RSS 施加/撤销风暴）；全部延迟（建立链路时延）；仅按事件类型切分（助手切前台升 HIGH 慢 1s 的反例） | 建立链路要快、释放/变更要稳；升档立即不引起抖动（稳定上升），抖动来自降档往复；死亡立即保护 spec AC-6.3 ≤1s 与豁免无泄漏。本需求 process_schedule 对内重算始终同步立即（INV-2 与 dump 一致），仅对 RSS 输出按该契约 | 20260914692272 接口约定 |
-| ADR-10 | dump 能力承载 | 本需求扩展既有 DumpActiveTasks 框架（task_manager_service.cpp:426-447，字段布局已固定）填充 sched level/effectiveLevel/豁免摘要，并新增判定器缓存区段（前台 Ability 计数、融合档位缓存）；仅端到端确认状态用 | 等待 20260914692442 统一实现 | 前置分析已固定字段布局且脚本可依赖；DFX 正式观测面仍归 20260914692442 | TASK-4/6（dump 填充随对应能力落地） |
+| ADR-10 | dump 能力承载 | 本需求扩展既有 DumpActiveTasks 框架（task_manager_service.cpp:426-447，字段布局已固定）填充任务自身判定档位；**新增 `--psched` subCmd**（OPTION_KEY + Dump 分发先例 app_mgr_service.cpp:58、1030-1032）承载归属索引/effectiveLevel/豁免摘要/判定器缓存区段；仅端到端确认状态用 | 等待 20260914692442 统一实现 | 前置分析已固定字段布局且脚本可依赖；DFX 正式观测面仍归 20260914692442 | TASK-3/4/6（dump 填充随对应能力落地） |
 
 ## 设计骨架
 
@@ -360,35 +362,46 @@ sequenceDiagram
 
 > 目的：端到端确认任务档位、归属与管控状态。**仅用于状态确认**；正式 DFX 观测面（事件/全景/日志规范）由 20260914692442 后续承载。前置分析已固定字段布局（task_manager_service.cpp:426-447 注释：field layout fixed so scripts can rely on it），本需求**只填充取值、不改布局**。
 
-**承载与入口**：扩展既有 `DumpActiveTasks()`（task_mgr）+ process_schedule 新增索引区段 + 判定器缓存区段；经 AppMgrService dump 入口输出（hidumper -s 501 任务管理区段）。
+**承载与入口**：`--task` 仅保留任务记录区段（含任务自身判定档位）；**新增 `--psched` subCmd** 承载进程调度归属区段（避免全部集中在 --task 输出）。分发沿用既有 dump 模式：`OPTION_KEY_DUMP_PSCHED` 常量 + `AppMgrService::Dump()` switch 分发到 `DumpPsched()` → `ProcessSchedule::Dump()`（先例：`OPTION_KEY_DUMP_TASK` + `DumpTask`，app_mgr_service.cpp:58、1030-1032），usage 文案同步追加。
 
-**区段设计**：
+**区段分配**：
 
-| 区段 | 内容 | 填充 Task |
-|------|------|-----------|
-| TaskManager active tasks | 既有字段（taskId/priority/creator/managed processes/remain timeout/create time）不变 | 20260914692191（已交付） |
-| sched level | 各任务当前档位 + 各 managed pid 的 effectiveLevel | TASK-3/TASK-4 |
-| Exemption summary | 豁免总数与按 pid 引用计数明细 | TASK-4/TASK-6 |
-| Judge state（新增区段） | 调用方前台 Ability 计数表、融合档位缓存当前值、监听注册状态 | TASK-2/TASK-5 |
+| 区段 | 内容 | 入口 | 填充 Task |
+|------|------|------|-----------|
+| TaskManager active tasks | 既有字段（taskId/priority/creator/managed processes/remain timeout/create time）+ 任务自身判定档位（sched level 任务维度） | `--task` | 20260914692191（已交付）/TASK-3 |
+| 归属索引 | taskToPids_ / pidToTasks_ 双向索引 | `--psched` | TASK-4 |
+| effectiveLevel | 各 managed pid 的实际管控档位（max 合并结果） | `--psched` | TASK-4 |
+| Exemption summary | 豁免总数与按 pid 引用计数明细 | `--psched` | TASK-4/TASK-6 |
+| Judge state | 调用方前台 Ability 计数表、融合档位缓存当前值、监听注册状态 | `--psched` | TASK-2/TASK-5 |
 
 **dump 输出示例（目标形态）**：
 
+`hidumper -s 501 --task`：
 ```
 TaskManager active tasks: total=2
       task ID #ai-assistant-task-1
         priority [HIGH(300)]
         creator uid [20010001] pid [3268] bundle [com.example.aiassistant]
         managed processes [pid:4312(ability) pid:4401(cli)]
-        sched level [task:HIGH(300) pids:4312=HIGH(300) 4401=HIGH(300)]
+        sched level [task:HIGH(300)]
         remain timeout [512s]
         create time [2026-11-04 10:15:03]
       task ID #ai-assistant-task-2
         priority [LOW(100)]
         creator uid [20010001] pid [3268] bundle [com.example.aiassistant]
         managed processes [pid:4312(ability)]
-        sched level [task:LOW(100) pids:4312=HIGH(300)]
+        sched level [task:LOW(100)]
         remain timeout [231s]
         create time [2026-11-04 10:16:47]
+```
+
+`hidumper -s 501 --psched`：
+```
+ProcessSchedule index: tasks=2 pids=2
+      task #ai-assistant-task-1 -> pids [4312 4401]
+      task #ai-assistant-task-2 -> pids [4312]
+      pid 4312 -> tasks [ai-assistant-task-1 ai-assistant-task-2] effectiveLevel [HIGH(300)]
+      pid 4401 -> tasks [ai-assistant-task-1] effectiveLevel [HIGH(300)]
 Exemption summary: total=3
       pid:4312 count:2 keys:[task-1+4312+CPU task-2+4312+CPU]
       pid:4401 count:1 keys:[task-1+4401+CPU]
@@ -398,7 +411,7 @@ Judge state:
       load listener [registered]
 ```
 
-> 示例说明：pid 4312 被 task-1(HIGH) 与 task-2(LOW) 共同纳管，effectiveLevel=HIGH(300)，体现 max 合并；task-2 自身档位 LOW 但进程档位取最高。该示例同时是 AC-6.1 的端到端确认依据。
+> 示例说明：pid 4312 被 task-1(HIGH) 与 task-2(LOW) 共同纳管，effectiveLevel=HIGH(300)，体现 max 合并；task-2 自身档位 LOW 但进程档位取最高。该示例同时是 AC-6.1 的端到端确认依据。`--psched` 命名可按评审意见调整。
 
 ### 测试性设计
 
