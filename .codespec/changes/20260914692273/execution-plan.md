@@ -514,6 +514,7 @@
 | Create | services/appmgr/include/process_schedule/、src/process_schedule/ | 索引/合并/重算/幂等/上限 |
 | Modify | services/appmgr/BUILD.gn | 源文件接入 |
 | Test | test/unittest/process_schedule/（BUILD.gn 新建） | MultiTaskHighestPriority_0100、DegradeToNextPriority_0100、Concurrent10Tasks_0100、豁免幂等用例 |
+| Test | test/integration/ | MultiTaskHighestPriorityIntegration_0100、DegradeToNextPriorityIntegration_0100（dump 复核 effectiveLevel 与降级序列） |
 
 **禁止修改文件**
 
@@ -631,7 +632,8 @@
 |------|------|------|
 | Modify | services/appmgr/src/task_mgr/ | 判定器订阅挂点+重判触发 |
 | Modify | services/appmgr/src/process_schedule/ | OnTaskLevelChanged 重算实现 |
-| Test | test/unittest/task_mgr/ | PriorityRejudgeOnStateChange_0100 等动态重判用例 |
+| Test | test/unittest/task_mgr/ | PriorityRejudgeOnStateChange_0100 等动态重判用例（场景矩阵见 spec 验证映射附注） |
+| Test | test/integration/ | PriorityRejudgeIntegration_0100（代表场景 1/3/5/7 经 dump 复核） |
 
 **禁止修改文件**
 

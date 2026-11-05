@@ -99,15 +99,31 @@
 
 | 编号 | 对应规格项 | 测试入口 | 验证方式 | Red 条件（实现前失败信号） | 通过标准 |
 |------|------------|----------|----------|---------------------------|----------|
-| VM-1 | R-1 / AC-6.5 | 单测：`test/unittest/task_mgr/StartTaskAutoJudgeUnit_0100`（mock 判定输入，断言任务记录档位=判定档位并立即激活）；集成：`test/integration/` StartTaskPriorityAutoJudge_0100（系统应用 demo 调用无 priority 入参的 startTask） | 单测+集成+demo | 未实现前 startTask 声明含 priority 入参/档位固定为默认 MEDIUM，dump 无判定档位字段 | 单测断言任务记录档位精确等于判定值；demo 调用成功（Promise 完成），任务 dump 与调度策略查询显示判定档位 |
+| VM-1 | R-1 / AC-6.5 | 单测：`test/unittest/task_mgr/StartTaskAutoJudgeUnit_0100`（代表性接线用例：前台+负载2 → 断言任务记录档位=HIGH 并立即激活；全矩阵覆盖由 VM-2 承担，本用例不重复）；集成：`test/integration/` StartTaskPriorityAutoJudge_0100（系统应用 demo 调用无 priority 入参的 startTask） | 单测+集成+demo | 未实现前 startTask 声明含 priority 入参/档位固定为默认 MEDIUM，dump 无判定档位字段 | 单测断言任务记录档位精确等于判定值；demo 调用成功（Promise 完成），任务 dump 与调度策略查询显示判定档位 |
 | VM-2 | R-1 / AC-6.6 | `test/unittest/task_mgr/` PriorityJudgeMatrix_0100（构造前台/后台 × 融合档位低（0~4)/高（5~7）组合创建任务，含边界档位 4/5） | 单测 | 未实现前判定结果无状态差异（各组合档位相同），矩阵断言失败 | 各组合判定档位与设计映射矩阵一致（前台=HIGH；后台×0~4=MEDIUM；后台×5~7=LOW；兜底 MEDIUM） |
-| VM-3 | R-1、R-2 / AC-6.7 | 单测：`test/unittest/task_mgr/` PriorityRejudgeOnStateChange_0100（运行中任务切前后台/负载跳变）；集成：动态重判链路用例 | 单测+集成 | 未实现前任务档位静止不重判，重判断言失败 | 单测断言任务档位按映射重判、进程实际档位随归属重算（取最高档）；集成观测一致 |
-| VM-4 | R-2、R-4 / AC-6.1 | `test/unittest/process_schedule/` MultiTaskHighestPriority_0100（3 个不同档位任务纳管同一进程） | 单测 | 未实现前进程档位错配（非最高档），断言失败 | 进程实际档位=纳管任务最高档 |
-| VM-5 | R-3 / AC-6.2 | `test/unittest/process_schedule/` DegradeToNextPriority_0100（最高档位任务结束） | 单测 | 未实现前最高档结束后档位滞留，降级断言失败 | 档位降至次高；全部结束完全恢复 |
+| VM-3 | R-1、R-2 / AC-6.7 | 单测：`test/unittest/task_mgr/` PriorityRejudgeOnStateChange_0100（场景矩阵见表后附注：前后台切换 × 融合档位跳变的变化前→后组合，含档位不变防抖与多任务共管重算）；集成：`test/integration/` PriorityRejudgeIntegration_0100（代表场景经 demo + dump 复核） | 单测+集成 | 未实现前任务档位静止不重判，重判断言失败 | 单测断言各场景变化后任务档位与进程实际档位（取最高档）符合映射；档位不变场景断言无重算传播；集成代表场景 dump 观测一致 |
+| VM-4 | R-2、R-4 / AC-6.1 | 单测：`test/unittest/process_schedule/` MultiTaskHighestPriority_0100（3 个不同档位任务纳管同一进程）；集成：`test/integration/` MultiTaskHighestPriorityIntegration_0100（真实纳管链路 + dump 断言 effectiveLevel） | 单测+集成 | 未实现前进程档位错配（非最高档），断言失败 | 单测断言进程实际档位=纳管任务最高档；集成经 dump 复核 effectiveLevel 一致 |
+| VM-5 | R-3 / AC-6.2 | 单测：`test/unittest/process_schedule/` DegradeToNextPriority_0100（最高档位任务结束）；集成：`test/integration/` DegradeToNextPriorityIntegration_0100（dump 断言降级序列与完全恢复） | 单测+集成 | 未实现前最高档结束后档位滞留，降级断言失败 | 档位降至次高；全部结束完全恢复（集成经 dump 复核档位序列） |
 | VM-6 | R-5 / AC-6.3 | 单测：`test/unittest/process_schedule/` ProcessDeathCleanupUnit_0100（模拟死亡事件，断言索引移除+豁免释放+重算+任务存续）；集成：`test/integration/` ProcessDeathCleanup_0100（纳管进程 exit） | 单测+集成 | 未实现前任务误结束或豁免滞留 | 单测断言死亡后索引/豁免/重算正确且任务存续；集成 ≤1s 清理完成且任务存续；dump 显示进程移出 |
 | VM-7 | R-6 / AC-6.4 | 单测：`test/unittest/process_schedule/` Concurrent10Tasks_0100（10 并发任务全操作矩阵）；集成：并发链路用例 | 并发单测+集成 | 未实现前出现竞态（档位错配/豁免泄漏） | 矩阵用例通过，hilog 事件序列无竞态告警 |
 | VM-8 | R-7 / AC-6.5、AC-6.7 | `test/unittest/task_mgr/` PriorityJudgeFallback_0100（mock 感知失败：监听注册失败/回调数据获取失败） | 单测 | 未实现前感知失败导致任务创建失败 | 按兜底档位（MEDIUM）判定，任务正常创建/存续 |
 | VM-9 | R-8 / AC-6.3 | 单测：`test/unittest/process_schedule/` AllProcessesDeadTaskAliveUnit_0100（任务内全部进程死亡，断言任务存续与超时窗口口径）；集成：`test/integration/` AllProcessesDeadTaskAlive_0100 | 单测+集成 | 未实现前任务随进程死亡自动结束 | 单测断言任务存续、超时口径正确；集成记录任务存续 |
+
+> **VM-3 单测场景矩阵（变化前 → 触发 → 变化后，任务运行中）**：
+>
+> | # | 变化前（任务档位） | 触发 | 变化后（期望任务档位 / 进程 effectiveLevel） |
+> |---|--------------------|------|------------------------------|
+> | 1 | 前台 HIGH | 切后台，融合档位 0~4 | MEDIUM / 按共管任务重算 |
+> | 2 | 前台 HIGH | 切后台，融合档位 5~7 | LOW / 按共管任务重算 |
+> | 3 | 后台 MEDIUM（负载 0~4） | 切前台 | HIGH / 立即升档 |
+> | 4 | 后台 LOW（负载 5~7） | 切前台 | HIGH / 立即升档 |
+> | 5 | 后台 MEDIUM | 融合档位 4→5（跳高） | LOW / 重算 |
+> | 6 | 后台 LOW | 融合档位 5→4（跳低） | MEDIUM / 重算 |
+> | 7 | 前台 HIGH | 融合档位 4→5 | 仍 HIGH（前台与负载无关）/ **防抖：断言无重算传播** |
+> | 8 | 后台 MEDIUM | 融合档位 0→4 | 仍 MEDIUM / **防抖：断言无重算传播** |
+> | 9 | 多任务共管同一 pid，任一任务重判 | 任务档位变化 | 进程 effectiveLevel=max（存活任务档位）：存在其他 HIGH 则不变；最后一个 HIGH 降档则降至次高 |
+>
+> 场景 7/8 验证 design ADR-6 防抖（档位不变不重算）；场景 9 验证 spec R-2 归属重算。集成用例选取场景 1/3/5/7 为代表经 dump 复核。
 
 ## API 变更分析
 
