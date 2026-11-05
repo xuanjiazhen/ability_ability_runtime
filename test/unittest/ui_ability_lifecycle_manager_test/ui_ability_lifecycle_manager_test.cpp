@@ -9614,7 +9614,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionColdStartS
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    abilityRequest.want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-cold-ut"));
+    abilityRequest.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-cold-ut"));
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, 3001);
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, 4001);
 
@@ -9688,7 +9688,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionReusePreAt
 
     AbilityRequest abilityRequest;
     abilityRequest.abilityInfo = createRequest.abilityInfo;
-    abilityRequest.want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-warm-ut"));
+    abilityRequest.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-warm-ut"));
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, 5001);
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, 6001);
     AbilityRuntime::StartParamsBySCB params;
@@ -9730,7 +9730,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionReusePidRe
 
     AbilityRequest abilityRequest;
     abilityRequest.abilityInfo = createRequest.abilityInfo;
-    abilityRequest.want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-warm-live-ut"));
+    abilityRequest.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-warm-live-ut"));
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, 5001);
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, 6001);
     AbilityRuntime::StartParamsBySCB params;
@@ -9761,7 +9761,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GenerateAbilityRecord_TaskAttributionRet
 
     AbilityRequest request;
     request.abilityInfo = createRequest.abilityInfo;
-    request.want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-retarget-ut"));
+    request.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-retarget-ut"));
     request.want.SetParam(Want::PARAM_RESV_CALLER_UID, 7001);
     request.want.SetParam(Want::PARAM_RESV_CALLER_PID, 8001);
     sptr<SessionInfo> sessionInfo(new SessionInfo());
@@ -9797,7 +9797,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GenerateAbilityRecord_TaskAttributionRet
 
     AbilityRequest request;
     request.abilityInfo = createRequest.abilityInfo;
-    request.want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-retarget-live-ut"));
+    request.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-retarget-live-ut"));
     request.want.SetParam(Want::PARAM_RESV_CALLER_UID, 7001);
     request.want.SetParam(Want::PARAM_RESV_CALLER_PID, 8001);
     sptr<SessionInfo> sessionInfo(new SessionInfo());
