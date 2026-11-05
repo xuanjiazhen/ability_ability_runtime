@@ -91,6 +91,8 @@ public:
     // (preflight/connect IPC error, OnAbilityConnectDone non-zero/timeout, invalid args) so the host
     // detects failure via the cliMgr exit event (BR-12).
     int GetExitCode() const { return exitCode_; }
+    // True for an explicit help request (help/--help subcommand, or connect --help).
+    bool IsHelpOnly() const { return helpOnly_; }
 
 private:
     ErrCode init() override;
@@ -106,6 +108,10 @@ private:
     int exitCode_ = 0;
     bool helpOnly_ = false;  // true when --help was requested (exit 0, not a failure)
 };
+
+// Print gate for main(): bare shell (no NON-EMPTY cliMgr-injected ohos_cli_callerIdentity) or
+// an explicit help request prints the pre-loop help/error text.
+bool ShouldPrintPreLoopText(const char *callerIdEnv, bool helpOnly);
 }  // namespace AAFwk
 }  // namespace OHOS
 
