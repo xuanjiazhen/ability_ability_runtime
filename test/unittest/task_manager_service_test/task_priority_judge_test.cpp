@@ -213,5 +213,117 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_LoadListener_0100, TestSize.Le
     EXPECT_EQ(judge.JudgeLevel(TEST_UID), TASK_PRIORITY_LOW);
     judge.UnregisterSystemLoadListener();
 }
+
+/**
+ * @tc.number: TaskPriorityJudge_ForegroundChanged_0100
+ * @tc.name: OnForegroundAbilityChanged rejects non-positive uids (early-return branch).
+ * @tc.desc: uid 0 and negative uids must not create any foreground count entry.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_ForegroundChanged_0100, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    judge.OnForegroundAbilityChanged(0, true);
+    judge.OnForegroundAbilityChanged(-1, true);
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        EXPECT_TRUE(judge.fgAbilityCounts_.empty());
+    }
+    EXPECT_FALSE(judge.IsForeground(0));
+}
+
+/**
+ * @tc.number: TaskPriorityJudge_LoadListener_0200
+ * @tc.name: RegisterSystemLoadListener is idempotent (already-registered branch).
+ * @tc.desc: The second registration returns true without touching the provider again.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_LoadListener_0200, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    auto provider = std::make_shared<StubLoadProvider>(2);
+    judge.SetLoadProvider(provider);
+    EXPECT_TRUE(judge.RegisterSystemLoadListener());
+    EXPECT_TRUE(provider->registered_);
+    int32_t firstCount = provider->level_;  // 2, seeded once at registration
+    EXPECT_EQ(judge.CurrentLoadLevel(), firstCount);
+    EXPECT_TRUE(judge.RegisterSystemLoadListener());  // second call: no provider re-registration
+    EXPECT_EQ(judge.CurrentLoadLevel(), firstCount);
+    judge.UnregisterSystemLoadListener();
+}
+
+/**
+ * @tc.number: TaskPriorityJudge_LoadListener_0300
+ * @tc.name: UnregisterSystemLoadListener covers both the not-registered and registered branches.
+ * @tc.desc: Unregistering with nothing registered is a safe no-op; after a real registration the
+ *           provider flag flips back to false.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_LoadListener_0300, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    // not-registered branch: must not crash and must stay unregistered
+    judge.UnregisterSystemLoadListener();
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        EXPECT_FALSE(judge.loadListenerRegistered_);
+    }
+    // registered branch
+    auto provider = std::make_shared<StubLoadProvider>(3);
+    judge.SetLoadProvider(provider);
+    EXPECT_TRUE(judge.RegisterSystemLoadListener());
+    EXPECT_TRUE(provider->registered_);
+    judge.UnregisterSystemLoadListener();
+    EXPECT_FALSE(provider->registered_);
+}
+
+/**
+ * @tc.number: TaskPriorityJudge_SetLoadProvider_0100
+ * @tc.name: SetLoadProvider resets the registration state (switch-provider branch).
+ * @tc.desc: After switching providers the judge re-registers against the new provider.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_SetLoadProvider_0100, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    auto first = std::make_shared<StubLoadProvider>(1);
+    auto second = std::make_shared<StubLoadProvider>(6);
+    judge.SetLoadProvider(first);
+    EXPECT_TRUE(judge.RegisterSystemLoadListener());
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        EXPECT_TRUE(judge.loadListenerRegistered_);
+    }
+    judge.SetLoadProvider(second);
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        EXPECT_FALSE(judge.loadListenerRegistered_);
+    }
+    EXPECT_TRUE(judge.RegisterSystemLoadListener());
+    EXPECT_EQ(judge.CurrentLoadLevel(), 6);
+    EXPECT_TRUE(second->registered_);
+    EXPECT_FALSE(first->registered_);
+}
+
+/**
+ * @tc.number: TaskPriorityJudge_DumpJudgeState_0100
+ * @tc.name: DumpJudgeState renders the empty and populated branches.
+ * @tc.desc: Empty state prints the "empty" placeholder and "not registered"; populated state
+ *           prints the uid/count pair and the registered listener state.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_DumpJudgeState_0100, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    std::string emptyDump = judge.DumpJudgeState();
+    EXPECT_NE(emptyDump.find("foreground ability counts [empty]"), std::string::npos);
+    EXPECT_NE(emptyDump.find("cached systemload level [-1]"), std::string::npos);
+    EXPECT_NE(emptyDump.find("load listener [not registered]"), std::string::npos);
+
+    judge.OnForegroundAbilityChanged(TEST_UID, true);
+    auto provider = std::make_shared<StubLoadProvider>(4);
+    judge.SetLoadProvider(provider);
+    EXPECT_TRUE(judge.RegisterSystemLoadListener());
+    std::string populatedDump = judge.DumpJudgeState();
+    EXPECT_NE(populatedDump.find("uid:" + std::to_string(TEST_UID) + " count:1"), std::string::npos);
+    EXPECT_NE(populatedDump.find("cached systemload level [4]"), std::string::npos);
+    EXPECT_NE(populatedDump.find("load listener [registered]"), std::string::npos);
+    judge.UnregisterSystemLoadListener();
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

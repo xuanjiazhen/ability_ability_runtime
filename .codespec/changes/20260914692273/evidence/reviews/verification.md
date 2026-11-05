@@ -30,6 +30,9 @@
 | TASK-3 绑定层编译（AC-6.5 绑定面） | ./build.sh --product-name rk3568 --build-target taskmanager_napi + taskmanager_ani | 编译成功 | 均 build successful | 同上 | PASS |
 | TASK-1 d.ts 审阅（AC-6.5） | git -C interface/sdk-js diff --stat | 仅 startTask 签名与 TaskPriority 枚举两处变更 | 2 files changed, 15 insertions(+), 82 deletions(-) | 2026-11-05 14:05 diff 输出 | PASS |
 | 全量 TDD 构建（AC-6.1、AC-6.2、AC-6.3、AC-6.4、AC-6.5、AC-6.6、AC-6.7 全量目标） | ./build.sh --product-name rk3568 --ccache --build-target ability_runtime_test --no-prebuilt-sdk --gn-args use_thin_lto=false | 全量编译成功（含全仓 moduletest/unittest 链接） | build success，18m07s；修复 2 处链接问题（libappms.map 导出 + 6 个单测 target 补源文件） | 2026-11-05 16:15:09 构建输出 | PASS |
+| 分支覆盖扩充编译（AC-6.1、AC-6.2、AC-6.3、AC-6.5、AC-6.7） | ./build.sh --product-name rk3568 --ccache --build-target task_manager_service_test --no-prebuilt-sdk --gn-args use_thin_lto=false | 编译成功（judge 11 用例 + service 35 用例，含接线/重判/死亡存续分支） | build success | 2026-11-05 17:05 构建输出 | PASS |
+| 分支覆盖扩充编译（AC-6.1、AC-6.2、AC-6.3、AC-6.4） | ./build.sh --product-name rk3568 --ccache --build-target process_schedule_test --no-prebuilt-sdk --gn-args use_thin_lto=false | 编译成功（13 用例：守卫/重复/未知键/降级保持/dump 分支） | build success | 2026-11-05 17:06 构建输出 | PASS |
+| 全量 TDD 复验（接线修复后） | ./build.sh --product-name rk3568 --ccache --build-target ability_runtime_test --no-prebuilt-sdk --gn-args use_thin_lto=false | 全量编译成功 | build success，10m48s | 2026-11-05 17:17:04 构建输出 | PASS |
 | TASK-2/3/5 重判链路编译（AC-6.5、AC-6.7） | ./build.sh --product-name rk3568 --build-target libappms（含重判实现） | 编译成功 | build success（libappms 增量） | 同上 14:09 | PASS |
 
 ## Coverage and Regression

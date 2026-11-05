@@ -236,6 +236,127 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_Concurrent10Tasks_0100, TestSize.L
 }
 
 /**
+ * @tc.number: ProcessSchedule_OnAttributionAdded_0100
+ * @tc.name: OnAttributionAdded rejects non-positive pids (early-return branch).
+ * @tc.desc: pid 0 and negative pids must not create any index entry.
+ */
+HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionAdded_0100, TestSize.Level1)
+{
+    auto &sched = ProcessSchedule::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, 0, AttributionTool::ABILITY);
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, -1, AttributionTool::CLI);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_TRUE(sched.taskToPids_.empty());
+        EXPECT_TRUE(sched.pidEntries_.empty());
+        EXPECT_TRUE(sched.exemptions_.empty());
+    }
+}
+
+/**
+ * @tc.number: ProcessSchedule_OnAttributionAdded_0200
+ * @tc.name: a duplicated attribution is tracked once (already-tracked branch).
+ * @tc.desc: adding the same taskId+pid twice must not duplicate the task level nor the
+ *           exemption count; the pid keeps a single entry.
+ */
+HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionAdded_0200, TestSize.Level1)
+{
+    auto &sched = ProcessSchedule::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].taskLevels.size(), 1);
+        EXPECT_EQ(sched.taskToPids_[TEST_TASK_HIGH].size(), 1);
+        EXPECT_EQ(sched.exemptions_[TEST_TASK_HIGH][TEST_PID_A], 1);
+    }
+}
+
+/**
+ * @tc.number: ProcessSchedule_OnAttributionRemoved_0100
+ * @tc.name: OnAttributionRemoved guards: non-positive pid, unknown pid, unknown taskId.
+ * @tc.desc: All three no-op branches must leave the existing state untouched.
+ */
+HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionRemoved_0100, TestSize.Level1)
+{
+    auto &sched = ProcessSchedule::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
+    sched.OnAttributionRemoved(TEST_TASK_HIGH, 0);
+    sched.OnAttributionRemoved(TEST_TASK_HIGH, -1);
+    sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_B);
+    sched.OnAttributionRemoved(std::string("no_such_task"), TEST_PID_A);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        ASSERT_EQ(sched.pidEntries_.count(TEST_PID_A), 1);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].taskLevels.count(TEST_TASK_HIGH), 1);
+        EXPECT_EQ(sched.exemptions_[TEST_TASK_HIGH][TEST_PID_A], 1);
+    }
+}
+
+/**
+ * @tc.number: ProcessSchedule_OnTaskLevelChanged_0100
+ * @tc.name: OnTaskLevelChanged no-ops on an unknown task (miss branch).
+ * @tc.desc: changing the level of a task that has no index entry must not create state.
+ */
+HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnTaskLevelChanged_0100, TestSize.Level1)
+{
+    auto &sched = ProcessSchedule::GetInstance();
+    sched.OnTaskLevelChanged(std::string("ghost_task"), TASK_PRIORITY_HIGH);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_TRUE(sched.taskToPids_.empty());
+        EXPECT_TRUE(sched.pidEntries_.empty());
+    }
+}
+
+/**
+ * @tc.number: ProcessSchedule_MidRemovalKeepsLevel_0100
+ * @tc.name: removing one of two same-level tasks keeps the merged level (unchanged-merge branch).
+ * @tc.desc: two HIGH tasks share a pid; removing one leaves the pid at HIGH (no downgrade),
+ *           the remaining task still owns the pid.
+ */
+HWTEST_F(ProcessScheduleTest, ProcessSchedule_MidRemovalKeepsLevel_0100, TestSize.Level1)
+{
+    auto &sched = ProcessSchedule::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
+    sched.OnAttributionAdded(std::string("sched_t1b_high"), TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
+    sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        ASSERT_EQ(sched.pidEntries_.count(TEST_PID_A), 1);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].level, TASK_PRIORITY_HIGH);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].taskLevels.size(), 1);
+    }
+    std::string dump = sched.DumpSchedule();
+    EXPECT_NE(dump.find("effectiveLevel [HIGH(300)]"), std::string::npos);
+}
+
+/**
+ * @tc.number: ProcessSchedule_DumpSchedule_0100
+ * @tc.name: DumpSchedule renders the empty and populated branches.
+ * @tc.desc: empty state prints zero totals; populated state prints the task/pid index lines
+ *           and the exemption key lines.
+ */
+HWTEST_F(ProcessScheduleTest, ProcessSchedule_DumpSchedule_0100, TestSize.Level1)
+{
+    auto &sched = ProcessSchedule::GetInstance();
+    std::string emptyDump = sched.DumpSchedule();
+    EXPECT_NE(emptyDump.find("ProcessSchedule index: tasks=0 pids=0"), std::string::npos);
+    EXPECT_NE(emptyDump.find("Exemption summary: total=0"), std::string::npos);
+
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
+    std::string dump = sched.DumpSchedule();
+    EXPECT_NE(dump.find("tasks=1 pids=1"), std::string::npos);
+    EXPECT_NE(dump.find("task #" + TEST_TASK_HIGH + " -> pids [" + std::to_string(TEST_PID_A) + "]"),
+        std::string::npos);
+    EXPECT_NE(dump.find("pid " + std::to_string(TEST_PID_A) + " -> tasks [" + TEST_TASK_HIGH + "]"),
+        std::string::npos);
+    EXPECT_NE(dump.find("Exemption summary: total=1"), std::string::npos);
+    EXPECT_NE(dump.find("keys:[" + TEST_TASK_HIGH + "+" + std::to_string(TEST_PID_A) + "+CPU]"),
+        std::string::npos);
+}
+
+/**
  * @tc.number: ProcessSchedule_TaskLevelChanged_0100
  * @tc.name: a re-judged task level re-merges its pids; unchanged merges are not propagated
  * @tc.desc: two tasks share pid A; raising the LOW task to HIGH lifts the pid; changing the

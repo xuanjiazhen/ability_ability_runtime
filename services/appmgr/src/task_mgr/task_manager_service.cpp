@@ -194,6 +194,7 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
     int32_t callerUid, int64_t expectedDeadline)
 {
     std::unique_ptr<TimeoutContext> timerCtx;
+    std::vector<pid_t> managedPids;
     {
         std::lock_guard<ffrt::mutex> lock(tasksMutex_);
         auto it = tasks_.find(taskId);
@@ -212,6 +213,9 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
             return ERR_TASK_NOT_FOUND;
         }
         int64_t aliveMillis = NowMillis() - it->second.createTimeMillis;
+        for (const auto &attr : it->second.attributions) {
+            managedPids.push_back(attr.second.pid);
+        }
         timerCtx = std::move(it->second.timeoutCtx);
         tasks_.erase(it);
         TAG_LOGI(AAFwkTag::APPMGR, "task finished, taskId: %{public}s, reason: %{public}s, "
@@ -221,6 +225,11 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
         timerCtx.reset();
     } else {
         ReleaseTimeoutContext(std::move(timerCtx));
+    }
+    // Release every schedule attribution of the ended task (20260914692273): remaining tasks
+    // of each pid keep it at their merged level; a pid with no task left naturally restores.
+    for (pid_t pid : managedPids) {
+        ProcessSchedule::GetInstance().OnAttributionRemoved(taskId, pid);
     }
     NotifyTaskFinished(taskId, reason);
     return ERR_OK;
@@ -398,6 +407,7 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
     const AttributionRecord &attribution, AttributionId &attributionId)
 {
     std::unique_ptr<TimeoutContext> replacedCtx;
+    int32_t taskLevel = 0;
     {
         std::lock_guard<ffrt::mutex> lock(tasksMutex_);
         auto it = tasks_.find(taskId);
@@ -414,6 +424,7 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
         AttributionRecord stored = attribution;
         stored.attributedTimeMillis = NowMillis();
         it->second.attributions[newId] = stored;
+        taskLevel = it->second.priority;
         attributionId = newId;
         TAG_LOGI(AAFwkTag::APPMGR, "attribution registered, taskId: %{public}s, "
             "attributionId: %{public}" PRId64 ", pid: %{public}d, tool: %{public}s",
@@ -421,25 +432,36 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
         replacedCtx = RestartTimeoutWindow(taskId, it->second);
     }
     ReleaseTimeoutContext(std::move(replacedCtx));
+    // Feed the schedule attribution index (20260914692273): the merge runs in the
+    // process_schedule lock domain after the task record mutex is released (lock order).
+    ProcessSchedule::GetInstance().OnAttributionAdded(taskId, taskLevel, attribution.pid, attribution.tool);
     return ERR_OK;
 }
 
 int32_t TaskManagerService::UnregisterManagedProcessInner(const std::string &taskId,
     AttributionId attributionId)
 {
-    std::lock_guard<ffrt::mutex> lock(tasksMutex_);
-    auto it = tasks_.find(taskId);
-    if (it == tasks_.end()) {
-        TAG_LOGW(AAFwkTag::APPMGR, "task not found, taskId: %{public}s", taskId.c_str());
-        return ERR_TASK_NOT_FOUND;
-    }
-    if (it->second.attributions.erase(attributionId) == 0) {
-        TAG_LOGW(AAFwkTag::APPMGR, "attribution not found, taskId: %{public}s, "
+    pid_t removedPid = -1;
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        auto it = tasks_.find(taskId);
+        if (it == tasks_.end()) {
+            TAG_LOGW(AAFwkTag::APPMGR, "task not found, taskId: %{public}s", taskId.c_str());
+            return ERR_TASK_NOT_FOUND;
+        }
+        auto attrIt = it->second.attributions.find(attributionId);
+        if (attrIt == it->second.attributions.end()) {
+            TAG_LOGW(AAFwkTag::APPMGR, "attribution not found, taskId: %{public}s, "
+                "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
+            return ERR_ATTRIBUTION_NOT_FOUND;
+        }
+        removedPid = attrIt->second.pid;
+        it->second.attributions.erase(attrIt);
+        TAG_LOGI(AAFwkTag::APPMGR, "attribution unregistered, taskId: %{public}s, "
             "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
-        return ERR_ATTRIBUTION_NOT_FOUND;
     }
-    TAG_LOGI(AAFwkTag::APPMGR, "attribution unregistered, taskId: %{public}s, "
-        "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
+    // Feed the schedule attribution index after the task record mutex is released.
+    ProcessSchedule::GetInstance().OnAttributionRemoved(taskId, removedPid);
     return ERR_OK;
 }
 
