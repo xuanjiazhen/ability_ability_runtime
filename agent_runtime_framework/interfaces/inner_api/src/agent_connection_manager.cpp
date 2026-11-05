@@ -575,6 +575,7 @@ ErrCode AgentConnectionManager::ConnectAbilityInner(const AAFwk::Want &want,
     AppExecFwk::ElementName replayElement;
     sptr<AgentConnection> agentConnection;
     bool needConnect = false;
+    sptr<AgentConnection> reusedConnection;
     {
         // find + emplace CONNECTING atomically (closes the find-then-create TOCTOU); the IPC runs
         // outside this scope so connectionsLock_ is never held across the synchronous connect.
@@ -591,6 +592,11 @@ ErrCode AgentConnectionManager::ConnectAbilityInner(const AAFwk::Want &want,
                 if (!needConnect) {
                     ret = AAFwk::ERR_INVALID_CALLER;
                 }
+            } else if (ret == ERR_OK && handled) {
+                // Existing connection reused (CONNECTED replay / CONNECTING). AMS will NOT run
+                // ScheduleConnectAbilityDoneLocked again, so capture the reused AgentConnection
+                // (an IAbilityConnection) to notify task attribution for the same record later.
+                reusedConnection = connectionIter->first.agentConnection;
             }
         } else {
             agentConnection = CreateConnectionLocked(want, connectCallback);
@@ -609,6 +615,12 @@ ErrCode AgentConnectionManager::ConnectAbilityInner(const AAFwk::Want &want,
     }
     if (!needConnect) {
         // Existing connection handled (CONNECTED replay / CONNECTING) — no new IPC.
+        // Best-effort, oneway: ask the service to attribute the task id onto the same
+        // ConnectionRecord AMS already holds for this reused connection. Fire-and-forget;
+        // failure is logged inside the client and never blocks the connect result.
+        if (reusedConnection != nullptr) {
+            AgentManagerClient::GetInstance().AttributeSameConnectionRecordTaskID(want, reusedConnection);
+        }
         return ret;
     }
     // Connect IPC OUTSIDE connectionsLock_ (synchronous, no [oneway]); erase the placeholder on failure.
