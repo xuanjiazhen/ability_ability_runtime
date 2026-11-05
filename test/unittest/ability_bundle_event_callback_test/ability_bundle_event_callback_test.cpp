@@ -126,6 +126,8 @@ HWTEST_F(AbilityBundleEventCallbackTest, OnReceiveEvent_0300, TestSize.Level1)
     Want want;
     want.SetAction(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_ADDED);
     want.SetBundle("com.test.demo");
+    want.SetParam("uid", TEST_UID);
+    want.SetParam("userId", 100);
     want.SetParam("isRecover", false);
     eventData.SetWant(want);
 
@@ -154,6 +156,8 @@ HWTEST_F(AbilityBundleEventCallbackTest, OnReceiveEvent_0400, TestSize.Level1)
     Want want;
     want.SetAction(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_ADDED);
     want.SetBundle("com.test.demo");
+    want.SetParam("uid", TEST_UID);
+    want.SetParam("userId", 100);
     want.SetParam("isRecover", true);
     eventData.SetWant(want);
 
