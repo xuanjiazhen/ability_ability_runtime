@@ -36,6 +36,10 @@ namespace OHOS {
 namespace AAFwk {
 enum class InsightIntentExecuteState {
     UNKNOWN = 0,
+    // Record pre-registered for a third-party agent invocation, waiting for the
+    // privacy-center consent dialog result. Only a consent grant moves it forward;
+    // a deny or timeout drops the record.
+    PENDING_CONSENT,
     EXECUTING,
     EXECUTE_DONE,
     REMOTE_DIED
@@ -105,10 +109,10 @@ public:
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const ExecuteParam &execParam = ExecuteParam{}, uint64_t specifiedIntentId = 0);
 
-    // Pre-register an execution record and allocate the intent id before the
-    // execution actually starts. Used by the agent path so that the privacy-center
-    // consent popup can be shown while the record is already queryable (via
-    // IsInsightIntentCall), and the id is later reused by CheckAndUpdateParam.
+    // Pre-register an execution record in PENDING_CONSENT and allocate the intent id
+    // before the execution actually starts. Used by the agent path: the record is
+    // already queryable (via IsInsightIntentCall) while the privacy-center consent
+    // dialog is showing, and the id is later reused by CheckAndUpdateParam.
     int32_t RegisterExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const ExecuteParam &execParam, uint64_t &intentId);
 
@@ -134,6 +138,11 @@ public:
     int32_t GetTargetBundleIndex(uint64_t intentId, int32_t &targetBundleIndex) const;
 
     bool IsInsightIntentCall(uint64_t intentId) const;
+
+    // CAS-style state transition: moves the record to `next` only when it currently
+    // sits in `expected`. Returns ERR_OK when the transition happened.
+    int32_t UpdateRecordState(uint64_t intentId, InsightIntentExecuteState expected,
+        InsightIntentExecuteState next);
 
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
@@ -196,7 +205,8 @@ private:
     std::map<pid_t, sptr<IInsightIntentWillExecuteCallback>> insightIntentWillExecuteCallbacks_;
 
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
-        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "");
+        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "",
+        InsightIntentExecuteState initialState = InsightIntentExecuteState::EXECUTING);
 
     static int32_t IsValidCall(const Want &want);
 

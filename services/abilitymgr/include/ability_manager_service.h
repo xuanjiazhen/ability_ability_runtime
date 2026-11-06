@@ -2266,16 +2266,20 @@ public:
     bool IsInsightIntentCall(uint64_t intentId) override;
 
     /**
-     * @brief Reserved path to request the privacy-center (隐私中心) consent popup for a
-     *        third-party agent function invocation.
+     * @brief Reserved hook to obtain user consent for a third-party agent function
+     *        invocation. Synchronous seam: returns true (user grants consent) or
+     *        false (user declines); called inline from ExecuteIntentByAgent, so the
+     *        consent dialog showing time is covered by this call.
      *
-     * TODO(agent): not implemented yet. This hook is invoked after the caller/target
-     * identity (bundle name + app index) has been captured, so the privacy-center dialog
-     * can later reuse RequestDialogService / ams_system_dialog to obtain user consent.
+     * MOCK implementation for now: the real consent dialog is provided by the
+     * privacy-center domain (RequestDialogService / ams_system_dialog). The
+     * pre-registered record is queryable via IsInsightIntentCall(intentId) (IPC 6190)
+     * while this call blocks on the dialog.
+     * @return true if consent is granted, false if declined or the pre-registered
+     *         record is no longer queryable.
      */
-    int32_t RequestAgentPrivacyDialog(const std::string &callerBundleName, int32_t callerAppIndex,
-        const std::string &targetBundleName, int32_t targetBundleIndex, uint64_t intentId,
-        const sptr<IRemoteObject> &callerToken);
+    bool RequestAgentPrivacyDialog(const std::string &callerBundleName, int32_t callerAppIndex,
+        const std::string &targetBundleName, int32_t targetBundleIndex, uint64_t intentId);
 
     /**
      * @brief Execute UIAbility foreground intent with specified token id.
@@ -3849,6 +3853,9 @@ private:
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
         uint64_t specifiedIntentId);
     void SetRemoteIntentTimeout(uint64_t insightIntentId);
+    // Agent-path authorization gate (skeleton): TODO(agent) real permission +
+    // agentCallable declaration check implemented by the owning domain.
+    int32_t VerifyAgentCallPermission();
     // 清理 wantParam 残留意图参数 + 意图候选匹配 + parser.Build 组装执行参数。
     int32_t PrepareFunctionCallParam(const std::string &bundleName, const std::string &intentName,
         const WantParams &wantParam, int32_t callerUserId,
