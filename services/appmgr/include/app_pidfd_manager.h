@@ -46,7 +46,7 @@ class AppMgrServiceInner;
  * death monitoring; main process may follow.
  */
 
-enum class PidFdType { CHILD, RENDER };
+enum class PidFdType { CHILD, RENDER, LAUNCH_SERVICE };
 
 class AppPidFdManager {
 public:
@@ -67,7 +67,8 @@ public:
      * If pidfd_open fails (the process already exited, ESRCH), the cleanup task
      * is dispatched directly. The type selects which exit handler is dispatched.
      */
-    void AddWatcher(pid_t pid, PidFdType type);
+    // Returns false if monitoring could not be installed. ESRCH is handled as exit.
+    bool AddWatcher(pid_t pid, PidFdType type);
 
 private:
     AppPidFdManager();
@@ -82,6 +83,7 @@ private:
     // token only carries the pid.
     static void OnChildPidfdEvent(void *data, uint32_t event);
     static void OnRenderPidfdEvent(void *data, uint32_t event);
+    static void OnLaunchServicePidfdEvent(void *data, uint32_t event);
 
     // Handles the pidfd/token lifecycle on the poller thread, then dispatches
     // the record-level cleanup onto the appmgr task queue.
@@ -90,6 +92,7 @@ private:
     void DispatchCleanup(pid_t pid, PidFdType type);
 
     static int32_t OpenPidFd(pid_t pid, unsigned int flags);
+    void *StorePidFd(pid_t pid, int32_t pidfd);
 
     std::map<pid_t, PidFdEntry> pidfdMap_;
     std::mutex mapMutex_;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -252,6 +252,15 @@ private:
     int32_t HandleRegisterManagedProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUnregisterManagedProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRegisterInAppSkillProcess(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleRegisterDaemon(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUnregisterDaemon(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleStartDaemon(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleStopDaemon(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetLaunchServiceInformation(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetAllLaunchServiceInformations(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetDaemonEnable(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleRegisterLaunchServiceObserver(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUnregisterLaunchServiceObserver(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk
