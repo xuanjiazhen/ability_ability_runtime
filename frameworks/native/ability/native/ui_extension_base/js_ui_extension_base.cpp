@@ -51,6 +51,7 @@
 #include "want_params_wrapper.h"
 #include "application_configuration_manager.h"
 #include "ohos_application.h"
+#include "ui_extension_migration_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -837,6 +838,35 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // Host window migration (marked by originalCallerInfo): same as JsUIExtension.
+        // Step 1 re-parents via the shared pure C++ helper; step 2 updates JS-visible
+        // proxies only after the real re-parent succeeded (fail-isolated).
+        if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{private}d, "
+                "gen: %{public}u", sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+            if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
+                return false;
+            }
+            // Proxy/cache update only after the real re-parent succeeded.
+            auto sessionIt = contentSessions_.find(componentId);
+            if (sessionIt == contentSessions_.end() || sessionIt->second == nullptr) {
+                TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, content session not found, "
+                    "compId: %{public}" PRIu64, componentId);
+                return true;
+            }
+            HandleScope handleScope(jsRuntime_);
+            napi_env env = jsRuntime_.GetNapiEnv();
+            napi_value contentSession = sessionIt->second->GetNapiValue();
+            void* nativeObject = nullptr;
+            napi_unwrap(env, contentSession, &nativeObject);
+            auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
+            if (contentSessionPtr == nullptr) {
+                TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, unwrap failed");
+                return true;
+            }
+            contentSessionPtr->DoUpdateExtensionParent(sessionInfo);
+        }
     }
     return true;
 }

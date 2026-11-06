@@ -49,6 +49,7 @@
 #include "tokenid_kit.h"
 #include "ui_extension_window_command.h"
 #include "want_params_wrapper.h"
+#include "ui_extension_migration_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -767,6 +768,16 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // Host window migration: re-parent the window via the shared pure C++ helper.
+        // Fail-isolated: on failure the session create is reported failed.
+        if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{private}d, "
+                "gen: %{public}u", sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+            if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
+                return false;
+            }
+        }
     }
     return true;
 }

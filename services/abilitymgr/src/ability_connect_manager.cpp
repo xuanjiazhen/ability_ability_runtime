@@ -1151,6 +1151,37 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
         HandleCommandDestroy(sessionInfo);
     }
 
+    // Migration confirmation: a foreground-done carrying the migration declaration means the
+    // provider has finished the re-parent (and Show). Clear the declaration kept in the
+    // record's session info so later ordinary foreground requests stop carrying it (the
+    // at-least-once re-delivery in StartAbilityLocked/UIExtensionRecord::Update turns off).
+    // A failed re-parent reports BACKGROUND instead, keeps the declaration and lets the next
+    // foreground request deliver the migration info again.
+    // Generation match (gen fencing): only the done of the CURRENT migration generation
+    // may clear the marker. A stale done from an older migration (arriving late under
+    // rapid consecutive migrations) must not clear the newer migration's marker.
+    if (winCmd == WIN_CMD_FOREGROUND && abilityCmd == AAFwk::ABILITY_CMD_FOREGROUND &&
+        sessionInfo->originalCallerInfo.callerToken != nullptr) {
+        auto recordSessionInfo = abilityRecord->GetSessionInfo();
+        if (recordSessionInfo != nullptr &&
+            recordSessionInfo->originalCallerInfo.callerToken != nullptr &&
+            sessionInfo->originalCallerInfo.migrationGen ==
+                recordSessionInfo->originalCallerInfo.migrationGen) {
+            recordSessionInfo->originalCallerInfo.callerToken = nullptr;
+            TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{public}d, gen: %{public}u",
+                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+        } else if (recordSessionInfo != nullptr &&
+            recordSessionInfo->originalCallerInfo.callerToken != nullptr &&
+            sessionInfo->originalCallerInfo.migrationGen <
+                recordSessionInfo->originalCallerInfo.migrationGen) {
+            TAG_LOGW(AAFwkTag::UI_EXT,
+                "stale migration done ignored, persistentId: %{public}d, done gen: %{public}u, "
+                "record gen: %{public}u",
+                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
+                recordSessionInfo->originalCallerInfo.migrationGen);
+        }
+    }
+
     abilityRecord->SetAbilityWindowState(sessionInfo, winCmd, true);
 
     CompleteStartServiceReq(element);

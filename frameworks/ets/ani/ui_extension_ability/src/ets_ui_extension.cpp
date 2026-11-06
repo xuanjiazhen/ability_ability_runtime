@@ -47,6 +47,7 @@
 #include "napi/native_api.h"
 #include "tokenid_kit.h"
 #include "ui_extension_window_command.h"
+#include "ui_extension_migration_utils.h"
 #include "want_params_wrapper.h"
 
 #ifdef WINDOWS_PLATFORM
@@ -635,6 +636,21 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // Host window migration: re-parent the window via the shared pure C++ helper.
+        // Fail-isolated: on failure the session create is reported failed.
+        if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{private}d, "
+                "gen: %{public}u", sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+            if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
+                return false;
+            }
+            // Sync the content session's cached session info so the next
+            // GetUIExtensionHostWindowProxy call uses the new hostWindowId.
+            if (etsUiExtContentSession_ != nullptr) {
+                etsUiExtContentSession_->UpdateSessionInfo(sessionInfo);
+            }
+        }
     }
     return true;
 }

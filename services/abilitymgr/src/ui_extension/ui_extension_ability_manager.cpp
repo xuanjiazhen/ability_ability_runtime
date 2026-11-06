@@ -708,6 +708,20 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
     targetService->DoBackgroundAbilityWindowDelayed(false);
+    // Migration re-delivery (at-least-once): while a migration is unconfirmed (its declaration
+    // is still kept in the record's session info), any later foreground request carries the
+    // full declaration, so the provider keeps getting re-parent chances even if the migration
+    // foreground command was dropped by the pending-queue cutoff. The declaration is cleared
+    // on confirmation (see ScheduleCommandAbilityWindowDone). The gen rides along with the
+    // injected declaration so the provider's monotonic filter and the confirmation match
+    // both see the correct generation.
+    if (abilityRequest.sessionInfo != nullptr &&
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken == nullptr) {
+        auto unconfirmedInfo = targetService->GetSessionInfo();
+        if (unconfirmedInfo != nullptr && unconfirmedInfo->originalCallerInfo.callerToken != nullptr) {
+            abilityRequest.sessionInfo->originalCallerInfo = unconfirmedInfo->originalCallerInfo;
+        }
+    }
     targetService->SetSessionInfo(abilityRequest.sessionInfo);
 
     if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
@@ -915,7 +929,27 @@ void UIExtensionAbilityManager::CompleteStartServiceReq(const std::string &servi
         TAG_LOGI(AAFwkTag::UI_EXT, "complete UI extension foreground requests: %{public}zu, uri: %{public}s",
             requestQueue->requests.size(), serviceUri.c_str());
         for (const auto &request : requestQueue->requests) {
-            auto ret = StartAbilityLocked(request.abilityRequest);
+            auto abilityRequest = request.abilityRequest;
+            // A replayed request must source its session info from the record (the single
+            // consistency anchor in AMS): the queued copy is a snapshot of the enqueue moment.
+            // If a migration happened while the request was queued, replaying the stale
+            // snapshot would write the old hostWindowId back into the record and carry it to
+            // the provider (a poisoned re-parent). Sourcing from the record turns the queued
+            // request into one more delivery chance of the latest migration info instead.
+            auto targetService = GetServiceRecordByAbilityRequest(abilityRequest);
+            if (targetService != nullptr && targetService->GetSessionInfo() != nullptr &&
+                abilityRequest.sessionInfo != nullptr) {
+                auto recordInfo = targetService->GetSessionInfo();
+                // Copy before stripping: the record's sessionInfo is shared via sptr —
+                // nulling the declaration on it directly would erase the record's
+                // unconfirmed-migration marker and break the at-least-once re-delivery.
+                // The replay only needs the latest hostWindowId to drive fg; the migration
+                // gates must only see wire-fresh declarations from wm (P0-1 fix).
+                auto replayInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*recordInfo);
+                replayInfo->originalCallerInfo.callerToken = nullptr;
+                abilityRequest.sessionInfo = replayInfo;
+            }
+            auto ret = StartAbilityLocked(abilityRequest);
             if (ret != ERR_OK) {
                 TAG_LOGW(AAFwkTag::UI_EXT, "StartAbilityLocked failed: %{public}d, uri: %{public}s",
                     ret, serviceUri.c_str());

@@ -31,6 +31,7 @@
 #include "hitrace_meter.h"
 #include "int_wrapper.h"
 #include "want_params_wrapper.h"
+#include "ui_extension_migration_utils.h"
 
 #ifdef WINDOWS_PLATFORM
 #define ETS_EXPORT __declspec(dllexport)
@@ -521,6 +522,16 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // Host window migration: re-parent the window via the shared pure C++ helper.
+        // Fail-isolated: on failure the session create is reported failed.
+        if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "host window migration, update parent, persistentId: %{private}d, "
+                "gen: %{public}u", sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+            if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
+                TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "re-parent failed, keep session backgrounded");
+                return false;
+            }
+        }
         return true;
     }
     return CreateNewWindow(sessionInfo, obj, sharedWant);

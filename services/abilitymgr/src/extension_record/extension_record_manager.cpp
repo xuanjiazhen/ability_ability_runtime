@@ -215,6 +215,76 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
     const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded)
 {
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
+    // Migration branch: the pid-based componentId is migration-stable by construction (same
+    // process ⇒ same pid ⇒ same high bits), so a migration request could also be located by
+    // componentId. This branch still locates by persistentId (stable across migration) and —
+    // more importantly — validates the migration declaration (credential gate + window gate),
+    // rejects terminated targets, and stamps the migration generation. Only wire-fresh
+    // declarations from wm enter here; replayed requests have their declaration stripped
+    // (see CompleteStartServiceReq) and go through the normal componentId match instead.
+    if (IsMigrationUpdateRequest(abilityRequest.sessionInfo)) {
+        bool hasTerminatingMatch = false;
+        auto migrationRecord = GetAbilityRecordByPersistentId(abilityRequest.sessionInfo, hostBundleName,
+            hasTerminatingMatch);
+        if (migrationRecord == nullptr && hasTerminatingMatch) {
+            // The target record's termination has been triggered (death rule: it will be driven
+            // to its final state and destroyed). Reject visibly instead of re-creating a second
+            // instance while the old one is still dying; wm may retry after it is fully
+            // destroyed, which then naturally resolves as a fresh creation.
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "migration update: record terminating, persistentId: %{public}d, rejected",
+                abilityRequest.sessionInfo->persistentId);
+            return ERR_INVALID_VALUE;
+        }
+        if (migrationRecord != nullptr) {
+            auto recordSessionInfo = migrationRecord->GetSessionInfo();
+            // Credential gate: the declared previous host token must equal the host token
+            // recorded in the record. This is a binder-level credential — a forged
+            // callerToken from another process can never equal the recorded one, because
+            // the recorded token object is only obtainable by the recorded host process.
+            bool declarationMatched = recordSessionInfo != nullptr &&
+                abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken;
+            if (!declarationMatched) {
+                // No legal timing can produce a mismatched declaration. A mismatch means
+                // forgery or a seriously broken caller: reject visibly instead of falling
+                // back, otherwise a silent record re-creation would hide the failure from wm.
+                TAG_LOGW(AAFwkTag::ABILITYMGR,
+                    "migration declaration mismatch, persistentId: %{public}d, rejected",
+                    abilityRequest.sessionInfo->persistentId);
+                return ERR_INVALID_VALUE;
+            } else {
+                // Window gate: a migration always changes hostWindowId (both cross-host and
+                // same-host window switches), so a validated declaration with an unchanged
+                // hostWindowId has no legal path in the main flow (plain starts carry no
+                // declaration and never reach here). Reject for consistency with the credential
+                // gate: a state with no legal explanation must fail visibly, not pass silently.
+                if (recordSessionInfo->hostWindowId == abilityRequest.sessionInfo->hostWindowId) {
+                    TAG_LOGW(AAFwkTag::ABILITYMGR,
+                        "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
+                        abilityRequest.sessionInfo->persistentId);
+                    return ERR_INVALID_VALUE;
+                }
+                // No stable-id backfill and no stale window-state cleanup are needed: with the
+                // pid-based componentId the id is migration-stable by construction, so every
+                // window-state entry and provider-side map key keeps hitting unchanged.
+                // Stamp the migration generation: the request carries it to the provider in
+                // the FG command, the provider uses it for monotonic filtering (stale
+                // out-of-order commands skip re-parent), and the done receipt carries it
+                // back for generation-matched confirmation (prevents mis-clearing the
+                // marker of a newer migration under rapid consecutive migrations).
+                abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
+                    recordSessionInfo->originalCallerInfo.migrationGen + 1;
+                abilityRecord = migrationRecord;
+                isLoaded = true;
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d",
+                    abilityRequest.sessionInfo->persistentId);
+                return ERR_OK;
+            }
+        }
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration update: record not found, persistentId: %{public}d, fallback",
+            abilityRequest.sessionInfo->persistentId);
+    }
     abilityRecord = GetAbilityRecordBySessionInfo(abilityRequest.sessionInfo);
     if (abilityRecord != nullptr) {
         isLoaded = true;
@@ -291,6 +361,60 @@ std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRe
         }
     }
     return nullptr;
+}
+
+std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRecordByPersistentId(
+    const sptr<AAFwk::SessionInfo> &sessionInfo, const std::string &hostBundleName,
+    bool &hasTerminatingMatch)
+{
+    CHECK_POINTER_AND_RETURN(sessionInfo, nullptr);
+    hasTerminatingMatch = false;
+    if (sessionInfo->persistentId == 0) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "persistentId invalid.");
+        return nullptr;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto& it : extensionRecords_) {
+        if (it.second == nullptr) {
+            continue;
+        }
+        std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord = it.second->abilityRecord_;
+        if (abilityRecord == nullptr) {
+            continue;
+        }
+        sptr<AAFwk::SessionInfo> recordSessionInfo = abilityRecord->GetSessionInfo();
+        if (recordSessionInfo == nullptr) {
+            continue;
+        }
+        if (recordSessionInfo->persistentId != sessionInfo->persistentId) {
+            continue;
+        }
+        // A terminating match never shadows a possible live one with the same persistentId:
+        // keep scanning, but report it so the caller rejects instead of re-creating silently.
+        if (abilityRecord->IsTerminating()) {
+            hasTerminatingMatch = true;
+            continue;
+        }
+        // Cross-bundle host migration is legal in the same process (an extension of bundle Y
+        // living in host process X), so bundle mismatch is observed, not rejected. Security
+        // is enforced by the callerToken reconciliation in the migration branch instead.
+        if (it.second->hostBundleName_ != hostBundleName) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "cross-bundle host migration, persistentId: %{public}d, from: %{public}s, to: %{public}s",
+                sessionInfo->persistentId, it.second->hostBundleName_.c_str(), hostBundleName.c_str());
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "found record, persistentId: %{public}d", sessionInfo->persistentId);
+        return abilityRecord;
+    }
+    return nullptr;
+}
+
+bool ExtensionRecordManager::IsMigrationUpdateRequest(const sptr<AAFwk::SessionInfo> &sessionInfo) const
+{
+    return sessionInfo != nullptr &&
+        sessionInfo->originalCallerInfo.callerToken != nullptr &&
+        sessionInfo->originalCallerInfo.persistentId != 0;
 }
 
 bool ExtensionRecordManager::IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,

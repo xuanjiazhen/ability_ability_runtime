@@ -37,6 +37,17 @@ void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord_");
         return;
     }
+    // Migration re-delivery (at-least-once), paired with the same logic in
+    // UIExtensionAbilityManager::StartAbilityLocked: while a migration is unconfirmed (its
+    // declaration kept in the record), any reuse request carries the full declaration so the
+    // provider keeps getting re-parent chances; cleared on confirmation (done receipt).
+    if (abilityRequest.sessionInfo != nullptr &&
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken == nullptr) {
+        auto unconfirmedInfo = abilityRecord_->GetSessionInfo();
+        if (unconfirmedInfo != nullptr && unconfirmedInfo->originalCallerInfo.callerToken != nullptr) {
+            abilityRequest.sessionInfo->originalCallerInfo = unconfirmedInfo->originalCallerInfo;
+        }
+    }
     abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
 }
 

@@ -43,6 +43,7 @@
 #include "napi_remote_object.h"
 #include "string_wrapper.h"
 #include "want_params_wrapper.h"
+#include "ui_extension_migration_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -563,7 +564,17 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
             TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null uiWindow");
             return false;
         }
-        uiWindow->UpdateExtensionConfig(sharedWant);        
+        uiWindow->UpdateExtensionConfig(sharedWant);
+        // Host window migration: re-parent the window via the shared pure C++ helper.
+        // Fail-isolated: on failure the session create is reported failed.
+        if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "host window migration, update parent, persistentId: %{private}d, "
+                "gen: %{public}u", sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+            if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
+                TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "re-parent failed, keep session backgrounded");
+                return false;
+            }
+        }
     }
     return true;
 }

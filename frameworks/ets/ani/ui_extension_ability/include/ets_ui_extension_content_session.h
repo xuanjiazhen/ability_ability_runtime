@@ -137,6 +137,22 @@ public:
     {
         return sessionInfo_;
     }
+
+    /**
+     * @brief Update the cached session info after the window has been re-parented during a
+     * host window migration. ETS has no proxy-cache tracking (a new proxy is created each
+     * time GetUIExtensionHostWindowProxy is called), so updating sessionInfo_ here is
+     * sufficient — the next proxy call picks up the new hostWindowId automatically.
+     *
+     * @param sessionInfo The migrated session info carrying the new host window id.
+     */
+    void UpdateSessionInfo(const sptr<AAFwk::SessionInfo> &sessionInfo)
+    {
+        if (sessionInfo != nullptr) {
+            sessionInfo_ = sessionInfo;
+        }
+    }
+
 private:
     void SetReceiveDataCallbackRegister(ani_env *env, ani_object functionObj);
     void SetReceiveDataForResultCallbackRegister(ani_env *env, ani_object funcObj);
