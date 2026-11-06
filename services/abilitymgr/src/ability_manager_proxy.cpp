@@ -5950,8 +5950,7 @@ int32_t AbilityManagerProxy::ExecuteIntentByFunctionCall(uint64_t key, const spt
     return reply.ReadInt32();
 }
 
-int32_t AbilityManagerProxy::ExecuteIntentByAgent(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
+int32_t AbilityManagerProxy::ExecuteIntentByAgent(const InsightIntentAgentCallParam &param)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     MessageParcel data;
@@ -5961,24 +5960,8 @@ int32_t AbilityManagerProxy::ExecuteIntentByAgent(uint64_t key, const sptr<IRemo
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
         return INNER_ERR;
     }
-    if (!data.WriteUint64(key)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write key fail");
-        return INNER_ERR;
-    }
-    if (!data.WriteRemoteObject(callerToken)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerToken fail");
-        return INNER_ERR;
-    }
-    if (!data.WriteString(bundleName)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write bundleName fail");
-        return INNER_ERR;
-    }
-    if (!data.WriteString(intentName)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentName fail");
-        return INNER_ERR;
-    }
-    if (!data.WriteParcelable(&wantParam)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write wantParam fail");
+    if (!data.WriteParcelable(&param)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write param fail");
         return INNER_ERR;
     }
     int32_t error = SendRequest(
@@ -5990,7 +5973,7 @@ int32_t AbilityManagerProxy::ExecuteIntentByAgent(uint64_t key, const sptr<IRemo
     return reply.ReadInt32();
 }
 
-bool AbilityManagerProxy::IsInsightIntentCall(uint64_t intentId)
+bool AbilityManagerProxy::IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     MessageParcel data;
@@ -6004,8 +5987,12 @@ bool AbilityManagerProxy::IsInsightIntentCall(uint64_t intentId)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentId fail");
         return false;
     }
+    if (!data.WriteUint32(callerTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerTokenId fail");
+        return false;
+    }
     int32_t error = SendRequest(
-        AbilityManagerInterfaceCode::IS_INSIGHT_INTENT_CALL, data, reply, option);
+        AbilityManagerInterfaceCode::IS_INSIGHT_INTENT_CALL_WITH_CALLER, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
         return false;
