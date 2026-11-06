@@ -52,6 +52,9 @@ private:
     void UpdateCallerAppCloneIndex(Want& want, int32_t appIndex);
     void ClearProtectedWantParam(Want &want);
     void ClearCallerIdentityParam(Want &want);
+    void CacheInsightIntentParams(const Want &want, AbilitySessionInfo &info);
+    void RemoveIntentParams(Want &want);
+    void RestoreInsightIntentParams(Want &want, const AbilitySessionInfo &info);
 
     DISALLOW_COPY_AND_MOVE(UpdateCallerInfoUtil);
 };
