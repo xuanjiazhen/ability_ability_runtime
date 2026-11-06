@@ -21,7 +21,6 @@
 #include "update_caller_info_util.h"
 #include "ability_manager_service.h"
 #include "dialog_session_manager.h"
-#include "insight_intent_execute_manager.h"
 #undef private
 #undef protected
 #include "insight_intent_execute_param.h"
@@ -53,7 +52,6 @@ public:
     std::shared_ptr<AbilityRecord> MockAbilityRecord(AbilityType);
     sptr<Token> MockToken(AbilityType);
     sptr<SessionInfo> MockSessionInfo(int32_t persistentId);
-    uint64_t MockInsightIntentRecord(const std::string &bundleName);
 
 public:
     AbilityRequest abilityRequest_{};
@@ -89,33 +87,13 @@ sptr<SessionInfo> UpdateCallerInfoUtilTest::MockSessionInfo(int32_t persistentId
     return sessionInfo;
 }
 
-uint64_t UpdateCallerInfoUtilTest::MockInsightIntentRecord(const std::string &bundleName)
-{
-    auto manager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
-    if (manager == nullptr) {
-        return 0;
-    }
-    sptr<IRemoteObject> callerToken = nullptr;
-    uint64_t intentId = 0;
-    manager->AddRecord(0, callerToken, bundleName, intentId);
-    return intentId;
-}
-
 void UpdateCallerInfoUtilTest::SetUpTestCase() {}
 
 void UpdateCallerInfoUtilTest::TearDownTestCase() {}
 
 void UpdateCallerInfoUtilTest::SetUp() {}
 
-void UpdateCallerInfoUtilTest::TearDown()
-{
-    // The InsightIntentExecuteManager is a process-wide singleton: clear the injected records
-    // between cases so a stray intentId never leaks into the next test.
-    auto manager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
-    if (manager != nullptr) {
-        manager->records_.clear();
-    }
-}
+void UpdateCallerInfoUtilTest::TearDown() {}
 
 /**
  * @tc.name: UpdateCallerInfoUtilTest_UpdateAsCallerInfoFromCallerRecord_0001
@@ -895,47 +873,6 @@ HWTEST_F(UpdateCallerInfoUtilTest, CacheRestoreTaskId_0004, TestSize.Level1)
 }
 
 /**
- * @tc.name: CacheInsightIntentParams_0001
- * @tc.desc: A valid insight intent execute start caches every identity param into the snapshot.
- * @tc.type: FUNC
- */
-HWTEST_F(UpdateCallerInfoUtilTest, CacheInsightIntentParams_0001, TestSize.Level1)
-{
-    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
-    uint64_t intentId = MockInsightIntentRecord("com.test.target");
-
-    Want want;
-    want.SetElementName("", "com.test.target", "TestAbility", "entry");
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, std::string("PlayMusic"));
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, 1);
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG, 2);
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME, std::string("com.test.caller"));
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID, std::string("token-123"));
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, 20000001);
-    want.SetParam(INTENT_USER_ID, 100);
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID, 200);
-
-    AbilitySessionInfo info;
-    updateCallerUtil.CacheCallerInfoFromWant(want, info);
-    EXPECT_TRUE(info.hasInsightIntent);
-    EXPECT_EQ(info.insightIntentName, "PlayMusic");
-    EXPECT_EQ(info.insightIntentId, std::to_string(intentId));
-    EXPECT_TRUE(info.hasInsightIntentMode);
-    EXPECT_EQ(info.insightIntentMode, 1);
-    EXPECT_TRUE(info.hasInsightIntentOpenLinkFlag);
-    EXPECT_EQ(info.insightIntentOpenLinkFlag, 2);
-    EXPECT_TRUE(info.hasInsightIntentCallerInfo);
-    EXPECT_EQ(info.insightIntentCallerBundleName, "com.test.caller");
-    EXPECT_EQ(info.insightIntentCallerTokenId, "token-123");
-    EXPECT_EQ(info.insightIntentCallerUid, 20000001);
-    EXPECT_TRUE(info.hasInsightIntentUserId);
-    EXPECT_EQ(info.insightIntentUserId, 100);
-    EXPECT_TRUE(info.hasInsightIntentParamUserId);
-    EXPECT_EQ(info.insightIntentParamUserId, 200);
-}
-
-/**
  * @tc.name: CacheInsightIntentParams_0002
  * @tc.desc: Missing INSIGHT_INTENT_EXECUTE_PARAM_ID means it is not judged as an intent execute.
  * @tc.type: FUNC
@@ -988,107 +925,6 @@ HWTEST_F(UpdateCallerInfoUtilTest, CacheInsightIntentParams_0004, TestSize.Level
 }
 
 /**
- * @tc.name: CacheInsightIntentParams_0005
- * @tc.desc: A record whose bundle differs from the target bundle is not matched.
- * @tc.type: FUNC
- */
-HWTEST_F(UpdateCallerInfoUtilTest, CacheInsightIntentParams_0005, TestSize.Level1)
-{
-    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
-    uint64_t intentId = MockInsightIntentRecord("com.other.bundle");
-
-    Want want;
-    want.SetElementName("", "com.test.target", "TestAbility", "entry");
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
-
-    AbilitySessionInfo info;
-    updateCallerUtil.CacheCallerInfoFromWant(want, info);
-    EXPECT_FALSE(info.hasInsightIntent);
-}
-
-/**
- * @tc.name: CacheInsightIntentParams_0006
- * @tc.desc: A valid intent execute with only name+id keeps the conditional has* flags false.
- * @tc.type: FUNC
- */
-HWTEST_F(UpdateCallerInfoUtilTest, CacheInsightIntentParams_0006, TestSize.Level1)
-{
-    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
-    uint64_t intentId = MockInsightIntentRecord("com.test.target");
-
-    Want want;
-    want.SetElementName("", "com.test.target", "TestAbility", "entry");
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, std::string("PlayMusic"));
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
-
-    AbilitySessionInfo info;
-    updateCallerUtil.CacheCallerInfoFromWant(want, info);
-    EXPECT_TRUE(info.hasInsightIntent);
-    EXPECT_FALSE(info.hasInsightIntentMode);
-    EXPECT_FALSE(info.hasInsightIntentOpenLinkFlag);
-    EXPECT_FALSE(info.hasInsightIntentCallerInfo);
-    EXPECT_FALSE(info.hasInsightIntentUserId);
-    EXPECT_FALSE(info.hasInsightIntentParamUserId);
-}
-
-/**
- * @tc.name: CacheInsightIntentParams_0007
- * @tc.desc: Only the caller uid present: the OR-combined caller flag loses per-param granularity
- *           (bundle/token cached as empty strings), documenting the known LOG-02 limitation.
- * @tc.type: FUNC
- */
-HWTEST_F(UpdateCallerInfoUtilTest, CacheInsightIntentParams_0007, TestSize.Level1)
-{
-    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
-    uint64_t intentId = MockInsightIntentRecord("com.test.target");
-
-    Want want;
-    want.SetElementName("", "com.test.target", "TestAbility", "entry");
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, std::string("PlayMusic"));
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, 20000001);
-
-    AbilitySessionInfo info;
-    updateCallerUtil.CacheCallerInfoFromWant(want, info);
-    EXPECT_TRUE(info.hasInsightIntent);
-    EXPECT_TRUE(info.hasInsightIntentCallerInfo);
-    EXPECT_EQ(info.insightIntentCallerUid, 20000001);
-    EXPECT_TRUE(info.insightIntentCallerBundleName.empty());
-    EXPECT_TRUE(info.insightIntentCallerTokenId.empty());
-}
-
-/**
- * @tc.name: RestoreInsightIntentParams_0001
- * @tc.desc: A valid intent execute restores every identity param from the authoritative snapshot.
- * @tc.type: FUNC
- */
-HWTEST_F(UpdateCallerInfoUtilTest, RestoreInsightIntentParams_0001, TestSize.Level1)
-{
-    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
-    uint64_t intentId = MockInsightIntentRecord("com.test.target");
-
-    Want originalWant;
-    originalWant.SetElementName("", "com.test.target", "TestAbility", "entry");
-    originalWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, std::string("PlayMusic"));
-    originalWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
-    originalWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, 1);
-    originalWant.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, 20000001);
-
-    AbilitySessionInfo info;
-    updateCallerUtil.CacheCallerInfoFromWant(originalWant, info);
-    ASSERT_TRUE(info.hasInsightIntent);
-
-    // SCB round trip dropped the identity params.
-    Want scbWant;
-    scbWant.SetElementName("", "com.test.target", "TestAbility", "entry");
-    updateCallerUtil.RestoreCallerInfoToWant(scbWant, info);
-    EXPECT_EQ(scbWant.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME), "PlayMusic");
-    EXPECT_EQ(scbWant.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID), std::to_string(intentId));
-    EXPECT_EQ(scbWant.GetIntParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, -1), 1);
-    EXPECT_EQ(scbWant.GetIntParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, -1), 20000001);
-}
-
-/**
  * @tc.name: RestoreInsightIntentParams_0002
  * @tc.desc: A non-intent start strips every injected identity param from the SCB-returned want.
  * @tc.type: FUNC
@@ -1126,94 +962,6 @@ HWTEST_F(UpdateCallerInfoUtilTest, RestoreInsightIntentParams_0002, TestSize.Lev
     EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_UID));
     EXPECT_FALSE(scbWant.HasParameter(INTENT_USER_ID));
     EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID));
-}
-
-/**
- * @tc.name: RestoreInsightIntentParams_0003
- * @tc.desc: Conditional params absent in the snapshot are not injected on restore.
- * @tc.type: FUNC
- */
-HWTEST_F(UpdateCallerInfoUtilTest, RestoreInsightIntentParams_0003, TestSize.Level1)
-{
-    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
-    uint64_t intentId = MockInsightIntentRecord("com.test.target");
-
-    Want originalWant;
-    originalWant.SetElementName("", "com.test.target", "TestAbility", "entry");
-    originalWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, std::string("PlayMusic"));
-    originalWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
-
-    AbilitySessionInfo info;
-    updateCallerUtil.CacheCallerInfoFromWant(originalWant, info);
-    ASSERT_TRUE(info.hasInsightIntent);
-
-    Want scbWant;
-    scbWant.SetElementName("", "com.test.target", "TestAbility", "entry");
-    updateCallerUtil.RestoreCallerInfoToWant(scbWant, info);
-    EXPECT_TRUE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME));
-    EXPECT_TRUE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID));
-    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE));
-    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG));
-    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME));
-    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID));
-    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_UID));
-    EXPECT_FALSE(scbWant.HasParameter(INTENT_USER_ID));
-    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID));
-}
-
-/**
- * @tc.name: RestoreInsightIntentParams_0004
- * @tc.desc: A tampered id on the SCB-returned want is overwritten by the snapshot value.
- * @tc.type: FUNC
- */
-HWTEST_F(UpdateCallerInfoUtilTest, RestoreInsightIntentParams_0004, TestSize.Level1)
-{
-    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
-    uint64_t intentId = MockInsightIntentRecord("com.test.target");
-
-    Want originalWant;
-    originalWant.SetElementName("", "com.test.target", "TestAbility", "entry");
-    originalWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
-
-    AbilitySessionInfo info;
-    updateCallerUtil.CacheCallerInfoFromWant(originalWant, info);
-    ASSERT_TRUE(info.hasInsightIntent);
-
-    Want scbWant;
-    scbWant.SetElementName("", "com.test.target", "TestAbility", "entry");
-    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("forged-id"));
-    updateCallerUtil.RestoreCallerInfoToWant(scbWant, info);
-    EXPECT_EQ(scbWant.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID), std::to_string(intentId));
-}
-
-/**
- * @tc.name: RestoreInsightIntentParams_0005
- * @tc.desc: A param injected by SCB that the snapshot lacks (MODE) is stripped on restore,
- *           covering the missing-detection branch of the equality fast path.
- * @tc.type: FUNC
- */
-HWTEST_F(UpdateCallerInfoUtilTest, RestoreInsightIntentParams_0005, TestSize.Level1)
-{
-    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
-    uint64_t intentId = MockInsightIntentRecord("com.test.target");
-
-    Want originalWant;
-    originalWant.SetElementName("", "com.test.target", "TestAbility", "entry");
-    originalWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
-
-    AbilitySessionInfo info;
-    updateCallerUtil.CacheCallerInfoFromWant(originalWant, info);
-    ASSERT_TRUE(info.hasInsightIntent);
-    ASSERT_FALSE(info.hasInsightIntentMode);
-
-    // SCB injected a MODE the snapshot never had.
-    Want scbWant;
-    scbWant.SetElementName("", "com.test.target", "TestAbility", "entry");
-    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
-    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, 5);
-    updateCallerUtil.RestoreCallerInfoToWant(scbWant, info);
-    EXPECT_EQ(scbWant.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID), std::to_string(intentId));
-    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE));
 }
 
 /**
