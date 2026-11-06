@@ -27,6 +27,7 @@
 #include "hitrace_meter.h"
 #include "ipc_skeleton.h"
 #include "global_constant.h"
+#include "exec_options.h"
 #include "permission_verification.h"
 #include "scene_board_judgement.h"
 #include "start_ability_utils.h"
@@ -128,6 +129,8 @@ void UpdateCallerInfoUtil::UpdateCallerInfoByHapTokenId(Want& want, uint32_t cal
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (callerTokenId == 0) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "UpdateCallerInfoByHapTokenId: invalid tokenId 0");
+        // fail-closed: no proven identity, so no identity at all
+        ClearCallerIdentityParam(want);
         return;
     }
     Security::AccessToken::HapTokenInfo hapInfo;
@@ -135,6 +138,8 @@ void UpdateCallerInfoUtil::UpdateCallerInfoByHapTokenId(Want& want, uint32_t cal
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR,
             "UpdateCallerInfoByHapTokenId: GetHapTokenInfo failed, tokenId=%{public}u", callerTokenId);
+        // fail-closed: no proven identity, so no identity at all
+        ClearCallerIdentityParam(want);
         return;
     }
 
@@ -305,6 +310,8 @@ void UpdateCallerInfoUtil::UpdateCallerInfoFromToken(Want& want, const sptr<IRem
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     if (!abilityRecord) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "caller abilityRecord null");
+        // fail-closed: drop any caller-supplied identity instead of trusting it downstream
+        ClearCallerIdentityParam(want);
         return;
     }
     ClearProtectedWantParam(want);
@@ -413,8 +420,62 @@ void UpdateCallerInfoUtil::UpdateCallerAppCloneIndex(Want& want, int32_t appInde
     want.SetParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, appIndex);
 }
 
+void UpdateCallerInfoUtil::CacheCallerInfoFromWant(const Want &want, AbilitySessionInfo &info)
+{
+    info.callerUid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, 0);
+    info.callerPid = want.GetIntParam(Want::PARAM_RESV_CALLER_PID, 0);
+    info.callerNativeName = want.GetStringParam(Want::PARAM_RESV_CALLER_NATIVE_NAME);
+    info.hasCallerNativeName = want.HasParameter(Want::PARAM_RESV_CALLER_NATIVE_NAME);
+    info.callerAbilityName = want.GetStringParam(Want::PARAM_RESV_CALLER_ABILITY_NAME);
+    info.callerAppId = want.GetStringParam(Want::PARAM_RESV_CALLER_APP_ID);
+    info.callerAppIdentifier = want.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
+    info.callerAppCloneIndex = want.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, 0);
+    info.taskId = want.GetStringParam(Want::PARAM_RESV_TASK_ID);
+}
+
+void UpdateCallerInfoUtil::RestoreCallerInfoToWant(Want &want, const AbilitySessionInfo &info)
+{
+    want.SetParam(Want::PARAM_RESV_CALLER_TOKEN, static_cast<int32_t>(info.callerTokenId));
+    want.SetParam(Want::PARAM_RESV_CALLER_UID, info.callerUid);
+    want.SetParam(Want::PARAM_RESV_CALLER_PID, info.callerPid);
+    want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, info.callerBundleName);
+    if (info.hasCallerNativeName) {
+        want.SetParam(Want::PARAM_RESV_CALLER_NATIVE_NAME, info.callerNativeName);
+    } else {
+        want.RemoveParam(Want::PARAM_RESV_CALLER_NATIVE_NAME);
+    }
+    want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, info.callerAbilityName);
+    want.SetParam(Want::PARAM_RESV_CALLER_APP_ID, info.callerAppId);
+    want.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER, info.callerAppIdentifier);
+    want.SetParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, info.callerAppCloneIndex);
+    // No key in the original want: strip whatever the SCB round trip returned.
+    if (info.taskId.empty()) {
+        want.RemoveParam(Want::PARAM_RESV_TASK_ID);
+    } else {
+        want.SetParam(Want::PARAM_RESV_TASK_ID, info.taskId);
+    }
+}
+
+void UpdateCallerInfoUtil::ClearCallerIdentityParam(Want &want)
+{
+    // Fail-closed cleanup for stamping failure paths: identity params are system-stamped
+    // only, so they are dropped when stamping is not possible. Anco params are DFX-only
+    // and keep their pre-existing passthrough semantics.
+    want.RemoveParam(Want::PARAM_RESV_CALLER_UID);
+    want.RemoveParam(Want::PARAM_RESV_CALLER_PID);
+    want.RemoveParam(Want::PARAM_RESV_CALLER_TOKEN);
+}
+
 void UpdateCallerInfoUtil::ClearProtectedWantParam(Want &want)
 {
+    // Trace-only reserved param, unified cleanup point: every start-scheduling chain funnels
+    // through one of the Update* entries (and therefore here), so the param is logged once and
+    // stripped for any value before the Want reaches the app side or mission snapshots.
+    const std::string toolCallId = want.GetStringParam("ohos.aafwk.param.toolCallId");
+    if (!toolCallId.empty() && CliTool::IsValidTraceId(toolCallId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability with toolCallId: %{public}s", toolCallId.c_str());
+    }
+    want.RemoveParam("ohos.aafwk.param.toolCallId");
     if (want.HasParameter(HIDE_SENSITIVE_TYPE)) {
         EventInfo eventInfo;
         const auto &bundleName = want.GetBundleNameRef();

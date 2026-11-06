@@ -19,6 +19,7 @@
 #define protected public
 #include "ability_loader.h"
 #include "ability_thread.h"
+#include "mock_my_status.h"
 #include "mock_serviceability_manager_service.h"
 #include "system_ability_definition.h"
 #include "sys_mgr_client.h"
@@ -166,6 +167,52 @@ HWTEST_F(LocalCallContainerTest, Local_Call_Container_StartAbilityInner_0500, Fu
     ErrCode ret = localCallContainer->StartAbilityByCallInner(want, callback, nullptr);
     EXPECT_TRUE(ret == ERR_OK);
     GTEST_LOG_(INFO) << "Local_Call_Container_StartAbilityInner_0500 end";
+}
+
+/**
+ * @tc.number: Local_Call_Container_StartAbilityInner_0600
+ * @tc.name: StartAbility
+ * @tc.desc: Cached remote plus a want carrying taskId is not short-circuited;
+ *           the request goes to AMS for attribution.
+ */
+HWTEST_F(LocalCallContainerTest, Local_Call_Container_StartAbilityInner_0600, Function | MediumTest | Level1)
+{
+    auto localCallContainer = std::make_shared<LocalCallContainer>();
+    Want want;
+    want.SetElementName("", "DemoBundleNameB", "DemoAbilityNameB");
+    want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-bypass-short-circuit-ut"));
+    std::shared_ptr<CallerCallBack> callback = std::make_shared<CallerCallBack>();
+    callback->SetCallBack([](const sptr<IRemoteObject>&) {});
+    auto localCallRecord = std::make_shared<LocalCallRecord>(want.GetElement());
+    sptr<CallerConnection> connect = new (std::nothrow) CallerConnection();
+    localCallRecord->remoteObject_ = connect;
+    localCallContainer->SetCallLocalRecord(localCallRecord);
+    ErrCode ret = localCallContainer->StartAbilityByCallInner(want, callback, nullptr);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(callback->IsCallBack());
+    EXPECT_EQ(localCallContainer->connections_.size(), 1u);
+}
+
+/**
+ * @tc.number: Local_Call_Container_StartAbilityInner_0700
+ * @tc.name: StartAbility
+ * @tc.desc: Cached remote without taskId is still short-circuited locally.
+ */
+HWTEST_F(LocalCallContainerTest, Local_Call_Container_StartAbilityInner_0700, Function | MediumTest | Level1)
+{
+    auto localCallContainer = std::make_shared<LocalCallContainer>();
+    Want want;
+    want.SetElementName("", "DemoBundleNameB", "DemoAbilityNameB");
+    std::shared_ptr<CallerCallBack> callback = std::make_shared<CallerCallBack>();
+    callback->SetCallBack([](const sptr<IRemoteObject>&) {});
+    auto localCallRecord = std::make_shared<LocalCallRecord>(want.GetElement());
+    sptr<CallerConnection> connect = new (std::nothrow) CallerConnection();
+    localCallRecord->remoteObject_ = connect;
+    localCallContainer->SetCallLocalRecord(localCallRecord);
+    ErrCode ret = localCallContainer->StartAbilityByCallInner(want, callback, nullptr);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(callback->IsCallBack());
+    EXPECT_EQ(localCallContainer->connections_.size(), 0u);
 }
 
 /**
@@ -1126,6 +1173,27 @@ HWTEST_F(LocalCallContainerTest, Local_Call_Container_OnAbilityDisconnectDone_09
 
     // Should not crash; localCallRecord_ should be nullptr (reset by re-entrant callback)
     EXPECT_EQ(connect->localCallRecord_, nullptr);
+}
+
+/**
+* @tc.number: LocalCallContainer_GetCurrentUserId_0100
+* @tc.name: GetCurrentUserId returns DEFAULT_INVAL_VALUE on failure
+* @tc.desc: Test GetCurrentUserId handles OsAccount failure by returning sentinel
+*/
+HWTEST_F(LocalCallContainerTest, LocalCallContainer_GetCurrentUserId_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "LocalCallContainer_GetCurrentUserId_0100 start";
+    auto localCallContainer = std::make_shared<LocalCallContainer>();
+    ASSERT_NE(localCallContainer, nullptr);
+
+    localCallContainer->currentUserId_ = AbilityRuntime::DEFAULT_INVAL_VALUE;
+    MyStatus::GetInstance().statusValue_ = 1; // mock returns non-ERR_OK
+    int32_t result = localCallContainer->GetCurrentUserId();
+    MyStatus::GetInstance().statusValue_ = 0; // restore default
+
+    EXPECT_EQ(result, AbilityRuntime::DEFAULT_INVAL_VALUE);
+
+    GTEST_LOG_(INFO) << "LocalCallContainer_GetCurrentUserId_0100 end";
 }
 } // namespace AppExecFwk
 } // namespace OHOS

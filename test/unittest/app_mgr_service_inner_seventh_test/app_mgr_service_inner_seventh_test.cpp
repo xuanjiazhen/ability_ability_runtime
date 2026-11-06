@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <map>
 #define private public
 #include "app_mgr_service_inner.h"
 #include "param.h"
@@ -28,6 +29,7 @@
 #include "ability_manager_errors.h"
 #include "overlay_manager_proxy.h"
 #include "ability_connect_callback_stub.h"
+#include "permission_constants.h"
 #include "session_manager_lite.h"
 #include "process_uid_define.h"
 
@@ -42,6 +44,109 @@ constexpr int32_t DEFAULT_INVAL_VALUE = -1;
 constexpr int32_t BASE_USER_RANGE = 200000;
 namespace OHOS {
 namespace AppExecFwk {
+namespace {
+class SafeKillMockStatusGuard {
+public:
+    SafeKillMockStatusGuard()
+    {
+        auto &status = AAFwk::MyStatus::GetInstance();
+        getBundleManagerHelper_ = status.getBundleManagerHelper_;
+        getCallingUid_ = status.getCallingUid_;
+        verifyCallingPermission_ = status.verifyCallingPermission_;
+        verifyCallingPermissionByName_ = status.verifyCallingPermissionByName_;
+        judgeCallerIsAllowed_ = status.judgeCallerIsAllowed_;
+        processExit_ = status.processExit_;
+        processExitCall_ = status.processExitCall_;
+        processExitClearPageStack_ = status.processExitClearPageStack_;
+        processExitAddKillingCaller_ = status.processExitAddKillingCaller_;
+        processExitReason_ = status.processExitReason_;
+        isApplicationDisableForbiddenRet_ = status.isApplicationDisableForbiddenRet_;
+        isApplicationDisableForbidden_ = status.isApplicationDisableForbidden_;
+        isApplicationDisableForbiddenCall_ = status.isApplicationDisableForbiddenCall_;
+        disableForbiddenBundleName_ = status.disableForbiddenBundleName_;
+        disableForbiddenUserId_ = status.disableForbiddenUserId_;
+        disableForbiddenAppIndex_ = status.disableForbiddenAppIndex_;
+        dualModeAppIndex_ = status.dualModeAppIndex_;
+        getDualModeBundleInfoCall_ = status.getDualModeBundleInfoCall_;
+        dualModeBundleName_ = status.dualModeBundleName_;
+        dualModeUserId_ = status.dualModeUserId_;
+        Reset(true);
+    }
+
+    ~SafeKillMockStatusGuard()
+    {
+        auto &status = AAFwk::MyStatus::GetInstance();
+        status.getBundleManagerHelper_ = getBundleManagerHelper_;
+        status.getCallingUid_ = getCallingUid_;
+        status.verifyCallingPermission_ = verifyCallingPermission_;
+        status.verifyCallingPermissionByName_ = verifyCallingPermissionByName_;
+        status.judgeCallerIsAllowed_ = judgeCallerIsAllowed_;
+        status.processExit_ = processExit_;
+        status.processExitCall_ = processExitCall_;
+        status.processExitClearPageStack_ = processExitClearPageStack_;
+        status.processExitAddKillingCaller_ = processExitAddKillingCaller_;
+        status.processExitReason_ = processExitReason_;
+        status.isApplicationDisableForbiddenRet_ = isApplicationDisableForbiddenRet_;
+        status.isApplicationDisableForbidden_ = isApplicationDisableForbidden_;
+        status.isApplicationDisableForbiddenCall_ = isApplicationDisableForbiddenCall_;
+        status.disableForbiddenBundleName_ = disableForbiddenBundleName_;
+        status.disableForbiddenUserId_ = disableForbiddenUserId_;
+        status.disableForbiddenAppIndex_ = disableForbiddenAppIndex_;
+        status.dualModeAppIndex_ = dualModeAppIndex_;
+        status.getDualModeBundleInfoCall_ = getDualModeBundleInfoCall_;
+        status.dualModeBundleName_ = dualModeBundleName_;
+        status.dualModeUserId_ = dualModeUserId_;
+    }
+
+private:
+    void Reset(bool permissionGranted)
+    {
+        auto &status = AAFwk::MyStatus::GetInstance();
+        status.getBundleManagerHelper_ = nullptr;
+        status.getCallingUid_ = 0;
+        status.verifyCallingPermission_ = permissionGranted;
+        status.verifyCallingPermissionByName_.clear();
+        status.judgeCallerIsAllowed_ = permissionGranted;
+        status.processExit_ = false;
+        status.processExitCall_ = 0;
+        status.processExitClearPageStack_ = false;
+        status.processExitAddKillingCaller_ = false;
+        status.processExitReason_.clear();
+        status.isApplicationDisableForbiddenRet_ = ERR_OK;
+        status.isApplicationDisableForbidden_ = false;
+        status.isApplicationDisableForbiddenCall_ = 0;
+        status.disableForbiddenBundleName_.clear();
+        status.disableForbiddenUserId_ = -1;
+        status.disableForbiddenAppIndex_ = -1;
+        status.dualModeAppIndex_ = 0;
+        status.getDualModeBundleInfoCall_ = 0;
+        status.dualModeBundleName_.clear();
+        status.dualModeUserId_ = -1;
+    }
+
+    std::shared_ptr<AppExecFwk::BundleMgrHelper> getBundleManagerHelper_;
+    pid_t getCallingUid_;
+    bool verifyCallingPermission_;
+    std::map<std::string, bool> verifyCallingPermissionByName_;
+    bool judgeCallerIsAllowed_;
+    bool processExit_;
+    int32_t processExitCall_;
+    bool processExitClearPageStack_;
+    bool processExitAddKillingCaller_;
+    std::string processExitReason_;
+    ErrCode isApplicationDisableForbiddenRet_;
+    bool isApplicationDisableForbidden_;
+    int32_t isApplicationDisableForbiddenCall_;
+    std::string disableForbiddenBundleName_;
+    int32_t disableForbiddenUserId_;
+    int32_t disableForbiddenAppIndex_;
+    int32_t dualModeAppIndex_;
+    int32_t getDualModeBundleInfoCall_;
+    std::string dualModeBundleName_;
+    int32_t dualModeUserId_;
+};
+} // namespace
+
 class AppMgrServiceInnerSeventhTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -710,7 +815,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 0;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_001 end");
 }
@@ -725,6 +831,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_002 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
     AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
     AAFwk::MyStatus::GetInstance().getApplicationInfo_ = true;
@@ -735,7 +842,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 0;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_002 end");
 }
@@ -758,7 +866,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 0;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_MULTI_INSTANCE_NOT_SUPPORTED);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_003 end");
 }
@@ -784,7 +893,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 0;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_004 end");
 }
@@ -814,7 +924,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 0;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_005 end");
 }
@@ -844,7 +955,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetAllRunningInstanceKeysByBundleNameInn
     std::string bundleName = "111";
     std::vector<std::string> instanceKeys;
     int32_t userId = 100;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleNameInner(bundleName, instanceKeys, userId);
+    int32_t ret = appMgrServiceInner->appQueryHelper_.GetAllRunningInstanceKeysByBundleNameInner(
+        bundleName, instanceKeys, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleNameInner_006 end");
 }
@@ -929,6 +1041,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessRunningInformation_001, TestSi
     TAG_LOGI(AAFwkTag::TEST, "GetProcessRunningInformation_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.appRunningManager_ = nullptr;
 
     RunningProcessInfo info;
     int32_t ret = appMgrServiceInner->GetProcessRunningInformation(info);
@@ -1128,7 +1241,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRunningProcesses_001, TestSize.Level1
     AAFwk::MyStatus::GetInstance().getAppIndex_ = 0;
 
     std::vector<RunningProcessInfo> info;
-    appMgrServiceInner->GetRunningProcesses(appRecord, info);
+    appMgrServiceInner->appQueryHelper_.GetRunningProcesses(appRecord, info);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppIndex_, 0);
     TAG_LOGI(AAFwkTag::TEST, "GetRunningProcesses_001 end");
 }
@@ -1152,7 +1265,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRunningProcesses_002, TestSize.Level1
     AAFwk::MyStatus::GetInstance().getAppIndex_ = 0;
 
     std::vector<RunningProcessInfo> info;
-    appMgrServiceInner->GetRunningProcesses(appRecord, info);
+    appMgrServiceInner->appQueryHelper_.GetRunningProcesses(appRecord, info);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppIndex_, 0);
     TAG_LOGI(AAFwkTag::TEST, "GetRunningProcesses_002 end");
 }
@@ -1176,7 +1289,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRunningProcesses_003, TestSize.Level1
     AAFwk::MyStatus::GetInstance().getAppIndex_ = 0;
 
     std::vector<RunningProcessInfo> info;
-    appMgrServiceInner->GetRunningProcesses(appRecord, info);
+    appMgrServiceInner->appQueryHelper_.GetRunningProcesses(appRecord, info);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().getAppIndex_, 1);
     TAG_LOGI(AAFwkTag::TEST, "GetRunningProcesses_003 end");
 }
@@ -1207,7 +1320,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetRenderProcesses_001, TestSize.Level1)
     renderRecord->SetPid(1);
     appRecord->renderRecordMap_.insert(std::pair<int32_t, std::shared_ptr<RenderRecord>>(1, renderRecord));
     std::vector<RenderProcessInfo> info;
-    appMgrServiceInner->GetRenderProcesses(appRecord, info);
+    appMgrServiceInner->appQueryHelper_.GetRenderProcesses(appRecord, info);
     EXPECT_EQ(info.size(), 1);
     TAG_LOGI(AAFwkTag::TEST, "GetRenderProcesses_001 end");
 }
@@ -1424,7 +1537,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, CheckGetRunningInfoPermission_001, TestS
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().verifyRunningInfoPerm_ = false;
     
-    auto ret = appMgrServiceInner->CheckGetRunningInfoPermission();
+    auto ret = appMgrServiceInner->appQueryHelper_.CheckGetRunningInfoPermission();
     EXPECT_EQ(ret, false);
     TAG_LOGI(AAFwkTag::TEST, "CheckGetRunningInfoPermission_001 end");
 }
@@ -1534,8 +1647,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, StartUserTestProcess_001, TestSize.Level
     appMgrServiceInner->remoteClientManager_ = nullptr;
 
     AAFwk::Want want;
-    std::string bundle_name = "test_bundle_name";
-    want.SetParam("-b", bundle_name);
+    std::string bundleName = "test_bundle_name";
+    want.SetParam("-b", bundleName);
 
     sptr<IRemoteObject> observer = MyRemoteObject::GetInstance();
     BundleInfo info;
@@ -1557,8 +1670,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, StartUserTestProcess_002, TestSize.Level
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ == nullptr;
 
     AAFwk::Want want;
-    std::string bundle_name = "test_bundle_name";
-    want.SetParam("-b", bundle_name);
+    std::string bundleName = "test_bundle_name";
+    want.SetParam("-b", bundleName);
     sptr<IRemoteObject> observer = MyRemoteObject::GetInstance();
     BundleInfo info;
     std::string processName = "test_processName";
@@ -1579,8 +1692,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetHapModuleInfoForTestRunner_001, TestS
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ == nullptr;
 
     AAFwk::Want want;
-    std::string bundle_name = "test_bundle_name";
-    want.SetParam("-b", bundle_name);
+    std::string bundleName = "test_bundle_name";
+    want.SetParam("-b", bundleName);
     sptr<IRemoteObject> observer = MyRemoteObject::GetInstance();
     BundleInfo info;
     HapModuleInfo hapModuleInfo;
@@ -1601,8 +1714,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetHapModuleInfoForTestRunner_002, TestS
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ == nullptr;
 
     AAFwk::Want want;
-    std::string bundle_name = "";
-    want.SetParam("-m", bundle_name);
+    std::string bundleName = "";
+    want.SetParam("-m", bundleName);
     sptr<IRemoteObject> observer = MyRemoteObject::GetInstance();
     BundleInfo info;
     HapModuleInfo hapModuleInfo;
@@ -1626,8 +1739,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetHapModuleInfoForTestRunner_003, TestS
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ == nullptr;
 
     AAFwk::Want want;
-    std::string bundle_name = "111";
-    want.SetParam("-m", bundle_name);
+    std::string bundleName = "111";
+    want.SetParam("-m", bundleName);
     sptr<IRemoteObject> observer = MyRemoteObject::GetInstance();
     BundleInfo info;
     HapModuleInfo hapModuleInfo;
@@ -1651,8 +1764,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetHapModuleInfoForTestRunner_004, TestS
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ == nullptr;
 
     AAFwk::Want want;
-    std::string bundle_name = "111";
-    want.SetParam("-m", bundle_name);
+    std::string bundleName = "111";
+    want.SetParam("-m", bundleName);
     sptr<IRemoteObject> observer = MyRemoteObject::GetInstance();
     BundleInfo info;
     HapModuleInfo hapModuleInfo;
@@ -2183,6 +2296,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetConfiguration_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "GetConfiguration_001 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->multiUserConfigurationMgr_ = nullptr;
+    appMgrServiceInner->appQueryHelper_.multiUserConfigurationMgr_ = nullptr;
 
     auto ret = appMgrServiceInner->GetConfiguration();
     EXPECT_EQ(ret, nullptr);
@@ -2413,6 +2527,75 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_007, T
     auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
     TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_007 end");
+}
+
+/**
+* @tc.name: VerifyKillProcessPermissionCommon_008
+* @tc.desc: test VerifyKillProcessPermissionCommon_008 when caller is treated as shell by
+*     LOCAL_DEBUG_OTHER_APPS permission in developer mode
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_008, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_008 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
+    AAFwk::MyStatus::GetInstance().isSACall_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = false;
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
+
+    auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
+    EXPECT_EQ(ret, ERR_OK);
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_008 end");
+}
+
+/**
+* @tc.name: NotifyProcMemoryLevel_002
+* @tc.desc: test NotifyProcMemoryLevel_002 when caller is treated as shell by
+*     LOCAL_DEBUG_OTHER_APPS permission in developer mode
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().checkSpecific_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().getBoolParameter_ = true;
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
+    AAFwk::MyStatus::GetInstance().notifyProcMemory_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().notifyProcMemoryShellCall_ = 0;
+
+    const std::map<pid_t, MemoryLevel> procLevelMap;
+    int32_t ret = appMgrServiceInner->NotifyProcMemoryLevel(procLevelMap);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().notifyProcMemoryShellCall_, 1);
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
+    AAFwk::MyStatus::GetInstance().getBoolParameter_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_002 end");
+}
+
+/**
+* @tc.name: NotifyProcMemoryLevel_003
+* @tc.desc: test NotifyProcMemoryLevel_003 when caller is not memmgr, not shell call, not developer mode
+*     and has no LOCAL_DEBUG_OTHER_APPS permission
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().checkSpecific_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().getBoolParameter_ = false;
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
+
+    const std::map<pid_t, MemoryLevel> procLevelMap;
+    int32_t ret = appMgrServiceInner->NotifyProcMemoryLevel(procLevelMap);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_003 end");
 }
 
 /**
@@ -3466,6 +3649,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, CheckAppProvisionType_0200, TestSize.Lev
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = false;
 
     const std::string bundleName = "";
     int32_t callerUid = BASE_USER_RANGE;
@@ -3578,6 +3762,223 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessMemoryByPid_Overflow_004, Test
     int32_t memorySize = -1;
     int32_t ret = appMgrServiceInner->GetProcessMemoryByPid(1, memorySize);
     EXPECT_EQ(ret, AAFwk::ERR_NOT_SYSTEM_APP);
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_001
+ * @tc.desc: Reject a non-system caller before querying the MDM protection policy.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_001, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.judgeCallerIsAllowed_ = false;
+    status.getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely("com.example.test", 0, 0, false, "test");
+
+    EXPECT_EQ(ret, AAFwk::ERR_NOT_SYSTEM_APP);
+    EXPECT_EQ(status.isApplicationDisableForbiddenCall_, 0);
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_002
+ * @tc.desc: Reject the request when neither process-kill permission is granted.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_002, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.verifyCallingPermission_ = false;
+    status.getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely("com.example.test", 0, 0, false, "test");
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(status.isApplicationDisableForbiddenCall_, 0);
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_003
+ * @tc.desc: Return not-initialized when the running-process manager is unavailable.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_003, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = nullptr;
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely("com.example.test", 0, 0, false, "test");
+
+    EXPECT_EQ(ret, ERR_NO_INIT);
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_004
+ * @tc.desc: Return not-initialized when the remote client manager is unavailable.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_004, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->remoteClientManager_ = nullptr;
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely("com.example.test", 0, 0, false, "test");
+
+    EXPECT_EQ(ret, ERR_NO_INIT);
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_005
+ * @tc.desc: Return not-initialized when the bundle manager helper is unavailable.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_005, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely("com.example.test", 0, 0, false, "test");
+
+    EXPECT_EQ(ret, ERR_NO_INIT);
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_006
+ * @tc.desc: Propagate a bundle manager policy-query failure without killing the process.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_006, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    status.isApplicationDisableForbiddenRet_ = ERR_INVALID_OPERATION;
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely("com.example.test", 2, 100, true, "test");
+
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    EXPECT_EQ(status.isApplicationDisableForbiddenCall_, 1);
+    EXPECT_EQ(status.processExitCall_, 0);
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_007
+ * @tc.desc: Reject a process protected by an MDM disable-forbidden policy.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_007, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    status.isApplicationDisableForbidden_ = true;
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely(
+        "com.example.protected", 3, 100, true, "test");
+
+    EXPECT_EQ(ret, AAFwk::ERR_KILL_PROCESS_MDM_PROTECTED);
+    EXPECT_EQ(status.isApplicationDisableForbiddenCall_, 1);
+    EXPECT_EQ(status.disableForbiddenBundleName_, "com.example.protected");
+    EXPECT_EQ(status.disableForbiddenUserId_, 100);
+    EXPECT_EQ(status.disableForbiddenAppIndex_, 3);
+    EXPECT_EQ(status.processExitCall_, 0);
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_008
+ * @tc.desc: Resolve the default app index and allow an unprotected target with clean-background permission.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_008, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    status.dualModeAppIndex_ = 2;
+    status.verifyCallingPermissionByName_[
+        AAFwk::PermissionConstants::PERMISSION_KILL_APP_PROCESSES] = false;
+    status.verifyCallingPermissionByName_[
+        AAFwk::PermissionConstants::PERMISSION_CLEAN_BACKGROUND_PROCESSES] = true;
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely(
+        "com.example.unprotected", 0, 0, false, "test");
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(status.getDualModeBundleInfoCall_, 1);
+    EXPECT_EQ(status.dualModeBundleName_, "com.example.unprotected");
+    EXPECT_EQ(status.dualModeUserId_, 0);
+    EXPECT_EQ(status.isApplicationDisableForbiddenCall_, 1);
+    EXPECT_EQ(status.disableForbiddenAppIndex_, 2);
+    EXPECT_EQ(status.processExitCall_, 1);
+    EXPECT_FALSE(status.processExitClearPageStack_);
+    EXPECT_TRUE(status.processExitAddKillingCaller_);
+    EXPECT_EQ(status.processExitReason_, "test");
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_009
+ * @tc.desc: Preserve an explicit app index and enter the process-exit path with kill permission.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_009, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    status.processExit_ = true;
+    status.verifyCallingPermissionByName_[
+        AAFwk::PermissionConstants::PERMISSION_KILL_APP_PROCESSES] = true;
+    status.verifyCallingPermissionByName_[
+        AAFwk::PermissionConstants::PERMISSION_CLEAN_BACKGROUND_PROCESSES] = false;
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely(
+        "com.example.unprotected", 4, 0, true, "test");
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(status.getDualModeBundleInfoCall_, 0);
+    EXPECT_EQ(status.disableForbiddenAppIndex_, 4);
+    EXPECT_EQ(status.processExitCall_, 1);
+    EXPECT_TRUE(status.processExitClearPageStack_);
+    EXPECT_TRUE(status.processExitAddKillingCaller_);
+    EXPECT_EQ(status.processExitReason_, "test");
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_010
+ * @tc.desc: Reject a cross-account request without interact-across-local-accounts permission.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_010, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.getCallingUid_ = BASE_USER_RANGE * 2;
+    status.getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    status.verifyCallingPermissionByName_[
+        AAFwk::PermissionConstants::PERMISSION_KILL_APP_PROCESSES] = true;
+    status.verifyCallingPermissionByName_[
+        AAFwk::PermissionConstants::PERMISSION_CLEAN_BACKGROUND_PROCESSES] = true;
+    status.verifyCallingPermissionByName_[
+        AAFwk::PermissionConstants::PERMISSION_INTERACT_ACROSS_LOCAL_ACCOUNTS] = false;
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely(
+        "com.example.test", 2, 987654, false, "test");
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(status.isApplicationDisableForbiddenCall_, 0);
+    EXPECT_EQ(status.processExitCall_, 0);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

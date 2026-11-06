@@ -20,6 +20,7 @@
 #include "native_ability_util.h"
 
 using namespace testing::ext;
+using namespace testing;
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
@@ -511,6 +512,347 @@ HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_ByOeExt_0100, TestSize.Level1)
     abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     EXPECT_FALSE(abilityRecord->IsByOeExt());
+}
+
+/**
+ * @tc.name: UpdatePendingStateByCall_0100
+ * @tc.desc: Background call on initial-state record should set pending state to BACKGROUND.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, UpdatePendingStateByCall_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetPendingState(), AbilityState::INITIAL);
+
+    abilityRecord->UpdatePendingStateByCall(CallToState::BACKGROUND);
+    EXPECT_EQ(abilityRecord->GetPendingState(), AbilityState::BACKGROUND);
+}
+
+/**
+ * @tc.name: UpdatePendingStateByCall_0200
+ * @tc.desc: Foreground call should set pending state to FOREGROUND regardless of current state.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, UpdatePendingStateByCall_0200, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetPendingState(AbilityState::BACKGROUND);
+
+    abilityRecord->UpdatePendingStateByCall(CallToState::FOREGROUND);
+    EXPECT_EQ(abilityRecord->GetPendingState(), AbilityState::FOREGROUND);
+}
+
+/**
+ * @tc.name: UpdatePendingStateByCall_0300
+ * @tc.desc: Background call when pending state is already FOREGROUND should keep FOREGROUND (race condition fix).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, UpdatePendingStateByCall_0300, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+
+    abilityRecord->UpdatePendingStateByCall(CallToState::BACKGROUND);
+    EXPECT_EQ(abilityRecord->GetPendingState(), AbilityState::FOREGROUND);
+}
+
+/**
+ * @tc.name: UpdatePendingStateByCall_0400
+ * @tc.desc: UNKNOW call state should set pending state to FOREGROUND (non-BACKGROUND branch).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, UpdatePendingStateByCall_0400, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetPendingState(AbilityState::BACKGROUND);
+
+    abilityRecord->UpdatePendingStateByCall(CallToState::UNKNOW);
+    EXPECT_EQ(abilityRecord->GetPendingState(), AbilityState::FOREGROUND);
+}
+
+/**
+ * @tc.name: UpdatePendingStateByCall_0500
+ * @tc.desc: Background call after foreground call should keep FOREGROUND (simulates the race condition).
+ *          StartUIAbility sets FOREGROUND, then CallUIAbilityBySCB arrives with BACKGROUND but should not override.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, UpdatePendingStateByCall_0500, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->UpdatePendingStateByCall(CallToState::BACKGROUND);
+    EXPECT_EQ(abilityRecord->GetPendingState(), AbilityState::BACKGROUND);
+
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    abilityRecord->UpdatePendingStateByCall(CallToState::BACKGROUND);
+    EXPECT_EQ(abilityRecord->GetPendingState(), AbilityState::FOREGROUND);
+}
+
+/**
+ * @tc.name: NotifyCallersOnPrelaunchTimeout_NullContainer_0100
+ * @tc.desc: NotifyCallersOnPrelaunchTimeout with null callContainer, should not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, NotifyCallersOnPrelaunchTimeout_NullContainer_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "testBundle";
+    abilityRequest.abilityInfo.name = "testAbility";
+    abilityRequest.abilityInfo.moduleName = "testModule";
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPrelaunchFlag(true);
+    EXPECT_EQ(abilityRecord->callContainer_, nullptr);
+    abilityRecord->NotifyCallersOnPrelaunchTimeout();
+}
+
+/**
+ * @tc.name: NotifyCallersOnPrelaunchTimeout_NoPrelaunch_0100
+ * @tc.desc: NotifyCallersOnPrelaunchTimeout with prelaunch flag false, should return early
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, NotifyCallersOnPrelaunchTimeout_NoPrelaunch_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "testBundle";
+    abilityRequest.abilityInfo.name = "testAbility";
+    abilityRequest.abilityInfo.moduleName = "testModule";
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    auto callContainer = std::make_shared<CallContainer>();
+    abilityRecord->callContainer_ = callContainer;
+    EXPECT_CALL(*callContainer, NotifyDisconnectOnTimeout(_)).Times(0);
+    abilityRecord->NotifyCallersOnPrelaunchTimeout();
+}
+
+/**
+ * @tc.name: NotifyCallersOnPrelaunchTimeout_0100
+ * @tc.desc: NotifyCallersOnPrelaunchTimeout with prelaunch flag true and valid callContainer
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, NotifyCallersOnPrelaunchTimeout_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "testBundle";
+    abilityRequest.abilityInfo.name = "testAbility";
+    abilityRequest.abilityInfo.moduleName = "testModule";
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPrelaunchFlag(true);
+    auto callContainer = std::make_shared<CallContainer>();
+    abilityRecord->callContainer_ = callContainer;
+    EXPECT_CALL(*callContainer, NotifyDisconnectOnTimeout(_)).Times(1);
+    abilityRecord->NotifyCallersOnPrelaunchTimeout();
+}
+/**
+ * @tc.name: TaskAttributionBookkeeping_0001
+ * @tc.desc: AddTaskAttribution ignores an exact duplicate (taskId, handle) pair.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0001, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-1", 42);
+    abilityRecord->AddTaskAttribution("task-1", 42);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(1));
+    EXPECT_EQ(attributions.front().first, "task-1");
+    EXPECT_EQ(attributions.front().second, 42);
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0002
+ * @tc.desc: Distinct (taskId, handle) pairs coexist in the bookkeeping vector.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0002, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-1", 42);
+    abilityRecord->AddTaskAttribution("task-1", 43);
+    abilityRecord->AddTaskAttribution("task-2", 42);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    EXPECT_EQ(attributions.size(), static_cast<size_t>(3));
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0003
+ * @tc.desc: Same taskId with different handles coexist in insertion order.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0003, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-1", 42);
+    abilityRecord->AddTaskAttribution("task-1", 43);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(2));
+    EXPECT_EQ(attributions[0].first, "task-1");
+    EXPECT_EQ(attributions[0].second, 42);
+    EXPECT_EQ(attributions[1].first, "task-1");
+    EXPECT_EQ(attributions[1].second, 43);
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0004
+ * @tc.desc: Same handle attributed to different taskIds coexist in insertion order.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0004, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-a", 7);
+    abilityRecord->AddTaskAttribution("task-b", 7);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(2));
+    EXPECT_EQ(attributions[0].first, "task-a");
+    EXPECT_EQ(attributions[1].first, "task-b");
+    EXPECT_EQ(attributions[0].second, 7);
+    EXPECT_EQ(attributions[1].second, 7);
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0005
+ * @tc.desc: A mixed sequence keeps content and order; only exact duplicates are ignored.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0005, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-1", 1);
+    abilityRecord->AddTaskAttribution("task-2", 2);
+    abilityRecord->AddTaskAttribution("task-1", 2);
+    abilityRecord->AddTaskAttribution("task-1", 1); // exact duplicate of the 1st
+    abilityRecord->AddTaskAttribution("task-2", 2); // exact duplicate of the 2nd
+    abilityRecord->AddTaskAttribution("task-3", 1);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(4));
+    EXPECT_EQ(attributions[0], (std::make_pair(std::string("task-1"), static_cast<int64_t>(1))));
+    EXPECT_EQ(attributions[1], (std::make_pair(std::string("task-2"), static_cast<int64_t>(2))));
+    EXPECT_EQ(attributions[2], (std::make_pair(std::string("task-1"), static_cast<int64_t>(2))));
+    EXPECT_EQ(attributions[3], (std::make_pair(std::string("task-3"), static_cast<int64_t>(1))));
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0006
+ * @tc.desc: Boundary keys and handles are bookkept verbatim (validation lives upstream).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0006, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("", 0);
+    abilityRecord->AddTaskAttribution("", -1);
+    abilityRecord->AddTaskAttribution("task-neg", -100);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(3));
+    EXPECT_EQ(attributions[0].first, "");
+    EXPECT_EQ(attributions[0].second, 0);
+    EXPECT_EQ(attributions[1].first, "");
+    EXPECT_EQ(attributions[1].second, -1);
+    EXPECT_EQ(attributions[2].first, "task-neg");
+    EXPECT_EQ(attributions[2].second, -100);
+}
+
+/**
+ * @tc.name: PendingTaskAttribution_0001
+ * @tc.desc: Parallel task stashes do not displace each other.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, PendingTaskAttribution_0001, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingTaskAttribution("task-a", 11, 21);
+    abilityRecord->SetPendingTaskAttribution("task-b", 12, 22);
+
+    const auto &pending = abilityRecord->GetPendingTaskAttributions();
+    ASSERT_EQ(pending.size(), static_cast<size_t>(2));
+    EXPECT_EQ(pending.at("task-a").callerUid, 11);
+    EXPECT_EQ(pending.at("task-a").callerPid, 21);
+    EXPECT_EQ(pending.at("task-b").callerUid, 12);
+    EXPECT_EQ(pending.at("task-b").callerPid, 22);
+}
+
+/**
+ * @tc.name: PendingTaskAttribution_0002
+ * @tc.desc: Re-stashing the same taskId keeps only the latest caller identity.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, PendingTaskAttribution_0002, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingTaskAttribution("task-a", 11, 21);
+    abilityRecord->SetPendingTaskAttribution("task-a", 12, 22);
+
+    const auto &pending = abilityRecord->GetPendingTaskAttributions();
+    ASSERT_EQ(pending.size(), static_cast<size_t>(1));
+    EXPECT_EQ(pending.at("task-a").callerUid, 12);
+    EXPECT_EQ(pending.at("task-a").callerPid, 22);
+}
+
+/**
+ * @tc.name: PendingTaskAttribution_0003
+ * @tc.desc: Clear empties the pending map; a later stash starts fresh.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, PendingTaskAttribution_0003, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_TRUE(abilityRecord->GetPendingTaskAttributions().empty());
+
+    abilityRecord->SetPendingTaskAttribution("task-a", 11, 21);
+    abilityRecord->ClearPendingTaskAttributions();
+    EXPECT_TRUE(abilityRecord->GetPendingTaskAttributions().empty());
+
+    abilityRecord->SetPendingTaskAttribution("task-b", 12, 22);
+    const auto &pending = abilityRecord->GetPendingTaskAttributions();
+    ASSERT_EQ(pending.size(), static_cast<size_t>(1));
+    EXPECT_EQ(pending.at("task-b").callerUid, 12);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,9 @@ namespace AAFwk {
 bool PermissionVerification::VerifyCallingPermission(const std::string &permissionName,
     const uint32_t specifyTokenId) const
 {
-    return AAFwk::MyStatus::GetInstance().verifyCallingPermission_;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    auto iter = status.verifyCallingPermissionByName_.find(permissionName);
+    return iter == status.verifyCallingPermissionByName_.end() ? status.verifyCallingPermission_ : iter->second;
 }
 bool PermissionVerification::IsSACall() const
 {
@@ -32,6 +34,10 @@ bool PermissionVerification::IsSACall() const
 bool PermissionVerification::IsShellCall() const
 {
     return AAFwk::MyStatus::GetInstance().isShellCall_;
+}
+bool PermissionVerification::IsLocalDebugOtherAppsCall(const uint32_t specifyTokenId, int32_t targetUserId) const
+{
+    return AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_;
 }
 bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const
 {

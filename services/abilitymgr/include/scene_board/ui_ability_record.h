@@ -16,11 +16,19 @@
 #ifndef OHOS_ABILITY_RUNTIME_UI_ABILITY_RECORD_H
 #define OHOS_ABILITY_RUNTIME_UI_ABILITY_RECORD_H
 
+#include <map>
+
 #include "ability_record.h"
 
 namespace OHOS {
 namespace AAFwk {
 class UIAbilityRecord;
+
+// Caller identity stashed for the attach-time attribution report, keyed by task id.
+struct PendingTaskAttribution {
+    int32_t callerUid = -1;
+    int32_t callerPid = -1;
+};
 using UIAbilityRecordPtr = std::shared_ptr<UIAbilityRecord>;
 
 class UIAbilityRecord : public AbilityRecord {
@@ -58,6 +66,8 @@ public:
     {
         isPrelaunch_ = isPrelaunch;
     }
+
+    void NotifyCallersOnPrelaunchTimeout();
 
     void ScheduleCollaborate(const Want &want);
 
@@ -132,6 +142,8 @@ public:
             GetNativeState() == AbilityNativeState::ON_FOREGROUND && requestId == startSelfRequestId_);
     }
 
+    void UpdatePendingStateByCall(CallToState state);
+
     inline void SetStartSelfRequestId(int32_t startSelfRequestId)
     {
         startSelfRequestId_ = startSelfRequestId;
@@ -157,6 +169,43 @@ public:
         return isByOeExt_;
     }
 
+    // (taskId, handle) pairs; duplicates ignored; released at record death.
+    // Not self-locked: guard with sessionLock_.
+    inline void AddTaskAttribution(const std::string &taskId, int64_t attributionId)
+    {
+        for (const auto &item : taskAttributions_) {
+            if (item.first == taskId && item.second == attributionId) {
+                return;
+            }
+        }
+        taskAttributions_.emplace_back(taskId, attributionId);
+    }
+
+    inline const std::vector<std::pair<std::string, int64_t>> &GetTaskAttributions() const
+    {
+        return taskAttributions_;
+    }
+
+    // Cold-start attribution contexts keyed by task id (one per task, parallel tasks
+    // do not displace each other), reported at ability-thread attach. Guard with
+    // sessionLock_.
+    inline void SetPendingTaskAttribution(const std::string &taskId, int32_t callerUid, int32_t callerPid)
+    {
+        PendingTaskAttribution &pending = pendingTaskAttributions_[taskId];
+        pending.callerUid = callerUid;
+        pending.callerPid = callerPid;
+    }
+
+    inline const std::map<std::string, PendingTaskAttribution> &GetPendingTaskAttributions() const
+    {
+        return pendingTaskAttributions_;
+    }
+
+    inline void ClearPendingTaskAttributions()
+    {
+        pendingTaskAttributions_.clear();
+    }
+
 private:
     bool exitReasonLoaded_ = false;
     bool hookOff_ = false;
@@ -168,6 +217,8 @@ private:
     std::atomic_int32_t scenarios_ = 0;
     std::shared_ptr<Want> launchWant_;
     std::shared_ptr<Want> lastWant_;
+    std::vector<std::pair<std::string, int64_t>> taskAttributions_;
+    std::map<std::string, PendingTaskAttribution> pendingTaskAttributions_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

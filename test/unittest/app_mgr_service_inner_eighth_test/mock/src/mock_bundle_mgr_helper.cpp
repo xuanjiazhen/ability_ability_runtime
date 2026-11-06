@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -312,6 +312,13 @@ ErrCode BundleMgrHelper::GetUidByBundleName(const std::string& bundleName, int32
     return ERR_OK;
 }
 
+ErrCode BundleMgrHelper::IsApplicationDisableForbidden(const std::string& bundleName, int32_t userId,
+    int32_t appIndex, bool& forbidden)
+{
+    forbidden = false;
+    return ERR_OK;
+}
+
 ErrCode BundleMgrHelper::QueryExtensionAbilityInfosOnlyWithTypeName(const std::string& extensionTypeName,
     const uint32_t flag, const int32_t userId, std::vector<ExtensionAbilityInfo>& extensionInfos)
 {
@@ -349,6 +356,13 @@ ErrCode BundleMgrHelper::QueryCloneExtensionAbilityInfoWithAppIndex(const Elemen
 ErrCode BundleMgrHelper::GetCloneAppIndexes(const std::string& bundleName,
     std::vector<int32_t>& appIndexes, int32_t userId)
 {
+    return ERR_OK;
+}
+
+ErrCode BundleMgrHelper::GetDualModeBundleInfo(const std::string& bundleName, int32_t userId,
+    int32_t& appIndex)
+{
+    appIndex = 0;
     return ERR_OK;
 }
 

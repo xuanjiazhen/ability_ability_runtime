@@ -64,10 +64,11 @@ public:
      * @param token, the unique identification to update the ability.
      * @param state, ability status that needs to be updated.
      * @param isFromScreenOffBackground Whether from screen off background.
+     * @param callerInfo The caller info including uid and bundle name.
      * @return
      */
     virtual void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-        bool isFromScreenOffBackground = false) override;
+        bool isFromScreenOffBackground = false, const UiAbilityLastCallerInfo &callerInfo = {}) override;
 
     /**
      * UpdateExtensionState, call UpdateExtensionState() through the proxy object, update the extension status.
@@ -105,6 +106,30 @@ public:
     virtual int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch) override;
 
     /**
+     * AttributeProcessForAbility, report task attribution for a warm start-ability call
+     * through proxy object.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param callerUid, the uid of the start caller (system stamped).
+     * @param callerPid, the pid of the start caller (system stamped).
+     * @param targetPid, the pid of the target process.
+     * @param attributionId, the server-assigned handle of the created attribution.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+        int32_t targetPid, int64_t &attributionId) override;
+
+    /**
+     * UnregisterTaskAttribution, remove a warm-start attribution by its handle through
+     * proxy object.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param attributionId, the handle returned by AttributeProcessForAbility.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId) override;
+
+    /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
      * kill the processes by userId.
      * Send appSpawn uninstall debug hap message.
@@ -129,6 +154,8 @@ public:
         const std::string &reason = "KillProcessesByPids", bool subProcess = false,
         bool isKillPrecedeStart = false) override;
 
+    virtual bool CheckProcessAvailable(int32_t pid) override;
+
     /**
      * Set child and parent relationship
      * @param token child process
@@ -145,6 +172,17 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillProcessWithAccount(const std::string &bundleName, const int accountId,
+        const bool clearPageStack = false, int32_t appIndex = 0) override;
+
+    /**
+     * Safely kills the processes of the specified application. If the application is protected by an MDM
+     * keep-alive configuration, the processes are not killed.
+     *
+     * @param bundleName, bundle name in Application record.
+     * @param accountId, account ID.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int32_t KillProcessWithAccountSafely(const std::string &bundleName, const int accountId,
         const bool clearPageStack = false, int32_t appIndex = 0) override;
 
     /**
@@ -174,7 +212,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillApplication(const std::string &bundleName, bool clearPageStack = false,
-        int32_t appIndex = 0, const std::string &reason = "KillApplication") override;
+        int32_t appIndex = 0, const std::string &reason = "KillApplication", int32_t userId = -1) override;
 
     /**
      * ForceKillApplication, call ForceKillApplication() through proxy object, force kill the application.
@@ -255,7 +293,8 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t NotifyAppMgrRecordExitReasonCompability(
-        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason) override;
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg,
+        int32_t reason, int32_t callerPid) override;
 
     /**
      * Ability attach timeout. If start ability encounter failure, attach timeout to terminate.

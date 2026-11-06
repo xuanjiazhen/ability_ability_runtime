@@ -50,10 +50,11 @@ int LocalCallContainer::StartAbilityByCallInner(const Want& want, std::shared_pt
     }
     localCallRecord->AddCaller(callback);
     auto remote = localCallRecord->GetRemoteObject();
-    // already finish call request.
+    // already finish call request; taskId still needs the AMS round trip for attribution.
     if (remote) {
         callback->InvokeCallBack(remote);
-        if (!want.GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false)) {
+        if (!want.GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false) &&
+            !want.HasParameter(Want::PARAM_RESV_TASK_ID)) {
             return ERR_OK;
         }
     }
@@ -501,7 +502,11 @@ void CallerConnection::OnRemoteStateChanged(const AppExecFwk::ElementName &eleme
 int32_t LocalCallContainer::GetCurrentUserId()
 {
     if (currentUserId_ == DEFAULT_INVAL_VALUE) {
-        AppExecFwk::OsAccountManagerWrapper::GetOsAccountLocalIdFromProcess(currentUserId_);
+        ErrCode err = AppExecFwk::OsAccountManagerWrapper::GetOsAccountLocalIdFromProcess(currentUserId_);
+        if (err != ERR_OK) {
+            TAG_LOGE(AAFwkTag::LOCAL_CALL, "GetOsAccountLocalIdFromProcess failed: %{public}d", err);
+            return DEFAULT_INVAL_VALUE;
+        }
     }
     TAG_LOGD(AAFwkTag::LOCAL_CALL, "currentUserId %{public}d", currentUserId_);
     return currentUserId_;
