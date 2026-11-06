@@ -159,6 +159,19 @@ bool ParseUserId(const nlohmann::json &json, int32_t &output)
     return true;
 }
 
+bool ParseVisible(const nlohmann::json &json, bool &output)
+{
+    if (!json.contains("visible")) {
+        return true;
+    }
+    if (!json["visible"].is_boolean()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid visible in JSON, must be boolean");
+        return false;
+    }
+    output = json["visible"].get<bool>();
+    return true;
+}
+
 } // namespace
 
 bool FunctionInfo::Marshalling(Parcel &parcel) const
@@ -194,6 +207,10 @@ bool FunctionInfo::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteInt32(userId)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write userId failed");
+        return false;
+    }
+    if (!parcel.WriteBool(visible)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write visible failed");
         return false;
     }
     return true;
@@ -244,6 +261,10 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Read userId failed");
         return nullptr;
     }
+    if (!parcel.ReadBool(function->visible)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Read visible failed");
+        return nullptr;
+    }
     return function.release();
 }
 
@@ -256,7 +277,8 @@ bool FunctionInfo::ParseFromJson(const nlohmann::json &json, FunctionInfo &funct
            ParseInputSchema(json, function.inputSchema) &&
            ParseOutputSchema(json, function.outputSchema) &&
            ParseFunctionType(json, function.functionType) &&
-           ParseUserId(json, function.userId);
+           ParseUserId(json, function.userId) &&
+           ParseVisible(json, function.visible);
 }
 
 nlohmann::json FunctionInfo::ParseToJson() const
@@ -282,6 +304,8 @@ nlohmann::json FunctionInfo::ParseToJson() const
     if (userId >= 0) {
         j["userId"] = userId;
     }
+
+    j["visible"] = visible;
 
     return j;
 }
@@ -316,7 +340,7 @@ bool FunctionInfo::Validate(const FunctionInfo &function)
         return false;
     }
 
-    if (!function.inputSchema.empty()) {
+    if (function.inputSchema.empty()) {
         if (function.inputSchema.size() > MAX_SCHEMA_STRING_LENGTH) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: inputSchema too long: %{public}u, max: %{public}u",
                 static_cast<uint32_t>(function.inputSchema.size()), MAX_SCHEMA_STRING_LENGTH);

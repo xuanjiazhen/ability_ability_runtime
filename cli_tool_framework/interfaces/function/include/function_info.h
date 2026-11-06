@@ -44,8 +44,15 @@ public:
     std::string outputSchema;
     FunctionType functionType;
     int32_t userId;
+    /**
+     * Controls whether this Function is visible to third-party applications.
+     * - true:  equivalent to visibility="public", third-party apps can query and invoke
+     * - false: equivalent to visibility="private", only system apps/SAs can query and invoke
+     * Default is false (deny-by-default): missing or invalid config results in not visible.
+     */
+    bool visible;
 
-    FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION), userId(-1) {}
+    FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION), userId(-1), visible(false) {}
     ~FunctionInfo() override = default;
 
     bool Marshalling(Parcel &parcel) const override;
