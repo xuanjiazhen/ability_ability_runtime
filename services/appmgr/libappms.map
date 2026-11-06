@@ -32,9 +32,6 @@
       *AppMgrService*;
       *AMSEventHandler*;
       *TaskManagerService*;
-      *TaskPriorityJudge*;
-      *SystemLoadProvider*;
-      *ProcessSchedule*;
     };
   local:
     *;
