@@ -64,6 +64,7 @@ public:
     int32_t SaveStorageInsightIntentData(const InsightIntentSaveParam &saveParam,
         ExtractInsightIntentProfileInfoVec &profileInfos, std::vector<InsightIntentInfo> &configInfos);
     int32_t SaveStorageInsightIntentDataBatch(const std::vector<InsightIntentSaveParam> &saveParams);
+    int32_t ReplaceStorageInsightIntentDataBatch(const std::vector<InsightIntentSaveParam> &saveParams);
     int32_t DeleteStorageInsightIntentData(const IntentKey &key);
     int32_t DeleteStorageInsightIntentByUserId(const int32_t userId);
     void BackupRdb();
@@ -71,6 +72,8 @@ public:
 private:
     static std::string BuildIntentKey(const IntentKey &key, uint32_t versionCode);
     static std::string BuildBundlePrefix(const IntentKey &key);
+    static int32_t BuildIntentKeyValues(const InsightIntentSaveParam &saveParam,
+        std::vector<std::pair<std::string, std::string>> &keyValues);
     void Transform(std::unordered_map<std::string, std::string> value,
         std::vector<ExtractInsightIntentInfo> &totalInfos, std::vector<InsightIntentInfo> &configInfos);
     void TransformConfigIntent(std::unordered_map<std::string, std::string> value,

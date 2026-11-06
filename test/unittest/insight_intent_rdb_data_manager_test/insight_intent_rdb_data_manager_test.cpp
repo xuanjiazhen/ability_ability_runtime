@@ -406,4 +406,45 @@ HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_1800, Func
     EXPECT_TRUE(rdbMgr->DeleteData("BATCH_KEY_1800_B"));
     EXPECT_TRUE(rdbMgr->DeleteData("BATCH_KEY_1800_C"));
 }
+
+/**
+ * @tc.number: InsightIntentRdbDataManager_1900
+ * @tc.desc: BatchReplaceData deletes the given key prefixes and inserts new rows in one transaction.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_1900, Function | SmallTest | Level1)
+{
+    auto rdbMgr = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance();
+
+    std::vector<std::string> emptyPrefixes;
+    std::vector<std::pair<std::string, std::string>> emptyKeyValues;
+    EXPECT_TRUE(rdbMgr->BatchReplaceData(emptyPrefixes, emptyKeyValues));
+
+    EXPECT_TRUE(rdbMgr->InsertData("REPLACE_1900_OLD", "OLD_VAL"));
+    EXPECT_TRUE(rdbMgr->InsertData("REPLACE_1900_KEEP", "KEEP_VAL"));
+
+    std::vector<std::string> deleteKeyPrefixes = {"REPLACE_1900_OLD"};
+    std::vector<std::pair<std::string, std::string>> keyValues = {
+        {"REPLACE_1900_NEW", "NEW_VAL"},
+        {"REPLACE_1900_NEW2", "NEW_VAL2"},
+    };
+    EXPECT_TRUE(rdbMgr->BatchReplaceData(deleteKeyPrefixes, keyValues));
+
+    std::string value;
+    EXPECT_FALSE(rdbMgr->QueryData("REPLACE_1900_OLD", value));
+    EXPECT_TRUE(rdbMgr->QueryData("REPLACE_1900_KEEP", value));
+    EXPECT_EQ(value, "KEEP_VAL");
+    EXPECT_TRUE(rdbMgr->QueryData("REPLACE_1900_NEW", value));
+    EXPECT_EQ(value, "NEW_VAL");
+    EXPECT_TRUE(rdbMgr->QueryData("REPLACE_1900_NEW2", value));
+    EXPECT_EQ(value, "NEW_VAL2");
+
+    // delete only, without any insert
+    std::vector<std::string> deleteOnlyPrefixes = {"REPLACE_1900_KEEP"};
+    EXPECT_TRUE(rdbMgr->BatchReplaceData(deleteOnlyPrefixes, emptyKeyValues));
+    EXPECT_FALSE(rdbMgr->QueryData("REPLACE_1900_KEEP", value));
+
+    EXPECT_TRUE(rdbMgr->DeleteData("REPLACE_1900_NEW"));
+    EXPECT_TRUE(rdbMgr->DeleteData("REPLACE_1900_NEW2"));
+}
 }  // namespace

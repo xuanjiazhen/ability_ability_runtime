@@ -69,6 +69,13 @@ public:
 
     bool BatchInsertData(const std::vector<std::pair<std::string, std::string>> &keyValues);
 
+    /**
+     * Replace the records of the given key prefixes with keyValues in a single transaction.
+     * The delete and the batch insert share one transaction, so either all of them take effect or none.
+     */
+    bool BatchReplaceData(const std::vector<std::string> &deleteKeyPrefixes,
+        const std::vector<std::pair<std::string, std::string>> &keyValues);
+
     bool UpdateData(const std::string &key, const std::string &value);
 
     bool DeleteData(const std::string &key);
@@ -84,7 +91,11 @@ private:
     std::shared_ptr<NativeRdb::RdbStore> GetRdbStore();
     int32_t InsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore, int64_t &rowId,
         const NativeRdb::ValuesBucket &valuesBucket);
-    int32_t BatchInsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
+    int32_t ReplaceBatchWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
+        const std::vector<std::string> &deleteKeyPrefixes,
+        const std::vector<NativeRdb::ValuesBucket> &valuesBuckets, int64_t &insertNum);
+    int32_t ExecuteReplaceInTransaction(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
+        const std::vector<std::string> &deleteKeyPrefixes,
         const std::vector<NativeRdb::ValuesBucket> &valuesBuckets, int64_t &insertNum);
     bool IsRetryErrCode(int32_t errCode);
 

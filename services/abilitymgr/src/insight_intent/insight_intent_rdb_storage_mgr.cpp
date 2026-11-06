@@ -307,42 +307,52 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const InsightIntentSa
     return ERR_OK;
 }
 
+int32_t InsightRdbStorageMgr::BuildIntentKeyValues(const InsightIntentSaveParam &saveParam,
+    std::vector<std::pair<std::string, std::string>> &keyValues)
+{
+    IntentKey intentKey{saveParam.bundleName, saveParam.moduleName, "", saveParam.userId, saveParam.appIndex};
+    for (auto profileInfo : saveParam.profileInfos.insightIntents) {
+        intentKey.intentName = profileInfo.intentName;
+        std::string key = BuildIntentKey(intentKey, saveParam.versionCode);
+        nlohmann::json jsonObject;
+        if (!ExtractInsightIntentProfile::ToJson(profileInfo, jsonObject)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{private}s", key.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        std::string value;
+        if (!SafeDump(jsonObject, value)) {
+            TAG_LOGE(AAFwkTag::INTENT, "dump error, key: %{private}s", key.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        keyValues.emplace_back(key, value);
+    }
+    for (auto configInfo : saveParam.configInfos) {
+        intentKey.intentName = configInfo.intentName;
+        std::string key = BuildIntentKey(intentKey, saveParam.versionCode);
+        nlohmann::json jsonObject;
+        configInfo.moduleName = saveParam.moduleName;
+        configInfo.bundleName = saveParam.bundleName;
+        if (!InsightIntentProfile::ToJson(configInfo, jsonObject)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{private}s", key.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        std::string value;
+        if (!SafeDump(jsonObject, value)) {
+            TAG_LOGE(AAFwkTag::INTENT, "dump error, key: %{private}s", key.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        keyValues.emplace_back(key, value);
+    }
+    return ERR_OK;
+}
+
 int32_t InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::vector<InsightIntentSaveParam> &saveParams)
 {
     std::vector<std::pair<std::string, std::string>> keyValues;
     for (const auto &saveParam : saveParams) {
-        IntentKey intentKey{saveParam.bundleName, saveParam.moduleName, "", saveParam.userId, saveParam.appIndex};
-        for (auto profileInfo : saveParam.profileInfos.insightIntents) {
-            intentKey.intentName = profileInfo.intentName;
-            std::string key = BuildIntentKey(intentKey, saveParam.versionCode);
-            nlohmann::json jsonObject;
-            if (!ExtractInsightIntentProfile::ToJson(profileInfo, jsonObject)) {
-                TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{private}s", key.c_str());
-                return ERR_INVALID_VALUE;
-            }
-            std::string value;
-            if (!SafeDump(jsonObject, value)) {
-                TAG_LOGE(AAFwkTag::INTENT, "dump error, key: %{private}s", key.c_str());
-                return ERR_INVALID_VALUE;
-            }
-            keyValues.emplace_back(key, value);
-        }
-        for (auto configInfo : saveParam.configInfos) {
-            intentKey.intentName = configInfo.intentName;
-            std::string key = BuildIntentKey(intentKey, saveParam.versionCode);
-            nlohmann::json jsonObject;
-            configInfo.moduleName = saveParam.moduleName;
-            configInfo.bundleName = saveParam.bundleName;
-            if (!InsightIntentProfile::ToJson(configInfo, jsonObject)) {
-                TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{private}s", key.c_str());
-                return ERR_INVALID_VALUE;
-            }
-            std::string value;
-            if (!SafeDump(jsonObject, value)) {
-                TAG_LOGE(AAFwkTag::INTENT, "dump error, key: %{private}s", key.c_str());
-                return ERR_INVALID_VALUE;
-            }
-            keyValues.emplace_back(key, value);
+        int32_t ret = BuildIntentKeyValues(saveParam, keyValues);
+        if (ret != ERR_OK) {
+            return ret;
         }
     }
     if (keyValues.empty()) {
@@ -351,6 +361,38 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::vecto
     std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     if (!DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->BatchInsertData(keyValues)) {
         TAG_LOGE(AAFwkTag::INTENT, "BatchInsertData error, count: %{public}zu", keyValues.size());
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+int32_t InsightRdbStorageMgr::ReplaceStorageInsightIntentDataBatch(
+    const std::vector<InsightIntentSaveParam> &saveParams)
+{
+    std::vector<std::string> deleteKeyPrefixes;
+    deleteKeyPrefixes.reserve(saveParams.size());
+    std::vector<std::pair<std::string, std::string>> keyValues;
+    for (const auto &saveParam : saveParams) {
+        IntentKey intentKey{saveParam.bundleName, saveParam.moduleName, "", saveParam.userId, saveParam.appIndex};
+        std::string prefix = BuildBundlePrefix(intentKey);
+        if (!saveParam.moduleName.empty()) {
+            prefix.append(saveParam.moduleName).append("/");
+        }
+        TAG_LOGD(AAFwkTag::INTENT, "replace intent data, delete prefix: %{private}s", prefix.c_str());
+        deleteKeyPrefixes.emplace_back(std::move(prefix));
+        int32_t ret = BuildIntentKeyValues(saveParam, keyValues);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+    }
+    if (deleteKeyPrefixes.empty() && keyValues.empty()) {
+        return ERR_OK;
+    }
+    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
+    if (!DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->BatchReplaceData(
+        deleteKeyPrefixes, keyValues)) {
+        TAG_LOGE(AAFwkTag::INTENT, "BatchReplaceData error, prefix:%{public}zu count:%{public}zu",
+            deleteKeyPrefixes.size(), keyValues.size());
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;

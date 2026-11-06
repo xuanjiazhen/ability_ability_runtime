@@ -28,6 +28,20 @@ const int32_t INTENT_VALUE_INDEX = 1;
 constexpr int32_t RETRY_TIMES = 3;
 constexpr int32_t RETRY_INTERVAL = 500; // 500ms
 constexpr int16_t WRITE_TIMEOUT = 300; // 300s
+
+std::vector<NativeRdb::ValuesBucket> BuildValuesBuckets(
+    const std::vector<std::pair<std::string, std::string>> &keyValues)
+{
+    std::vector<NativeRdb::ValuesBucket> valuesBuckets;
+    valuesBuckets.reserve(keyValues.size());
+    for (const auto &[key, value] : keyValues) {
+        NativeRdb::ValuesBucket valuesBucket;
+        valuesBucket.PutString(INTENT_KEY, key);
+        valuesBucket.PutString(INTENT_VALUE, value);
+        valuesBuckets.emplace_back(std::move(valuesBucket));
+    }
+    return valuesBuckets;
+}
 } // namespace
 
 InsightIntentRdbDataMgr::InsightIntentRdbDataMgr()
@@ -128,17 +142,9 @@ bool InsightIntentRdbDataMgr::BatchInsertData(const std::vector<std::pair<std::s
         return true;
     }
 
-    std::vector<NativeRdb::ValuesBucket> valuesBuckets;
-    valuesBuckets.reserve(keyValues.size());
-    for (const auto &[key, value] : keyValues) {
-        NativeRdb::ValuesBucket valuesBucket;
-        valuesBucket.PutString(INTENT_KEY, key);
-        valuesBucket.PutString(INTENT_VALUE, value);
-        valuesBuckets.emplace_back(std::move(valuesBucket));
-    }
-
+    auto valuesBuckets = BuildValuesBuckets(keyValues);
     int64_t insertNum = 0;
-    int32_t ret = BatchInsertWithRetry(rdbStore_, valuesBuckets, insertNum);
+    int32_t ret = ReplaceBatchWithRetry(rdbStore_, {}, valuesBuckets, insertNum);
     if (ret != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "BatchInsert error ret:%{public}d", ret);
         return false;
@@ -148,31 +154,44 @@ bool InsightIntentRdbDataMgr::BatchInsertData(const std::vector<std::pair<std::s
     return true;
 }
 
-int32_t InsightIntentRdbDataMgr::BatchInsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
+bool InsightIntentRdbDataMgr::BatchReplaceData(const std::vector<std::string> &deleteKeyPrefixes,
+    const std::vector<std::pair<std::string, std::string>> &keyValues)
+{
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    TAG_LOGD(AAFwkTag::INTENT, "BatchReplaceData start");
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
+        return false;
+    }
+
+    if (deleteKeyPrefixes.empty() && keyValues.empty()) {
+        return true;
+    }
+
+    auto valuesBuckets = BuildValuesBuckets(keyValues);
+    int64_t insertNum = 0;
+    int32_t ret = ReplaceBatchWithRetry(rdbStore_, deleteKeyPrefixes, valuesBuckets, insertNum);
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "BatchReplace error ret:%{public}d", ret);
+        return false;
+    }
+    TAG_LOGD(AAFwkTag::INTENT, "BatchReplace success, deletePrefix:%{public}zu size:%{public}zu insertNum:%{public}d",
+        deleteKeyPrefixes.size(), keyValues.size(), static_cast<int32_t>(insertNum));
+    return true;
+}
+
+int32_t InsightIntentRdbDataMgr::ReplaceBatchWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
+    const std::vector<std::string> &deleteKeyPrefixes,
     const std::vector<NativeRdb::ValuesBucket> &valuesBuckets, int64_t &insertNum)
 {
+    if (rdbStore == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null rdbStore");
+        return NativeRdb::E_ERROR;
+    }
     int32_t retryCnt = 0;
-    int32_t ret = NativeRdb::E_OK;
+    int32_t ret = NativeRdb::E_ERROR;
     do {
-        auto [errCode, transaction] = rdbStore->CreateTransaction(NativeRdb::Transaction::EXCLUSIVE);
-        if (errCode != NativeRdb::E_OK || transaction == nullptr) {
-            ret = (errCode != NativeRdb::E_OK) ? errCode : NativeRdb::E_ERROR;
-            TAG_LOGW(AAFwkTag::INTENT, "CreateTransaction failed, ret:%{public}d", ret);
-        } else {
-            auto [batchRet, count] = transaction->BatchInsert(intentRdbConfig_.tableName, valuesBuckets,
-                NativeRdb::ConflictResolution::ON_CONFLICT_REPLACE);
-            ret = batchRet;
-            insertNum = count;
-            if (batchRet == NativeRdb::E_OK) {
-                ret = transaction->Commit();
-            }
-            if (ret != NativeRdb::E_OK) {
-                transaction->Rollback();
-            }
-        }
-        if (ret == NativeRdb::E_OK) {
-            break;
-        }
+        ret = ExecuteReplaceInTransaction(rdbStore, deleteKeyPrefixes, valuesBuckets, insertNum);
         if (ret == NativeRdb::E_SQLITE_CORRUPT) {
             std::string rdbFilePath =
                 intentRdbConfig_.dbPath + std::string("/") + std::string(INTENT_BACK_UP_RDB_NAME);
@@ -181,14 +200,55 @@ int32_t InsightIntentRdbDataMgr::BatchInsertWithRetry(std::shared_ptr<NativeRdb:
                 TAG_LOGE(AAFwkTag::INTENT, "rdb restore failed ret:%{public}d", restoreRet);
                 break;
             }
-        } else if (!IsRetryErrCode(ret)) {
+            TAG_LOGW(AAFwkTag::INTENT, "rdb restored, retry replace immediately");
+            ret = ExecuteReplaceInTransaction(rdbStore, deleteKeyPrefixes, valuesBuckets, insertNum);
+        }
+        if (ret == NativeRdb::E_OK || !IsRetryErrCode(ret)) {
             break;
         }
         if (++retryCnt < RETRY_TIMES) {
+            TAG_LOGW(AAFwkTag::INTENT, "rdb replace failed, retry count: %{public}d, ret: %{public}d", retryCnt, ret);
             std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_INTERVAL));
         }
-        TAG_LOGW(AAFwkTag::INTENT, "rdb batch insert failed, retry count: %{public}d, ret: %{public}d", retryCnt, ret);
     } while (retryCnt < RETRY_TIMES);
+    return ret;
+}
+
+int32_t InsightIntentRdbDataMgr::ExecuteReplaceInTransaction(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
+    const std::vector<std::string> &deleteKeyPrefixes,
+    const std::vector<NativeRdb::ValuesBucket> &valuesBuckets, int64_t &insertNum)
+{
+    insertNum = 0;
+    auto [errCode, transaction] = rdbStore->CreateTransaction(NativeRdb::Transaction::IMMEDIATE);
+    if (errCode != NativeRdb::E_OK || transaction == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "CreateTransaction failed, ret:%{public}d", errCode);
+        return (errCode != NativeRdb::E_OK) ? errCode : NativeRdb::E_ERROR;
+    }
+    int32_t ret = NativeRdb::E_OK;
+    for (const auto &prefix : deleteKeyPrefixes) {
+        NativeRdb::AbsRdbPredicates absRdbPredicates(intentRdbConfig_.tableName);
+        absRdbPredicates.BeginsWith(INTENT_KEY, prefix);
+        auto [deleteRet, deletedRows] = transaction->Delete(absRdbPredicates);
+        if (deleteRet != NativeRdb::E_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "delete by prefix failed, ret:%{public}d", deleteRet);
+            ret = deleteRet;
+            break;
+        }
+        TAG_LOGD(AAFwkTag::INTENT, "delete by prefix done, deletedRows:%{public}d", deletedRows);
+    }
+    if (ret == NativeRdb::E_OK && !valuesBuckets.empty()) {
+        auto [batchRet, count] = transaction->BatchInsert(intentRdbConfig_.tableName, valuesBuckets,
+            NativeRdb::ConflictResolution::ON_CONFLICT_REPLACE);
+        insertNum = count;
+        ret = batchRet;
+    }
+    if (ret == NativeRdb::E_OK) {
+        ret = transaction->Commit();
+    }
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "rollback replace transaction, ret:%{public}d", ret);
+        transaction->Rollback();
+    }
     return ret;
 }
 

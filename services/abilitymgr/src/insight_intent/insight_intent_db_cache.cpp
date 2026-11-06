@@ -132,16 +132,10 @@ int32_t InsightIntentDbCache::SaveBatchInsightIntentTotalInfo(const std::vector<
             return ERR_INVALID_VALUE;
         }
     }
-    for (const auto &saveParam : saveParams) {
-        int32_t res = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->DeleteStorageInsightIntentData(
-            IntentKey{saveParam.bundleName, saveParam.moduleName, "", saveParam.userId, saveParam.appIndex});
-        if (res != ERR_OK) {
-            TAG_LOGW(AAFwkTag::INTENT, "Save before delete key error");
-            return res;
-        }
-    }
-    int32_t res = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentDataBatch(saveParams);
+    int32_t res = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->ReplaceStorageInsightIntentDataBatch(
+        saveParams);
     if (res != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "ReplaceStorageInsightIntentDataBatch error, count:%{public}zu", saveParams.size());
         return res;
     }
     {
