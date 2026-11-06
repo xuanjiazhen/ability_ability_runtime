@@ -15755,18 +15755,13 @@ int32_t AbilityManagerService::ExecuteIntentByAgent(uint64_t key, const sptr<IRe
     TAG_LOGI(AAFwkTag::INTENT, "ExecuteIntentByAgent, bundleName: %{public}s, intentName: %{public}s",
         bundleName.c_str(), intentName.c_str());
 
-    // TODO(agent): insert third-party agent authorization here (normal permission
-    // + target agentCallable declaration). For now, delegate to the function-call
-    // path to reuse matching / Want assembling / background start / result reply.
-
-    // Pre-register the execution record (with the caller/target identity) BEFORE
-    // requesting the privacy-center (隐私中心) consent popup. This way, when the user
-    // confirms the popup, the record is already queryable via IsInsightIntentCall to
-    // verify that this popup is indeed for an insight-intent (agent) invocation.
-    int32_t callerAppIndex = 0;
-    std::string callerBundleName = InsightIntentGetcallerBundleNameAndIndex(callerAppIndex);
-    int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
-    int32_t targetAppIndex = InsightIntentGetTargetAppIndex(bundleName, callerUserId);
+    // Step 1: agent authorization (skeleton stub; real permission + agentCallable
+    // declaration check is owned by the agent domain).
+    int32_t ret = VerifyAgentCallPermission();
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "agent authorization failed: %{public}d", ret);
+        return ret;
+    }
 
     auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
     if (executeManager == nullptr) {
@@ -15774,25 +15769,47 @@ int32_t AbilityManagerService::ExecuteIntentByAgent(uint64_t key, const sptr<IRe
         return ERR_INVALID_VALUE;
     }
 
+    // Step 2: capture caller/target identity and pre-register the record in
+    // PENDING_CONSENT, so it is already queryable via IsInsightIntentCall while the
+    // consent dialog is showing (the privacy-center verifies the invocation by
+    // querying back through IPC 6190 before trusting the dialog content).
+    int32_t callerAppIndex = 0;
+    std::string callerBundleName = InsightIntentGetcallerBundleNameAndIndex(callerAppIndex);
+    int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    int32_t targetAppIndex = InsightIntentGetTargetAppIndex(bundleName, callerUserId);
+
     uint64_t intentId = 0;
     ExecuteParam execParam;
     execParam.callerBundleName = callerBundleName;
     execParam.callerAppIndex = callerAppIndex;
     execParam.targetAppIndex = targetAppIndex;
-    int32_t ret = executeManager->RegisterExecuteRecord(key, callerToken, bundleName, execParam, intentId);
+    ret = executeManager->RegisterExecuteRecord(key, callerToken, bundleName, execParam, intentId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "RegisterExecuteRecord failed: %{public}d", ret);
         return ret;
     }
+    TAG_LOGI(AAFwkTag::INTENT, "agent call pre-registered, intentId: %{public}" PRIu64 ", "
+        "caller: %{public}s/%{public}d, target: %{public}s/%{public}d", intentId, callerBundleName.c_str(),
+        callerAppIndex, bundleName.c_str(), targetAppIndex);
 
-    ret = RequestAgentPrivacyDialog(callerBundleName, callerAppIndex, bundleName, targetAppIndex, intentId,
-        callerToken);
-    if (ret != ERR_OK) {
-        // Consent denied (or the pre-registered record was not queryable) -> abort
-        // and drop the pre-registered record so it is not left as a stale entry.
-        TAG_LOGE(AAFwkTag::INTENT, "RequestAgentPrivacyDialog failed, ret: %{public}d", ret);
+    // Step 3: request the consent dialog synchronously; this call covers the dialog
+    // showing time. Denied (or the record no longer queryable): drop the record and
+    // report the failure through the IPC return value.
+    bool granted = RequestAgentPrivacyDialog(callerBundleName, callerAppIndex, bundleName, targetAppIndex,
+        intentId);
+    if (!granted) {
+        TAG_LOGW(AAFwkTag::INTENT, "agent consent not granted, intentId: %{public}" PRIu64, intentId);
         executeManager->RemoveExecuteIntent(intentId);
-        return ret;
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    // Step 4: consent granted -- CAS PENDING_CONSENT -> EXECUTING. Losing the CAS
+    // means the caller died while the dialog was showing (REMOTE_DIED): drop and fail.
+    if (executeManager->UpdateRecordState(intentId, InsightIntentExecuteState::PENDING_CONSENT,
+        InsightIntentExecuteState::EXECUTING) != ERR_OK) {
+        TAG_LOGW(AAFwkTag::INTENT, "record no longer pending consent, intentId: %{public}" PRIu64, intentId);
+        executeManager->RemoveExecuteIntent(intentId);
+        return ERR_INVALID_OPERATION;
     }
 
     ret = ExecuteIntentByFunctionCallWithId(key, callerToken, bundleName, intentName, wantParam, intentId);
@@ -15804,33 +15821,33 @@ int32_t AbilityManagerService::ExecuteIntentByAgent(uint64_t key, const sptr<IRe
     return ret;
 }
 
-int32_t AbilityManagerService::RequestAgentPrivacyDialog(const std::string &callerBundleName, int32_t callerAppIndex,
-    const std::string &targetBundleName, int32_t targetBundleIndex, uint64_t intentId,
-    const sptr<IRemoteObject> &callerToken)
+bool AbilityManagerService::RequestAgentPrivacyDialog(const std::string &callerBundleName, int32_t callerAppIndex,
+    const std::string &targetBundleName, int32_t targetBundleIndex, uint64_t intentId)
 {
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::INTENT, "request privacy-center popup, intentId: %{public}" PRIu64 ", "
         "caller: %{public}s/%{public}d, target: %{public}s/%{public}d", intentId, callerBundleName.c_str(),
         callerAppIndex, targetBundleName.c_str(), targetBundleIndex);
 
-    // The execution record must have been pre-registered (AddRecord) before this
-    // popup, so the privacy-center can query IsInsightIntentCall(intentId) and get
-    // true while the popup is showing. Guard that sequencing here: the record has
-    // to be live before we may even show the consent dialog.
+    // The record must have been pre-registered before the popup, so the privacy-center
+    // can query IsInsightIntentCall(intentId) and get true while the dialog is showing.
     auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
     if (executeManager == nullptr || !executeManager->IsInsightIntentCall(intentId)) {
         TAG_LOGE(AAFwkTag::INTENT, "pre-registered record not queryable, intentId: %{public}" PRIu64, intentId);
-        return ERR_INVALID_VALUE;
+        return false;
     }
 
-    // TODO(agent): trigger the privacy-center consent dialog (reuse RequestDialogService
-    // / ams_system_dialog permissionConfirmDialog). The dialog confirms "is this an
-    // insight-intent call" by querying back through the public IPC interface
-    // IsInsightIntentCall(intentId) (opcode 6190, system-app/SA only) and gets true,
-    // thanks to the record pre-registered above. Execution proceeds only after the
-    // user grants consent: return ERR_OK here to continue, or an error code to abort
-    // (the caller then removes the pre-registered record).
-    (void)callerToken;
+    // TODO(agent): replace this mock with the real privacy-center consent dialog
+    // (RequestDialogService / ams_system_dialog), implemented by the privacy-center
+    // domain. The mock grants consent to keep the synchronous link testable end to
+    // end; flip it to false to verify the deny path.
+    return true;
+}
+
+int32_t AbilityManagerService::VerifyAgentCallPermission()
+{
+    // TODO(agent): real authorization (normal permission + target agentCallable
+    // declaration) is implemented by the agent domain; the skeleton lets every call
+    // through so the downstream flow stays testable.
     return ERR_OK;
 }
 
