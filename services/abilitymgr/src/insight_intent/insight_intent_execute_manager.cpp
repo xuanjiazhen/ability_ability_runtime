@@ -172,10 +172,19 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     if (specifiedIntentId != 0) {
         // Reuse a pre-registered record (agent path registers it before showing the
         // privacy-center consent popup). Skip AddRecord to avoid a duplicate/orphan
-        // record, but still validate the id maps to a live execute record.
-        if (!IsInsightIntentCall(specifiedIntentId)) {
-            TAG_LOGE(AAFwkTag::INTENT, "specified intentId not found: %{public}" PRIu64, specifiedIntentId);
-            return ERR_INVALID_VALUE;
+        // record, but validate ownership first: the id must map to a live record of
+        // the same target bundle in EXECUTING state, otherwise any caller could attach
+        // its execution to a foreign or still-pending-consent record.
+        {
+            std::lock_guard<ffrt::mutex> lock(mutex_);
+            auto it = records_.find(specifiedIntentId);
+            bool usable = it != records_.end() && it->second != nullptr &&
+                it->second->state == InsightIntentExecuteState::EXECUTING &&
+                it->second->bundleName == param->bundleName_;
+            if (!usable) {
+                TAG_LOGE(AAFwkTag::INTENT, "specified intentId not usable: %{public}" PRIu64, specifiedIntentId);
+                return ERR_INVALID_VALUE;
+            }
         }
         param->insightIntentId_ = specifiedIntentId;
         return ERR_OK;
@@ -193,7 +202,11 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
 int32_t InsightIntentExecuteManager::RegisterExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const std::string &bundleName, const ExecuteParam &execParam, uint64_t &intentId)
 {
-    return AddRecord(key, callerToken, bundleName, intentId, execParam);
+    // Park the record in PENDING_CONSENT: it becomes queryable for the privacy-center
+    // consent dialog immediately, but cannot be consumed by the execute path until
+    // the consent result moves it to EXECUTING (UpdateRecordState).
+    return AddRecord(key, callerToken, bundleName, intentId, execParam, "",
+        InsightIntentExecuteState::PENDING_CONSENT);
 }
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode executeMode, int32_t userId,
@@ -277,13 +290,14 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
 }
 
 int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, uint64_t &intentId, const ExecuteParam &execParam, const std::string &taskId)
+    const std::string &bundleName, uint64_t &intentId, const ExecuteParam &execParam, const std::string &taskId,
+    InsightIntentExecuteState initialState)
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
     intentId = ++intentIdCount_;
     auto record = std::make_shared<InsightIntentExecuteRecord>();
     record->key = key;
-    record->state = InsightIntentExecuteState::EXECUTING;
+    record->state = initialState;
     record->callerToken = callerToken;
     record->bundleName = bundleName;
     record->callerBundleName = execParam.callerBundleName;
@@ -510,7 +524,34 @@ bool InsightIntentExecuteManager::IsInsightIntentCall(uint64_t intentId) const
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
     auto it = records_.find(intentId);
-    return it != records_.end() && it->second != nullptr;
+    if (it == records_.end() || it->second == nullptr) {
+        return false;
+    }
+    // Only a live invocation counts: a record waiting for user consent (agent path,
+    // queryable by the privacy-center popup) or one actively executing. Stale
+    // EXECUTE_DONE / REMOTE_DIED entries must not validate anything.
+    auto state = it->second->state;
+    return state == InsightIntentExecuteState::PENDING_CONSENT ||
+        state == InsightIntentExecuteState::EXECUTING;
+}
+
+int32_t InsightIntentExecuteManager::UpdateRecordState(uint64_t intentId, InsightIntentExecuteState expected,
+    InsightIntentExecuteState next)
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto it = records_.find(intentId);
+    if (it == records_.end() || it->second == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "record not found, intentId: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    if (it->second->state != expected) {
+        TAG_LOGW(AAFwkTag::INTENT, "state mismatch, intentId: %{public}" PRIu64
+            ", expect: %{public}d, actual: %{public}d", intentId, static_cast<int>(expected),
+            static_cast<int>(it->second->state));
+        return ERR_INVALID_OPERATION;
+    }
+    it->second->state = next;
+    return ERR_OK;
 }
 
 int32_t InsightIntentExecuteManager::AddWantUirsAndFlagsFromParam(
