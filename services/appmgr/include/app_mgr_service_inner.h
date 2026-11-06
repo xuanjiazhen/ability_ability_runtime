@@ -41,6 +41,7 @@
 #include "app_mgr_event.h"
 #include "app_query_helper.h"
 #include "hyper_snap_error_record.h"
+#include "snapshot_debug_info.h"
 #include "app_preloader.h"
 #include "app_record_id.h"
 #include "app_refresh_recipient.h"
@@ -477,6 +478,55 @@ public:
      * @return ERR_OK if call succeeded (whether error exists or not), ERR_INVALID_VALUE on parameter error.
      */
     int32_t GetHyperSnapLastError(HyperSnapErrorType errType, HyperSnapErrorRecord& record);
+
+    /**
+     * aa debug command: make a snapshot of the debug-signed application.
+     * Debug gate first (ERR_NOT_DEBUG_APP on non-debug target), then forward
+     * the command to RSS with an acceptance-level reply.
+     *
+     * @param bundleName Bundle name of the debug-signed application.
+     * @param abilityName Ability to make a snapshot of.
+     * @param debugReportOnly True to only report invalidation without invalidating.
+     * @param perfCmd Perf command to launch hiperf for stack recording; empty means not to launch.
+     * @return Returns ERR_OK on accepted, ERR_NOT_DEBUG_APP on non-debug target,
+     *         others on failure.
+     */
+    int32_t DebugCreateSnapshot(const std::string &bundleName, const std::string &abilityName,
+        bool debugReportOnly, const std::string &perfCmd);
+
+    /**
+     * aa debug command: delete the snapshot of the debug-signed application.
+     * Debug gate first, then local pre-check via FindImageInfo/FindImageInfoByPid
+     * (ERR_IMAGE_INFO_NOT_EXIST when the target snapshot does not exist), then
+     * forward the command to RSS with an acceptance-level reply.
+     *
+     * @param bundleName Bundle name of the debug-signed application; takes
+     *        precedence over pid when not empty.
+     * @param pid Template/image process id of the snapshot; used only when
+     *        bundleName is empty.
+     * @return Returns ERR_OK on accepted, ERR_NOT_DEBUG_APP on non-debug target,
+     *         ERR_IMAGE_INFO_NOT_EXIST when the snapshot does not exist, others on failure.
+     */
+    int32_t DebugDestroySnapshot(const std::string &bundleName, int32_t pid);
+
+    /**
+     * aa debug command: query the debug snapshot information from RSS.
+     *
+     * @param bundleName Bundle name to filter; empty means no filter. A non-empty
+     *        bundle which is not debug-signed returns ERR_NOT_DEBUG_APP.
+     * @param info Output, the snapshot overview mirrored from the RSS reply.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t DebugListSnapshot(const std::string &bundleName, SnapshotDebugInfo &info);
+
+    /**
+     * Find the image info whose template or image process id matches the given
+     * pid, used by the debug destroy command (-p mode) to resolve the target.
+     *
+     * @param pid Template or image process id from the list-snapshot output.
+     * @return Returns the matched image info, nullptr when not found.
+     */
+    std::shared_ptr<ForkImageInfo> FindImageInfoByPid(int32_t pid);
 
     /**
      * KillApplicationSelf, this allows app to terminate itself.
@@ -2600,7 +2650,8 @@ private:
     void SnapshotErrorReport(int32_t uid, const std::string &bundleName, const std::string &appVersionName,
         int32_t result, const std::string &reason);
 
-    void MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord, std::string bundleName);
+    void MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord, std::string bundleName,
+        bool debugReportOnly = false);
     void UnMarkTemplateProcess(int32_t templatePid);
 
     std::shared_ptr<RemoteClientManager> remoteClientManager_;

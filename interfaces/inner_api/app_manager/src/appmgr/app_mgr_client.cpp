@@ -1797,6 +1797,52 @@ int32_t AppMgrClient::GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecor
     return service->GetHyperSnapLastError(errType, record);
 }
 
+int32_t AppMgrClient::DebugCreateSnapshot(const std::string &bundleName, const std::string &abilityName,
+    bool debugReportOnly, const std::string &perfCmd)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DebugCreateSnapshot called");
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder_ is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_READY;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->DebugCreateSnapshot(bundleName, abilityName, debugReportOnly, perfCmd);
+}
+
+int32_t AppMgrClient::DebugDestroySnapshot(const std::string &bundleName, int32_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DebugDestroySnapshot called");
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder_ is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_READY;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->DebugDestroySnapshot(bundleName, pid);
+}
+
+int32_t AppMgrClient::DebugListSnapshot(const std::string &bundleName, SnapshotDebugInfo &info)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DebugListSnapshot called");
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder_ is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_READY;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->DebugListSnapshot(bundleName, info);
+}
+
 int32_t AppMgrClient::GetSelfUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
