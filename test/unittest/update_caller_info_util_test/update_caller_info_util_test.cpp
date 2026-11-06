@@ -23,6 +23,7 @@
 #include "dialog_session_manager.h"
 #undef private
 #undef protected
+#include "insight_intent_execute_param.h"
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "string_wrapper.h"
@@ -38,6 +39,9 @@ namespace AAFwk {
 constexpr const char *CALLER_REQUEST_CODE = "ohos.extra.param.key.callerRequestCode";
 constexpr const char *DMS_CALLER_BUNDLE_NAME = "ohos.dms.param.sourceCallerBundleName";
 const std::string HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
+// Same literal as update_caller_info_util.cpp's anonymous-namespace INTENT_USER_ID
+// (AbilityRuntime::INTENT_USER_ID), duplicated here for test assertions.
+constexpr const char *INTENT_USER_ID = "ohos.insightIntent.userId";
 
 class UpdateCallerInfoUtilTest : public testing::Test {
 public:
@@ -866,6 +870,153 @@ HWTEST_F(UpdateCallerInfoUtilTest, CacheRestoreTaskId_0004, TestSize.Level1)
     Want scbWant; // no key on the round trip either
     updateCallerUtil.RestoreCallerInfoToWant(scbWant, info);
     EXPECT_FALSE(scbWant.HasParameter("ohos.aafwk.param.agent.taskId"));
+}
+
+/**
+ * @tc.name: CacheInsightIntentParams_0002
+ * @tc.desc: Missing INSIGHT_INTENT_EXECUTE_PARAM_ID means it is not judged as an intent execute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, CacheInsightIntentParams_0002, TestSize.Level1)
+{
+    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
+    Want want;
+    want.SetElementName("", "com.test.target", "TestAbility", "entry");
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, std::string("PlayMusic"));
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, 20000001);
+
+    AbilitySessionInfo info;
+    updateCallerUtil.CacheCallerInfoFromWant(want, info);
+    EXPECT_FALSE(info.hasInsightIntent);
+}
+
+/**
+ * @tc.name: CacheInsightIntentParams_0003
+ * @tc.desc: A non-numeric intent id is tolerated and treated as not an intent execute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, CacheInsightIntentParams_0003, TestSize.Level1)
+{
+    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
+    Want want;
+    want.SetElementName("", "com.test.target", "TestAbility", "entry");
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("not-a-number"));
+
+    AbilitySessionInfo info;
+    updateCallerUtil.CacheCallerInfoFromWant(want, info);
+    EXPECT_FALSE(info.hasInsightIntent);
+}
+
+/**
+ * @tc.name: CacheInsightIntentParams_0004
+ * @tc.desc: A parsable intent id without a matching record is not an intent execute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, CacheInsightIntentParams_0004, TestSize.Level1)
+{
+    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
+    Want want;
+    want.SetElementName("", "com.test.target", "TestAbility", "entry");
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("99999999"));
+
+    AbilitySessionInfo info;
+    updateCallerUtil.CacheCallerInfoFromWant(want, info);
+    EXPECT_FALSE(info.hasInsightIntent);
+}
+
+/**
+ * @tc.name: RestoreInsightIntentParams_0002
+ * @tc.desc: A non-intent start strips every injected identity param from the SCB-returned want.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, RestoreInsightIntentParams_0002, TestSize.Level1)
+{
+    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
+    Want originalWant;
+    originalWant.SetElementName("", "com.test.target", "TestAbility", "entry");
+
+    AbilitySessionInfo info;
+    updateCallerUtil.CacheCallerInfoFromWant(originalWant, info);
+    ASSERT_FALSE(info.hasInsightIntent);
+
+    // SCB-returned want injected every identity param.
+    Want scbWant;
+    scbWant.SetElementName("", "com.test.target", "TestAbility", "entry");
+    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, std::string("forged"));
+    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("42"));
+    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, 1);
+    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG, 1);
+    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME, std::string("com.forged.caller"));
+    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID, std::string("forged-token"));
+    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, 20000001);
+    scbWant.SetParam(INTENT_USER_ID, 100);
+    scbWant.SetParam(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID, 200);
+
+    updateCallerUtil.RestoreCallerInfoToWant(scbWant, info);
+    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME));
+    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID));
+    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE));
+    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG));
+    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME));
+    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID));
+    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_UID));
+    EXPECT_FALSE(scbWant.HasParameter(INTENT_USER_ID));
+    EXPECT_FALSE(scbWant.HasParameter(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID));
+}
+
+/**
+ * @tc.name: RemoveIntentIdentityParams_0001
+ * @tc.desc: Removes all nine identity keys while leaving unrelated params untouched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, RemoveIntentIdentityParams_0001, TestSize.Level1)
+{
+    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
+    Want want;
+    want.SetElementName("", "com.test.target", "TestAbility", "entry");
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, std::string("PlayMusic"));
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("42"));
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, 1);
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG, 1);
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME, std::string("com.test.caller"));
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID, std::string("token"));
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, 20000001);
+    want.SetParam(INTENT_USER_ID, 100);
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID, 200);
+    want.SetParam("ohos.aafwk.param.taskId", std::string("task-1"));
+
+    updateCallerUtil.RemoveIntentIdentityParams(want);
+    EXPECT_FALSE(want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME));
+    EXPECT_FALSE(want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID));
+    EXPECT_FALSE(want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE));
+    EXPECT_FALSE(want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG));
+    EXPECT_FALSE(want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME));
+    EXPECT_FALSE(want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID));
+    EXPECT_FALSE(want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_UID));
+    EXPECT_FALSE(want.HasParameter(INTENT_USER_ID));
+    EXPECT_FALSE(want.HasParameter(AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID));
+    EXPECT_TRUE(want.HasParameter("ohos.aafwk.param.taskId"));
+}
+
+/**
+ * @tc.name: RemoveIntentIdentityParams_0002
+ * @tc.desc: Partial injection and an empty want are handled without side effects.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, RemoveIntentIdentityParams_0002, TestSize.Level1)
+{
+    auto& updateCallerUtil = UpdateCallerInfoUtil::GetInstance();
+
+    Want want;
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("42"));
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_UID, 20000001);
+    updateCallerUtil.RemoveIntentIdentityParams(want);
+    EXPECT_FALSE(want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID));
+    EXPECT_FALSE(want.HasParameter(AppExecFwk::INSIGHT_INTENT_CALLER_UID));
+
+    Want emptyWant;
+    updateCallerUtil.RemoveIntentIdentityParams(emptyWant);
+    EXPECT_FALSE(emptyWant.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID));
 }
 } // namespace AAFwk
 } // namespace OHOS
