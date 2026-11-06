@@ -43,6 +43,9 @@ const std::string HELP_MSG = "usage: aa <command> <options>\n"
     "  detach                      detach application to exit debug mode\n"
     "  send-memory-level           send memory level to application by pid \n"
     "  pre-start                   prestart ability with options \n"
+    "  create-snapshot             make a snapshot of a debug application\n"
+    "  destroy-snapshot            delete the snapshot of a debug application\n"
+    "  list-snapshot               list snapshot info of debug applications\n"
 #ifdef ABILITY_COMMAND_FOR_TEST
     "  test                        start the test framework with options\n"
     "  ApplicationNotResponding     Pass in pid with options\n"
@@ -152,6 +155,32 @@ const std::string HELP_MSG_PRESTART =
     "Optional:\n"
     "  -h, --help              Show this help message\n";
 
+const std::string HELP_MSG_CREATE_SNAPSHOT =
+    "Usage: aa create-snapshot -b <BUNDLE-NAME> -a <ABILITY-NAME> [-dr] [-p <PERF-CMD>]\n"
+    "Mandatory Options:\n"
+    "  -b, --bundle <BUNDLE-NAME>      Bundle name of the debug application\n"
+    "  -a, --ability <ABILITY-NAME>    Ability name to make a snapshot of\n\n"
+    "Optional:\n"
+    "  -h, --help                      Show this help message\n"
+    "  -dr                             Only report invalidation without invalidating\n"
+    "                                  the snapshot (debug mode only)\n"
+    "  -p, --perf <PERF-CMD>           Perf command used to launch hiperf for stack\n"
+    "                                  recording\n";
+
+const std::string HELP_MSG_DESTROY_SNAPSHOT =
+    "Usage: aa destroy-snapshot -b <BUNDLE-NAME> | -p <PID>\n"
+    "Mandatory Options (choose one):\n"
+    "  -b, --bundle <BUNDLE-NAME>      Bundle name of the debug application\n"
+    "  -p, --pid <PID>                 Process id of the snapshot\n\n"
+    "Optional:\n"
+    "  -h, --help                      Show this help message\n";
+
+const std::string HELP_MSG_LIST_SNAPSHOT =
+    "Usage: aa list-snapshot [-b <BUNDLE-NAME>]\n"
+    "Optional:\n"
+    "  -h, --help                      Show this help message\n"
+    "  -b, --bundle <BUNDLE-NAME>      Bundle name to filter; empty means no filter\n";
+
 const std::string HELP_MSG_ATTACH_APP_DEBUG =
     "usage: aa attach <options>\n"
     "options list:\n"
@@ -204,6 +233,15 @@ const std::string STRING_SEND_MEMORY_LEVEL_NG = "error: failed to send memory le
 
 const std::string STRING_PRESTART_OK = "prestart successfully.";
 const std::string STRING_PRESTART_NG = "error: failed to prestart.";
+
+const std::string STRING_CREATE_SNAPSHOT_OK = "create snapshot accepted.";
+const std::string STRING_CREATE_SNAPSHOT_NG = "error: failed to create snapshot.";
+
+const std::string STRING_DESTROY_SNAPSHOT_OK = "destroy snapshot accepted.";
+const std::string STRING_DESTROY_SNAPSHOT_NG = "error: failed to destroy snapshot.";
+
+const std::string STRING_LIST_SNAPSHOT_OK = "list snapshot successfully.";
+const std::string STRING_LIST_SNAPSHOT_NG = "error: failed to list snapshot.";
 
 const std::string STRING_START_USER_TEST_NG = "error: failed to start user test.";
 const std::string STRING_USER_TEST_STARTED = "user test started.";
@@ -270,6 +308,13 @@ private:
     ErrCode RunAsDetachDebugCommand();
     ErrCode RunAsSendMemoryLevelCommand();
     ErrCode RunAsPreStartCommand();
+    ErrCode RunAsCreateSnapshotCommand();
+    ErrCode RunAsDestroySnapshotCommand();
+    ErrCode RunAsListSnapshotCommand();
+    ErrCode ParseCreateSnapshotOptions(std::string &bundleName, std::string &abilityName,
+        bool &debugReportOnly, std::string &perfCmd);
+    ErrCode ParseDestroySnapshotOptions(std::string &bundleName, std::string &pidParse);
+    ErrCode ParseListSnapshotOptions(std::string &bundleName);
     ErrCode ParsePreStartOptions(int32_t& mode, std::string& bundleName, int32_t& userId);
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
     bool IsLongStartOption(const std::string &argv);

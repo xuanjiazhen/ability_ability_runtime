@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 struct AbilityInfo;
+struct SnapshotDebugInfo;
 }
 namespace AAFwk {
 namespace {
@@ -57,6 +58,11 @@ public:
         const AbilityInfo &abilityInfo, int64_t resSchedType, int32_t callerUid, int32_t callerPid);
     void ReportEventToRSS(const int32_t uid, const std::string &bundleName, const std::string &reason,
         const int32_t pid = -1, const int32_t callerPid = -1, bool isCreateFromImage = false);
+    int32_t ReportCreateSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
+        bool debugReportOnly, const std::string &perfCmd, int32_t &errcode);
+    int32_t ReportDestroySnapshotCmdToRSS(const std::string &bundleName, int32_t pid, int32_t &errcode);
+    int32_t ReportListSnapshotCmdToRSS(const std::string &bundleName,
+        AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode);
     void ReportUIExtensionProcColdStartToRss(
         int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName, const std::string& bundleName,
         const std::string& abilityName, const std::string& moduleName, bool isPreloadUIExtension);
