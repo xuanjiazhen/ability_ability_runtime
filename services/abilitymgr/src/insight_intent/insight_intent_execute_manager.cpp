@@ -149,12 +149,23 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, const ExecuteParam &execParam,
     uint64_t specifiedIntentId)
 {
+    // Orchestrator: permission -> validation -> record acquisition, in that order.
     std::string targetBundleName = (param != nullptr) ? param->bundleName_ : "";
     int32_t result = CheckCallerPermission(execParam.specifiedFullTokenId, execParam.callerBundleName,
         targetBundleName);
     if (result != ERR_OK) {
         return result;
     }
+    result = ValidateExecuteParam(callerToken, execParam, param);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return AcquireExecuteRecord(key, callerToken, param, execParam, specifiedIntentId);
+}
+
+int32_t InsightIntentExecuteManager::ValidateExecuteParam(const sptr<IRemoteObject> &callerToken,
+    const ExecuteParam &execParam, const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param) const
+{
     if (!execParam.isDistributed && callerToken == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null callerToken");
         return ERR_INVALID_VALUE;
@@ -169,6 +180,13 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
         TAG_LOGE(AAFwkTag::INTENT, "invalid param");
         return ERR_INVALID_VALUE;
     }
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::AcquireExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
+    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
+    const ExecuteParam &execParam, uint64_t specifiedIntentId)
+{
     if (specifiedIntentId != 0) {
         // Reuse a pre-registered record (agent path registers it before showing the
         // privacy-center consent popup). Skip AddRecord to avoid a duplicate/orphan
@@ -190,7 +208,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
         return ERR_OK;
     }
     uint64_t intentId = 0;
-    result = AddRecord(key, callerToken, param->bundleName_, intentId, execParam, param->taskId_);
+    int32_t result = AddRecord(key, callerToken, param->bundleName_, intentId, execParam, param->taskId_);
     if (result != ERR_OK) {
         return result;
     }
