@@ -41,6 +41,7 @@
 #include "iacquire_share_data_callback_interface.h"
 #include "insight_intent/insight_intent_execute_param.h"
 #include "insight_intent/insight_intent_execute_lite_param.h"
+#include "insight_intent/insight_intent_agent_call_param.h"
 #include "insight_intent/insight_intent_execute_result.h"
 #include "skill/skill_execute_param.h"
 #include "skill/skill_execute_result.h"
@@ -99,6 +100,7 @@ using KeepAliveInfo = AbilityRuntime::KeepAliveInfo;
 using AutoStartupInfo = AbilityRuntime::AutoStartupInfo;
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
 using InsightIntentExecuteLiteParam = AppExecFwk::InsightIntentExecuteLiteParam;
+using InsightIntentAgentCallParam = AppExecFwk::InsightIntentAgentCallParam;
 using InsightIntentExecuteResult = AppExecFwk::InsightIntentExecuteResult;
 using InsightIntentQueryParam = AppExecFwk::InsightIntentQueryParam;
 using SkillExecuteParam = AppExecFwk::SkillExecuteParam;
@@ -2106,31 +2108,30 @@ public:
      * OnExecuteDone callback registered under the given key); a denied consent or a
      * launch failure returns an error code directly.
      *
-     * @param key The callback key for result notification.
-     * @param callerToken The caller token.
-     * @param bundleName The target bundle name.
-     * @param intentName The insight intent name.
-     * @param wantParam The execution arguments.
+     * @param param The agent invoke parameters (callback key, caller token, target
+     *              bundle, intent name and execution arguments).
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t ExecuteIntentByAgent(uint64_t key, const sptr<IRemoteObject> &callerToken,
-        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
+    virtual int32_t ExecuteIntentByAgent(const InsightIntentAgentCallParam &param)
     {
         return 0;
     }
 
     /**
-     * @brief Query whether the given intent id belongs to an insight intent call.
+     * @brief Query whether the given intent id belongs to an insight intent call
+     *        owned by the specified caller token id.
      *
-     * An intent id is allocated by InsightIntentExecuteManager for every insight
-     * intent execution (function/page/entry invocation). This interface tells the
-     * caller whether the intent id maps to a live insight intent execute record.
-     * Only system applications / SA are allowed to query.
+     * The record must be live AND its originating caller token must match
+     * callerTokenId. Used by the privacy-center consent path to verify that the
+     * queried intent id was indeed originated by the given caller. Only system
+     * applications / SA are allowed to query.
      *
      * @param intentId The insight intent execute id to query.
-     * @return Returns true if the intent id belongs to an insight intent call.
+     * @param callerTokenId The caller access token id that must own the record.
+     * @return Returns true if the intent id belongs to an insight intent call
+     *         owned by callerTokenId.
      */
-    virtual bool IsInsightIntentCall(uint64_t intentId)
+    virtual bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId)
     {
         return false;
     }
