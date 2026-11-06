@@ -2233,7 +2233,7 @@ int32_t AppMgrClient::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecF
     return service->GetAllAbilityInfos(pid, infos);
 }
 
-int32_t AppMgrClient::StartTask(const std::string &taskId, int32_t priority)
+int32_t AppMgrClient::StartTask(const std::string &taskId)
 {
     if (mgrHolder_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
@@ -2244,7 +2244,7 @@ int32_t AppMgrClient::StartTask(const std::string &taskId, int32_t priority)
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return service->StartTask(taskId, priority);
+    return service->StartTask(taskId);
 }
 
 int32_t AppMgrClient::FinishTask(const std::string &taskId)

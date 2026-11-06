@@ -3340,7 +3340,7 @@ void AppMgrProxy::CancelDelayedExitTask(int32_t pid)
     PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::CANCEL_DELAYED_EXIT_TASK, data, reply, option);
 }
 
-int32_t AppMgrProxy::StartTask(const std::string &taskId, int32_t priority)
+int32_t AppMgrProxy::StartTask(const std::string &taskId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -3352,7 +3352,6 @@ int32_t AppMgrProxy::StartTask(const std::string &taskId, int32_t priority)
     }
 
     PARCEL_UTIL_WRITE_RET_INT(data, String16, Str8ToStr16(taskId));
-    PARCEL_UTIL_WRITE_RET_INT(data, Int32, priority);
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::START_TASK, data, reply, option);
     return reply.ReadInt32();
 }
