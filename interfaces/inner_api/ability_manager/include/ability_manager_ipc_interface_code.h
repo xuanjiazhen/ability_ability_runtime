@@ -812,6 +812,9 @@ enum class AbilityManagerInterfaceCode {
 
     // get dynamic agent cards (API-source) from the old KV store for migration
     GET_DYNAMIC_AGENT_CARDS_FOR_MIGRATION = 6188,
+
+    // kill collaborator process
+    KILL_COLLABORATOR_PROCESS = 6189,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
