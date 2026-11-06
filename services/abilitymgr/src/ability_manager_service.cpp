@@ -3692,6 +3692,8 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         uiAbilityManager->RemoveAbilitySessionInfo(sessionInfo->requestId);
     }
     // Restore cached caller info to want so SCB-returned IPC values don't override the originals.
+    // The intent/skill execute params were already stripped at the stub boundary (SanitizeWantParams),
+    // so no snapshot simply leaves the want as stripped.
     if (hasCachedInfo) {
         UpdateCallerInfoUtil::GetInstance().RestoreCallerInfoToWant(sessionInfo->want, abilitySessionInfo);
     }
@@ -18525,6 +18527,7 @@ ErrCode AbilityManagerService::IntentOpenLinkInner(const std::shared_ptr<AppExec
         want.SetParam(APP_LINKING_ONLY, false);
     }
     want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, param->insightIntentName_);
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(param->insightIntentId_));
     want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG, 1);
     if (!want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
         want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
