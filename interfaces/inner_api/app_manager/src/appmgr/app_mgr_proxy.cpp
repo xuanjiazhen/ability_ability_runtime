@@ -1966,7 +1966,7 @@ int32_t AppMgrProxy::GetRunningProcessInformation(
     return reply.ReadInt32();
 }
 
-int32_t AppMgrProxy::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
+int32_t AppMgrProxy::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid, bool ipcPrio)
 {
     if (AAFwk::AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::APPMGR, "forbid start: ChangeAppGcState");
@@ -1979,7 +1979,7 @@ int32_t AppMgrProxy::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
         return ERR_FLATTEN_OBJECT;
     }
-    MessageOption option(MessageOption::TF_ASYNC);
+    MessageOption option(ipcPrio ？ MessageOption::TF_ASYNC_FORCE_TRANS : MessageOption::TF_ASYNC);
     if (!data.WriteInt32(pid)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Pid write failed.");
         return ERR_FLATTEN_OBJECT;
@@ -1990,6 +1990,10 @@ int32_t AppMgrProxy::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
     }
     if (!data.WriteUint64(tid)) {
         TAG_LOGE(AAFwkTag::APPMGR, "tid write failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteBool(ipcPrio)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ipcPrio write failed.");
         return ERR_FLATTEN_OBJECT;
     }
 

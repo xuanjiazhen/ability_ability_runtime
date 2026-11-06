@@ -995,7 +995,7 @@ void AppRunningRecord::SetProcessType(ProcessType processType)
     processType_ = processType;
 }
 
-int32_t AppRunningRecord::ChangeAppGcState(int32_t state, uint64_t tid)
+int32_t AppRunningRecord::ChangeAppGcState(int32_t state, uint64_t tid, bool ipcPrio)
 {
     return AAFwk::MyStatus::GetInstance().changeAppGcState_;
 }

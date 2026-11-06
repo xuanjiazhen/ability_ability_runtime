@@ -146,6 +146,18 @@ DISCONNECT_SERVICE_ERROR:
   MODULE_NAME: {type: STRING, desc: module name}
   ABILITY_NAME: {type: STRING, desc: ability name}
 
+CONNECT_WITH_INVALID_CALLER:
+  __BASE: {type: FAULT, level: MINOR, tag: ability, desc: connect ability with invalid caller context}
+  USER_ID: {type: INT32, desc: userId}
+  BUNDLE_NAME: {type: STRING, desc: target bundle name}
+  MODULE_NAME: {type: STRING, desc: target module name}
+  ABILITY_NAME: {type: STRING, desc: target ability name}
+  CALLER_BUNDLE_NAME: {type: STRING, desc: caller bundle name}
+  CALLER_PROCESS_NAME: {type: STRING, desc: caller process name}
+  CALLER_PROCESS_ID: {type: INT32, desc: caller process id}
+  CALLER_UID: {type: INT32, desc: caller uid}
+  ERR_REASON: {type: STRING, desc: error reason}
+
 UI_EXTENSION_ERROR:
   __BASE: {type: FAULT, level: CRITICAL, tag: ability, desc: ui extension error}
   USER_ID: {type: INT32, desc: userId}
