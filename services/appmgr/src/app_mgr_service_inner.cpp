@@ -1144,14 +1144,14 @@ ImageError AppMgrServiceInner::HandleForkAllInner(std::shared_ptr<AppRunningReco
         " pid:%{public}d, imagePid:%{public}d", appRecord->GetProcessName().c_str(), errCode, pid, imagePid);
     if (errCode != ERR_OK || imagePid <= 0) {
         auto imageError = GetCheckpointRestoreError(pid, imageInfo->imageName);
-        SaveHyperSnapError(appRecord->GetUid(), HyperSnapErrorType::CREATE_SNAPSHOT, 
+        SaveHyperSnapError(appRecord->GetUid(), HyperSnapErrorType::CREATE_SNAPSHOT,
             ConvertImageErrorToHyperSnapCode(imageError));
 
         if (errCode == EBUSY) {
             return ImageError::ERR_FORKALL_BUSY;
         } else {
             return ImageError::ERR_FORKALL_FAILED;
-        }  
+        }
     }
     appRecord->SetMakeImageState(MakeImageState::MAKE_IMAGE_FINISH);
     UpdateImageInfo(imagePid, checkpointId, appRecord);
@@ -1402,7 +1402,7 @@ std::shared_ptr<ForkImageInfo> AppMgrServiceInner::GetImageInfo(std::shared_ptr<
     if (appRecord == nullptr) {
         return nullptr;
     }
-    return GetImageInfo(appRecord->GetBundleName(), appRecord->GetPreloadAbilityName(), 
+    return GetImageInfo(appRecord->GetBundleName(), appRecord->GetPreloadAbilityName(),
         appRecord->GetUserId(), appRecord->GetAppIndex());
 }
 
@@ -3804,8 +3804,12 @@ int32_t AppMgrServiceInner::NotifyUninstallOrUpgradeApp(const std::string &bundl
 {
     TAG_LOGD(AAFwkTag::APPMGR,
         "bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
-    std::unique_lock lock(startProcessLock_);
+    if (!isUpgrade) {
+        GetLaunchServiceManager()->UnregisterLaunchServicesByUid(uid);
+    }
+    GetLaunchServiceManager()->HandleLaunchServiceUninstallOrUpgrade(bundleName, uid, isUpgrade);
     std::string killReason = isUpgrade ? "UpgradeApp" : "UninstallApp";
+    std::unique_lock lock(startProcessLock_);
     InsertUninstallOrUpgradeUidSet(uid);
     auto ret = KillApplicationByUid(bundleName, uid, killReason);
     DestroyImageForUninstallOrUpgrade(uid);
@@ -3817,6 +3821,7 @@ void AppMgrServiceInner::NotifyUninstallOrUpgradeAppEnd(int32_t uid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "uid: %{public}d", uid);
     RemoveUninstallOrUpgradeUidSet(uid);
+    GetLaunchServiceManager()->HandleLaunchServiceUpgradeEnd(uid);
 }
 
 int32_t AppMgrServiceInner::UpdateProcessMemoryState(const std::vector<ProcessMemoryState> &procMemState)
@@ -12791,6 +12796,11 @@ int32_t AppMgrServiceInner::ExitMasterProcessRole()
     return ERR_OK;
 }
 
+void AppMgrServiceInner::OnLaunchServiceProcessExited(pid_t pid)
+{
+    GetLaunchServiceManager()->HandleLaunchServiceProcessDied(pid);
+}
+
 void AppMgrServiceInner::OnProcessDied(std::shared_ptr<AppRunningRecord> appRecord)
 {
     if (appRunningManager_ == nullptr) {
@@ -13364,5 +13374,71 @@ void AppMgrServiceInner::ClearHyperSnapError(int32_t uid)
     forkFromSnapshotErrorMap_.erase(uid);
 }
 
+std::shared_ptr<LaunchServiceManager> AppMgrServiceInner::GetLaunchServiceManager()
+{
+    std::lock_guard<std::mutex> lock(launchServiceManagerMutex_);
+    if (launchServiceManager_ == nullptr) {
+        launchServiceManager_ = std::make_shared<LaunchServiceManager>(weak_from_this());
+    }
+    return launchServiceManager_;
+}
+
+int32_t AppMgrServiceInner::RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    return GetLaunchServiceManager()->RegisterDaemon(descriptor, callerUid);
+}
+
+int32_t AppMgrServiceInner::UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    return GetLaunchServiceManager()->UnregisterDaemon(descriptor, callerUid);
+}
+
+int32_t AppMgrServiceInner::StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    return GetLaunchServiceManager()->StartDaemon(descriptor, callerUid);
+}
+
+int32_t AppMgrServiceInner::StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
+{
+    return GetLaunchServiceManager()->StopDaemon(descriptor, callerUid);
+}
+
+int32_t AppMgrServiceInner::GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+    AbilityRuntime::LaunchServiceInformation &information, int32_t callerUid)
+{
+    return GetLaunchServiceManager()->GetLaunchServiceInformation(descriptor, information, callerUid);
+}
+
+int32_t AppMgrServiceInner::GetAllLaunchServiceInformations(
+    std::vector<AbilityRuntime::LaunchServiceInformation> &informations, int32_t userId, int32_t callerUserId)
+{
+    return GetLaunchServiceManager()->GetAllLaunchServiceInformations(informations, userId, callerUserId);
+}
+
+int32_t AppMgrServiceInner::SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    const std::vector<uint8_t> &token, bool enable, int32_t callerUserId)
+{
+    return GetLaunchServiceManager()->SetDaemonEnable(bundleName, userId, appIndex, token, enable, callerUserId);
+}
+
+void AppMgrServiceInner::StartLaunchServicesAfterBoot()
+{
+    std::call_once(launchServicesBootFlag_, [this]() {
+        GetLaunchServiceManager()->StartLaunchServices(
+            "", Constants::ALL_USERID, Constants::INITIAL_APP_INDEX, true);
+    });
+}
+
+int32_t AppMgrServiceInner::RegisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer, int32_t callerUid)
+{
+    return GetLaunchServiceManager()->RegisterLaunchServiceObserver(observer, callerUid);
+}
+
+int32_t AppMgrServiceInner::UnregisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
+{
+    return GetLaunchServiceManager()->UnregisterLaunchServiceObserver(observer);
+}
 } // namespace AppExecFwk
 }  // namespace OHOS

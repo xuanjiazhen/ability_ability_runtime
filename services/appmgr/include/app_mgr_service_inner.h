@@ -20,6 +20,7 @@
 #include <map>
 #include <mutex>
 #include <regex>
+#include <shared_mutex>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -61,6 +62,7 @@
 #endif // SUPPORT_CHILD_PROCESS
 #include "configuration_policy.h"
 #include "cpp/mutex.h"
+#include "daemon_service_info.h"
 #include "event_report.h"
 #include "exit_resident_process_manager.h"
 #include "fault_data.h"
@@ -78,6 +80,8 @@
 #include "istart_specified_ability_response.h"
 #include "kia_interceptor_interface.h"
 #include "kill_process_config.h"
+#include "launch_service_info.h"
+#include "launch_service_observer.h"
 #include "process_memory_state.h"
 #include "process_options.h"
 #include "process_util.h"
@@ -127,6 +131,8 @@ inline int32_t GetUserIdByUid(int32_t uid)
 // for child process isolation
 constexpr int32_t START_ID_FOR_CHILD_PROCESS_ISOLATION = 110000;
 constexpr int32_t END_ID_FOR_CHILD_PROCESS_ISOLATION = 119999;
+
+class LaunchServiceManager;
 
 class AppMgrServiceInner : public std::enable_shared_from_this<AppMgrServiceInner> {
 public:
@@ -1168,6 +1174,8 @@ public:
      */
     void OnRenderProcessExited(pid_t pid);
 
+    void OnLaunchServiceProcessExited(pid_t pid);
+
     int VerifyKillProcessPermission(const sptr<IRemoteObject> &token) const;
 
     int VerifyAccountPermission(const std::string &permissionName, const int userId) const;
@@ -1938,6 +1946,23 @@ public:
     
     void CancelDelayedExitTask(int32_t pid);
 
+    int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
+    int32_t GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+        AbilityRuntime::LaunchServiceInformation &information, int32_t callerUid);
+    int32_t GetAllLaunchServiceInformations(std::vector<AbilityRuntime::LaunchServiceInformation> &informations,
+        int32_t userId, int32_t callerUserId);
+    int32_t SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        const std::vector<uint8_t> &token, bool enable, int32_t callerUserId);
+    void StartLaunchServicesAfterBoot();
+
+    int32_t RegisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer, int32_t callerUid);
+    int32_t UnregisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer);
+
     int32_t CheckAppProvisionType(
         const std::string &bundleName, int32_t callerUid, int32_t appCloneIndex, int32_t userId);
     
@@ -2585,6 +2610,8 @@ private:
     void SetKeepAliveAppServiceAndNotify(const std::shared_ptr<AppRunningRecord>& appRecord, bool enable);
     bool GetKeepAliveState(const std::shared_ptr<AppRunningRecord> &appRecord);
     void OnProcessDied(std::shared_ptr<AppRunningRecord> appRecord);
+    friend class LaunchServiceManager;
+    std::shared_ptr<LaunchServiceManager> GetLaunchServiceManager();
     bool IsBlockedByDisposeRules(const std::string &bundleName, int32_t userId,
         int32_t appIndex);
     int32_t PreCheckStartProcess(const std::string &bundleName, int32_t uid, int32_t appIndex);
@@ -2673,6 +2700,9 @@ private:
     std::unordered_set<int32_t> renderProcessIsolationUidSet_;
     std::unordered_set<int32_t> childProcessIsolationUidSet_;
     std::unordered_set<int32_t> uninstallOrUpgradeUidSet_ {};
+    std::mutex launchServiceManagerMutex_;
+    std::once_flag launchServicesBootFlag_;
+    std::shared_ptr<LaunchServiceManager> launchServiceManager_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
 
     std::vector<AppStateCallbackWithUserId> appStateCallbacks_;
