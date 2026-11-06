@@ -818,6 +818,10 @@ enum class AbilityManagerInterfaceCode {
 
     // query whether the given intent id belongs to an insight intent call
     IS_INSIGHT_INTENT_CALL = 6190,
+
+    // query whether the given intent id belongs to an insight intent call owned by
+    // the specified caller token id (privacy-center ownership verification)
+    IS_INSIGHT_INTENT_CALL_WITH_CALLER = 6191,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

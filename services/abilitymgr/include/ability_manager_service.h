@@ -2265,6 +2265,8 @@ public:
 
     bool IsInsightIntentCall(uint64_t intentId) override;
 
+    bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId) override;
+
     /**
      * @brief Reserved hook to obtain user consent for a third-party agent function
      *        invocation. Synchronous seam: returns true (user grants consent) or

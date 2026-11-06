@@ -444,6 +444,9 @@ int AbilityManagerStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::IS_INSIGHT_INTENT_CALL) {
         return IsInsightIntentCallInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::IS_INSIGHT_INTENT_CALL_WITH_CALLER) {
+        return IsInsightIntentCallWithCallerInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_WITH_SPECIFY_TOKEN_ID) {
         return ExecuteUIAbilityForegroundIntentWithSpecifyTokenIdInner(data, reply);
     }
@@ -4705,6 +4708,18 @@ int32_t AbilityManagerStub::IsInsightIntentCallInner(MessageParcel &data, Messag
 {
     uint64_t intentId = data.ReadUint64();
     bool result = IsInsightIntentCall(intentId);
+    if (!reply.WriteBool(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::IsInsightIntentCallWithCallerInner(MessageParcel &data, MessageParcel &reply)
+{
+    uint64_t intentId = data.ReadUint64();
+    uint32_t callerTokenId = data.ReadUint32();
+    bool result = IsInsightIntentCall(intentId, callerTokenId);
     if (!reply.WriteBool(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;

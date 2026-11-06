@@ -2136,6 +2136,26 @@ public:
     }
 
     /**
+     * @brief Query whether the given intent id belongs to an insight intent call
+     *        owned by the specified caller token id.
+     *
+     * Stronger variant of IsInsightIntentCall(intentId): the record must be live
+     * AND its originating caller token must match callerTokenId. Used by the
+     * privacy-center consent path to verify that the queried intent id was indeed
+     * originated by the given caller. Only system applications / SA are allowed
+     * to query.
+     *
+     * @param intentId The insight intent execute id to query.
+     * @param callerTokenId The caller access token id that must own the record.
+     * @return Returns true if the intent id belongs to an insight intent call
+     *         owned by callerTokenId.
+     */
+    virtual bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId)
+    {
+        return false;
+    }
+
+    /**
      * @brief Execute UIAbility foreground intent with specified token id.
      * @param want The info of the target ability and custom parameters.
      * @param callerAbilityToken The caller ability token.
