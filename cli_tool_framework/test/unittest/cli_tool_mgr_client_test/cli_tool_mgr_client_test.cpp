@@ -675,6 +675,56 @@ HWTEST_F(CliToolMGRClientTest, FunctionInterfaces_0300, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetPublicFunctions_001
+ * @tc.desc: Test GetPublicFunctions success path
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, GetPublicFunctions_001, TestSize.Level1)
+{
+    SetMockService();
+
+    FunctionInfo func;
+    func.functionName = "public_func";
+    func.functionNamespace = "public_ns";
+    func.userId = 0;
+    func.visible = true;
+    CliToolMgrClientFlag::functionInfos.clear();
+    CliToolMgrClientFlag::functionInfos.push_back(func);
+
+    std::vector<FunctionInfo> functions;
+    EXPECT_EQ(CliToolMGRClient::GetInstance().GetPublicFunctions(functions), ERR_OK);
+    ASSERT_EQ(functions.size(), 1u);
+    EXPECT_EQ(functions[0].functionName, "public_func");
+}
+
+/**
+ * @tc.name: GetPublicFunctions_002
+ * @tc.desc: Test GetPublicFunctions error path
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, GetPublicFunctions_002, TestSize.Level1)
+{
+    SetMockService();
+    CliToolMgrClientFlag::retGetPublicFunctions = ERR_INVALID_VALUE;
+
+    std::vector<FunctionInfo> functions;
+    EXPECT_EQ(CliToolMGRClient::GetInstance().GetPublicFunctions(functions), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetPublicFunctions_003
+ * @tc.desc: Test GetPublicFunctions with null proxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, GetPublicFunctions_003, TestSize.Level1)
+{
+    CliToolMgrClientFlag::nullSystemAbility = true;
+
+    std::vector<FunctionInfo> functions;
+    EXPECT_EQ(CliToolMGRClient::GetInstance().GetPublicFunctions(functions), GET_CLI_TOOL_MGR_SERVICE_FAILED);
+}
+
+/**
  * @tc.name: UnregisterFunction_0100
  * @tc.desc: Test unregister function success path
  * @tc.type: FUNC

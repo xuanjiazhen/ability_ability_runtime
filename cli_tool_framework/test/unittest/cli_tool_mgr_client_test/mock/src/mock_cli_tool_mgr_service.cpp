@@ -25,6 +25,7 @@ int32_t CliToolMgrClientFlag::retResetNamespaceFunctionsAsync = ERR_OK;
 int32_t CliToolMgrClientFlag::retGetFunctionInfo = ERR_OK;
 int32_t CliToolMgrClientFlag::retUnregisterFunction = ERR_OK;
 int32_t CliToolMgrClientFlag::retGetAllFunctions = ERR_OK;
+int32_t CliToolMgrClientFlag::retGetPublicFunctions = ERR_OK;
 int32_t CliToolMgrClientFlag::retExecTool = ERR_OK;
 int32_t CliToolMgrClientFlag::retExecCmd = ERR_OK;
 int32_t CliToolMgrClientFlag::retSubscribeSession = ERR_OK;
@@ -77,6 +78,7 @@ void CliToolMgrClientFlag::Reset()
     retGetFunctionInfo = ERR_OK;
     retUnregisterFunction = ERR_OK;
     retGetAllFunctions = ERR_OK;
+    retGetPublicFunctions = ERR_OK;
     retExecTool = ERR_OK;
     retExecCmd = ERR_OK;
     retSubscribeSession = ERR_OK;
@@ -196,6 +198,12 @@ int32_t MockCliToolMgrService::GetAllFunctions(FunctionsRawData &functions)
 {
     FunctionsRawData::FromFunctionInfoVec(CliToolMgrClientFlag::functionInfos, functions);
     return CliToolMgrClientFlag::retGetAllFunctions;
+}
+
+int32_t MockCliToolMgrService::GetPublicFunctions(FunctionsRawData &functions)
+{
+    FunctionsRawData::FromFunctionInfoVec(CliToolMgrClientFlag::functionInfos, functions);
+    return CliToolMgrClientFlag::retGetPublicFunctions;
 }
 
 int32_t MockCliToolMgrService::BatchRegisterFunctionsAsync(const FunctionsRawData &functions)
