@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <dlfcn.h>
+#include <mutex>
 
 #include "hilog_tag_wrapper.h"
 
@@ -27,10 +28,15 @@ constexpr const char *ETS_ANI_LIBNAME = "libability_child_process_manager_ani_ki
 constexpr const char *ETS_ANI_CREATE_FUNC = "OHOS_ETS_Child_Process_Create";
 using CreateETSChildProcessFunc = ChildProcess*(*)(const std::unique_ptr<Runtime>&);
 CreateETSChildProcessFunc g_etsCreateFunc = nullptr;
+std::mutex g_etsCreateMutex;
 }
 
 ChildProcess *CreateETSChildProcess(const std::unique_ptr<Runtime> &runtime)
 {
+    if (g_etsCreateFunc != nullptr) {
+        return g_etsCreateFunc(runtime);
+    }
+    std::lock_guard<std::mutex> lock(g_etsCreateMutex);
     if (g_etsCreateFunc != nullptr) {
         return g_etsCreateFunc(runtime);
     }
