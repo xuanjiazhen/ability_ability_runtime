@@ -136,6 +136,7 @@
 #include "uri_utils.h"
 #include "user_controller/user_controller.h"
 #include "utils/agent_ability_util.h"
+#include "agent_extension/agent_card_migration_helper.h"
 #include "utils/agent_caller_identity_util.h"
 #include "utils/ability_permission_util.h"
 #include "utils/dump_utils.h"
@@ -220,6 +221,7 @@ constexpr size_t OFFSET = 32;
 constexpr int32_t PENG_LAI_UID = 7655;
 constexpr int32_t TASKMGR_UID = 7005;
 constexpr int32_t RSS_UID = 1096;
+constexpr int32_t ERECT_SAFE_UID = 8088;
 constexpr int64_t MIN_EXTEND_TIME = 30 * 1000 * 1000; // 30s in microseconds
 constexpr int64_t MAX_EXTEND_TIME = 4LL * 60 * 60 * 1000 * 1000; // 4h in microseconds
 constexpr const char* IS_DELEGATOR_CALL = "isDelegatorCall";
@@ -1173,7 +1175,7 @@ int AbilityManagerService::StartAbilityByUIContentSession(const Want &want, cons
 }
 
 int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
-    uint32_t specifyTokenId)
+    uint32_t specifyTokenId, int32_t userId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
@@ -1213,6 +1215,7 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
         .callerToken = callerToken,
         .specifyTokenId = specifyTokenId,
         .isUIAbilityOnly = true,
+        .userId = userId,
     };
     int32_t ret = StartAbilityInner(startAbilityWrapParam);
     if (ret != ERR_OK) {
@@ -16472,6 +16475,17 @@ int32_t AbilityManagerService::UnregisterWillInsightIntentExecuteCallback()
         ->UnregisterWillInsightIntentExecuteCallback(pid);
 }
 
+int32_t AbilityManagerService::GetDynamicAgentCardsForMigration(std::string &jsonStr)
+{
+    constexpr const char *SUBFOUNDATION_PROCESS_NAME = "subfoundation";
+    if (!PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        SUBFOUNDATION_PROCESS_NAME)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "non-subfoundation caller, denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+    return AgentCardMigrationHelper::GetInstance().GetDynamicAgentCardsAsJson(jsonStr);
+}
+
 int32_t AbilityManagerService::QuerySkillType(const std::string &bundleName, const std::string &moduleName,
     const std::string &skillName, int32_t &skillType)
 {
@@ -16579,7 +16593,7 @@ void AbilityManagerService::NotifyStartResidentProcess(std::vector<AppExecFwk::B
     std::vector<AppExecFwk::BundleInfo> bundleInfosForU0;
     std::map<int32_t, std::vector<AppExecFwk::BundleInfo>> bundleInfosMap;
     for (const auto &item: bundleInfos) {
-        auto user = item.uid / BASE_USER_RANGE;
+        auto user = item.appUid / BASE_USER_RANGE;
         if (user == U0_USER_ID) {
             bundleInfosForU0.push_back(item);
         } else if (AbilityRuntime::UserController::GetInstance().IsForegroundUser(user)) {
@@ -16623,11 +16637,11 @@ void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::
     std::map<int32_t, std::vector<AppExecFwk::BundleInfo>> bundleInfosMap;
     std::vector<AppExecFwk::BundleInfo> bundleInfosForU1;
     for (const auto &item: bundleInfos) {
-        if (KeepAliveProcessManager::GetInstance().KeepAliveIsRestartAfterUpdate(item.uid)) {
-            TAG_LOGI(AAFwkTag::APPMGR, "KeepAliveIsRestartAfterUpdate uid: %{public}d", item.uid);
+        if (KeepAliveProcessManager::GetInstance().KeepAliveIsRestartAfterUpdate(item.appUid)) {
+            TAG_LOGI(AAFwkTag::APPMGR, "KeepAliveIsRestartAfterUpdate uid: %{public}d", item.appUid);
             return;
         }
-        auto user = item.uid / BASE_USER_RANGE;
+        auto user = item.appUid / BASE_USER_RANGE;
         if (user == U1_USER_ID) {
             bundleInfosForU1.push_back(item);
         } else if (AbilityRuntime::UserController::GetInstance().IsForegroundUser(user)) {
@@ -16641,7 +16655,7 @@ void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::
             }
         } else {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "keepAlive not U1 or current user.");
-            KeepAliveProcessManager::GetInstance().AddNeedRestartKeepAliveUid(item.uid);
+            KeepAliveProcessManager::GetInstance().AddNeedRestartKeepAliveUid(item.appUid);
         }
     }
     if (diedPid != AppExecFwk::INVALID_DIED_PID) {
@@ -19712,7 +19726,8 @@ std::shared_ptr<AbilityInterceptorExecuter> AbilityManagerService::GetAbilityInt
 int32_t AbilityManagerService::RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call RegisterSaInterceptor, callingPid:%{public}d", IPCSkeleton::GetCallingPid());
-    if (IPCSkeleton::GetCallingAppUid() != PENG_LAI_UID && IPCSkeleton::GetCallingAppUid() != TASKMGR_UID) {
+    auto callingUid = IPCSkeleton::GetCallingAppUid();
+    if (callingUid != PENG_LAI_UID && callingUid != TASKMGR_UID && callingUid != ERECT_SAFE_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission call");
         return CHECK_PERMISSION_FAILED;
     }

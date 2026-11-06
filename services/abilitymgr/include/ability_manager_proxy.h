@@ -337,7 +337,8 @@ public:
     virtual int StartAbilityOnlyUIAbility(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
-        uint32_t specifyTokenId) override;
+        uint32_t specifyTokenId,
+        int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     /**
      * Start extension ability with want, send want to ability manager service.
@@ -2265,6 +2266,8 @@ private:
     bool UpdateAssociateConfigInner(const std::map<std::string, std::list<std::string>>& configs,
         MessageParcel& data);
     bool ExtendMaxIpcCapacityForWant(const Want &want, MessageParcel &data);
+
+    virtual int32_t GetDynamicAgentCardsForMigration(std::string &jsonStr) override;
 
 private:
     static inline BrokerDelegator<AbilityManagerProxy> delegator_;

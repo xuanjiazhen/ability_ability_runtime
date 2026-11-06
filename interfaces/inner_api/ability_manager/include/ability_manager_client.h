@@ -573,7 +573,8 @@ public:
     ErrCode StartAbilityOnlyUIAbility(
         const Want &want,
         sptr<IRemoteObject> callerToken,
-        uint32_t specifyTokenId);
+        uint32_t specifyTokenId,
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
      * Start a UIAbility and receive an asynchronous result callback. IMPORTANT: the callback is
@@ -3199,6 +3200,8 @@ public:
     ErrCode RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback);
 
     ErrCode UnregisterWillInsightIntentExecuteCallback();
+
+    ErrCode GetDynamicAgentCardsForMigration(std::string &jsonStr);
 
     /**
      * @brief Query the type of a configured skill (e.g. UI ability vs service

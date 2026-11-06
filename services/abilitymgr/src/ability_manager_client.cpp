@@ -359,7 +359,7 @@ ErrCode AbilityManagerClient::StartAbilityByUIContentSession(const Want &want, s
 }
 
 ErrCode AbilityManagerClient::StartAbilityOnlyUIAbility(const Want &want, sptr<IRemoteObject> callerToken,
-    uint32_t specifyTokenId)
+    uint32_t specifyTokenId, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
@@ -367,7 +367,7 @@ ErrCode AbilityManagerClient::StartAbilityOnlyUIAbility(const Want &want, sptr<I
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s",
         want.GetElement().GetAbilityName().c_str());
     HandleDlpApp(const_cast<Want &>(want));
-    return abms->StartAbilityOnlyUIAbility(want, callerToken, specifyTokenId);
+    return abms->StartAbilityOnlyUIAbility(want, callerToken, specifyTokenId, userId);
 }
 
 ErrCode AbilityManagerClient::StartUIAbilityWithCallback(const Want &want, sptr<IRemoteObject> callerToken,
@@ -2888,6 +2888,13 @@ ErrCode AbilityManagerClient::UnregisterWillInsightIntentExecuteCallback()
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->UnregisterWillInsightIntentExecuteCallback();
+}
+
+ErrCode AbilityManagerClient::GetDynamicAgentCardsForMigration(std::string &jsonStr)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetDynamicAgentCardsForMigration(jsonStr);
 }
 
 ErrCode AbilityManagerClient::QuerySkillType(const std::string &bundleName, const std::string &moduleName,

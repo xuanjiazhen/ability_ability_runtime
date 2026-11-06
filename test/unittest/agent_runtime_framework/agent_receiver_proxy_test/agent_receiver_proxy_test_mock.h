@@ -17,16 +17,16 @@
 #define UNITTEST_OHOS_AGENT_RUNTIME_AGENT_RECEIVER_PROXY_TEST_MOCK_H
 
 #include <gmock/gmock.h>
-#include <iremote_object.h>
+#include <ipc_object_stub.h>
 #include <iremote_proxy.h>
 #include "ipc_types.h"
 
 namespace OHOS {
 namespace AgentRuntime {
 
-class MockRemoteObject : public IRemoteObject {
+class MockRemoteObject : public IPCObjectStub {
 public:
-    MockRemoteObject() : IRemoteObject(u"mock_descriptor") {}
+    MockRemoteObject() : IPCObjectStub(u"mock_descriptor") {}
     virtual ~MockRemoteObject() = default;
 
     int32_t GetObjectRefCount() override
@@ -39,7 +39,7 @@ public:
 
     bool IsProxyObject() const override
     {
-        return true;
+        return false;
     }
 
     bool CheckObjectLegality() const override

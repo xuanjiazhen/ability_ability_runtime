@@ -856,7 +856,7 @@ int AbilityManagerProxy::StartAbilityByUIContentSession(const Want &want, const 
 }
 
 int AbilityManagerProxy::StartAbilityOnlyUIAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
-    uint32_t specifyTokenId)
+    uint32_t specifyTokenId, int32_t userId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
@@ -885,6 +885,11 @@ int AbilityManagerProxy::StartAbilityOnlyUIAbility(const Want &want, const sptr<
 
     if (!data.WriteUint32(specifyTokenId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "specifyTokenId write fail");
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
         return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
 
@@ -8795,6 +8800,27 @@ int32_t AbilityManagerProxy::StartSandboxCloneAbility(const Want &want, const Sa
     }
 
     return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::GetDynamicAgentCardsForMigration(std::string &jsonStr)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::GET_DYNAMIC_AGENT_CARDS_FOR_MIGRATION, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "send request error:%{public}d", ret);
+        return ret;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == ERR_OK) {
+        jsonStr = reply.ReadString();
+    }
+    return result;
 }
 } // namespace AAFwk
 } // namespace OHOS

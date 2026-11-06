@@ -486,7 +486,8 @@ public:
     virtual int StartAbilityOnlyUIAbility(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
-        uint32_t specifyTokenId)
+        uint32_t specifyTokenId,
+        int32_t userId = DEFAULT_INVAL_VALUE)
     {
         return 0;
     }
@@ -2994,6 +2995,11 @@ public:
     }
 
     virtual int32_t UnregisterWillInsightIntentExecuteCallback()
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t GetDynamicAgentCardsForMigration(std::string &jsonStr)
     {
         return ERR_OK;
     }

@@ -393,7 +393,7 @@ void KeepAliveProcessManager::FilterNeedRestartKeepAliveBundleInfos(
 {
     std::lock_guard<ffrt::mutex> lock(needRestartKeepAliveUidSetLock_);
     for (auto it = bundleInfos.begin(); it != bundleInfos.end();) {
-        auto uidIter = needRestartKeepAliveUidSet_.find(it->uid);
+        auto uidIter = needRestartKeepAliveUidSet_.find(it->appUid);
         if (uidIter == needRestartKeepAliveUidSet_.end()) {
             TAG_LOGD(AAFwkTag::KEEP_ALIVE, "bundle no need to restart: %{public}s", it->name.c_str());
             it = bundleInfos.erase(it);

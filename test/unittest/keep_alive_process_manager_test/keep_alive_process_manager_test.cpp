@@ -819,6 +819,7 @@ HWTEST_F(KeepAliveProcessManagerTest, FilterNeedRestartKeepAliveBundleInfos_002,
     GTEST_LOG_(INFO) << "KeepAliveProcessManagerTest FilterNeedRestartKeepAliveBundleInfos_002 start";
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
     AppExecFwk::BundleInfo bundleInfo;
+    bundleInfo.uid = 100;
     bundleInfo.appUid = 12345;
     bundleInfos.emplace_back(bundleInfo);
     KeepAliveProcessManager::GetInstance().needRestartKeepAliveUidSet_.emplace(12345);
