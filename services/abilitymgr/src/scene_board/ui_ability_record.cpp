@@ -15,7 +15,12 @@
 
 #include "ui_ability_record.h"
 
+#include <cinttypes>
+#include <utility>
+
 #include "ability_util.h"
+#include "app_scheduler.h"
+#include "ffrt.h"
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "native_ability_util.h"
@@ -25,6 +30,40 @@ namespace AAFwk {
 UIAbilityRecord::UIAbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode)
     : AbilityRecord(want, abilityInfo, applicationInfo, requestCode) {}
+
+namespace {
+void UnregisterTaskAttributions(const std::vector<std::pair<std::string, int64_t>> &attributions)
+{
+    for (const auto &item : attributions) {
+        int32_t result = DelayedSingleton<AppScheduler>::GetInstance()->UnregisterTaskAttribution(
+            item.first, item.second);
+        if (result != ERR_OK) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "task attribution unregister failed, taskId: %{public}s, "
+                "attributionId: %{public}" PRId64 ", result: %{public}d",
+                item.first.c_str(), item.second, result);
+            continue;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "task attribution unregistered, taskId: %{public}s, "
+            "attributionId: %{public}" PRId64, item.first.c_str(), item.second);
+    }
+}
+} // namespace
+
+UIAbilityRecord::~UIAbilityRecord()
+{
+    // Record death is the single attribution release point. The destructor may run
+    // with the session lock held, so the unregister IPC must not execute here:
+    // hand the residual handles to an async task and let it run off the critical path.
+    if (taskAttributions_.empty()) {
+        return;
+    }
+    std::vector<std::pair<std::string, int64_t>> attributions = std::move(taskAttributions_);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "post async task to release %{public}zu task attributions",
+        attributions.size());
+    ffrt::submit([attributions = std::move(attributions)]() {
+        UnregisterTaskAttributions(attributions);
+    });
+}
 
 std::shared_ptr<UIAbilityRecord> UIAbilityRecord::CreateAbilityRecord(const AbilityRequest &abilityRequest)
 {

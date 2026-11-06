@@ -35,7 +35,8 @@ class UIAbilityRecord : public AbilityRecord {
 public:
     UIAbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode);
-    
+    ~UIAbilityRecord() override;
+
     static std::shared_ptr<UIAbilityRecord> CreateAbilityRecord(const AbilityRequest &abilityRequest);
 
     AbilityRecordType GetAbilityRecordType() override;
@@ -169,7 +170,8 @@ public:
         return isByOeExt_;
     }
 
-    // (taskId, handle) pairs; duplicates ignored; released at record death.
+    // (taskId, handle) pairs; duplicates ignored. Released by an async task posted
+    // from the destructor (record death is the single release point).
     // Not self-locked: guard with sessionLock_.
     inline void AddTaskAttribution(const std::string &taskId, int64_t attributionId)
     {
