@@ -307,9 +307,6 @@ constexpr size_t FLOOD_ATTACK_NUMBER_MAX = 10;
 constexpr int32_t DEFAULT_USER_ID = 100;
 constexpr uint32_t REMOTE_INTENT_TIMEOUT_SECONDS = 40 * 1000;
 constexpr uint32_t MILL_TO_MICRO = 1000;
-// Agent consent dialog guard. Must be shorter than the client-side function-execute
-// timeout (30s) so an explicit consent failure is delivered before the caller gives up.
-constexpr uint32_t AGENT_CONSENT_TIMEOUT_MILLISECONDS = 20 * 1000;
 
 const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
     "share", "action", "navigation", "mail", "finance", "flight", "express", "photoEditor"
@@ -15706,28 +15703,27 @@ int32_t AbilityManagerService::ExecuteIntentByAgent(uint64_t key, const sptr<IRe
         return ret;
     }
 
-    // Step 2: capture caller/target identity and pre-register the record in
-    // PENDING_CONSENT, so it is already queryable via IsInsightIntentCall while the
-    // consent popup is showing (the privacy-center verifies the invocation by
-    // querying back through IPC 6190 before trusting the dialog content).
-    int32_t callerAppIndex = 0;
-    std::string callerBundleName = InsightIntentGetcallerBundleNameAndIndex(callerAppIndex);
-    int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
-    int32_t targetAppIndex = InsightIntentGetTargetAppIndex(bundleName, callerUserId);
-
     auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
     if (executeManager == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null execute manager");
         return ERR_INVALID_VALUE;
     }
 
+    // Step 2: capture caller/target identity and pre-register the record in
+    // PENDING_CONSENT, so it is already queryable via IsInsightIntentCall while the
+    // consent dialog is showing (the privacy-center verifies the invocation by
+    // querying back through IPC 6190 before trusting the dialog content).
+    int32_t callerAppIndex = 0;
+    std::string callerBundleName = InsightIntentGetcallerBundleNameAndIndex(callerAppIndex);
+    int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    int32_t targetAppIndex = InsightIntentGetTargetAppIndex(bundleName, callerUserId);
+
     uint64_t intentId = 0;
     ExecuteParam execParam;
     execParam.callerBundleName = callerBundleName;
     execParam.callerAppIndex = callerAppIndex;
     execParam.targetAppIndex = targetAppIndex;
-    ret = executeManager->RegisterExecuteRecord(key, callerToken, bundleName, intentName, wantParam,
-        execParam, intentId);
+    ret = executeManager->RegisterExecuteRecord(key, callerToken, bundleName, execParam, intentId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "RegisterExecuteRecord failed: %{public}d", ret);
         return ret;
@@ -15736,78 +15732,33 @@ int32_t AbilityManagerService::ExecuteIntentByAgent(uint64_t key, const sptr<IRe
         "caller: %{public}s/%{public}d, target: %{public}s/%{public}d", intentId, callerBundleName.c_str(),
         callerAppIndex, bundleName.c_str(), targetAppIndex);
 
-    // Step 3: arm the consent-timeout guard, then request the privacy dialog
-    // asynchronously. This IPC returns immediately: ERR_OK only means the request was
-    // accepted; the execution result (or the consent failure) is delivered later
-    // through the regular OnExecuteDone callback channel.
-    SetAgentConsentTimeout(intentId);
-    ffrt::submit([intentId, callerBundleName, callerAppIndex, bundleName, targetAppIndex]() {
-        auto manager = DelayedSingleton<AbilityManagerService>::GetInstance();
-        if (manager == nullptr) {
-            TAG_LOGE(AAFwkTag::INTENT, "null ability manager service");
-            return;
-        }
-        bool granted = manager->RequestAgentPrivacyDialog(callerBundleName, callerAppIndex, bundleName,
-            targetAppIndex, intentId);
-        manager->HandleAgentPrivacyDialogResult(intentId, granted);
-    });
-    return ERR_OK;
-}
-
-void AbilityManagerService::HandleAgentPrivacyDialogResult(uint64_t intentId, bool granted)
-{
-    TAG_LOGI(AAFwkTag::INTENT, "agent privacy dialog result, intentId: %{public}" PRIu64 ", granted: %{public}d",
-        intentId, granted);
-    RemoveAgentConsentTimeout(intentId);
-
-    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
-    if (executeManager == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "null execute manager");
-        return;
-    }
-
+    // Step 3: request the consent dialog synchronously; this call covers the dialog
+    // showing time. Denied (or the record no longer queryable): drop the record and
+    // report the failure through the IPC return value.
+    bool granted = RequestAgentPrivacyDialog(callerBundleName, callerAppIndex, bundleName, targetAppIndex,
+        intentId);
     if (!granted) {
-        // User declined (or the pre-registered record was no longer queryable):
-        // deliver the failure to the caller and drop the record.
-        executeManager->FailPendingConsentRecord(intentId, CHECK_PERMISSION_FAILED);
-        return;
+        TAG_LOGW(AAFwkTag::INTENT, "agent consent not granted, intentId: %{public}" PRIu64, intentId);
+        executeManager->RemoveExecuteIntent(intentId);
+        return CHECK_PERMISSION_FAILED;
     }
 
-    // Consent granted: CAS PENDING_CONSENT -> EXECUTING. Losing the CAS means a deny
-    // or the timeout already consumed this record; make sure it is dropped.
+    // Step 4: consent granted -- CAS PENDING_CONSENT -> EXECUTING. Losing the CAS
+    // means the caller died while the dialog was showing (REMOTE_DIED): drop and fail.
     if (executeManager->UpdateRecordState(intentId, InsightIntentExecuteState::PENDING_CONSENT,
         InsightIntentExecuteState::EXECUTING) != ERR_OK) {
-        TAG_LOGW(AAFwkTag::INTENT, "record no longer pending consent, drop, intentId: %{public}" PRIu64, intentId);
+        TAG_LOGW(AAFwkTag::INTENT, "record no longer pending consent, intentId: %{public}" PRIu64, intentId);
         executeManager->RemoveExecuteIntent(intentId);
-        return;
-    }
-
-    // Launch the parked payload through the regular function-call path; the intent
-    // result reaches the caller through OnExecuteDone as usual.
-    uint64_t key = 0;
-    sptr<IRemoteObject> callerToken = nullptr;
-    std::string bundleName;
-    std::string intentName;
-    WantParams wantParam;
-    int32_t ret = executeManager->GetAgentExecutePayload(intentId, key, callerToken, bundleName, intentName,
-        wantParam);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::INTENT, "GetAgentExecutePayload failed: %{public}d, intentId: %{public}" PRIu64,
-            ret, intentId);
-        AppExecFwk::InsightIntentExecuteResult errorResult{};
-        executeManager->ExecuteIntentDone(intentId, ERR_INVALID_VALUE, errorResult);
-        return;
+        return ERR_INVALID_OPERATION;
     }
 
     ret = ExecuteIntentByFunctionCallWithId(key, callerToken, bundleName, intentName, wantParam, intentId);
     if (ret != ERR_OK) {
-        // Launch failed after consent: deliver the failure instead of leaving the
-        // caller waiting on its callback.
-        TAG_LOGE(AAFwkTag::INTENT, "agent execute launch failed: %{public}d, intentId: %{public}" PRIu64,
-            ret, intentId);
-        AppExecFwk::InsightIntentExecuteResult errorResult{};
-        executeManager->ExecuteIntentDone(intentId, ret, errorResult);
+        // best-effort cleanup of the pre-registered record if the execution failed
+        // before the record was consumed / cleaned up by the downstream path.
+        executeManager->RemoveExecuteIntent(intentId);
     }
+    return ret;
 }
 
 bool AbilityManagerService::RequestAgentPrivacyDialog(const std::string &callerBundleName, int32_t callerAppIndex,
@@ -15827,8 +15778,8 @@ bool AbilityManagerService::RequestAgentPrivacyDialog(const std::string &callerB
 
     // TODO(agent): replace this mock with the real privacy-center consent dialog
     // (RequestDialogService / ams_system_dialog), implemented by the privacy-center
-    // domain. The mock grants consent to keep the async link testable end to end;
-    // flip it to false to verify the deny path.
+    // domain. The mock grants consent to keep the synchronous link testable end to
+    // end; flip it to false to verify the deny path.
     return true;
 }
 
@@ -15838,51 +15789,6 @@ int32_t AbilityManagerService::VerifyAgentCallPermission()
     // declaration) is implemented by the agent domain; the skeleton lets every call
     // through so the downstream flow stays testable.
     return ERR_OK;
-}
-
-void AbilityManagerService::SetAgentConsentTimeout(uint64_t intentId)
-{
-    auto taskWrap = [intentId]() {
-        TAG_LOGW(AAFwkTag::INTENT, "agent consent timeout triggered, intentId: %{public}" PRIu64, intentId);
-        auto manager = DelayedSingleton<AbilityManagerService>::GetInstance();
-        if (manager != nullptr) {
-            manager->RemoveAgentConsentTimeout(intentId);
-        }
-        auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
-        if (executeManager != nullptr) {
-            // Only fires while the record still waits for consent; a granted record
-            // has already moved to EXECUTING, making this a no-op.
-            executeManager->FailPendingConsentRecord(intentId, CHECK_PERMISSION_FAILED);
-        }
-    };
-    ffrt::task_attr ffrtTaskAttr;
-    ffrtTaskAttr.delay(AGENT_CONSENT_TIMEOUT_MILLISECONDS * MILL_TO_MICRO);
-    auto ffrtTaskHandle = ffrt::submit_h(std::move(taskWrap), {}, {}, ffrtTaskAttr);
-    if (ffrtTaskHandle == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "null ffrtTaskHandle, agent consent guard not armed, intentId: %{public}" PRIu64,
-            intentId);
-        return;
-    }
-    std::shared_ptr<ffrt::task_handle> taskHandle = std::make_shared<ffrt::task_handle>(
-        std::move(ffrtTaskHandle));
-    std::lock_guard<ffrt::mutex> lock(agentConsentTaskHandlesMutex_);
-    agentConsentTaskHandles_.emplace(intentId, taskHandle);
-}
-
-void AbilityManagerService::RemoveAgentConsentTimeout(uint64_t intentId)
-{
-    std::lock_guard<ffrt::mutex> lock(agentConsentTaskHandlesMutex_);
-    auto iter = agentConsentTaskHandles_.find(intentId);
-    if (iter == agentConsentTaskHandles_.end()) {
-        return;
-    }
-    if (iter->second != nullptr && *iter->second != nullptr) {
-        auto ret = ffrt::skip(*iter->second);
-        if (ret != 0) {
-            TAG_LOGE(AAFwkTag::INTENT, "agent consent task skip failed, intentId: %{public}" PRIu64, intentId);
-        }
-    }
-    agentConsentTaskHandles_.erase(iter);
 }
 
 bool AbilityManagerService::IsInsightIntentCall(uint64_t intentId)

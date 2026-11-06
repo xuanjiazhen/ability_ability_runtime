@@ -200,27 +200,13 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
 }
 
 int32_t InsightIntentExecuteManager::RegisterExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
-    const ExecuteParam &execParam, uint64_t &intentId)
+    const std::string &bundleName, const ExecuteParam &execParam, uint64_t &intentId)
 {
     // Park the record in PENDING_CONSENT: it becomes queryable for the privacy-center
-    // popup immediately, but cannot be consumed by the execute path until the consent
-    // result moves it to EXECUTING.
-    int32_t result = AddRecord(key, callerToken, bundleName, intentId, execParam, "",
+    // consent dialog immediately, but cannot be consumed by the execute path until
+    // the consent result moves it to EXECUTING (UpdateRecordState).
+    return AddRecord(key, callerToken, bundleName, intentId, execParam, "",
         InsightIntentExecuteState::PENDING_CONSENT);
-    if (result != ERR_OK) {
-        return result;
-    }
-    // Park the execute payload on the record; the service consumes it once the user
-    // grants consent (GetAgentExecutePayload).
-    std::lock_guard<ffrt::mutex> lock(mutex_);
-    auto it = records_.find(intentId);
-    if (it == records_.end() || it->second == nullptr) {
-        return ERR_INVALID_VALUE;
-    }
-    it->second->intentName = intentName;
-    it->second->wantParam = wantParam;
-    return ERR_OK;
 }
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode executeMode, int32_t userId,
@@ -565,41 +551,6 @@ int32_t InsightIntentExecuteManager::UpdateRecordState(uint64_t intentId, Insigh
         return ERR_INVALID_OPERATION;
     }
     it->second->state = next;
-    return ERR_OK;
-}
-
-int32_t InsightIntentExecuteManager::FailPendingConsentRecord(uint64_t intentId, int32_t resultCode)
-{
-    // CAS PENDING_CONSENT -> EXECUTING under the mutex, then funnel into the regular
-    // ExecuteIntentDone delivery: the caller receives OnExecuteDone with the failure
-    // code and the record lifecycle ends exactly like a normal finished execution.
-    if (UpdateRecordState(intentId, InsightIntentExecuteState::PENDING_CONSENT,
-        InsightIntentExecuteState::EXECUTING) != ERR_OK) {
-        // Consent was already granted, the record is gone, or the caller died:
-        // nothing to fail, and the eventual consent result is a no-op.
-        return ERR_INVALID_OPERATION;
-    }
-    TAG_LOGI(AAFwkTag::INTENT, "agent consent not granted, fail record, intentId: %{public}" PRIu64
-        ", resultCode: %{public}d", intentId, resultCode);
-    AppExecFwk::InsightIntentExecuteResult errorResult{};
-    return ExecuteIntentDone(intentId, resultCode, errorResult);
-}
-
-int32_t InsightIntentExecuteManager::GetAgentExecutePayload(uint64_t intentId, uint64_t &key,
-    sptr<IRemoteObject> &callerToken, std::string &bundleName, std::string &intentName,
-    WantParams &wantParam) const
-{
-    std::lock_guard<ffrt::mutex> lock(mutex_);
-    auto it = records_.find(intentId);
-    if (it == records_.end() || it->second == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "record not found, intentId: %{public}" PRIu64, intentId);
-        return ERR_INVALID_VALUE;
-    }
-    key = it->second->key;
-    callerToken = it->second->callerToken;
-    bundleName = it->second->bundleName;
-    intentName = it->second->intentName;
-    wantParam = it->second->wantParam;
     return ERR_OK;
 }
 

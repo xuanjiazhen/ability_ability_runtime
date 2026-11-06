@@ -2099,12 +2099,12 @@ public:
     /**
      * @brief Execute intent by agent with simplified parameters.
      *
-     * Third-party agent entry point with an asynchronous consent flow: the request
-     * is authorized, pre-registered (PENDING_CONSENT) and the privacy-center consent
-     * dialog is requested on a worker thread before this call returns. ERR_OK only
-     * means the request was accepted; the execution result (or a consent failure,
-     * e.g. the user declined or the consent timed out) is delivered later through
-     * the OnExecuteDone callback registered under the given key.
+     * Third-party agent entry point with a synchronous consent flow: the request is
+     * authorized, pre-registered (PENDING_CONSENT), and the privacy-center consent
+     * dialog is requested inline before this call returns. ERR_OK means the execution
+     * was launched (the intent function result still arrives through the
+     * OnExecuteDone callback registered under the given key); a denied consent or a
+     * launch failure returns an error code directly.
      *
      * @param key The callback key for result notification.
      * @param callerToken The caller token.
