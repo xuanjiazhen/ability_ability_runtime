@@ -1098,7 +1098,6 @@ int32_t AppMgrServiceInner::HandleForkAll(int32_t pid)
     CHECK_POINTER_AND_RETURN_VALUE(appRecord, -1);
     auto ret = HandleForkAllInner(appRecord, pid);
     if (ret != ImageError::ERR_OK) {
-        appRecord->SetMakeImageState(MakeImageState::NONE);
         HandleMakeImageFailed(appRecord, ret);
         return -1;
     }
@@ -1240,6 +1239,10 @@ void AppMgrServiceInner::HandleMakeImageFailed(const std::string& bundleName, co
     UnMarkTemplateProcess(imageInfo->templatePid);
     RemoveImageInfo(bundleName, abilityName, userId, appIndex);
     NotifyMakeImageFailed(imageInfo->bundleInfo.appUid, imageInfo->errorHandler, err);
+    auto appRecord = GetAppRunningRecordByPid(imageInfo->templatePid);
+    if (appRecord != nullptr) {
+        appRecord->SetMakeImageState(MakeImageState::NONE);
+    }
 }
 
 int32_t AppMgrServiceInner::PreAddImageInfo(const std::string& bundleName, int32_t userId, int32_t appIndex,
@@ -3504,8 +3507,13 @@ int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool 
 
     auto result = VerifyKillProcessPermission(bundleName);
     if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
-        return result;
+        if (AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall() ||
+            AAFwk::PermissionVerification::GetInstance()->IsCustomSandboxCall()) {
+            userId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+        } else {
+            TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
+            return result;
+        }
     }
 
     if (appIndex == 0) {
@@ -4416,17 +4424,36 @@ int32_t AppMgrServiceInner::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLe
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     auto isLocalDebugOtherAppsCall = AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall();
     bool isDevelopMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
-    if (!(isMemmgrCall || (isShellCall && isDevelopMode) || isLocalDebugOtherAppsCall)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Permission check failed: callerToken is not %{public}s, isMemmgrCall=%{public}d, "
-        "isShellCall=%{public}d, isDevelopMode=%{public}d", MEMMGR_PROC_NAME, isMemmgrCall, isShellCall, isDevelopMode);
-        return ERR_INVALID_VALUE;
-    }
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager null");
         return ERR_INVALID_VALUE;
     }
     bool isShellOrLocalDebug = isShellCall || isLocalDebugOtherAppsCall;
     TAG_LOGD(AAFwkTag::APPMGR, "isShellCall %{public}d", isShellCall);
+    if (!(isMemmgrCall || (isShellCall && isDevelopMode))) {
+        if (isLocalDebugOtherAppsCall) {
+            auto callingUserId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+            std::map<pid_t, MemoryLevel> filteredMap;
+            for (const auto &item : procLevelMap) {
+                auto appRecord = appRunningManager_->GetAppRunningRecordByPid(item.first);
+                if (appRecord == nullptr) {
+                    TAG_LOGW(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall filter: pid:%{public}d appRecord null",
+                        item.first);
+                    continue;
+                }
+                if (GetUserIdByUid(appRecord->GetUid()) != callingUserId) {
+                    TAG_LOGW(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall filter: pid:%{public}d not same user",
+                        item.first);
+                    continue;
+                }
+                filteredMap.emplace(item.first, item.second);
+            }
+            return appRunningManager_->NotifyProcMemoryLevel(filteredMap, isShellOrLocalDebug);
+        }
+        TAG_LOGE(AAFwkTag::APPMGR, "Permission check failed: callerToken is not %{public}s, isMemmgrCall=%{public}d, "
+        "isShellCall=%{public}d, isDevelopMode=%{public}d", MEMMGR_PROC_NAME, isMemmgrCall, isShellCall, isDevelopMode);
+        return ERR_INVALID_VALUE;
+    }
     return appRunningManager_->NotifyProcMemoryLevel(procLevelMap, isShellOrLocalDebug);
 }
 
@@ -8348,14 +8375,6 @@ int32_t AppMgrServiceInner::VerifyKillProcessPermissionCommon() const
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     if (isSaCall || isShellCall) {
-        return ERR_OK;
-    }
-
-    if (AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall()) {
-        return ERR_OK;
-    }
-
-    if (AAFwk::PermissionVerification::GetInstance()->IsCustomSandboxCall()) {
         return ERR_OK;
     }
 
