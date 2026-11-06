@@ -3407,6 +3407,174 @@ HWTEST_F(CliToolManagerServiceTest, FunctionInterfaces_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CliToolManagerService_GetPublicFunctions_0100
+ * @tc.desc: Test GetPublicFunctions filters out non-visible functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetPublicFunctions_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetPublicFunctions_0100 start");
+
+    FunctionInfo funcVisible;
+    funcVisible.functionName = "visible_func";
+    funcVisible.functionNamespace = "test_ns";
+    funcVisible.functionType = FunctionType::INTENT_FUNCTION;
+    funcVisible.userId = 0;
+    funcVisible.visible = true;
+
+    FunctionInfo funcHidden;
+    funcHidden.functionName = "hidden_func";
+    funcHidden.functionNamespace = "test_ns";
+    funcHidden.functionType = FunctionType::INTENT_FUNCTION;
+    funcHidden.userId = 0;
+    funcHidden.visible = false;
+
+    CliFunctionDataManagerMock::mockFunctions = {funcVisible, funcHidden};
+
+    FunctionsRawData rawData;
+    int32_t ret = service_->GetPublicFunctions(rawData);
+
+    EXPECT_EQ(ret, ERR_OK);
+    std::vector<FunctionInfo> result;
+    FunctionsRawData::ToFunctionInfoVec(rawData, result);
+    EXPECT_EQ(result.size(), 1u);
+    EXPECT_EQ(result[0].functionName, "visible_func");
+
+    CliFunctionDataManagerMock::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetPublicFunctions_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetPublicFunctions_0200
+ * @tc.desc: Test GetPublicFunctions with permission denied
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetPublicFunctions_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetPublicFunctions_0200 start");
+
+    PermissionUtilMock::accessFunctionPermitted = false;
+
+    FunctionsRawData rawData;
+    int32_t ret = service_->GetPublicFunctions(rawData);
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+
+    PermissionUtilMock::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetPublicFunctions_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetPublicFunctions_0300
+ * @tc.desc: Test GetPublicFunctions with data manager failure
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetPublicFunctions_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetPublicFunctions_0300 start");
+
+    CliFunctionDataManagerMock::getAllFunctionsResult = ERR_NO_INIT;
+
+    FunctionsRawData rawData;
+    int32_t ret = service_->GetPublicFunctions(rawData);
+
+    EXPECT_EQ(ret, ERR_NO_INIT);
+
+    CliFunctionDataManagerMock::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetPublicFunctions_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetFunctionInfo_0300
+ * @tc.desc: Test GetFunctionInfo third-party app accessing non-visible function
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_0300 start");
+
+    IPCSkeleton::callingFullTokenId = 1;
+    IPCSkeleton::callingTokenId = TOKEN_HAP;
+
+    FunctionInfo func;
+    func.functionName = "hidden_func";
+    func.functionNamespace = "test_ns";
+    func.functionType = FunctionType::INTENT_FUNCTION;
+    func.userId = 0;
+    func.visible = false;
+    CliFunctionDataManagerMock::mockFunctionInfo = func;
+    CliFunctionDataManagerMock::getFunctionResult = ERR_OK;
+
+    FunctionInfo retrieved;
+    int32_t ret = service_->GetFunctionInfo("test_ns", "hidden_func", retrieved);
+
+    EXPECT_EQ(ret, ERR_FUNCTION_NOT_EXIST);
+
+    IPCSkeleton::Reset();
+    CliFunctionDataManagerMock::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetFunctionInfo_0400
+ * @tc.desc: Test GetFunctionInfo third-party app accessing visible function
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_0400 start");
+
+    IPCSkeleton::callingFullTokenId = 1;
+    IPCSkeleton::callingTokenId = TOKEN_HAP;
+
+    FunctionInfo func;
+    func.functionName = "visible_func";
+    func.functionNamespace = "test_ns";
+    func.functionType = FunctionType::INTENT_FUNCTION;
+    func.userId = 0;
+    func.visible = true;
+    CliFunctionDataManagerMock::mockFunctionInfo = func;
+    CliFunctionDataManagerMock::getFunctionResult = ERR_OK;
+
+    FunctionInfo retrieved;
+    int32_t ret = service_->GetFunctionInfo("test_ns", "visible_func", retrieved);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(retrieved.functionName, "visible_func");
+    EXPECT_TRUE(retrieved.visible);
+
+    IPCSkeleton::Reset();
+    CliFunctionDataManagerMock::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_0400 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetFunctionInfo_0500
+ * @tc.desc: Test GetFunctionInfo with permission denied
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_0500 start");
+
+    PermissionUtilMock::accessFunctionPermitted = false;
+
+    FunctionInfo retrieved;
+    int32_t ret = service_->GetFunctionInfo("test_ns", "any_func", retrieved);
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+
+    PermissionUtilMock::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_0500 end");
+}
+
+/**
  * @tc.name: CliToolManagerService_PostExecToolTask_0100
  * @tc.desc: Test PostExecToolTask routes isTimeout=true to HandleProcessTimeout on the ffrt worker
  * @tc.type: FUNC

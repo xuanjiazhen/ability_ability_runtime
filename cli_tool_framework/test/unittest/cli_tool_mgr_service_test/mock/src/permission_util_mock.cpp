@@ -25,12 +25,14 @@ namespace CliTool {
 bool PermissionUtilMock::execCliToolPermitted = true;
 bool PermissionUtilMock::execPublicCliToolPermitted = true;
 bool PermissionUtilMock::registerAgentHookPermitted = true;
+bool PermissionUtilMock::accessFunctionPermitted = true;
 
 void PermissionUtilMock::Reset()
 {
     execCliToolPermitted = true;
     execPublicCliToolPermitted = true;
     registerAgentHookPermitted = true;
+    accessFunctionPermitted = true;
 }
 
 bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &requirePermission)
@@ -43,6 +45,9 @@ bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, con
     }
     if (requirePermission == "ohos.permission.REGISTER_AGENT_HOOK") {
         return PermissionUtilMock::registerAgentHookPermitted;
+    }
+    if (requirePermission == "ohos.permission.ACCESS_FUNCTION") {
+        return PermissionUtilMock::accessFunctionPermitted;
     }
     return true;
 }
