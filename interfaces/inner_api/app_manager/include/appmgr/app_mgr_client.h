@@ -17,6 +17,8 @@
 #define OHOS_ABILITY_RUNTIME_APP_MGR_CLIENT_H
 
 #include "ui_ability_last_caller_info.h"
+#include <functional>
+
 #include "ability_debug_response_interface.h"
 #include "ability_info.h"
 #include "app_debug_listener_interface.h"
@@ -28,6 +30,7 @@
 #include "application_info.h"
 #include "application_state_filter.h"
 #include "bundle_info.h"
+#include "daemon_service_info.h"
 #include "fault_data.h"
 #include "iapplication_state_observer.h"
 #include "iapp_state_callback.h"
@@ -1977,6 +1980,23 @@ public:
      */
     int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
         int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId);
+    virtual int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+        AbilityRuntime::LaunchServiceInformation &information);
+    virtual int32_t GetAllLaunchServiceInformations(int32_t userId,
+        std::vector<AbilityRuntime::LaunchServiceInformation> &informations);
+    virtual void SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        const std::vector<uint8_t> &token, bool enable, std::function<void(int32_t)> completion);
+
+    int32_t NotifyResidentStartupCompleted();
+
+    virtual int32_t RegisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer);
+    virtual int32_t UnregisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer);
 
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);
