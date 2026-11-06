@@ -5990,7 +5990,7 @@ int32_t AbilityManagerProxy::ExecuteIntentByAgent(uint64_t key, const sptr<IRemo
     return reply.ReadInt32();
 }
 
-bool AbilityManagerProxy::IsInsightIntentCall(uint64_t intentId)
+bool AbilityManagerProxy::IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     MessageParcel data;
@@ -6004,8 +6004,12 @@ bool AbilityManagerProxy::IsInsightIntentCall(uint64_t intentId)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentId fail");
         return false;
     }
+    if (!data.WriteUint32(callerTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerTokenId fail");
+        return false;
+    }
     int32_t error = SendRequest(
-        AbilityManagerInterfaceCode::IS_INSIGHT_INTENT_CALL, data, reply, option);
+        AbilityManagerInterfaceCode::IS_INSIGHT_INTENT_CALL_WITH_CALLER, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
         return false;

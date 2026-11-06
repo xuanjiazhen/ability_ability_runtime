@@ -53,6 +53,7 @@ struct InsightIntentExecuteRecord {
     int32_t targetBundleIndex = 0;    // target app (clone) index
     std::string callerBundleName;     // caller bundle name
     int32_t callerAppIndex = 0;       // caller app (clone) index
+    uint32_t callerTokenId = 0;       // caller access token id (IPC caller identity)
     AppExecFwk::InsightIntentExecutionInfo executionInfo;
     pid_t targetPid = 0;
     InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
@@ -107,12 +108,39 @@ class InsightIntentExecuteManager : public std::enable_shared_from_this<InsightI
 public:
     int32_t CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
-        const ExecuteParam &execParam = ExecuteParam{}, uint64_t specifiedIntentId = 0);
+        const ExecuteParam &execParam = ExecuteParam{});
+
+    // Reuse-orchestrator for the agent consent-binding path: same permission +
+    // validation gate as CheckAndUpdateParam, but binds to an already pre-registered
+    // record (intentId) instead of creating a new one.
+    int32_t CheckAndReuseParam(const sptr<IRemoteObject> &callerToken,
+        const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, const ExecuteParam &execParam,
+        uint64_t intentId);
+
+    // Pure validation of an execute request: caller token presence (distributed calls
+    // exempt), param presence and required fields. No IPC context read beyond the
+    // arguments, no lock, no record side effect.
+    int32_t ValidateExecuteParam(const sptr<IRemoteObject> &callerToken, const ExecuteParam &execParam,
+        const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param) const;
+
+    // Record lifecycle: create a brand-new execute record (AddRecord) and stamp
+    // param->insightIntentId_. Permission and validation are NOT done here; callers
+    // compose CheckCallerPermission / ValidateExecuteParam / this method explicitly,
+    // or use the CheckAndUpdateParam orchestrator which runs all three.
+    int32_t CreateExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, const ExecuteParam &execParam);
+
+    // Record lifecycle: reuse a pre-registered record (agent path registers it before
+    // showing the consent popup). The id must map to a live record of the same target
+    // bundle in EXECUTING state, otherwise ERR_INVALID_VALUE. Stamps
+    // param->insightIntentId_. No permission/validation here.
+    int32_t ReuseExecuteRecord(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
+        uint64_t intentId);
 
     // Pre-register an execution record in PENDING_CONSENT and allocate the intent id
     // before the execution actually starts. Used by the agent path: the record is
     // already queryable (via IsInsightIntentCall) while the privacy-center consent
-    // dialog is showing, and the id is later reused by CheckAndUpdateParam.
+    // dialog is showing, and the id is later reused by ReuseExecuteRecord.
     int32_t RegisterExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const ExecuteParam &execParam, uint64_t &intentId);
 
@@ -138,6 +166,8 @@ public:
     int32_t GetTargetBundleIndex(uint64_t intentId, int32_t &targetBundleIndex) const;
 
     bool IsInsightIntentCall(uint64_t intentId) const;
+
+    bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId) const;
 
     // CAS-style state transition: moves the record to `next` only when it currently
     // sits in `expected`. Returns ERR_OK when the transition happened.

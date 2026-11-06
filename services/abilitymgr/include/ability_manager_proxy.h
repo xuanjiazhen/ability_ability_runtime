@@ -1589,7 +1589,7 @@ public:
     int32_t ExecuteIntentByAgent(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
 
-    bool IsInsightIntentCall(uint64_t intentId) override;
+    bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId) override;
 
     /**
      * @brief Execute intent with specified token id.
