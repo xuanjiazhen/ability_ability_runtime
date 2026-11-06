@@ -9614,7 +9614,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionColdStartS
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    abilityRequest.want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-cold-ut"));
+    abilityRequest.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-cold-ut"));
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, 3001);
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, 4001);
 
@@ -9688,7 +9688,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionReusePreAt
 
     AbilityRequest abilityRequest;
     abilityRequest.abilityInfo = createRequest.abilityInfo;
-    abilityRequest.want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-warm-ut"));
+    abilityRequest.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-warm-ut"));
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, 5001);
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, 6001);
     AbilityRuntime::StartParamsBySCB params;
@@ -9730,7 +9730,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionReusePidRe
 
     AbilityRequest abilityRequest;
     abilityRequest.abilityInfo = createRequest.abilityInfo;
-    abilityRequest.want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-warm-live-ut"));
+    abilityRequest.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-warm-live-ut"));
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, 5001);
     abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, 6001);
     AbilityRuntime::StartParamsBySCB params;
@@ -9761,7 +9761,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GenerateAbilityRecord_TaskAttributionRet
 
     AbilityRequest request;
     request.abilityInfo = createRequest.abilityInfo;
-    request.want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-retarget-ut"));
+    request.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-retarget-ut"));
     request.want.SetParam(Want::PARAM_RESV_CALLER_UID, 7001);
     request.want.SetParam(Want::PARAM_RESV_CALLER_PID, 8001);
     sptr<SessionInfo> sessionInfo(new SessionInfo());
@@ -9797,7 +9797,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GenerateAbilityRecord_TaskAttributionRet
 
     AbilityRequest request;
     request.abilityInfo = createRequest.abilityInfo;
-    request.want.SetParam(Want::PARAM_RESV_TASK_ID, std::string("task-retarget-live-ut"));
+    request.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-retarget-live-ut"));
     request.want.SetParam(Want::PARAM_RESV_CALLER_UID, 7001);
     request.want.SetParam(Want::PARAM_RESV_CALLER_PID, 8001);
     sptr<SessionInfo> sessionInfo(new SessionInfo());
@@ -9860,10 +9860,135 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAbilityDied_TaskAttributionUnregister_
     mgr->sessionAbilityMap_.emplace(58, record);
 
     // unregistration fails (appmgr service unreachable in UT) for every entry: no crash,
-    // and the death sweep reads the bookkeeping without mutating it (iterator-stability)
+    // and the death sweep releases and clears the whole bookkeeping in one pass
     mgr->OnAbilityDied(record);
-    EXPECT_EQ(record->GetTaskAttributions().size(), static_cast<size_t>(2));
+    EXPECT_TRUE(record->GetTaskAttributions().empty());
     mgr.reset();
+}
+
+/**
+ * @tc.name: CompleteTerminate_TaskAttributionReleased_0100
+ * @tc.desc: The normal terminate funnel releases every attribution handle held by the
+ *           record when completing termination (unregister runs outside the session lock).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, CompleteTerminate_TaskAttributionReleased_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    AbilityRequest abilityRequest;
+    abilityRequest.sessionInfo = new SessionInfo();
+    abilityRequest.sessionInfo->persistentId = 59;
+
+    auto record = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(record, nullptr);
+    record->AddTaskAttribution("task-close-1", 31);
+    record->AddTaskAttribution("task-close-2", 32);
+    record->SetAbilityState(AbilityState::TERMINATING);
+    mgr->terminateAbilityList_.push_back(record);
+
+    mgr->CompleteTerminate(record);
+    // released at the funnel even though the unregister IPC fails in UT
+    EXPECT_TRUE(record->GetTaskAttributions().empty());
+    EXPECT_TRUE(mgr->terminateAbilityList_.empty());
+}
+
+/**
+ * @tc.name: CloseUIAbility_InitialBranch_TaskAttributionReleased_0100
+ * @tc.desc: The INITIAL-state close branch bypasses the terminate funnel and still
+ *           releases the attribution handles it holds.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, CloseUIAbility_InitialBranch_TaskAttributionReleased_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    AbilityRequest abilityRequest;
+    abilityRequest.sessionInfo = new SessionInfo();
+    abilityRequest.sessionInfo->persistentId = 60;
+
+    auto record = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(record, nullptr);
+    record->SetAbilityState(AbilityState::INITIAL);
+    record->AddTaskAttribution("task-initial-close", 41);
+    mgr->sessionAbilityMap_.emplace(60, record);
+
+    EXPECT_EQ(mgr->CloseUIAbility(record, 0, nullptr, false, false), ERR_OK);
+    EXPECT_TRUE(record->GetTaskAttributions().empty());
+}
+
+/**
+ * @tc.name: ReleaseTaskAttributions_Idempotent_0100
+ * @tc.desc: Releasing twice is a no-op on the second pass (double release on the
+ *           same record stays safe).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, ReleaseTaskAttributions_Idempotent_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.sessionInfo = new SessionInfo();
+    auto record = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(record, nullptr);
+    record->AddTaskAttribution("task-idem", 51);
+
+    record->ReleaseTaskAttributions();
+    EXPECT_TRUE(record->GetTaskAttributions().empty());
+    record->ReleaseTaskAttributions();
+    EXPECT_TRUE(record->GetTaskAttributions().empty());
+}
+
+/**
+ * @tc.name: UIAbilityRecord_Destructor_TaskAttributionBackstop_0100
+ * @tc.desc: A record destroyed with residual attribution bookkeeping only logs a
+ *           warning in the destructor (no IPC) and does not crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, UIAbilityRecord_Destructor_TaskAttributionBackstop_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.sessionInfo = new SessionInfo();
+    {
+        auto record = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+        ASSERT_NE(record, nullptr);
+        record->AddTaskAttribution("task-dtor", 61);
+    }
+    // destructor ran with a non-empty bookkeeping: warning only, no IPC, no crash
+    SUCCEED();
+}
+
+/**
+ * @tc.name: ReleaseAllTaskAttributions_AllContainersSwept_0100
+ * @tc.desc: The user-teardown batch release sweeps every record held across all
+ *           four containers (session/low-mem-kill/terminate/reuse-window).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, ReleaseAllTaskAttributions_AllContainersSwept_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+
+    auto makeRecord = [](int32_t persistentId, const std::string &taskId) {
+        AbilityRequest abilityRequest;
+        abilityRequest.sessionInfo = new SessionInfo();
+        abilityRequest.sessionInfo->persistentId = persistentId;
+        auto record = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+        record->AddTaskAttribution(taskId, persistentId);
+        return record;
+    };
+
+    auto sessionRecord = makeRecord(71, "task-batch-session");
+    auto lowMemKillRecord = makeRecord(72, "task-batch-lowmem");
+    auto terminateRecord = makeRecord(73, "task-batch-terminate");
+    auto reuseRecord = makeRecord(74, "task-batch-reuse");
+
+    mgr->sessionAbilityMap_.emplace(71, sessionRecord);
+    mgr->lowMemKillAbilityMap_.emplace(72, lowMemKillRecord);
+    mgr->terminateAbilityList_.push_back(terminateRecord);
+    mgr->reuseWindowRecords_.emplace(reuseRecord);
+
+    // unregister IPC fails (appmgr service unreachable in UT): no crash, bookkeeping still cleared
+    mgr->ReleaseAllTaskAttributions();
+    EXPECT_TRUE(sessionRecord->GetTaskAttributions().empty());
+    EXPECT_TRUE(lowMemKillRecord->GetTaskAttributions().empty());
+    EXPECT_TRUE(terminateRecord->GetTaskAttributions().empty());
+    EXPECT_TRUE(reuseRecord->GetTaskAttributions().empty());
 }
 
 }  // namespace AAFwk

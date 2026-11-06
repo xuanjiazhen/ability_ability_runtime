@@ -123,7 +123,7 @@ void ReportTaskAttributionForContext(const std::string &taskId, int32_t callerUi
 // Warm-start report: self-gated, skipped when the key is absent or the pid is not ready.
 void ReportTaskAttribution(const AbilityRequest &abilityRequest, const UIAbilityRecordPtr &uiAbilityRecord)
 {
-    std::string taskId = abilityRequest.want.GetStringParam(Want::PARAM_RESV_TASK_ID);
+    std::string taskId = abilityRequest.want.GetStringParam(Want::PARAM_RESV_AGENT_TASK_ID);
     if (taskId.empty() || uiAbilityRecord == nullptr || uiAbilityRecord->GetPid() <= 0) {
         return;
     }
@@ -322,9 +322,9 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     auto uiAbilityRecord = GenerateAbilityRecord(abilityRequest, sessionInfo, isColdStart);
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, ERR_INVALID_VALUE);
     // Cold start: stash the context and report it at ability-thread attach (pid ready).
-    if (isColdStart && abilityRequest.want.HasParameter(Want::PARAM_RESV_TASK_ID)) {
+    if (isColdStart && abilityRequest.want.HasParameter(Want::PARAM_RESV_AGENT_TASK_ID)) {
         uiAbilityRecord->SetPendingTaskAttribution(
-            abilityRequest.want.GetStringParam(Want::PARAM_RESV_TASK_ID),
+            abilityRequest.want.GetStringParam(Want::PARAM_RESV_AGENT_TASK_ID),
             abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1),
             abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_PID, -1));
     }
@@ -486,9 +486,9 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
     // pre-attach reuse stashes into the pending map instead of dropping the key.
     if (uiAbilityRecord->GetPid() > 0) {
         ReportTaskAttribution(abilityRequest, uiAbilityRecord);
-    } else if (abilityRequest.want.HasParameter(Want::PARAM_RESV_TASK_ID)) {
+    } else if (abilityRequest.want.HasParameter(Want::PARAM_RESV_AGENT_TASK_ID)) {
         uiAbilityRecord->SetPendingTaskAttribution(
-            abilityRequest.want.GetStringParam(Want::PARAM_RESV_TASK_ID),
+            abilityRequest.want.GetStringParam(Want::PARAM_RESV_AGENT_TASK_ID),
             abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1),
             abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_PID, -1));
     }
@@ -547,9 +547,9 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityReque
             // Retargeted start: report now if pid is ready, else stash for attach.
             if (uiAbilityRecord->GetPid() > 0) {
                 ReportTaskAttribution(abilityRequest, uiAbilityRecord);
-            } else if (abilityRequest.want.HasParameter(Want::PARAM_RESV_TASK_ID)) {
+            } else if (abilityRequest.want.HasParameter(Want::PARAM_RESV_AGENT_TASK_ID)) {
                 uiAbilityRecord->SetPendingTaskAttribution(
-                    abilityRequest.want.GetStringParam(Want::PARAM_RESV_TASK_ID),
+                    abilityRequest.want.GetStringParam(Want::PARAM_RESV_AGENT_TASK_ID),
                     abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1),
                     abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_PID, -1));
             }
@@ -2070,9 +2070,9 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
     // the context for the attach-time report instead of dropping it.
     if (uiAbilityRecord->GetPid() > 0) {
         ReportTaskAttribution(abilityRequest, uiAbilityRecord);
-    } else if (abilityRequest.want.HasParameter(Want::PARAM_RESV_TASK_ID)) {
+    } else if (abilityRequest.want.HasParameter(Want::PARAM_RESV_AGENT_TASK_ID)) {
         uiAbilityRecord->SetPendingTaskAttribution(
-            abilityRequest.want.GetStringParam(Want::PARAM_RESV_TASK_ID),
+            abilityRequest.want.GetStringParam(Want::PARAM_RESV_AGENT_TASK_ID),
             abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1),
             abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_PID, -1));
     }
@@ -2759,6 +2759,8 @@ int UIAbilityLifecycleManager::CloseUIAbility(const UIAbilityRecordPtr &abilityR
             abilityRecord->RemoveLoadTimeoutTask();
         }
         terminateAbilityList_.remove(abilityRecord);
+        // INITIAL branch bypasses the terminate funnel: release attributions here.
+        abilityRecord->ReleaseTaskAttributions();
         return abilityRecord->TerminateAbility();
     }
     if (abilityRecord->GetPendingState() != AbilityState::INITIAL) {
@@ -2840,28 +2842,56 @@ void UIAbilityLifecycleManager::DelayCompleteTerminate(const UIAbilityRecordPtr 
 void UIAbilityLifecycleManager::CompleteTerminate(const UIAbilityRecordPtr &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    {
+        std::lock_guard<ffrt::mutex> guard(sessionLock_);
+        CHECK_POINTER(abilityRecord);
+        if (abilityRecord->GetAbilityState() != AbilityState::TERMINATING) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, %{public}s, ability not terminating", __func__);
+            return;
+        }
+
+        CleanupExtendTask(abilityRecord->GetRecordId());
+
+        // If this is a plugin ability, remove it from host's plugin list
+        abilityRecord->PluginCompleteTerminate();
+
+        abilityRecord->RemoveAbilityDeathRecipient();
+        auto ret = abilityRecord->TerminateAbility();
+        // notify AppMS terminate
+        if (ret != ERR_OK) {
+            // Don't return here
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "appMS fail to terminate ability");
+            abilityRecord->SendTerminateAbilityErrorEvent(ret);
+        }
+        terminateAbilityList_.remove(abilityRecord);
+    }
+    // Unregister attribution handles outside the lock: sync IPC must not run in the critical section.
+    abilityRecord->ReleaseTaskAttributions();
+}
+
+void UIAbilityLifecycleManager::ReleaseAllTaskAttributions()
+{
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    CHECK_POINTER(abilityRecord);
-    if (abilityRecord->GetAbilityState() != AbilityState::TERMINATING) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, %{public}s, ability not terminating", __func__);
-        return;
+    for (const auto &item : sessionAbilityMap_) {
+        if (item.second != nullptr) {
+            item.second->ReleaseTaskAttributions();
+        }
     }
-
-    // Clean up any pending extend delayed task as a safety net.
-    CleanupExtendTask(abilityRecord->GetRecordId());
-
-    // If this is a plugin ability, remove it from host's plugin list
-    abilityRecord->PluginCompleteTerminate();
-
-    abilityRecord->RemoveAbilityDeathRecipient();
-    auto ret = abilityRecord->TerminateAbility();
-    // notify AppMS terminate
-    if (ret != ERR_OK) {
-        // Don't return here
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "appMS fail to terminate ability");
-        abilityRecord->SendTerminateAbilityErrorEvent(ret);
+    for (const auto &item : lowMemKillAbilityMap_) {
+        if (item.second != nullptr) {
+            item.second->ReleaseTaskAttributions();
+        }
     }
-    terminateAbilityList_.remove(abilityRecord);
+    for (const auto &item : terminateAbilityList_) {
+        if (item != nullptr) {
+            item->ReleaseTaskAttributions();
+        }
+    }
+    for (const auto &item : reuseWindowRecords_) {
+        if (item != nullptr) {
+            item->ReleaseTaskAttributions();
+        }
+    }
 }
 
 int32_t UIAbilityLifecycleManager::GetPersistentIdByAbilityRequest(const AbilityRequest &abilityRequest,
@@ -3168,18 +3198,7 @@ void UIAbilityLifecycleManager::OnAbilityDied(UIAbilityRecordPtr abilityRecord)
     }
     CleanupExtendTask(abilityRecord->GetRecordId());
     // Unexpected death: retire all attribution handles held by this record.
-    for (const auto &item : abilityRecord->GetTaskAttributions()) {
-        int32_t result = DelayedSingleton<AppScheduler>::GetInstance()->UnregisterTaskAttribution(
-            item.first, item.second);
-        if (result != ERR_OK) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "task attribution unregister failed, taskId: %{public}s, "
-                "attributionId: %{public}" PRId64 ", result: %{public}d",
-                item.first.c_str(), item.second, result);
-            continue;
-        }
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "task attribution unregistered, taskId: %{public}s, "
-            "attributionId: %{public}" PRId64, item.first.c_str(), item.second);
-    }
+    abilityRecord->ReleaseTaskAttributions();
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
     CHECK_POINTER_LOG(handler, "Fail to get AbilityEventHandler.");
     if (abilityRecord->GetAbilityState() == AbilityState::INITIAL) {
@@ -3300,36 +3319,43 @@ void UIAbilityLifecycleManager::OnStartSpecifiedAbilityTimeoutResponse(int32_t r
 
 void UIAbilityLifecycleManager::OnStartSpecifiedFailed(int32_t requestId)
 {
-    std::lock_guard lock(sessionLock_);
-    RemoveAbilitySessionInfo(requestId);
-    auto iter = hookSpecifiedMap_.find(requestId);
-    if (iter != hookSpecifiedMap_.end() && iter->second != nullptr) {
-        UIAbilityRecordPtr abilityRecord = iter->second;
-        NotifySCBToHandleException(abilityRecord,
-            static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_LOAD_TIMEOUT), "handleLoadTimeout");
-        hookSpecifiedMap_.erase(iter);
-        return;
-    }
-    auto curRequest = GetSpecifiedRequest(requestId);
-    if (curRequest == nullptr) {
-        return;
-    }
-    TAG_LOGW(AAFwkTag::ABILITYMGR, "OnStartSpecifiedFailed %{public}d", requestId);
-    if (curRequest->persistentId != 0) {
-        auto iter = sessionAbilityMap_.find(curRequest->persistentId);
-        if (iter != sessionAbilityMap_.end() && iter->second != nullptr) {
-            auto abilityRecord = iter->second;
-            NotifySCBToHandleException(abilityRecord,
+    UIAbilityRecordPtr attributionRecord;
+    {
+        std::lock_guard lock(sessionLock_);
+        RemoveAbilitySessionInfo(requestId);
+        auto iter = hookSpecifiedMap_.find(requestId);
+        if (iter != hookSpecifiedMap_.end() && iter->second != nullptr) {
+            attributionRecord = iter->second;
+            NotifySCBToHandleException(attributionRecord,
                 static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_LOAD_TIMEOUT), "handleLoadTimeout");
-        }
-    } else {
-        RemoveInstanceKey(curRequest->abilityRequest);
-    }
+            hookSpecifiedMap_.erase(iter);
+        } else {
+            auto curRequest = GetSpecifiedRequest(requestId);
+            if (curRequest == nullptr) {
+                return;
+            }
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "OnStartSpecifiedFailed %{public}d", requestId);
+            if (curRequest->persistentId != 0) {
+                auto iterSession = sessionAbilityMap_.find(curRequest->persistentId);
+                if (iterSession != sessionAbilityMap_.end() && iterSession->second != nullptr) {
+                    attributionRecord = iterSession->second;
+                    NotifySCBToHandleException(attributionRecord,
+                        static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_LOAD_TIMEOUT), "handleLoadTimeout");
+                }
+            } else {
+                RemoveInstanceKey(curRequest->abilityRequest);
+            }
 
-    HandleAbilitiesRequestDone(requestId, curRequest->requestListId, nullptr);
-    auto nextRequest = PopAndGetNextSpecified(requestId);
-    if (nextRequest) {
-        StartSpecifiedRequest(*nextRequest);
+            HandleAbilitiesRequestDone(requestId, curRequest->requestListId, nullptr);
+            auto nextRequest = PopAndGetNextSpecified(requestId);
+            if (nextRequest) {
+                StartSpecifiedRequest(*nextRequest);
+            }
+        }
+    }
+    // Unregister attribution handles outside the lock: sync IPC must not run in the critical section.
+    if (attributionRecord != nullptr) {
+        attributionRecord->ReleaseTaskAttributions();
     }
 }
 

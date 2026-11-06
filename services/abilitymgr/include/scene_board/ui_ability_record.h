@@ -35,8 +35,12 @@ class UIAbilityRecord : public AbilityRecord {
 public:
     UIAbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode);
-    
+    ~UIAbilityRecord() override;
+
     static std::shared_ptr<UIAbilityRecord> CreateAbilityRecord(const AbilityRequest &abilityRequest);
+
+    // Unregisters every held attribution handle at TMS and clears the vector; idempotent.
+    void ReleaseTaskAttributions();
 
     AbilityRecordType GetAbilityRecordType() override;
 
