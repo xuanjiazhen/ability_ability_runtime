@@ -2455,11 +2455,14 @@ public:
 
     /**
      * @brief Query whether the given insight intent execute id belongs to an
-     * insight intent call. Restricted to system applications / SA.
+     * insight intent call owned by the specified caller token id. Restricted to
+     * system applications / SA.
      * @param intentId The insight intent execute id to query.
-     * @return Returns true if the intent id maps to a live execute record.
+     * @param callerTokenId The caller access token id that must own the record.
+     * @return Returns true if the intent id maps to a live execute record owned
+     *         by callerTokenId.
      */
-    bool IsInsightIntentCall(uint64_t intentId);
+    bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId);
 
     /**
      * @brief Open a file by uri through the registered reserve-type collaborator

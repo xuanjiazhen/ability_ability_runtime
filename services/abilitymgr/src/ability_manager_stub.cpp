@@ -24,6 +24,7 @@
 #include "hitrace_meter.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_lite_param.h"
+#include "insight_intent_agent_call_param.h"
 #include "insight_intent_execute_manager.h"
 #include "permission_verification.h"
 #include "process_options.h"
@@ -441,8 +442,8 @@ int AbilityManagerStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_AGENT) {
         return ExecuteIntentByAgentInner(data, reply);
     }
-    if (interfaceCode == AbilityManagerInterfaceCode::IS_INSIGHT_INTENT_CALL) {
-        return IsInsightIntentCallInner(data, reply);
+    if (interfaceCode == AbilityManagerInterfaceCode::IS_INSIGHT_INTENT_CALL_WITH_CALLER) {
+        return IsInsightIntentCallWithCallerInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_WITH_SPECIFY_TOKEN_ID) {
         return ExecuteUIAbilityForegroundIntentWithSpecifyTokenIdInner(data, reply);
@@ -4673,28 +4674,24 @@ int32_t AbilityManagerStub::ExecuteIntentByFunctionCallInner(MessageParcel &data
 
 int32_t AbilityManagerStub::ExecuteIntentByAgentInner(MessageParcel &data, MessageParcel &reply)
 {
-    uint64_t key = data.ReadUint64();
-    sptr<IRemoteObject> callerToken = data.ReadRemoteObject();
-    if (callerToken == nullptr) {
+    std::unique_ptr<InsightIntentAgentCallParam> param(data.ReadParcelable<InsightIntentAgentCallParam>());
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null param");
+        return ERR_INVALID_VALUE;
+    }
+    if (param->callerToken == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
         return ERR_INVALID_VALUE;
     }
-    std::string bundleName = data.ReadString();
-    if (bundleName.empty()) {
+    if (param->bundleName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName empty");
         return ERR_INVALID_VALUE;
     }
-    std::string intentName = data.ReadString();
-    if (intentName.empty()) {
+    if (param->intentName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "intentName empty");
         return ERR_INVALID_VALUE;
     }
-    std::unique_ptr<WantParams> wantParam(data.ReadParcelable<WantParams>());
-    if (wantParam == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "wantParam null");
-        return ERR_INVALID_VALUE;
-    }
-    auto result = ExecuteIntentByAgent(key, callerToken, bundleName, intentName, *wantParam);
+    auto result = ExecuteIntentByAgent(*param);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;
@@ -4702,10 +4699,11 @@ int32_t AbilityManagerStub::ExecuteIntentByAgentInner(MessageParcel &data, Messa
     return NO_ERROR;
 }
 
-int32_t AbilityManagerStub::IsInsightIntentCallInner(MessageParcel &data, MessageParcel &reply)
+int32_t AbilityManagerStub::IsInsightIntentCallWithCallerInner(MessageParcel &data, MessageParcel &reply)
 {
     uint64_t intentId = data.ReadUint64();
-    bool result = IsInsightIntentCall(intentId);
+    uint32_t callerTokenId = data.ReadUint32();
+    bool result = IsInsightIntentCall(intentId, callerTokenId);
     if (!reply.WriteBool(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;
