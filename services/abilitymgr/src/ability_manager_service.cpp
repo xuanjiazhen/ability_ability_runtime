@@ -5993,7 +5993,11 @@ int AbilityManagerService::SendResultToAbility(int32_t requestCode, int32_t resu
     }
     std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto uiAbilityManager = GetCurrentUIAbilityManager();
+        int32_t foregroundUserId = AbilityRuntime::UserController::GetInstance().GetForegroundUserId(
+            AbilityRuntime::ServerConstant::DEFAULT_DISPLAY_ID);
+        auto uiAbilityManager = GetUIAbilityManagerByUserId(foregroundUserId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "foregroundUserId:%{public}d, missionId:%{public}d",
+            foregroundUserId, missionId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         abilityRecord = uiAbilityManager->GetAbilityRecordsById(missionId);
     } else {
