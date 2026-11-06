@@ -79,7 +79,7 @@
 
 | 阶段 | 目标 | 关键 Task | 结束门槛 | 最小验证 |
 |------|------|-----------|----------|----------|
-| Phase-1 | 接口与判定骨架 | TASK-1、TASK-2、TASK-3 | d.ts diff 一致；新签名调用成功、多传 401；判定矩阵单测绿 | 集成 demo + `run -t UT -tp ability_runtime` |
+| Phase-1 | 接口与判定骨架 | TASK-1、TASK-2、TASK-3 | d.ts diff 一致；新签名调用成功、多传被忽略；判定矩阵单测绿 | 集成 demo + `run -t UT -tp ability_runtime` |
 | Phase-2 | 归属合并与重算 | TASK-4 | 归属/降级/幂等/上限矩阵用例绿 | `run -t UT -tp ability_runtime` |
 | Phase-3 | 动态重判与清理 | TASK-5、TASK-6 | 重判/防抖用例绿；死亡清理 ≤1s 且任务存续 | 单测 + 集成用例 |
 
@@ -105,7 +105,7 @@
 |---------|------|----------|---------|----------|----------|----------|------|
 | TASK-1 | API 声明文件变更（d.ts，跨仓） | interface_sdk-js api/@ohos.app.agent.taskManager.d.ts | AC-6.5 | 无 | d.ts 移除 priority 入参与 TaskPriority 导出，@since 26.2.0 不变 | oh-api-definition（可选）+ d.ts diff 审阅 | Done |
 | TASK-2 | 优先级判定器（映射矩阵+感知+兜底） | services/appmgr/src/task_mgr/（task_priority_judge.*、system_load_provider.*）、test/unittest/task_mgr/ | AC-6.5、AC-6.6 | 任务记录模块（20260914692191，已合入 master） | 判定矩阵/兜底单测全绿 | `run -t UT -tp ability_runtime` | Done |
-| TASK-3 | startTask 接口变更与判定接入（IAppMgr IPC/NAPI/ANI/ETS/Service） | interfaces/inner_api/app_manager、frameworks/ets/ets、frameworks/ets/ani/task_manager/、frameworks/js/napi/task_manager/、services/appmgr/（app_mgr_service、task_mgr）、test/mock/、test/integration/ | AC-6.5 | TASK-1、TASK-2 | 新签名集成 demo 通过；多传入参返回 401 | 集成 demo + `run -t UT -tp ability_runtime` | Done |
+| TASK-3 | startTask 接口变更与判定接入（IAppMgr IPC/NAPI/ANI/ETS/Service） | interfaces/inner_api/app_manager、frameworks/ets/ets、frameworks/ets/ani/task_manager/、frameworks/js/napi/task_manager/、services/appmgr/（app_mgr_service、task_mgr）、test/mock/、test/integration/ | AC-6.5 | TASK-1、TASK-2 | 新签名集成 demo 通过；多传入参被忽略 | 集成 demo + `run -t UT -tp ability_runtime` | Done |
 | TASK-4 | 双向索引 + max 合并 + 幂等 + 并发上限 + 索引 dump 区段 | services/appmgr/src/process_schedule/、test/unittest/process_schedule/ | AC-6.1、AC-6.2、AC-6.4 | TASK-3；20260914692272 管控代理层 | AC 用例全绿 | `run -t UT -tp ability_runtime` | Done |
 | TASK-5 | 动态重判与档位传播 | services/appmgr/src/task_mgr/、services/appmgr/src/process_schedule/、test/unittest/task_mgr/ | AC-6.7 | TASK-3、TASK-4 | 动态重判/防抖用例全绿 | `run -t UT -tp ability_runtime` | Done |
 | TASK-6 | 进程死亡清理挂点 | services/appmgr/（AppDeathRecipient 挂点）、test/integration/ | AC-6.3 | TASK-4 | 清理 ≤1s、任务存续用例全绿 | 集成用例 + `run -t UT -tp ability_runtime` | Done |
@@ -346,11 +346,11 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | IAppMgr::StartTask 及 Proxy/Stub/Client 移除 priority；NAPI/ANI/ETS 绑定移除 priority 参数校验（多传入参按 401）；TaskManagerService::StartTask 创建链路内同步调用 DetermineLevel 判定档位写入任务记录 |
+| 任务目标 | IAppMgr::StartTask 及 Proxy/Stub/Client 移除 priority；NAPI/ANI/ETS 绑定移除 priority 参数（多余入参照 finishTask 口径忽略）；TaskManagerService::StartTask 创建链路内同步调用 DetermineLevel 判定档位写入任务记录 |
 | AC 映射 | AC-6.5 |
 | 前置依赖 | TASK-1（d.ts 签名）、TASK-2（判定器接口） |
 | 非目标 | 归属合并（TASK-4）；动态重判（TASK-5） |
-| 完成判据 | 新签名集成 demo 通过（Promise 完成、任务按判定档位激活）；多传 priority 返回 401 |
+| 完成判据 | 新签名集成 demo 通过（Promise 完成、任务按判定档位激活）；多传 priority 被忽略且不影响判定结果 |
 | 停止条件 | 发现 IAppMgr 其他接口被迫联动修改；判定接入需改变鉴权/超时口径 |
 | Design 状态/不变量 | 消费 STATE-1；无新增状态 |
 
@@ -388,7 +388,7 @@
 | Modify | services/appmgr/include/task_mgr/task_manager_service.h、src/task_mgr/task_manager_service.cpp | StartTask/StartTaskInner 移除 priority 形参、CheckParam 移除 priority 校验、接入 DetermineLevel；DumpActiveTasks 填充任务 sched level（不改字段布局） |
 | Modify | frameworks/ets/ets/@ohos.app.agent.taskManager.ets | startTask 框架实现移除 priority |
 | Modify | frameworks/ets/ani/task_manager/include/、src/ | NativeStartTask 移除 aniPriority |
-| Modify | frameworks/js/napi/task_manager/js_task_manager.{h,cpp} | OnStartTask 移除 priority 解析；多传入参 401 |
+| Modify | frameworks/js/napi/task_manager/js_task_manager.{h,cpp} | OnStartTask 移除 priority 解析；参数解析对齐 OnFinishTask |
 | Modify | test/mock/services_appmgr_test/include/mock_app_mgr_service.h | MOCK_METHOD2→MOCK_METHOD1 同步 |
 | Test | test/unittest/task_mgr/ | StartTaskAutoJudgeUnit_0100（判定接入单测） |
 | Test | test/integration/ | StartTaskPriorityAutoJudge_0100 |
@@ -414,11 +414,11 @@
 | Rule ID | Must / Must Not |
 |---------|-----------------|
 | OH-ARCH-IPC-SAF | 仅 START_TASK 消息体变更；事务码与错误码不变 |
-| OH-ARCH-ERROR-LOG | 多传入参必须按 401（INVALID_PARAMETERS_ERR）拒绝；错误码值不改 |
+| OH-ARCH-ERROR-LOG | taskId 非法必须按 401（INVALID_PARAMETERS_ERR）拒绝；错误码值不改 |
 
 **Steps**
 
-- [ ] 写失败测试：无 priority 入参调用断言档位激活；多传入参断言 401（Red：未实现前接口含入参/档位缺省固定）
+- [ ] 写失败测试：无 priority 入参调用断言档位激活（Red：未实现前接口含入参/档位缺省固定）
 - [ ] 运行验证确认 RED
 - [ ] IAppMgr Proxy/Stub/Client/Service 移除 priority 并同步序列化
 - [ ] NAPI/ANI/ETS 绑定移除 priority 解析与默认 MEDIUM 逻辑
@@ -432,13 +432,13 @@
 | 参考实现 | 复用约定 | 偏差及理由 |
 |----------|----------|------------|
 | `services/appmgr/src/task_mgr/task_manager_service.cpp:125-184` | 创建链路与错误码口径 | 移除 priority 校验，接入判定 |
-| `frameworks/js/napi/task_manager/js_task_manager.cpp:120-131` | 参数校验错误风格 | 多传入参 401 |
+| `frameworks/js/napi/task_manager/js_task_manager.cpp` `OnFinishTask` | 参数解析风格（末位函数为回调） | startTask 对齐同一写法 |
 
 **Anti-Fake Completion**
 
 | Check | Required Evidence |
 |-------|-------------------|
-| AC closed | 新签名调用 demo + 多传 401 用例（AC-6.5） |
+| AC closed | 新签名调用 demo（AC-6.5） |
 | Scope respected | 未改 IAppMgr 其他接口与 uripermmgr/abilitymgr |
 | State lifecycle complete | STATE-1 创建（判定）写入路径覆盖 |
 | Interface contract matched | 全链路签名与 TASK-1 d.ts、TASK-2 DetermineLevel 一致 |

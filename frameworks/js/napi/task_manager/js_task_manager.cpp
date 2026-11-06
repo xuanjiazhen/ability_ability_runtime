@@ -78,17 +78,10 @@ private:
             ThrowInvalidParamError(env, "taskId must be a string of 1~256 characters");
             return handleEscape.Escape(CreateJsUndefined(env));
         }
-        napi_value lastParam = nullptr;
-        if (info.argc >= ARGC_TWO) {
-            napi_valuetype valueType = napi_undefined;
-            if (napi_typeof(env, info.argv[INDEX_ONE], &valueType) != napi_ok ||
-                valueType != napi_function) {
-                TAG_LOGW(AAFwkTag::JSNAPI, "unexpected extra parameter");
-                ThrowInvalidParamError(env, "task priority is judged by the system now; remove the extra parameter");
-                return handleEscape.Escape(CreateJsUndefined(env));
-            }
-            lastParam = info.argv[INDEX_ONE];
-        }
+        // Same parsing contract as OnFinishTask: a trailing function is the async callback,
+        // anything else (including a legacy priority argument) is ignored and the call
+        // proceeds in promise mode.
+        napi_value lastParam = (info.argc >= ARGC_TWO) ? info.argv[INDEX_ONE] : nullptr;
         auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [taskId, innerErrCode]() {
             auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();

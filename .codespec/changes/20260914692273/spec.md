@@ -144,7 +144,7 @@
 |--------|----------|----------|---------------|----------|----------|--------------------------------------|---------|
 | startTask(taskId: string, priority?: TaskPriority) → startTask(taskId: string) | Existing API | System | 变更前：`startTask(taskId: string, priority?: TaskPriority): Promise<void>`（priority 缺省按 MEDIUM=200 处理）；变更后：`startTask(taskId: string): Promise<void>` | 系统应用创建任务 | Promise 完成/拒绝 | 变更前：`frameworks/ets/ets/@ohos.app.agent.taskManager.ets:29` `startTask`；变更后：New，依据 proposal.md「API 变更项清单」/AC-6.5 | AC-6.5 |
 | TaskPriority | Existing API | System | LOW=100、MEDIUM=200、HIGH=300；目标：废弃，不再出现在 d.ts 公共接口面 | 作 startTask 入参 | 枚举值 | `frameworks/ets/ets/@ohos.app.agent.taskManager.ets:21-25` `TaskPriority`；废弃依据 proposal.md「API 变更项清单」 | AC-6.5 |
-| ERR_PARAM_INVALID（401） | Existing Error Code | System | 十进制 401 | startTask 入参不合法：taskId 非 1~256 字符，或调用方多传 priority 等额外入参 | Promise 拒绝，BusinessError.code=401 | `services/appmgr/src/task_mgr/task_manager_service.cpp:500-506` `CheckParam`（taskId 1~256 且 priority∈{100,200,300}，否则 INVALID_PARAMETERS_ERR）；401 对外映射沿用 20260914692191 | AC-6.5 |
+| ERR_PARAM_INVALID（401） | Existing Error Code | System | 十进制 401 | startTask 入参不合法：taskId 非 1~256 字符 | Promise 拒绝，BusinessError.code=401 | `services/appmgr/src/task_mgr/task_manager_service.cpp:500-506` `CheckParam`（taskId 1~256，否则 INVALID_PARAMETERS_ERR）；401 对外映射沿用 20260914692191 | AC-6.5 |
 | ERR_NOT_SYSTEM_APP（202） | Existing Error Code | System | 十进制 202 | 调用方非系统应用（系统应用身份校验失败） | Promise 拒绝，BusinessError.code=202 | `interfaces/inner_api/ability_manager/include/ability_manager_errors.h:309` `ERR_NOT_SYSTEM_APP`；对外值 202 沿用 20260914692191 | AC-6.5 |
 | ERR_TASK_ID_EXISTS（16000301） | Existing Error Code | System | 十进制 16000301 | taskId 对应任务已处于存活期，再次调用 startTask | Promise 拒绝，BusinessError.code=16000301，原任务不受影响 | 内部 ERR_TASK_ALREADY_EXISTS=2099501（`interfaces/inner_api/ability_manager/include/ability_manager_errors.h:1206`）；对外值 16000301 沿用 20260914692191 | AC-6.5 |
 
@@ -169,7 +169,7 @@
 | 参数 | 类型 | 必填 | 默认值 | 约束条件 |
 |------|------|------|--------|---------|
 | taskId | string | 是 | 无 | 1~256 字符（UTF-8 字节数），归因主键，任务存活期内全局唯一；跨应用 taskId 互不可见 |
-| （额外入参） | — | 否 | — | 调用方多传 priority 等额外入参按 401 参数校验失败处理 |
+| （额外入参） | — | 否 | — | 调用方多传 priority 等额外入参被忽略（与 finishTask 的参数解析口径一致：仅末位函数作为异步回调）；档位由系统判定，入参不影响判定结果 |
 
 **行为场景**
 
@@ -178,7 +178,7 @@
 | 1 | 系统应用以合法 taskId 调用 | System API / 任务 dump | Promise 完成；系统按前后台状态与系统负载判定档位（HIGH/MEDIUM/LOW），任务按判定档位立即激活 | AC-6.5 |
 | 2 | 存活期同 taskId 重复调用 | System API | Promise 拒绝（BusinessError.code=16000301），原任务不受影响 | AC-6.5 |
 | 3 | 非系统应用调用 | System API | Promise 拒绝（BusinessError.code=202） | AC-6.5 |
-| 4 | taskId 非 1~256 字符，或多传 priority 等额外入参 | System API | Promise 拒绝（BusinessError.code=401） | AC-6.5 |
+| 4 | taskId 非 1~256 字符 | System API | Promise 拒绝（BusinessError.code=401） | AC-6.5 |
 | 5 | 并发任务数达上限（默认 10）后再创建 | System API | 创建失败（对外可观察错误），既有任务不受影响 | AC-6.4 |
 
 ## 兼容性声明

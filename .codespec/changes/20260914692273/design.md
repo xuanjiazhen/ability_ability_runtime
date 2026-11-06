@@ -53,7 +53,7 @@
 | `services/appmgr/include/app_state_observer_manager.h:70,127` + `interfaces/inner_api/app_manager/include/appmgr/application_state_observer_stub.h:43` `OnForegroundApplicationChanged(AppStateData)` | 既有应用前后台状态感知与通知链（含 AbilityStateData/abilityState 维度） | OH-ARCH-LAYERING | 判定器前后台输入直接复用注册监听，不新增感知链路 | 源码，高 |
 | `services/appmgr/src/task_mgr/task_manager_service.cpp:426-447` `DumpActiveTasks` | dump 字段框架已固定（priority/creator/managed processes/**sched level [-]**/remain timeout/create time + **Exemption summary: total=0** 占位；注释声明 field layout fixed so scripts can rely on it） | OH-ARCH-ERROR-LOG | 本需求填充 sched level 与豁免摘要取值，不改字段布局 | 源码，高 |
 | `services/appmgr/include/task_mgr/attribution_record.h:26-31` `AttributionTool` | 纳管类型枚举 UNKNOWN/INSIGHT(1)/CLI(2)/A2A(3)/ABILITY(4) | OH-ARCH-ERROR-LOG | RSS 事件载荷"纳管进程类型"取值映射：UIAbility=ABILITY、CLI=CLI、Agent=A2A、意图=INSIGHT | 源码，高 |
-| `frameworks/js/napi/task_manager/js_task_manager.cpp:110-156` `OnStartTask` | NAPI 绑定：解析 taskId（1~256）+ 可选 priority（默认 MEDIUM），非法入参同步抛错；异步调 AppMgrClient::StartTask | OH-ARCH-LAYERING | 移除 priority 解析，多传入参按 401 拒绝 | 源码，高 |
+| `frameworks/js/napi/task_manager/js_task_manager.cpp:65` `OnStartTask` | NAPI 绑定：解析 taskId（1~256），末位函数作为异步回调（与 OnFinishTask 同款 `lastParam` 解析）；异步调 AppMgrClient::StartTask | OH-ARCH-LAYERING | 移除 priority 解析；多余入参照 finishTask 口径忽略（不做 401 拒绝） | 源码，高 |
 | `frameworks/ets/ani/task_manager/src/ets_task_manager.cpp:86-115` `NativeStartTask` | ANI 绑定：aniPriority 枚举项解析后调 AppMgrClient::StartTask | OH-ARCH-LAYERING | 同步移除 priority 参数 | 源码，高 |
 | `interfaces/inner_api/ability_manager/include/ability_manager_errors.h:309,1206` | ERR_NOT_SYSTEM_APP（2097209）、ERR_TASK_ALREADY_EXISTS（2099501） | OH-ARCH-ERROR-LOG | 错误码值不变；对外 202/16000301 映射沿用 20260914692191 | 源码，高 |
 
@@ -103,7 +103,7 @@
 | 双向索引状态管理 | `services/appmgr/include/app_running_manager.h:517-518` `runningRecordMapMutex_`/`appRunningRecordMap_` | OH-ARCH-LAYERING | 索引结构与互斥锁保护更新风格 | process_schedule 双向索引（taskToPids_/pidToTasks_）参照 | 无 | TASK-4 |
 | 死亡通知链 | `app_death_recipient.h:27-29` `OnRemoteDied` | OH-ARCH-LAYERING | DeathRecipient 回调挂点 | 死亡清理最小挂点 | 无 | TASK-6 |
 | 前后台状态监听 | `app_state_observer_manager.h:127` `NotifyAppStateObservers` / `application_state_observer_stub.h:43` | OH-ARCH-LAYERING | 注册监听 + 回调驱动 | 判定器前后台输入 | 无 | TASK-5 |
-| 参数校验与错误码 | `task_manager_service.cpp:500-506` `CheckParam` | OH-ARCH-ERROR-LOG | 参数校验失败返 INVALID_PARAMETERS_ERR | startTask 多传入参 401 沿用同一校验口径 | 无 | TASK-3 |
+| 参数校验与错误码 | `task_manager_service.cpp:500-506` `CheckParam` | OH-ARCH-ERROR-LOG | 参数校验失败返 INVALID_PARAMETERS_ERR | startTask 仅 taskId 非法时 401；多余入参照 finishTask 忽略 | 无 | TASK-3 |
 | 系统负载监听（resourceschedule，已源码核实 2026-11-05） | `resource_schedule_service/ressched/interfaces/innerkits/ressched_client/include/res_sched_systemload_notifier_client.h:25,29` `ResSchedSystemloadNotifierClient::OnSystemloadLevel(int32_t)`；`res_sched_client.h:111,118,141` `RegisterSystemloadNotifier/UnRegisterSystemloadNotifier/GetSystemloadLevel`；`res_value.h:603-612` `SystemloadLevel`（0~7）；GN target `ressched_client`（ressched_client/BUILD.gn:116） | OH-ARCH-SUBSYSTEM | 注册/注销配对；回调线程不直接加业务锁 | SystemLoadProvider 默认实现按此接入；appmgr BUILD.gn `external_deps += [ "resource_schedule_service:ressched_client" ]` | 需求方提供的接口说明与源码一致；档位枚举实际定义在 res_value.h（非 res_type.h），以实现侧为准 | TASK-2 |
 
 ## 不涉及项承接
@@ -173,7 +173,7 @@
 
 | 原有 API | 变更类型 | 新 API | 迁移说明 |
 |----------|----------|--------|----------|
-| `startTask(taskId: string, priority?: TaskPriority): Promise<void>` | 变更（参数移除） | `startTask(taskId: string): Promise<void>` | 调用方移除 priority 实参；多传按 401 处理；@since 26.2.0 不变 |
+| `startTask(taskId: string, priority?: TaskPriority): Promise<void>` | 变更（参数移除） | `startTask(taskId: string): Promise<void>` | 调用方移除 priority 实参；多传被忽略（档位由系统判定）；@since 26.1.0 不变 |
 | `TaskPriority`（LOW=100/MEDIUM=200/HIGH=300） | 废弃（不再对外暴露） | 内部档位定义（取值 100/200/300 保留） | 调用方不再引用该枚举 |
 
 > Kit：@kit.AbilityKit（AgentRuntime）；@systemapi、@stagemodelonly、@syscap SystemCapability.Ability.AgentRuntime.Core、d.ts 位置 interface_sdk-js api/@ohos.app.agent.taskManager.d.ts 均沿用 20260914692191。
@@ -329,7 +329,7 @@ sequenceDiagram
 | 接口 | 参数 | 类型 | 合法范围 | 非法处理 | 边界说明 |
 |------|------|------|----------|----------|----------|
 | startTask | taskId | string | 1~256 字符（UTF-8 字节） | Promise 拒绝（401） | 归因主键，存活期全局唯一；跨应用互不可见 |
-| startTask | （额外入参） | — | 无 | 多传 priority 等额外入参按 401 参数校验失败处理 | 版本内变更无兼容负担 |
+| startTask | （额外入参） | — | 无 | 多传 priority 等额外入参被忽略（同 finishTask 口径） | 版本内变更无兼容负担 |
 
 ### 与 20260914692272 的接口约定（事件载荷与通知时序）
 

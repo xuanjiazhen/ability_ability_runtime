@@ -5,7 +5,7 @@ approval:
   approver: "yangzk"
   evidence: "用户评审明确回复『批准基线』（2026-11-04 会话记录）"
   approved_at: "2026-11-04"
-  baseline_digest: "4d2bd8a8d69f7e1da6552f9b7cc2951d181b4d66b3251bafc3fde91acda0f102"
+  baseline_digest: "c0bfa66671d6029880092f019fd7505240ab74581054fe567aed50f35c842a06"
 target_release:
   id: OpenHarmony-7.1-Release
   status: proposed
@@ -147,7 +147,7 @@ target_release:
 
 | API 名称 | 变更类型 | 开放范围 | 概要说明 |
 |----------|----------|----------|----------|
-| startTask(taskId: string, priority?: TaskPriority) → startTask(taskId: string) | 修改（参数移除） | System API | 移除 priority 可选入参；IPC 接口与 NAPI/ETS 绑定同步调整；调用方多传 priority 按 401 参数校验失败处理 |
+| startTask(taskId: string, priority?: TaskPriority) → startTask(taskId: string) | 修改（参数移除） | System API | 移除 priority 可选入参；IPC 接口与 NAPI/ETS 绑定同步调整；调用方多传 priority 被忽略（绑定层参数解析口径与 finishTask 一致，档位由系统判定） |
 | TaskPriority 枚举 | 废弃（不再对外暴露） | System API（枚举） | 随 startTask 入参移除不再出现在 d.ts 公共接口面；内部管控档位保留 HIGH/MEDIUM/LOW（取值 100/200/300） |
 
 ### 不涉及项确认
