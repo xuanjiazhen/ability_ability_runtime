@@ -111,117 +111,6 @@ void ResSchedUtil::ReportTemplateProcessReadyToRSS(int32_t pid, int32_t uid, con
 #endif
 }
 
-int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName,
-    const std::string &abilityName, bool debugReportOnly, const std::string &perfCmd, int32_t &errcode)
-{
-    TAG_LOGI(AAFwkTag::DEFAULT, "ReportCreateSnapshotCmdToRSS bundleName:%{public}s abilityName:%{public}s "
-        "debugReportOnly:%{public}d", bundleName.c_str(), abilityName.c_str(), debugReportOnly);
-    errcode = -1;
-#ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
-    // Payload key names follow the RSS reply schema vocabulary; confirm in joint debug.
-    nlohmann::json payload;
-    payload.emplace("name", bundleName);
-    payload.emplace("abilityName", abilityName);
-    payload.emplace("debugReportOnly", debugReportOnly);
-    payload.emplace("perfCmd", perfCmd);
-    nlohmann::json reply;
-    int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
-        RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
-        static_cast<int64_t>(CtrlForkAllSnapshotCode::SNAPSHOT_CREATE), payload, reply);
-    if (ret != 0) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "ReportCreateSnapshotCmdToRSS fail, ret: %{public}d", ret);
-        return -1;
-    }
-    errcode = reply.value("errcode", -1);
-    return 0;
-#else
-    TAG_LOGE(AAFwkTag::DEFAULT, "RESOURCE_SCHEDULE_SERVICE_ENABLE off");
-    return -1;
-#endif
-}
-
-int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleName, int32_t pid, int32_t &errcode)
-{
-    TAG_LOGI(AAFwkTag::DEFAULT, "ReportDestroySnapshotCmdToRSS bundleName:%{public}s pid:%{public}d",
-        bundleName.c_str(), pid);
-    errcode = -1;
-#ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
-    nlohmann::json payload;
-    payload.emplace("name", bundleName);
-    payload.emplace("pid", pid);
-    nlohmann::json reply;
-    int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
-        RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
-        static_cast<int64_t>(CtrlForkAllSnapshotCode::SNAPSHOT_DESTROY), payload, reply);
-    if (ret != 0) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "ReportDestroySnapshotCmdToRSS fail, ret: %{public}d", ret);
-        return -1;
-    }
-    errcode = reply.value("errcode", -1);
-    return 0;
-#else
-    TAG_LOGE(AAFwkTag::DEFAULT, "RESOURCE_SCHEDULE_SERVICE_ENABLE off");
-    return -1;
-#endif
-}
-
-int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName,
-    AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode)
-{
-    TAG_LOGI(AAFwkTag::DEFAULT, "ReportListSnapshotCmdToRSS bundleName:%{public}s", bundleName.c_str());
-    errcode = -1;
-#ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
-    nlohmann::json payload;
-    payload.emplace("name", bundleName);
-    nlohmann::json reply;
-    int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
-        RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
-        static_cast<int64_t>(CtrlForkAllSnapshotCode::SNAPSHOT_LIST), payload, reply);
-    if (ret != 0) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "ReportListSnapshotCmdToRSS fail, ret: %{public}d", ret);
-        return -1;
-    }
-    errcode = reply.value("errcode", -1);
-    if (errcode != 0) {
-        return 0;
-    }
-
-    info = AppExecFwk::SnapshotDebugInfo();
-    info.switchState = reply.value("switch", 0);
-    info.maxCreating = reply.value("maxCreating", 0);
-    info.currentCreating = reply.value("currentCreating", 0);
-    if (!reply.contains("appList") || !reply["appList"].is_array()) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "appList missing or not array");
-        return 0;
-    }
-    for (nlohmann::json &appObj : reply["appList"]) {
-        AppExecFwk::SnapshotDebugAppInfo app;
-        app.bundleName = appObj.value("name", std::string(""));
-        app.uid = appObj.value("uid", -1);
-        app.userId = appObj.value("userId", -1);
-        app.imagePid = appObj.value("imagePid", -1);
-        app.templatePid = appObj.value("templatePid", -1);
-        app.state = appObj.value("state", std::string(""));
-        app.snapshotId = appObj.value("snapshotId", static_cast<int64_t>(-1));
-        app.isEnable = appObj.value("isEnable", 0);
-        app.isDebug = appObj.value("debug", 0);
-        app.noSnapshotReason = appObj.value("noSnapshotReason", std::string(""));
-        if (appObj.contains("runningPids") && appObj["runningPids"].is_array()) {
-            for (nlohmann::json &pidObj : appObj["runningPids"]) {
-                if (pidObj.is_number_integer()) {
-                    app.runningPids.push_back(pidObj.get<int32_t>());
-                }
-            }
-        }
-        info.appList.push_back(app);
-    }
-    return 0;
-#else
-    TAG_LOGE(AAFwkTag::DEFAULT, "RESOURCE_SCHEDULE_SERVICE_ENABLE off");
-    return -1;
-#endif
-}
-
 void ResSchedUtil::ReportGameClickToRSS(const std::string &bundleName, int32_t pid, int32_t uid)
 {
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
@@ -358,6 +247,117 @@ void ResSchedUtil::ReportEventToRSS(const int32_t uid, const std::string &bundle
     nlohmann::json reply;
     TAG_LOGD(AAFwkTag::DEFAULT, "call");
     ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(resType, 0, payload, reply);
+#endif
+}
+
+int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName,
+    const std::string &abilityName, bool debugReportOnly, const std::string &perfCmd, int32_t &errcode)
+{
+    TAG_LOGI(AAFwkTag::DEFAULT, "ReportCreateSnapshotCmdToRSS bundleName:%{public}s abilityName:%{public}s "
+        "debugReportOnly:%{public}d", bundleName.c_str(), abilityName.c_str(), debugReportOnly);
+    errcode = -1;
+#ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
+    // Payload key names follow the RSS reply schema vocabulary; confirm in joint debug.
+    nlohmann::json payload;
+    payload.emplace("name", bundleName);
+    payload.emplace("abilityName", abilityName);
+    payload.emplace("debugReportOnly", debugReportOnly);
+    payload.emplace("perfCmd", perfCmd);
+    nlohmann::json reply;
+    int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
+        RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
+        static_cast<int64_t>(CtrlForkAllSnapshotCode::SNAPSHOT_CREATE), payload, reply);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "ReportCreateSnapshotCmdToRSS fail, ret: %{public}d", ret);
+        return -1;
+    }
+    errcode = reply.value("errcode", -1);
+    return 0;
+#else
+    TAG_LOGE(AAFwkTag::DEFAULT, "RESOURCE_SCHEDULE_SERVICE_ENABLE off");
+    return -1;
+#endif
+}
+
+int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleName, int32_t pid, int32_t &errcode)
+{
+    TAG_LOGI(AAFwkTag::DEFAULT, "ReportDestroySnapshotCmdToRSS bundleName:%{public}s pid:%{public}d",
+        bundleName.c_str(), pid);
+    errcode = -1;
+#ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
+    nlohmann::json payload;
+    payload.emplace("name", bundleName);
+    payload.emplace("pid", pid);
+    nlohmann::json reply;
+    int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
+        RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
+        static_cast<int64_t>(CtrlForkAllSnapshotCode::SNAPSHOT_DESTROY), payload, reply);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "ReportDestroySnapshotCmdToRSS fail, ret: %{public}d", ret);
+        return -1;
+    }
+    errcode = reply.value("errcode", -1);
+    return 0;
+#else
+    TAG_LOGE(AAFwkTag::DEFAULT, "RESOURCE_SCHEDULE_SERVICE_ENABLE off");
+    return -1;
+#endif
+}
+
+int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName,
+    AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode)
+{
+    TAG_LOGI(AAFwkTag::DEFAULT, "ReportListSnapshotCmdToRSS bundleName:%{public}s", bundleName.c_str());
+    errcode = -1;
+#ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
+    nlohmann::json payload;
+    payload.emplace("name", bundleName);
+    nlohmann::json reply;
+    int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
+        RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
+        static_cast<int64_t>(CtrlForkAllSnapshotCode::SNAPSHOT_LIST), payload, reply);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "ReportListSnapshotCmdToRSS fail, ret: %{public}d", ret);
+        return -1;
+    }
+    errcode = reply.value("errcode", -1);
+    if (errcode != 0) {
+        return 0;
+    }
+
+    info = AppExecFwk::SnapshotDebugInfo();
+    info.switchState = reply.value("switch", 0);
+    info.maxCreating = reply.value("maxCreating", 0);
+    info.currentCreating = reply.value("currentCreating", 0);
+    if (!reply.contains("appList") || !reply["appList"].is_array()) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "appList missing or not array");
+        return 0;
+    }
+    for (nlohmann::json &appObj : reply["appList"]) {
+        AppExecFwk::SnapshotDebugAppInfo app;
+        app.bundleName = appObj.value("name", std::string(""));
+        app.uid = appObj.value("uid", -1);
+        app.userId = appObj.value("userId", -1);
+        app.imagePid = appObj.value("imagePid", -1);
+        app.templatePid = appObj.value("templatePid", -1);
+        app.state = appObj.value("state", std::string(""));
+        app.snapshotId = appObj.value("snapshotId", static_cast<int64_t>(-1));
+        app.isEnable = appObj.value("isEnable", 0);
+        app.isDebug = appObj.value("debug", 0);
+        app.noSnapshotReason = appObj.value("noSnapshotReason", std::string(""));
+        if (appObj.contains("runningPids") && appObj["runningPids"].is_array()) {
+            for (nlohmann::json &pidObj : appObj["runningPids"]) {
+                if (pidObj.is_number_integer()) {
+                    app.runningPids.push_back(pidObj.get<int32_t>());
+                }
+            }
+        }
+        info.appList.push_back(app);
+    }
+    return 0;
+#else
+    TAG_LOGE(AAFwkTag::DEFAULT, "RESOURCE_SCHEDULE_SERVICE_ENABLE off");
+    return -1;
 #endif
 }
 
