@@ -28,7 +28,19 @@ ETSAppForegroundStateObserver::ETSAppForegroundStateObserver(ani_vm *etsVm) : et
 
 ETSAppForegroundStateObserver::~ETSAppForegroundStateObserver()
 {
-    RemoveAllEtsObserverObjects();
+    std::lock_guard<std::mutex> lock(etsObserverObjectSetLock_);
+    for (const auto &item : etsObserverObjects_) {
+        if (item != nullptr) {
+            AppManagerEts::ReleaseObjectReference(etsVm_, item);
+        }
+    }
+    etsObserverObjects_.clear();
+    for (const auto &item : pendingRelease_) {
+        if (item != nullptr) {
+            AppManagerEts::ReleaseObjectReference(etsVm_, item);
+        }
+    }
+    pendingRelease_.clear();
 }
 
 void ETSAppForegroundStateObserver::OnAppStateChanged(const AppStateData &appStateData)
@@ -72,8 +84,18 @@ void ETSAppForegroundStateObserver::HandleOnAppStateChanged(const AppStateData &
         AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
     }
-    std::lock_guard<std::mutex> lock(etsObserverObjectSetLock_);
-    for (auto &item : etsObserverObjects_) {
+    std::vector<ani_ref> snapshot;
+    {
+        std::lock_guard<std::mutex> lock(etsObserverObjectSetLock_);
+        snapshot = etsObserverObjects_;
+        for (const auto &item : pendingRelease_) {
+            if (item != nullptr) {
+                AppManagerEts::ReleaseObjectReference(etsVm_, item);
+            }
+        }
+        pendingRelease_.clear();
+    }
+    for (auto &item : snapshot) {
         if (item != nullptr) {
             CallEtsFunction(env, reinterpret_cast<ani_object>(item), "onAppStateChanged", nullptr, appStateDataObj);
         }
@@ -141,15 +163,10 @@ void ETSAppForegroundStateObserver::AddEtsObserverObject(const ani_object &obser
 void ETSAppForegroundStateObserver::RemoveAllEtsObserverObjects()
 {
     std::lock_guard<std::mutex> lock(etsObserverObjectSetLock_);
-    if (etsVm_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null etsVm_");
-        return;
-    }
     for (const auto &item : etsObserverObjects_) {
-        if (item == nullptr) {
-            continue;
+        if (item != nullptr) {
+            pendingRelease_.push_back(item);
         }
-        AppManagerEts::ReleaseObjectReference(etsVm_, item);
     }
     etsObserverObjects_.clear();
 }
@@ -167,7 +184,7 @@ void ETSAppForegroundStateObserver::RemoveEtsObserverObject(const ani_object &ob
             return IsStrictEquals(item, observerObj);
         });
     if (it != etsObserverObjects_.end()) {
-        AppManagerEts::ReleaseObjectReference(etsVm_, *it);
+        pendingRelease_.push_back(*it);
         etsObserverObjects_.erase(it);
     }
 }

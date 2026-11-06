@@ -47,6 +47,7 @@ private:
     ani_vm *etsVm_ = nullptr;
     volatile bool valid_ = true;
     std::vector<ani_ref> etsObserverObjects_;
+    std::vector<ani_ref> pendingRelease_;
     std::mutex etsObserverObjectSetLock_;
 };
 } // namespace AbilityRuntime
