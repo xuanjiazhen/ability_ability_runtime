@@ -203,7 +203,7 @@ AMS 侧只定义结果接缝（`RequestAgentPrivacyDialog` 返回 true/false 的
 ExecuteIntentByAgent（IPC，同步）
   → ① 鉴权 VerifyAgentCallPermission（骨架桩，后续接 normal 权限 + agentCallable）
   → ② 预登记 RegisterExecuteRecord：记录 state = PENDING_CONSENT；
-       此刻起隐私中心可通过 IPC 6190 IsInsightIntentCall(intentId) 回查为 true
+       此刻起隐私中心可通过 IPC 6191 IsInsightIntentCall(intentId, callerTokenId) 回查为 true
   → ③ RequestAgentPrivacyDialog（mock：恒返回 true；真实实现为隐私中心弹窗，阻塞至用户操作）
        ├─ granted → ④ CAS PENDING_CONSENT → EXECUTING
        │             → ExecuteIntentByFunctionCallWithId(specifiedIntentId)
@@ -215,7 +215,7 @@ ExecuteIntentByAgent（IPC，同步）
 设计要点：
 - **同意与执行绑定同一条记录**：intentId 在预登记时分配，弹窗回查与执行复用同一 id，
   「用户同意的那次」和「实际执行的那次」不可能错位；
-- **PENDING_CONSENT 语义收紧**：`IsInsightIntentCall(intentId)` 只对 PENDING_CONSENT /
+- **PENDING_CONSENT 语义收紧**：`IsInsightIntentCall(intentId, callerTokenId)` 只对 PENDING_CONSENT /
   EXECUTING 返回 true，EXECUTE_DONE / REMOTE_DIED 旧记录不再能验证任何弹窗；
 - **状态 CAS 守卫执行**：同意后必须 CAS 成功才执行，弹窗期间调用方死亡
   （死亡监听置 REMOTE_DIED）的记录不会被执行；

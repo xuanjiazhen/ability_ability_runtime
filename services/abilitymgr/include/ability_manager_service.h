@@ -2263,7 +2263,7 @@ public:
     int32_t ExecuteIntentByAgent(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
 
-    bool IsInsightIntentCall(uint64_t intentId) override;
+    bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId) override;
 
     /**
      * @brief Reserved hook to obtain user consent for a third-party agent function
@@ -2273,8 +2273,8 @@ public:
      *
      * MOCK implementation for now: the real consent dialog is provided by the
      * privacy-center domain (RequestDialogService / ams_system_dialog). The
-     * pre-registered record is queryable via IsInsightIntentCall(intentId) (IPC 6190)
-     * while this call blocks on the dialog.
+     * pre-registered record is queryable via IsInsightIntentCall(intentId, callerTokenId)
+     * (IPC 6191) while this call blocks on the dialog.
      * @return true if consent is granted, false if declined or the pre-registered
      *         record is no longer queryable.
      */
