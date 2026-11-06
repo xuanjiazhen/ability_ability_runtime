@@ -468,6 +468,12 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleNotifyTemplateProcessReadyDone(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_HYPER_SNAP_LAST_ERROR):
             return HandleGetHyperSnapLastError(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::DEBUG_CREATE_SNAPSHOT):
+            return HandleDebugCreateSnapshot(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::DEBUG_DESTROY_SNAPSHOT):
+            return HandleDebugDestroySnapshot(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::DEBUG_LIST_SNAPSHOT):
+            return HandleDebugListSnapshot(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_IMAGE_PROCESS_STATE_OBSERVER):
             return HandleRegisterImageProcessStateObserver(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_CHILD_PROCESS_SUPPORTED):
@@ -663,6 +669,61 @@ int32_t AppMgrStub::HandleGetHyperSnapLastError(MessageParcel &data, MessageParc
     }
 
     TAG_LOGD(AAFwkTag::APPMGR, "GetHyperSnapLastError success, code: %{public}d", static_cast<int32_t>(record.code));
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleDebugCreateSnapshot(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    std::string bundleName = data.ReadString();
+    std::string abilityName = data.ReadString();
+    bool debugReportOnly = data.ReadBool();
+    std::string perfCmd = data.ReadString();
+    auto result = DebugCreateSnapshot(bundleName, abilityName, debugReportOnly, perfCmd);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write result failed.");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleDebugDestroySnapshot(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    std::string bundleName = data.ReadString();
+    int32_t pid = data.ReadInt32();
+    auto result = DebugDestroySnapshot(bundleName, pid);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write result failed.");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleDebugListSnapshot(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    std::string bundleName = data.ReadString();
+    SnapshotDebugInfo info;
+    auto result = DebugListSnapshot(bundleName, info);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write result failed.");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot failed with result: %{public}d", result);
+        return NO_ERROR;
+    }
+
+    if (!reply.WriteParcelable(&info)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write info failed.");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    TAG_LOGD(AAFwkTag::APPMGR, "DebugListSnapshot success, appList size: %{public}zu", info.appList.size());
     return NO_ERROR;
 }
 

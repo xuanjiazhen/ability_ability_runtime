@@ -60,6 +60,7 @@
 #include "running_multi_info.h"
 #include "native_child_notify_interface.h"
 #include "hyper_snap_error_record.h"
+#include "snapshot_debug_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -119,6 +120,58 @@ public:
      * @return ERR_OK on success, ERR_INVALID_VALUE on parameter error
      */
     virtual int32_t GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecord &record)
+    {
+        return 0;
+    }
+
+    /**
+     * Make a snapshot of the specified ability for debugging.
+     * Only debug-signed applications are allowed; the command is forwarded to
+     * RSS through the report-data channel and the result is accepted-level.
+     * The making state can be queried by DebugListSnapshot.
+     *
+     * @param bundleName The bundle name of the debug-signed application.
+     * @param abilityName The ability to make a snapshot of.
+     * @param debugReportOnly True to only report invalidation without
+     *        invalidating the snapshot (debug mode only).
+     * @param perfCmd The perf command used to launch hiperf for stack
+     *        recording; empty means not to launch.
+     * @return Returns ERR_OK on accepted, others on failure.
+     */
+    virtual int32_t DebugCreateSnapshot(const std::string &bundleName, const std::string &abilityName,
+        bool debugReportOnly, const std::string &perfCmd)
+    {
+        return 0;
+    }
+
+    /**
+     * Delete the snapshot of the specified debug-signed application.
+     * The command is forwarded to RSS through the report-data channel and
+     * the result is accepted-level; the deletion result can be confirmed by
+     * DebugListSnapshot.
+     *
+     * @param bundleName The bundle name of the debug-signed application;
+     *        takes precedence over pid when not empty.
+     * @param pid The process id of the snapshot; used only when bundleName
+     *        is empty.
+     * @return Returns ERR_OK on accepted, ERR_IMAGE_INFO_NOT_EXIST when the
+     *         target snapshot does not exist (checked locally), others on failure.
+     */
+    virtual int32_t DebugDestroySnapshot(const std::string &bundleName, int32_t pid)
+    {
+        return 0;
+    }
+
+    /**
+     * Query the debug snapshot information of debug-signed applications.
+     * The query is forwarded to RSS through the report-data channel; the
+     * "errcode" of the RSS reply is mapped to the return code.
+     *
+     * @param bundleName The bundle name to filter; empty means no filter.
+     * @param info The snapshot overview mirrored from the RSS reply.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t DebugListSnapshot(const std::string &bundleName, SnapshotDebugInfo &info)
     {
         return 0;
     }

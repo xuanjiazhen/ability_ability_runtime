@@ -39,6 +39,9 @@ struct PreloadRequest {
     std::string abilityName;
     bool needMakeImage = false;
     bool needDestroyTemplate = false;
+    // aa debug create-snapshot options, passed via Want params when RSS triggers MakeImage.
+    bool debugReportOnly = false; // -dr: only report invalidation without invalidating the snapshot.
+    std::string perfCmd; // -p: perf command used to launch hiperf for stack recording.
 };
 
 class AppPreloader {
