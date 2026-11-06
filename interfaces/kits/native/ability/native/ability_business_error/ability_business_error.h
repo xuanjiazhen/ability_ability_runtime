@@ -247,7 +247,7 @@ enum class AbilityErrorCode {
     ERROR_CODE_MAIN_THREAD = 16000205,
 
     // The target application is not authorized for startup before the first unlock.
-    ERROR_CODE_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT = 16000206,
+    ERROR_CODE_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT = 16000207,
 
     // Setting permissions for resident processes
     ERROR_CODE_NO_RESIDENT_PERMISSION = 16200006,
@@ -284,6 +284,9 @@ enum class AbilityErrorCode {
 
     // can not change keep alive status
     ERROR_CODE_CHANGE_KEEP_ALIVE = 16000203,
+
+    // The target process is protected by an MDM application and cannot be terminated.
+    ERROR_CODE_KILL_PROCESS_KEEP_ALIVE = 16000210,
 
     ERROR_CODE_KIOSK_MODE_NOT_IN_WHITELIST = 16000110,
 

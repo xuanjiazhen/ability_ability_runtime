@@ -42,6 +42,7 @@ public:
     pid_t getCallingAppUid_ = 0;
     ErrCode processUpdate_ = ERR_OK;
     bool verifyCallingPermission_ = false;
+    std::map<std::string, bool> verifyCallingPermissionByName_;
     bool isSACall_ = false;
     bool isShellCall_ = false;
     bool isCliToolToken_ = false;
@@ -51,6 +52,10 @@ public:
     ErrCode getNameAndIndexForUidRet_ = ERR_OK;
     std::list<pid_t> getPidsByBundleName_;
     bool getPidsByBundleNameRet_;
+    int32_t processExitCall_ = 0;
+    bool processExitClearPageStack_ = false;
+    bool processExitAddKillingCaller_ = false;
+    std::string processExitReason_;
     std::map<const int32_t, const std::shared_ptr<AppExecFwk::AppRunningRecord>> getAppRunningRecordMap_;
     int notifyProcMemoryCall_ = 0;
     int notifyProcMemory_ = 0;
@@ -80,6 +85,16 @@ public:
     std::vector<AppExecFwk::BaseSharedBundleInfo> baseSharedBundleInfos_;
     bool queryDataGroupInfos_ = false;
     std::vector<AppExecFwk::DataGroupInfo> queryData_;
+    ErrCode isApplicationDisableForbiddenRet_ = ERR_OK;
+    bool isApplicationDisableForbidden_ = false;
+    int32_t isApplicationDisableForbiddenCall_ = 0;
+    std::string disableForbiddenBundleName_;
+    int32_t disableForbiddenUserId_ = -1;
+    int32_t disableForbiddenAppIndex_ = -1;
+    int32_t dualModeAppIndex_ = 0;
+    int32_t getDualModeBundleInfoCall_ = 0;
+    std::string dualModeBundleName_;
+    int32_t dualModeUserId_ = -1;
     // permission verification
     bool judgeCallerIsAllowed_ = false;
     bool verifyRunningInfoPerm_ = false;

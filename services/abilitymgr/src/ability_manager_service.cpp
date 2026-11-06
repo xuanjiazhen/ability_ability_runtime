@@ -16,6 +16,7 @@
 #include "ability_manager_service.h"
 
 #include <dlfcn.h>
+#include <set>
 #include <sys/epoll.h>
 #include <unordered_map>
 
@@ -271,6 +272,8 @@ constexpr static char WANT_PARAMS_VIEW_DATA_KEY[] = "ohos.ability.params.viewDat
 constexpr const char* WANT_PARAMS_HOST_WINDOW_ID_KEY = "ohos.extra.param.key.hostwindowid";
 
 constexpr int32_t FOUNDATION_UID = 5523;
+constexpr int32_t SUBFOUNDATION_UID = 6061;
+
 constexpr const char* FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
 constexpr const char* FOUNDATION_PROCESS_NAME = "foundation";
 constexpr const char* RSS_PROCESS_NAME = "resource_schedule_service";
@@ -379,6 +382,13 @@ bool IsEmbeddableStart(int32_t screenMode)
 {
     return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
         screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
+}
+
+// Check whether the caller is the foundation or subfoundation process.
+bool IsFoundationCall()
+{
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    return callingUid == FOUNDATION_UID || callingUid == SUBFOUNDATION_UID;
 }
 
 } // namespace
@@ -951,7 +961,7 @@ int AbilityManagerService::StartAbilityWithSpecifyTokenId(const Want &want, cons
         return INNER_ERR;
     }
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
-    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
+    if (!IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility with specialId, current process not foundation process");
         return CHECK_PERMISSION_FAILED;
     }
@@ -1182,7 +1192,7 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
         return INNER_ERR;
     }
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
-    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
+    if (!IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbility with specialId, process not foundation process");
         return CHECK_PERMISSION_FAILED;
     }
@@ -9544,6 +9554,9 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
         }
     }
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(abilityRecord->GetPid());
+    if (abilityRecord->IsSceneBoard()) {
+        KillDirectBootApps(abilityRecord->GetOwnerMissionUserId());
+    }
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         if (abilityRecord->GetAbilityInfo().type == AbilityType::PAGE) {
             auto uiAbilityManager = GetUIAbilityManagerByUserId(abilityRecord->GetOwnerMissionUserId());
@@ -10313,6 +10326,34 @@ bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart
     return true;
 }
 
+void AbilityManagerService::KillDirectBootApps(int32_t userId)
+{
+    if (userId < 0 || abilityAutoStartupService_ == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "skip direct boot cleanup, user:%{public}d or service invalid", userId);
+        return;
+    }
+    std::vector<AutoStartupInfo> infoList;
+    int32_t result = abilityAutoStartupService_->QueryAllAutoStartupApplicationsWithoutPermission(infoList, userId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "query direct boot apps failed, user:%{public}d ret:%{public}d", userId, result);
+        return;
+    }
+    std::set<std::pair<std::string, int32_t>> handledApps;
+    for (const auto &info : infoList) {
+        if (!info.isDirectBoot || info.bundleName.empty() || info.appCloneIndex < 0 ||
+            info.appCloneIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+            continue;
+        }
+        if (!handledApps.emplace(info.bundleName, info.appCloneIndex).second) {
+            continue;
+        }
+        result = DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(
+            info.bundleName, false, info.appCloneIndex, "SceneBoardDiedDirectBoot", userId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "SCB died, kill direct boot app user:%{public}d bundle:%{public}s "
+            "appIndex:%{public}d ret:%{public}d", userId, info.bundleName.c_str(), info.appCloneIndex, result);
+    }
+}
+
 void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart, bool isDirectBoot)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAutoStartupApps called");
@@ -10866,7 +10907,7 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
     }
 
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
-    if (abilityRecord && !JudgeSelfCalled(abilityRecord)) {
+    if (abilityRecord && !JudgeSelfCalled(abilityRecord) && !IsFoundationCall()) {
         errMsg = "verify account permission failed";
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, CHECK_PERMISSION_FAILED,
             "startAbilityByCall verify caller permission failed");
@@ -15653,7 +15694,7 @@ int32_t AbilityManagerService::ExecuteUIAbilityForegroundIntentWithSpecifyTokenI
     const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param,
     uint64_t specifiedFullTokenId)
 {
-    if (IPCSkeleton::GetCallingAppUid() != FOUNDATION_UID) {
+    if (!IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::INTENT, "not foundation process, reject");
         return CHECK_PERMISSION_FAILED;
     }
