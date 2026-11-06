@@ -10354,7 +10354,7 @@ int32_t AppMgrServiceInner::GetRunningProcessInformation(
     return ERR_OK;
 }
 
-int32_t AppMgrServiceInner::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
+int32_t AppMgrServiceInner::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid, bool ipcPrio)
 {
     auto callerUid = IPCSkeleton::GetCallingUid();
     TAG_LOGD(AAFwkTag::APPMGR, "called, pid:%{public}d, state:%{public}d, uid:%{public}d.", pid, state, callerUid);
@@ -10367,7 +10367,7 @@ int32_t AppMgrServiceInner::ChangeAppGcState(pid_t pid, int32_t state, uint64_t 
         TAG_LOGD(AAFwkTag::APPMGR, "no appRecord");
         return ERR_INVALID_VALUE;
     }
-    return appRecord->ChangeAppGcState(state, tid);
+    return appRecord->ChangeAppGcState(state, tid, ipcPrio);
 }
 
 int32_t AppMgrServiceInner::RegisterAppDebugListener(const sptr<IAppDebugListener> &listener)
