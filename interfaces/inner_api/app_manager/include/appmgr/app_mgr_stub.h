@@ -86,6 +86,9 @@ private:
     int32_t HandlePreTemplateProcessDeepFrozen(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyTemplateProcessReadyDone(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetHyperSnapLastError(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleDebugCreateSnapshot(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleDebugDestroySnapshot(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleDebugListSnapshot(MessageParcel &data, MessageParcel &reply);
 #ifdef SUPPORT_CHILD_PROCESS
     int32_t HandleGetAllChildrenProcesses(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetSelfChildrenProcesses(MessageParcel &data, MessageParcel &reply);

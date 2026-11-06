@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 struct AbilityInfo;
+struct SnapshotDebugInfo;
 }
 namespace AAFwk {
 namespace {
@@ -77,6 +78,42 @@ public:
         std::shared_ptr<AbilityInfo> abilityInfo, int32_t forkAllState);
     void ReportGameClickToRSS(const std::string &bundleName, int32_t pid, int32_t uid);
     void ReportTemplateProcessReadyToRSS(int32_t pid, int32_t uid, const std::string &bundleName);
+
+    /**
+     * Forward the aa debug create-snapshot command to RSS through the report-data
+     * channel (acceptance-level sync reply).
+     *
+     * @param bundleName Bundle name of the debug-signed application.
+     * @param abilityName Ability to make a snapshot of.
+     * @param debugReportOnly True to only report invalidation without invalidating.
+     * @param perfCmd Perf command to launch hiperf for stack recording; empty means not to launch.
+     * @param errcode Output, the "errcode" of the RSS reply (-1 when absent).
+     * @return Returns 0 on successful sync report, -1 on transport/parse failure.
+     */
+    int32_t ReportCreateSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
+        bool debugReportOnly, const std::string &perfCmd, int32_t &errcode);
+
+    /**
+     * Forward the aa debug destroy-snapshot command to RSS through the report-data
+     * channel (acceptance-level sync reply).
+     *
+     * @param bundleName Bundle name of the debug-signed application; empty means using pid.
+     * @param pid Process id of the snapshot; used only when bundleName is empty.
+     * @param errcode Output, the "errcode" of the RSS reply (-1 when absent).
+     * @return Returns 0 on successful sync report, -1 on transport/parse failure.
+     */
+    int32_t ReportDestroySnapshotCmdToRSS(const std::string &bundleName, int32_t pid, int32_t &errcode);
+
+    /**
+     * Forward the aa debug list-snapshot query to RSS and parse the reply into info.
+     *
+     * @param bundleName Bundle name to filter; empty means no filter.
+     * @param info Output, the snapshot overview mirrored from the RSS reply.
+     * @param errcode Output, the "errcode" of the RSS reply (-1 when absent).
+     * @return Returns 0 on successful sync report, -1 on transport/parse failure.
+     */
+    int32_t ReportListSnapshotCmdToRSS(const std::string &bundleName,
+        AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode);
 private:
     ResSchedUtil() = default;
     ~ResSchedUtil() = default;
