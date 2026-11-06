@@ -28,8 +28,12 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "in_process_call_wrapper.h"
+#include "app_state_observer_manager.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
+#include "process_schedule/process_schedule.h"
+#include "task_mgr/task_priority_judge.h"
+#include "task_mgr/task_schedule_observer.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -123,16 +127,20 @@ TaskManagerService &TaskManagerService::GetInstance()
     return instance;
 }
 
-int32_t TaskManagerService::StartTask(const std::string &taskId, int32_t priority)
+int32_t TaskManagerService::StartTask(const std::string &taskId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (!CheckParam(taskId, priority)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, priority: %{public}d",
-            taskId.size(), priority);
+    if (!CheckParam(taskId)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu", taskId.size());
         return INVALID_PARAMETERS_ERR;
     }
     TaskCallerInfo caller = GetCallerInfo();
+    RegisterScheduleListeners();
+    ReconcileForegroundState(caller.pid);
+    int32_t priority = TaskPriorityJudge::GetInstance().JudgeLevel(caller.pid);
+    TAG_LOGI(AAFwkTag::APPMGR, "judged priority: %{public}d for caller uid: %{public}d",
+        priority, caller.uid);
     return StartTaskInner(caller, taskId, priority);
 }
 
@@ -188,6 +196,7 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
     int32_t callerUid, pid_t callerPid, int64_t expectedDeadline)
 {
     std::unique_ptr<TimeoutContext> timerCtx;
+    std::vector<pid_t> managedPids;
     {
         std::lock_guard<ffrt::mutex> lock(tasksMutex_);
         auto it = tasks_.find(taskId);
@@ -207,10 +216,19 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
             return ERR_TASK_NOT_FOUND;
         }
         int64_t aliveMillis = NowMillis() - it->second.createTimeMillis;
+        for (const auto &attr : it->second.attributions) {
+            managedPids.push_back(attr.second.pid);
+        }
         timerCtx = std::move(it->second.timeoutCtx);
         tasks_.erase(it);
         TAG_LOGI(AAFwkTag::APPMGR, "task finished, taskId: %{public}s, reason: %{public}s, "
             "alive(ms): %{public}" PRId64, taskId.c_str(), TaskFinishReasonToString(reason), aliveMillis);
+        // Release every schedule attribution of the ended task under the same mutex, so the
+        // index cannot observe a finished task (20260914692273): remaining tasks of each pid
+        // keep it at their merged level; a pid with no task left naturally restores.
+        for (pid_t pid : managedPids) {
+            ProcessSchedule::GetInstance().OnAttributionRemoved(taskId, pid);
+        }
     }
     if (reason == TaskFinishReason::FINISHED_BY_TIMEOUT) {
         timerCtx.reset();
@@ -231,7 +249,142 @@ void TaskManagerService::OnTaskTimeout(const std::string &taskId, int64_t expect
 void TaskManagerService::OnProcessDied(pid_t pid, int32_t uid)
 {
     FinishTasksByCreatorInner(pid, uid);
+    // RemoveManagedProcessFromAllTasksInner also cleans the schedule index of the dead pid
+    // under the task mutex (20260914692273 / spec AC-6.3); the task records themselves
+    // survive and only lose the attribution, so the task is not finished.
     RemoveManagedProcessFromAllTasksInner(pid);
+    // clear the dead process's foreground set so its count cannot leak into future tasks
+    TaskPriorityJudge::GetInstance().OnProcessDied(pid);
+}
+
+void TaskManagerService::OnAbilityForegroundChanged(pid_t pid, uintptr_t token, bool foreground)
+{
+    TaskPriorityJudge::GetInstance().OnForegroundAbilityChanged(pid, token, foreground);
+    RejudgeTasks(pid);
+}
+
+void TaskManagerService::OnSystemLoadLevelChanged(int32_t /* loadLevel: judge cache already updated by the hook */)
+{
+    RejudgeTasks(SYSTEM_INITIATED_UID);
+}
+
+void TaskManagerService::RejudgeTasks(pid_t pid)
+{
+    std::vector<std::pair<std::string, int32_t>> changedTasks;
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        for (auto &item : tasks_) {
+            TaskRecord &record = item.second;
+            if (pid > 0 && record.creatorPid != pid) {
+                continue;
+            }
+            int32_t newLevel = TaskPriorityJudge::GetInstance().JudgeLevel(record.creatorPid);
+            if (newLevel == record.priority) {
+                continue;  // first-line anti-jitter: unchanged level is not propagated
+            }
+            TAG_LOGI(AAFwkTag::APPMGR, "yzk rejudge, taskId=%s %d -> %d",
+                record.taskId.c_str(), record.priority, newLevel);
+            record.priority = newLevel;
+            changedTasks.emplace_back(record.taskId, newLevel);
+            // same-mutex delivery keeps the schedule index consistent with the records
+            ProcessSchedule::GetInstance().OnTaskLevelChanged(record.taskId, newLevel);
+        }
+    }
+}
+
+void TaskManagerService::RegisterScheduleListeners()
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    judge.SetLevelChangedHook([](int32_t level) {
+        TaskManagerService::GetInstance().OnSystemLoadLevelChanged(level);
+    });
+    // The judge guards re-registration with loadListenerRegistered_; retrying here covers
+    // the ressched late-start window instead of giving up forever after the first failure.
+    if (!judge.RegisterSystemLoadListener()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "system load listener unavailable, judge falls back to MEDIUM");
+    }
+    static std::mutex observerMutex;
+    static bool observerRegistered = false;
+    if (observerRegistered) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(observerMutex);
+    if (observerRegistered) {
+        return;
+    }
+    static sptr<TaskScheduleAbilityObserver> abilityObserver = new (std::nothrow) TaskScheduleAbilityObserver();
+    if (abilityObserver == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "create ability observer failed");
+        return;
+    }
+    // Register under the service's own identity: this entry runs inside a startTask IPC
+    // call, and the observer permission check evaluates the CALLING token; without the
+    // identity reset the registration result would depend on whichever app calls first.
+    int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppStateObserverManager>::GetInstance()
+        ->RegisterApplicationStateObserver(abilityObserver, {}, AppStateFilter()));
+    if (ret == ERR_OK) {
+        observerRegistered = true;
+        SeedForegroundState();
+    } else {
+        // retried on the next task start
+        TAG_LOGW(AAFwkTag::APPMGR, "register ability state observer failed: %{public}d", ret);
+    }
+}
+
+void TaskManagerService::ReconcileForegroundState(pid_t pid)
+{
+    if (pid <= 0) {
+        return;
+    }
+    auto &judge = TaskPriorityJudge::GetInstance();
+    if (judge.IsForeground(pid)) {
+        return;
+    }
+    std::vector<pid_t> foregroundPids;
+    {
+        std::lock_guard<std::mutex> lock(seederMutex_);
+        if (foregroundSeeder_ == nullptr) {
+            return;
+        }
+        foregroundPids = foregroundSeeder_();
+    }
+    if (std::find(foregroundPids.begin(), foregroundPids.end(), pid) != foregroundPids.end()) {
+        judge.SeedForeground(pid);
+        TAG_LOGI(AAFwkTag::APPMGR, "yzk lazy fg reconcile, pid=%d", pid);
+    }
+}
+
+void TaskManagerService::SetForegroundSeeder(std::function<std::vector<pid_t>()> seeder)
+{
+    std::lock_guard<std::mutex> lock(seederMutex_);
+    foregroundSeeder_ = std::move(seeder);
+}
+
+void TaskManagerService::SeedForegroundState()
+{
+    // Reconcile the judge with the apps that are ALREADY foreground at registration time:
+    // the observer only delivers incremental events, so without this seed an app that was
+    // foreground before the first task started would be judged as background until its
+    // next foreground transition.
+    if (foregroundSeeder_ == nullptr) {
+        return;
+    }
+    std::vector<pid_t> foregroundPids;
+    {
+        std::lock_guard<std::mutex> lock(seederMutex_);
+        if (foregroundSeeder_ != nullptr) {
+            foregroundPids = foregroundSeeder_();
+        }
+    }
+    auto &judge = TaskPriorityJudge::GetInstance();
+    for (pid_t pid : foregroundPids) {
+        judge.SeedForeground(pid);
+    }
+    if (!foregroundPids.empty()) {
+        TAG_LOGI(AAFwkTag::APPMGR, "yzk foreground seeded, pids=%zu", foregroundPids.size());
+        // re-judge so already-created tasks of seeded apps pick up the foreground input
+        RejudgeTasks(SYSTEM_INITIATED_UID);
+    }
 }
 
 void TaskManagerService::FinishTasksByCreatorInner(pid_t pid, int32_t uid)
@@ -271,6 +424,9 @@ void TaskManagerService::RemoveManagedProcessFromAllTasksInner(pid_t pid)
             }
         }
     }
+    // Clean the dead pid's schedule entries under the same mutex: no late add can resurrect
+    // them afterwards, and no concurrent finish can miss them.
+    ProcessSchedule::GetInstance().OnProcessDied(pid);
 }
 
 int32_t TaskManagerService::RegisterManagedProcess(const std::string &taskId,
@@ -444,6 +600,7 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
     const AttributionRecord &attribution, AttributionId &attributionId)
 {
     std::unique_ptr<TimeoutContext> replacedCtx;
+    int32_t taskLevel = 0;
     {
         std::lock_guard<ffrt::mutex> lock(tasksMutex_);
         auto it = tasks_.find(taskId);
@@ -460,11 +617,17 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
         AttributionRecord stored = attribution;
         stored.attributedTimeMillis = NowMillis();
         it->second.attributions[newId] = stored;
+        taskLevel = it->second.priority;
         attributionId = newId;
         TAG_LOGI(AAFwkTag::APPMGR, "attribution registered, taskId: %{public}s, "
             "attributionId: %{public}" PRId64 ", pid: %{public}d, tool: %{public}s",
             taskId.c_str(), newId, stored.pid, AttributionToolToString(stored.tool));
         replacedCtx = RestartTimeoutWindow(taskId, it->second);
+        // Feed the schedule index under the same mutex as the record change: the delivery
+        // is atomic w.r.t. concurrent finish/death/rejudge, so no orphan entries can
+        // survive their task (lock order tasksMutex_ -> scheduleMutex_, scheduleMutex_ is
+        // a leaf lock that never calls back).
+        ProcessSchedule::GetInstance().OnAttributionAdded(taskId, taskLevel, stored.pid, stored.tool);
     }
     ReleaseTimeoutContext(std::move(replacedCtx));
     return ERR_OK;
@@ -473,19 +636,27 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
 int32_t TaskManagerService::UnregisterManagedProcessInner(const std::string &taskId,
     AttributionId attributionId)
 {
-    std::lock_guard<ffrt::mutex> lock(tasksMutex_);
-    auto it = tasks_.find(taskId);
-    if (it == tasks_.end()) {
-        TAG_LOGW(AAFwkTag::APPMGR, "task not found, taskId: %{public}s", taskId.c_str());
-        return ERR_TASK_NOT_FOUND;
-    }
-    if (it->second.attributions.erase(attributionId) == 0) {
-        TAG_LOGW(AAFwkTag::APPMGR, "attribution not found, taskId: %{public}s, "
+    pid_t removedPid = -1;
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        auto it = tasks_.find(taskId);
+        if (it == tasks_.end()) {
+            TAG_LOGW(AAFwkTag::APPMGR, "task not found, taskId: %{public}s", taskId.c_str());
+            return ERR_TASK_NOT_FOUND;
+        }
+        auto attrIt = it->second.attributions.find(attributionId);
+        if (attrIt == it->second.attributions.end()) {
+            TAG_LOGW(AAFwkTag::APPMGR, "attribution not found, taskId: %{public}s, "
+                "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
+            return ERR_ATTRIBUTION_NOT_FOUND;
+        }
+        removedPid = attrIt->second.pid;
+        it->second.attributions.erase(attrIt);
+        TAG_LOGI(AAFwkTag::APPMGR, "attribution unregistered, taskId: %{public}s, "
             "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
-        return ERR_ATTRIBUTION_NOT_FOUND;
+        // same-mutex delivery, see RegisterManagedProcessInner
+        ProcessSchedule::GetInstance().OnAttributionRemoved(taskId, removedPid);
     }
-    TAG_LOGI(AAFwkTag::APPMGR, "attribution unregistered, taskId: %{public}s, "
-        "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
     return ERR_OK;
 }
 
@@ -598,13 +769,13 @@ std::string TaskManagerService::DumpActiveTasks()
         result += "        creator uid [" + std::to_string(record.creatorUid) + "] pid [" +
             std::to_string(record.creatorPid) + "] bundle [" + record.creatorBundleName + "]\n";
         result += "        managed processes [" + AttributionsToString(record.attributions) + "]\n";
-        result += "        sched level [-]\n";
+        result += std::string("        sched level [task:") + TaskPriorityToString(record.priority) + "]\n";
         result += "        remain timeout [" + std::to_string(remainSeconds) + "s]\n";
         result += "        create time [" + FormatCreateTime(record.createTimeMillis) + "]\n";
     }
-    // SchedLevel and the exemption summary stay placeholder until the resource-schedule
-    // control module lands; the field layout is fixed here so scripts can rely on it.
-    result += "Exemption summary: total=0\n";
+    // The exemption summary carries the real values (kept in process_schedule) so the
+    // --task and --task psched views report the same truth.
+    result += ProcessSchedule::GetInstance().DumpExemptionSummary();
     return result;
 }
 
@@ -658,12 +829,9 @@ TaskManagerService::TaskCallerInfo TaskManagerService::GetCallerInfo()
     return caller;
 }
 
-bool TaskManagerService::CheckParam(const std::string &taskId, int32_t priority)
+bool TaskManagerService::CheckParam(const std::string &taskId)
 {
-    if (taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN) {
-        return false;
-    }
-    return priority == TASK_PRIORITY_LOW || priority == TASK_PRIORITY_MEDIUM || priority == TASK_PRIORITY_HIGH;
+    return taskId.size() >= TASK_ID_MIN_LEN && taskId.size() <= TASK_ID_MAX_LEN;
 }
 
 int64_t TaskManagerService::NowMillis()

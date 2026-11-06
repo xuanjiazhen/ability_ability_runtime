@@ -1,0 +1,180 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef OHOS_APP_EXECFWK_TASK_MGR_TASK_PRIORITY_JUDGE_H
+#define OHOS_APP_EXECFWK_TASK_MGR_TASK_PRIORITY_JUDGE_H
+
+#include <cstdint>
+#include <map>
+#include <mutex>
+#include <set>
+#include <string>
+#include <sys/types.h>
+
+#include "task_mgr/system_load_provider.h"
+
+namespace OHOS {
+namespace AppExecFwk {
+
+/**
+ * @brief Judges the task priority level from the caller foreground state and the system
+ *        load fusion level. The judge only caches its two inputs (the per-uid foreground
+ *        ability counts and the fusion level); the wiring of the inputs (application state
+ *        subscription, load listener registration) is done by TaskManagerService when the
+ *        task manager assembles. All members are protected by judgeMutex_, a leaf lock that
+ *        is only ever taken while (or without) the task record mutex and never calls out,
+ *        so the lock order tasksMutex_ -> judgeMutex_ is respected everywhere (design
+ *        ADR-4/ADR-5/ADR-6/ADR-7).
+ */
+class TaskPriorityJudge {
+public:
+    static TaskPriorityJudge &GetInstance();
+
+    /**
+     * @brief Compile-time default mapping matrix:
+     *        foreground (the caller process hosts a foreground ability) -> HIGH;
+     *        background & fusion level 5~7 (high load) -> LOW;
+     *        background & fusion level 0~4 or the load unavailable -> MEDIUM.
+     * @param foreground Indicates whether the caller process hosts a foreground ability.
+     * @param loadLevel Indicates the fusion level (0~7); a negative value means unavailable.
+     * @return Returns one of TASK_PRIORITY_HIGH / TASK_PRIORITY_MEDIUM / TASK_PRIORITY_LOW.
+     */
+    static int32_t DetermineLevel(bool foreground, int32_t loadLevel);
+
+    /**
+     * @brief Updates the foreground ability set of a caller process; idempotent so that
+     *        AMS double-dispatch paths (ChangeAbilityToForegroundIfNeeded +
+     *        PopForegroundingAbilityTokens, app_running_record.cpp:1016,1203) collapse
+     *        onto one entry. Uses the ability's IRObject token address as the identity
+     *        key; a foreground event is inserted, background/terminated/ended is erased.
+     *        The sentinel token (token == nullptr, encoded as 0) is the seed marker: the
+     *        very first real ability event for a seeded pid clears the sentinel so the
+        set transitions from "foreground but unknown identity" to an explicit set.
+     * @param pid Indicates the caller process id.
+     * @param token Indicates the ability's IRObject token (nullptr encodes the seed sentinel).
+     * @param foreground Indicates true when an ability entered the foreground; false when
+     *        it left the foreground (including termination).
+     */
+    void OnForegroundAbilityChanged(pid_t pid, uintptr_t token, bool foreground);
+
+    /**
+     * @brief Updates the cached fusion level; called from the load listener callback and
+     *        once right after a successful listener registration.
+     * @param loadLevel Indicates the new fusion level (0~7); values outside the range are
+     *        treated as unavailable (fallback to the default level).
+     */
+    void OnSystemLoadLevelChanged(int32_t loadLevel);
+
+    /**
+     * @brief Judges the level for a caller process from the cached inputs.
+     * @param pid Indicates the caller process id.
+     * @return Returns the judged task level (HIGH/MEDIUM/LOW); falls back to the default
+     *         level when the inputs are unavailable.
+     */
+    int32_t JudgeLevel(pid_t pid) const;
+
+    /**
+     * @brief Queries whether the caller process currently hosts any foreground ability.
+     * @param pid Indicates the caller process id.
+     * @return Returns true when at least one foreground ability identity exists.
+     */
+    bool IsForeground(pid_t pid) const;
+
+    /**
+     * @brief Clears all foreground ability entries for a dead process (called from
+     *        OnProcessDied). After this call the pid is absent from the map so the
+     *        count cannot leak.
+     * @param pid Indicates the dead process id.
+     */
+    void OnProcessDied(pid_t pid);
+
+    /**
+     * @brief Seeds a foreground entry for a pid that is ALREADY foreground at observer
+     *        registration time (the observer is incremental-only). Uses the sentinel
+     *        token 0; the first real ability event for that pid replaces it.
+     * @param pid Indicates the process id to seed.
+     */
+    void SeedForeground(pid_t pid);
+
+    /**
+     * @brief Queries the cached fusion level.
+     * @return Returns the fusion level (0~7); -1 when unavailable.
+     */
+    int32_t CurrentLoadLevel() const;
+
+    /**
+     * @brief Injects the load provider; used by unit tests to stub the load source. When
+     *        never called, the default ressched-backed provider is created lazily on the
+     *        first RegisterSystemLoadListener.
+     * @param provider Indicates the provider, or nullptr to restore the default.
+     */
+    void SetLoadProvider(const std::shared_ptr<ISystemLoadProvider> &provider);
+
+    /**
+     * @brief Registers the fusion level listener through the load provider; on failure the
+     *        load input stays unavailable and every background task is judged with the
+     *        fallback level (spec R-7).
+     * @return Returns true when the listener is active.
+     */
+    bool RegisterSystemLoadListener();
+
+    /**
+     * @brief Sets the hook invoked (on the provider callback thread) after every fusion
+     *        level cache update; TaskManagerService uses it to re-judge the running tasks.
+     * @param hook Indicates the hook, or nullptr to clear.
+     */
+    void SetLevelChangedHook(std::function<void(int32_t)> hook);
+
+    /**
+     * @brief Unregisters the fusion level listener.
+     */
+    void UnregisterSystemLoadListener();
+
+    /**
+     * @brief Renders the judge state section for the --psched dump (cached fusion level,
+     *        per-uid foreground ability counts and the listener registration state).
+     * @return Returns the dump text.
+     */
+    std::string DumpJudgeState() const;
+
+private:
+    TaskPriorityJudge() = default;
+    ~TaskPriorityJudge() = default;
+    TaskPriorityJudge(const TaskPriorityJudge &) = delete;
+    TaskPriorityJudge &operator=(const TaskPriorityJudge &) = delete;
+
+    static bool IsHighLoad(int32_t loadLevel);
+
+    // Invoked right after a fusion level cache update to drive the task re-judgment.
+    void NotifyLevelChanged(int32_t level);
+
+    std::shared_ptr<ISystemLoadProvider> loadProvider_;
+    std::function<void(int32_t)> levelChangedHook_;
+    mutable std::mutex judgeMutex_;
+    // Foreground ability set per process: the set stores the ability's IRObject token
+    // address (uintptr_t). A sentinel value 0 represents the seeder "some ability is
+    // foreground but we don't know its identity"; the first real ability event for that
+    // pid clears the sentinel. The set's non-emptiness drives IsForeground / JudgeLevel.
+    // Using a set collapses the AMS double-dispatch paths (FG sent twice for the same
+    // ability) onto a single entry and makes the model order-independent.
+    std::map<pid_t, std::set<uintptr_t>> fgAbilities_;
+    int32_t loadLevel_ = -1;
+    bool loadListenerRegistered_ = false;
+};
+
+}  // namespace AppExecFwk
+}  // namespace OHOS
+
+#endif  // OHOS_APP_EXECFWK_TASK_MGR_TASK_PRIORITY_JUDGE_H
