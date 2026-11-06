@@ -3373,5 +3373,208 @@ int32_t AppMgrProxy::FinishTask(const std::string &taskId)
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data) || !WriteDaemonDescriptor(data, descriptor)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write daemon descriptor failed.");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = SendRequest(AppMgrInterfaceCode::REGISTER_DAEMON, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "register daemon request failed: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data) || !WriteDaemonDescriptor(data, descriptor)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write daemon descriptor failed.");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = SendRequest(AppMgrInterfaceCode::UNREGISTER_DAEMON, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "unregister daemon request failed: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data) || !WriteDaemonDescriptor(data, descriptor)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write daemon descriptor failed.");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = SendRequest(AppMgrInterfaceCode::START_DAEMON, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "start daemon request failed: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data) || !WriteDaemonDescriptor(data, descriptor)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write daemon descriptor failed.");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = SendRequest(AppMgrInterfaceCode::STOP_DAEMON, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "stop daemon request failed: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+    AbilityRuntime::LaunchServiceInformation &information)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data) || !data.WriteParcelable(&descriptor)) {
+        return ERR_INVALID_VALUE;
+    }
+    int32_t ret = SendRequest(AppMgrInterfaceCode::GET_LAUNCH_SERVICE_INFORMATION, data, reply, option);
+    if (ret != NO_ERROR) {
+        return ret;
+    }
+    ret = reply.ReadInt32();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    std::unique_ptr<AbilityRuntime::LaunchServiceInformation> result(
+        reply.ReadParcelable<AbilityRuntime::LaunchServiceInformation>());
+    if (result == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    information = *result;
+    return ERR_OK;
+}
+
+int32_t AppMgrProxy::GetAllLaunchServiceInformations(
+    int32_t userId, std::vector<AbilityRuntime::LaunchServiceInformation> &informations)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data) || !data.WriteInt32(userId)) {
+        return IPC_PROXY_ERR;
+    }
+    int32_t ret = SendRequest(AppMgrInterfaceCode::GET_ALL_LAUNCH_SERVICE_INFORMATIONS, data, reply, option);
+    if (ret != NO_ERROR) {
+        return ret;
+    }
+    ret = reply.ReadInt32();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    int32_t count = reply.ReadInt32();
+    if (count < 0 || count > CYCLE_LIMIT) {
+        return ERR_INVALID_VALUE;
+    }
+    std::vector<AbilityRuntime::LaunchServiceInformation> result;
+    result.reserve(static_cast<size_t>(count));
+    for (int32_t index = 0; index < count; ++index) {
+        std::unique_ptr<AbilityRuntime::LaunchServiceInformation> item(
+            reply.ReadParcelable<AbilityRuntime::LaunchServiceInformation>());
+        if (item == nullptr) {
+            return ERR_INVALID_VALUE;
+        }
+        result.emplace_back(*item);
+    }
+    informations = std::move(result);
+    return ERR_OK;
+}
+
+int32_t AppMgrProxy::SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    const std::vector<uint8_t> &token, bool enable)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return IPC_PROXY_ERR;
+    }
+    if (!data.WriteString(bundleName) || !data.WriteInt32(userId) || !data.WriteInt32(appIndex) ||
+        !data.WriteUInt8Vector(token) || !data.WriteBool(enable)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = SendRequest(AppMgrInterfaceCode::SET_DAEMON_ENABLE, data, reply, option);
+    return ret == NO_ERROR ? reply.ReadInt32() : ret;
+}
+
+int32_t AppMgrProxy::NotifyResidentStartupCompleted()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto result = SendRequest(AppMgrInterfaceCode::NOTIFY_RESIDENT_STARTUP_COMPLETED, data, reply, option);
+    if (result != NO_ERROR) {
+        return result;
+    }
+    int32_t serviceResult = ERR_INVALID_VALUE;
+    return reply.ReadInt32(serviceResult) ? serviceResult : ERR_INVALID_VALUE;
+}
+
+int32_t AppMgrProxy::RegisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
+{
+    if (observer == nullptr || observer->AsObject() == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data) || !data.WriteRemoteObject(observer->AsObject())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write launch service observer failed.");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = SendRequest(AppMgrInterfaceCode::REGISTER_LAUNCH_SERVICE_OBSERVER, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "register launch service observer request failed: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::UnregisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
+{
+    if (observer == nullptr || observer->AsObject() == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data) || !data.WriteRemoteObject(observer->AsObject())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write launch service observer failed.");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = SendRequest(AppMgrInterfaceCode::UNREGISTER_LAUNCH_SERVICE_OBSERVER, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "unregister launch service observer request failed: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
