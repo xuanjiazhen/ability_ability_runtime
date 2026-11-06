@@ -2266,16 +2266,30 @@ public:
     bool IsInsightIntentCall(uint64_t intentId) override;
 
     /**
-     * @brief Reserved path to request the privacy-center (隐私中心) consent popup for a
-     *        third-party agent function invocation.
+     * @brief Reserved hook to obtain user consent for a third-party agent function
+     *        invocation, executed asynchronously on a worker thread.
      *
-     * TODO(agent): not implemented yet. This hook is invoked after the caller/target
-     * identity (bundle name + app index) has been captured, so the privacy-center dialog
-     * can later reuse RequestDialogService / ams_system_dialog to obtain user consent.
+     * MOCK implementation for now: the real consent dialog is provided by the
+     * privacy-center domain. It must return true (user grants consent) or false
+     * (user declines); the result is fed into HandleAgentPrivacyDialogResult. When
+     * the real dialog lands, the privacy-center side either drives this adapter or
+     * reports the result directly through HandleAgentPrivacyDialogResult.
+     * @return true if consent is granted, false if declined or the pre-registered
+     *         record is no longer queryable.
      */
-    int32_t RequestAgentPrivacyDialog(const std::string &callerBundleName, int32_t callerAppIndex,
-        const std::string &targetBundleName, int32_t targetBundleIndex, uint64_t intentId,
-        const sptr<IRemoteObject> &callerToken);
+    bool RequestAgentPrivacyDialog(const std::string &callerBundleName, int32_t callerAppIndex,
+        const std::string &targetBundleName, int32_t targetBundleIndex, uint64_t intentId);
+
+    /**
+     * @brief Consume the async privacy dialog result for a pending agent invocation.
+     *
+     * Granted: CAS the record PENDING_CONSENT -> EXECUTING, then launch the parked
+     * execute payload; the result is delivered through the regular function-call
+     * callback channel. Denied (or the record no longer pending): deliver a failure
+     * to the caller via OnExecuteDone and drop the record. Concurrent results
+     * (grant vs. timeout) are arbitrated by the state CAS.
+     */
+    void HandleAgentPrivacyDialogResult(uint64_t intentId, bool granted);
 
     /**
      * @brief Execute UIAbility foreground intent with specified token id.
@@ -3849,6 +3863,12 @@ private:
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
         uint64_t specifiedIntentId);
     void SetRemoteIntentTimeout(uint64_t insightIntentId);
+    // Agent consent flow: arm/cancel the consent-timeout guard for a pending record.
+    void SetAgentConsentTimeout(uint64_t intentId);
+    void RemoveAgentConsentTimeout(uint64_t intentId);
+    // Agent-path authorization gate (skeleton): TODO(agent) real permission +
+    // agentCallable declaration check implemented by the owning domain.
+    int32_t VerifyAgentCallPermission();
     // 清理 wantParam 残留意图参数 + 意图候选匹配 + parser.Build 组装执行参数。
     int32_t PrepareFunctionCallParam(const std::string &bundleName, const std::string &intentName,
         const WantParams &wantParam, int32_t callerUserId,
@@ -3912,6 +3932,9 @@ private:
 
     ffrt::mutex remoteTaskHandlesMutex_;
     std::map<uint32_t, std::shared_ptr<ffrt::task_handle>> remoteTaskHandles_;
+    // Agent consent-timeout guards, keyed by the pre-registered intentId.
+    ffrt::mutex agentConsentTaskHandlesMutex_;
+    std::map<uint64_t, std::shared_ptr<ffrt::task_handle>> agentConsentTaskHandles_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

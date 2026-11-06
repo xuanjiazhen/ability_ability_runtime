@@ -2099,8 +2099,12 @@ public:
     /**
      * @brief Execute intent by agent with simplified parameters.
      *
-     * Third-party agent entry point. Currently delegates to the function-call
-     * execution path; agent-specific authorization is added on top later.
+     * Third-party agent entry point with an asynchronous consent flow: the request
+     * is authorized, pre-registered (PENDING_CONSENT) and the privacy-center consent
+     * dialog is requested on a worker thread before this call returns. ERR_OK only
+     * means the request was accepted; the execution result (or a consent failure,
+     * e.g. the user declined or the consent timed out) is delivered later through
+     * the OnExecuteDone callback registered under the given key.
      *
      * @param key The callback key for result notification.
      * @param callerToken The caller token.
