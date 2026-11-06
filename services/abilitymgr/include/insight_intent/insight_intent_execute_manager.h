@@ -36,6 +36,10 @@ namespace OHOS {
 namespace AAFwk {
 enum class InsightIntentExecuteState {
     UNKNOWN = 0,
+    // Record pre-registered for a third-party agent invocation, waiting for the
+    // privacy-center consent dialog result. Only a consent grant moves it forward;
+    // a deny or timeout drops the record.
+    PENDING_CONSENT,
     EXECUTING,
     EXECUTE_DONE,
     REMOTE_DIED
@@ -56,6 +60,10 @@ struct InsightIntentExecuteRecord {
     std::string deviceId;
     uint64_t requestCode = 0;
     std::string taskId;
+    // Agent-path payload: the execute request is parked here while the record sits
+    // in PENDING_CONSENT, and is consumed by the service once consent is granted.
+    std::string intentName;
+    WantParams wantParam;
     // Attribution id allocated by the in-process TaskManagerService (0 means not registered).
     int64_t attributionId = 0;
 };
@@ -105,12 +113,14 @@ public:
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const ExecuteParam &execParam = ExecuteParam{}, uint64_t specifiedIntentId = 0);
 
-    // Pre-register an execution record and allocate the intent id before the
-    // execution actually starts. Used by the agent path so that the privacy-center
-    // consent popup can be shown while the record is already queryable (via
-    // IsInsightIntentCall), and the id is later reused by CheckAndUpdateParam.
+    // Pre-register an execution record in PENDING_CONSENT and allocate the intent id
+    // before the execution actually starts. Used by the agent path: the privacy-center
+    // consent popup can be shown (and queried back via IsInsightIntentCall) while the
+    // record waits for consent; the intentName/wantParam payload is parked on the
+    // record and consumed once the user grants consent.
     int32_t RegisterExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
-        const std::string &bundleName, const ExecuteParam &execParam, uint64_t &intentId);
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+        const ExecuteParam &execParam, uint64_t &intentId);
 
     int32_t CheckAndUpdateWant(Want &want, AppExecFwk::ExecuteMode executeMode, int32_t userId,
         std::string callerBundleName = "");
@@ -134,6 +144,22 @@ public:
     int32_t GetTargetBundleIndex(uint64_t intentId, int32_t &targetBundleIndex) const;
 
     bool IsInsightIntentCall(uint64_t intentId) const;
+
+    // CAS-style state transition: moves the record to `next` only when it currently
+    // sits in `expected`. Returns ERR_OK when the transition happened.
+    int32_t UpdateRecordState(uint64_t intentId, InsightIntentExecuteState expected,
+        InsightIntentExecuteState next);
+
+    // Agent consent flow: when a record is still waiting for user consent, deliver a
+    // failure result to the caller (OnExecuteDone) and drop the record. Used by both
+    // the consent-denied path and the consent-timeout guard; a no-op when consent was
+    // already granted (the record has moved to EXECUTING).
+    int32_t FailPendingConsentRecord(uint64_t intentId, int32_t resultCode);
+
+    // Fetch the parked agent execute payload (key/callerToken/bundle/intentName/params)
+    // from a pre-registered record, for the service to launch after consent is granted.
+    int32_t GetAgentExecutePayload(uint64_t intentId, uint64_t &key, sptr<IRemoteObject> &callerToken,
+        std::string &bundleName, std::string &intentName, WantParams &wantParam) const;
 
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
@@ -196,7 +222,8 @@ private:
     std::map<pid_t, sptr<IInsightIntentWillExecuteCallback>> insightIntentWillExecuteCallbacks_;
 
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
-        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "");
+        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "",
+        InsightIntentExecuteState initialState = InsightIntentExecuteState::EXECUTING);
 
     static int32_t IsValidCall(const Want &want);
 

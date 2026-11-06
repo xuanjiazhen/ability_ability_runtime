@@ -192,6 +192,43 @@ export default insightIntentFunction;
 ⑦ NAPI 回调客户端：映射 InvokeFunctionResult → (TSFN) resolve/reject Promise
 ```
 
+### 5.3 隐私同意（异步弹窗，PENDING_CONSENT）
+
+三方 Agent 调用属于「代理发起」，执行前必须取得用户同意。同意弹窗由隐私中心领域实现，
+AMS 侧只定义结果接缝（`RequestAgentPrivacyDialog` 返回 true/false 的适配层，mock 可替）。
+整条链路**全程异步**，`ExecuteIntentByAgent` 的 IPC 立即返回：
+
+```
+ExecuteIntentByAgent（IPC，立即返回 ERR_OK = 受理）
+  → ① 鉴权 VerifyAgentCallPermission（骨架桩，后续接 normal 权限 + agentCallable）
+  → ② 预登记 RegisterExecuteRecord：记录 state = PENDING_CONSENT，
+       意图身份 + intentName/wantParam 载荷暂存在记录上；
+       此刻起隐私中心可通过 IPC 6190 IsInsightIntentCall(intentId) 回查为 true
+  → ③ 挂 20s 同意超时 guard（ffrt 延迟任务，早于客户端 30s 执行超时）
+  → ④ ffrt worker 上调用 RequestAgentPrivacyDialog（mock：恒返回 true）
+       真实实现为隐私中心弹窗，结果（同意/拒绝）进入 ↓
+
+HandleAgentPrivacyDialogResult(intentId, granted)   ← 唯一结果入口（状态机仲裁）
+  ├─ granted：
+  │    CAS PENDING_CONSENT → EXECUTING（输掉 CAS = 拒绝/超时已先行，直接清理返回）
+  │    → 取出暂存载荷 → ExecuteIntentByFunctionCallWithId(specifiedIntentId)
+  │    → 结果走既有 OnExecuteDone(key) 回传（§5.2 ⑤⑥⑦）
+  │    （启动失败也经 ExecuteIntentDone 显式回传失败，不让调用方干等）
+  └─ denied / 超时触发：
+       FailPendingConsentRecord（CAS 守卫，仅在仍为 PENDING_CONSENT 时生效）
+       → ExecuteIntentDone(失败码) → OnExecuteDone 回传失败 → 记录生命周期结束
+```
+
+设计要点：
+- **同意与执行绑定同一条记录**：intentId 在预登记时分配，弹窗回查与执行复用同一 id，
+  「用户同意的那次」和「实际执行的那次」不可能错位；
+- **竞态仲裁靠状态机 CAS**（`UpdateRecordState`）：同意、拒绝、超时三者并发时，
+  只有第一个把 PENDING_CONSENT 移走的生效，其余自动退化为 no-op；
+- **PENDING_CONSENT 语义收紧**：`IsInsightIntentCall(intentId)` 只对 PENDING_CONSENT /
+  EXECUTING 返回 true，EXECUTE_DONE / REMOTE_DIED 旧记录不再能验证任何弹窗；
+- **失败显式回传**：拒绝 / 超时 / 启动失败都通过 `OnExecuteDone` 回传失败码，
+  调用方不会等到自己的 30s 超时才发现异常。
+
 ## 6. 分层落地清单（实现阶段用，本次不含代码）
 
 | 层 | 改动 | 位置（新增/参考） |
