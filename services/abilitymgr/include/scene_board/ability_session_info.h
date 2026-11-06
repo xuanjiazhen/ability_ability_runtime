@@ -36,6 +36,9 @@ struct AbilitySessionInfo {
     int32_t callerAppCloneIndex = 0;
     // Task attribution key (ohos.aafwk.param.agent.taskId) cached from the original caller want.
     std::string taskId;
+    // Insight intent identity params matching is keyed by the unique intent id.
+    bool hasInsightIntent = false;
+    std::string insightIntentId;
 };
 
 #endif // OHOS_ABILITY_RUNTIME_ABILITY_SESSION_INFO_H
