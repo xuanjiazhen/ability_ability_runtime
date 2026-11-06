@@ -10298,6 +10298,15 @@ void AbilityManagerService::StartResidentApps(int32_t userId)
 #endif
         residentProcessManager->StartResidentProcess(bundleInfos);
     }
+    if (userId == U0_USER_ID) {
+        auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+        if (client != nullptr) {
+            auto result = IN_PROCESS_CALL(client->NotifyResidentStartupCompleted());
+            if (result != ERR_OK) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "notify resident startup completed failed: %{public}d", result);
+            }
+        }
+    }
 }
 
 void AbilityManagerService::StartKeepAliveApps(int32_t userId)
