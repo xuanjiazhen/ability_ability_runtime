@@ -48,6 +48,13 @@ public:
      */
     int32_t ExecuteIntentByFunctionCall(const ExecuteIntentParam &param);
 
+    /**
+     * @brief Execute intent by agent with pre-registration and consent (lightweight client).
+     * @param param The execute intent parameters.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ExecuteIntentByAgent(const ExecuteIntentParam &param);
+
 private:
     IntentClient() = default;
 
@@ -55,7 +62,7 @@ private:
 
     void ResetRemote(wptr<IRemoteObject> remote);
 
-    int32_t SendExecuteRequest(uint64_t key, const sptr<IRemoteObject> &callerToken,
+    int32_t SendExecuteRequest(uint32_t code, uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam);
 
     class DeathRecipient : public IRemoteObject::DeathRecipient {

@@ -78,7 +78,7 @@ void IntentClient::DeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remot
     IntentClient::GetInstance().ResetRemote(remote);
 }
 
-int32_t IntentClient::SendExecuteRequest(uint64_t key, const sptr<IRemoteObject> &callerToken,
+int32_t IntentClient::SendExecuteRequest(uint32_t code, uint64_t key, const sptr<IRemoteObject> &callerToken,
     const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
 {
     auto remote = GetAbilityManagerRemote();
@@ -113,9 +113,7 @@ int32_t IntentClient::SendExecuteRequest(uint64_t key, const sptr<IRemoteObject>
         TAG_LOGE(AAFwkLogTag::INTENT, "write wantParam failed");
         return INNER_ERR;
     }
-    int32_t err = remote->SendRequest(
-        static_cast<uint32_t>(AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_FUNCTION_CALL),
-        data, reply, option);
+    int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != 0) {
         TAG_LOGE(AAFwkLogTag::INTENT, "send request failed: %{public}d", err);
         return err;
@@ -133,7 +131,28 @@ int32_t IntentClient::ExecuteIntentByFunctionCall(const ExecuteIntentParam &para
     auto hostClient = AbilityRuntime::InsightIntentHostClient::GetInstance();
     uint64_t key = hostClient->AddInsightIntentExecute(param.callback);
 
-    int32_t err = SendExecuteRequest(key, hostClient, param.bundleName, param.intentName, param.wantParam);
+    int32_t err = SendExecuteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_FUNCTION_CALL),
+        key, hostClient, param.bundleName, param.intentName, param.wantParam);
+    if (err != ERR_OK) {
+        hostClient->RemoveInsightIntentExecute(key);
+    }
+    return err;
+}
+
+int32_t IntentClient::ExecuteIntentByAgent(const ExecuteIntentParam &param)
+{
+    if (param.callback == nullptr) {
+        TAG_LOGE(AAFwkLogTag::INTENT, "null callback");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto hostClient = AbilityRuntime::InsightIntentHostClient::GetInstance();
+    uint64_t key = hostClient->AddInsightIntentExecute(param.callback);
+
+    int32_t err = SendExecuteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_AGENT),
+        key, hostClient, param.bundleName, param.intentName, param.wantParam);
     if (err != ERR_OK) {
         hostClient->RemoveInsightIntentExecute(key);
     }

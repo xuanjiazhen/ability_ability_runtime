@@ -146,15 +146,25 @@ InsightIntentExecuteManager::InsightIntentExecuteManager() = default;
 InsightIntentExecuteManager::~InsightIntentExecuteManager() = default;
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, const ExecuteParam &execParam,
-    uint64_t specifiedIntentId)
+    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, const ExecuteParam &execParam)
 {
+    // Orchestrator: permission -> validation -> record acquisition, in that order.
     std::string targetBundleName = (param != nullptr) ? param->bundleName_ : "";
     int32_t result = CheckCallerPermission(execParam.specifiedFullTokenId, execParam.callerBundleName,
         targetBundleName);
     if (result != ERR_OK) {
         return result;
     }
+    result = ValidateExecuteParam(callerToken, execParam, param);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return AcquireExecuteRecord(key, callerToken, param, execParam);
+}
+
+int32_t InsightIntentExecuteManager::ValidateExecuteParam(const sptr<IRemoteObject> &callerToken,
+    const ExecuteParam &execParam, const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param) const
+{
     if (!execParam.isDistributed && callerToken == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null callerToken");
         return ERR_INVALID_VALUE;
@@ -169,42 +179,39 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
         TAG_LOGE(AAFwkTag::INTENT, "invalid param");
         return ERR_INVALID_VALUE;
     }
-    if (specifiedIntentId != 0) {
-        // Reuse a pre-registered record (agent path registers it before showing the
-        // privacy-center consent popup). Skip AddRecord to avoid a duplicate/orphan
-        // record, but validate ownership first: the id must map to a live record of
-        // the same target bundle in EXECUTING state, otherwise any caller could attach
-        // its execution to a foreign or still-pending-consent record.
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::AcquireExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
+    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
+    const ExecuteParam &execParam)
+{
+    // Reuse path: param->insightIntentId_ points to a pre-registered record; it must be
+    // the same bundle and in EXECUTING state, or the id is rejected.
+    if (param->insightIntentId_ != 0) {
         {
             std::lock_guard<ffrt::mutex> lock(mutex_);
-            auto it = records_.find(specifiedIntentId);
+            auto it = records_.find(param->insightIntentId_);
             bool usable = it != records_.end() && it->second != nullptr &&
                 it->second->state == InsightIntentExecuteState::EXECUTING &&
                 it->second->bundleName == param->bundleName_;
             if (!usable) {
-                TAG_LOGE(AAFwkTag::INTENT, "specified intentId not usable: %{public}" PRIu64, specifiedIntentId);
+                TAG_LOGE(AAFwkTag::INTENT, "specified intentId not usable: %{public}" PRIu64,
+                    param->insightIntentId_);
                 return ERR_INVALID_VALUE;
             }
         }
-        param->insightIntentId_ = specifiedIntentId;
         return ERR_OK;
     }
-    uint64_t intentId = 0;
-    result = AddRecord(key, callerToken, param->bundleName_, intentId, execParam, param->taskId_);
-    if (result != ERR_OK) {
-        return result;
-    }
-
-    param->insightIntentId_ = intentId;
-    return ERR_OK;
+    // Fresh record: AddRecord allocates a new id and stamps it into param->insightIntentId_.
+    return AddRecord(key, callerToken, param->bundleName_, param->insightIntentId_, execParam, param->taskId_);
 }
 
 int32_t InsightIntentExecuteManager::RegisterExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const std::string &bundleName, const ExecuteParam &execParam, uint64_t &intentId)
 {
-    // Park the record in PENDING_CONSENT: it becomes queryable for the privacy-center
-    // consent dialog immediately, but cannot be consumed by the execute path until
-    // the consent result moves it to EXECUTING (UpdateRecordState).
+    // Park in PENDING_CONSENT: queryable while the consent dialog shows, consumed only
+    // after UpdateRecordState moves it to EXECUTING.
     return AddRecord(key, callerToken, bundleName, intentId, execParam, "",
         InsightIntentExecuteState::PENDING_CONSENT);
 }
@@ -303,6 +310,7 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->callerBundleName = execParam.callerBundleName;
     record->targetBundleIndex = execParam.targetAppIndex;
     record->callerAppIndex = execParam.callerAppIndex;
+    record->callerTokenId = IPCSkeleton::GetCallingTokenID();
     record->isDistributed = execParam.isDistributed;
     record->deviceId = execParam.srcDeviceId;
     record->requestCode = execParam.requestCode;
@@ -343,10 +351,8 @@ int32_t InsightIntentExecuteManager::RemoveExecuteIntent(uint64_t intentId)
         TAG_LOGI(AAFwkTag::INTENT, "remove intentId: %{public}" PRIu64 ", records_ size: %{public}zu",
             intentId, records_.size());
     }
-    // Every intent failure path funnels into this removal, so the attribution
-    // unregister must live here as the single point: by this moment most
-    // failures happened before SetTargetPid (attributionId 0 -> helper no-op,
-    // the attribution was never registered), which is the expected safe net.
+    // Single attribution-unregister point: most failures happen before SetTargetPid,
+    // so attributionId 0 makes the helper a no-op (the expected safe net).
     UnregisterAttributedProcess(taskId, attributionId);
     return ERR_OK;
 }
@@ -380,12 +386,9 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
         return ERR_INVALID_OPERATION;
     }
     record->state = InsightIntentExecuteState::EXECUTE_DONE;
-    // The intent lifecycle ends here (both success and error results funnel
-    // into this state transition), so the task attribution registered in
-    // SetTargetPid is no longer needed. attributionId 0 (SetTargetPid not
-    // reached, e.g. immediate-completion links) is skipped inside the helper.
-    // The call is an in-process direct call to TaskManagerService, which never
-    // calls back into this manager, so holding mutex_ here is safe.
+    // Lifecycle ends here, so unregister the task attribution. attributionId 0
+    // (SetTargetPid not reached) is skipped. Direct TaskManagerService call never
+    // re-enters this manager, so holding mutex_ here is safe.
     UnregisterAttributedProcess(record->taskId, record->attributionId);
     record->attributionId = 0;
 
@@ -533,6 +536,22 @@ bool InsightIntentExecuteManager::IsInsightIntentCall(uint64_t intentId) const
     auto state = it->second->state;
     return state == InsightIntentExecuteState::PENDING_CONSENT ||
         state == InsightIntentExecuteState::EXECUTING;
+}
+
+bool InsightIntentExecuteManager::IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId) const
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto it = records_.find(intentId);
+    if (it == records_.end() || it->second == nullptr) {
+        return false;
+    }
+    // Stronger variant used by the privacy-center consent path: the record must be
+    // live AND owned by the exact caller token, so a caller cannot validate (or
+    // later reuse) a record it did not originate.
+    auto state = it->second->state;
+    return (state == InsightIntentExecuteState::PENDING_CONSENT ||
+            state == InsightIntentExecuteState::EXECUTING) &&
+        it->second->callerTokenId == callerTokenId;
 }
 
 int32_t InsightIntentExecuteManager::UpdateRecordState(uint64_t intentId, InsightIntentExecuteState expected,
@@ -1091,10 +1110,7 @@ void InsightIntentExecuteManager::SetTargetPid(uint64_t intentId, pid_t pid)
         TAG_LOGD(AAFwkTag::INTENT, "SetTargetPid: intentId: %{public}" PRIu64 ", pid: %{public}d", intentId, pid);
     }
     NotifyInsightIntentWillExecute(pid, executionInfo);
-    // The target process is attributed to the task here (in-process direct
-    // call to TaskManagerService). The call runs outside mutex_: it takes the
-    // TaskManagerService inner lock, and keeping that ordering avoids any
-    // potential lock cycle.
+    // Attribute the target process to the task outside mutex_ to avoid a lock cycle.
     int64_t attributionId = 0;
     RegisterAttributedProcess(taskId, pid, attributionId);
     if (attributionId <= 0) {
