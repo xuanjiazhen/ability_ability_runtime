@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -179,6 +179,16 @@ enum class AppMgrInterfaceCode {
     REGISTER_MANAGED_PROCESS = 157,
     UNREGISTER_MANAGED_PROCESS = 158,
     REGISTER_IN_APP_SKILL_PROCESS = 159,
+    REGISTER_DAEMON = 160,
+    UNREGISTER_DAEMON = 161,
+    START_DAEMON = 162,
+    STOP_DAEMON = 163,
+    GET_LAUNCH_SERVICE_INFORMATION = 164,
+    GET_ALL_LAUNCH_SERVICE_INFORMATIONS = 165,
+    SET_DAEMON_ENABLE = 166,
+    REGISTER_LAUNCH_SERVICE_OBSERVER = 167,
+    UNREGISTER_LAUNCH_SERVICE_OBSERVER = 168,
+    NOTIFY_RESIDENT_STARTUP_COMPLETED = 169,
 };
 } // AppExecFwk
 } // OHOS

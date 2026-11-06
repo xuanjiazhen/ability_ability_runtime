@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1054,6 +1054,22 @@ public:
         int32_t callerUid) override;
     int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
         int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId) override;
+    int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+        AbilityRuntime::LaunchServiceInformation &information) override;
+    int32_t GetAllLaunchServiceInformations(int32_t userId,
+        std::vector<AbilityRuntime::LaunchServiceInformation> &informations) override;
+    int32_t SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        const std::vector<uint8_t> &token, bool enable) override;
+    int32_t NotifyResidentStartupCompleted() override;
+
+    int32_t RegisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer) override;
+    int32_t UnregisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

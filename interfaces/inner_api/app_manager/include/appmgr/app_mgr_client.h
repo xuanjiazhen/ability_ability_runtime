@@ -28,6 +28,7 @@
 #include "application_info.h"
 #include "application_state_filter.h"
 #include "bundle_info.h"
+#include "daemon_service_info.h"
 #include "fault_data.h"
 #include "iapplication_state_observer.h"
 #include "iapp_state_callback.h"
@@ -1933,6 +1934,22 @@ public:
      */
     int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
         int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId);
+    virtual int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor);
+    virtual int32_t GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+        AbilityRuntime::LaunchServiceInformation &information);
+    virtual int32_t GetAllLaunchServiceInformations(int32_t userId,
+        std::vector<AbilityRuntime::LaunchServiceInformation> &informations);
+    virtual int32_t SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        const std::vector<uint8_t> &token, bool enable);
+    int32_t NotifyResidentStartupCompleted();
+
+    virtual int32_t RegisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer);
+    virtual int32_t UnregisterLaunchServiceObserver(
+        const sptr<AbilityRuntime::ILaunchServiceObserver> &observer);
 
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);
