@@ -7297,6 +7297,21 @@ int32_t AppMgrServiceInner::GetForegroundApplications(std::vector<AppStateData> 
     return appQueryHelper_.GetForegroundApplications(list);
 }
 
+void AppMgrServiceInner::GetForegroundPidsForTask(std::vector<pid_t> &pids) const
+{
+    pids.clear();
+    if (appRunningManager_ == nullptr) {
+        return;
+    }
+    std::vector<AppStateData> list;
+    appRunningManager_->GetForegroundApplications(list);
+    for (const auto &appData : list) {
+        if (appData.pid > 0) {
+            pids.push_back(appData.pid);
+        }
+    }
+}
+
 int AppMgrServiceInner::StartUserTestProcess(
     const AAFwk::Want &want, const sptr<IRemoteObject> &observer, const BundleInfo &bundleInfo, int32_t userId)
 {

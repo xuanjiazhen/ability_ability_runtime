@@ -1071,6 +1071,17 @@ public:
     int32_t GetForegroundApplications(std::vector<AppStateData> &list);
 
     /**
+     * Query the pids whose application state is foreground, for the task priority judge.
+     * Internal state read with NO IPC-facing permission gate (unlike GetForegroundApplications,
+     * which enforces system-app + GET_RUNNING_INFO on the calling token): the task manager
+     * seeds/reconciles the judge while handling a startTask call from a system app that is
+     * not required to hold GET_RUNNING_INFO.
+     *
+     * @param pids, output pids of the foreground applications.
+     */
+    void GetForegroundPidsForTask(std::vector<pid_t> &pids) const;
+
+    /**
      * Start user test process.
      * @param want, want object.
      * @param observer, test observer remote object.
