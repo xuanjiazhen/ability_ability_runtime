@@ -3204,6 +3204,16 @@ public:
     ErrCode GetDynamicAgentCardsForMigration(std::string &jsonStr);
 
     /**
+     * @brief Best-effort, oneway attribution of the task id onto an existing ConnectionRecord
+     *        after a reused agent connect. The connect MUST be the AgentServiceConnection AMS
+     *        already holds. Fire-and-forget; failure is logged and never blocks the connect.
+     * @param want Indicates the original connect want (carries taskId params).
+     * @param connect Indicates the AgentServiceConnection AMS already holds for this connection.
+     * @return Returns ERR_OK on success; others on local/proxy failure.
+     */
+    ErrCode AttributeTaskForA2AReusedConnectionRecord(const Want &want, sptr<IAbilityConnection> connect);
+
+    /**
      * @brief Query the type of a configured skill (e.g. UI ability vs service
      * extension). No special permission; queried for the caller's user.
      * @param bundleName Target bundle name.
