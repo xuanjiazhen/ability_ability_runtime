@@ -25,6 +25,8 @@
 #include "dialog_session_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "insight_intent_execute_param.h"
+#include "insight_intent_execute_manager.h"
 #include "ipc_skeleton.h"
 #include "global_constant.h"
 #include "exec_options.h"
@@ -53,6 +55,20 @@ constexpr const char* UIEXTENSION_TYPE_KEY = "ability.want.params.uiExtensionTyp
 const std::string HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
 constexpr int32_t DEFAULT_HIDE_SENSITIVE_TYPE = 4;
 constexpr int32_t BROKER_UID = 5557;
+
+// Intent identity params; keep in sync with AMSWantParamFilter's strip list.
+constexpr const char* INTENT_USER_ID = "ohos.insightIntent.userId";  // AbilityRuntime::INTENT_USER_ID
+constexpr const char* INTENT_IDENTITY_KEYS[] = {
+    AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME,
+    AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID,
+    AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE,
+    AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG,
+    AppExecFwk::INSIGHT_INTENT_CALLER_BUNDLE_NAME,
+    AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN_ID,
+    AppExecFwk::INSIGHT_INTENT_CALLER_UID,
+    INTENT_USER_ID,
+    AppExecFwk::INSIGHT_INTENT_PARAM_USER_ID,
+};
 }
 
 UpdateCallerInfoUtil &UpdateCallerInfoUtil::GetInstance()
@@ -431,6 +447,7 @@ void UpdateCallerInfoUtil::CacheCallerInfoFromWant(const Want &want, AbilitySess
     info.callerAppIdentifier = want.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
     info.callerAppCloneIndex = want.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, 0);
     info.taskId = want.GetStringParam(Want::PARAM_RESV_AGENT_TASK_ID);
+    CacheInsightIntentParams(want, info);
 }
 
 void UpdateCallerInfoUtil::RestoreCallerInfoToWant(Want &want, const AbilitySessionInfo &info)
@@ -454,6 +471,7 @@ void UpdateCallerInfoUtil::RestoreCallerInfoToWant(Want &want, const AbilitySess
     } else {
         want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, info.taskId);
     }
+    RestoreInsightIntentParams(want, info);
 }
 
 void UpdateCallerInfoUtil::ClearCallerIdentityParam(Want &want)
@@ -464,6 +482,56 @@ void UpdateCallerInfoUtil::ClearCallerIdentityParam(Want &want)
     want.RemoveParam(Want::PARAM_RESV_CALLER_UID);
     want.RemoveParam(Want::PARAM_RESV_CALLER_PID);
     want.RemoveParam(Want::PARAM_RESV_CALLER_TOKEN);
+}
+
+void UpdateCallerInfoUtil::CacheInsightIntentParams(const Want &want, AbilitySessionInfo &info)
+{
+    // Same judgment as AbilityManagerService::IsInsightIntentCall, before handing to SCB.
+    std::string intentIdStr = want.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID);
+    bool isIntentExecute = false;
+    if (!intentIdStr.empty()) {
+        uint64_t intentId = 0;
+        try {
+            intentId = std::stoull(intentIdStr);
+        } catch (...) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid insight intent id: %{public}s", intentIdStr.c_str());
+            intentIdStr.clear();
+        }
+        auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+        std::string recordBundle;
+        isIntentExecute = !intentIdStr.empty() && executeManager != nullptr &&
+            executeManager->GetBundleName(intentId, recordBundle) == ERR_OK &&
+            recordBundle == want.GetBundle();
+    }
+    info.hasInsightIntent = isIntentExecute;
+    if (isIntentExecute) {
+        info.insightIntentId = intentIdStr;
+    }
+}
+
+void UpdateCallerInfoUtil::RemoveIntentIdentityParams(Want &want)
+{
+    for (const auto &key : INTENT_IDENTITY_KEYS) {
+        if (!want.HasParameter(key)) {
+            continue;
+        }
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "remove insight intent identity param: %{public}s", key);
+        want.RemoveParam(key);
+    }
+}
+
+void UpdateCallerInfoUtil::RestoreInsightIntentParams(Want &want, const AbilitySessionInfo &info)
+{
+    if (!info.hasInsightIntent) {
+        RemoveIntentIdentityParams(want);
+        return;
+    }
+    // intentId is the per-execution anchor: match keeps params, mismatch strips them.
+    if (want.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID) == info.insightIntentId) {
+        return;
+    }
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "insight intent identity params not from this request, strip them");
+    RemoveIntentIdentityParams(want);
 }
 
 void UpdateCallerInfoUtil::ClearProtectedWantParam(Want &want)
