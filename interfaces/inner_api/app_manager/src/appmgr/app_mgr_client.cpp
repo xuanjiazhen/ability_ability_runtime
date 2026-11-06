@@ -14,6 +14,8 @@
  */
 
 #include "app_mgr_client.h"
+#include "launch_service_operation_callback.h"
+#include "ability_manager_errors.h"
 
 #include <cstdio>
 #include <string>
@@ -2364,5 +2366,129 @@ int32_t AppMgrClient::UnregisterManagedProcess(const std::string &taskId, int64_
     return service->UnregisterManagedProcess(taskId, attributionId, callerUid);
 }
 
+int32_t AppMgrClient::RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
+    int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId)
+{
+    resolvedPid = -1;
+    attributionId = 0;
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->RegisterInAppSkillProcess(taskId, bundleName, callerUid, resolvedPid, attributionId);
+}
+
+int32_t AppMgrClient::RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "RegisterDaemon service is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->RegisterDaemon(descriptor);
+}
+
+int32_t AppMgrClient::UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "UnregisterDaemon service is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->UnregisterDaemon(descriptor);
+}
+
+int32_t AppMgrClient::StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "StartDaemon service is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->StartDaemon(descriptor);
+}
+
+int32_t AppMgrClient::StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "StopDaemon service is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->StopDaemon(descriptor);
+}
+
+int32_t AppMgrClient::GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+    AbilityRuntime::LaunchServiceInformation &information)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->GetLaunchServiceInformation(descriptor, information);
+}
+
+int32_t AppMgrClient::GetAllLaunchServiceInformations(
+    int32_t userId, std::vector<AbilityRuntime::LaunchServiceInformation> &informations)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->GetAllLaunchServiceInformations(userId, informations);
+}
+
+void AppMgrClient::SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    const std::vector<uint8_t> &token, bool enable, std::function<void(int32_t)> completion)
+{
+    sptr<AbilityRuntime::LaunchServiceOperationCallback> callback =
+        new AbilityRuntime::LaunchServiceOperationCallback(std::move(completion));
+    auto remote = mgrHolder_->GetRemoteObject();
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(remote);
+    if (service == nullptr || !callback->WatchRemote(remote)) {
+        callback->OnResult(AAFwk::ABILITY_SERVICE_NOT_CONNECTED);
+        return;
+    }
+    auto ret = service->SetDaemonEnable(bundleName, userId, appIndex, token, enable, callback);
+    if (ret != ERR_OK) {
+        callback->OnResult(ret);
+    }
+}
+
+int32_t AppMgrClient::NotifyResidentStartupCompleted()
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->NotifyResidentStartupCompleted();
+}
+
+int32_t AppMgrClient::RegisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "RegisterLaunchServiceObserver service is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->RegisterLaunchServiceObserver(observer);
+}
+
+int32_t AppMgrClient::UnregisterLaunchServiceObserver(
+    const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "UnregisterLaunchServiceObserver service is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->UnregisterLaunchServiceObserver(observer);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
