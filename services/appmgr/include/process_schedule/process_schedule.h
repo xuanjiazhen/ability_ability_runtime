@@ -69,7 +69,15 @@ public:
     void OnProcessDied(pid_t pid);
 
     /**
-     * @brief Renders the --psched dump sections: index, effective levels, exemption
+     * @brief Renders the exemption summary section ("Exemption summary: total=N" plus the
+     *        per-pid key lines). Shared by the --task and --task psched dump views so both
+     *        report the same truth instead of a placeholder.
+     * @return Returns the exemption summary text.
+     */
+    std::string DumpExemptionSummary() const;
+
+    /**
+     * @brief Renders the --task psched dump sections: index, effective levels, exemption
      *        summary and (appended by the caller) the judge state.
      * @return Returns the dump text.
      */

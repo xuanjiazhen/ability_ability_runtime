@@ -24,7 +24,7 @@
 | ADDED | 任务优先级系统判定（前后台状态 × 系统负载 → HIGH/MEDIUM/LOW 档位，创建时判定、运行中动态重判） | 系统内部行为，经任务 dump 与调度策略查询可观测 |
 | ADDED | 多任务并发基线（≤10 并发任务，系统参数可配）与任务事件并发安全 | 异常返回 ERR_INVALID_OPERATION 经 JS 层映射对外可观察 |
 | ADDED | 进程多任务归属合并（实际管控档位=纳管任务中最高档）、降级重算、死亡清理 | 经调度策略查询与任务 dump 可观测 |
-| MODIFIED | startTask(taskId: string, priority?: TaskPriority) → startTask(taskId: string) | System API 签名变更（@since 26.2.0 版本内变更，无跨版本兼容负担）；IPC 接口与 NAPI/ETS 绑定同步调整 |
+| MODIFIED | startTask(taskId: string, priority?: TaskPriority) → startTask(taskId: string) | System API 签名变更（@since 26.1.0 版本内变更，无跨版本兼容负担）；IPC 接口与 NAPI/ETS 绑定同步调整 |
 | REMOVED | TaskPriority 枚举不再对外暴露 | 无调用面影响（该枚举仅作 startTask 入参）；内部档位保留 HIGH/MEDIUM/LOW（100/200/300） |
 
 ## 输入文档
@@ -144,7 +144,7 @@
 |--------|----------|----------|---------------|----------|----------|--------------------------------------|---------|
 | startTask(taskId: string, priority?: TaskPriority) → startTask(taskId: string) | Existing API | System | 变更前：`startTask(taskId: string, priority?: TaskPriority): Promise<void>`（priority 缺省按 MEDIUM=200 处理）；变更后：`startTask(taskId: string): Promise<void>` | 系统应用创建任务 | Promise 完成/拒绝 | 变更前：`frameworks/ets/ets/@ohos.app.agent.taskManager.ets:29` `startTask`；变更后：New，依据 proposal.md「API 变更项清单」/AC-6.5 | AC-6.5 |
 | TaskPriority | Existing API | System | LOW=100、MEDIUM=200、HIGH=300；目标：废弃，不再出现在 d.ts 公共接口面 | 作 startTask 入参 | 枚举值 | `frameworks/ets/ets/@ohos.app.agent.taskManager.ets:21-25` `TaskPriority`；废弃依据 proposal.md「API 变更项清单」 | AC-6.5 |
-| ERR_PARAM_INVALID（401） | Existing Error Code | System | 十进制 401 | startTask 入参不合法：taskId 非 1~256 字符 | Promise 拒绝，BusinessError.code=401 | `services/appmgr/src/task_mgr/task_manager_service.cpp:500-506` `CheckParam`（taskId 1~256，否则 INVALID_PARAMETERS_ERR）；401 对外映射沿用 20260914692191 | AC-6.5 |
+| ERR_PARAM_INVALID（401） | Existing Error Code | System | 十进制 401 | startTask 入参不合法：taskId 非 1~256 字符 | Promise 拒绝，BusinessError.code=401 | `services/appmgr/src/task_mgr/task_manager_service.cpp:643` `CheckParam`（taskId 1~256，否则 INVALID_PARAMETERS_ERR）；401 对外映射沿用 20260914692191 | AC-6.5 |
 | ERR_NOT_SYSTEM_APP（202） | Existing Error Code | System | 十进制 202 | 调用方非系统应用（系统应用身份校验失败） | Promise 拒绝，BusinessError.code=202 | `interfaces/inner_api/ability_manager/include/ability_manager_errors.h:309` `ERR_NOT_SYSTEM_APP`；对外值 202 沿用 20260914692191 | AC-6.5 |
 | ERR_TASK_ID_EXISTS（16000301） | Existing Error Code | System | 十进制 16000301 | taskId 对应任务已处于存活期，再次调用 startTask | Promise 拒绝，BusinessError.code=16000301，原任务不受影响 | 内部 ERR_TASK_ALREADY_EXISTS=2099501（`interfaces/inner_api/ability_manager/include/ability_manager_errors.h:1206`）；对外值 16000301 沿用 20260914692191 | AC-6.5 |
 
@@ -162,7 +162,7 @@
 | 错误码 | 202（非系统应用调用方）、401（参数校验失败）、16000301（taskId 已存在） |
 | 关联 AC | AC-6.5 |
 
-**公共规格属性**：@since 26.2.0（dynamic&static，沿用 20260914692191）；@syscap SystemCapability.Ability.AgentRuntime.Core；无 ohos.permission 权限项（经系统应用身份校验）；@stagemodelonly；不支持跨平台/元服务/卡片。
+**公共规格属性**：@since 26.1.0（dynamic&static，沿用 20260914692191）；@syscap SystemCapability.Ability.AgentRuntime.Core；无 ohos.permission 权限项（经系统应用身份校验）；@stagemodelonly；不支持跨平台/元服务/卡片。
 
 **参数约束**
 
@@ -183,7 +183,7 @@
 
 ## 兼容性声明
 
-- **已有 API 行为变更:** 是（startTask 移除 priority 可选入参、TaskPriority 枚举不再对外暴露；均为 @since 26.2.0 新引入接口在本版本内的变更，无已发布版本兼容负担）
+- **已有 API 行为变更:** 是（startTask 移除 priority 可选入参、TaskPriority 枚举不再对外暴露；均为 @since 26.1.0 新引入接口在本版本内的变更，无已发布版本兼容负担）
 - **配置文件格式变更:** 否
 - **数据存储格式变更:** 否（归属关系不持久化）
 - **最低支持版本:** 26.1.0
@@ -224,7 +224,7 @@
 | 多窗口/分屏 | N/A | 与窗口机制无关 | — |
 | 多用户 | 否 | 任务归属创建者 userId，沿用 20260914692191 口径，本需求不改变 | 任务创建/结束 |
 | 版本升级 | 否 | 归属关系内存态不持久化，无存量数据 | — |
-| 生态兼容 | 否 | startTask 为 @since 26.2.0 System API，版本内变更无生态负担 | — |
+| 生态兼容 | 否 | startTask 为 @since 26.1.0 System API，版本内变更无生态负担 | — |
 
 ## context-references
 

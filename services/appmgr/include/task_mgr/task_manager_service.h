@@ -103,9 +103,20 @@ public:
 
     /**
      * @brief Lazily wires the schedule listeners (system load listener + ability state
-     *        observer) once; idempotent and failure-tolerant (judge falls back).
+     *        observer); idempotent and failure-tolerant (judge falls back). A failed
+     *        registration is retried on the next task start.
      */
     void RegisterScheduleListeners();
+
+    /**
+     * @brief Wires the query used to reconcile the judge with the apps that are already
+     *        foreground when the ability observer is registered (the observer only reports
+     *        incremental transitions). Wired by the app manager service, which owns the
+     *        running-application records.
+     * @param seeder Indicates the query returning the pids of the foreground apps, or null
+     *        to unwire (the seed is then skipped).
+     */
+    void SetForegroundSeeder(std::function<std::vector<pid_t>()> seeder);
 
     /**
      * @brief Attributes an entity into the task and restarts its inactivity timeout
@@ -338,6 +349,13 @@ private:
     bool IsLiveManagedProcess(pid_t pid);
 
     /**
+     * @brief Reconciles the judge with the apps that are already foreground; called after
+     *        the ability state observer is registered so an app that was foreground before
+     *        the first task started is not judged as background.
+     */
+    void SeedForegroundState();
+
+    /**
      * @brief Re-judges the priority of running tasks and propagates level changes to
      *        process_schedule; updates the records under tasksMutex_ and calls
      *        process_schedule only after the mutex is released (lock order).
@@ -347,6 +365,8 @@ private:
     void RejudgeTasks(pid_t pid);
 
     static std::atomic<AttributionId> attributionRecordId_;
+    std::mutex seederMutex_;
+    std::function<std::vector<pid_t>()> foregroundSeeder_;
     ffrt::mutex tasksMutex_;
     std::unordered_map<std::string, TaskRecord> tasks_;
     std::function<bool(pid_t)> pidValidator_;

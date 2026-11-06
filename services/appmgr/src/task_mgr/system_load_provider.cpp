@@ -64,21 +64,29 @@ public:
 
     bool RegisterListener(const std::function<void(int32_t)> &callback) override
     {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (registered_) {
-            return true;
+        sptr<SystemloadNotifierClientImpl> client;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (registered_) {
+                return true;
+            }
+            client = new (std::nothrow) SystemloadNotifierClientImpl(callback);
+            if (client == nullptr) {
+                TAG_LOGE(AAFwkTag::APPMGR, "create systemload notifier client failed");
+                return false;
+            }
         }
-        auto client = new (std::nothrow) SystemloadNotifierClientImpl(callback);
-        if (client == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "create systemload notifier client failed");
-            return false;
-        }
+        // Register and seed outside the provider mutex: RegisterSystemloadNotifier goes over
+        // IPC and the seed callback drives a full task re-judgment (judge/task locks); none
+        // of that may happen while holding this leaf lock.
         ResSchedClient::GetInstance().RegisterSystemloadNotifier(client);
-        listener_ = client;
-        registered_ = true;
-        TAG_LOGI(AAFwkTag::APPMGR, "systemload notifier registered");
-        // Seed the current level once so the cache is valid even before the first change.
         int32_t level = ResSchedClient::GetInstance().GetSystemloadLevel();
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            listener_ = client;
+            registered_ = true;
+        }
+        TAG_LOGI(AAFwkTag::APPMGR, "systemload notifier registered");
         if (callback != nullptr && level >= MIN_FUSION_LEVEL && level <= MAX_FUSION_LEVEL) {
             callback(level);
         }

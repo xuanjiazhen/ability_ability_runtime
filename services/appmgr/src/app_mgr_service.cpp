@@ -220,6 +220,20 @@ ErrCode AppMgrService::Init()
         [appMgrServiceInner = appMgrServiceInner_](pid_t pid) {
             return appMgrServiceInner->GetAppRunningRecordByPid(pid) != nullptr;
         });
+    // Seed the judge with the apps that are already foreground, so a task created by an
+    // app that was in the foreground before the observer registration is judged HIGH.
+    TaskManagerService::GetInstance().SetForegroundSeeder(
+        [appMgrServiceInner = appMgrServiceInner_]() {
+            std::vector<pid_t> pids;
+            std::vector<AppStateData> foregroundApps;
+            appMgrServiceInner->GetForegroundApplications(foregroundApps);
+            for (const auto &appData : foregroundApps) {
+                if (appData.pid > 0) {
+                    pids.push_back(appData.pid);
+                }
+            }
+            return pids;
+        });
     std::function<void()> initAppMgrServiceInnerTask = [appMgrServiceInner = appMgrServiceInner_]() {
         appMgrServiceInner->Init();
     };

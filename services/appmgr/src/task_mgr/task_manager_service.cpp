@@ -220,16 +220,17 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
         tasks_.erase(it);
         TAG_LOGI(AAFwkTag::APPMGR, "task finished, taskId: %{public}s, reason: %{public}s, "
             "alive(ms): %{public}" PRId64, taskId.c_str(), TaskFinishReasonToString(reason), aliveMillis);
+        // Release every schedule attribution of the ended task under the same mutex, so the
+        // index cannot observe a finished task (20260914692273): remaining tasks of each pid
+        // keep it at their merged level; a pid with no task left naturally restores.
+        for (pid_t pid : managedPids) {
+            ProcessSchedule::GetInstance().OnAttributionRemoved(taskId, pid);
+        }
     }
     if (reason == TaskFinishReason::FINISHED_BY_TIMEOUT) {
         timerCtx.reset();
     } else {
         ReleaseTimeoutContext(std::move(timerCtx));
-    }
-    // Release every schedule attribution of the ended task (20260914692273): remaining tasks
-    // of each pid keep it at their merged level; a pid with no task left naturally restores.
-    for (pid_t pid : managedPids) {
-        ProcessSchedule::GetInstance().OnAttributionRemoved(taskId, pid);
     }
     NotifyTaskFinished(taskId, reason);
     return ERR_OK;
@@ -245,11 +246,10 @@ void TaskManagerService::OnTaskTimeout(const std::string &taskId, int64_t expect
 void TaskManagerService::OnProcessDied(pid_t pid, int32_t uid)
 {
     FinishTasksByCreatorInner(pid, uid);
+    // RemoveManagedProcessFromAllTasksInner also cleans the schedule index of the dead pid
+    // under the task mutex (20260914692273 / spec AC-6.3); the task records themselves
+    // survive and only lose the attribution, so the task is not finished.
     RemoveManagedProcessFromAllTasksInner(pid);
-    // Minimal death hook (20260914692273 / spec AC-6.3): clean the schedule index and the
-    // exemptions of the dead pid; the task records themselves survive and only lose the
-    // attribution, so the task is not finished.
-    ProcessSchedule::GetInstance().OnProcessDied(pid);
 }
 
 void TaskManagerService::OnAbilityForegroundChanged(pid_t pid, bool foreground)
@@ -281,10 +281,9 @@ void TaskManagerService::RejudgeTasks(pid_t pid)
                 record.taskId.c_str(), record.priority, newLevel);
             record.priority = newLevel;
             changedTasks.emplace_back(record.taskId, newLevel);
+            // same-mutex delivery keeps the schedule index consistent with the records
+            ProcessSchedule::GetInstance().OnTaskLevelChanged(record.taskId, newLevel);
         }
-    }
-    for (const auto &changed : changedTasks) {
-        ProcessSchedule::GetInstance().OnTaskLevelChanged(changed.first, changed.second);
     }
 }
 
@@ -313,13 +312,48 @@ void TaskManagerService::RegisterScheduleListeners()
         TAG_LOGE(AAFwkTag::APPMGR, "create ability observer failed");
         return;
     }
-    int32_t ret = DelayedSingleton<AppStateObserverManager>::GetInstance()
-        ->RegisterApplicationStateObserver(abilityObserver, {}, AppStateFilter());
+    // Register under the service's own identity: this entry runs inside a startTask IPC
+    // call, and the observer permission check evaluates the CALLING token; without the
+    // identity reset the registration result would depend on whichever app calls first.
+    int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppStateObserverManager>::GetInstance()
+        ->RegisterApplicationStateObserver(abilityObserver, {}, AppStateFilter()));
     if (ret == ERR_OK) {
         observerRegistered = true;
+        SeedForegroundState();
     } else {
         // retried on the next task start
         TAG_LOGW(AAFwkTag::APPMGR, "register ability state observer failed: %{public}d", ret);
+    }
+}
+
+void TaskManagerService::SetForegroundSeeder(std::function<std::vector<pid_t>()> seeder)
+{
+    std::lock_guard<std::mutex> lock(seederMutex_);
+    foregroundSeeder_ = std::move(seeder);
+}
+
+void TaskManagerService::SeedForegroundState()
+{
+    // Reconcile the judge with the apps that are ALREADY foreground at registration time:
+    // the observer only delivers incremental events, so without this seed an app that was
+    // foreground before the first task started would be judged as background until its
+    // next foreground transition.
+    if (foregroundSeeder_ == nullptr) {
+        return;
+    }
+    std::vector<pid_t> foregroundPids;
+    {
+        std::lock_guard<std::mutex> lock(seederMutex_);
+        if (foregroundSeeder_ != nullptr) {
+            foregroundPids = foregroundSeeder_();
+        }
+    }
+    auto &judge = TaskPriorityJudge::GetInstance();
+    for (pid_t pid : foregroundPids) {
+        judge.OnForegroundAbilityChanged(pid, true);
+    }
+    if (!foregroundPids.empty()) {
+        TAG_LOGI(AAFwkTag::APPMGR, "foreground state seeded, pids: %{public}zu", foregroundPids.size());
     }
 }
 
@@ -360,6 +394,9 @@ void TaskManagerService::RemoveManagedProcessFromAllTasksInner(pid_t pid)
             }
         }
     }
+    // Clean the dead pid's schedule entries under the same mutex: no late add can resurrect
+    // them afterwards, and no concurrent finish can miss them.
+    ProcessSchedule::GetInstance().OnProcessDied(pid);
 }
 
 int32_t TaskManagerService::RegisterManagedProcess(const std::string &taskId,
@@ -441,11 +478,13 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
             "attributionId: %{public}" PRId64 ", pid: %{public}d, tool: %{public}s",
             taskId.c_str(), newId, stored.pid, AttributionToolToString(stored.tool));
         replacedCtx = RestartTimeoutWindow(taskId, it->second);
+        // Feed the schedule index under the same mutex as the record change: the delivery
+        // is atomic w.r.t. concurrent finish/death/rejudge, so no orphan entries can
+        // survive their task (lock order tasksMutex_ -> scheduleMutex_, scheduleMutex_ is
+        // a leaf lock that never calls back).
+        ProcessSchedule::GetInstance().OnAttributionAdded(taskId, taskLevel, stored.pid, stored.tool);
     }
     ReleaseTimeoutContext(std::move(replacedCtx));
-    // Feed the schedule attribution index (20260914692273): the merge runs in the
-    // process_schedule lock domain after the task record mutex is released (lock order).
-    ProcessSchedule::GetInstance().OnAttributionAdded(taskId, taskLevel, attribution.pid, attribution.tool);
     return ERR_OK;
 }
 
@@ -470,9 +509,9 @@ int32_t TaskManagerService::UnregisterManagedProcessInner(const std::string &tas
         it->second.attributions.erase(attrIt);
         TAG_LOGI(AAFwkTag::APPMGR, "attribution unregistered, taskId: %{public}s, "
             "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
+        // same-mutex delivery, see RegisterManagedProcessInner
+        ProcessSchedule::GetInstance().OnAttributionRemoved(taskId, removedPid);
     }
-    // Feed the schedule attribution index after the task record mutex is released.
-    ProcessSchedule::GetInstance().OnAttributionRemoved(taskId, removedPid);
     return ERR_OK;
 }
 
@@ -545,9 +584,9 @@ std::string TaskManagerService::DumpActiveTasks()
         result += "        remain timeout [" + std::to_string(remainSeconds) + "s]\n";
         result += "        create time [" + FormatCreateTime(record.createTimeMillis) + "]\n";
     }
-    // SchedLevel and the exemption summary stay placeholder until the resource-schedule
-    // control module lands; the field layout is fixed here so scripts can rely on it.
-    result += "Exemption summary: total=0\n";
+    // The exemption summary carries the real values (kept in process_schedule) so the
+    // --task and --task psched views report the same truth.
+    result += ProcessSchedule::GetInstance().DumpExemptionSummary();
     return result;
 }
 

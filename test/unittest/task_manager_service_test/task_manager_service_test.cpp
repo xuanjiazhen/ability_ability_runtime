@@ -945,7 +945,8 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_DumpActiveTasks_0100, TestSi
     EXPECT_NE(dump.find("sched level [task:MEDIUM(200)]"), std::string::npos);
     EXPECT_NE(dump.find("remain timeout ["), std::string::npos);
     EXPECT_NE(dump.find("create time ["), std::string::npos);
-    EXPECT_NE(dump.find("Exemption summary: total=0"), std::string::npos);
+    // the CLI attribution above holds one exemption, so the summary reports the real value
+    EXPECT_NE(dump.find("Exemption summary: total=1"), std::string::npos);
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
 }
 

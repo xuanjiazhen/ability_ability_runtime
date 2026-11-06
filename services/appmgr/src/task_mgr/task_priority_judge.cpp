@@ -96,9 +96,21 @@ int32_t TaskPriorityJudge::JudgeLevel(pid_t pid) const
 
 void TaskPriorityJudge::SetLoadProvider(const std::shared_ptr<ISystemLoadProvider> &provider)
 {
-    std::lock_guard<std::mutex> lock(judgeMutex_);
-    loadProvider_ = provider;
-    loadListenerRegistered_ = false;
+    std::shared_ptr<ISystemLoadProvider> oldProvider;
+    bool wasRegistered;
+    {
+        std::lock_guard<std::mutex> lock(judgeMutex_);
+        oldProvider = loadProvider_;
+        wasRegistered = loadListenerRegistered_;
+        loadProvider_ = provider;
+        loadListenerRegistered_ = false;
+    }
+    // switch providers cleanly: the old listener must not keep delivering levels after the
+    // swap (it would fight the new provider's cache); the unregister runs outside the judge
+    // lock because it may call into the provider's own lock.
+    if (wasRegistered && oldProvider != nullptr) {
+        oldProvider->UnregisterListener();
+    }
 }
 
 bool TaskPriorityJudge::RegisterSystemLoadListener()

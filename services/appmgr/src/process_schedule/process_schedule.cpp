@@ -228,6 +228,33 @@ void ProcessSchedule::RevokeControlLocked(pid_t pid, int32_t oldLevel)
     (void)ActionText(false);
 }
 
+namespace {
+// Renders the exemption summary without taking scheduleMutex_; callers must hold it.
+std::string DumpExemptionSummaryUnlocked(const std::map<std::string, std::map<pid_t, int32_t>> &exemptions)
+{
+    std::ostringstream oss;
+    size_t total = 0;
+    for (const auto &item : exemptions) {
+        total += item.second.size();
+    }
+    oss << "Exemption summary: total=" << total << "\n";
+    for (const auto &item : exemptions) {
+        for (const auto &pidItem : item.second) {
+            // the exemption type label is a placeholder until 20260914692272 lands
+            oss << "      pid:" << pidItem.first << " count:" << pidItem.second
+                << " keys:[" << item.first << "+" << pidItem.first << "+CPU]\n";
+        }
+    }
+    return oss.str();
+}
+}  // namespace
+
+std::string ProcessSchedule::DumpExemptionSummary() const
+{
+    std::lock_guard<std::mutex> lock(scheduleMutex_);
+    return DumpExemptionSummaryUnlocked(exemptions_);
+}
+
 std::string ProcessSchedule::DumpSchedule() const
 {
     std::lock_guard<std::mutex> lock(scheduleMutex_);
@@ -258,17 +285,7 @@ std::string ProcessSchedule::DumpSchedule() const
         }
         oss << "] effectiveLevel [" << TaskPriorityToString(item.second.level) << "]\n";
     }
-    size_t total = 0;
-    for (const auto &item : exemptions_) {
-        total += item.second.size();
-    }
-    oss << "Exemption summary: total=" << total << "\n";
-    for (const auto &item : exemptions_) {
-        for (const auto &pidItem : item.second) {
-            oss << "      pid:" << pidItem.first << " count:" << pidItem.second
-                << " keys:[" << item.first << "+" << pidItem.first << "+CPU]\n";
-        }
-    }
+    oss << DumpExemptionSummaryUnlocked(exemptions_);
     return oss.str();
 }
 
