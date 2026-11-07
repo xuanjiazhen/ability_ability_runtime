@@ -30,6 +30,7 @@
 #include "event_report.h"
 #include "snapshot_debug_info.h"
 #include "hilog_tag_wrapper.h"
+#include "image_error_handler_interface.h"
 #include "iservice_registry.h"
 #include "mission_snapshot.h"
 #include "bool_wrapper.h"
@@ -437,11 +438,11 @@ ErrCode AbilityManagerShellCommand::CreateMessageMap()
         {ERR_NOT_DEBUG_APP_SOLUTION_ONE});
     // Snapshot debug errors (ImageError values, small-int range has no collision in this map);
     // plain-string style for now, upgrade to GetAaToolErrorInfo once IDs are officially allocated.
-    messageMap_[static_cast<int32_t>(AppExecFwk::ImageError::ERR_IMAGE_INFO_EXIST)] =
+    messageMap_[static_cast<int32_t>(AppExecFwk::IImageErrorHandler::ImageError::ERR_IMAGE_INFO_EXIST)] =
         "error: the image info already exists, destroy it first or wait for the making to finish.";
-    messageMap_[static_cast<int32_t>(AppExecFwk::ImageError::ERR_IMAGE_INFO_NOT_EXIST)] =
+    messageMap_[static_cast<int32_t>(AppExecFwk::IImageErrorHandler::ImageError::ERR_IMAGE_INFO_NOT_EXIST)] =
         "error: the snapshot of the specified application does not exist.";
-    messageMap_[static_cast<int32_t>(AppExecFwk::ImageError::ERR_INNER)] =
+    messageMap_[static_cast<int32_t>(AppExecFwk::IImageErrorHandler::ImageError::ERR_INNER)] =
         "error: snapshot debug inner error.";
     messageMap_[ERR_APP_CLONE_INDEX_INVALID] = GetAaToolErrorInfo("10103102",
         "The passed appCloneIndex is invalid.",
