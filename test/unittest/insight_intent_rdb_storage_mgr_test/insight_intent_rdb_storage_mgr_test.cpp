@@ -33,6 +33,8 @@ void MockQueryDataBeginWithKeyDataClear();
 std::string GetMockQueryDataKey();
 void MockDeleteDataBeginWithKeyCalledReset();
 bool GetMockDeleteDataBeginWithKeyCalled();
+void MockBatchDeleteDataCalledReset();
+bool GetMockBatchDeleteDataCalled();
 
 class InsightIntentRdbStorageMgrTest : public testing::Test {
 public:
@@ -51,6 +53,7 @@ void InsightIntentRdbStorageMgrTest::SetUp()
 {
     MockQueryDataBeginWithKeyDataClear();
     MockDeleteDataBeginWithKeyCalledReset();
+    MockBatchDeleteDataCalledReset();
 }
 
 void InsightIntentRdbStorageMgrTest::TearDown()
@@ -845,7 +848,7 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_040, Tes
 
 /**
  * @tc.name: InsightIntentRdbStorageMgrTest_041
- * @tc.desc: Test LoadInsightIntentInfo removes the malformed record via DeleteDataBeginWithKey
+ * @tc.desc: Test LoadInsightIntentInfo removes the malformed record via BatchDeleteData
  *           when the stored value fails to parse
  * @tc.type: FUNC
  */
@@ -862,7 +865,7 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_041, Tes
     auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadInsightIntentInfo(
         IntentKey{bundleName, moduleName, "testIntent", userId}, totalInfo);
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_TRUE(GetMockDeleteDataBeginWithKeyCalled());
+    EXPECT_TRUE(GetMockBatchDeleteDataCalled());
     EXPECT_TRUE(totalInfo.genericInfo.intentName.empty());
 }
 
@@ -944,7 +947,7 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_044, Tes
 
 /**
  * @tc.name: InsightIntentRdbStorageMgrTest_045
- * @tc.desc: Test LoadConfigInsightIntentInfo removes the malformed record via DeleteDataBeginWithKey
+ * @tc.desc: Test LoadConfigInsightIntentInfo removes the malformed record via BatchDeleteData
  *           when the stored value fails to parse
  * @tc.type: FUNC
  */
@@ -961,7 +964,7 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_045, Tes
     auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadConfigInsightIntentInfo(
         IntentKey{bundleName, moduleName, "testIntent", userId}, totalInfo);
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_TRUE(GetMockDeleteDataBeginWithKeyCalled());
+    EXPECT_TRUE(GetMockBatchDeleteDataCalled());
     EXPECT_TRUE(totalInfo.intentName.empty());
 }
 

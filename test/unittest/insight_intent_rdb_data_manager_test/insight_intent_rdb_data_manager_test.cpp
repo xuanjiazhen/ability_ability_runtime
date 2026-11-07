@@ -450,7 +450,7 @@ HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_1900, Func
 
 /**
  * @tc.number: InsightIntentRdbDataManager_1920
- * @tc.desc: BatchDeleteData and BatchDeleteDataBeginWithKey delete several keys in one transaction.
+ * @tc.desc: BatchDeleteData deletes only the exact keys, DeleteDataBeginWithKey deletes the whole prefix.
  * @tc.type: FUNC
  */
 HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_1920, Function | SmallTest | Level1)
@@ -459,10 +459,10 @@ HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_1920, Func
 
     std::vector<std::string> emptyKeys;
     EXPECT_TRUE(rdbMgr->BatchDeleteData(emptyKeys));
-    EXPECT_TRUE(rdbMgr->BatchDeleteDataBeginWithKey(emptyKeys));
 
     EXPECT_TRUE(rdbMgr->InsertData("DELETE_1920_A", "VAL_A"));
     EXPECT_TRUE(rdbMgr->InsertData("DELETE_1920_B", "VAL_B"));
+    EXPECT_TRUE(rdbMgr->InsertData("DELETE_1920_A_EXT", "VAL_EXT"));
     EXPECT_TRUE(rdbMgr->InsertData("DELETE_1920_KEEP", "VAL_KEEP"));
 
     std::vector<std::string> keys = {"DELETE_1920_A", "DELETE_1920_B", "DELETE_1920_NOT_EXIST"};
@@ -471,11 +471,15 @@ HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_1920, Func
     std::string value;
     EXPECT_FALSE(rdbMgr->QueryData("DELETE_1920_A", value));
     EXPECT_FALSE(rdbMgr->QueryData("DELETE_1920_B", value));
+    // Exact match only: the key sharing the same prefix keeps its record.
+    EXPECT_TRUE(rdbMgr->QueryData("DELETE_1920_A_EXT", value));
+    EXPECT_EQ(value, "VAL_EXT");
     EXPECT_TRUE(rdbMgr->QueryData("DELETE_1920_KEEP", value));
     EXPECT_EQ(value, "VAL_KEEP");
 
-    std::vector<std::string> keyPrefixes = {"DELETE_1920_KEEP"};
-    EXPECT_TRUE(rdbMgr->BatchDeleteDataBeginWithKey(keyPrefixes));
+    // Deleting by prefix still removes the whole range.
+    EXPECT_TRUE(rdbMgr->DeleteDataBeginWithKey("DELETE_1920_"));
+    EXPECT_FALSE(rdbMgr->QueryData("DELETE_1920_A_EXT", value));
     EXPECT_FALSE(rdbMgr->QueryData("DELETE_1920_KEEP", value));
 }
 }  // namespace

@@ -230,33 +230,6 @@ bool InsightIntentRdbDataMgr::BatchDeleteData(const std::vector<std::string> &ke
     return true;
 }
 
-bool InsightIntentRdbDataMgr::BatchDeleteDataBeginWithKey(const std::vector<std::string> &keyPrefixes)
-{
-    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
-    TAG_LOGD(AAFwkTag::INTENT, "BatchDeleteDataBeginWithKey start");
-    if (!IsIntentRdbLoaded()) {
-        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
-        return false;
-    }
-    if (keyPrefixes.empty()) {
-        return true;
-    }
-
-    const std::string tableName = intentRdbConfig_.tableName;
-    int32_t deletedRows = 0;
-    int32_t ret = ExecuteInTransaction("batch delete by prefix",
-        [&tableName, &keyPrefixes, &deletedRows](NativeRdb::Transaction &transaction) {
-            return DeleteByPrefixesInTransaction(transaction, tableName, keyPrefixes, deletedRows);
-        });
-    if (ret != NativeRdb::E_OK) {
-        TAG_LOGE(AAFwkTag::INTENT, "BatchDelete by prefix error ret:%{public}d", ret);
-        return false;
-    }
-    TAG_LOGD(AAFwkTag::INTENT, "BatchDelete by prefix success, prefix:%{public}zu deletedRows:%{public}d",
-        keyPrefixes.size(), deletedRows);
-    return true;
-}
-
 bool InsightIntentRdbDataMgr::BatchReplaceData(const std::vector<std::string> &deleteKeyPrefixes,
     const std::vector<std::pair<std::string, std::string>> &keyValues)
 {
@@ -381,7 +354,25 @@ bool InsightIntentRdbDataMgr::UpdateData(const std::string &key, const std::stri
 
 bool InsightIntentRdbDataMgr::DeleteDataBeginWithKey(const std::string &key)
 {
-    return BatchDeleteDataBeginWithKey({key});
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    TAG_LOGD(AAFwkTag::INTENT, "DeleteDataBeginWithKey start");
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
+        return false;
+    }
+
+    const std::string tableName = intentRdbConfig_.tableName;
+    int32_t deletedRows = 0;
+    int32_t ret = ExecuteInTransaction("delete by prefix", [&tableName, &key, &deletedRows](
+        NativeRdb::Transaction &transaction) {
+        return DeleteByPrefixesInTransaction(transaction, tableName, {key}, deletedRows);
+    });
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "delete by prefix error ret:%{public}d", ret);
+        return false;
+    }
+    TAG_LOGD(AAFwkTag::INTENT, "delete by prefix success, deletedRows:%{public}d", deletedRows);
+    return true;
 }
 
 bool InsightIntentRdbDataMgr::DeleteData(const std::string &key)

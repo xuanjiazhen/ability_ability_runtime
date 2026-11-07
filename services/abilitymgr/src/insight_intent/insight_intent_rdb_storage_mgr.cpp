@@ -16,6 +16,7 @@
 #include "insight_intent_rdb_storage_mgr.h"
 #include "nlohmann/json.hpp"
 #include <sstream>
+#include <unordered_set>
 
 #include "hilog_tag_wrapper.h"
 #include "json_safe_util.h"
@@ -219,19 +220,20 @@ void InsightRdbStorageMgr::TransformConfigIntent(std::unordered_map<std::string,
     std::vector<InsightIntentInfo> &configInfos)
 {
     // The unparsable records are collected first and removed by one batch delete.
-    std::vector<std::string> invalidKeys;
+    std::unordered_set<std::string> invalidKeys;
     for (const auto &item : value) {
         std::vector<InsightIntentInfo> configIntentInfos;
         if (!InsightIntentProfile::TransformTo(item.second, configIntentInfos)) {
             TAG_LOGE(AAFwkTag::INTENT, "error key: %{private}s", item.first.c_str());
-            invalidKeys.emplace_back(item.first);
+            invalidKeys.emplace(item.first);
         }
         for (const auto &configIntentInfo : configIntentInfos) {
             configInfos.emplace_back(configIntentInfo);
         }
     }
     if (!invalidKeys.empty() &&
-        !DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->BatchDeleteDataBeginWithKey(invalidKeys)) {
+        !DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->BatchDeleteData(
+            std::vector<std::string>(invalidKeys.begin(), invalidKeys.end()))) {
         TAG_LOGW(AAFwkTag::INTENT, "delete unparsable intent data failed, count:%{public}zu", invalidKeys.size());
     }
 }
@@ -239,12 +241,12 @@ void InsightRdbStorageMgr::TransformConfigIntent(std::unordered_map<std::string,
 void InsightRdbStorageMgr::Transform(std::unordered_map<std::string, std::string> value,
     std::vector<ExtractInsightIntentInfo> &totalInfos, std::vector<InsightIntentInfo> &configInfos)
 {
-    std::vector<std::string> invalidKeys;
+    std::unordered_set<std::string> invalidKeys;
     for (const auto &item : value) {
         ExtractInsightIntentProfileInfoVec profileInfos;
         if (!ExtractInsightIntentProfile::TransformTo(item.second, profileInfos)) {
             TAG_LOGE(AAFwkTag::INTENT, "error key: %{private}s", item.first.c_str());
-            invalidKeys.emplace_back(item.first);
+            invalidKeys.emplace(item.first);
             continue;
         }
         for (const auto &profileInfo : profileInfos.insightIntents) {
@@ -259,7 +261,7 @@ void InsightRdbStorageMgr::Transform(std::unordered_map<std::string, std::string
         std::vector<InsightIntentInfo> configIntentInfos;
         if (!InsightIntentProfile::TransformTo(item.second, configIntentInfos)) {
             TAG_LOGE(AAFwkTag::INTENT, "error key: %{private}s", item.first.c_str());
-            invalidKeys.emplace_back(item.first);
+            invalidKeys.emplace(item.first);
             continue;
         }
         for (const auto &configIntentInfo : configIntentInfos) {
@@ -267,7 +269,8 @@ void InsightRdbStorageMgr::Transform(std::unordered_map<std::string, std::string
         }
     }
     if (!invalidKeys.empty() &&
-        !DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->BatchDeleteDataBeginWithKey(invalidKeys)) {
+        !DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->BatchDeleteData(
+            std::vector<std::string>(invalidKeys.begin(), invalidKeys.end()))) {
         TAG_LOGW(AAFwkTag::INTENT, "delete unparsable intent data failed, count:%{public}zu", invalidKeys.size());
     }
 }

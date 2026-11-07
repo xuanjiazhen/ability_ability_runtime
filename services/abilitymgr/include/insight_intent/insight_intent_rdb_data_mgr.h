@@ -84,11 +84,6 @@ public:
     bool BatchDeleteData(const std::vector<std::string> &keys);
 
     /**
-     * Delete the records whose key starts with any of the given prefixes in a single transaction.
-     */
-    bool BatchDeleteDataBeginWithKey(const std::vector<std::string> &keyPrefixes);
-
-    /**
      * Replace the records of the given key prefixes with keyValues in a single transaction.
      * The delete and the batch insert share one transaction, so either all of them take effect or none.
      */
