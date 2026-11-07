@@ -651,6 +651,7 @@ group("unittest") {
         "status_bar_delegate_manager_test:unittest",
         "ui_ability_lifecycle_manager_test:unittest",
         "ui_ability_lifecycle_manager_third_test:unittest",
+        "ui_ability_lifecycle_manager_lowmem_test:unittest",
       ]
     }
 
