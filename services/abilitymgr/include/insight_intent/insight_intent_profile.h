@@ -64,6 +64,10 @@ struct InsightIntentInfo {
     std::string displayDescription;
     std::string bundleName;
     std::string moduleName;
+    // Exported visibility of an insight intent. When `false` (default) the intent is
+    // visible only to system applications; when `true` it is additionally exposed to
+    // third-party agents. The field is declarative and never constitutes a permission gate.
+    bool exported = false;
 };
 
 class InsightIntentProfile {
