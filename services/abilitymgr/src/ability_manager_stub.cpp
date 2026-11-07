@@ -52,6 +52,16 @@ constexpr const char* WINDOW_PARAMS_SUGGESTION_SOURCE = "ohos.multiwindow.sugges
 constexpr const char* WINDOW_PARAMS_APP_LABEL = "ohos.multiwindow.appLabel";
 constexpr const char* WINDOW_PARAMS_SOURCE_BUNDLENAME = "ohos.multiwindow.sourceBundleName";
 constexpr const char* WINDOW_PARAMS_SOURCE_ABILITYNAME = "ohos.multiwindow.sourceAbilityName";
+
+bool IsCategoryKept(const std::initializer_list<WantParamCategory> &keepCategories, WantParamCategory category)
+{
+    for (auto kept : keepCategories) {
+        if (kept == category) {
+            return true;
+        }
+    }
+    return false;
+}
 } // namespace
 AbilityManagerStub::AbilityManagerStub()
 {}
@@ -59,10 +69,14 @@ AbilityManagerStub::AbilityManagerStub()
 AbilityManagerStub::~AbilityManagerStub()
 {}
 
-void AbilityManagerStub::SanitizeWantParams(Want &want)
+void AbilityManagerStub::SanitizeWantParams(Want &want, std::initializer_list<WantParamCategory> keepCategories)
 {
-    AppExecFwk::InsightIntentExecuteParam::RemoveInsightIntent(want);
-    AppExecFwk::SkillExecuteParam::RemoveSkillParam(want);
+    if (!IsCategoryKept(keepCategories, WantParamCategory::INSIGHT_INTENT)) {
+        AppExecFwk::InsightIntentExecuteParam::RemoveInsightIntent(want);
+    }
+    if (!IsCategoryKept(keepCategories, WantParamCategory::SKILL)) {
+        AppExecFwk::SkillExecuteParam::RemoveSkillParam(want);
+    }
     // Pass-through of non-standard scheme uri is only allowed for system apps
     // and native processes. Third-party apps cannot set this flag, so the raw
     // uri is cleared here as the final interception point on the server side.
@@ -4615,6 +4629,7 @@ int32_t AbilityManagerStub::ExecuteIntentForDistributedInner(MessageParcel &data
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
         return ERR_INVALID_VALUE;
     }
+    SanitizeWantParams(*want, { WantParamCategory::INSIGHT_INTENT });
 
     std::string srcDeviceId = data.ReadString();
     if (srcDeviceId.empty()) {
@@ -4672,6 +4687,7 @@ int32_t AbilityManagerStub::ExecuteUIAbilityForegroundIntentWithSpecifyTokenIdIn
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
         return ERR_INVALID_VALUE;
     }
+    SanitizeWantParams(*want);
     sptr<IRemoteObject> callerAbilityToken = data.ReadRemoteObject();
     std::unique_ptr<InsightIntentExecuteLiteParam> param(data.ReadParcelable<InsightIntentExecuteLiteParam>());
     if (param == nullptr) {
@@ -4836,6 +4852,7 @@ int32_t AbilityManagerStub::StartAbilityByInsightIntentInner(MessageParcel &data
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
         return ERR_INVALID_VALUE;
     }
+    SanitizeWantParams(*want, { WantParamCategory::INSIGHT_INTENT });
     want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
 
     sptr<IRemoteObject> callerToken = nullptr;
