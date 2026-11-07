@@ -18,6 +18,7 @@
 
 #include "ability_manager_interface.h"
 
+#include <initializer_list>
 #include <iremote_object.h>
 #include <iremote_stub.h>
 #ifdef WITH_DLP
@@ -29,6 +30,19 @@
 namespace OHOS {
 namespace AAFwk {
 using AutoStartupInfo = AbilityRuntime::AutoStartupInfo;
+
+/**
+ * @brief Categories of Want params sanitized at the IPC boundary.
+ *
+ * SanitizeWantParams strips all categories by default. A category listed in
+ * keepCategories is exempted (kept). New categories can be added indefinitely,
+ * there is no hard limit (unlike a bitmask).
+ */
+enum class WantParamCategory {
+    INSIGHT_INTENT,  // -> AppExecFwk::InsightIntentExecuteParam::RemoveInsightIntent
+    SKILL,           // -> AppExecFwk::SkillExecuteParam::RemoveSkillParam
+};
+
 /**
  * @class AbilityManagerStub
  * AbilityManagerStub.
@@ -77,10 +91,11 @@ public:
     virtual void RegisterWantAgentHolder(const sptr<IWantSender> &target) = 0;
 
 protected:
-    // Strip InsightIntent and Skill params from Want at IPC boundary.
-    // Use for ALL Want reads EXCEPT legal InsightIntent execution channels
-    // (ExecuteIntentForDistributedInner, StartAbilityByInsightIntentInner).
-    void SanitizeWantParams(Want &want);
+    // By default all categories are stripped. Pass keepCategories to exempt
+    // legal InsightIntent execution channels (ExecuteIntentForDistributedInner,
+    // StartAbilityByInsightIntentInner keep INSIGHT_INTENT; Skill is still stripped).
+    void SanitizeWantParams(Want &want,
+        std::initializer_list<WantParamCategory> keepCategories = {});
 
 private:
     int TerminateAbilityInner(MessageParcel &data, MessageParcel &reply);
