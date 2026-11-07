@@ -93,6 +93,7 @@ constexpr int32_t BY_CALL_TIMEOUT = 10 * 1000 * 1000; // 10s
 constexpr int32_t START_SELF_TIMEOUT = 10 * 1000 * 1000; // 10s
 constexpr int32_t START_SELF_TIMEOUT_KILL_DELAY = 3 * 1000 * 1000; // 3s
 constexpr int32_t SCENE_FLAG_BYCALL = 4;
+constexpr int32_t LOW_MEM_THRESHOLD = 10;
 
 auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
@@ -150,6 +151,19 @@ void ReportPendingTaskAttribution(const UIAbilityRecordPtr &uiAbilityRecord)
 }
 
 UIAbilityLifecycleManager::UIAbilityLifecycleManager(int32_t userId): userId_(userId) {}
+
+std::atomic<int32_t> UIAbilityLifecycleManager::memoryPoolValue_{0};
+
+void UIAbilityLifecycleManager::SetMemoryPoolValue(int32_t value)
+{
+    memoryPoolValue_.store(value);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetMemoryPoolValue: %{public}d", value);
+}
+
+bool UIAbilityLifecycleManager::IsLowMem() const
+{
+    return memoryPoolValue_.load() >= LOW_MEM_THRESHOLD;
+}
 
 void UIAbilityLifecycleManager::BuildStartSpecifiedParam(
     const AbilityRequest &request, int32_t requestId, AbilityRuntime::StartSpecifiedParam &param)
@@ -2752,6 +2766,12 @@ int UIAbilityLifecycleManager::CloseUIAbility(const UIAbilityRecordPtr &abilityR
     }
 
     PrepareCloseUIAbility(abilityRecord, resultCode, resultWant, isClearSession);
+    if (isClearSession && ShouldKillUIAbility(abilityRecord) &&
+        DelayedSingleton<AppScheduler>::GetInstance()->CleanAbilityByUserRequest(abilityRecord->GetToken())) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "low memory, kill UIAbility");
+            terminateAbilityList_.remove(abilityRecord);
+            return ERR_OK;
+        }
     if (abilityRecord->GetAbilityState() == AbilityState::INITIAL) {
         if (abilityRecord->GetScheduler() == nullptr) {
             auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
@@ -2815,6 +2835,34 @@ int UIAbilityLifecycleManager::CloseUIAbilityInner(UIAbilityRecordPtr abilityRec
         abilityRecord->Terminate(task);
     }
     return ERR_OK;
+}
+
+bool UIAbilityLifecycleManager::ShouldKillUIAbility(const UIAbilityRecordPtr &abilityRecord) const
+{
+    if (!IsLowMem()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Memory sufficient");
+        return false;
+    }
+    if (abilityRecord == nullptr || abilityRecord->GetAbilityInfo().type != AppExecFwk::AbilityType::PAGE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability record error");
+        return false;
+    }
+    if (abilityRecord->GetApplicationInfo().isLauncherApp || abilityRecord->GetKeepAlive()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "do not kill keepAlive APP");
+        return false;
+    }
+    auto appMgr = AppMgrUtil::GetAppMgr();
+    if (appMgr == nullptr) {
+        return false;
+    }
+    bool isTerminating = false;
+    IN_PROCESS_CALL(appMgr->IsTerminatingByPid(abilityRecord->GetPid(), isTerminating));
+    if (!isTerminating) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "APP not terminating");
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Kill UIAbility in low mem");
+    return true;
 }
 
 void UIAbilityLifecycleManager::DelayCompleteTerminate(const UIAbilityRecordPtr &abilityRecord)

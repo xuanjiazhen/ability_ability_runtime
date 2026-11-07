@@ -140,6 +140,7 @@ public:
     MOCK_METHOD1(LaunchAbility, int32_t(sptr<IRemoteObject>));
     MOCK_METHOD1(SetProcessPrepareExit, void(int32_t));
     MOCK_METHOD1(SetTerminateTimeOutFlag, void(sptr<IRemoteObject>));
+    MOCK_METHOD2(IsTerminatingByPid, int32_t(pid_t pid, bool &isTerminating));
     virtual int StartUserTestProcess(
         const AAFwk::Want &want, const sptr<IRemoteObject> &observer, const BundleInfo &bundleInfo, int32_t userId)
     {

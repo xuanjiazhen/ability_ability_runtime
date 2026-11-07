@@ -102,6 +102,7 @@
       *UserController*;
       *UnlockScreenManager*;
       *UIExtensionAbilityManager*;
+      *UIAbilityLifecycleManager*;
       *WantSenderInfo*;
       *SenderInfo*;
       *ExtensionRunningInfo*;
