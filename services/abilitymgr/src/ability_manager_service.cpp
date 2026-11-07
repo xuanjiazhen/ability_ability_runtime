@@ -3657,7 +3657,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         return result;
     }
     if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "interceptorExecuter_ called");
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "interceptorExecuter_ calleded");
         (sessionInfo->want).RemoveParam(IS_CALLING_FROM_DMS);
         abilityRequest.userId = currentUserId;
         abilityRequest.sessionInfo = sessionInfo;
