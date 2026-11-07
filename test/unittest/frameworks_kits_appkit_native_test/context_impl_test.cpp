@@ -161,7 +161,6 @@ HWTEST_F(ContextImplTest, GetBundleCodeDir_0100, TestSize.Level1)
     auto applicationInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
     EXPECT_NE(applicationInfo, nullptr);
     applicationInfo->codePath = "/data/app/el1/bundle/public/testCodeDir";
-    applicationInfo->bundleName = "testCodeDir";
     contextImpl->SetApplicationInfo(applicationInfo);
 
     // not create by system app
@@ -2035,10 +2034,3 @@ HWTEST_F(ContextImplTest, RegisterGetAllUIAbilitiesCallback_001, Function | Medi
 #endif
 }  // namespace AppExecFwk
 }  // namespace OHOS
-
-int main(int argc, char** argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    int ret = RUN_ALL_TESTS();
-    ::_exit(ret);
-}
