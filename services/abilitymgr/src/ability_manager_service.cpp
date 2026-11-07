@@ -13577,9 +13577,7 @@ int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const Abil
         return result;
     }
     uint32_t specifyTokenId = static_cast<uint32_t>(abilityRequest.specifiedFullTokenId);
-    if (AAFwk::PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId)) {
-        return ERR_OK;
-    }
+    bool isSACall = AAFwk::PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId);
     if (!AppUtils::GetInstance().IsSupportAppServiceExtension()) {
         return ERR_CAPABILITY_NOT_SUPPORT;
     }
@@ -13587,7 +13585,10 @@ int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const Abil
     if (targetService != nullptr && targetService->IsAbilityState(AbilityState::ACTIVE)) {
         isVerifyAppIdentifierAllowList = false;
     }
-    if (isVerifyAppIdentifierAllowList && !VerifySameAppOrAppIdentifierAllowListPermission(abilityRequest)) {
+    // SA callers are only exempted from the appIdentifierAllowList verification (an SA is never in the
+    // allow list). Other checks, including the target-app permission, still apply to SA callers.
+    if (isVerifyAppIdentifierAllowList && !isSACall &&
+        !VerifySameAppOrAppIdentifierAllowListPermission(abilityRequest)) {
         if (isFromConnect) {
             return ERR_TARGET_NOT_STARTED;
         }
