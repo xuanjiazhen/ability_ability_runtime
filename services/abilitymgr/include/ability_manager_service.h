@@ -2916,6 +2916,7 @@ protected:
         std::shared_ptr<BaseExtensionRecord> targetService, bool isFromConnect);
 
     static void HandleAutoStartupReadyCallback(const char *key, const char *value, void *context);
+    static void HandleMemoryPoolPrepareCallback(const char *key, const char *value, void *context);
 
     /**
      * UnPreload UIExtension with want, send want to ability manager service.
