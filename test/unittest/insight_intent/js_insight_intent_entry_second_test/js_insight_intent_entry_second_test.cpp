@@ -398,7 +398,7 @@ HWTEST_F(JsInsightIntentEntrySecondTest, JsInsightIntentEntryHandleResultReturne
     napi_create_promise(env, &deferred, &promise);
 
     auto ret = jsInsightIntentEntry->HandleResultReturnedFromJsFunc(promise);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
 
 /*

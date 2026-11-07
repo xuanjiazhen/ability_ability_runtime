@@ -54,6 +54,7 @@ ohos_shared_library("page_config_manager") {
 
   external_deps = [
     "hilog:libhilog",
+    "icu:shared_icuuc",
     "window_manager:libwm",
     "c_utils:utils",
     "ipc:ipc_core",

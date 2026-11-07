@@ -40,6 +40,7 @@ ohos_shared_library("ets_environment") {
     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
     "${ability_runtime_path}/interfaces/inner_api",
     "${ability_runtime_services_path}/common/include", 
+    "//arkcompiler/runtime_core/static_core/plugins",
   ]
 
   sources = [
