@@ -39,6 +39,9 @@ bool PermissionVerification::IsSACall() const
 }
 bool PermissionVerification::IsSACallByTokenId(uint32_t callerTokenId) const
 {
+    if (MyStatus::GetInstance().permIsSACallByTokenId_ >= 0) {
+        return MyStatus::GetInstance().permIsSACallByTokenId_ != 0;
+    }
     return (MyStatus::GetInstance().permPermission_ & FLAG::IS_SA_CALL);
 }
 bool PermissionVerification::IsShellCall() const

@@ -643,6 +643,131 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, CheckCallOtherExtensionPermission_
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest CheckCallOtherExtensionPermission_UkeyAuth_002 end");
 }
 
+namespace {
+AbilityRequest MakeAppServiceExtensionRequest()
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.visible = true;
+    abilityRequest.abilityInfo.bundleName = "com.test.demo";
+    abilityRequest.abilityInfo.name = "AppServiceExtension";
+    abilityRequest.abilityInfo.type = AbilityType::EXTENSION;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::APP_SERVICE;
+    abilityRequest.appInfo.bundleName = "com.test.demo";
+    abilityRequest.appInfo.accessTokenId = 1;
+    // caller uid (mocked IPCSkeleton, default 1) differs from target uid, so the caller is not the same app.
+    abilityRequest.uid = 100;
+    return abilityRequest;
+}
+} // namespace
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckCallAppServiceExtensionPermission_001
+ * Function: CheckCallAppServiceExtensionPermission
+ * SubFunction: NA
+ * FunctionPoints: SA caller must still pass the target-app
+ * PERMISSION_SUPPORT_APP_SERVICE_EXTENSION permission check
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckCallAppServiceExtensionPermission_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceThirteenthTest CheckCallAppServiceExtensionPermission_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto &status = MyStatus::GetInstance();
+    status.permPermission_ = 0; // pass the service-extension caller check
+    status.permIsSACallByTokenId_ = 1; // SA caller
+    status.atkVerifyAccessToken_ = -1; // target permission denied
+    AbilityRequest abilityRequest = MakeAppServiceExtensionRequest();
+    // SA callers are exempted from the appIdentifierAllowList check only;
+    // the target permission check must still reject them.
+    EXPECT_EQ(abilityMs_->CheckCallAppServiceExtensionPermission(abilityRequest, nullptr, false),
+        TARGET_ABILITY_NOT_SERVICE);
+    status.permIsSACallByTokenId_ = -1;
+    status.atkVerifyAccessToken_ = -1;
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceThirteenthTest CheckCallAppServiceExtensionPermission_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckCallAppServiceExtensionPermission_002
+ * Function: CheckCallAppServiceExtensionPermission
+ * SubFunction: NA
+ * FunctionPoints: SA caller is allowed when the target app holds
+ * PERMISSION_SUPPORT_APP_SERVICE_EXTENSION
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckCallAppServiceExtensionPermission_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceThirteenthTest CheckCallAppServiceExtensionPermission_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto &status = MyStatus::GetInstance();
+    status.permPermission_ = 0;
+    status.permIsSACallByTokenId_ = 1; // SA caller
+    status.atkVerifyAccessToken_ = 0; // PERMISSION_GRANTED
+    AbilityRequest abilityRequest = MakeAppServiceExtensionRequest();
+    EXPECT_EQ(abilityMs_->CheckCallAppServiceExtensionPermission(abilityRequest, nullptr, false), ERR_OK);
+    status.permIsSACallByTokenId_ = -1;
+    status.atkVerifyAccessToken_ = -1;
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceThirteenthTest CheckCallAppServiceExtensionPermission_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckCallAppServiceExtensionPermission_003
+ * Function: CheckCallAppServiceExtensionPermission
+ * SubFunction: NA
+ * FunctionPoints: non-SA caller outside the appIdentifierAllowList is rejected on start
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckCallAppServiceExtensionPermission_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceThirteenthTest CheckCallAppServiceExtensionPermission_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto &status = MyStatus::GetInstance();
+    status.permPermission_ = 0;
+    status.permIsSACallByTokenId_ = 0; // not an SA caller
+    status.atkVerifyAccessToken_ = 0;
+    AbilityRequest abilityRequest = MakeAppServiceExtensionRequest();
+    EXPECT_EQ(abilityMs_->CheckCallAppServiceExtensionPermission(abilityRequest, nullptr, false),
+        ERR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST);
+    status.permIsSACallByTokenId_ = -1;
+    status.atkVerifyAccessToken_ = -1;
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceThirteenthTest CheckCallAppServiceExtensionPermission_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckCallAppServiceExtensionPermission_004
+ * Function: CheckCallAppServiceExtensionPermission
+ * SubFunction: NA
+ * FunctionPoints: non-SA caller outside the appIdentifierAllowList gets
+ * ERR_TARGET_NOT_STARTED on connect
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckCallAppServiceExtensionPermission_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceThirteenthTest CheckCallAppServiceExtensionPermission_004 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto &status = MyStatus::GetInstance();
+    status.permPermission_ = 0;
+    status.permIsSACallByTokenId_ = 0; // not an SA caller
+    status.atkVerifyAccessToken_ = 0;
+    AbilityRequest abilityRequest = MakeAppServiceExtensionRequest();
+    EXPECT_EQ(abilityMs_->CheckCallAppServiceExtensionPermission(abilityRequest, nullptr, true),
+        ERR_TARGET_NOT_STARTED);
+    status.permIsSACallByTokenId_ = -1;
+    status.atkVerifyAccessToken_ = -1;
+    TAG_LOGI(AAFwkTag::TEST,
+        "AbilityManagerServiceThirteenthTest CheckCallAppServiceExtensionPermission_004 end");
+}
+
 /*
  * Feature: AbilityManagerService
  * Name: CheckUIExtensionCallerIsForeground_001
