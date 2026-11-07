@@ -354,6 +354,10 @@ ohos_shared_library("app_util") {
   include_dirs = [ "include" ]
 
   sources = [
+    # Impl of inner-kit header snapshot_debug_info.h lives in app_util because
+    # app_util (bottom of the link graph) needs the struct vtable, and the
+    # app_manager lib already depends on app_util, not vice versa.
+    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/snapshot_debug_info.cpp",
     "src/ability_manager_radar.cpp",
     "src/ability_manager_xcollie.cpp",
     "src/app_utils.cpp",
@@ -430,6 +434,7 @@ ohos_static_library("app_util_static") {
   include_dirs = [ "include" ]
 
   sources = [
+    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/snapshot_debug_info.cpp",
     "src/ability_manager_radar.cpp",
     "src/ability_manager_xcollie.cpp",
     "src/app_utils.cpp",

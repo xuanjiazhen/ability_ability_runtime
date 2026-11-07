@@ -126,14 +126,16 @@ public:
 
     /**
      * Make a snapshot of the specified ability for debugging.
-     * Only debug-signed applications are allowed; the command is forwarded to
+     * Only allowed when developer mode is enabled and the target is a
+     * debug-signed application; the command is forwarded to
      * RSS through the report-data channel and the result is accepted-level.
      * The making state can be queried by DebugListSnapshot.
      *
      * @param bundleName The bundle name of the debug-signed application.
      * @param abilityName The ability to make a snapshot of.
      * @param debugReportOnly True to only report invalidation without
-     *        invalidating the snapshot (debug mode only).
+     *        invalidating the snapshot; the debug-app checkpoint flag then
+     *        checks the debug signature only (developer mode still required).
      * @param perfCmd The perf command used to launch hiperf for stack
      *        recording; empty means not to launch.
      * @return Returns ERR_OK on accepted, others on failure.
@@ -146,7 +148,8 @@ public:
 
     /**
      * Delete the snapshot of the specified debug-signed application.
-     * The command is forwarded to RSS through the report-data channel and
+     * Only allowed when developer mode is enabled; the command is forwarded
+     * to RSS through the report-data channel and
      * the result is accepted-level; the deletion result can be confirmed by
      * DebugListSnapshot.
      *
@@ -164,7 +167,8 @@ public:
 
     /**
      * Query the debug snapshot information of debug-signed applications.
-     * The query is forwarded to RSS through the report-data channel; the
+     * Only allowed when developer mode is enabled; the query is forwarded
+     * to RSS through the report-data channel; the
      * "errcode" of the RSS reply is mapped to the return code.
      *
      * @param bundleName The bundle name to filter; empty means no filter.

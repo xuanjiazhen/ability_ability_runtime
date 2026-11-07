@@ -336,8 +336,8 @@ constexpr const char* KILL_SUB_PROCESS_REASON_PREFIX = "Kill SubProcess Reason:"
 constexpr const char* MAKE_IMAGE_TIMEOUT_EVENT = "MakeImageTimeout";
 constexpr const char* NEED_DESTROY_TEMPLATE = "ohos.ability.runtime.needDestroyTemplate";
 // aa debug create-snapshot options, set by RSS when it triggers MakeImage back.
-constexpr const char* DEBUG_SNAPSHOT_REPORT_ONLY = "ohos.ability.runtime.debugSnapshotReportOnly";
-constexpr const char* DEBUG_SNAPSHOT_PERF_CMD = "ohos.ability.runtime.debugSnapshotPerfCmd";
+constexpr const char* DEBUG_SNAPSHOT_REPORT_ONLY = "ohos.ability.runtime.dr";
+constexpr const char* DEBUG_SNAPSHOT_PERF_CMD = "ohos.ability.runtime.perfCmd";
 
 constexpr const char* PROC_SELF_TASK_PATH = "/proc/self/task/";
 constexpr const char* DLP_INDEX = "ohos.dlp.params.index";
@@ -1795,11 +1795,12 @@ void AppMgrServiceInner::MarkTemplateProcess(const std::shared_ptr<AppRunningRec
     mark.name[length] = '\0';
     /* In developer mode, set a specific flag for debug app */
     std::shared_ptr<ApplicationInfo> applicationInfo = appRecord->GetApplicationInfo();
-    bool isDebugApp = applicationInfo != nullptr && applicationInfo->debug &&
-            (applicationInfo->appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG);
-    // debugReportOnly comes from the aa debug create-snapshot -dr option: set the flag
-    // explicitly regardless of the ambient developer-mode condition (INV-2).
-    if (debugReportOnly || (system::GetBoolParameter(DEVELOPER_MODE_STATE, false) && isDebugApp)) {
+    bool isDebugSigned = applicationInfo != nullptr &&
+        (applicationInfo->appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG);
+    // -dr (aa debug create-snapshot) skips the application build/install debug property:
+    // the debug signature plus developer mode are enough to set the debug-app flag.
+    if (isDebugSigned && system::GetBoolParameter(DEVELOPER_MODE_STATE, false) &&
+        (debugReportOnly || applicationInfo->debug)) {
         mark.type |= CHECKPOINT_DEBUG_APP_TYPE_FLAG;
     }
     int ret = ioctl(fd, CHECKPOINT_MONITOR_IOCTL_MARK_TEMPLATE, &mark);
@@ -1988,14 +1989,6 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
         if (request.needMakeImage && appRecord->GetPid() > 0) {
             SetTemplatePid(appRecord);
             MarkTemplateProcess(appRecord, request.imageName, request.debugReportOnly);
-            if (!request.perfCmd.empty()) {
-                // aa debug create-snapshot -p: launch the perf process for stack recording;
-                // failure only logs and never blocks the making (INV-3).
-                auto perfRet = StartPerfProcess(appRecord, request.perfCmd, "", isExtensionSandBox);
-                if (perfRet != ERR_OK) {
-                    TAG_LOGE(AAFwkTag::APPMGR, "start perf process failed, ret: %{public}d", perfRet);
-                }
-            }
         }
         appRecord->SetNeedLimitPrio(false);
         if (request.preloadMode == AppExecFwk::PreloadMode::PRELOAD_MODULE) {
@@ -13181,6 +13174,10 @@ int32_t AppMgrServiceInner::DebugCreateSnapshot(const std::string &bundleName,
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "DebugCreateSnapshot bundleName:%{public}s abilityName:%{public}s "
         "debugReportOnly:%{public}d", bundleName.c_str(), abilityName.c_str(), debugReportOnly);
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
+        return AAFwk::ERR_NOT_DEVELOPER_MODE;
+    }
     if (bundleName.empty() || abilityName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid parameters");
         return ERR_INVALID_VALUE;
@@ -13229,6 +13226,10 @@ int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, 
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "DebugDestroySnapshot bundleName:%{public}s pid:%{public}d",
         bundleName.c_str(), pid);
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
+        return AAFwk::ERR_NOT_DEVELOPER_MODE;
+    }
     std::string targetBundle = bundleName;
     if (targetBundle.empty()) {
         // -p mode: resolve the target bundle from the image info first.
@@ -13280,6 +13281,10 @@ int32_t AppMgrServiceInner::DebugListSnapshot(const std::string &bundleName, Sna
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "DebugListSnapshot bundleName:%{public}s", bundleName.c_str());
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
+        return AAFwk::ERR_NOT_DEVELOPER_MODE;
+    }
     if (!bundleName.empty() && !CheckIsDebugApp(bundleName)) {
         TAG_LOGE(AAFwkTag::APPMGR, "not debug app, bundleName:%{public}s", bundleName.c_str());
         return AAFwk::ERR_NOT_DEBUG_APP;
