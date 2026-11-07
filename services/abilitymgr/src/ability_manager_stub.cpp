@@ -2944,7 +2944,12 @@ int AbilityManagerStub::StartAbilityForPrelaunchInner(MessageParcel &data, Messa
             TAG_LOGW(AAFwkTag::ABILITYMGR, "hasConnect=true but ReadRemoteObject returned null");
         }
     }
-    int32_t result = StartAbilityForPrelaunch(*want, frameNum, connect);
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    if (!data.ReadInt32(userId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "read userId failed");
+        userId = DEFAULT_INVAL_VALUE;
+    }
+    int32_t result = StartAbilityForPrelaunch(*want, frameNum, connect, userId);
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "resolve call ability ret = %{public}d", result);
     reply.WriteInt32(result);
