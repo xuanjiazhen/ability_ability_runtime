@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_UI_ABILITY_LIFECYCLE_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_UI_ABILITY_LIFECYCLE_MANAGER_H
 
+#include <atomic>
 #include <list>
 #include <map>
 #include <memory>
@@ -80,6 +81,8 @@ public:
     UIAbilityLifecycleManager() = default;
     explicit UIAbilityLifecycleManager(int32_t userId);
     virtual ~UIAbilityLifecycleManager() = default;
+
+    static void SetMemoryPoolValue(int32_t value);
 
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery = false);
     void SignRestartProcess(int32_t pid);
@@ -644,6 +647,8 @@ public:
         const AppExecFwk::UiAbilityLastCallerInfo &callerInfo);
 
 private:
+    bool IsLowMem() const;
+
     /**
      * @brief Add starting process ID to tracking list
      * @param pid The process ID to add
@@ -865,6 +870,13 @@ private:
      * @return ERR_OK if successful, error code otherwise
      */
     int CloseUIAbilityInner(UIAbilityRecordPtr abilityRecord);
+
+    /**
+     * @brief Kill UIAbility in Low Memory
+     * @param abilityRecord The ability to close
+     * @return True if Low Memory, False Otherwise
+     */
+    bool ShouldKillUIAbility(const UIAbilityRecordPtr &abilityRecord) const;
 
     /**
      * @brief Return to caller ability with result (locked)
@@ -1443,6 +1455,8 @@ private:
 
     ffrt::mutex extendTaskMutex_;
     std::unordered_map<int32_t, ffrt::task_handle> extendTaskMap_; // for game pre-launch extend delayed task
+
+    static std::atomic<int32_t> memoryPoolValue_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
