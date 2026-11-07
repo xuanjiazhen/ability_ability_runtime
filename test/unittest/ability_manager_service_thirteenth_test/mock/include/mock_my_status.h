@@ -56,6 +56,9 @@ public:
     uint32_t ipcGetCallingTokenID_ = 1;
     uint32_t ipcGetSelfTokenID_ = 1;
     int permPermission_ = 1;
+    // -1: IsSACallByTokenId falls back to (permPermission_ & IS_SA_CALL), keep legacy behavior.
+    int permIsSACallByTokenId_ = -1;
+    int atkVerifyAccessToken_ = -1;
     int permConnectAgentFromBackground_ = 0;
     bool permVerifyBlockAllAppStartPermission_ = false;
     bool perJudgeCallerIsAllowedToUseSystemAPI_ = true;

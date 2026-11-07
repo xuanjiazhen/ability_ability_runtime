@@ -37,7 +37,7 @@ int AccessTokenKit::GetHapTokenInfo(AccessTokenID tokenID, HapTokenInfo &hapInfo
 
 int AccessTokenKit::VerifyAccessToken(AccessTokenID tokenID, const std::string &permissionName, bool crossIpc)
 {
-    return -1;
+    return MyStatus::GetInstance().atkVerifyAccessToken_;
 }
 
 void AccessTokenKit::GetPermissionManagerInfo(PermissionGrantInfo &info)
