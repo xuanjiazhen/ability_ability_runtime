@@ -168,6 +168,7 @@ HWTEST_F(ExecCmdParamTest, ExecCmdParam_Parcelable_0300, TestSize.Level1)
     options.timeout = TEST_TIMEOUT;
     options.isShellCommand = false;
     options.challenge = TEST_CHALLENGE;
+    options.subjectId = "test_agent_subject";
     options.toolCallId = TEST_TOOL_CALL_ID;
     options.dmSessionId = TEST_DM_SESSION_ID;
 
@@ -185,6 +186,7 @@ HWTEST_F(ExecCmdParamTest, ExecCmdParam_Parcelable_0300, TestSize.Level1)
     EXPECT_EQ(result->timeout, TEST_TIMEOUT);
     EXPECT_FALSE(result->isShellCommand);
     EXPECT_EQ(result->challenge, TEST_CHALLENGE);
+    EXPECT_EQ(result->subjectId, "test_agent_subject");
     EXPECT_EQ(result->toolCallId, TEST_TOOL_CALL_ID);
     EXPECT_EQ(result->dmSessionId, TEST_DM_SESSION_ID);
 }
@@ -261,6 +263,7 @@ HWTEST_F(ExecCmdParamTest, ExecCmdParam_Unmarshalling_0100, TestSize.Level1)
     EXPECT_TRUE(coreResult->execCmdOptions.challenge.empty());
     EXPECT_TRUE(coreResult->execCmdOptions.toolCallId.empty());
     EXPECT_TRUE(coreResult->execCmdOptions.dmSessionId.empty());
+    EXPECT_TRUE(coreResult->execCmdOptions.subjectId.empty());
 
     // Legacy sender that already knows isShellCommand/challenge but not the trace ids.
     Parcel legacyNoIdsParcel;

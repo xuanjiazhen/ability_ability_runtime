@@ -2193,6 +2193,61 @@ HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_0400, TestSize.Level1)
     GTEST_LOG_(INFO) << "ToolUtil_GenerateCmdSandboxConfig_0400 end";
 }
 
+/**
+ * @tc.name: ToolUtil_GenerateCmdSandboxConfig_SubjectId_0100
+ * @tc.desc: Verify subjectId is included in the shell sandbox configuration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_SubjectId_0100, TestSize.Level1)
+{
+    using json = nlohmann::json;
+    CliToolTest::AccessTokenKitMock::getTokenTypeFlagIsHap = true;
+    CliToolTest::AccessTokenKitMock::getHapTokenInfoRet = 0;
+    CliToolTest::AccessTokenKitMock::hapBundleName = "com.test.agent";
+    CliToolTest::AccessTokenKitMock::hapInstIndex = 0;
+    CliToolTest::AccessTokenKitMock::hapUserID = 100;
+    AppExecFwk::BundleMgrHelper::getBundleInfoResult = 0;
+    AppExecFwk::BundleMgrHelper::gid = 2000;
+    AppExecFwk::BundleMgrHelper::bundleName = "com.test.agent";
+
+    ExecCmdParam param;
+    param.execCmdOptions.subjectId = "test_agent_subject";
+    std::string sandboxConfig;
+    std::string bundleName;
+    ASSERT_TRUE(ToolUtil::GenerateCmdSandboxConfig(param, 12345, sandboxConfig, bundleName));
+
+    auto config = json::parse(sandboxConfig, nullptr, false);
+    ASSERT_FALSE(config.is_discarded());
+    EXPECT_EQ(config["subjectId"].get<std::string>(), "test_agent_subject");
+}
+
+/**
+ * @tc.name: ToolUtil_GenerateCmdSandboxConfig_SubjectId_0200
+ * @tc.desc: Verify an empty subjectId does not prevent sandbox configuration generation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_SubjectId_0200, TestSize.Level1)
+{
+    using json = nlohmann::json;
+    CliToolTest::AccessTokenKitMock::getTokenTypeFlagIsHap = true;
+    CliToolTest::AccessTokenKitMock::getHapTokenInfoRet = 0;
+    CliToolTest::AccessTokenKitMock::hapBundleName = "com.test.agent";
+    CliToolTest::AccessTokenKitMock::hapInstIndex = 0;
+    CliToolTest::AccessTokenKitMock::hapUserID = 100;
+    AppExecFwk::BundleMgrHelper::getBundleInfoResult = 0;
+    AppExecFwk::BundleMgrHelper::gid = 2000;
+    AppExecFwk::BundleMgrHelper::bundleName = "com.test.agent";
+
+    ExecCmdParam param;
+    std::string sandboxConfig;
+    std::string bundleName;
+    ASSERT_TRUE(ToolUtil::GenerateCmdSandboxConfig(param, 12345, sandboxConfig, bundleName));
+
+    auto config = json::parse(sandboxConfig, nullptr, false);
+    ASSERT_FALSE(config.is_discarded());
+    EXPECT_EQ(config["subjectId"].get<std::string>(), "");
+}
+
 // ---- GenerateSandboxConfig: ForCli callerIdentity env injection (issue-16055) ----
 // The callerIdentity env branch lives in GenerateSandboxConfig (type="cli"), distinct from
 // GenerateCmdSandboxConfig (type="shell"). These cover the success path (env injection) + the
