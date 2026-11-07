@@ -518,6 +518,15 @@ public:
         const bool clearPageStack = false, const std::string& reason = "KillApplicationByUserIdSafely");
 
     /**
+     * @brief Get collaborator type for kill process.
+     * Reuses bundleInfo fetching logic from AbilityManagerService::KillProcessWithUserId (L9546-9564).
+     * @param bundleName target bundle name.
+     * @param appCloneIndex in/out clone app index.
+     * @param userId target user id.
+     * @param collaboratorType output: 0=default, 1=RESERVE_TYPE, 2=OTHERS_TYPE.
+     * @return ERR_OK on success, GET_BUNDLE_INFO_FAILED on bundle info failure.
+     */
+    /**
      * update process rss and pss value.
      *
      * @param procMemStates, the memory states of all apps.
@@ -1932,6 +1941,13 @@ private:
     
     int32_t KillApplicationWithUserIdInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
+
+    int32_t KillApplicationByUserIdImpl(
+        const std::string &bundleName, int32_t appCloneIndex, int32_t userId,
+        const bool clearPageStack, const std::string& reason, bool checkMDM);
+
+    int32_t GetCollaboratorTypeForKill(
+        const std::string &bundleName, int32_t &appCloneIndex, int32_t userId, int32_t &collaboratorType);
 
     std::string FaultTypeToString(FaultDataType type);
 
