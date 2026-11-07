@@ -106,10 +106,11 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_003, Tes
     uint32_t versionCode = 0;
     ExtractInsightIntentProfileInfoVec profileInfos;
     std::vector<InsightIntentInfo> configInfos;
-    MockInsertData(false);
+    MockBatchInsertData(false);
     auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
         InsightIntentSaveParam{bundleName, moduleName, versionCode, userId}, profileInfos, configInfos);
-    MockInsertData(true);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    MockBatchInsertData(true);
     result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
         InsightIntentSaveParam{bundleName, moduleName, versionCode, userId}, profileInfos, configInfos);
     EXPECT_EQ(result, ERR_OK);
@@ -374,7 +375,7 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_016, Tes
 
 /**
  * @tc.name: InsightIntentRdbStorageMgrTest_018
- * @tc.desc: Test SaveStorageInsightIntentData with InsertData failed (profileInfo)
+ * @tc.desc: Test SaveStorageInsightIntentData with BatchInsertData failed (profileInfo)
  * @tc.type: FUNC
  */
 HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_018, TestSize.Level0)
@@ -389,15 +390,15 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_018, Tes
     profileInfo.intentName = "testIntent";
     profileInfos.insightIntents.push_back(profileInfo);
     
-    MockInsertData(false);
+    MockBatchInsertData(false);
     auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
         InsightIntentSaveParam{bundleName, moduleName, 0u, userId}, profileInfos, configInfos);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 
 /**
  * @tc.name: InsightIntentRdbStorageMgrTest_019
- * @tc.desc: Test SaveStorageInsightIntentData with InsertData failed (configInfo)
+ * @tc.desc: Test SaveStorageInsightIntentData with BatchInsertData failed (configInfo)
  * @tc.type: FUNC
  */
 HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_019, TestSize.Level0)
@@ -412,10 +413,10 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_019, Tes
     configInfo.intentName = "testIntent";
     configInfos.push_back(configInfo);
     
-    MockInsertData(false);
+    MockBatchInsertData(false);
     auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
         InsightIntentSaveParam{bundleName, moduleName, 0u, userId}, profileInfos, configInfos);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 
 /**
@@ -553,7 +554,7 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_027, Tes
     configInfo.intentName = "cfgInsight27";
     configInfos.push_back(configInfo);
 
-    MockInsertData(true);
+    MockBatchInsertData(true);
     auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
         InsightIntentSaveParam{bundleName, moduleName, 2u, userId}, profileInfos, configInfos);
     EXPECT_EQ(result, ERR_OK);
@@ -754,7 +755,7 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_037, Tes
     std::string moduleName = "module37";
     ExtractInsightIntentProfileInfoVec profileInfos;
     std::vector<InsightIntentInfo> configInfos;
-    MockInsertData(true);
+    MockBatchInsertData(true);
     auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
         InsightIntentSaveParam{bundleName, moduleName, 100u, userId}, profileInfos, configInfos);
     EXPECT_EQ(result, ERR_OK);

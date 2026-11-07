@@ -20,6 +20,7 @@
 #include <mutex>
 #include <string>
 #include <utility>
+#include <functional>
 #include <singleton.h>
 #include <unordered_map>
 #include "rdb_errno.h"
@@ -28,6 +29,10 @@
 #include "rdb_store_config.h"
 
 namespace OHOS {
+namespace NativeRdb {
+class Transaction;
+}
+
 namespace AbilityRuntime {
 namespace {
 constexpr static const char *INTENT_NAME = "/insight_intent.db";
@@ -70,6 +75,22 @@ public:
     bool BatchInsertData(const std::vector<std::pair<std::string, std::string>> &keyValues);
 
     /**
+     * Update the values of the given keys in a single transaction.
+     * Keys that do not exist are skipped, so the call succeeds even if some keys are absent.
+     */
+    bool BatchUpdateData(const std::vector<std::pair<std::string, std::string>> &keyValues);
+
+    /**
+     * Delete the records of the given keys in a single transaction.
+     */
+    bool BatchDeleteData(const std::vector<std::string> &keys);
+
+    /**
+     * Delete the records whose key starts with any of the given prefixes in a single transaction.
+     */
+    bool BatchDeleteDataBeginWithKey(const std::vector<std::string> &keyPrefixes);
+
+    /**
      * Replace the records of the given key prefixes with keyValues in a single transaction.
      * The delete and the batch insert share one transaction, so either all of them take effect or none.
      */
@@ -87,16 +108,18 @@ public:
     void BackupRdb();
 
 private:
+    /**
+     * One round of work executed inside a single transaction.
+     * Returning E_OK commits the transaction, any other value rolls it back.
+     * The task must be idempotent because it can be re-executed on retry.
+     */
+    using TransactionTask = std::function<int32_t(NativeRdb::Transaction &transaction)>;
+
     bool IsIntentRdbLoaded();
     std::shared_ptr<NativeRdb::RdbStore> GetRdbStore();
-    int32_t InsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore, int64_t &rowId,
-        const NativeRdb::ValuesBucket &valuesBucket);
-    int32_t ReplaceBatchWithRetry(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
-        const std::vector<std::string> &deleteKeyPrefixes,
-        const std::vector<NativeRdb::ValuesBucket> &valuesBuckets, int64_t &insertNum);
-    int32_t ExecuteReplaceInTransaction(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
-        const std::vector<std::string> &deleteKeyPrefixes,
-        const std::vector<NativeRdb::ValuesBucket> &valuesBuckets, int64_t &insertNum);
+    int32_t ExecuteInTransaction(const std::string &operation, const TransactionTask &task);
+    int32_t ExecuteOnceInTransaction(const TransactionTask &task);
+    int32_t RestoreRdb();
     bool IsRetryErrCode(int32_t errCode);
 
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;

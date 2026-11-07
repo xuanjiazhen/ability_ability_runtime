@@ -299,10 +299,9 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const InsightIntentSa
         keyValues.emplace_back(key, value);
     }
     std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
-    for (const auto &keyValue : keyValues) {
-        if (!DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->InsertData(keyValue.first, keyValue.second)) {
-            TAG_LOGE(AAFwkTag::INTENT, "InsertData error, key: %{private}s", keyValue.first.c_str());
-        }
+    if (!DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->BatchInsertData(keyValues)) {
+        TAG_LOGE(AAFwkTag::INTENT, "BatchInsertData error, count: %{public}zu", keyValues.size());
+        return ERR_INVALID_VALUE;
     }
     return ERR_OK;
 }
