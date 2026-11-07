@@ -24,6 +24,7 @@
       *RateLimiter*;
       *RecordCostTimeUtil*;
       *ResSchedUtil*;
+      *SnapshotDebug*;
     };
   local:
     *;
