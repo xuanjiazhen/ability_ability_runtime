@@ -284,6 +284,7 @@ constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohosSpecifiedProcessFlag";
 constexpr const char* EXPECT_WINDOW_MODE = "expectWindowMode";
 #endif
 constexpr const char* AUTO_STARTUP_READY = "persist.sys.abilityms.if_startup_ready";
+constexpr const char* MEMMGR_POOL_MEMORY_PREPARE = "resourceschedule.memmgr.pool.memory.prepare";
 
 constexpr char ASSERT_FAULT_DETAIL[] = "assertFaultDialogDetail";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
@@ -771,6 +772,17 @@ void AbilityManagerService::AddWatchParameters()
         TAG_LOGW(AAFwkTag::ABILITYMGR, "watch parameter %{public}s fail with %{public}d",
             AUTO_STARTUP_READY, ret);
     }
+    char memValueBuf[GET_PARAMETER_VALUE_LEN] = {0};
+    int memRet = GetParameter(MEMMGR_POOL_MEMORY_PREPARE, "0", memValueBuf, sizeof(memValueBuf));
+    if (memRet > 0) {
+        UIAbilityLifecycleManager::SetMemoryPoolValue(atoi(memValueBuf));
+    }
+    ret = WatchParameter(MEMMGR_POOL_MEMORY_PREPARE,
+        AbilityManagerService::HandleMemoryPoolPrepareCallback, nullptr);
+    if (ret != 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "watch parameter %{public}s fail with %{public}d",
+            MEMMGR_POOL_MEMORY_PREPARE, ret);
+    }
 }
 
 void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, const char *value, void *context)
@@ -787,6 +799,17 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
     }
     int32_t userId = abilityMgr->GetValidUserId(DEFAULT_INVAL_VALUE);
     abilityMgr->StartAutoStartupApps(userId, false, false);
+}
+
+void AbilityManagerService::HandleMemoryPoolPrepareCallback(const char *key, const char *value, void *context)
+{
+    if (key == nullptr || value == nullptr) {
+        return;
+    }
+    if (strcmp(key, MEMMGR_POOL_MEMORY_PREPARE) != 0) {
+        return;
+    }
+    UIAbilityLifecycleManager::SetMemoryPoolValue(atoi(value));
 }
 
 int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
