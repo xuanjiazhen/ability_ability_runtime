@@ -449,39 +449,6 @@ HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_1900, Func
 }
 
 /**
- * @tc.number: InsightIntentRdbDataManager_1910
- * @tc.desc: BatchUpdateData updates several existing keys in one transaction and skips the missing ones.
- * @tc.type: FUNC
- */
-HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_1910, Function | SmallTest | Level1)
-{
-    auto rdbMgr = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance();
-
-    std::vector<std::pair<std::string, std::string>> emptyKeyValues;
-    EXPECT_TRUE(rdbMgr->BatchUpdateData(emptyKeyValues));
-
-    EXPECT_TRUE(rdbMgr->InsertData("UPDATE_1910_A", "VAL_A"));
-    EXPECT_TRUE(rdbMgr->InsertData("UPDATE_1910_B", "VAL_B"));
-
-    std::vector<std::pair<std::string, std::string>> keyValues = {
-        {"UPDATE_1910_A", "VAL_A_NEW"},
-        {"UPDATE_1910_B", "VAL_B_NEW"},
-        {"UPDATE_1910_MISSING", "VAL_MISSING"},
-    };
-    EXPECT_TRUE(rdbMgr->BatchUpdateData(keyValues));
-
-    std::string value;
-    EXPECT_TRUE(rdbMgr->QueryData("UPDATE_1910_A", value));
-    EXPECT_EQ(value, "VAL_A_NEW");
-    EXPECT_TRUE(rdbMgr->QueryData("UPDATE_1910_B", value));
-    EXPECT_EQ(value, "VAL_B_NEW");
-    EXPECT_FALSE(rdbMgr->QueryData("UPDATE_1910_MISSING", value));
-
-    EXPECT_TRUE(rdbMgr->DeleteData("UPDATE_1910_A"));
-    EXPECT_TRUE(rdbMgr->DeleteData("UPDATE_1910_B"));
-}
-
-/**
  * @tc.number: InsightIntentRdbDataManager_1920
  * @tc.desc: BatchDeleteData and BatchDeleteDataBeginWithKey delete several keys in one transaction.
  * @tc.type: FUNC

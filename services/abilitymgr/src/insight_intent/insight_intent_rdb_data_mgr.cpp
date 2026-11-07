@@ -45,6 +45,64 @@ std::vector<NativeRdb::ValuesBucket> BuildValuesBuckets(
     }
     return valuesBuckets;
 }
+
+// Delete the rows matched by the predicates inside the given transaction.
+int32_t DeleteInTransaction(NativeRdb::Transaction &transaction,
+    const NativeRdb::AbsRdbPredicates &predicates, int32_t &deletedRows)
+{
+    auto [ret, rows] = transaction.Delete(predicates);
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "delete failed ret:%{public}d", ret);
+        return ret;
+    }
+    deletedRows += rows;
+    return NativeRdb::E_OK;
+}
+
+int32_t DeleteByKeysInTransaction(NativeRdb::Transaction &transaction, const std::string &tableName,
+    const std::vector<std::string> &keys, int32_t &deletedRows)
+{
+    // The task may be replayed on retry, so the counter starts from zero every round.
+    deletedRows = 0;
+    for (size_t begin = 0; begin < keys.size(); begin += DELETE_CHUNK_SIZE) {
+        size_t end = std::min(begin + DELETE_CHUNK_SIZE, keys.size());
+        NativeRdb::AbsRdbPredicates predicates(tableName);
+        predicates.In(INTENT_KEY, std::vector<std::string>(keys.begin() + begin, keys.begin() + end));
+        int32_t ret = DeleteInTransaction(transaction, predicates, deletedRows);
+        if (ret != NativeRdb::E_OK) {
+            return ret;
+        }
+    }
+    return NativeRdb::E_OK;
+}
+
+int32_t DeleteByPrefixesInTransaction(NativeRdb::Transaction &transaction, const std::string &tableName,
+    const std::vector<std::string> &keyPrefixes, int32_t &deletedRows)
+{
+    deletedRows = 0;
+    for (const auto &prefix : keyPrefixes) {
+        NativeRdb::AbsRdbPredicates predicates(tableName);
+        predicates.BeginsWith(INTENT_KEY, prefix);
+        int32_t ret = DeleteInTransaction(transaction, predicates, deletedRows);
+        if (ret != NativeRdb::E_OK) {
+            return ret;
+        }
+    }
+    return NativeRdb::E_OK;
+}
+
+// ON_CONFLICT_REPLACE makes an existing key overwritten instead of reported as a conflict.
+int32_t InsertInTransaction(NativeRdb::Transaction &transaction, const std::string &tableName,
+    const std::vector<NativeRdb::ValuesBucket> &valuesBuckets, int64_t &insertNum)
+{
+    if (valuesBuckets.empty()) {
+        return NativeRdb::E_OK;
+    }
+    auto [ret, count] = transaction.BatchInsert(tableName, valuesBuckets,
+        NativeRdb::ConflictResolution::ON_CONFLICT_REPLACE);
+    insertNum = count;
+    return ret;
+}
 } // namespace
 
 InsightIntentRdbDataMgr::InsightIntentRdbDataMgr()
@@ -119,14 +177,8 @@ bool InsightIntentRdbDataMgr::InsertData(const std::string &key, const std::stri
 
 bool InsightIntentRdbDataMgr::BatchInsertData(const std::vector<std::pair<std::string, std::string>> &keyValues)
 {
-    // A pure insert is the replace of nothing, so it shares the same transaction path.
-    return BatchReplaceData({}, keyValues);
-}
-
-bool InsightIntentRdbDataMgr::BatchUpdateData(const std::vector<std::pair<std::string, std::string>> &keyValues)
-{
     std::lock_guard<std::mutex> lock(rdbStoreMutex_);
-    TAG_LOGD(AAFwkTag::INTENT, "BatchUpdateData start");
+    TAG_LOGD(AAFwkTag::INTENT, "BatchInsertData start");
     if (!IsIntentRdbLoaded()) {
         TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
         return false;
@@ -135,30 +187,19 @@ bool InsightIntentRdbDataMgr::BatchUpdateData(const std::vector<std::pair<std::s
         return true;
     }
 
+    auto valuesBuckets = BuildValuesBuckets(keyValues);
     const std::string tableName = intentRdbConfig_.tableName;
-    int32_t updatedRows = 0;
-    int32_t ret = ExecuteInTransaction("batch update",
-        [&tableName, &keyValues, &updatedRows](NativeRdb::Transaction &transaction) {
-            for (const auto &[key, value] : keyValues) {
-                NativeRdb::AbsRdbPredicates predicates(tableName);
-                predicates.EqualTo(INTENT_KEY, key);
-                NativeRdb::ValuesBucket valuesBucket;
-                valuesBucket.PutString(INTENT_VALUE, value);
-                auto [updateRet, rows] = transaction.Update(valuesBucket, predicates);
-                if (updateRet != NativeRdb::E_OK) {
-                    TAG_LOGE(AAFwkTag::INTENT, "update failed ret:%{public}d", updateRet);
-                    return updateRet;
-                }
-                updatedRows += rows;
-            }
-            return NativeRdb::E_OK;
-        });
+    int64_t insertNum = 0;
+    int32_t ret = ExecuteInTransaction("batch insert", [&tableName, &valuesBuckets, &insertNum](
+        NativeRdb::Transaction &transaction) {
+        return InsertInTransaction(transaction, tableName, valuesBuckets, insertNum);
+    });
     if (ret != NativeRdb::E_OK) {
-        TAG_LOGE(AAFwkTag::INTENT, "BatchUpdate error ret:%{public}d", ret);
+        TAG_LOGE(AAFwkTag::INTENT, "BatchInsert error ret:%{public}d", ret);
         return false;
     }
-    TAG_LOGD(AAFwkTag::INTENT, "BatchUpdate success, size:%{public}zu updatedRows:%{public}d",
-        keyValues.size(), updatedRows);
+    TAG_LOGD(AAFwkTag::INTENT, "BatchInsert success, size:%{public}zu insertNum:%{public}d",
+        keyValues.size(), static_cast<int32_t>(insertNum));
     return true;
 }
 
@@ -176,22 +217,10 @@ bool InsightIntentRdbDataMgr::BatchDeleteData(const std::vector<std::string> &ke
 
     const std::string tableName = intentRdbConfig_.tableName;
     int32_t deletedRows = 0;
-    int32_t ret = ExecuteInTransaction("batch delete",
-        [&tableName, &keys, &deletedRows](NativeRdb::Transaction &transaction) {
-            for (size_t begin = 0; begin < keys.size(); begin += DELETE_CHUNK_SIZE) {
-                size_t end = std::min(begin + DELETE_CHUNK_SIZE, keys.size());
-                std::vector<std::string> chunkKeys(keys.begin() + begin, keys.begin() + end);
-                NativeRdb::AbsRdbPredicates predicates(tableName);
-                predicates.In(INTENT_KEY, chunkKeys);
-                auto [deleteRet, rows] = transaction.Delete(predicates);
-                if (deleteRet != NativeRdb::E_OK) {
-                    TAG_LOGE(AAFwkTag::INTENT, "delete failed ret:%{public}d", deleteRet);
-                    return deleteRet;
-                }
-                deletedRows += rows;
-            }
-            return NativeRdb::E_OK;
-        });
+    int32_t ret = ExecuteInTransaction("batch delete", [&tableName, &keys, &deletedRows](
+        NativeRdb::Transaction &transaction) {
+        return DeleteByKeysInTransaction(transaction, tableName, keys, deletedRows);
+    });
     if (ret != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "BatchDelete error ret:%{public}d", ret);
         return false;
@@ -217,17 +246,7 @@ bool InsightIntentRdbDataMgr::BatchDeleteDataBeginWithKey(const std::vector<std:
     int32_t deletedRows = 0;
     int32_t ret = ExecuteInTransaction("batch delete by prefix",
         [&tableName, &keyPrefixes, &deletedRows](NativeRdb::Transaction &transaction) {
-            for (const auto &prefix : keyPrefixes) {
-                NativeRdb::AbsRdbPredicates predicates(tableName);
-                predicates.BeginsWith(INTENT_KEY, prefix);
-                auto [deleteRet, rows] = transaction.Delete(predicates);
-                if (deleteRet != NativeRdb::E_OK) {
-                    TAG_LOGE(AAFwkTag::INTENT, "delete by prefix failed ret:%{public}d", deleteRet);
-                    return deleteRet;
-                }
-                deletedRows += rows;
-            }
-            return NativeRdb::E_OK;
+            return DeleteByPrefixesInTransaction(transaction, tableName, keyPrefixes, deletedRows);
         });
     if (ret != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "BatchDelete by prefix error ret:%{public}d", ret);
@@ -258,23 +277,12 @@ bool InsightIntentRdbDataMgr::BatchReplaceData(const std::vector<std::string> &d
     int32_t ret = ExecuteInTransaction("batch replace",
         [&tableName, &deleteKeyPrefixes, &valuesBuckets, &insertNum, &deletedRows](
             NativeRdb::Transaction &transaction) {
-            for (const auto &prefix : deleteKeyPrefixes) {
-                NativeRdb::AbsRdbPredicates predicates(tableName);
-                predicates.BeginsWith(INTENT_KEY, prefix);
-                auto [deleteRet, rows] = transaction.Delete(predicates);
-                if (deleteRet != NativeRdb::E_OK) {
-                    TAG_LOGE(AAFwkTag::INTENT, "delete by prefix failed ret:%{public}d", deleteRet);
-                    return deleteRet;
-                }
-                deletedRows += rows;
+            int32_t deleteRet = DeleteByPrefixesInTransaction(transaction, tableName, deleteKeyPrefixes,
+                deletedRows);
+            if (deleteRet != NativeRdb::E_OK) {
+                return deleteRet;
             }
-            if (valuesBuckets.empty()) {
-                return NativeRdb::E_OK;
-            }
-            auto [batchRet, count] = transaction.BatchInsert(tableName, valuesBuckets,
-                NativeRdb::ConflictResolution::ON_CONFLICT_REPLACE);
-            insertNum = count;
-            return batchRet;
+            return InsertInTransaction(transaction, tableName, valuesBuckets, insertNum);
         });
     if (ret != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "BatchReplace error ret:%{public}d", ret);
@@ -347,7 +355,28 @@ int32_t InsightIntentRdbDataMgr::RestoreRdb()
 
 bool InsightIntentRdbDataMgr::UpdateData(const std::string &key, const std::string &value)
 {
-    return BatchUpdateData({{key, value}});
+    TAG_LOGD(AAFwkTag::INTENT, "UpdateData start");
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
+        return false;
+    }
+
+    int32_t rowId = -1;
+    NativeRdb::AbsRdbPredicates absRdbPredicates(intentRdbConfig_.tableName);
+    absRdbPredicates.EqualTo(INTENT_KEY, key);
+    NativeRdb::ValuesBucket valuesBucket;
+    valuesBucket.PutString(INTENT_KEY, key);
+    valuesBucket.PutString(INTENT_VALUE, value);
+    int32_t ret = rdbStore_->Update(rowId, valuesBucket, absRdbPredicates);
+    if (ret == NativeRdb::E_SQLITE_CORRUPT && RestoreRdb() == NativeRdb::E_OK) {
+        ret = rdbStore_->Update(rowId, valuesBucket, absRdbPredicates);
+    }
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "Update data error ret:%{public}d", ret);
+        return false;
+    }
+    return true;
 }
 
 bool InsightIntentRdbDataMgr::DeleteDataBeginWithKey(const std::string &key)

@@ -72,13 +72,11 @@ class InsightIntentRdbDataMgr : public std::enable_shared_from_this<InsightInten
 public:
     bool InsertData(const std::string &key, const std::string &value);
 
-    bool BatchInsertData(const std::vector<std::pair<std::string, std::string>> &keyValues);
-
     /**
-     * Update the values of the given keys in a single transaction.
-     * Keys that do not exist are skipped, so the call succeeds even if some keys are absent.
+     * Insert the given key values in a single transaction.
+     * An existing key is overwritten, so the same key never produces two rows.
      */
-    bool BatchUpdateData(const std::vector<std::pair<std::string, std::string>> &keyValues);
+    bool BatchInsertData(const std::vector<std::pair<std::string, std::string>> &keyValues);
 
     /**
      * Delete the records of the given keys in a single transaction.

@@ -23,7 +23,6 @@ bool g_mockQueryDataRet = true;
 bool g_mockQueryDataBeginWithKeyRet = true;
 bool g_mockInsertDataRet = true;
 bool g_mockBatchInsertDataRet = true;
-bool g_mockBatchUpdateDataRet = true;
 bool g_mockBatchDeleteDataRet = true;
 bool g_mockBatchDeleteDataBeginWithKeyRet = true;
 bool g_mockBatchReplaceDataRet = true;
@@ -82,11 +81,6 @@ void MockBatchInsertData(bool mockRet)
 void MockBatchReplaceData(bool mockRet)
 {
     g_mockBatchReplaceDataRet = mockRet;
-}
-
-void MockBatchUpdateData(bool mockRet)
-{
-    g_mockBatchUpdateDataRet = mockRet;
 }
 
 void MockBatchDeleteData(bool mockRet)
@@ -163,14 +157,6 @@ bool InsightIntentRdbDataMgr::BatchReplaceData(const std::vector<std::string> &d
     const std::vector<std::pair<std::string, std::string>> &keyValues)
 {
     if (g_mockBatchReplaceDataRet) {
-        return true;
-    }
-    return false;
-}
-
-bool InsightIntentRdbDataMgr::BatchUpdateData(const std::vector<std::pair<std::string, std::string>> &keyValues)
-{
-    if (g_mockBatchUpdateDataRet) {
         return true;
     }
     return false;
