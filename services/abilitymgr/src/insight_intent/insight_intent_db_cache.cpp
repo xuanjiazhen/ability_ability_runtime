@@ -86,39 +86,6 @@ int32_t InsightIntentDbCache::InitInsightIntentCache(const int32_t userId)
 InsightIntentDbCache::~InsightIntentDbCache()
 {}
 
-int32_t InsightIntentDbCache::SaveInsightIntentTotalInfo(const InsightIntentSaveParam &saveParam,
-    ExtractInsightIntentProfileInfoVec profileInfos, std::vector<InsightIntentInfo> configInfos)
-{
-    {
-        std::lock_guard<std::mutex> lock(genericInfosMutex_);
-        if (saveParam.userId != userId_) {
-            TAG_LOGE(AAFwkTag::INTENT, "The userId %{public}d. is not the cache userId %{public}d.",
-                saveParam.userId, userId_);
-            return ERR_INVALID_VALUE;
-        }
-    }
-    int32_t res = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->DeleteStorageInsightIntentData(
-        IntentKey{saveParam.bundleName, saveParam.moduleName, "", saveParam.userId, saveParam.appIndex});
-    if (res != ERR_OK) {
-        TAG_LOGW(AAFwkTag::INTENT, "Save before delete key error");
-        return res;
-    }
-    res = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
-        saveParam, profileInfos, configInfos);
-    if (res != ERR_OK) {
-        return res;
-    }
-    {
-        std::lock_guard<std::mutex> lock(genericInfosMutex_);
-        std::string mapKey = saveParam.bundleName;
-        if (saveParam.appIndex != -1) {
-            mapKey += "/" + FormatAppIndex(saveParam.appIndex);
-        }
-        bundleVersionMap_[mapKey] = std::to_string(saveParam.versionCode);
-    }
-    return ERR_OK;
-}
-
 int32_t InsightIntentDbCache::SaveBatchInsightIntentTotalInfo(const std::vector<InsightIntentSaveParam> &saveParams)
 {
     if (saveParams.empty()) {
@@ -158,16 +125,8 @@ bool InsightIntentDbCache::DeleteInsightIntentTotalInfo(const IntentKey &key)
             key.bundleName.c_str(), key.moduleName.c_str(), key.userId);
         return false;
     }
-    {
-        std::lock_guard<std::mutex> lock(genericInfosMutex_);
-        std::string mapKey = key.bundleName;
-        if (key.appIndex != -1) {
-            mapKey += "/" + FormatAppIndex(key.appIndex);
-        }
-        if (key.moduleName.empty()) {
-            bundleVersionMap_.erase(mapKey);
-        }
-    }
+    // Delete the record first: a failed deletion must leave the memory cache untouched, otherwise the
+    // bundle is gone from the cache and the next delete would be skipped as "no intent cache".
     int32_t ret = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->DeleteStorageInsightIntentData(
         key);
     if (ret != ERR_OK) {
@@ -176,17 +135,24 @@ bool InsightIntentDbCache::DeleteInsightIntentTotalInfo(const IntentKey &key)
             key.bundleName.c_str(), key.moduleName.c_str(), key.userId, ret);
         return false;
     }
-    if (!key.moduleName.empty()) {
-        std::vector<ExtractInsightIntentInfo> remainingInfos;
-        GetInsightIntentInfoByName(IntentKey{key.bundleName, "", "", key.userId, key.appIndex}, remainingInfos);
-        if (remainingInfos.empty()) {
-            std::lock_guard<std::mutex> lock(genericInfosMutex_);
-            std::string mapKey = key.bundleName;
-            if (key.appIndex != -1) {
-                mapKey += "/" + FormatAppIndex(key.appIndex);
-            }
-            bundleVersionMap_.erase(mapKey);
+    if (key.moduleName.empty()) {
+        std::lock_guard<std::mutex> lock(genericInfosMutex_);
+        std::string mapKey = key.bundleName;
+        if (key.appIndex != -1) {
+            mapKey += "/" + FormatAppIndex(key.appIndex);
         }
+        bundleVersionMap_.erase(mapKey);
+        return true;
+    }
+    std::vector<ExtractInsightIntentInfo> remainingInfos;
+    GetInsightIntentInfoByName(IntentKey{key.bundleName, "", "", key.userId, key.appIndex}, remainingInfos);
+    if (remainingInfos.empty()) {
+        std::lock_guard<std::mutex> lock(genericInfosMutex_);
+        std::string mapKey = key.bundleName;
+        if (key.appIndex != -1) {
+            mapKey += "/" + FormatAppIndex(key.appIndex);
+        }
+        bundleVersionMap_.erase(mapKey);
     }
     return true;
 }

@@ -45,8 +45,6 @@ public:
         const int32_t userId, std::vector<InsightIntentInfo> &configInfos);
     void GetInsightIntentInfo(IntentKey key, ExtractInsightIntentInfo &infos);
     void GetConfigInsightIntentInfo(IntentKey key, InsightIntentInfo &info);
-    int32_t SaveInsightIntentTotalInfo(const InsightIntentSaveParam &saveParam,
-        ExtractInsightIntentProfileInfoVec profileInfos, std::vector<InsightIntentInfo> configInfos);
     int32_t SaveBatchInsightIntentTotalInfo(const std::vector<InsightIntentSaveParam> &saveParams);
     bool DeleteInsightIntentTotalInfo(const IntentKey &key);
     int32_t DeleteInsightIntentByUserId(const int32_t userId);

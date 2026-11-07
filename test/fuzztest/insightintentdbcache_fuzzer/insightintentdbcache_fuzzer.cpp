@@ -57,8 +57,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     AbilityFuzzUtil::GetRandomExtractInsightIntentGenericInfo(fdp, genericInfo);
     AbilityFuzzUtil::GetRandomExtractInsightIntentInfo(fdp, intentInfo);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(userId);
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
-        InsightIntentSaveParam{bundleName, moduleName, versionCode, userId}, profileInfos, configIntentInfos);
+    InsightIntentSaveParam saveParam{bundleName, moduleName, versionCode, userId, profileInfos, configIntentInfos};
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->SaveBatchInsightIntentTotalInfo({saveParam});
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
         IntentKey{bundleName, moduleName, "", userId});
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->DeleteInsightIntentByUserId(userId);

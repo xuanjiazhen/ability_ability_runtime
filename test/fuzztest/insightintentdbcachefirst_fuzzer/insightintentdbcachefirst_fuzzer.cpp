@@ -73,10 +73,10 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     insightIntentDbCache->InitInsightIntentCache(userId);
     insightIntentDbCache->InitInsightIntentCache(userId2);
 
-    insightIntentDbCache->SaveInsightIntentTotalInfo(
-        InsightIntentSaveParam{bundleName, moduleName, versionCode, userId2}, profileInfos, configIntentInfos);
-    insightIntentDbCache->SaveInsightIntentTotalInfo(
-        InsightIntentSaveParam{bundleName, moduleName, versionCode, userId}, profileInfos, configIntentInfos);
+    InsightIntentSaveParam saveParam{bundleName, moduleName, versionCode, userId2, profileInfos, configIntentInfos};
+    insightIntentDbCache->SaveBatchInsightIntentTotalInfo({saveParam});
+    saveParam.userId = userId;
+    insightIntentDbCache->SaveBatchInsightIntentTotalInfo({saveParam});
 
     insightIntentDbCache->DeleteInsightIntentTotalInfo(IntentKey{bundleName, moduleName, "", userId2});
     insightIntentDbCache->DeleteInsightIntentTotalInfo(IntentKey{bundleName, emptyModuleName, "", userId2});
