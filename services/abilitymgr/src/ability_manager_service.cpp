@@ -5441,7 +5441,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(abilityRequest.want, parentToken);
     }
 
-    result = JudgeAbilityVisibleControl(abilityInfo);
+    result = JudgeAbilityVisibleControl(extensionSessionInfo->want, abilityInfo);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "judgeAbilityVisibleControl error");
         return result;
@@ -11269,6 +11269,15 @@ int AbilityManagerService::JudgeAbilityVisibleControl(const AppExecFwk::AbilityI
     return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
 }
 
+int AbilityManagerService::JudgeAbilityVisibleControl(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    if (!abilityInfo.visible && IsInsightIntentCall(want, abilityInfo.bundleName)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "insight intent call, skip ability visible control");
+        return ERR_OK;
+    }
+    return JudgeAbilityVisibleControl(abilityInfo);
+}
+
 int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback, bool isAppRecovery)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "startUser in service:%{public}d, displayId:%{public}" PRIu64"", userId, displayId);
@@ -13684,6 +13693,15 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
         static_cast<uint32_t>(abilityRequest.specifiedFullTokenId) :
         static_cast<uint32_t>(abilityRequest.specifyTokenId);
     verificationInfo.skillCallerTokenId = abilityRequest.skillCallerTokenId;
+    // Insight intent call: the target extension is declared exported=false by its owner, which is
+    // expected for the intent path. Only the ability visibility check is waived here, consistent
+    // with the DMS same-app handling above. The continuous task check, the UI_SERVICE background
+    // validation and the background start permission check inside PermissionVerification still
+    // apply to the intent caller.
+    if (IsInsightIntentCall(abilityRequest.want, abilityRequest.abilityInfo.bundleName)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "insight intent call, skip ability visible check");
+        verificationInfo.visible = true;
+    }
     if (isParamStartAbilityEnable_) {
         bool stopContinuousTaskFlag = ShouldPreventStartAbility(abilityRequest);
         if (stopContinuousTaskFlag) {
@@ -14081,6 +14099,14 @@ int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abil
     verificationInfo.visible = abilityRequest.abilityInfo.visible;
     verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
     verificationInfo.specifyTokenId = specifyTokenId;
+    // Insight intent call: the target ability is declared exported=false by its owner, which is
+    // expected for the intent path. Only the ability visibility check is waived here. The
+    // background start permission check inside PermissionVerification still applies to the intent
+    // caller, the same way CheckStartByCallPermission handles skill calls with a real caller token.
+    if (IsInsightIntentCall(abilityRequest.want, abilityRequest.abilityInfo.bundleName)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "insight intent call, skip ability visible check");
+        verificationInfo.visible = true;
+    }
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     verificationInfo.isCliToolToken = Security::AccessToken::AccessTokenKit::IsCliToolToken(tokenId);
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
@@ -16261,6 +16287,13 @@ int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &w
     auto missionListMgr = GetMissionListManagerByUserId(oriValidUserId);
     if (IsAbilityStarted(abilityRequest, targetRecord, oriValidUserId)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability has already started");
+        // The already-started branch delivers OnExecuteIntent without running the start ability
+        // permission and exported checks, so the insight intent record itself has to be validated
+        // here: the want must carry a record owned by the current caller.
+        if (!IsInsightIntentCall(abilityRequest.want, abilityRequest.abilityInfo.bundleName)) {
+            TAG_LOGE(AAFwkTag::INTENT, "insight intent check failed for already started ability");
+            return ERR_INVALID_VALUE;
+        }
         UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
         GrantFileEntityUriPermission(abilityRequest);
         result = OnExecuteIntent(abilityRequest, targetRecord);
@@ -18451,13 +18484,38 @@ bool AbilityManagerService::IsInsightIntentCall(const Want &want, const std::str
         return false;
     }
     std::string bundleName;
-    if (executeManager->GetBundleName(intentId, bundleName) != ERR_OK) {
+    uint32_t recordCallerUid = 0;
+    uint32_t recordCallerTokenId = 0;
+    bool isDistributed = false;
+    if (executeManager->GetRecordCallerInfo(intentId, bundleName, recordCallerUid, recordCallerTokenId,
+        isDistributed) != ERR_OK) {
         TAG_LOGW(AAFwkTag::INTENT, "insight intent record not found, intentId: %{public}" PRIu64, intentId);
         return false;
     }
     if (bundleName != targetBundleName) {
         TAG_LOGW(AAFwkTag::INTENT, "insight intent id bundle mismatch, target:%{public}s", targetBundleName.c_str());
         return false;
+    }
+    // The caller requesting the bypass must be the one that created the execution record. Intent
+    // ids are sequential and therefore enumerable, so without this identity check any caller able
+    // to forge a want could start the exported=false components of another application.
+    // Distributed intents are exempt: the record identity belongs to a remote device and the
+    // distributed entry already enforces PERMISSION_EXECUTE_DISTRIBUTED_INTENT locally.
+    if (!isDistributed) {
+        auto callingTokenId = static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID());
+        if (recordCallerTokenId == 0) {
+            TAG_LOGW(AAFwkTag::INTENT, "insight intent record without caller identity, intentId: %{public}" PRIu64,
+                intentId);
+            return false;
+        }
+        if (callingTokenId != recordCallerTokenId) {
+            TAG_LOGW(AAFwkTag::INTENT, "insight intent caller token mismatch, intentId: %{public}" PRIu64, intentId);
+            return false;
+        }
+        if (recordCallerUid != 0 && IPCSkeleton::GetCallingUid() != recordCallerUid) {
+            TAG_LOGW(AAFwkTag::INTENT, "insight intent caller uid mismatch, intentId: %{public}" PRIu64, intentId);
+            return false;
+        }
     }
     return true;
 }
