@@ -44,6 +44,14 @@ struct SkillExecuteRecord {
     pid_t targetPid = 0;
     SkillExecuteState state = SkillExecuteState::UNKNOWN;
     sptr<ISkillExecuteCallback> callback = nullptr;
+    // Attribution contract (mirrors InsightIntentExecuteRecord): taskId is the task key
+    // (empty = not attributed); callerUid is the ownership anchor derived from the
+    // IPC-stamped callerTokenId; attributionId is the kernel-assigned unregister handle
+    // (0 = not registered). Registered once at launch completion; every terminal path
+    // funnels into RemoveRecord for the lock-external unregister.
+    std::string taskId = "";
+    int32_t callerUid = -1;
+    int64_t attributionId = 0;
 };
 
 } // namespace AAFwk

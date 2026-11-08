@@ -296,8 +296,8 @@ int32_t TaskManagerService::RegisterManagedProcess(const std::string &taskId,
 int32_t TaskManagerService::RegisterManagedProcessForCaller(const std::string &taskId,
     const AttributionRecord &attribution, int32_t callerUid, AttributionId &attributionId)
 {
-    // CLI channel: no pid-liveness check (uid-gated reporter; pid is climgr's fork child).
-    // Ownership gate then the shared kernel; the two-lock gap is benign (creatorUid immutable).
+    // Trusted channel: no pid-liveness check; ownership gate then the shared kernel
+    // (the two-lock gap is benign — creatorUid is immutable).
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     int32_t toolType = static_cast<int32_t>(attribution.tool);

@@ -248,42 +248,6 @@ int32_t AppMgrService::UnregisterManagedProcess(const std::string &taskId, int64
         callerUid);
 }
 
-int32_t AppMgrService::RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
-    int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId)
-{
-    resolvedPid = -1;
-    attributionId = 0;
-    if (IPCSkeleton::GetCallingUid() != AIMGR_SERVICE_UID) {
-        TAG_LOGW(AAFwkTag::APPMGR, "caller is not climgr process, rejected, calling uid: %{public}d",
-            IPCSkeleton::GetCallingUid());
-        return AAFwk::ERR_NOT_SYSTEM_APP;
-    }
-    if (!IsTaskIdSanitized(taskId) || bundleName.empty()) {
-        TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, bundle size: %{public}zu",
-            taskId.size(), bundleName.size());
-        return AAFwk::INVALID_PARAMETERS_ERR;
-    }
-    if (appMgrServiceInner_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "inner service is not ready");
-        return AAFwk::INNER_ERR;
-    }
-    int32_t taskUserId = callerUid >= 0 ? callerUid / BASE_USER_RANGE : -1;
-    pid_t targetPid = appMgrServiceInner_->ResolveMainProcessPidByBundleName(bundleName, taskUserId);
-    if (targetPid <= 0) {
-        TAG_LOGW(AAFwkTag::APPMGR, "main process not found, bundle: %{public}s", bundleName.c_str());
-        return AAFwk::INNER_ERR;
-    }
-    AttributionRecord attribution;
-    attribution.pid = targetPid;
-    attribution.tool = AttributionTool::CLI;
-    int32_t result = TaskManagerService::GetInstance().RegisterManagedProcessForCaller(taskId, attribution,
-        callerUid, attributionId);
-    if (result == ERR_OK) {
-        resolvedPid = static_cast<int32_t>(targetPid);
-    }
-    return result;
-}
-
 AppMgrServiceState AppMgrService::QueryServiceState()
 {
     if (appMgrServiceInner_) {

@@ -37,6 +37,9 @@ struct SkillExecuteRequest {
     std::string functionName;
     std::shared_ptr<WantParams> skillArgs;
     std::string toolCallId;
+    // Task attribution key stamped by climgr; AMS re-validates and keeps it server-side
+    // (never written into the skill Want).
+    std::string taskId;
 };
 
 // Want parameter keys for skill execution
