@@ -182,21 +182,22 @@ public:
      * system-stamped reserved params; validation happens on the appmgr side.
      *
      * @param taskId Attribution key of the task.
-     * @param callerUid Uid of the start caller (system stamped).
-     * @param callerPid Pid of the start caller (system stamped).
+     * @param callerUid Uid of the caller (system stamped).
+     * @param callerPid Pid of the caller (system stamped).
      * @param targetPid Pid of the target process.
+     * @param tool Reporting channel: ABILITY for startAbility, INSIGHT for an insight intent.
      * @param attributionId Server-assigned handle of the created attribution.
      * @return Raw result code from the service; attribution failure never blocks startup.
      */
-    virtual int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
-        int32_t targetPid, int64_t &attributionId);
+    virtual int32_t AttributeProcessForTask(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+        int32_t targetPid, AttributionTool tool, int64_t &attributionId);
 
     /**
      * Remove an attribution by its handle, called when the attributed ability
      * dies unexpectedly.
      *
      * @param taskId Attribution key of the task.
-     * @param attributionId Handle returned by AttributeProcessForAbility.
+     * @param attributionId Handle returned by AttributeProcessForTask.
      * @return Raw result code from the service.
      */
     virtual int32_t UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId);

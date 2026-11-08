@@ -149,26 +149,29 @@ public:
     void NotifyTaskFinished(const std::string &taskId, TaskFinishReason reason);
 
     /**
-     * @brief Attributes a process started through the startAbility-family channel into the
-     *        task: liveness check plus creator-only ownership check (the caller uid must be
-     *        the creator uid; a managed member carrying the key is not a trusted reporter),
-     *        then registers with AttributionTool::ABILITY and restarts the inactivity
-     *        timeout window. The caller identity is the IPC-proven one captured by the AMS
-     *        convergence point (never Want-supplied by the caller). A spoofed or replayed
-     *        taskId is not trusted: no attribution happens and a security log is recorded,
-     *        while the startup itself proceeds unaffected.
+     * @brief Attributes a process that runs on behalf of a task into it: liveness check plus
+     *        creator-only ownership check (the caller uid must be the creator uid; a managed
+     *        member carrying the key is not a trusted reporter), then registers with the
+     *        given tool and restarts the inactivity timeout window. The startAbility report
+     *        and the insight intent execution report share this kernel and differ only in the
+     *        tool. The caller identity is the IPC-proven one captured by the AMS convergence
+     *        point (never Want-supplied by the caller). A spoofed or replayed taskId is not
+     *        trusted: no attribution happens and a security log is recorded, while the
+     *        startup or the intent execution itself proceeds unaffected.
      * @param taskId Indicates the attribution key carried by the reserved Want parameter.
-     * @param callerUid Indicates the IPC-proven uid of the startAbility caller.
-     * @param callerPid Indicates the IPC-proven pid of the startAbility caller.
-     * @param targetPid Indicates the pid of the process hosting the started ability.
+     * @param callerUid Indicates the IPC-proven uid of the caller.
+     * @param callerPid Indicates the IPC-proven pid of the caller.
+     * @param targetPid Indicates the pid of the attributed process.
+     * @param tool Indicates the reporting channel, stored with the attribution so the
+     *        sources stay distinguishable.
      * @param attributionId Indicates the server-assigned handle of the created attribution,
      *        handed back to the caller for later unregistration.
      * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters or
      *         when the per-task attribution quota is exhausted; ERR_TASK_NOT_FOUND if the
      *         task does not exist or the ownership check fails.
      */
-    int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, pid_t callerPid,
-        pid_t targetPid, AttributionId &attributionId);
+    int32_t AttributeProcessForTask(const std::string &taskId, int32_t callerUid, pid_t callerPid,
+        pid_t targetPid, AttributionTool tool, AttributionId &attributionId);
 
     /**
      * @brief Dumps the snapshot of active tasks, taken under the mutex for consistency

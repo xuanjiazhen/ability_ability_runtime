@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_APP_MGR_CONSTANTS_H
 #define OHOS_ABILITY_RUNTIME_APP_MGR_CONSTANTS_H
 
+#include <cstdint>
+
 namespace OHOS {
 namespace AppExecFwk {
 namespace Constants {
@@ -168,6 +170,17 @@ enum class SupportProcessCacheState {
     UNSPECIFIED = 0,
     SUPPORT,
     NOT_SUPPORT
+};
+
+// Channel that reported a process as a member of an agent task. The value is carried on the
+// IPC face so several reporting channels share one attribution entry instead of one entry per
+// channel; it is stored with the attribution and only used to tell the sources apart.
+enum class AttributionTool : int32_t {
+    UNKNOWN = 0,
+    INSIGHT = 1,
+    CLI = 2,
+    A2A = 3,
+    ABILITY = 4,
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

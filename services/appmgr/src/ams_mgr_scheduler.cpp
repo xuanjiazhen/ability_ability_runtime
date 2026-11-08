@@ -258,8 +258,8 @@ int32_t AmsMgrScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bo
     return amsMgrServiceInner_->SetGameSAPrelaunch(token, isGameSAPrelaunch);
 }
 
-int32_t AmsMgrScheduler::AttributeProcessForAbility(const std::string &taskId, int32_t callerUid,
-    int32_t callerPid, int32_t targetPid, int64_t &attributionId)
+int32_t AmsMgrScheduler::AttributeProcessForTask(const std::string &taskId, int32_t callerUid,
+    int32_t callerPid, int32_t targetPid, AttributionTool tool, int64_t &attributionId)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrScheduler is not ready");
@@ -269,8 +269,10 @@ int32_t AmsMgrScheduler::AttributeProcessForAbility(const std::string &taskId, i
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation call, uid: %{public}d", IPCSkeleton::GetCallingUid());
         return ERR_PERMISSION_DENIED;
     }
-    return TaskManagerService::GetInstance().AttributeProcessForAbility(
-        taskId, callerUid, callerPid, targetPid, attributionId);
+    // One entry for both reporting channels: the tool travels with the request, so the
+    // startAbility report and the insight intent report share the kernel below.
+    return TaskManagerService::GetInstance().AttributeProcessForTask(
+        taskId, callerUid, callerPid, targetPid, tool, attributionId);
 }
 
 int32_t AmsMgrScheduler::UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId)

@@ -1362,26 +1362,26 @@ HWTEST_F(AppSchedulerTest, AppScheduler_SetGameSAPrelaunch_005, TestSize.Level1)
 }
 
 /**
- * @tc.name: AppScheduler_AttributeProcessForAbility_001
- * @tc.desc: AttributeProcessForAbility with null appMgrClient.
+ * @tc.name: AppScheduler_AttributeProcessForTask_001
+ * @tc.desc: AttributeProcessForTask with null appMgrClient.
  * @tc.type: FUNC
  */
-HWTEST_F(AppSchedulerTest, AppScheduler_AttributeProcessForAbility_001, TestSize.Level1)
+HWTEST_F(AppSchedulerTest, AppScheduler_AttributeProcessForTask_001, TestSize.Level1)
 {
     DelayedSingleton<AppScheduler>::GetInstance()->appMgrClient_ = nullptr;
     int64_t attributionId = 0;
-    auto result = DelayedSingleton<AppScheduler>::GetInstance()->AttributeProcessForAbility(
-        "task-scheduler-ut", 100, 200, 300, attributionId);
+    auto result = DelayedSingleton<AppScheduler>::GetInstance()->AttributeProcessForTask(
+        "task-scheduler-ut", 100, 200, 300, AppExecFwk::AttributionTool::ABILITY, attributionId);
     EXPECT_EQ(result, INNER_ERR);
 }
 
 /**
- * @tc.name: AppScheduler_AttributeProcessForAbility_002
- * @tc.desc: AttributeProcessForAbility forwards to the client and returns its result
+ * @tc.name: AppScheduler_AttributeProcessForTask_002
+ * @tc.desc: AttributeProcessForTask forwards to the client and returns its result
  *           with the server-assigned handle written back.
  * @tc.type: FUNC
  */
-HWTEST_F(AppSchedulerTest, AppScheduler_AttributeProcessForAbility_002, TestSize.Level1)
+HWTEST_F(AppSchedulerTest, AppScheduler_AttributeProcessForTask_002, TestSize.Level1)
 {
     auto appScheduler = DelayedSingleton<AppScheduler>::GetInstance();
     clientMock_ = std::make_unique<AppMgrClientMock>();
@@ -1390,21 +1390,23 @@ HWTEST_F(AppSchedulerTest, AppScheduler_AttributeProcessForAbility_002, TestSize
 
     const int64_t serverHandle = 42;
     auto mockClient = static_cast<AppMgrClientMock*>(appScheduler->appMgrClient_.get());
-    EXPECT_CALL(*mockClient, AttributeProcessForAbility("task-scheduler-ut", 100, 200, 300, _)).Times(1)
-        .WillOnce(DoAll(SetArgReferee<4>(serverHandle), Return(ERR_OK)));
+    EXPECT_CALL(*mockClient, AttributeProcessForTask("task-scheduler-ut", 100, 200, 300,
+        AppExecFwk::AttributionTool::ABILITY, _)).Times(1)
+        .WillOnce(DoAll(SetArgReferee<5>(serverHandle), Return(ERR_OK)));
 
     int64_t attributionId = 0;
-    auto result = appScheduler->AttributeProcessForAbility("task-scheduler-ut", 100, 200, 300, attributionId);
+    auto result = appScheduler->AttributeProcessForTask("task-scheduler-ut", 100, 200, 300,
+        AppExecFwk::AttributionTool::ABILITY, attributionId);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(attributionId, serverHandle);
 }
 
 /**
- * @tc.name: AppScheduler_AttributeProcessForAbility_003
- * @tc.desc: AttributeProcessForAbility propagates a client failure (dropped path).
+ * @tc.name: AppScheduler_AttributeProcessForTask_003
+ * @tc.desc: AttributeProcessForTask propagates a client failure (dropped path).
  * @tc.type: FUNC
  */
-HWTEST_F(AppSchedulerTest, AppScheduler_AttributeProcessForAbility_003, TestSize.Level1)
+HWTEST_F(AppSchedulerTest, AppScheduler_AttributeProcessForTask_003, TestSize.Level1)
 {
     auto appScheduler = DelayedSingleton<AppScheduler>::GetInstance();
     clientMock_ = std::make_unique<AppMgrClientMock>();
@@ -1412,11 +1414,12 @@ HWTEST_F(AppSchedulerTest, AppScheduler_AttributeProcessForAbility_003, TestSize
     EXPECT_NE(appScheduler->appMgrClient_, nullptr);
 
     auto mockClient = static_cast<AppMgrClientMock*>(appScheduler->appMgrClient_.get());
-    EXPECT_CALL(*mockClient, AttributeProcessForAbility(_, _, _, _, _)).Times(1)
+    EXPECT_CALL(*mockClient, AttributeProcessForTask(_, _, _, _, AppExecFwk::AttributionTool::ABILITY, _)).Times(1)
         .WillOnce(Return(AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED));
 
     int64_t attributionId = 0;
-    auto result = appScheduler->AttributeProcessForAbility("task-scheduler-ut", 100, 200, 300, attributionId);
+    auto result = appScheduler->AttributeProcessForTask("task-scheduler-ut", 100, 200, 300,
+        AppExecFwk::AttributionTool::ABILITY, attributionId);
     EXPECT_EQ(result, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
     EXPECT_EQ(attributionId, 0);
 }

@@ -703,13 +703,13 @@ HWTEST_F(AmsMgrStubTest, HandleSetGameSAPrelaunch_004, TestSize.Level1)
 }
 
 /**
- * @tc.name: HandleAttributeProcessForAbility_001
- * @tc.desc: HandleAttributeProcessForAbility dispatches params and writes back the handle.
+ * @tc.name: HandleAttributeProcessForTask_001
+ * @tc.desc: HandleAttributeProcessForTask dispatches params and writes back the handle.
  * @tc.type: FUNC
  */
-HWTEST_F(AmsMgrStubTest, HandleAttributeProcessForAbility_001, TestSize.Level1)
+HWTEST_F(AmsMgrStubTest, HandleAttributeProcessForTask_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "HandleAttributeProcessForAbility_001 start.");
+    TAG_LOGI(AAFwkTag::TEST, "HandleAttributeProcessForTask_001 start.");
     EXPECT_NE(mockAmsMgrScheduler_, nullptr);
     MessageParcel data;
     MessageParcel reply;
@@ -721,17 +721,18 @@ HWTEST_F(AmsMgrStubTest, HandleAttributeProcessForAbility_001, TestSize.Level1)
     data.WriteInt32(100);  // callerUid
     data.WriteInt32(200);  // callerPid
     data.WriteInt32(300);  // targetPid
+    data.WriteInt32(static_cast<int32_t>(AttributionTool::ABILITY));  // tool
 
     const int64_t serverHandle = 42;
-    EXPECT_CALL(*mockAmsMgrScheduler_, AttributeProcessForAbility(taskId, 100, 200, 300, _))
+    EXPECT_CALL(*mockAmsMgrScheduler_, AttributeProcessForTask(taskId, 100, 200, 300, AttributionTool::ABILITY, _))
         .Times(1)
-        .WillOnce(DoAll(SetArgReferee<4>(serverHandle), Return(NO_ERROR)));
+        .WillOnce(DoAll(SetArgReferee<5>(serverHandle), Return(NO_ERROR)));
     auto result = mockAmsMgrScheduler_->OnRemoteRequest(
-        static_cast<uint32_t>(IAmsMgr::Message::ATTRIBUTE_PROCESS_FOR_ABILITY), data, reply, option);
+        static_cast<uint32_t>(IAmsMgr::Message::ATTRIBUTE_PROCESS_FOR_TASK), data, reply, option);
     EXPECT_EQ(result, NO_ERROR);
     EXPECT_EQ(reply.ReadInt32(), NO_ERROR);
     EXPECT_EQ(reply.ReadInt64(), serverHandle);
-    TAG_LOGI(AAFwkTag::TEST, "HandleAttributeProcessForAbility_001 end.");
+    TAG_LOGI(AAFwkTag::TEST, "HandleAttributeProcessForTask_001 end.");
 }
 
 /**

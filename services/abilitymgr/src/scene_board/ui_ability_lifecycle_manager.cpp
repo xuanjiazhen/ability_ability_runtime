@@ -107,8 +107,9 @@ void ReportTaskAttributionForContext(const std::string &taskId, int32_t callerUi
         return;
     }
     int64_t attributionId = 0;
-    int32_t result = DelayedSingleton<AppScheduler>::GetInstance()->AttributeProcessForAbility(
-        taskId, callerUid, callerPid, uiAbilityRecord->GetPid(), attributionId);
+    int32_t result = DelayedSingleton<AppScheduler>::GetInstance()->AttributeProcessForTask(
+        taskId, callerUid, callerPid, uiAbilityRecord->GetPid(), AppExecFwk::AttributionTool::ABILITY,
+        attributionId);
     if (result != ERR_OK) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "task attribution dropped, taskId length: %{public}zu, "
             "result: %{public}d", taskId.size(), result);

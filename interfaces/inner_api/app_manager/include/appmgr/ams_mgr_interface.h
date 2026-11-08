@@ -20,6 +20,7 @@
 #include "ability_debug_response_interface.h"
 #include "ability_info.h"
 #include "app_debug_listener_interface.h"
+#include "app_mgr_constants.h"
 #include "app_record_id.h"
 #include "application_info.h"
 #include "configuration.h"
@@ -119,26 +120,31 @@ public:
     virtual int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch) = 0;
 
     /**
-     * AttributeProcessForAbility, report task attribution for a start-ability call (the cold
-     * case reports at attach time through the same method); caller identity is system-stamped.
+     * AttributeProcessForTask, report task attribution for a call that starts or runs an
+     * agent task; the start-ability report (cold case reports at attach time) and the
+     * insight intent execution report share this entry and differ only in the tool, so
+     * both reach one attribution kernel instead of one entry per reporting channel.
+     * Caller identity is system stamped.
      *
      * @param taskId, the attribution key of the task.
-     * @param callerUid, the uid of the start caller (system stamped).
-     * @param callerPid, the pid of the start caller (system stamped).
+     * @param callerUid, the uid of the caller (system stamped).
+     * @param callerPid, the pid of the caller (system stamped).
      * @param targetPid, the pid of the target process.
+     * @param tool, the reporting channel (AttributionTool::ABILITY for startAbility,
+     *        AttributionTool::INSIGHT for an insight intent execution).
      * @param attributionId, the server-assigned handle of the created attribution, handed
      *        back to the caller for later unregistration.
      * @return Returns ERR_OK on success, others on failure (attribution never blocks startup).
      */
-    virtual int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
-        int32_t targetPid, int64_t &attributionId) = 0;
+    virtual int32_t AttributeProcessForTask(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+        int32_t targetPid, AttributionTool tool, int64_t &attributionId) = 0;
 
     /**
      * UnregisterTaskAttribution, remove an attribution by its handle; called when the
      * attributed ability dies unexpectedly so the attribution does not outlive the process.
      *
      * @param taskId, the attribution key of the task.
-     * @param attributionId, the handle returned by AttributeProcessForAbility.
+     * @param attributionId, the handle returned by AttributeProcessForTask.
      * @return Returns ERR_OK on success, others on failure (idempotent on missing record).
      */
     virtual int32_t UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId) = 0;
@@ -679,7 +685,7 @@ public:
         NOTIFY_APP_MGR_RECORD_EXIT_REASON_COMPABILITY,
         KILL_APPLICATION_WITH_USER_ID,
         KILL_PROCESS_WITH_ACCOUNT_SAFELY,
-        ATTRIBUTE_PROCESS_FOR_ABILITY,
+        ATTRIBUTE_PROCESS_FOR_TASK,
         UNREGISTER_TASK_ATTRIBUTION,
         // Add enumeration values above
         END

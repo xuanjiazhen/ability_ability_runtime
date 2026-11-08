@@ -255,8 +255,8 @@ AppMgrResultCode AppMgrClient::KillProcessByAbilityToken(const sptr<IRemoteObjec
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
-int32_t AppMgrClient::AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
-    int32_t targetPid, int64_t &attributionId)
+int32_t AppMgrClient::AttributeProcessForTask(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+    int32_t targetPid, AttributionTool tool, int64_t &attributionId)
 {
     if (mgrHolder_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
@@ -272,7 +272,7 @@ int32_t AppMgrClient::AttributeProcessForAbility(const std::string &taskId, int3
         TAG_LOGE(AAFwkTag::APPMGR, "AmsMgr service is nullptr.");
         return ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService->AttributeProcessForAbility(taskId, callerUid, callerPid, targetPid, attributionId);
+    return amsService->AttributeProcessForTask(taskId, callerUid, callerPid, targetPid, tool, attributionId);
 }
 
 int32_t AppMgrClient::UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId)

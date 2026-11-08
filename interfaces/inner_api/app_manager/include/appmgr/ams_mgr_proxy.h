@@ -106,25 +106,26 @@ public:
     virtual int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch) override;
 
     /**
-     * AttributeProcessForAbility, report task attribution for a warm start-ability call
-     * through proxy object.
+     * AttributeProcessForTask, report task attribution for a start-ability call or an
+     * insight intent execution through proxy object.
      *
      * @param taskId, the attribution key of the task.
-     * @param callerUid, the uid of the start caller (system stamped).
-     * @param callerPid, the pid of the start caller (system stamped).
+     * @param callerUid, the uid of the caller (system stamped).
+     * @param callerPid, the pid of the caller (system stamped).
      * @param targetPid, the pid of the target process.
+     * @param tool, the reporting channel (ABILITY for startAbility, INSIGHT for intent).
      * @param attributionId, the server-assigned handle of the created attribution.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
-        int32_t targetPid, int64_t &attributionId) override;
+    virtual int32_t AttributeProcessForTask(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+        int32_t targetPid, AttributionTool tool, int64_t &attributionId) override;
 
     /**
      * UnregisterTaskAttribution, remove a warm-start attribution by its handle through
      * proxy object.
      *
      * @param taskId, the attribution key of the task.
-     * @param attributionId, the handle returned by AttributeProcessForAbility.
+     * @param attributionId, the handle returned by AttributeProcessForTask.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId) override;

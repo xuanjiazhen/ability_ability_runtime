@@ -20,16 +20,10 @@
 #include <string>
 #include <sys/types.h>
 
+#include "app_mgr_constants.h"
+
 namespace OHOS {
 namespace AppExecFwk {
-
-enum class AttributionTool : int32_t {
-    UNKNOWN = 0,
-    INSIGHT = 1,
-    CLI = 2,
-    A2A = 3,
-    ABILITY = 4,
-};
 
 // Server-assigned monotonic id of a managed attribution; handed out to the registering
 // tool as the handle for later operations (e.g. unregister). 0 is the invalid sentinel.

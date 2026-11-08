@@ -139,12 +139,13 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             break;
         }
         case 12: {
-            // ATTRIBUTE_PROCESS_FOR_ABILITY: taskId, callerUid, callerPid, targetPid
-            actualCode = static_cast<uint32_t>(IAmsMgr::Message::ATTRIBUTE_PROCESS_FOR_ABILITY);
+            // ATTRIBUTE_PROCESS_FOR_TASK: taskId, callerUid, callerPid, targetPid, tool
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::ATTRIBUTE_PROCESS_FOR_TASK);
             parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildInvalidEnum(fdp, 5));
             break;
         }
         case 13: {

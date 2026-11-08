@@ -179,15 +179,15 @@ int32_t AppScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool 
     return appMgrClient_->SetGameSAPrelaunch(token, isGameSAPrelaunch);
 }
 
-int32_t AppScheduler::AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
-    int32_t targetPid, int64_t &attributionId)
+int32_t AppScheduler::AttributeProcessForTask(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+    int32_t targetPid, AppExecFwk::AttributionTool tool, int64_t &attributionId)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "AttributeProcessForAbility");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AttributeProcessForTask");
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     // Reset the binder identity to this process so the appmgr side foundation check
     // passes regardless of the outer caller; also skips parcel roundtrip in-process.
     return IN_PROCESS_CALL(
-        appMgrClient_->AttributeProcessForAbility(taskId, callerUid, callerPid, targetPid, attributionId));
+        appMgrClient_->AttributeProcessForTask(taskId, callerUid, callerPid, targetPid, tool, attributionId));
 }
 
 int32_t AppScheduler::UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId)

@@ -54,7 +54,10 @@ struct InsightIntentExecuteRecord {
     std::string deviceId;
     uint64_t requestCode = 0;
     std::string taskId;
-    // Attribution id allocated by the in-process TaskManagerService (0 means not registered).
+    // Caller identity stamped at the abilitymgr entry, replayed on the attribution report.
+    int32_t callerUid = 0;
+    int32_t callerPid = 0;
+    // Attribution handle assigned by appms (0 means not registered).
     int64_t attributionId = 0;
 };
 
@@ -92,6 +95,10 @@ struct ExecuteParam {
     std::string srcDeviceId;
     uint64_t requestCode = 0;
     uint64_t specifiedFullTokenId = 0;
+    // Caller identity stamped at the abilitymgr IPC entry (never taken from the caller's
+    // parcel), carried to the attribution report so appms can run its creator check.
+    int32_t callerUid = 0;
+    int32_t callerPid = 0;
 };
 
 class InsightIntentExecuteManager : public std::enable_shared_from_this<InsightIntentExecuteManager> {
@@ -206,9 +213,17 @@ private:
 
     void SendIntentReport(EventInfo &eventInfo, int32_t errCode);
 
+    // Attribution reuses AppScheduler's task attribution entry, which crosses to appms over the
+    // same foundation-only IAmsMgr face the startAbility channel uses (tool = INSIGHT), instead
+    // of linking appms and calling TaskManagerService in process.
+    static int32_t RegisterAttributionThroughIpc(const std::string &taskId, int32_t callerUid,
+        int32_t callerPid, pid_t pid, int64_t &attributionId);
+    static int32_t UnregisterAttributionThroughIpc(const std::string &taskId, int64_t attributionId);
+
     void UnregisterAttributedProcess(const std::string &taskId, int64_t attributionId);
 
-    void RegisterAttributedProcess(const std::string &taskId, pid_t pid, int64_t &attributionId);
+    void RegisterAttributedProcess(const std::string &taskId, int32_t callerUid, int32_t callerPid, pid_t pid,
+        int64_t &attributionId);
 
     void HandleDiedRecordsCleanup(const std::vector<uint64_t> &toRemove,
         const AppExecFwk::InsightIntentExecuteResult &errorResult);

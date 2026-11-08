@@ -921,51 +921,52 @@ HWTEST_F(AmsAppMgrClientTest, GetAllAbilityInfos_003, TestSize.Level1)
 /*
  * Feature: AppMgrService
  * Function: AppMgrClient
- * SubFunction: AttributeProcessForAbility Function
- * FunctionPoints: AppMgrClient AttributeProcessForAbility interface
+ * SubFunction: AttributeProcessForTask Function
+ * FunctionPoints: AppMgrClient AttributeProcessForTask interface
  * EnvConditions: Mobile that can run ohos test framework
  * CaseDescription: Verify if AppMgrClient forwards the attribution report with the
  *                   server-assigned handle written back.
  */
-HWTEST_F(AmsAppMgrClientTest, AppMgrClient_AttributeProcessForAbility_0100, TestSize.Level1)
+HWTEST_F(AmsAppMgrClientTest, AppMgrClient_AttributeProcessForTask_0100, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_AttributeProcessForAbility_0100 start");
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_AttributeProcessForTask_0100 start");
     EXPECT_EQ(AppMgrResultCode::RESULT_OK, client_->ConnectAppMgrService());
 
     sptr<IAmsMgr> amsMgrScheduler(new MockAmsMgrScheduler());
     const int64_t serverHandle = 42;
     EXPECT_CALL(*(static_cast<MockAmsMgrScheduler*>(amsMgrScheduler.GetRefPtr())),
-        AttributeProcessForAbility(_, _, _, _, _))
+        AttributeProcessForTask(_, _, _, _, AttributionTool::ABILITY, _))
         .Times(1)
-        .WillOnce(DoAll(SetArgReferee<4>(serverHandle), Return(ERR_OK)));
+        .WillOnce(DoAll(SetArgReferee<5>(serverHandle), Return(ERR_OK)));
     EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
         GetAmsMgr())
         .Times(1)
         .WillOnce(Return(amsMgrScheduler));
 
     int64_t attributionId = 0;
-    EXPECT_EQ(ERR_OK, client_->AttributeProcessForAbility("task-ut", 100, 200, 300, attributionId));
+    EXPECT_EQ(ERR_OK, client_->AttributeProcessForTask("task-ut", 100, 200, 300, AttributionTool::ABILITY,
+        attributionId));
     EXPECT_EQ(attributionId, serverHandle);
-    TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_AttributeProcessForAbility_0100 end");
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_AttributeProcessForTask_0100 end");
 }
 
 /*
  * Feature: AppMgrService
  * Function: AppMgrClient
- * SubFunction: AttributeProcessForAbility Function
- * FunctionPoints: AppMgrClient AttributeProcessForAbility interface
+ * SubFunction: AttributeProcessForTask Function
+ * FunctionPoints: AppMgrClient AttributeProcessForTask interface
  * EnvConditions: Mobile that can run ohos test framework
- * CaseDescription: Verify if AppMgrClient AttributeProcessForAbility acts normal without
+ * CaseDescription: Verify if AppMgrClient AttributeProcessForTask acts normal without
  *                   connecting to the service.
  */
-HWTEST_F(AmsAppMgrClientTest, AppMgrClient_AttributeProcessForAbility_0200, TestSize.Level1)
+HWTEST_F(AmsAppMgrClientTest, AppMgrClient_AttributeProcessForTask_0200, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_AttributeProcessForAbility_0200 start");
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_AttributeProcessForTask_0200 start");
     int64_t attributionId = 0;
     EXPECT_EQ(AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED,
-        client_->AttributeProcessForAbility("task-ut", 100, 200, 300, attributionId));
+        client_->AttributeProcessForTask("task-ut", 100, 200, 300, AttributionTool::ABILITY, attributionId));
     EXPECT_EQ(attributionId, 0);
-    TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_AttributeProcessForAbility_0200 end");
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_AttributeProcessForTask_0200 end");
 }
 
 /*
