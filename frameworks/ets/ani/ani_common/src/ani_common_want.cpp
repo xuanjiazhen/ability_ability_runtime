@@ -1134,41 +1134,34 @@ ani_ref WrapWantParamsFD(ani_env *env, const AAFwk::WantParams &wantParams)
     auto paramList = wantParams.GetParams();
     AAFwk::WantParams fds;
     for (auto it = paramList.begin(); it != paramList.end(); it++) {
-        if (AAFwk::IWantParams::Query(it->second) == nullptr) {
-            TAG_LOGW(AAFwkTag::ANI, "not wantParam");
-            continue;
-        }
-        auto value = wantParams.GetParam(it->first);
-        AAFwk::IWantParams *o = AAFwk::IWantParams::Query(value);
-        if (o == nullptr) {
-            return nullptr;
-        }
-        AAFwk::WantParams wp = AAFwk::WantParamWrapper::Unbox(o);
+        // Degraded view: GetWantParams returns the {type:"FD", value:N} shape for both
+        // FdWrapper single-storage entries and legacy markers; plain scalars yield empty.
+        AAFwk::WantParams wp = wantParams.GetWantParams(it->first);
         auto valueMap = wp.GetParams();
         if (valueMap.size() != PROPERTIES_SIZE) {
             TAG_LOGD(AAFwkTag::ANI, "not fd");
-            return nullptr;
+            continue;
         }
         auto typeIt = valueMap.find(AAFwk::TYPE_PROPERTY);
         if (typeIt == valueMap.end()) {
-            return nullptr;
+            continue;
         }
         AAFwk::IString *strValue = AAFwk::IString::Query(typeIt->second);
         if (strValue == nullptr) {
-            return nullptr;
+            continue;
         }
         std::string typeString = AAFwk::String::Unbox(strValue);
         if (typeString != AAFwk::FD) {
             TAG_LOGD(AAFwkTag::ANI, "not fd");
-            return nullptr;
+            continue;
         }
         auto valueIt = valueMap.find(AAFwk::VALUE_PROPERTY);
         if (valueIt == valueMap.end()) {
-            return nullptr;
+            continue;
         }
         AAFwk::IInteger *intValue = AAFwk::IInteger::Query(valueIt->second);
         if (intValue == nullptr) {
-            return nullptr;
+            continue;
         }
         fds.SetParam(it->first, intValue);
     }

@@ -95,12 +95,9 @@ static CJArrFdParam ExtractFdsArrayFromWantParams(const OHOS::AAFwk::WantParams 
     std::vector<std::pair<std::string, int32_t>> fdsList;
 
     for (auto it = paramList.begin(); it != paramList.end(); it++) {
-        auto value = wantParams.GetParam(it->first);
-        OHOS::AAFwk::IWantParams *o = OHOS::AAFwk::IWantParams::Query(value);
-        if (o == nullptr) {
-            continue;
-        }
-        OHOS::AAFwk::WantParams wp = OHOS::AAFwk::WantParamWrapper::Unbox(o);
+        // Degraded view: GetWantParams returns the {type:"FD", value:N} shape for both
+        // FdWrapper single-storage entries and legacy markers; plain scalars yield empty.
+        OHOS::AAFwk::WantParams wp = wantParams.GetWantParams(it->first);
         if (!IsFdParam(wp)) {
             continue;
         }

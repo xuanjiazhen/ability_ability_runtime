@@ -1160,45 +1160,38 @@ napi_value WrapWantParamsFD(napi_env env, const AAFwk::WantParams &wantParams)
     auto paramList = wantParams.GetParams();
     WantParams fds;
     for (auto it = paramList.begin(); it != paramList.end(); it++) {
-        if (AAFwk::IWantParams::Query(it->second) == nullptr) {
-            TAG_LOGD(AAFwkTag::JSNAPI, "not wantpram");
-            continue;
-        }
-        auto value = wantParams.GetParam(it->first);
-        AAFwk::IWantParams *o = AAFwk::IWantParams::Query(value);
-        if (o == nullptr) {
-            return handleEscape.Escape(jsObject);
-        }
-        AAFwk::WantParams wp = AAFwk::WantParamWrapper::Unbox(o);
+        // Degraded view: GetWantParams returns the {type:"FD", value:N} shape for both
+        // FdWrapper single-storage entries and legacy markers; plain scalars yield empty.
+        AAFwk::WantParams wp = wantParams.GetWantParams(it->first);
         auto valueMap = wp.GetParams();
         if (valueMap.size() != PROPERTIES_SIZE) {
             TAG_LOGD(AAFwkTag::JSNAPI, "not fd");
-            return handleEscape.Escape(jsObject);
+            continue;
         }
 
         //type
         auto typeIt = valueMap.find(TYPE_PROPERTY);
         if (typeIt == valueMap.end()) {
-            return handleEscape.Escape(jsObject);
+            continue;
         }
         AAFwk::IString *strValue = AAFwk::IString::Query(typeIt->second);
         if (strValue == nullptr) {
-            return handleEscape.Escape(jsObject);
+            continue;
         }
         std::string typeString = AAFwk::String::Unbox(strValue);
         if (typeString != FD) {
             TAG_LOGD(AAFwkTag::JSNAPI, "not fd");
-            return handleEscape.Escape(jsObject);
+            continue;
         }
 
         // value
         auto valueIt = valueMap.find(VALUE_PROPERTY);
         if (valueIt == valueMap.end()) {
-            return handleEscape.Escape(jsObject);
+            continue;
         }
         AAFwk::IInteger *intValue = AAFwk::IInteger::Query(valueIt->second);
         if (intValue == nullptr) {
-            return handleEscape.Escape(jsObject);
+            continue;
         }
         fds.SetParam(it->first, intValue);
     }
