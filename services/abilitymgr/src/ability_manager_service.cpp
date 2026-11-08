@@ -38,6 +38,7 @@
 #include "app_exit_reason_data_manager.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_util.h"
+#include "task_mgr/common.h"
 #include "app_recovery_mgr.h"
 #include "application_util.h"
 #include "assert_fault_callback_death_mgr.h"
@@ -16350,6 +16351,20 @@ int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::Sk
     }
     int32_t userId = hapInfo.userID;
     std::string callerBundleName = hapInfo.bundleName;
+    // Ownership anchor for the task attribution: the genuine agent-app uid, derived
+    // server-side from the IPC-stamped callerTokenId (climgr stamps it from its own
+    // ExecTool caller), never from a raw uid field that a direct IPC caller could forge.
+    int32_t callerUid = hapInfo.uid;
+    // taskId trust chain: only a SA (climgr, gated by CheckSkillPermission below) can reach
+    // this entry; climgr validated the format and re-asserted the value after its before-
+    // hook. Re-validate here (defense in depth) and keep it server-side only: it is stored
+    // on the execute record and never written into the skill Want.
+    std::string taskId = request.taskId;
+    if (!taskId.empty() && !AppExecFwk::IsTaskIdValidForAttribution(taskId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "ExecuteInAppSkillWithTokenId taskId invalid, length: %{public}zu",
+            taskId.length());
+        taskId.clear();
+    }
 
     // 1. Query skill configuration from bundle framework
     AppExecFwk::SkillInfo skillInfo;
@@ -16370,7 +16385,8 @@ int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::Sk
 
     // 3. Create execute record with requestCode and callback
     std::string requestCode = DelayedSingleton<SkillExecuteManager>::GetInstance()->CreateExecuteRecord(
-        nullptr, request.bundleName, callerBundleName, request.callerTokenId, callback);
+        nullptr, request.bundleName, callerBundleName, request.callerTokenId, callback,
+        "", taskId, callerUid);
 
     // 4. Generate Want with abilityName, srcEntries and requestCode
     Want want;

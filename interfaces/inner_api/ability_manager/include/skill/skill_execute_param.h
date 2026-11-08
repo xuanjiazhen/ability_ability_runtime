@@ -37,6 +37,11 @@ struct SkillExecuteRequest {
     std::string functionName;
     std::shared_ptr<WantParams> skillArgs;
     std::string toolCallId;
+    // Server-side task attribution key. Trusted channel only: climgr stamps it from the
+    // ExecTool options after format validation and the before-hook re-assertion; AMS
+    // re-validates and never writes it into the skill Want, so it never reaches the
+    // target application or a third-party Want.
+    std::string taskId;
 };
 
 // Want parameter keys for skill execution
