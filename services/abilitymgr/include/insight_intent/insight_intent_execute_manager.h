@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_EXECUTE_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_EXECUTE_MANAGER_H
 
+#include <functional>
 #include <map>
 #include <mutex>
 #include <sys/types.h>
@@ -205,6 +206,20 @@ private:
         const AppExecFwk::InsightIntentQueryEntityParam& queryParams);
 
     void SendIntentReport(EventInfo &eventInfo, int32_t errCode);
+
+    // Attribution goes through the appms IPC face instead of linking appms and calling
+    // TaskManagerService in process. The two handlers are the only injection point, so a
+    // unit test can exercise the full lifecycle without an appms instance.
+    using AttributionRegisterHandler = std::function<int32_t(const std::string &taskId, pid_t pid,
+        int64_t &attributionId)>;
+    using AttributionUnregisterHandler = std::function<int32_t(const std::string &taskId,
+        int64_t attributionId)>;
+
+    static int32_t RegisterAttributionThroughIpc(const std::string &taskId, pid_t pid, int64_t &attributionId);
+    static int32_t UnregisterAttributionThroughIpc(const std::string &taskId, int64_t attributionId);
+
+    AttributionRegisterHandler registerAttributionHandler_ = RegisterAttributionThroughIpc;
+    AttributionUnregisterHandler unregisterAttributionHandler_ = UnregisterAttributionThroughIpc;
 
     void UnregisterAttributedProcess(const std::string &taskId, int64_t attributionId);
 

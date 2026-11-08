@@ -68,9 +68,14 @@ constexpr size_t INDEX_THREE = 3;
 constexpr size_t INDEX_FOUR = 4;
 const int32_t HIDUMPER_SERVICE_UID = 1212;
 // climgr (SA 186) runs in the aimgr process and is the sole allowed caller of the
-// attribution IPC face; uid 3092 per base/startup/init/services/etc/passwd:183 and
+// CLI attribution IPC face; uid 3092 per base/startup/init/services/etc/passwd:183 and
 // cli_tool_framework/etc/profile/aimgr.cfg — keep both in sync.
 const int32_t AIMGR_SERVICE_UID = 3092;
+// abilityms runs inside the foundation process and shares it with appms, so it used to reach
+// TaskManagerService through direct in-process calls (and therefore had to link appms). It now
+// goes through the same attribution IPC face; for such an in-process binder call the appms side
+// observes the foundation uid.
+const int32_t FOUNDATION_UID = 5523;
 constexpr int32_t RESOURCE_MANAGER_UID = 1096;
 constexpr const int INDEX_PID = 1;
 constexpr const int INDEX_CMD = 2;
@@ -213,10 +218,25 @@ int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t
     int32_t callerUid, int64_t &attributionId)
 {
     attributionId = 0;
+    const int32_t callingUid = IPCSkeleton::GetCallingUid();
+    // foundation caller: the in-process system service (abilityms) that used to link appms and
+    // call TaskManagerService directly. It reports a real appmgr-managed target pid, so the
+    // pid-liveness check applies and no creator-ownership gate is needed.
+    if (callingUid == FOUNDATION_UID) {
+        if (!IsTaskIdSanitized(taskId) || pid <= 0) {
+            TAG_LOGW(AAFwkTag::APPMGR, "foundation caller, invalid param, taskId size: %{public}zu, "
+                "pid: %{public}d", taskId.size(), pid);
+            return AAFwk::INVALID_PARAMETERS_ERR;
+        }
+        AttributionRecord attribution;
+        attribution.pid = pid;
+        attribution.tool = static_cast<AttributionTool>(tool);
+        return TaskManagerService::GetInstance().RegisterManagedProcess(taskId, attribution, attributionId);
+    }
     // The native climgr token never carries the system-app flag: gate on the aimgr uid alone.
-    if (IPCSkeleton::GetCallingUid() != AIMGR_SERVICE_UID) {
+    if (callingUid != AIMGR_SERVICE_UID) {
         TAG_LOGW(AAFwkTag::APPMGR, "caller is not climgr process, rejected, calling uid: %{public}d",
-            IPCSkeleton::GetCallingUid());
+            callingUid);
         return AAFwk::ERR_NOT_SYSTEM_APP;
     }
     if (!IsTaskIdSanitized(taskId) || pid <= 0) {
@@ -234,9 +254,20 @@ int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t
 int32_t AppMgrService::UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
     int32_t callerUid)
 {
-    if (IPCSkeleton::GetCallingUid() != AIMGR_SERVICE_UID) {
+    const int32_t callingUid = IPCSkeleton::GetCallingUid();
+    // foundation caller: see RegisterManagedProcess; the handle was issued to this process, so
+    // the creator-ownership gate is skipped and the id is authoritative.
+    if (callingUid == FOUNDATION_UID) {
+        if (!IsTaskIdSanitized(taskId) || attributionId <= 0) {
+            TAG_LOGW(AAFwkTag::APPMGR, "foundation caller, invalid param, taskId size: %{public}zu, "
+                "attributionId: %{public}" PRId64, taskId.size(), attributionId);
+            return AAFwk::INVALID_PARAMETERS_ERR;
+        }
+        return TaskManagerService::GetInstance().UnregisterManagedProcess(taskId, attributionId);
+    }
+    if (callingUid != AIMGR_SERVICE_UID) {
         TAG_LOGW(AAFwkTag::APPMGR, "caller is not climgr process, rejected, calling uid: %{public}d",
-            IPCSkeleton::GetCallingUid());
+            callingUid);
         return AAFwk::ERR_NOT_SYSTEM_APP;
     }
     if (!IsTaskIdSanitized(taskId) || attributionId <= 0) {
