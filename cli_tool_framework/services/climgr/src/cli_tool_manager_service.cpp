@@ -1860,6 +1860,8 @@ int32_t CliToolManagerService::SetupCmdSession(const ExecToolParam &toolParam, c
         ReportCliExecuteFailed(context.callerBundleName, toolName, GetFailureReason(limitRet));
         return limitRet;
     }
+    EventDispatcher::GetInstance().RegisterTraceIds(
+        record->sessionId, record->toolCallId, record->dmSessionId);
 
     auto subscribeRet = SubscribeSessionInternal(record->sessionId, context.subscriptionId, context.scheduler);
     if (subscribeRet != ERR_OK) {
@@ -2077,9 +2079,9 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
             auto sessionRecord = iter->second;
             if (sessionRecord == nullptr) {
                 std::string sessionId = iter->first;
-                // Registry invariant: keep the trace-id registry consistent with
-                // sessionRecords_ even on the defensive null-record cleanup path.
-                EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
+                // Keep the trace-id registry consistent with sessionRecords_ on this defensive
+                // path; deferred past the lock like below, as UnregisterTraceIds locks.
+                removedSessionIds.emplace_back(sessionId);
                 iter = sessionRecords_.erase(iter);
                 TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak sessionId:%{public}s", sessionId.c_str());
                 continue;
