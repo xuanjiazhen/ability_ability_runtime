@@ -53,7 +53,9 @@ public:
         const std::string &targetBundleName, const std::string &callerBundleName,
         uint32_t callerTokenId,
         const sptr<ISkillExecuteCallback> &callback = nullptr,
-        const std::string &externalRequestCode = "");
+        const std::string &externalRequestCode = "",
+        const std::string &taskId = "",
+        int32_t callerUid = -1);
 
     int32_t ExecuteSkillDone(const std::string &requestCode, int32_t resultCode,
         const AppExecFwk::SkillExecuteResult &result,
@@ -66,6 +68,13 @@ public:
     void OnTargetProcessDied(const std::string &bundleName, pid_t pid);
 
 private:
+    // Attribution handed out by RemoveRecord (under mutex_) for the lock-external unregister.
+    struct AttributionSnapshot {
+        std::string taskId;
+        int64_t attributionId = 0;
+        int32_t callerUid = -1;
+    };
+
     class CallerDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         CallerDeathRecipient(std::function<void(const std::string &)> callback, std::string requestCode)
@@ -107,11 +116,17 @@ private:
         const std::string &moduleName, int32_t userId);
     AppExecFwk::ExtensionAbilityType ResolveTargetType(const std::string &bundleName,
         const std::string &moduleName, const std::string &abilityName, int32_t userId);
-    void RemoveRecord(const std::string &requestCode);
+    void RemoveRecord(const std::string &requestCode, AttributionSnapshot &snapshot);
     void OnCallerDied(const std::string &requestCode);
     void PostSkillExecuteTimeout(const std::string &requestCode, uint64_t requestCodeSeq);
     void RemoveSkillExecuteTimeoutLocked(uint64_t requestCodeSeq);
     void EnsureAppStateObserverRegistered();
+    // Attribution register/unregister delegated to appmgr through the AppScheduler
+    // IPC face; must run outside mutex_ (appmgr takes its own locks). Ownership is
+    // enforced server-side against callerUid.
+    void RegisterAttributedProcess(const std::string &taskId, pid_t pid, int32_t callerUid,
+        int64_t &attributionId);
+    void UnregisterAttributedProcess(const AttributionSnapshot &snapshot);
 
     ffrt::mutex mutex_;
     uint64_t requestCodeSeq_ = 0;

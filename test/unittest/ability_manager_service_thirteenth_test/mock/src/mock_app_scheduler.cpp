@@ -415,5 +415,22 @@ int32_t AppScheduler::UnregisterTaskAttribution(const std::string &taskId, int64
         "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
     return ERR_OK;
 }
+
+int32_t AppScheduler::RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
+    int32_t callerUid, int64_t &attributionId)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::RegisterManagedProcess, taskId: %{public}s, pid: %{public}d",
+        taskId.c_str(), pid);
+    attributionId = 1;
+    return ERR_OK;
+}
+
+int32_t AppScheduler::UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+    int32_t callerUid)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::UnregisterManagedProcess, taskId: %{public}s, "
+        "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
+    return ERR_OK;
+}
 } // namespace AAFwk
 } // namespace OHOS

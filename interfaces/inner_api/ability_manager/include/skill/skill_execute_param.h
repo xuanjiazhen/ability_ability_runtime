@@ -37,6 +37,12 @@ struct SkillExecuteRequest {
     std::string functionName;
     std::shared_ptr<WantParams> skillArgs;
     std::string toolCallId;
+    // Task attribution key stamped by climgr; AMS re-validates and keeps it server-side
+    // (never written into the skill Want).
+    std::string taskId;
+    // Forensic creator uid stamped by climgr from its ExecTool IPC caller; the ownership
+    // anchor for register/unregister (-1 = not provided, skips the ownership check).
+    int32_t callerUid = -1;
 };
 
 // Want parameter keys for skill execution

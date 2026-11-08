@@ -38,6 +38,7 @@
 #include "app_exit_reason_data_manager.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_util.h"
+#include "task_mgr/common.h"
 #include "app_recovery_mgr.h"
 #include "application_util.h"
 #include "assert_fault_callback_death_mgr.h"
@@ -411,6 +412,8 @@ constexpr uint32_t GET_PARAMETER_VALUE_LEN = 128;
 constexpr int32_t SIZE_10 = 10;
 constexpr int32_t HIDUMPER_SERVICE_UID = 1212;
 constexpr int32_t ACCOUNT_MGR_SERVICE_UID = 3058;
+// The aimgr user running climgr; the only stamper trusted for the forensic callerUid.
+constexpr int32_t AIMGR_SERVICE_UID = 3092;
 constexpr int32_t DMS_UID = 5522;
 constexpr int32_t SAMGR_UID = 5555;
 constexpr int32_t BOOTEVENT_COMPLETED_DELAY_TIME = 1000;
@@ -16350,6 +16353,21 @@ int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::Sk
     }
     int32_t userId = hapInfo.userID;
     std::string callerBundleName = hapInfo.bundleName;
+    // Ownership anchor: the forensic uid of the app that created the task. Honored only
+    // when the direct IPC caller is the climgr process, which stamps it from its
+    // kernel-stamped ExecTool IPC context; any other caller degrades to -1, which skips
+    // the ownership check (attribution register/unregister is non-blocking).
+    // HapTokenInfo.uid is NOT usable: it is not serialized by HapTokenInfoParcel,
+    // so an IPC query always returns 0.
+    int32_t callerUid = (IPCSkeleton::GetCallingUid() == AIMGR_SERVICE_UID) ? request.callerUid : -1;
+    // Defense in depth: re-validate the climgr-stamped taskId; it stays on the execute
+    // record and never enters the skill Want.
+    std::string taskId = request.taskId;
+    if (!taskId.empty() && !AppExecFwk::IsTaskIdValidForAttribution(taskId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "ExecuteInAppSkillWithTokenId taskId invalid, length: %{public}zu",
+            taskId.length());
+        taskId.clear();
+    }
 
     // 1. Query skill configuration from bundle framework
     AppExecFwk::SkillInfo skillInfo;
@@ -16370,7 +16388,8 @@ int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::Sk
 
     // 3. Create execute record with requestCode and callback
     std::string requestCode = DelayedSingleton<SkillExecuteManager>::GetInstance()->CreateExecuteRecord(
-        nullptr, request.bundleName, callerBundleName, request.callerTokenId, callback);
+        nullptr, request.bundleName, callerBundleName, request.callerTokenId, callback,
+        "", taskId, callerUid);
 
     // 4. Generate Want with abilityName, srcEntries and requestCode
     Want want;

@@ -296,13 +296,16 @@ int32_t TaskManagerService::RegisterManagedProcess(const std::string &taskId,
 int32_t TaskManagerService::RegisterManagedProcessForCaller(const std::string &taskId,
     const AttributionRecord &attribution, int32_t callerUid, AttributionId &attributionId)
 {
-    // CLI channel: no pid-liveness check (uid-gated reporter; pid is climgr's fork child).
-    // Ownership gate then the shared kernel; the two-lock gap is benign (creatorUid immutable).
+    // Trusted channel: no pid-liveness check; ownership gate then the shared kernel.
+    // Two-lock gap: only finish + same-taskId re-create by another system app inside
+    // the gap misplaces one attribution — dump/quota pollution only; revisit
+    // creatorUid if attribution ever gains authority semantics.
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     int32_t toolType = static_cast<int32_t>(attribution.tool);
-    if (attribution.pid <= 0 ||
-        taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN ||
+    // taskId goes through the shared IsTaskIdValidForAttribution (control-char guard),
+    // aligned with AttributeProcessForAbility, instead of a bare length check.
+    if (attribution.pid <= 0 || !IsTaskIdValidForAttribution(taskId) ||
         toolType < static_cast<int32_t>(AttributionTool::INSIGHT) ||
         toolType > static_cast<int32_t>(AttributionTool::ABILITY)) {
         TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, pid: %{public}d, "
@@ -362,7 +365,7 @@ int32_t TaskManagerService::UnregisterManagedProcessForCaller(const std::string 
     // Ownership gate then delegation; see RegisterManagedProcessForCaller for the gap note.
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (attributionId <= 0 || taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN) {
+    if (attributionId <= 0 || !IsTaskIdValidForAttribution(taskId)) {
         TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, "
             "attributionId: %{public}" PRId64, taskId.size(), attributionId);
         return INVALID_PARAMETERS_ERR;
