@@ -34,6 +34,7 @@
 #include "cli_tool_manager_service.h"
 #include "cli_function_data_manager.h"
 #include "ccm_util.h"
+#include "event_dispatcher.h"  // inside the access-relaxation block: tests assert sessionTraceIds_ directly
 #undef private
 #undef protected
 
@@ -48,7 +49,6 @@
 #include "exec_result_wrap.h"
 #include "exec_tool_param.h"
 #include "function_hook_interface_stub.h"
-#include "event_dispatcher.h"
 #include "exec_cmd_param.h"
 #include "exec_options.h"
 #include "function_info.h"
@@ -4250,6 +4250,144 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_1500, TestSize.Level1)
         result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1500 end");
+}
+
+// ==================== ExecCmd Tool Mode Trace Id Registration Tests ====================
+
+// Shared setup for the tool-mode trace-id tests below. ExecCmd's IPC entry cannot reach
+// SetupCmdSession in UT (the caller is not a HAP, so GenerateSandboxConfig fails first),
+// so this drives SetupCmdSession directly — the same function ExecCmdToolMode dispatches
+// to — with a mock scheduler, creating a full CLI_CMD session.
+static int32_t SetupToolModeSessionForTraceTest(const sptr<CliToolManagerService> &service,
+    const std::string &toolCallId, const std::string &dmSessionId,
+    std::shared_ptr<SessionRecord> &record)
+{
+    service->ioMonitor_ = IOMonitor::Create();
+    // Start() is mandatory: Create() only constructs the object, the epoll fd is opened in
+    // Start(). Without it RegisterSessionWithMonitors -> epoll_ctl(EPOLL_CTL_ADD) always fails
+    // and SetupCmdSession returns ERR_NO_INIT (same convention as FinalizeBackgroundSession_0200).
+    if (service->ioMonitor_ == nullptr || !service->ioMonitor_->Start()) {
+        return ERR_NO_INIT;
+    }
+
+    ExecToolParam toolParam;
+    toolParam.toolName = "trace_mode_tool";
+    toolParam.options.toolCallId = toolCallId;
+    toolParam.options.dmSessionId = dmSessionId;
+
+    ToolInfo toolInfo;
+    toolInfo.name = "trace_mode_tool";
+    // Nonexistent binary: the forked child fails exec immediately, so no real tool ever runs.
+    toolInfo.executablePath = "/nonexistent/trace_mode_tool";
+
+    CliToolManagerService::CmdSessionContext context;
+    context.eventId = "event_trace_mode";
+    context.subscriptionId = "sub_trace_mode";
+    context.scheduler = new TestScheduler();
+    context.callerPid = IPCSkeleton::GetCallingPid();
+    context.callerUid = IPCSkeleton::GetCallingUid();
+    context.tokenId = IPCSkeleton::GetCallingTokenID();
+    context.callerBundleName = "";
+
+    int32_t result = service->SetupCmdSession(toolParam, toolInfo, "{}", toolParam.toolName, context);
+    auto records = service->GetSessionRecords();
+    record = records.empty() ? nullptr : records.front();
+    return result;
+}
+
+// Reap the short-lived child (exec fails on the nonexistent binary) and stop the monitor,
+// same cleanup convention as ExecTool_0800/0900.
+static void TeardownToolModeSessionForTraceTest(const sptr<CliToolManagerService> &service)
+{
+    while (waitpid(-1, nullptr, WNOHANG) > 0) {}
+    if (service->ioMonitor_ != nullptr) {
+        service->ioMonitor_->Stop();
+        service->ioMonitor_ = nullptr;
+    }
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_ToolMode_TraceIdsRegistered_0100
+ * @tc.desc: SetupCmdSession (ExecCmd tool command mode) registers caller trace ids in the
+ *           EventDispatcher registry so session events carry toolCallId/dmSessionId (AC-1.6)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_TraceIdsRegistered_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_TraceIdsRegistered_0100 start");
+
+    std::shared_ptr<SessionRecord> record;
+    ASSERT_EQ(SetupToolModeSessionForTraceTest(service_, "tcid-cmdmode-0100", "dmsid-cmdmode-0100", record),
+        ERR_OK);
+
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(record->sessionType, SessionType::CLI_CMD);
+    EXPECT_EQ(record->toolCallId, "tcid-cmdmode-0100");
+    EXPECT_EQ(record->dmSessionId, "dmsid-cmdmode-0100");
+
+    // The registry entry for this session must match the ids passed by the caller: the
+    // service-side DispatchEvent log for stdout/stderr/exit/error looks them up here.
+    auto &traceIds = EventDispatcher::GetInstance().sessionTraceIds_;
+    auto iter = traceIds.find(record->sessionId);
+    ASSERT_NE(iter, traceIds.end());
+    EXPECT_EQ(iter->second.toolCallId, "tcid-cmdmode-0100");
+    EXPECT_EQ(iter->second.dmSessionId, "dmsid-cmdmode-0100");
+
+    TeardownToolModeSessionForTraceTest(service_);
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_TraceIdsRegistered_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_ToolMode_TraceIdsClearedOnRemoval_0100
+ * @tc.desc: RemoveSessionRecord after tool-mode setup leaves no trace-id registry residue
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_TraceIdsClearedOnRemoval_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_TraceIdsClearedOnRemoval_0100 start");
+
+    std::shared_ptr<SessionRecord> record;
+    ASSERT_EQ(SetupToolModeSessionForTraceTest(service_, "tcid-cmdmode-0200", "dmsid-cmdmode-0200", record),
+        ERR_OK);
+    ASSERT_NE(record, nullptr);
+    ASSERT_NE(EventDispatcher::GetInstance().sessionTraceIds_.find(record->sessionId),
+        EventDispatcher::GetInstance().sessionTraceIds_.end());
+
+    // Session cleanup (RemoveSessionRecord -> UnregisterTraceIds) must drop the registry entry.
+    service_->RemoveSessionRecord(record->sessionId);
+    EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+    EXPECT_EQ(EventDispatcher::GetInstance().sessionTraceIds_.find(record->sessionId),
+        EventDispatcher::GetInstance().sessionTraceIds_.end());
+    EXPECT_TRUE(EventDispatcher::GetInstance().sessionTraceIds_.empty());
+
+    TeardownToolModeSessionForTraceTest(service_);
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_TraceIdsClearedOnRemoval_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_ToolMode_TraceIdsEmptyWhenNotProvided_0100
+ * @tc.desc: Tool-mode session without identifiers keeps the registry empty (current behavior)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_TraceIdsEmptyWhenNotProvided_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_TraceIdsEmptyWhenNotProvided_0100 start");
+
+    // Control case: no identifiers provided -> no registry entry is created (RegisterTraceIds
+    // no-ops when both ids are empty), while the session itself is still established.
+    std::shared_ptr<SessionRecord> record;
+    ASSERT_EQ(SetupToolModeSessionForTraceTest(service_, "", "", record), ERR_OK);
+
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(record->sessionType, SessionType::CLI_CMD);
+    EXPECT_TRUE(record->toolCallId.empty());
+    EXPECT_TRUE(record->dmSessionId.empty());
+    EXPECT_EQ(EventDispatcher::GetInstance().sessionTraceIds_.find(record->sessionId),
+        EventDispatcher::GetInstance().sessionTraceIds_.end());
+    EXPECT_TRUE(EventDispatcher::GetInstance().sessionTraceIds_.empty());
+
+    TeardownToolModeSessionForTraceTest(service_);
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_TraceIdsEmptyWhenNotProvided_0100 end");
 }
 
 // ---------------------------------------------------------------------------
