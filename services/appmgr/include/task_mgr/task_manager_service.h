@@ -102,10 +102,12 @@ public:
         AttributionId &attributionId);
 
     /**
-     * @brief Registers a process into the task owned by the caller (CLI channel):
-     *        creator-ownership check, then the shared registration kernel. Skips
-     *        the pid-liveness check: the reporter is uid-gated to climgr and the
-     *        pid is climgr's fork child.
+     * @brief Registers a process into the task owned by the caller (trusted in-process /
+     *        uid-gated channels): creator-ownership check, then the shared registration
+     *        kernel. Skips the pid-liveness check: the reporter is either climgr (uid-gated
+     *        to aimgr, pid is climgr's fork child) or SkillExecuteManager in the same
+     *        foundation process (pid is the live process that just reported the skill
+     *        launch completion).
      * @param callerUid Indicates the task creator's uid; negative skips the check.
      */
     int32_t RegisterManagedProcessForCaller(const std::string &taskId, const AttributionRecord &attribution,

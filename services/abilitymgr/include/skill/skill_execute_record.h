@@ -44,6 +44,17 @@ struct SkillExecuteRecord {
     pid_t targetPid = 0;
     SkillExecuteState state = SkillExecuteState::UNKNOWN;
     sptr<ISkillExecuteCallback> callback = nullptr;
+    // Attribution contract (mirrors InsightIntentExecuteRecord): taskId is the task key
+    // (empty = not attributed); callerUid is the genuine agent-app uid derived by AMS from
+    // the IPC-stamped callerTokenId and is the ownership anchor for register/unregister;
+    // attributionId is the TaskManagerService-assigned handle and the sole unregister key
+    // (0 = not registered, no unregister fires). Registration happens at the
+    // launch-completion point (SkillExecuteManager::OnLaunchCompleted) when the real
+    // executing pid is first known; every terminal path funnels into RemoveRecord, which
+    // snapshots the attribution for the lock-external unregister.
+    std::string taskId = "";
+    int32_t callerUid = -1;
+    int64_t attributionId = 0;
 };
 
 } // namespace AAFwk

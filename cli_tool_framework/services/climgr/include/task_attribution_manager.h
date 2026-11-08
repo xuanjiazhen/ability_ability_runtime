@@ -43,10 +43,6 @@ public:
     // Detach is keyed by the server-assigned handle (attributionId <= 0 is a no-op); idempotent.
     int32_t DetachProcess(const std::string &taskId, int64_t attributionId, int32_t callerUid);
 
-    // A cold-start / not-running target is a known failure (the skill execution stands); non-blocking.
-    int32_t AttachInAppSkillProcess(const std::string &taskId, const std::string &bundleName, pid_t &outPid,
-        int64_t &attributionId, int32_t callerUid);
-
     // Test seam only: drop the cached appmgr connection; production never calls.
     void ResetConnection();
 

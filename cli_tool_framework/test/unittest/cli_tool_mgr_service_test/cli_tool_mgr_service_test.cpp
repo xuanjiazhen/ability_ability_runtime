@@ -125,7 +125,6 @@ private:
 constexpr int32_t ATTR_TEST_CALLER_UID = 3099;
 constexpr pid_t ATTR_TEST_ANCHOR_PID = 4321;
 constexpr int64_t ATTR_TEST_ATTRIBUTION_ID = 5555;
-constexpr int32_t ATTR_TEST_RESOLVED_PID = 8765;
 constexpr int32_t ATTR_TEST_WAIT_MS = 1000;
 
 // In-process appmgr endpoint: AppMgrClient resolves it via the test-side GetAppMgrService below.
@@ -176,26 +175,6 @@ public:
         return AAFwk::INNER_ERR;
     }
 
-    int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
-        int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId) override
-    {
-        {
-            std::unique_lock<std::mutex> lock(mtx);
-            ++inAppSkillEntered;
-            cv.notify_all();
-            if (blockInAppSkill) {
-                cv.wait(lock, [this] { return !blockInAppSkill; });
-            }
-        }
-        ++inAppSkillCalls;
-        lastInAppSkillTaskId = taskId;
-        lastInAppSkillBundle = bundleName;
-        lastInAppSkillCallerUid = callerUid;
-        resolvedPid = inAppSkillResolvedPid;
-        attributionId = inAppSkillRet == ERR_OK ? registerAttributionId : 0;
-        return inAppSkillRet;
-    }
-
     std::mutex mtx;
     std::condition_variable cv;
     std::string lastRegisterTaskId;
@@ -211,17 +190,9 @@ public:
     int32_t registerRet = ERR_OK;
     int32_t unregisterRet = ERR_OK;
     int64_t registerAttributionId = ATTR_TEST_ATTRIBUTION_ID;
-    std::string lastInAppSkillTaskId;
-    std::string lastInAppSkillBundle;
-    int32_t lastInAppSkillCallerUid = -1;
-    int inAppSkillCalls = 0;
-    int32_t inAppSkillRet = ERR_OK;
-    int32_t inAppSkillResolvedPid = ATTR_TEST_RESOLVED_PID;
-    // Interleaving control (SEC-01): park flags + entered counters for the two attach entry points.
+    // Interleaving control (SEC-01): park flag + entered counter for the attach entry point.
     std::atomic<bool> blockRegister {false};
-    std::atomic<bool> blockInAppSkill {false};
     int registerEntered = 0;
-    int inAppSkillEntered = 0;
 };
 
 sptr<MockAppMgrEndpoint> g_mockAppMgr;
@@ -241,13 +212,6 @@ bool WaitForRegisterEntered(int expectedEntries)
     std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
     return g_mockAppMgr->cv.wait_for(lock, std::chrono::milliseconds(ATTR_TEST_WAIT_MS),
         [&expectedEntries] { return g_mockAppMgr->registerEntered >= expectedEntries; });
-}
-
-bool WaitForInAppSkillEntered(int expectedEntries)
-{
-    std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
-    return g_mockAppMgr->cv.wait_for(lock, std::chrono::milliseconds(ATTR_TEST_WAIT_MS),
-        [&expectedEntries] { return g_mockAppMgr->inAppSkillEntered >= expectedEntries; });
 }
 } // namespace {
 } // namespace CliTool
@@ -5486,170 +5450,12 @@ HWTEST_F(CliToolManagerServiceTest, OnStop_RelayDetach_0100, TestSize.Level1)
 }
 
 /**
- * @tc.name: CliToolManagerService_AttachSkillTaskAttribution_RelayDetach_0100
- * @tc.desc: SEC-01 interleaving on the skill path (same state machine, the
- *           anchor is server-located): teardown relays while the locate IPC
- *           is parked in-flight, the write-back compensates — exactly one
- *           unregister keyed by attributionId.
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_RelayDetach_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_RelayDetach_0100 start");
-
-    auto record = std::make_shared<SessionRecord>();
-    record->sessionId = "relay_skill_session";
-    record->taskId = "task_skill_relay_0100";
-    record->callerUid = ATTR_TEST_CALLER_UID;
-    service_->AddSessionRecord(record);
-
-    g_mockAppMgr->blockInAppSkill = true;
-    std::thread attachThread([this, &record] {
-        service_->AttachSkillTaskAttribution(record, "com.example.skill.host");
-    });
-    ASSERT_TRUE(WaitForInAppSkillEntered(1));
-
-    service_->RemoveSessionRecord(record->sessionId);
-
-    g_mockAppMgr->blockInAppSkill = false;
-    g_mockAppMgr->cv.notify_all();
-    attachThread.join();
-
-    EXPECT_TRUE(WaitForUnregister(1));
-    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
-    EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_skill_relay_0100");
-    EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
-    EXPECT_EQ(record->attributionState, AttributionState::CONSUMED);
-
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_RelayDetach_0100 end");
-}
-
-/**
- * @tc.name: CliToolManagerService_AttachSkillTaskAttribution_0100
- * @tc.desc: In-app skill attach, locate pass: the target bundle's main-process
- *           pid is registered through IPC 154 with the forensic uid from the
- *           record and attributionId becomes the server-assigned handle — the
- *           anchor is server-located, not a fork return value.
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0100 start");
-
-    auto record = std::make_shared<SessionRecord>();
-    record->sessionId = "skill_attach_session";
-    record->taskId = "task_skill_attach_0100";
-    record->callerUid = ATTR_TEST_CALLER_UID;
-    service_->AddSessionRecord(record);
-
-    service_->AttachSkillTaskAttribution(record, "com.example.skill.host");
-
-    EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 1);
-    EXPECT_EQ(g_mockAppMgr->lastInAppSkillTaskId, "task_skill_attach_0100");
-    EXPECT_EQ(g_mockAppMgr->lastInAppSkillBundle, "com.example.skill.host");
-    EXPECT_EQ(g_mockAppMgr->lastInAppSkillCallerUid, ATTR_TEST_CALLER_UID);
-    EXPECT_EQ(record->attributionId, ATTR_TEST_ATTRIBUTION_ID);
-    EXPECT_EQ(record->attributionState, AttributionState::ATTACHED);
-    EXPECT_EQ(record->taskId, "task_skill_attach_0100");
-
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0100 end");
-}
-
-/**
- * @tc.name: CliToolManagerService_AttachSkillTaskAttribution_0200
- * @tc.desc: In-app skill attach, locate rejection (target application not
- *           running / on-demand startup not finished — the known cold-start
- *           boundary): no attribution object, no side effects —
- *           attributionId stays 0 and the key residue is cleared so
- *           no teardown path ever produces a stray unregister.
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0200, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0200 start");
-
-    g_mockAppMgr->inAppSkillRet = AAFwk::INNER_ERR;
-    g_mockAppMgr->inAppSkillResolvedPid = -1;
-    auto record = std::make_shared<SessionRecord>();
-    record->sessionId = "skill_locate_fail_session";
-    record->taskId = "task_skill_attach_0200";
-    record->callerUid = ATTR_TEST_CALLER_UID;
-    service_->AddSessionRecord(record);
-
-    service_->AttachSkillTaskAttribution(record, "com.example.skill.host");
-
-    EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 1);
-    EXPECT_EQ(record->taskId, "task_skill_attach_0200");
-    EXPECT_EQ(record->attributionId, 0);
-    EXPECT_EQ(record->attributionState, AttributionState::FAILED);
-
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0200 end");
-}
-
-/**
- * @tc.name: CliToolManagerService_AttachSkillTaskAttribution_0300
- * @tc.desc: In-app skill attach, inconsistent server reply (ERR_OK without a
- *           usable resolved pid): treated as a locate failure — not attributed,
- *           residue cleared (defensive slice mirroring the manager-side
- *           contract).
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0300, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0300 start");
-
-    g_mockAppMgr->inAppSkillRet = ERR_OK;
-    g_mockAppMgr->inAppSkillResolvedPid = -1;
-    auto record = std::make_shared<SessionRecord>();
-    record->sessionId = "skill_inconsistent_session";
-    record->taskId = "task_skill_attach_0300";
-    record->callerUid = ATTR_TEST_CALLER_UID;
-    service_->AddSessionRecord(record);
-
-    service_->AttachSkillTaskAttribution(record, "com.example.skill.host");
-
-    EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 1);
-    EXPECT_EQ(record->taskId, "task_skill_attach_0300");
-    EXPECT_EQ(record->attributionId, 0);
-    EXPECT_EQ(record->attributionState, AttributionState::FAILED);
-
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0300 end");
-}
-
-/**
- * @tc.name: CliToolManagerService_AttachSkillTaskAttribution_0400
- * @tc.desc: In-app skill attach, taskId not carried (or normalized to empty at
- *           the entry gate): zero attribution side effects — the locate IPC is
- *           never attempted (AC-4 not-carried baseline on the skill path).
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, AttachSkillTaskAttribution_0400, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0400 start");
-
-    auto record = std::make_shared<SessionRecord>();
-    record->sessionId = "skill_not_carried_session";
-    record->taskId = "";
-    record->callerUid = ATTR_TEST_CALLER_UID;
-    service_->AddSessionRecord(record);
-
-    service_->AttachSkillTaskAttribution(record, "com.example.skill.host");
-    service_->AttachSkillTaskAttribution(nullptr, "com.example.skill.host");
-
-    EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 0);
-    EXPECT_EQ(record->attributionId, 0);
-    EXPECT_EQ(record->attributionState, AttributionState::NONE);
-
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachSkillTaskAttribution_0400 end");
-}
-
-/**
  * @tc.name: CliToolManagerService_SetupAndStartSkillSession_DispatchFail_0100
- * @tc.desc: Skill setup point ordering: the attach hook runs only AFTER the
- *           dispatch to the target application succeeds — a failed dispatch
- *           (the target application is unreachable in this environment) rolls the record back with
- *           zero attribution side effects: no locate IPC, no unregister post
- *           (the hook is after every rollback-able failure path).
+ * @tc.desc: Skill setup rollback: a failed dispatch (the target application
+ *           is unreachable in this environment) rolls the session record back with zero
+ *           attribution side effects on the climgr side (skill attribution is owned by
+ *           the AMS launch-completion path, so no climgr attach exists to roll back) and
+ *           no unregister post.
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, SetupAndStartSkillSession_DispatchFail_0100, TestSize.Level1)
@@ -5666,7 +5472,6 @@ HWTEST_F(CliToolManagerServiceTest, SetupAndStartSkillSession_DispatchFail_0100,
     auto ret = service_->SetupAndStartSkillSession(param, "event_skill_dispatch", toolInfo);
 
     EXPECT_NE(ret, ERR_OK);
-    EXPECT_EQ(g_mockAppMgr->inAppSkillCalls, 0);
     EXPECT_TRUE(service_->GetSessionRecords().empty());
     std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 0);

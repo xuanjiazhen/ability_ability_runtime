@@ -31,6 +31,7 @@
 #include "permission_constants.h"
 #include "permission_verification.h"
 #include "system_ability_definition.h"
+#include "task_mgr/task_manager_service.h"
 #ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
 #endif
@@ -150,7 +151,9 @@ std::string SkillExecuteManager::CreateExecuteRecord(const sptr<IRemoteObject> &
     const std::string &targetBundleName, const std::string &callerBundleName,
     uint32_t callerTokenId,
     const sptr<ISkillExecuteCallback> &callback,
-    const std::string &externalRequestCode)
+    const std::string &externalRequestCode,
+    const std::string &taskId,
+    int32_t callerUid)
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
     uint64_t currentSeq = ++requestCodeSeq_;
@@ -169,6 +172,8 @@ std::string SkillExecuteManager::CreateExecuteRecord(const sptr<IRemoteObject> &
     record->requestCodeSeq = currentSeq;
     record->state = SkillExecuteState::EXECUTING;
     record->callback = callback;
+    record->taskId = taskId;
+    record->callerUid = callerUid;
 
     if (callerToken != nullptr) {
         auto deathRecipient = sptr<CallerDeathRecipient>::MakeSptr(
@@ -193,6 +198,7 @@ int32_t SkillExecuteManager::ExecuteSkillDone(const std::string &requestCode, in
         requestCode.c_str(), resultCode);
 
     sptr<ISkillExecuteCallback> callback;
+    AttributionSnapshot detach;
     {
         std::lock_guard<ffrt::mutex> lock(mutex_);
         auto it = records_.find(requestCode);
@@ -231,16 +237,18 @@ int32_t SkillExecuteManager::ExecuteSkillDone(const std::string &requestCode, in
 
         record->state = SkillExecuteState::EXECUTE_DONE;
         callback = record->callback;
-        RemoveRecord(requestCode);
+        RemoveRecord(requestCode, detach);
     }
 
     if (callback != nullptr) {
         callback->OnExecuteDone(requestCode, resultCode, result);
     }
+    // Unregister outside mutex_ (see the attribution contract on UnregisterAttributedProcess).
+    UnregisterAttributedProcess(detach);
     return ERR_OK;
 }
 
-void SkillExecuteManager::RemoveRecord(const std::string &requestCode)
+void SkillExecuteManager::RemoveRecord(const std::string &requestCode, AttributionSnapshot &snapshot)
 {
     auto it = records_.find(requestCode);
     if (it == records_.end()) {
@@ -250,19 +258,28 @@ void SkillExecuteManager::RemoveRecord(const std::string &requestCode)
     if (record->callerToken != nullptr && record->deathRecipient != nullptr) {
         record->callerToken->RemoveDeathRecipient(record->deathRecipient);
     }
+    // Hand the attribution over to the caller for the lock-external unregister; exactly one
+    // terminal path reaches here per record, so the detach fires exactly once.
+    snapshot.taskId = record->taskId;
+    snapshot.attributionId = record->attributionId;
+    snapshot.callerUid = record->callerUid;
     records_.erase(it);
 }
 
 void SkillExecuteManager::OnCallerDied(const std::string &requestCode)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "caller died, requestCode:%{public}s", requestCode.c_str());
-    std::lock_guard<ffrt::mutex> lock(mutex_);
-    auto it = records_.find(requestCode);
-    if (it != records_.end()) {
-        RemoveSkillExecuteTimeoutLocked(it->second->requestCodeSeq);
-        it->second->state = SkillExecuteState::REMOTE_DIED;
-        RemoveRecord(requestCode);
+    AttributionSnapshot detach;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        auto it = records_.find(requestCode);
+        if (it != records_.end()) {
+            RemoveSkillExecuteTimeoutLocked(it->second->requestCodeSeq);
+            it->second->state = SkillExecuteState::REMOTE_DIED;
+            RemoveRecord(requestCode, detach);
+        }
     }
+    UnregisterAttributedProcess(detach);
 }
 
 std::string SkillExecuteManager::ResolveDefaultAbilityName(const std::string &bundleName,
@@ -368,6 +385,7 @@ void SkillExecuteManager::OnTimeout(int64_t requestCodeSeq)
 
     sptr<ISkillExecuteCallback> callback;
     std::string requestCode;
+    AttributionSnapshot detach;
     {
         std::lock_guard<ffrt::mutex> lock(mutex_);
         auto seqIt = seqToRequestCodeMap_.find(requestCodeSeq);
@@ -390,7 +408,7 @@ void SkillExecuteManager::OnTimeout(int64_t requestCodeSeq)
         TAG_LOGW(AAFwkTag::ABILITYMGR, "skill execute timed out, req:%{public}s", requestCode.c_str());
         record->state = SkillExecuteState::TIMED_OUT;
         callback = record->callback;
-        RemoveRecord(requestCode);
+        RemoveRecord(requestCode, detach);
     }
 
     if (callback != nullptr) {
@@ -398,6 +416,7 @@ void SkillExecuteManager::OnTimeout(int64_t requestCodeSeq)
         emptyResult.code = ERR_TIMED_OUT;
         callback->OnExecuteDone(requestCode, ERR_TIMED_OUT, emptyResult);
     }
+    UnregisterAttributedProcess(detach);
 }
 
 void SkillExecuteManager::EnsureAppStateObserverRegistered()
@@ -436,81 +455,188 @@ void SkillExecuteManager::OnLaunchCompleted(const std::string &requestCode)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "OnLaunchCompleted: failed to get hap token info");
         return;
     }
-    std::lock_guard<ffrt::mutex> lock(mutex_);
-    auto it = records_.find(requestCode);
-    if (it == records_.end()) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "OnLaunchCompleted: record gone, req:%{public}s", requestCode.c_str());
-        return;
+    // Phase 1 — snapshot under the lock. targetPid is the idempotency latch: only the
+    // first launch-completion report of a record triggers an attribution attempt, so a
+    // repeated report from the target app can never double-register.
+    std::string taskId;
+    int32_t callerUid = -1;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        auto it = records_.find(requestCode);
+        if (it == records_.end()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "OnLaunchCompleted: record gone, req:%{public}s", requestCode.c_str());
+            return;
+        }
+        if (it->second->targetBundleName != hapInfo.bundleName) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "OnLaunchCompleted: bundleName mismatch");
+            return;
+        }
+        if (it->second->targetPid == 0 && !it->second->taskId.empty()) {
+            taskId = it->second->taskId;
+            callerUid = it->second->callerUid;
+        }
+        it->second->targetPid = callerPid;
+        RemoveSkillExecuteTimeoutLocked(it->second->requestCodeSeq);
     }
-    if (it->second->targetBundleName != hapInfo.bundleName) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnLaunchCompleted: bundleName mismatch");
-        return;
+    // Phase 2 — register the real executing process (the IPC caller's pid: correct for cold
+    // start, warm start and non-main-process extensions alike) on the caller's task, outside
+    // mutex_ (the kernel takes its own lock). Failure is a known non-blocking outcome, e.g.
+    // ERR_TASK_NOT_FOUND when the agent app never started or already finished the task; the
+    // skill execution itself stands.
+    if (!taskId.empty()) {
+        int64_t attributionId = 0;
+        RegisterAttributedProcess(taskId, callerPid, callerUid, attributionId);
+        if (attributionId > 0) {
+            // Phase 3 — write the handle back under the lock. A terminal path that removed
+            // the record while the kernel call was in flight saw attributionId 0 and skipped
+            // its unregister, so this side compensates its own registration — exactly one
+            // unregister per attribution (same contract as InsightIntentExecuteManager).
+            std::lock_guard<ffrt::mutex> lock(mutex_);
+            auto it = records_.find(requestCode);
+            if (it == records_.end()) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR,
+                    "OnLaunchCompleted: record gone after register, compensate, req:%{public}s",
+                    requestCode.c_str());
+                AttributionSnapshot snapshot = { taskId, attributionId, callerUid };
+                UnregisterAttributedProcess(snapshot);
+                return;
+            }
+            it->second->attributionId = attributionId;
+        }
     }
-    it->second->targetPid = callerPid;
-    RemoveSkillExecuteTimeoutLocked(it->second->requestCodeSeq);
     TAG_LOGD(AAFwkTag::ABILITYMGR,
         "launch completed, pid:%{public}d, keep record for async result, req:%{public}s",
         callerPid, requestCode.c_str());
 }
 
+void SkillExecuteManager::RegisterAttributedProcess(const std::string &taskId, pid_t pid,
+    int32_t callerUid, int64_t &attributionId)
+{
+    attributionId = 0;
+    if (taskId.empty() || pid <= 0) {
+        return;
+    }
+    // In-process direct call (AMS and appmgr share the foundation process); the kernel
+    // enforces creator ownership against callerUid (the genuine agent-app uid derived
+    // from the IPC-stamped callerTokenId) and its per-task attribution quota. Tool stays
+    // CLI: the execution is triggered through the execTool channel.
+    AppExecFwk::AttributionRecord attribution;
+    attribution.pid = pid;
+    attribution.tool = AppExecFwk::AttributionTool::CLI;
+    auto ret = IN_PROCESS_CALL(AppExecFwk::TaskManagerService::GetInstance()
+        .RegisterManagedProcessForCaller(taskId, attribution, callerUid, attributionId));
+    if (ret != ERR_OK || attributionId <= 0) {
+        // ERR_TASK_NOT_FOUND covers "task never started / already finished" and, together
+        // with the kernel's creator-ownership check, also rejects a forged taskId that
+        // points to another app's task.
+        attributionId = 0;
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "register attributed process failed, ret:%{public}d, pid:%{public}d, taskId:%{public}s",
+            ret, pid, taskId.c_str());
+    } else {
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
+            "attributed process registered, taskId:%{public}s, pid:%{public}d, "
+            "attributionId:%{public}" PRId64,
+            taskId.c_str(), pid, attributionId);
+    }
+}
+
+void SkillExecuteManager::UnregisterAttributedProcess(const AttributionSnapshot &snapshot)
+{
+    // Most terminal paths arrive before the launch-completion registration, leaving
+    // attributionId 0 and nothing registered; guard here to avoid noisy no-op calls.
+    if (snapshot.taskId.empty() || snapshot.attributionId <= 0) {
+        return;
+    }
+    // Best-effort: attribution is a side capability and its failure must never affect the
+    // skill result flow. ERR_TASK_NOT_FOUND / ERR_ATTRIBUTION_NOT_FOUND are legal timings
+    // (task already finished, or the attribution was already swept by the appmgr
+    // process-death / task-timeout backstops), not errors.
+    auto ret = IN_PROCESS_CALL(AppExecFwk::TaskManagerService::GetInstance()
+        .UnregisterManagedProcessForCaller(snapshot.taskId, snapshot.attributionId, snapshot.callerUid));
+    if (ret != ERR_OK && ret != ERR_TASK_NOT_FOUND && ret != ERR_ATTRIBUTION_NOT_FOUND) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "unregister attributed process failed, ret:%{public}d, "
+            "attributionId:%{public}" PRId64 ", taskId:%{public}s",
+            ret, snapshot.attributionId, snapshot.taskId.c_str());
+    } else {
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
+            "attributed process unregistered, taskId:%{public}s, "
+            "attributionId:%{public}" PRId64,
+            snapshot.taskId.c_str(), snapshot.attributionId);
+    }
+}
+
 void SkillExecuteManager::OnLaunchFailed(const std::string &requestCode, int32_t errCode)
 {
-    std::lock_guard<ffrt::mutex> lock(mutex_);
-    auto it = records_.find(requestCode);
-    if (it == records_.end()) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "OnLaunchFailed: record gone, req:%{public}s", requestCode.c_str());
-        return;
+    AttributionSnapshot detach;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        auto it = records_.find(requestCode);
+        if (it == records_.end()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "OnLaunchFailed: record gone, req:%{public}s", requestCode.c_str());
+            return;
+        }
+        auto record = it->second;
+        RemoveSkillExecuteTimeoutLocked(record->requestCodeSeq);
+        if (record->state != SkillExecuteState::EXECUTING) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "OnLaunchFailed: invalid state:%{public}d", static_cast<int>(record->state));
+            return;
+        }
+        record->state = SkillExecuteState::REMOTE_DIED;
+        if (record->callback != nullptr) {
+            AppExecFwk::SkillExecuteResult emptyResult;
+            emptyResult.code = errCode;
+            record->callback->OnExecuteDone(requestCode, errCode, emptyResult);
+        }
+        RemoveRecord(requestCode, detach);
     }
-    auto record = it->second;
-    RemoveSkillExecuteTimeoutLocked(record->requestCodeSeq);
-    if (record->state != SkillExecuteState::EXECUTING) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "OnLaunchFailed: invalid state:%{public}d", static_cast<int>(record->state));
-        return;
-    }
-    record->state = SkillExecuteState::REMOTE_DIED;
-    if (record->callback != nullptr) {
-        AppExecFwk::SkillExecuteResult emptyResult;
-        emptyResult.code = errCode;
-        record->callback->OnExecuteDone(requestCode, errCode, emptyResult);
-    }
-    RemoveRecord(requestCode);
+    UnregisterAttributedProcess(detach);
 }
 
 void SkillExecuteManager::OnTargetProcessDied(const std::string &bundleName, pid_t pid)
 {
-    std::lock_guard<ffrt::mutex> lock(mutex_);
-    std::vector<std::string> hitCodes;
-    for (const auto &entry : records_) {
-        const auto &record = entry.second;
-        // pid 未就绪（OnLaunchCompleted 前）跳过，依赖 timeout 兜底
-        if (record->targetBundleName == bundleName &&
-            record->targetPid != 0 && record->targetPid == pid &&
-            record->state == SkillExecuteState::EXECUTING) {
-            hitCodes.push_back(entry.first);
+    std::vector<AttributionSnapshot> detaches;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        std::vector<std::string> hitCodes;
+        for (const auto &entry : records_) {
+            const auto &record = entry.second;
+            // pid 未就绪（OnLaunchCompleted 前）跳过，依赖 timeout 兜底
+            if (record->targetBundleName == bundleName &&
+                record->targetPid != 0 && record->targetPid == pid &&
+                record->state == SkillExecuteState::EXECUTING) {
+                hitCodes.push_back(entry.first);
+            }
+        }
+        if (hitCodes.empty()) {
+            return;
+        }
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "target process died, bundle:%{public}s pid:%{public}d, hit %{public}zu record(s)",
+            bundleName.c_str(), pid, hitCodes.size());
+        for (const auto &requestCode : hitCodes) {
+            auto it = records_.find(requestCode);
+            if (it == records_.end()) {
+                continue;
+            }
+            auto record = it->second;
+            record->state = SkillExecuteState::REMOTE_DIED;
+            if (record->callback != nullptr) {
+                AppExecFwk::SkillExecuteResult emptyResult;
+                emptyResult.code = ERR_SKILL_EXECUTE_TARGET_DIED;
+                record->callback->OnExecuteDone(requestCode, ERR_SKILL_EXECUTE_TARGET_DIED, emptyResult);
+            }
+            AttributionSnapshot detach;
+            RemoveRecord(requestCode, detach);
+            detaches.push_back(detach);
         }
     }
-    if (hitCodes.empty()) {
-        return;
-    }
-    TAG_LOGW(AAFwkTag::ABILITYMGR,
-        "target process died, bundle:%{public}s pid:%{public}d, hit %{public}zu record(s)",
-        bundleName.c_str(), pid, hitCodes.size());
-    for (const auto &requestCode : hitCodes) {
-        auto it = records_.find(requestCode);
-        if (it == records_.end()) {
-            continue;
-        }
-        auto record = it->second;
-        record->state = SkillExecuteState::REMOTE_DIED;
-        if (record->callback != nullptr) {
-            AppExecFwk::SkillExecuteResult emptyResult;
-            emptyResult.code = ERR_SKILL_EXECUTE_TARGET_DIED;
-            record->callback->OnExecuteDone(requestCode, ERR_SKILL_EXECUTE_TARGET_DIED, emptyResult);
-        }
-        RemoveRecord(requestCode);
+    for (const auto &detach : detaches) {
+        UnregisterAttributedProcess(detach);
     }
 }
 
