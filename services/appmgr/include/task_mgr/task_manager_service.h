@@ -171,6 +171,23 @@ public:
         pid_t targetPid, AttributionId &attributionId);
 
     /**
+     * @brief Attributes a process that executes an insight intent into the task: same
+     *        liveness and creator-only ownership checks as AttributeProcessForAbility,
+     *        then registers with AttributionTool::INSIGHT so the reporting source stays
+     *        distinguishable from the startAbility channel.
+     * @param taskId Indicates the attribution key carried by the task.
+     * @param callerUid Indicates the IPC-proven uid of the intent caller.
+     * @param callerPid Indicates the IPC-proven pid of the intent caller.
+     * @param targetPid Indicates the pid of the process executing the intent.
+     * @param attributionId Indicates the server-assigned handle of the created attribution.
+     * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters or
+     *         when the per-task attribution quota is exhausted; ERR_TASK_NOT_FOUND if the
+     *         task does not exist or the ownership check fails.
+     */
+    int32_t AttributeProcessForInsightIntent(const std::string &taskId, int32_t callerUid, pid_t callerPid,
+        pid_t targetPid, AttributionId &attributionId);
+
+    /**
      * @brief Dumps the snapshot of active tasks, taken under the mutex for consistency
      *        with lifecycle actions.
      * @return Returns the dump text of the active task list.
@@ -270,6 +287,22 @@ private:
      */
     int32_t RegisterManagedProcessInner(const std::string &taskId, const AttributionRecord &attribution,
         AttributionId &attributionId);
+
+    /**
+     * @brief Shared body of the foundation attribution channels: param check, task liveness
+     *        and creator-only ownership check, then delegation to RegisterManagedProcess
+     *        with the caller-supplied tool type.
+     * @param taskId Indicates the attribution key of the task.
+     * @param callerUid Indicates the IPC-proven uid of the reporting caller.
+     * @param callerPid Indicates the IPC-proven pid of the reporting caller.
+     * @param targetPid Indicates the pid of the attributed process.
+     * @param tool Indicates the reporting channel recorded on the attribution.
+     * @param attributionId Indicates the server-assigned id of the created record.
+     * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters;
+     *         ERR_TASK_NOT_FOUND if the task is gone or the caller is not its creator.
+     */
+    int32_t AttributeProcessForTask(const std::string &taskId, int32_t callerUid, pid_t callerPid,
+        pid_t targetPid, AttributionTool tool, AttributionId &attributionId);
 
     /**
      * @brief Removes the attribution record with the given id from the task; locks

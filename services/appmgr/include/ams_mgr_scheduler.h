@@ -135,6 +135,20 @@ public:
         int32_t targetPid, int64_t &attributionId) override;
 
     /**
+     * AttributeProcessForInsightIntent, report task attribution for an insight intent
+     * execution; only the foundation process (abilitymgr) is allowed to call.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param callerUid, the uid of the intent caller (system stamped).
+     * @param callerPid, the pid of the intent caller (system stamped).
+     * @param targetPid, the pid of the process executing the intent.
+     * @param attributionId, the server-assigned handle of the created attribution.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t AttributeProcessForInsightIntent(const std::string &taskId, int32_t callerUid,
+        int32_t callerPid, int32_t targetPid, int64_t &attributionId) override;
+
+    /**
      * UnregisterTaskAttribution, remove an attribution by its handle; only the
      * foundation process (abilitymgr) is allowed to call.
      *

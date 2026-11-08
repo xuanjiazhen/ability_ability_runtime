@@ -61,6 +61,7 @@ private:
      * @return Returns NO_ERROR on success, others on failure.
      */
     int32_t HandleAttributeProcessForAbility(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleAttributeProcessForInsightIntent(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUnregisterTaskAttribution(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessesByUserId(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessesByPids(MessageParcel &data, MessageParcel &reply);

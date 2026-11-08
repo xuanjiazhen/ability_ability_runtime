@@ -436,6 +436,18 @@ int32_t TaskManagerService::UnregisterManagedProcessInner(const std::string &tas
 int32_t TaskManagerService::AttributeProcessForAbility(const std::string &taskId, int32_t callerUid,
     pid_t callerPid, pid_t targetPid, AttributionId &attributionId)
 {
+    return AttributeProcessForTask(taskId, callerUid, callerPid, targetPid, AttributionTool::ABILITY, attributionId);
+}
+
+int32_t TaskManagerService::AttributeProcessForInsightIntent(const std::string &taskId, int32_t callerUid,
+    pid_t callerPid, pid_t targetPid, AttributionId &attributionId)
+{
+    return AttributeProcessForTask(taskId, callerUid, callerPid, targetPid, AttributionTool::INSIGHT, attributionId);
+}
+
+int32_t TaskManagerService::AttributeProcessForTask(const std::string &taskId, int32_t callerUid,
+    pid_t callerPid, pid_t targetPid, AttributionTool tool, AttributionId &attributionId)
+{
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     attributionId = 0;
     if (!IsTaskIdValidForAttribution(taskId) || targetPid <= 0) {
@@ -447,19 +459,19 @@ int32_t TaskManagerService::AttributeProcessForAbility(const std::string &taskId
         std::lock_guard<ffrt::mutex> lock(tasksMutex_);
         auto it = tasks_.find(taskId);
         if (it == tasks_.end()) {
-            TAG_LOGW(AAFwkTag::APPMGR, "security: task not alive, ability attribution dropped, taskId: "
-                "%{public}s, caller uid: %{public}d, pid: %{public}d, target pid: %{public}d",
-                taskId.c_str(), callerUid, callerPid, targetPid);
+            TAG_LOGW(AAFwkTag::APPMGR, "security: task not alive, attribution dropped, taskId: "
+                "%{public}s, tool: %{public}s, caller uid: %{public}d, pid: %{public}d, target pid: %{public}d",
+                taskId.c_str(), AttributionToolToString(tool), callerUid, callerPid, targetPid);
             return ERR_TASK_NOT_FOUND;
         }
         TaskRecord &record = it->second;
-        // Creator-only authorization (Owner ruling): the startAbility channel trusts the
+        // Creator-only authorization (Owner ruling): a reporting channel trusts the
         // task creator alone; a member process carrying the key is not a reporter.
         if (!(callerUid >= 0 && record.creatorUid == callerUid)) {
-            TAG_LOGW(AAFwkTag::APPMGR, "security: caller is not the task creator, ability "
-                "attribution dropped, taskId: %{public}s, creator uid: %{public}d, caller uid: %{public}d, "
-                "pid: %{public}d, target pid: %{public}d", taskId.c_str(), record.creatorUid, callerUid,
-                callerPid, targetPid);
+            TAG_LOGW(AAFwkTag::APPMGR, "security: caller is not the task creator, attribution dropped, "
+                "taskId: %{public}s, tool: %{public}s, creator uid: %{public}d, caller uid: %{public}d, "
+                "pid: %{public}d, target pid: %{public}d", taskId.c_str(), AttributionToolToString(tool),
+                record.creatorUid, callerUid, callerPid, targetPid);
             return ERR_TASK_NOT_FOUND;
         }
     }
@@ -467,12 +479,12 @@ int32_t TaskManagerService::AttributeProcessForAbility(const std::string &taskId
     // and timeout-window restart all live in RegisterManagedProcess.
     AttributionRecord attribution;
     attribution.pid = targetPid;
-    attribution.tool = AttributionTool::ABILITY;
+    attribution.tool = tool;
     int32_t result = RegisterManagedProcess(taskId, attribution, attributionId);
     if (result != ERR_OK) {
-        TAG_LOGW(AAFwkTag::APPMGR, "ability attribution register failed, taskId: %{public}s, caller uid: "
-            "%{public}d, pid: %{public}d, target pid: %{public}d, result: %{public}d",
-            taskId.c_str(), callerUid, callerPid, targetPid, result);
+        TAG_LOGW(AAFwkTag::APPMGR, "attribution register failed, taskId: %{public}s, tool: %{public}s, "
+            "caller uid: %{public}d, pid: %{public}d, target pid: %{public}d, result: %{public}d",
+            taskId.c_str(), AttributionToolToString(tool), callerUid, callerPid, targetPid, result);
     }
     return result;
 }

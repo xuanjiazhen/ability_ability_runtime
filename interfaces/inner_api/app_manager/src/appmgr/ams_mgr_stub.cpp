@@ -103,6 +103,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data
             return HandleSetGameSAPrelaunch(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::ATTRIBUTE_PROCESS_FOR_ABILITY):
             return HandleAttributeProcessForAbility(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::ATTRIBUTE_PROCESS_FOR_INSIGHT_INTENT):
+            return HandleAttributeProcessForInsightIntent(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::UNREGISTER_TASK_ATTRIBUTION):
             return HandleUnregisterTaskAttribution(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_BY_USERID):
@@ -355,6 +357,23 @@ ErrCode AmsMgrStub::HandleAttributeProcessForAbility(MessageParcel &data, Messag
 
     int64_t attributionId = 0;
     ErrCode result = AttributeProcessForAbility(taskId, callerUid, callerPid, targetPid, attributionId);
+    if (!reply.WriteInt32(result) || !reply.WriteInt64(attributionId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write result");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+ErrCode AmsMgrStub::HandleAttributeProcessForInsightIntent(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::string taskId = data.ReadString();
+    int32_t callerUid = data.ReadInt32();
+    int32_t callerPid = data.ReadInt32();
+    int32_t targetPid = data.ReadInt32();
+
+    int64_t attributionId = 0;
+    ErrCode result = AttributeProcessForInsightIntent(taskId, callerUid, callerPid, targetPid, attributionId);
     if (!reply.WriteInt32(result) || !reply.WriteInt64(attributionId)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Failed to write result");
         return ERR_INVALID_VALUE;

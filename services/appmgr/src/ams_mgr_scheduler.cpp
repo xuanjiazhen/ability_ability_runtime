@@ -273,6 +273,21 @@ int32_t AmsMgrScheduler::AttributeProcessForAbility(const std::string &taskId, i
         taskId, callerUid, callerPid, targetPid, attributionId);
 }
 
+int32_t AmsMgrScheduler::AttributeProcessForInsightIntent(const std::string &taskId, int32_t callerUid,
+    int32_t callerPid, int32_t targetPid, int64_t &attributionId)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrScheduler is not ready");
+        return ERR_INVALID_VALUE;
+    }
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call, uid: %{public}d", IPCSkeleton::GetCallingUid());
+        return ERR_PERMISSION_DENIED;
+    }
+    return TaskManagerService::GetInstance().AttributeProcessForInsightIntent(
+        taskId, callerUid, callerPid, targetPid, attributionId);
+}
+
 int32_t AmsMgrScheduler::UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId)
 {
     if (!IsReady()) {

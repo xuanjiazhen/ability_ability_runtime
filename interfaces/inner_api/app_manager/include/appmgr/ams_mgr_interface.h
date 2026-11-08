@@ -134,11 +134,28 @@ public:
         int32_t targetPid, int64_t &attributionId) = 0;
 
     /**
+     * AttributeProcessForInsightIntent, report task attribution for an insight intent
+     * execution; same foundation-only channel as AttributeProcessForAbility, registered
+     * with AttributionTool::INSIGHT so the two reporting sources stay distinguishable.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param callerUid, the uid of the intent caller (system stamped at the AMS entry).
+     * @param callerPid, the pid of the intent caller (system stamped at the AMS entry).
+     * @param targetPid, the pid of the process that executes the intent.
+     * @param attributionId, the server-assigned handle of the created attribution, handed
+     *        back to the caller for later unregistration.
+     * @return Returns ERR_OK on success, others on failure (attribution never blocks execution).
+     */
+    virtual int32_t AttributeProcessForInsightIntent(const std::string &taskId, int32_t callerUid,
+        int32_t callerPid, int32_t targetPid, int64_t &attributionId) = 0;
+
+    /**
      * UnregisterTaskAttribution, remove an attribution by its handle; called when the
      * attributed ability dies unexpectedly so the attribution does not outlive the process.
      *
      * @param taskId, the attribution key of the task.
-     * @param attributionId, the handle returned by AttributeProcessForAbility.
+     * @param attributionId, the handle returned by AttributeProcessForAbility or
+     *        AttributeProcessForInsightIntent.
      * @return Returns ERR_OK on success, others on failure (idempotent on missing record).
      */
     virtual int32_t UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId) = 0;
@@ -681,6 +698,7 @@ public:
         KILL_PROCESS_WITH_ACCOUNT_SAFELY,
         ATTRIBUTE_PROCESS_FOR_ABILITY,
         UNREGISTER_TASK_ATTRIBUTION,
+        ATTRIBUTE_PROCESS_FOR_INSIGHT_INTENT,
         // Add enumeration values above
         END
     };

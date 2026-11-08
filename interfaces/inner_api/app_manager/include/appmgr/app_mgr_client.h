@@ -192,6 +192,20 @@ public:
         int32_t targetPid, int64_t &attributionId);
 
     /**
+     * Report task attribution for an insight intent execution. Same foundation-only
+     * channel as AttributeProcessForAbility, registered with AttributionTool::INSIGHT.
+     *
+     * @param taskId Attribution key of the task.
+     * @param callerUid Uid of the intent caller (system stamped at the AMS entry).
+     * @param callerPid Pid of the intent caller (system stamped at the AMS entry).
+     * @param targetPid Pid of the process executing the intent.
+     * @param attributionId Server-assigned handle of the created attribution.
+     * @return Raw result code from the service; attribution failure never blocks execution.
+     */
+    virtual int32_t AttributeProcessForInsightIntent(const std::string &taskId, int32_t callerUid,
+        int32_t callerPid, int32_t targetPid, int64_t &attributionId);
+
+    /**
      * Remove an attribution by its handle, called when the attributed ability
      * dies unexpectedly.
      *

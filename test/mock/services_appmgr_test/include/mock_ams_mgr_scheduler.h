@@ -83,6 +83,8 @@ public:
     MOCK_METHOD2(SetGameSAPrelaunch, int32_t(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch));
     MOCK_METHOD5(AttributeProcessForAbility, int32_t(const std::string &taskId, int32_t callerUid,
         int32_t callerPid, int32_t targetPid, int64_t &attributionId));
+    MOCK_METHOD5(AttributeProcessForInsightIntent, int32_t(const std::string &taskId, int32_t callerUid,
+        int32_t callerPid, int32_t targetPid, int64_t &attributionId));
     MOCK_METHOD2(UnregisterTaskAttribution, int32_t(const std::string &taskId, int64_t attributionId));
 
     MockAmsMgrScheduler() : AmsMgrStub() {};
