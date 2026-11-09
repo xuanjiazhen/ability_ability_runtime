@@ -36,6 +36,7 @@
 #include "ability_info.h"
 #include "ability_manager_event_subscriber.h"
 #include "ability_manager_stub.h"
+#include "ability_permission_checker.h"
 #include "ability_keep_alive_service.h"
 #include "ability_start_with_wait_observer_utils.h"
 #include "ams_configuration_parameter.h"
@@ -1419,6 +1420,13 @@ public:
         bool isSilent = false, bool promotePriority = false,
         bool isVisible = false, uint64_t specifiedFullTokenId = 0) override;
 
+    // StartAbilityByCallWithErrMsg implementation that can carry the channel permission policy.
+    // The public entry above always passes none, so an IPC caller cannot supply one.
+    int StartAbilityByCallInner(const Want &want, const sptr<IAbilityConnection> &connect,
+        const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg,
+        bool isSilent, bool promotePriority, bool isVisible, uint64_t specifiedFullTokenId,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker);
+
     /**
      * Start Ability for prelauch.
      *
@@ -1486,7 +1494,8 @@ public:
         bool isImplicit = false,
         bool isDlp = false,
         bool isStartAsCaller = false,
-        uint32_t skillCallerTokenId = 0);
+        uint32_t skillCallerTokenId = 0,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker = nullptr);
 
     int RequestModalUIExtensionInner(Want want);
 
@@ -2264,13 +2273,16 @@ public:
      */
     int32_t OnExecuteIntent(AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord);
 
+    // Start an ability for an insight intent execution; permissionChecker is built by the dispatcher.
     int32_t StartAbilityWithInsightIntent(const Want &want, int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0,
-        const sptr<IRemoteObject> &callerToken = nullptr);
+        const sptr<IRemoteObject> &callerToken = nullptr,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker = nullptr);
 
     int32_t StartAbilityByCallWithInsightIntent(const Want &want,
         const sptr<IRemoteObject> &callerToken, const InsightIntentExecuteParam &param,
-        int32_t userId = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0);
+        int32_t userId = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker = nullptr);
     void GrantFileEntityUriPermission(const AbilityRequest &abilityRequest);
     int32_t ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0) override;
@@ -3344,6 +3356,9 @@ private:
     int CheckStaticCfgPermission(const AppExecFwk::AbilityRequest &abilityRequest, bool isStartAsCaller,
         uint32_t callerTokenId, bool isData = false, bool isSaCall = false, bool isImplicit = false);
 
+    int CheckStaticCfgPermissionInner(const AppExecFwk::AbilityRequest &abilityRequest, bool isStartAsCaller,
+        uint32_t callerTokenId, bool isData, bool isSaCall, bool isImplicit);
+
     int CheckPermissionForUIService(AppExecFwk::ExtensionAbilityType extensionType,
         const Want &want, const AbilityRequest &abilityRequest);
 
@@ -3581,15 +3596,11 @@ private:
 
     void SetAutoFillElementName(const sptr<SessionInfo> &extensionSessionInfo);
 
-    /**
-     * @brief Start extension ability with insight intent
-     * @param want, the want of the ability to start.
-     * @param extensionType If an ExtensionAbilityType is set, only extension of that type can be started.
-     * @return Returns ERR_OK on success, others on failure.
-     */
+    // Start an extension ability with insight intent; permissionChecker is built by the dispatcher.
     int32_t StartExtensionAbilityWithInsightIntent(const Want &want,
         AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker = nullptr);
 
     bool IsAbilityStarted(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord,
         const int32_t oriValidUserId);
@@ -3834,7 +3845,9 @@ private:
     AbilityRuntime::ExtractInsightIntentGenericInfo GetInsightIntentExecuteInfo(const InsightIntentExecuteParam &param,
         AbilityRuntime::ExtractInsightIntentInfo &extractInfo, AbilityRuntime::InsightIntentInfo &configInfo);
 
-    bool IsInsightIntentCall(const Want &want, const std::string &targetBundleName);
+    // Build the permission policy for an insight intent execution; called only by the dispatcher
+    // right after it authorised the caller and created the execution record.
+    std::shared_ptr<const AbilityPermissionChecker> CreateInsightIntentPermissionChecker();
 
     int32_t RecordAppWithReasonByAccessTokenId(uint32_t accessTokenId,
         const ExitReasonCompability &exitReasonCompability);
