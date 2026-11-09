@@ -491,21 +491,6 @@ int32_t InsightIntentExecuteManager::GetCallerBundleName(uint64_t intentId, std:
     return ERR_OK;
 }
 
-bool InsightIntentExecuteManager::IsInsightIntentCall(uint64_t intentId) const
-{
-    std::lock_guard<ffrt::mutex> lock(mutex_);
-    auto it = records_.find(intentId);
-    if (it == records_.end() || it->second == nullptr) {
-        return false;
-    }
-    // Only a live invocation counts: a record waiting for user consent (agent path,
-    // queryable by the privacy-center popup) or one actively executing. Stale
-    // EXECUTE_DONE / REMOTE_DIED entries must not validate anything.
-    auto state = it->second->state;
-    return state == InsightIntentExecuteState::PENDING_CONSENT ||
-        state == InsightIntentExecuteState::EXECUTING;
-}
-
 bool InsightIntentExecuteManager::IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId) const
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
@@ -513,9 +498,8 @@ bool InsightIntentExecuteManager::IsInsightIntentCall(uint64_t intentId, uint32_
     if (it == records_.end() || it->second == nullptr) {
         return false;
     }
-    // Stronger variant used by the privacy-center consent path: the record must be
-    // live AND owned by the exact caller token, so a caller cannot validate (or
-    // later reuse) a record it did not originate.
+    // The record must be live AND owned by the exact caller token, so a caller cannot
+    // validate (or later reuse) a record it did not originate.
     auto state = it->second->state;
     return (state == InsightIntentExecuteState::PENDING_CONSENT ||
             state == InsightIntentExecuteState::EXECUTING) &&

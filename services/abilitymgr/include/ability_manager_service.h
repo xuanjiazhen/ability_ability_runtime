@@ -2281,7 +2281,7 @@ public:
      * MOCK implementation for now: the real consent dialog is provided by the
      * privacy-center domain (RequestDialogService / ams_system_dialog). The
      * pre-registered record is queryable via IsInsightIntentCall(intentId, callerTokenId)
-     * (IPC 6190) while this call blocks on the dialog.
+     * (IPC 6192) while this call blocks on the dialog.
      * @return true if consent is granted, false if declined or the pre-registered
      *         record is no longer queryable.
      */

@@ -15819,8 +15819,11 @@ bool AbilityManagerService::RequestAgentPrivacyDialog(const std::string &callerB
         callerAppIndex, targetBundleName.c_str(), targetBundleIndex);
 
     // The record must be pre-registered so the dialog can query it back while showing.
+    // Bind the check to the caller token so only the caller that pre-registered the
+    // record (via ExecuteIntentByAgent) can validate it.
     auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
-    if (executeManager == nullptr || !executeManager->IsInsightIntentCall(intentId)) {
+    if (executeManager == nullptr ||
+        !executeManager->IsInsightIntentCall(intentId, IPCSkeleton::GetCallingTokenID())) {
         TAG_LOGE(AAFwkTag::INTENT, "pre-registered record not queryable, intentId: %{public}" PRIu64, intentId);
         return false;
     }

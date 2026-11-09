@@ -814,11 +814,11 @@ enum class AbilityManagerInterfaceCode {
     GET_DYNAMIC_AGENT_CARDS_FOR_MIGRATION = 6188,
 
     // execute intent by agent (third-party agent function call)
-    EXECUTE_INTENT_BY_AGENT = 6189,
+    EXECUTE_INTENT_BY_AGENT = 6191,
 
     // query whether the given intent id belongs to an insight intent call owned by
     // the specified caller token id (privacy-center ownership verification)
-    IS_INSIGHT_INTENT_CALL_WITH_CALLER = 6190,
+    IS_INSIGHT_INTENT_CALL_WITH_CALLER = 6192,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
