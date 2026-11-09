@@ -18,10 +18,10 @@
 
 #include <cstdint>
 #include <map>
-#include <sys/types.h>
-#include <memory>
 #include <mutex>
+#include <set>
 #include <string>
+#include <sys/types.h>
 
 #include "task_mgr/system_load_provider.h"
 
@@ -54,16 +54,20 @@ public:
     static int32_t DetermineLevel(bool foreground, int32_t loadLevel);
 
     /**
-     * @brief Updates the foreground ability count of a caller process; called from the
-     *        application state subscription hook whenever an ability of the process moves
-     *        to or from the foreground. Terminated/ended abilities are reported as
-     *        "left the foreground" so an abnormal death cannot leak the count (defense in
-     *        depth; the count guard already tolerates the extra decrement).
+     * @brief Updates the foreground ability set of a caller process; idempotent so that
+     *        AMS double-dispatch paths (ChangeAbilityToForegroundIfNeeded +
+     *        PopForegroundingAbilityTokens, app_running_record.cpp:1016,1203) collapse
+     *        onto one entry. Uses the ability's IRObject token address as the identity
+     *        key; a foreground event is inserted, background/terminated/ended is erased.
+     *        The sentinel token (token == nullptr, encoded as 0) is the seed marker: the
+     *        very first real ability event for a seeded pid clears the sentinel so the
+        set transitions from "foreground but unknown identity" to an explicit set.
      * @param pid Indicates the caller process id.
+     * @param token Indicates the ability's IRObject token (nullptr encodes the seed sentinel).
      * @param foreground Indicates true when an ability entered the foreground; false when
      *        it left the foreground (including termination).
      */
-    void OnForegroundAbilityChanged(pid_t pid, bool foreground);
+    void OnForegroundAbilityChanged(pid_t pid, uintptr_t token, bool foreground);
 
     /**
      * @brief Updates the cached fusion level; called from the load listener callback and
@@ -84,9 +88,25 @@ public:
     /**
      * @brief Queries whether the caller process currently hosts any foreground ability.
      * @param pid Indicates the caller process id.
-     * @return Returns true when at least one foreground ability exists.
+     * @return Returns true when at least one foreground ability identity exists.
      */
     bool IsForeground(pid_t pid) const;
+
+    /**
+     * @brief Clears all foreground ability entries for a dead process (called from
+     *        OnProcessDied). After this call the pid is absent from the map so the
+     *        count cannot leak.
+     * @param pid Indicates the dead process id.
+     */
+    void OnProcessDied(pid_t pid);
+
+    /**
+     * @brief Seeds a foreground entry for a pid that is ALREADY foreground at observer
+     *        registration time (the observer is incremental-only). Uses the sentinel
+     *        token 0; the first real ability event for that pid replaces it.
+     * @param pid Indicates the process id to seed.
+     */
+    void SeedForeground(pid_t pid);
 
     /**
      * @brief Queries the cached fusion level.
@@ -143,7 +163,13 @@ private:
     std::shared_ptr<ISystemLoadProvider> loadProvider_;
     std::function<void(int32_t)> levelChangedHook_;
     mutable std::mutex judgeMutex_;
-    std::map<pid_t, int32_t> fgAbilityCounts_;
+    // Foreground ability set per process: the set stores the ability's IRObject token
+    // address (uintptr_t). A sentinel value 0 represents the seeder "some ability is
+    // foreground but we don't know its identity"; the first real ability event for that
+    // pid clears the sentinel. The set's non-emptiness drives IsForeground / JudgeLevel.
+    // Using a set collapses the AMS double-dispatch paths (FG sent twice for the same
+    // ability) onto a single entry and makes the model order-independent.
+    std::map<pid_t, std::set<uintptr_t>> fgAbilities_;
     int32_t loadLevel_ = -1;
     bool loadListenerRegistered_ = false;
 };

@@ -56,7 +56,7 @@ void ProcessSchedule::OnAttributionAdded(const std::string &taskId, int32_t task
     exemptions_[taskId][pid]++;
     if (refs > 1) {
         // the merge state already reflects this (taskId, pid); only the reference grew
-        TAG_LOGD(AAFwkTag::APPMGR, "attribution refcount grown, taskId: %{public}s pid: %{public}d refs: %{public}d",
+        TAG_LOGD(AAFwkTag::APPMGR, "yzk sched refcount++, taskId=%s pid=%d refs=%d",
             taskId.c_str(), pid, refs);
         return;
     }
@@ -64,8 +64,8 @@ void ProcessSchedule::OnAttributionAdded(const std::string &taskId, int32_t task
     taskToPids_[taskId].insert(pid);
     int32_t newLevel = MergeLevel(entry);
     TAG_LOGI(AAFwkTag::APPMGR,
-        "sched attribution added, taskId: %{public}s pid: %{public}d tool: %{public}s level: %{public}d, "
-        "exemption applied (taskId+pid+type)", taskId.c_str(), pid, AttributionToolToString(tool), taskLevel);
+        "yzk sched add, taskId=%s pid=%d tool=%s level=%d effective=%d",
+        taskId.c_str(), pid, AttributionToolToString(tool), taskLevel, newLevel);
     ApplyControlLocked(pid, newLevel, entry.level);
     entry.level = newLevel;
 }
@@ -145,8 +145,7 @@ void ProcessSchedule::OnProcessDied(pid_t pid)
     }
     pidEntries_.erase(entryIt);
     TAG_LOGI(AAFwkTag::APPMGR,
-        "sched process died cleaned, pid: %{public}d tasks: %{public}zu, task records kept alive",
-        pid, taskIds.size());
+        "yzk sched process died, pid=%d tasks=%zu", pid, taskIds.size());
 }
 
 void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t pid)
@@ -163,7 +162,7 @@ void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t p
         // one of several attribution records of this (taskId, pid) is gone; the merge state
         // is unchanged, only the reference and the exemption count shrink
         RevokeExemptionLocked(pid, taskId);
-        TAG_LOGD(AAFwkTag::APPMGR, "attribution refcount shrunk, taskId: %{public}s pid: %{public}d refs: %{public}d",
+        TAG_LOGD(AAFwkTag::APPMGR, "yzk sched refcount--, taskId=%s pid=%d refs=%d",
             taskId.c_str(), pid, refIt->second);
         return;
     }
@@ -214,7 +213,7 @@ void ProcessSchedule::ApplyControlLocked(pid_t pid, int32_t newLevel, int32_t ol
 {
     // Stub by design (20260914692273): the real delivery lands with 20260914692272.
     TAG_LOGI(AAFwkTag::APPMGR,
-        "sched control apply (stub) pid: %{public}d %{public}s -> %{public}s",
+        "yzk sched control apply(stub) pid=%d %s -> %s",
         pid, TaskPriorityToString(oldLevel), TaskPriorityToString(newLevel));
     (void)ActionText(true);
 }
@@ -223,7 +222,7 @@ void ProcessSchedule::RevokeControlLocked(pid_t pid, int32_t oldLevel)
 {
     // Stub by design (20260914692273): the real delivery lands with 20260914692272.
     TAG_LOGI(AAFwkTag::APPMGR,
-        "sched control revoke (stub) pid: %{public}d %{public}s",
+        "yzk sched control revoke(stub) pid=%d %s",
         pid, TaskPriorityToString(oldLevel));
     (void)ActionText(false);
 }

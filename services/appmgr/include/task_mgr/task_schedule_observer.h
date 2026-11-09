@@ -48,13 +48,14 @@ public:
         if (!foreground && !background && !terminated) {
             return;
         }
-        // terminated/ended abilities are counted as "left the foreground": the judge count
-        // guard tolerates the extra decrement after a normal BACKGROUND transition, and an
-        // abnormal death that skips BACKGROUND no longer leaks the foreground count.
+        // use the ability's IRObject token address as the dedup key; a nullptr token
+        // encodes the seeder sentinel. Foreground inserts, the rest erases.
+        uintptr_t token = reinterpret_cast<uintptr_t>(abilityStateData.token.GetRefPtr());
         bool enteringForeground = foreground;
-        TAG_LOGD(AAFwkTag::APPMGR, "ability state changed, pid: %{public}d fg: %{public}d",
-            abilityStateData.pid, enteringForeground);
-        TaskManagerService::GetInstance().OnAbilityForegroundChanged(abilityStateData.pid, enteringForeground);
+        TAG_LOGD(AAFwkTag::APPMGR, "yzk ability state, pid=%d token=0x%lx state=%d fg=%d",
+            abilityStateData.pid, static_cast<unsigned long>(token), abilityStateData.abilityState, enteringForeground);
+        TaskManagerService::GetInstance().OnAbilityForegroundChanged(
+            abilityStateData.pid, static_cast<unsigned long>(token), enteringForeground);
     }
 };
 

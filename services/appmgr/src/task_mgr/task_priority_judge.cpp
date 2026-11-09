@@ -48,17 +48,53 @@ int32_t TaskPriorityJudge::DetermineLevel(bool foreground, int32_t loadLevel)
     return TASK_PRIORITY_MEDIUM;
 }
 
-void TaskPriorityJudge::OnForegroundAbilityChanged(pid_t pid, bool foreground)
+void TaskPriorityJudge::OnForegroundAbilityChanged(pid_t pid, uintptr_t token, bool foreground)
 {
     if (pid <= 0) {
         return;
     }
     std::lock_guard<std::mutex> lock(judgeMutex_);
-    int32_t count = fgAbilityCounts_[pid] + (foreground ? 1 : -1);
-    if (count <= 0) {
-        fgAbilityCounts_.erase(pid);
+    auto &abilities = fgAbilities_[pid];
+    if (foreground) {
+        abilities.insert(token);
+        TAG_LOGI(AAFwkTag::APPMGR, "yzk fg +, pid=%d token=0x%lx count=%zu", pid, static_cast<unsigned long>(token), abilities.size());
     } else {
-        fgAbilityCounts_[pid] = count;
+        if (token == 0) {
+            // background for the seed sentinel only: leave the real set untouched (we
+            // cannot match a real ability by sentinel)
+            return;
+        }
+        abilities.erase(token);
+        if (abilities.empty()) {
+            fgAbilities_.erase(pid);
+        }
+        TAG_LOGI(AAFwkTag::APPMGR, "yzk fg -, pid=%d token=0x%lx count=%zu",
+            pid, static_cast<unsigned long>(token),
+            fgAbilities_.count(pid) ? fgAbilities_[pid].size() : 0);
+    }
+}
+
+void TaskPriorityJudge::SeedForeground(pid_t pid)
+{
+    if (pid <= 0) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(judgeMutex_);
+    fgAbilities_[pid].insert(0);  // sentinel; first real ability event replaces it
+    TAG_LOGI(AAFwkTag::APPMGR, "yzk seed fg pid=%d", pid);
+}
+
+void TaskPriorityJudge::OnProcessDied(pid_t pid)
+{
+    if (pid <= 0) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(judgeMutex_);
+    auto it = fgAbilities_.find(pid);
+    if (it != fgAbilities_.end()) {
+        size_t dropped = it->second.size();
+        fgAbilities_.erase(it);
+        TAG_LOGI(AAFwkTag::APPMGR, "yzk process died fg clear, pid=%d dropped=%zu", pid, dropped);
     }
 }
 
@@ -76,8 +112,8 @@ void TaskPriorityJudge::OnSystemLoadLevelChanged(int32_t loadLevel)
 bool TaskPriorityJudge::IsForeground(pid_t pid) const
 {
     std::lock_guard<std::mutex> lock(judgeMutex_);
-    auto it = fgAbilityCounts_.find(pid);
-    return it != fgAbilityCounts_.end() && it->second > 0;
+    auto it = fgAbilities_.find(pid);
+    return it != fgAbilities_.end() && !it->second.empty();
 }
 
 int32_t TaskPriorityJudge::CurrentLoadLevel() const
@@ -89,8 +125,8 @@ int32_t TaskPriorityJudge::CurrentLoadLevel() const
 int32_t TaskPriorityJudge::JudgeLevel(pid_t pid) const
 {
     std::lock_guard<std::mutex> lock(judgeMutex_);
-    auto it = fgAbilityCounts_.find(pid);
-    bool foreground = (it != fgAbilityCounts_.end() && it->second > 0);
+    auto it = fgAbilities_.find(pid);
+    bool foreground = (it != fgAbilities_.end() && !it->second.empty());
     return DetermineLevel(foreground, loadLevel_);
 }
 
@@ -179,14 +215,20 @@ std::string TaskPriorityJudge::DumpJudgeState() const
     std::string result = "Judge state:\n";
     result += "      foreground ability counts [";
     bool first = true;
-    for (const auto &item : fgAbilityCounts_) {
-        if (item.second <= 0) {
+    for (const auto &item : fgAbilities_) {
+        if (item.second.empty()) {
             continue;
         }
         if (!first) {
             result += " ";
         }
-        result += "pid:" + std::to_string(item.first) + " count:" + std::to_string(item.second);
+        std::string tokenStr;
+        for (uintptr_t t : item.second) {
+            if (!tokenStr.empty()) tokenStr += ",";
+            tokenStr += "0x" + std::to_string(t);
+        }
+        result += "pid:" + std::to_string(item.first) + " count:" + std::to_string(item.second.size()) +
+            " tokens:[" + tokenStr + "]";
         first = false;
     }
     if (first) {

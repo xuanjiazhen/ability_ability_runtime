@@ -80,7 +80,7 @@ void ResetJudgeState()
 {
     auto &judge = TaskPriorityJudge::GetInstance();
     std::lock_guard<std::mutex> lock(judge.judgeMutex_);
-    judge.fgAbilityCounts_.clear();
+    judge.fgAbilities_.clear();
     judge.loadLevel_ = -1;
 }
 
@@ -195,6 +195,8 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributionToolToString_0100
  */
 HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_0100, TestSize.Level1)
 {
+    ResetJudgeState();
+    ResetScheduleState();
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("start_0100");
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
@@ -215,6 +217,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_0100, TestSize.Lev
 HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_0200, TestSize.Level1)
 {
     ResetJudgeState();
+    ResetScheduleState();
     auto &service = TaskManagerService::GetInstance();
     std::vector<std::string> taskIds = {
         MakeTaskId("start_0200_first"),
@@ -243,6 +246,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_0200, TestSize.Lev
 HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_0300, TestSize.Level1)
 {
     ResetJudgeState();
+    ResetScheduleState();
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("start_0300");
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
@@ -674,7 +678,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_JudgedHigh_0100, T
     ResetJudgeState();
     ResetScheduleState();
     auto &judge = TaskPriorityJudge::GetInstance();
-    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, true);
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, 0x9001, true);
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("judged_high_0100");
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
@@ -686,7 +690,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_JudgedHigh_0100, T
     EXPECT_NE(dump.find("priority [HIGH(300)]"), std::string::npos);
     EXPECT_NE(dump.find("sched level [task:HIGH(300)]"), std::string::npos);
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
-    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, false);
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, 0x9001, false);
     ResetJudgeState();
 }
 
@@ -716,7 +720,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeOnForeground_0100, Te
     }
 
     // ability enters the foreground -> re-judge -> HIGH
-    service.OnAbilityForegroundChanged(TEST_CREATOR_PID, true);
+    service.OnAbilityForegroundChanged(TEST_CREATOR_PID, 0x9002, true);
     {
         std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
         EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_HIGH);
@@ -728,7 +732,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeOnForeground_0100, Te
     }
 
     // ability leaves the foreground -> re-judge back to MEDIUM
-    service.OnAbilityForegroundChanged(TEST_CREATOR_PID, false);
+    service.OnAbilityForegroundChanged(TEST_CREATOR_PID, 0x9002, false);
     {
         std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
         EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_MEDIUM);
@@ -753,17 +757,17 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeUnchanged_0100, TestS
     ResetJudgeState();
     ResetScheduleState();
     auto &judge = TaskPriorityJudge::GetInstance();
-    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, true);
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, 0x9001, true);
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("rejudge_same_0100");
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
-    service.OnAbilityForegroundChanged(TEST_CREATOR_PID, true);
+    service.OnAbilityForegroundChanged(TEST_CREATOR_PID, 0x9002, true);
     {
         std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
         EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_HIGH);
     }
-    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, false);
-    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, false);
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, 0x9001, false);
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, 0x9002, false);
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
     ResetJudgeState();
 }
@@ -908,6 +912,68 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_DoubleAttributionRefCount_01
 }
 
 /**
+ * @tc.number: TaskManagerService_LazyFgReconcile_0100
+ * @tc.name: the first startTask of an already-foreground app is judged HIGH via the lazy
+ *           reconcile (test finding: count was 0 on the first startTask)
+ * @tc.desc: with a seeder reporting the caller pid as foreground and an empty judge set,
+ *           StartTask must consult the seeder, seed the pid and judge HIGH; when the seeder
+ *           does not list the pid the task stays at the fallback level.
+ */
+HWTEST_F(TaskManagerServiceTest, TaskManagerService_LazyFgReconcile_0100, TestSize.Level1)
+{
+    ResetJudgeState();
+    ResetScheduleState();
+    auto &service = TaskManagerService::GetInstance();
+    // seeder reports the caller pid foreground
+    service.SetForegroundSeeder([]() { return std::vector<pid_t>{TEST_CREATOR_PID}; });
+    std::string taskId = MakeTaskId("lazy_fg_0100");
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_HIGH);
+    }
+    EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
+
+    // seeder no longer lists the pid: a new task falls back (no stale seed for other pids)
+    service.SetForegroundSeeder([]() { return std::vector<pid_t>{}; });
+    std::string taskId2 = MakeTaskId("lazy_fg_0101");
+    EXPECT_EQ(service.StartTask(taskId2), ERR_OK);
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        EXPECT_EQ(service.tasks_[taskId2].priority, TASK_PRIORITY_MEDIUM);
+    }
+    EXPECT_EQ(service.FinishTask(taskId2), ERR_OK);
+    service.SetForegroundSeeder(nullptr);
+    ResetJudgeState();
+    ResetScheduleState();
+}
+
+/**
+ * @tc.number: TaskManagerService_ProcessDiedClearsJudgeFg_0100
+ * @tc.name: process death clears the judge foreground set of the dead pid (test finding 1)
+ * @tc.desc: a caller with a cached foreground entry that dies has its judge state removed,
+ *           so the count cannot leak into later tasks of unrelated pids.
+ */
+HWTEST_F(TaskManagerServiceTest, TaskManagerService_ProcessDiedClearsJudgeFg_0100, TestSize.Level1)
+{
+    ResetJudgeState();
+    ResetScheduleState();
+    auto &judge = TaskPriorityJudge::GetInstance();
+    judge.OnForegroundAbilityChanged(TEST_CREATOR_PID, 0x9001, true);
+    ASSERT_TRUE(judge.IsForeground(TEST_CREATOR_PID));
+
+    TaskManagerService::GetInstance().OnProcessDied(TEST_CREATOR_PID, TEST_CREATOR_UID);
+
+    EXPECT_FALSE(judge.IsForeground(TEST_CREATOR_PID));
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        EXPECT_EQ(judge.fgAbilities_.count(TEST_CREATOR_PID), 0);
+    }
+    ResetJudgeState();
+    ResetScheduleState();
+}
+
+/**
  * @tc.number: TaskManagerService_CreatorDeathCleanup_0100
  * @tc.name: creator death ends the task and releases its schedule attributions (F-08/AC-6.3)
  * @tc.desc: killing the creator process removes the task from the dump and cleans every
@@ -945,6 +1011,8 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_CreatorDeathCleanup_0100, Te
  */
 HWTEST_F(TaskManagerServiceTest, TaskManagerService_DumpActiveTasks_0100, TestSize.Level1)
 {
+    ResetJudgeState();
+    ResetScheduleState();
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("dump_0100");
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
@@ -1152,6 +1220,8 @@ HWTEST_F(AppMgrServiceTaskTest, AppMgrServiceTask_StartFinishTask_0200, TestSize
  */
 HWTEST_F(AppMgrServiceTaskTest, AppMgrServiceTask_DumpTask_0100, TestSize.Level1)
 {
+    ResetJudgeState();
+    ResetScheduleState();
     IPCSkeleton::SetCallingUid(TEST_HIDUMPER_SERVICE_UID);
     std::string result;
     EXPECT_EQ(appMgrService_->Dump(MakeDumpArgs({"--task"}), result), ERR_OK);
