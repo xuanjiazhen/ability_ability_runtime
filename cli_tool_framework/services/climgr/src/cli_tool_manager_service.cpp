@@ -566,43 +566,6 @@ void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionR
     }
 }
 
-void CliToolManagerService::AttachSkillTaskAttribution(const std::shared_ptr<SessionRecord> &record,
-    const std::string &bundleName)
-{
-    if (record == nullptr) {
-        return;
-    }
-    // Phase 1 — snapshot under the session-table lock and mark PENDING (same liveness contract as
-    // AttachTaskAttribution: an off-table record must never register).
-    std::string taskId;
-    int32_t callerUid = -1;
-    {
-        std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
-        if (record->taskId.empty() || record->attributionState != AttributionState::NONE) {
-            return;
-        }
-        auto it = sessionRecords_.find(record->sessionId);
-        if (it == sessionRecords_.end() || it->second != record) {
-            return;
-        }
-        taskId = record->taskId;
-        callerUid = record->callerUid;
-        record->attributionState = AttributionState::PENDING;
-    }
-    // Phase 2 — server-located anchor IPC outside the lock.
-    pid_t resolvedPid = -1;
-    int64_t attributionId = 0;
-    int32_t ret = TaskAttributionManager::GetInstance().AttachInAppSkillProcess(
-        taskId, bundleName, resolvedPid, attributionId, callerUid);
-    bool attributed = (ret == ERR_OK && resolvedPid > 0);
-    // Phase 3+4 — reconcile the verdict under the lock; a teardown that consumed while the IPC was
-    // in flight leaves this side as the single finisher (it compensates its own registration).
-    if (WriteBackAttachResult(record, "AttachSkillTaskAttribution", attributed, ret, resolvedPid, taskId,
-        attributionId)) {
-        PostDetachTaskAttribution(taskId, attributionId, callerUid);
-    }
-}
-
 void CliToolManagerService::PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId,
     int32_t callerUid)
 {
@@ -1502,7 +1465,7 @@ sptr<ICliHookInterface> CliToolManagerService::CheckCliHook(uint32_t flag)
     if (cliHook_ == nullptr) {
         return nullptr;
     }
-    if (cliHookActiveMethods_ != 0 && !(cliHookActiveMethods_ & flag)) { // 仅当hook存在且对应hookMethod有效
+    if (cliHookActiveMethods_ != 0 && !(cliHookActiveMethods_ & flag)) { // hook active and method enabled
         return nullptr;
     }
     return cliHook_;
@@ -2508,6 +2471,10 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
     skillRequest.functionName = funcName;
     skillRequest.skillArgs = skillArgs;
     skillRequest.toolCallId = toolCallId;
+    // Stamped from the sanitized options; consumed by the AMS-side registration.
+    skillRequest.taskId = record->taskId;
+    // Forensic creator uid; the ownership anchor for the AMS-side registration.
+    skillRequest.callerUid = record->callerUid;
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "execSkill before ExecuteInAppSkillWithTokenId");
     int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteInAppSkillWithTokenId(
@@ -2518,7 +2485,8 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
         return ret;
     }
 
-    AttachSkillTaskAttribution(record, bundleName);
+    // Attribution is AMS-owned (registered at launch completion); a climgr-side attach
+    // would double-register and can anchor the wrong pid.
 
     if (param.options.background) {
         HandleBackgroundSessionReply(record, eventId);

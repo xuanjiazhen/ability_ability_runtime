@@ -44,6 +44,12 @@ struct SkillExecuteRecord {
     pid_t targetPid = 0;
     SkillExecuteState state = SkillExecuteState::UNKNOWN;
     sptr<ISkillExecuteCallback> callback = nullptr;
+    // Attribution: taskId is the task key (empty = not attributed); callerUid is the
+    // ownership anchor; attributionId is the unregister handle (0 = not registered).
+    // Registered at launch completion; every terminal path funnels into RemoveRecord.
+    std::string taskId = "";
+    int32_t callerUid = -1;
+    int64_t attributionId = 0;
 };
 
 } // namespace AAFwk
