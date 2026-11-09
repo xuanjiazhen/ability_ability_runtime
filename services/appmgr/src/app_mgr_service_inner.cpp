@@ -6526,6 +6526,39 @@ static void ReportProcessKillEvent(std::string versionCode, std::string versionN
         killInfo.killId, killInfo.callingPid, killInfo.callingProcessName.c_str());
 }
 
+// AppMgr's recorded application state is authoritative for the foreground flag;
+// CREATE/READY/PRE_FOREGROUND do not carry a reliable foreground/background meaning.
+static bool IsAmsForegroundDetermined(ApplicationState state)
+{
+    switch (state) {
+        case ApplicationState::APP_STATE_FOREGROUND:
+        case ApplicationState::APP_STATE_FOCUS:
+        case ApplicationState::APP_STATE_BACKGROUND:
+        case ApplicationState::APP_STATE_CACHED:
+        case ApplicationState::APP_STATE_TERMINATED:
+            return true;
+        default:
+            return false;
+    }
+}
+
+// A signal-killed or self-exited process consults the kernel kill record, which overwrites
+// killInfo.foreground with the value recorded at kill time. AppMgr's state is preferred and
+// the kernel value is only kept when AppMgr cannot tell whether the process was foreground.
+static void KeepAmsForegroundIfDetermined(bool amsDetermined, bool amsForeground,
+    AppfreezeManager::ProcessKillInfo &killInfo)
+{
+    if (!amsDetermined) {
+        return;
+    }
+    if (killInfo.foreground != amsForeground) {
+        TAG_LOGW(AAFwkTag::APPMGR,
+            "ams foreground preferred, pid:%{public}d, ams:%{public}d, kernel:%{public}d", killInfo.pid,
+            static_cast<int32_t>(amsForeground), static_cast<int32_t>(killInfo.foreground));
+    }
+    killInfo.foreground = amsForeground;
+}
+
 void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> appRecord)
 {
     CHECK_POINTER_AND_RETURN_LOG(appRecord, "no appRecord");
@@ -6535,8 +6568,13 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         TAG_LOGE(AAFwkTag::APPMGR, "no appInfo");
         return;
     }
-    bool foreground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
-        appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
+    auto state = appRecord->GetState();
+    bool foreground = state == ApplicationState::APP_STATE_FOREGROUND ||
+        state == ApplicationState::APP_STATE_FOCUS;
+    // A signal-killed or self-exited process triggers the kernel kill-record query below.
+    // Foreground/background must still follow AppMgr's recorded state; the kernel record is
+    // only the last resort, see KeepAmsForegroundIfDetermined().
+    bool amsForegroundDetermined = IsAmsForegroundDetermined(state);
     AppfreezeManager::ProcessKillInfo killInfo = {};
     killInfo.foreground = foreground;
     killInfo.pid = appRecord->GetPid();
@@ -6544,6 +6582,7 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     killInfo.callingProcessName = appRecord->GetKillCallerProcessName();
     bool res = AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(killInfo,
         appRecord->GetKillId(), appRecord->GetKillMsg());
+    KeepAmsForegroundIfDetermined(amsForegroundDetermined, foreground, killInfo);
     std::string versionCode = std::to_string(appInfo->versionCode);
     std::string versionName = appInfo->versionName;
     AAFwk::EventInfo eventInfo;
@@ -6562,9 +6601,11 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         .killId = appRecord->GetKillId(),
     };
     if (!res) {
-        ffrt::submit([versionCode, versionName, reportData, killInfo]() mutable {
+        ffrt::submit([versionCode, versionName, reportData, killInfo,
+            amsForegroundDetermined, foreground]() mutable {
             AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(killInfo,
                 reportData.killId, reportData.killMsg);
+            KeepAmsForegroundIfDetermined(amsForegroundDetermined, foreground, killInfo);
             ReportProcessKillEvent(versionCode, versionName, reportData, killInfo);
         }, ffrt::task_attr().name("reportProcessKill").delay(PROCESS_KILL_DELAY_TIME).
         timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
