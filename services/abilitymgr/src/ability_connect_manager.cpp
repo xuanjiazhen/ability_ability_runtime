@@ -45,6 +45,7 @@
 #include "request_id_util.h"
 #include "res_sched_util.h"
 #include "session/host/include/zidl/session_interface.h"
+#include "skill/skill_execute_manager.h"
 #include "startup_util.h"
 #include "string_wrapper.h"
 #include "timeout_state_utils.h"
@@ -1996,6 +1997,14 @@ void AbilityConnectManager::CommandAbility(const std::shared_ptr<BaseExtensionRe
         auto commandTimeout =
             AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * timeoutMultiple;
         taskHandler_->SubmitTask(timeoutTask, taskName, commandTimeout);
+        // Skill attribution anchor: the extension counterpart of the warm UIAbility anchor that
+        // sits right before scheduler->ExecuteSkill. This is the last AMS-side point that owns
+        // both the target pid and the pre-dispatch state, and it is reached by the warm start
+        // (StartAbilityLocked) and the cold one (DispatchInactive after AttachAbilityThread)
+        // alike. The record's targetPid latch keeps a repeated command idempotent, and a Want
+        // without skill markers is a no-op.
+        DelayedSingleton<SkillExecuteManager>::GetInstance()->TryRegisterAttributionFromWant(
+            abilityRecord->GetWant(), abilityRecord->GetPid(), abilityRecord->GetInfoBundleName());
         // scheduling command ability
         abilityRecord->CommandAbility();
     }
