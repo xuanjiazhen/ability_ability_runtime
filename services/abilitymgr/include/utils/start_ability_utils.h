@@ -20,6 +20,7 @@
 #include <string>
 
 #include "ability_info.h"
+#include "ability_permission_checker.h"
 #include "extension_ability_info.h"
 #include "irequest_start_ability_callback.h"
 #include "sandbox_clone_params.h"
@@ -154,6 +155,8 @@ struct StartAbilityWrapParam {
     std::shared_ptr<SandboxCloneParams> sandboxCloneParams = nullptr;
     bool isLaunchSCB = false;
     bool isDirectBootStartup = false;
+    // Set only by the insight intent channel; nullptr keeps the default (full) check.
+    std::shared_ptr<const AbilityPermissionChecker> permissionChecker = nullptr;
     StartAbilityContext startAbilityCtx;
 };
 }
