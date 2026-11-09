@@ -3082,6 +3082,23 @@ bool AppRunningRecord::IsAllAbilityReadyToCleanedByUserRequest()
     return true;
 }
 
+bool AppRunningRecord::IsAllAbilityReadyToCleanedByClearSession()
+{
+    std::lock_guard<ffrt::mutex> lock(hapModulesLock_);
+    for (const auto &iter : hapModules_) {
+        for (const auto &moduleRecord : iter.second) {
+            if (moduleRecord == nullptr) {
+                TAG_LOGE(AAFwkTag::APPMGR, "null moduleRecord");
+                continue;
+            }
+            if (moduleRecord->IsAllAbilityReadyToCleanedByClearSession()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void AppRunningRecord::SetUserRequestCleaning()
 {
     isUserRequestCleaning_ = true;
