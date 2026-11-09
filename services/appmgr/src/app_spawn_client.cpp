@@ -52,6 +52,32 @@ constexpr const char* JITPERMISSIONSLIST_PERMISSIONS_NAME = "permissions";
 constexpr const char* UNINSTALL_BUNDLE_NAME = "uninstallDebugHapMsg";
 constexpr const char* IPCGROUPINFOLIST_IPCGROUPID = "ipcGroupId";
 constexpr const char* IPCGROUPINFOLIST_GID = "ipcGroupGid";
+constexpr const char* MSG_EXT_NAME_PRELOAD_SO_LIST = "PreloadSoList";
+constexpr const char* MSG_EXT_NAME_APP_LIB_PATH = "AppLibPath";
+constexpr const char* PRELOAD_SO_KEY_LIB_PATH = "libPath";
+constexpr const char* PRELOAD_SO_KEY_SO = "so";
+constexpr const char* PRELOAD_SO_KEY_NS = "ns";
+constexpr const char* PRELOAD_SO_DEFAULT_NS = "default";
+
+std::string SerializePreloadSoList(const std::vector<std::string>& soPaths)
+{
+    nlohmann::json jsonArray = nlohmann::json::array();
+    for (const auto& path : soPaths) {
+        if (path.empty()) {
+            continue;
+        }
+        auto lastSlash = path.find_last_of('/');
+        if (lastSlash == std::string::npos) {
+            continue;
+        }
+        nlohmann::json entry;
+        entry[PRELOAD_SO_KEY_LIB_PATH] = nlohmann::json::array({path.substr(0, lastSlash)});
+        entry[PRELOAD_SO_KEY_SO] = nlohmann::json::array({path.substr(lastSlash + 1)});
+        entry[PRELOAD_SO_KEY_NS] = PRELOAD_SO_DEFAULT_NS;
+        jsonArray.push_back(entry);
+    }
+    return jsonArray.dump();
+}
 }
 AppSpawnClient::AppSpawnClient(bool isNWebSpawn)
 {
@@ -460,6 +486,25 @@ int32_t AppSpawnClient::AppspawnSetExtMsgMore(const AppSpawnStartMsg &startMsg, 
             return ret;
         }
         TAG_LOGD(AAFwkTag::APPMGR, "Send JIT Permission: %{public}s", jitPermissionsStr.c_str());
+    }
+
+    if (!startMsg.preloadSoList.empty()) {
+        std::string preloadSoListJson = SerializePreloadSoList(startMsg.preloadSoList);
+        ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_PRELOAD_SO_LIST, preloadSoListJson.c_str());
+        if (ret) {
+            TAG_LOGE(AAFwkTag::APPMGR, "PreloadSoList add fail, ret: %{public}d", ret);
+            return ret;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "Send PreloadSoList success");
+    }
+
+    if (!startMsg.appLibPath.empty()) {
+        ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_APP_LIB_PATH, startMsg.appLibPath.c_str());
+        if (ret) {
+            TAG_LOGE(AAFwkTag::APPMGR, "AppLibPath add fail, ret: %{public}d", ret);
+            return ret;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "Send AppLibPath success");
     }
 
     return AppspawnSetExtMsgSec(startMsg, reqHandle);
