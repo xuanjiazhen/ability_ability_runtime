@@ -1738,6 +1738,17 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, result, "GenerateAbilityRequest error");
         return result;
     }
+    // Channel policy attached by the caller of StartAbilityInner (insight intent only today). It
+    // only waives what the TARGET declared; caller-side checks are untouched. The policy is
+    // honoured only when the intent record is owned by the current caller and targets the ability
+    // we just resolved, so a forged want cannot buy the waiver. nullptr for every other channel.
+    if (param.permissionChecker != nullptr) {
+        if (IsInsightIntentCall(param.want, abilityRequest.abilityInfo.bundleName)) {
+            abilityRequest.permissionChecker = param.permissionChecker;
+        } else {
+            TAG_LOGW(AAFwkTag::INTENT, "intent channel without a verified record, keep full permission check");
+        }
+    }
 
     // Store sandbox clone params directly in abilityRequest.
     if (!sandboxAbilityInfo.bundleName.empty() && param.sandboxCloneParams != nullptr) {
@@ -4891,7 +4902,8 @@ bool AbilityManagerService::CheckWorkSchedulerPermission(const sptr<IRemoteObjec
 
 int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, const sptr<IRemoteObject> &callerToken,
     int32_t userId, AppExecFwk::ExtensionAbilityType extensionType, bool checkSystemCaller, bool isImplicit,
-    bool isDlp, bool isStartAsCaller, uint32_t skillCallerTokenId)
+    bool isDlp, bool isStartAsCaller, uint32_t skillCallerTokenId,
+    const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     StartAbilityContext ctx;
@@ -4990,6 +5002,16 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
     }
 
     abilityRequest.skillCallerTokenId = skillCallerTokenId;
+    // Channel policy attached by the caller (insight intent only today): waives what the TARGET
+    // declared (its own permission, its exported visibility) and nothing else. Honoured only when
+    // the intent record is owned by the current caller and targets the resolved extension.
+    if (permissionChecker != nullptr) {
+        if (IsInsightIntentCall(want, abilityRequest.abilityInfo.bundleName)) {
+            abilityRequest.permissionChecker = permissionChecker;
+        } else {
+            TAG_LOGW(AAFwkTag::INTENT, "intent channel without a verified record, keep full permission check");
+        }
+    }
     abilityRequest.userId = validUserId;
     if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "HandleExecuteSAInterceptor failed");
@@ -5441,7 +5463,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(abilityRequest.want, parentToken);
     }
 
-    result = JudgeAbilityVisibleControl(abilityInfo);
+    result = JudgeAbilityVisibleControl(extensionSessionInfo->want, abilityInfo);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "judgeAbilityVisibleControl error");
         return result;
@@ -11249,9 +11271,15 @@ int AbilityManagerService::ReleaseCall(
     return missionListManager->ReleaseCallLocked(connect, element);
 }
 
-int AbilityManagerService::JudgeAbilityVisibleControl(const AppExecFwk::AbilityInfo &abilityInfo)
+int AbilityManagerService::JudgeAbilityVisibleControl(const AppExecFwk::AbilityInfo &abilityInfo,
+    const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
+    if (permissionChecker != nullptr && !permissionChecker->NeedCheckAbilityVisible()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "skip ability visible control, scene:%{public}s",
+            permissionChecker->GetSceneName());
+        return ERR_OK;
+    }
     if (abilityInfo.visible) {
         return ERR_OK;
     }
@@ -11267,6 +11295,15 @@ int AbilityManagerService::JudgeAbilityVisibleControl(const AppExecFwk::AbilityI
     TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken:%{private}u, targetToken:%{private}u, caller without permission",
         callerTokenId, abilityInfo.applicationInfo.accessTokenId);
     return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
+}
+
+int AbilityManagerService::JudgeAbilityVisibleControl(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    if (!abilityInfo.visible && IsInsightIntentCall(want, abilityInfo.bundleName)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "insight intent call, skip ability visible control");
+        return ERR_OK;
+    }
+    return JudgeAbilityVisibleControl(abilityInfo);
 }
 
 int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserCallback> callback, bool isAppRecovery)
@@ -12735,8 +12772,13 @@ int AbilityManagerService::CheckStaticCfgPermissionForSkill(const AppExecFwk::Ab
 int AbilityManagerService::CheckStaticCfgPermission(const AppExecFwk::AbilityRequest &abilityRequest,
     bool isStartAsCaller, uint32_t callerTokenId, bool isData, bool isSaCall, bool isImplicit)
 {
-    if (IsInsightIntentCall(abilityRequest.want, abilityRequest.abilityInfo.bundleName)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "insight intent call, skip static cfg permission check");
+    auto permissionChecker = ResolvePermissionChecker(abilityRequest);
+    if (permissionChecker != nullptr && !permissionChecker->NeedCheckAbilityStaticPermission()) {
+        // The target was resolved from a verified insight intent record, so the permission the
+        // target declared for ordinary starts does not gate this channel. The decision comes from
+        // the policy resolved above, not from anything inside the want.
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "skip static cfg permission, scene:%{public}s",
+            permissionChecker->GetSceneName());
         return AppExecFwk::Constants::PERMISSION_GRANTED;
     }
     const auto &abilityInfo = abilityRequest.abilityInfo;
@@ -13684,6 +13726,15 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
         static_cast<uint32_t>(abilityRequest.specifiedFullTokenId) :
         static_cast<uint32_t>(abilityRequest.specifyTokenId);
     verificationInfo.skillCallerTokenId = abilityRequest.skillCallerTokenId;
+    auto permissionChecker = ResolvePermissionChecker(abilityRequest);
+    if (permissionChecker != nullptr && !permissionChecker->NeedCheckAbilityVisible()) {
+        // Only the target visibility (exported=false) is waived for this channel. The background
+        // start permission, the continuous task validation and the UI_SERVICE background
+        // validation inside PermissionVerification still apply to the caller.
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "skip ability visible check, scene:%{public}s",
+            permissionChecker->GetSceneName());
+        verificationInfo.visible = true;
+    }
     if (isParamStartAbilityEnable_) {
         bool stopContinuousTaskFlag = ShouldPreventStartAbility(abilityRequest);
         if (stopContinuousTaskFlag) {
@@ -14081,6 +14132,15 @@ int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abil
     verificationInfo.visible = abilityRequest.abilityInfo.visible;
     verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
     verificationInfo.specifyTokenId = specifyTokenId;
+    auto permissionChecker = ResolvePermissionChecker(abilityRequest);
+    if (permissionChecker != nullptr && !permissionChecker->NeedCheckAbilityVisible()) {
+        // Only the target visibility (exported=false) is waived for this channel. The background
+        // start permission check inside PermissionVerification still applies to the caller, the
+        // same way CheckStartByCallPermission handles skill calls with a real caller token.
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "skip ability visible check, scene:%{public}s",
+            permissionChecker->GetSceneName());
+        verificationInfo.visible = true;
+    }
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     verificationInfo.isCliToolToken = Security::AccessToken::AccessTokenKit::IsCliToolToken(tokenId);
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
@@ -14164,9 +14224,14 @@ int AbilityManagerService::CheckStartByCallPermission(const AbilityRequest &abil
         return ERR_INVALID_VALUE;
     }
 
-    if (IsInsightIntentCall(abilityRequest.want, abilityRequest.abilityInfo.bundleName)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "insight intent call, skip start by call permission check");
-        return ERR_OK;
+    auto permissionChecker = ResolvePermissionChecker(abilityRequest);
+    if (permissionChecker != nullptr && !permissionChecker->NeedCheckAbilityVisible()) {
+        // Waive only the target visibility here. Returning early would also drop the ability
+        // background communication permission and the background start permission, which the caller
+        // still has to hold for a byCall start.
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "skip ability visible check, scene:%{public}s",
+            permissionChecker->GetSceneName());
+        verificationInfo.visible = true;
     }
 
     if (AAFwk::PermissionVerification::GetInstance()->CheckStartByCallPermission(verificationInfo) != ERR_OK) {
@@ -16192,6 +16257,7 @@ int32_t AbilityManagerService::StartAbilityWithInsightIntent(const Want &want, i
         .requestCode = requestCode,
         .userId = userId,
         .specifiedFullTokenId = specifiedFullTokenId,
+        .permissionChecker = CreatePermissionChecker(PermissionCheckScene::INSIGHT_INTENT),
     };
     int32_t ret = StartAbilityInner(startAbilityWrapParam);
     if (ret != ERR_OK) {
@@ -16204,7 +16270,8 @@ int32_t AbilityManagerService::StartExtensionAbilityWithInsightIntent(const Want
     AppExecFwk::ExtensionAbilityType extensionType, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
-    return StartExtensionAbilityInner(want, nullptr, userId, extensionType, true);
+    return StartExtensionAbilityInner(want, nullptr, userId, extensionType, true, false, false, false, 0,
+        CreatePermissionChecker(PermissionCheckScene::INSIGHT_INTENT));
 }
 
 void AbilityManagerService::GrantFileEntityUriPermission(const AbilityRequest &abilityRequest)
@@ -16261,6 +16328,13 @@ int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &w
     auto missionListMgr = GetMissionListManagerByUserId(oriValidUserId);
     if (IsAbilityStarted(abilityRequest, targetRecord, oriValidUserId)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability has already started");
+        // The already-started branch delivers OnExecuteIntent without running the start ability
+        // permission and exported checks, so the insight intent record itself has to be validated
+        // here: the want must carry a record owned by the current caller.
+        if (!IsInsightIntentCall(abilityRequest.want, abilityRequest.abilityInfo.bundleName)) {
+            TAG_LOGE(AAFwkTag::INTENT, "insight intent check failed for already started ability");
+            return ERR_INVALID_VALUE;
+        }
         UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
         GrantFileEntityUriPermission(abilityRequest);
         result = OnExecuteIntent(abilityRequest, targetRecord);
@@ -18451,7 +18525,11 @@ bool AbilityManagerService::IsInsightIntentCall(const Want &want, const std::str
         return false;
     }
     std::string bundleName;
-    if (executeManager->GetBundleName(intentId, bundleName) != ERR_OK) {
+    uint32_t recordCallerUid = 0;
+    uint32_t recordCallerTokenId = 0;
+    bool isDistributed = false;
+    if (executeManager->GetRecordCallerInfo(intentId, bundleName, recordCallerUid, recordCallerTokenId,
+        isDistributed) != ERR_OK) {
         TAG_LOGW(AAFwkTag::INTENT, "insight intent record not found, intentId: %{public}" PRIu64, intentId);
         return false;
     }
@@ -18459,7 +18537,43 @@ bool AbilityManagerService::IsInsightIntentCall(const Want &want, const std::str
         TAG_LOGW(AAFwkTag::INTENT, "insight intent id bundle mismatch, target:%{public}s", targetBundleName.c_str());
         return false;
     }
+    // The caller requesting the bypass must be the one that created the execution record. Intent
+    // ids are sequential and therefore enumerable, so without this identity check any caller able
+    // to forge a want could start the exported=false components of another application.
+    // Distributed intents are exempt: the record identity belongs to a remote device and the
+    // distributed entry already enforces PERMISSION_EXECUTE_DISTRIBUTED_INTENT locally.
+    if (!isDistributed) {
+        auto callingTokenId = static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID());
+        if (recordCallerTokenId == 0) {
+            TAG_LOGW(AAFwkTag::INTENT, "insight intent record without caller identity, intentId: %{public}" PRIu64,
+                intentId);
+            return false;
+        }
+        if (callingTokenId != recordCallerTokenId) {
+            TAG_LOGW(AAFwkTag::INTENT, "insight intent caller token mismatch, intentId: %{public}" PRIu64, intentId);
+            return false;
+        }
+        if (recordCallerUid != 0 && IPCSkeleton::GetCallingUid() != recordCallerUid) {
+            TAG_LOGW(AAFwkTag::INTENT, "insight intent caller uid mismatch, intentId: %{public}" PRIu64, intentId);
+            return false;
+        }
+    }
     return true;
+}
+
+std::shared_ptr<const AbilityPermissionChecker> AbilityManagerService::ResolvePermissionChecker(
+    const AppExecFwk::AbilityRequest &abilityRequest)
+{
+    if (abilityRequest.permissionChecker != nullptr) {
+        return abilityRequest.permissionChecker;
+    }
+    // The public byCall entry builds its own AbilityRequest and cannot carry the policy, so fall
+    // back to the record lookup: the record owner is compared against the current caller, and a
+    // forged or stale intent id fails closed.
+    if (IsInsightIntentCall(abilityRequest.want, abilityRequest.abilityInfo.bundleName)) {
+        return CreatePermissionChecker(PermissionCheckScene::INSIGHT_INTENT);
+    }
+    return nullptr;
 }
 
 void AbilityManagerService::CombinLinkInfo(

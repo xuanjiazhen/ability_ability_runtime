@@ -21,6 +21,7 @@
 #define protected public
 #include "ability_manager_service.h"
 #include "extract_insight_intent_profile.h"
+#include "insight_intent_execute_manager.h"
 #include "session_info.h"
 #include "sub_managers_helper.h"
 #include "insight_intent_query_param.h"
@@ -828,6 +829,217 @@ HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0200, TestSize.Level
     Want want;
     want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("invalid"));
     EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, ""));
+}
+
+namespace {
+constexpr uint64_t INTENT_ID_CALLER_0100 = 90001;
+constexpr uint64_t INTENT_ID_CALLER_0200 = 90002;
+constexpr uint64_t INTENT_ID_CALLER_0300 = 90003;
+constexpr uint64_t INTENT_ID_CALLER_0400 = 90004;
+constexpr uint64_t INTENT_ID_CALLER_0500 = 90005;
+constexpr uint64_t INTENT_ID_CALLER_0600 = 90006;
+
+std::shared_ptr<InsightIntentExecuteRecord> MakeIntentRecord(const std::string &bundleName, uint32_t callerUid,
+    uint32_t callerTokenId, bool isDistributed = false)
+{
+    auto record = std::make_shared<InsightIntentExecuteRecord>();
+    record->bundleName = bundleName;
+    record->callerUid = callerUid;
+    record->callerTokenId = callerTokenId;
+    record->isDistributed = isDistributed;
+    return record;
+}
+
+Want MakeIntentCallWant(uint64_t intentId)
+{
+    Want want;
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(intentId));
+    return want;
+}
+} // namespace
+
+/**
+ * @tc.name: IsInsightIntentCall_0300
+ * @tc.desc: Record owned by the current caller passes both the bundle and the identity check.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0300, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    auto callerUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
+    auto callerTokenId = static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID());
+    executeManager->records_[INTENT_ID_CALLER_0100] =
+        MakeIntentRecord("com.test.target", callerUid, callerTokenId);
+    EXPECT_TRUE(abilityMs->IsInsightIntentCall(MakeIntentCallWant(INTENT_ID_CALLER_0100), "com.test.target"));
+    executeManager->records_.erase(INTENT_ID_CALLER_0100);
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0400
+ * @tc.desc: Record created by another caller is rejected even if bundle matches.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0400, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    auto callerTokenId = static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID());
+    // Token id that cannot belong to the current test caller.
+    executeManager->records_[INTENT_ID_CALLER_0200] =
+        MakeIntentRecord("com.test.target", 12345, callerTokenId + 1);
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(MakeIntentCallWant(INTENT_ID_CALLER_0200), "com.test.target"));
+    executeManager->records_.erase(INTENT_ID_CALLER_0200);
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0500
+ * @tc.desc: Record without captured caller identity is rejected, fail closed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0500, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    executeManager->records_[INTENT_ID_CALLER_0300] = MakeIntentRecord("com.test.target", 0, 0);
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(MakeIntentCallWant(INTENT_ID_CALLER_0300), "com.test.target"));
+    executeManager->records_.erase(INTENT_ID_CALLER_0300);
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0600
+ * @tc.desc: Bundle name mismatch between the want and the record returns false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0600, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    auto callerUid = static_cast<uint32_t>(IPCSkeleton::GetCallingUid());
+    auto callerTokenId = static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID());
+    executeManager->records_[INTENT_ID_CALLER_0400] =
+        MakeIntentRecord("com.test.other", callerUid, callerTokenId);
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(MakeIntentCallWant(INTENT_ID_CALLER_0400), "com.test.target"));
+    executeManager->records_.erase(INTENT_ID_CALLER_0400);
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0700
+ * @tc.desc: Distributed record skips the caller identity check and passes the bundle match.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0700, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    // Remote callers cannot share the local token id, the distributed path is protected by
+    // PERMISSION_EXECUTE_DISTRIBUTED_INTENT instead.
+    executeManager->records_[INTENT_ID_CALLER_0500] =
+        MakeIntentRecord("com.test.target", 12345, 67890, true);
+    EXPECT_TRUE(abilityMs->IsInsightIntentCall(MakeIntentCallWant(INTENT_ID_CALLER_0500), "com.test.target"));
+    executeManager->records_.erase(INTENT_ID_CALLER_0500);
+}
+
+/**
+ * @tc.name: GetRecordCallerInfo_0100
+ * @tc.desc: GetRecordCallerInfo returns the identity captured at record creation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, GetRecordCallerInfo_0100, TestSize.Level1)
+{
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    executeManager->records_[INTENT_ID_CALLER_0600] = MakeIntentRecord("com.test.callerinfo", 4321, 8765);
+    std::string bundleName;
+    uint32_t callerUid = 0;
+    uint32_t callerTokenId = 0;
+    bool isDistributed = true;
+    EXPECT_EQ(executeManager->GetRecordCallerInfo(INTENT_ID_CALLER_0600, bundleName, callerUid, callerTokenId,
+        isDistributed), ERR_OK);
+    EXPECT_EQ(bundleName, "com.test.callerinfo");
+    EXPECT_EQ(callerUid, 4321);
+    EXPECT_EQ(callerTokenId, 8765);
+    EXPECT_FALSE(isDistributed);
+    executeManager->records_.erase(INTENT_ID_CALLER_0600);
+}
+
+/**
+ * @tc.name: GetRecordCallerInfo_0200
+ * @tc.desc: GetRecordCallerInfo returns ERR_INVALID_VALUE for a missing record.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, GetRecordCallerInfo_0200, TestSize.Level1)
+{
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ASSERT_NE(executeManager, nullptr);
+    std::string bundleName;
+    uint32_t callerUid = 0;
+    uint32_t callerTokenId = 0;
+    bool isDistributed = false;
+    EXPECT_EQ(executeManager->GetRecordCallerInfo(999999999, bundleName, callerUid, callerTokenId, isDistributed),
+        ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: ResolvePermissionChecker_0100
+ * @tc.desc: A policy attached by the insight intent channel waives the target declared restrictions
+ *           (its own permission and its exported visibility) and nothing else.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, ResolvePermissionChecker_0100, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.permissionChecker = CreatePermissionChecker(PermissionCheckScene::INSIGHT_INTENT);
+    ASSERT_NE(abilityRequest.permissionChecker, nullptr);
+
+    auto checker = abilityMs->ResolvePermissionChecker(abilityRequest);
+    ASSERT_NE(checker, nullptr);
+    EXPECT_EQ(checker->GetScene(), PermissionCheckScene::INSIGHT_INTENT);
+    EXPECT_FALSE(checker->NeedCheckAbilityStaticPermission());
+    EXPECT_FALSE(checker->NeedCheckAbilityVisible());
+}
+
+/**
+ * @tc.name: ResolvePermissionChecker_0200
+ * @tc.desc: A plain request keeps every target declared check: no policy is resolved.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, ResolvePermissionChecker_0200, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "com.test.plain";
+    EXPECT_EQ(abilityMs->ResolvePermissionChecker(abilityRequest), nullptr);
+
+    abilityRequest.permissionChecker = CreatePermissionChecker(PermissionCheckScene::DEFAULT);
+    EXPECT_EQ(abilityMs->ResolvePermissionChecker(abilityRequest), nullptr);
+    auto checker = CreatePermissionChecker(PermissionCheckScene::DEFAULT);
+    EXPECT_EQ(checker, nullptr);
+    AbilityPermissionChecker defaultChecker;
+    EXPECT_TRUE(defaultChecker.NeedCheckAbilityStaticPermission());
+    EXPECT_TRUE(defaultChecker.NeedCheckAbilityVisible());
 }
 }
 }
