@@ -78,7 +78,10 @@ void UIAbilityLifecycleManagerThirdTest::TearDownTestCase() {}
 
 void UIAbilityLifecycleManagerThirdTest::SetUp() {}
 
-void UIAbilityLifecycleManagerThirdTest::TearDown() {}
+void UIAbilityLifecycleManagerThirdTest::TearDown()
+{
+    UIAbilityLifecycleManager::SetMemoryPoolValue(0);
+}
 
 class UIAbilityLifecycleManagerThirdTestStub : public IRemoteStub<IAbilityConnection> {
 public:
@@ -2335,6 +2338,162 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, NotifyStartupExceptionBySCB_Prelaun
     usleep(100000);
     EXPECT_EQ(PrelaunchTimeoutConnection::disconnectDoneCount, 1);
     EXPECT_EQ(mgr->tmpAbilityMap_.size(), 0);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_SetMemoryPoolValue_001
+ * @tc.desc: Set memory pool value below threshold, IsLowMem returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SetMemoryPoolValue_001, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityLifecycleManager::SetMemoryPoolValue(0);
+    EXPECT_FALSE(mgr->IsLowMem());
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_SetMemoryPoolValue_002
+ * @tc.desc: Set memory pool value at threshold, IsLowMem returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SetMemoryPoolValue_002, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityLifecycleManager::SetMemoryPoolValue(10);
+    EXPECT_TRUE(mgr->IsLowMem());
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_SetMemoryPoolValue_003
+ * @tc.desc: Set memory pool value above threshold, IsLowMem returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SetMemoryPoolValue_003, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityLifecycleManager::SetMemoryPoolValue(20);
+    EXPECT_TRUE(mgr->IsLowMem());
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ShouldKillUIAbility_001
+ * @tc.desc: Memory sufficient, ShouldKillUIAbility returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ShouldKillUIAbility_001, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityLifecycleManager::SetMemoryPoolValue(0);
+    auto abilityRecord = InitAbilityRecord();
+    EXPECT_FALSE(mgr->ShouldKillUIAbility(abilityRecord));
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ShouldKillUIAbility_002
+ * @tc.desc: Low memory with null ability record, ShouldKillUIAbility returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ShouldKillUIAbility_002, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityLifecycleManager::SetMemoryPoolValue(10);
+    EXPECT_FALSE(mgr->ShouldKillUIAbility(nullptr));
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ShouldKillUIAbility_003
+ * @tc.desc: Low memory with non-PAGE ability type, ShouldKillUIAbility returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ShouldKillUIAbility_003, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityLifecycleManager::SetMemoryPoolValue(10);
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "DataAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::DATA;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_FALSE(mgr->ShouldKillUIAbility(abilityRecord));
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ShouldKillUIAbility_004
+ * @tc.desc: Low memory with launcher app, ShouldKillUIAbility returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ShouldKillUIAbility_004, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityLifecycleManager::SetMemoryPoolValue(10);
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.example.unittest";
+    abilityRequest.appInfo.isLauncherApp = true;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_FALSE(mgr->ShouldKillUIAbility(abilityRecord));
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ShouldKillUIAbility_006
+ * @tc.desc: Low memory with null appMgr, ShouldKillUIAbility returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ShouldKillUIAbility_006, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityLifecycleManager::SetMemoryPoolValue(10);
+    auto abilityRecord = InitAbilityRecord();
+    auto originAppMgr = AppMgrUtil::appMgr_;
+    AppMgrUtil::appMgr_ = nullptr;
+    EXPECT_FALSE(mgr->ShouldKillUIAbility(abilityRecord));
+    AppMgrUtil::appMgr_ = originAppMgr;
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ShouldKillUIAbility_007
+ * @tc.desc: Low memory with app not terminating, ShouldKillUIAbility returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ShouldKillUIAbility_007, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityLifecycleManager::SetMemoryPoolValue(10);
+    auto abilityRecord = InitAbilityRecord();
+    auto originAppMgr = AppMgrUtil::appMgr_;
+    auto appMgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
+    EXPECT_CALL(*appMgr, IsTerminatingByPid)
+        .WillOnce([](pid_t, bool &isTerminating) {
+            isTerminating = false;
+            return 0;
+        });
+    AppMgrUtil::appMgr_ = appMgr;
+    EXPECT_FALSE(mgr->ShouldKillUIAbility(abilityRecord));
+    AppMgrUtil::appMgr_ = originAppMgr;
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ShouldKillUIAbility_008
+ * @tc.desc: Low memory with app terminating, ShouldKillUIAbility returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ShouldKillUIAbility_008, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityLifecycleManager::SetMemoryPoolValue(10);
+    auto abilityRecord = InitAbilityRecord();
+    auto originAppMgr = AppMgrUtil::appMgr_;
+    auto appMgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
+    EXPECT_CALL(*appMgr, IsTerminatingByPid)
+        .WillOnce([](pid_t, bool &isTerminating) {
+            isTerminating = true;
+            return 0;
+        });
+    AppMgrUtil::appMgr_ = appMgr;
+    EXPECT_TRUE(mgr->ShouldKillUIAbility(abilityRecord));
+    AppMgrUtil::appMgr_ = originAppMgr;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

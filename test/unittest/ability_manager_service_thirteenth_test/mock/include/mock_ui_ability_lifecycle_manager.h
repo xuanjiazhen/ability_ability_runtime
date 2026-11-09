@@ -59,6 +59,8 @@ public:
     explicit UIAbilityLifecycleManager(int32_t userId);
     virtual ~UIAbilityLifecycleManager() = default;
 
+    static void SetMemoryPoolValue(int32_t value);
+
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery = false);
     void SignRestartProcess(int32_t pid);
 
