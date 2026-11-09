@@ -17,6 +17,7 @@
 
 #include "ability_util.h"
 #include "hitrace_meter.h"
+#include "security_audit_report.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -32,8 +33,10 @@ ErrCode ControlInterceptor::DoProcess(AbilityInterceptorParam &param)
 {
     AppExecFwk::AppRunningControlRuleResult controlRule;
     if (CheckControl(param.want, param.userId, controlRule)) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR,
-            "app is intercepted %{public}s", controlRule.controlMessage.c_str());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "app is intercepted %{public}s", controlRule.controlMessage.c_str());
+        if (controlRule.isEdm) {
+            SecurityAuditReport::ReportEdmBlockedStart(param);
+        }
 #ifdef SUPPORT_GRAPHICS
         if (!param.isWithUI || controlRule.controlWant == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "no control want");

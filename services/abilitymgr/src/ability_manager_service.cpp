@@ -2593,6 +2593,11 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     StartAbilityContext ctx;
     auto eventInfo = BuildEventInfo(want, userId);
+    // 取 isPreloadStart 源真值（PreloadManagerService 设置）赋给 eventInfo.isPreload，
+    // 区分用户主动拉起(false)与系统预加载拉起(true)，供拦截事件上报携带（design DD-2 / AC-2.1/2.2）。
+    if (startOptions.processOptions != nullptr) {
+        eventInfo->isPreload = startOptions.processOptions->isPreloadStart;
+    }
     int32_t oriValidUserId = GetValidUserId(userId);
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
     if (!AbilityUtil::IsStartFreeInstall(want)) {
@@ -11034,7 +11039,7 @@ int32_t AbilityManagerService::ExecutePrelaunchInterceptors(AbilityRequest &abil
     int32_t appIndex, const std::shared_ptr<EventInfo> &eventInfo)
 {
     AbilityInterceptorParam interceptorParam = InterceptorParamBuilder(abilityRequest.want, -1, userId)
-        .WithUI(false).Visible(false)
+        .WithUI(false).Visible(false).Prelaunch(true)
         .AbilityInfo(std::make_shared<AppExecFwk::AbilityInfo>(abilityRequest.abilityInfo))
         .Context<AbilityInterceptorParam::EcologicalCtx>({false, false, ""})
         // Dispose/running-control rules are stored per appIndex; pass the resolved clone index
