@@ -22,6 +22,8 @@ namespace AAFwk {
 
 UIAbilityLifecycleManager::UIAbilityLifecycleManager(int32_t userId): userId_(userId) {}
 
+void UIAbilityLifecycleManager::SetMemoryPoolValue(int32_t value) {}
+
 bool UIAbilityLifecycleManager::ProcessColdStartBranch(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
     UIAbilityRecordPtr uiAbilityRecord, bool isColdStart)
 {
