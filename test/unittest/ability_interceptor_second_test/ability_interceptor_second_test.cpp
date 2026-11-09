@@ -303,36 +303,34 @@ HWTEST_F(AbilityInterceptorSecondTest, DisposedRuleInterceptor_012, TestSize.Lev
 }
 
 /**
- * @tc.name: AbilityInterceptorSecondTest_SecurityAuditReport_GetInstance_001
- * @tc.desc: SecurityAuditReport 单例可获取，非空
+ * @tc.name: AbilityInterceptorSecondTest_SecurityAuditReport_Constructible_001
+ * @tc.desc: SecurityAuditReport is constructible
  * @tc.type: FUNC
  * @tc.require: No
  */
-HWTEST_F(AbilityInterceptorSecondTest, SecurityAuditReport_GetInstance_001, TestSize.Level1)
+HWTEST_F(AbilityInterceptorSecondTest, SecurityAuditReport_Constructible_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto proxy = DelayedSingleton<SecurityAuditReport>::GetInstance();
-    ASSERT_NE(proxy, nullptr);
+    SecurityAuditReport report;
+    SUCCEED();
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
 /**
  * @tc.name: AbilityInterceptorSecondTest_SecurityAuditReport_ReportEdmBlockedStart_NoThrow_001
- * @tc.desc: 安全审计服务未注册时调用 ReportEdmBlockedStart 触发 EX-1 容错，不抛异常、不阻塞
+ * @tc.desc: ReportEdmBlockedStart triggers EX-1 fallback when sg unregistered, no throw, no block
  * @tc.type: FUNC
  * @tc.require: No
  */
 HWTEST_F(AbilityInterceptorSecondTest, SecurityAuditReport_ReportEdmBlockedStart_NoThrow_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto proxy = DelayedSingleton<SecurityAuditReport>::GetInstance();
-    ASSERT_NE(proxy, nullptr);
+    SecurityAuditReport report;
     Want want;
     want.SetBundle("com.test.securityaudit");
     AbilityInterceptorParam param;
     param.want = want;
-    // 安全审计服务未注册（占位 SA ID=0），触发 EX-1：仅 hilog 告警，不抛异常、不阻塞。
-    proxy->ReportEdmBlockedStart(param);
+    report.ReportEdmBlockedStart(param);
     SUCCEED();
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
