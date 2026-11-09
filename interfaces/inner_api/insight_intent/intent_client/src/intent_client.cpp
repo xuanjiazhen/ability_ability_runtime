@@ -159,5 +159,28 @@ int32_t IntentClient::ExecuteIntentByAgent(const ExecuteIntentParam &param)
     return err;
 }
 
+int32_t IntentClient::CheckInvokeFunctionCaller()
+{
+    auto remote = GetAbilityManagerRemote();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkLogTag::INTENT, "service not connected");
+        return ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(Str8ToStr16(PERMISSION_DESC))) {
+        TAG_LOGE(AAFwkLogTag::INTENT, "write interface token failed");
+        return INNER_ERR;
+    }
+    int32_t err = remote->SendRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::CHECK_INVOKE_FUNCTION_CALLER), data, reply, option);
+    if (err != 0) {
+        TAG_LOGE(AAFwkLogTag::INTENT, "send request failed: %{public}d", err);
+        return err;
+    }
+    return reply.ReadInt32();
+}
+
 } // namespace AAFwk
 } // namespace OHOS

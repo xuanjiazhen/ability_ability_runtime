@@ -63,6 +63,16 @@ public:
 
     static napi_value UnregisterFunctionHook(napi_env env, napi_callback_info info);
 
+    /**
+     * @brief Native method for mounting a modal UIExtensionAbility on the caller's
+     *        own window via Ace UIContent (client-side direct call, no AMS).
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns a boolean N-API value (true when created successfully).
+     */
+    static napi_value CreateModalUIExtension(napi_env env, napi_callback_info info);
+
 private:
     /**
      * @brief Implementation for querying all functions.
@@ -87,6 +97,8 @@ private:
     napi_value OnRegisterFunctionHook(napi_env env, size_t argc, napi_value *argv);
 
     napi_value OnUnregisterFunctionHook(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnCreateModalUIExtension(napi_env env, size_t argc, napi_value *argv);
 };
 
 /**

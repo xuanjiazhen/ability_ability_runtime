@@ -856,20 +856,14 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
     const std::string &callerBundleName, const std::string &targetBundleName)
 {
     TAG_LOGI(AAFwkTag::INTENT, "specifiedFullTokenId: %{public}" PRIu64, specifiedFullTokenId);
+    (void)callerBundleName;
+    (void)targetBundleName;
     bool isSystemAppCall = false;
     if (specifiedFullTokenId != 0) {
         isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPIByTokenId(
             specifiedFullTokenId);
     } else {
         isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
-    }
-    if (PermissionVerification::GetInstance()->IsShellCall()) {
-        TAG_LOGD(AAFwkTag::INTENT, "shell caller, skip permission check");
-        return ERR_OK;
-    }
-    if (isSystemAppCall && !callerBundleName.empty() && callerBundleName == targetBundleName) {
-        TAG_LOGI(AAFwkTag::INTENT, "system app execute own intent, skip permission check");
-        return ERR_OK;
     }
     if (!isSystemAppCall) {
         TAG_LOGE(AAFwkTag::INTENT, "system-api cannot use");

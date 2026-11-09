@@ -55,6 +55,14 @@ public:
      */
     int32_t ExecuteIntentByAgent(const ExecuteIntentParam &param);
 
+    /**
+     * @brief Pure permission validation for invokeFunction caller (system app
+     *        holding EXECUTE_INSIGHT_INTENT). Non-system callers are rejected.
+     * @return Returns ERR_OK on success, ERR_NOT_SYSTEM_APP / ERR_PERMISSION_DENIED
+     *         on failure.
+     */
+    int32_t CheckInvokeFunctionCaller();
+
 private:
     IntentClient() = default;
 

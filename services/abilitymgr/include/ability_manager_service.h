@@ -2272,6 +2272,8 @@ public:
 
     std::string GetInsightIntentCaller(uint64_t intentId) override;
 
+    int32_t CheckInvokeFunctionCaller() override;
+
     /**
      * @brief Reserved hook to obtain user consent for a third-party agent function
      *        invocation. Synchronous seam: returns true (user grants consent) or

@@ -325,6 +325,7 @@ private:
     int32_t ExecuteIntentByFunctionCallInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteIntentByAgentInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetInsightIntentCallerInner(MessageParcel &data, MessageParcel &reply);
+    int32_t CheckInvokeFunctionCallerInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteUIAbilityForegroundIntentWithSpecifyTokenIdInner(MessageParcel &data, MessageParcel &reply);
 
     int32_t QueryEntityInner(MessageParcel &data, MessageParcel &reply);

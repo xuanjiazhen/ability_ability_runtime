@@ -19,6 +19,8 @@
       OHOS::AAFwk::IntentClient::ExecuteIntentByFunctionCall*;
       /* ExecuteIntentByAgent: third-party agent invoke path (pre-registration + consent) */
       OHOS::AAFwk::IntentClient::ExecuteIntentByAgent*;
+      /* CheckInvokeFunctionCaller: pure permission validation for invokeFunction */
+      OHOS::AAFwk::IntentClient::CheckInvokeFunctionCaller*;
       /* InsightIntentExecuteResult: passed by value as a Parcelable (ctor/dtor,
          the one method the consumer calls, and virtual-base metadata) */
       OHOS::AppExecFwk::InsightIntentExecuteResult::InsightIntentExecuteResult*;

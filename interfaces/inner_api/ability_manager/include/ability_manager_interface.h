@@ -2128,6 +2128,22 @@ public:
     }
 
     /**
+     * @brief Pure permission validation for invokeFunction caller. A system-app
+     *        caller must hold EXECUTE_INSIGHT_INTENT; non-system callers are
+     *        rejected. No shell/self-intent exemption is applied here.
+     *
+     * This is a defense-in-depth gate front-moved from the execution path; the
+     * authoritative permission check remains CheckCallerPermission in
+     * InsightIntentExecuteManager.
+     *
+     * @return ERR_OK on success, ERR_NOT_SYSTEM_APP / ERR_PERMISSION_DENIED otherwise.
+     */
+    virtual int32_t CheckInvokeFunctionCaller()
+    {
+        return ERR_OK;
+    }
+
+    /**
      * @brief Execute UIAbility foreground intent with specified token id.
      * @param want The info of the target ability and custom parameters.
      * @param callerAbilityToken The caller ability token.

@@ -15861,6 +15861,22 @@ std::string AbilityManagerService::GetInsightIntentCaller(uint64_t intentId)
     return executeManager->GetInsightIntentCaller(intentId);
 }
 
+int32_t AbilityManagerService::CheckInvokeFunctionCaller()
+{
+    bool isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
+    if (!isSystemAppCall) {
+        TAG_LOGE(AAFwkTag::INTENT, "invokeFunction caller is not a system app");
+        return ERR_NOT_SYSTEM_APP;
+    }
+    bool hasPermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
+        PermissionConstants::PERMISSION_EXECUTE_INSIGHT_INTENT);
+    if (!hasPermission) {
+        TAG_LOGE(AAFwkTag::INTENT, "system caller lacks EXECUTE_INSIGHT_INTENT");
+        return ERR_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
 int32_t AbilityManagerService::ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,
     const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param,
     uint64_t specifiedFullTokenId)
