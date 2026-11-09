@@ -36,6 +36,7 @@
 #include "ability_info.h"
 #include "ability_manager_event_subscriber.h"
 #include "ability_manager_stub.h"
+#include "ability_permission_checker.h"
 #include "ability_keep_alive_service.h"
 #include "ability_start_with_wait_observer_utils.h"
 #include "ams_configuration_parameter.h"
@@ -1420,6 +1421,20 @@ public:
         bool isVisible = false, uint64_t specifiedFullTokenId = 0) override;
 
     /**
+     * Implementation of StartAbilityByCallWithErrMsg that can carry the channel permission policy.
+     * The public entry above always passes no policy, so a caller reaching AMS over IPC cannot
+     * supply one; the insight intent channel passes the policy it built for the execution record of
+     * this very call.
+     *
+     * @param permissionChecker, the policy to apply, or nullptr for the default (full) check.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int StartAbilityByCallInner(const Want &want, const sptr<IAbilityConnection> &connect,
+        const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg,
+        bool isSilent, bool promotePriority, bool isVisible, uint64_t specifiedFullTokenId,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker);
+
+    /**
      * Start Ability for prelauch.
      *
      * @param want, Special want for service type's ability.
@@ -1484,7 +1499,8 @@ public:
         bool isImplicit = false,
         bool isDlp = false,
         bool isStartAsCaller = false,
-        uint32_t skillCallerTokenId = 0);
+        uint32_t skillCallerTokenId = 0,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker = nullptr);
 
     int RequestModalUIExtensionInner(Want want);
 
@@ -2255,13 +2271,22 @@ public:
      */
     int32_t OnExecuteIntent(AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord);
 
+    /**
+     * Start an ability for an insight intent execution.
+     *
+     * Both entries below take the permission policy built by the intent dispatcher that created the
+     * execution record for this call. The policy is an in-process object and is never derived from
+     * the want, so it is the only thing that can waive a target-declared restriction.
+     */
     int32_t StartAbilityWithInsightIntent(const Want &want, int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0,
-        const sptr<IRemoteObject> &callerToken = nullptr);
+        const sptr<IRemoteObject> &callerToken = nullptr,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker = nullptr);
 
     int32_t StartAbilityByCallWithInsightIntent(const Want &want,
         const sptr<IRemoteObject> &callerToken, const InsightIntentExecuteParam &param,
-        int32_t userId = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0);
+        int32_t userId = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker = nullptr);
     void GrantFileEntityUriPermission(const AbilityRequest &abilityRequest);
     int32_t ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0) override;
@@ -3306,6 +3331,9 @@ private:
     int CheckStaticCfgPermission(const AppExecFwk::AbilityRequest &abilityRequest, bool isStartAsCaller,
         uint32_t callerTokenId, bool isData = false, bool isSaCall = false, bool isImplicit = false);
 
+    int CheckStaticCfgPermissionInner(const AppExecFwk::AbilityRequest &abilityRequest, bool isStartAsCaller,
+        uint32_t callerTokenId, bool isData, bool isSaCall, bool isImplicit);
+
     int CheckPermissionForUIService(AppExecFwk::ExtensionAbilityType extensionType,
         const Want &want, const AbilityRequest &abilityRequest);
 
@@ -3547,11 +3575,13 @@ private:
      * @brief Start extension ability with insight intent
      * @param want, the want of the ability to start.
      * @param extensionType If an ExtensionAbilityType is set, only extension of that type can be started.
+     * @param permissionChecker, the policy built by the intent dispatcher for this execution.
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t StartExtensionAbilityWithInsightIntent(const Want &want,
         AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker = nullptr);
 
     bool IsAbilityStarted(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord,
         const int32_t oriValidUserId);
@@ -3796,7 +3826,18 @@ private:
     AbilityRuntime::ExtractInsightIntentGenericInfo GetInsightIntentExecuteInfo(const InsightIntentExecuteParam &param,
         AbilityRuntime::ExtractInsightIntentInfo &extractInfo, AbilityRuntime::InsightIntentInfo &configInfo);
 
-    bool IsInsightIntentCall(const Want &want, const std::string &targetBundleName);
+    /**
+     * Build the permission policy for an insight intent execution.
+     *
+     * Called only by the intent dispatchers, right after the execution record for this very call was
+     * created by InsightIntentExecuteManager::AddRecord. By that point the channel is authorised:
+     * CheckAndUpdateParam already ran CheckCallerPermission, and the record belongs to the caller of
+     * the current IPC context. The object never leaves AMS and is never derived from a want, so no
+     * later stage has to, or can, re-derive the decision from caller-controlled data.
+     *
+     * @return the policy for the insight intent channel (both target-declared checks waived).
+     */
+    std::shared_ptr<const AbilityPermissionChecker> CreateInsightIntentPermissionChecker();
 
     int32_t RecordAppWithReasonByAccessTokenId(uint32_t accessTokenId,
         const ExitReasonCompability &exitReasonCompability);
