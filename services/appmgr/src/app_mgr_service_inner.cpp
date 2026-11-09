@@ -221,6 +221,8 @@ constexpr const char* ENTER_SANDBOX = "sandboxApp";
 constexpr const char* PERMISSION_INTERNET = "ohos.permission.INTERNET";
 constexpr const char* PERMISSION_MANAGE_VPN = "ohos.permission.MANAGE_VPN";
 constexpr const char* PERMISSION_ACCESS_BUNDLE_DIR = "ohos.permission.ACCESS_BUNDLE_DIR";
+constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
+constexpr const char* PERMISSION_EXEC_PUBLIC_CLI_TOOL = "ohos.permission.EXEC_PUBLIC_CLI_TOOL";
 constexpr const char* PERMISSION_PROTECT_SCREEN_LOCK_DATA = "ohos.permission.PROTECT_SCREEN_LOCK_DATA";
 constexpr const char* PERMISSION_TEMP_JIT_ALLOW = "TEMPJITALLOW";
 constexpr const char* TARGET_UID_KEY = "ohos.aafwk.param.targetUid";
@@ -1096,7 +1098,6 @@ int32_t AppMgrServiceInner::HandleForkAll(int32_t pid)
     CHECK_POINTER_AND_RETURN_VALUE(appRecord, -1);
     auto ret = HandleForkAllInner(appRecord, pid);
     if (ret != ImageError::ERR_OK) {
-        appRecord->SetMakeImageState(MakeImageState::NONE);
         HandleMakeImageFailed(appRecord, ret);
         return -1;
     }
@@ -1238,6 +1239,10 @@ void AppMgrServiceInner::HandleMakeImageFailed(const std::string& bundleName, co
     UnMarkTemplateProcess(imageInfo->templatePid);
     RemoveImageInfo(bundleName, abilityName, userId, appIndex);
     NotifyMakeImageFailed(imageInfo->bundleInfo.uid, imageInfo->errorHandler, err);
+    auto appRecord = GetAppRunningRecordByPid(imageInfo->templatePid);
+    if (appRecord != nullptr) {
+        appRecord->SetMakeImageState(MakeImageState::NONE);
+    }
 }
 
 int32_t AppMgrServiceInner::PreAddImageInfo(const std::string& bundleName, int32_t userId, int32_t appIndex,
@@ -2745,7 +2750,9 @@ void AppMgrServiceInner::MakeProcessName(const std::shared_ptr<AbilityInfo> &abi
     }
     MakeProcessName(appInfo, hapModuleInfo, processName);
     MakeServiceExtProcessName(abilityInfo, appInfo, processName);
-    if (appIndex != 0) {
+    if (appIndex >= AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
+        processName += ":" + std::to_string(appIndex);
+    } else if (appIndex != 0) {
         processName += std::to_string(appIndex);
     }
 
@@ -3499,8 +3506,13 @@ int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool 
 
     auto result = VerifyKillProcessPermission(bundleName);
     if (result != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
-        return result;
+        if (AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall() ||
+            AAFwk::PermissionVerification::GetInstance()->IsCustomSandboxCall()) {
+            userId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+        } else {
+            TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
+            return result;
+        }
     }
 
     if (appIndex == 0) {
@@ -3969,7 +3981,7 @@ int32_t AppMgrServiceInner::KillApplicationByUserId(
     }
 
     KillProcessConfig config{clearPageStack, true, reason};
-    if(appCloneIndex == -1) {
+    if (appCloneIndex == 0) {
         auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
         bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appCloneIndex);
     }
@@ -4040,7 +4052,7 @@ int32_t AppMgrServiceInner::KillApplicationByUserIdLocked(
         userId, bundleName.c_str(), appCloneIndex);
     int uid = IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(bundleName, userId, appCloneIndex));
     TAG_LOGI(AAFwkTag::APPMGR, "KillApplicationByUserIdLocked value: %{public}d", uid);
-    if(appCloneIndex == -1) {
+    if (appCloneIndex == 0) {
         bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appCloneIndex);
     }
     if (!appRunningManager_->ProcessExitByBundleNameAndUid(bundleName, uid, pids, config)) {
@@ -4411,17 +4423,36 @@ int32_t AppMgrServiceInner::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLe
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     auto isLocalDebugOtherAppsCall = AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall();
     bool isDevelopMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
-    if (!(isMemmgrCall || (isShellCall && isDevelopMode) || isLocalDebugOtherAppsCall)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Permission check failed: callerToken is not %{public}s, isMemmgrCall=%{public}d, "
-        "isShellCall=%{public}d, isDevelopMode=%{public}d", MEMMGR_PROC_NAME, isMemmgrCall, isShellCall, isDevelopMode);
-        return ERR_INVALID_VALUE;
-    }
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager null");
         return ERR_INVALID_VALUE;
     }
     bool isShellOrLocalDebug = isShellCall || isLocalDebugOtherAppsCall;
     TAG_LOGD(AAFwkTag::APPMGR, "isShellCall %{public}d", isShellCall);
+    if (!(isMemmgrCall || (isShellCall && isDevelopMode))) {
+        if (isLocalDebugOtherAppsCall) {
+            auto callingUserId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+            std::map<pid_t, MemoryLevel> filteredMap;
+            for (const auto &item : procLevelMap) {
+                auto appRecord = appRunningManager_->GetAppRunningRecordByPid(item.first);
+                if (appRecord == nullptr) {
+                    TAG_LOGW(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall filter: pid:%{public}d appRecord null",
+                        item.first);
+                    continue;
+                }
+                if (GetUserIdByUid(appRecord->GetUid()) != callingUserId) {
+                    TAG_LOGW(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall filter: pid:%{public}d not same user",
+                        item.first);
+                    continue;
+                }
+                filteredMap.emplace(item.first, item.second);
+            }
+            return appRunningManager_->NotifyProcMemoryLevel(filteredMap, isShellOrLocalDebug);
+        }
+        TAG_LOGE(AAFwkTag::APPMGR, "Permission check failed: callerToken is not %{public}s, isMemmgrCall=%{public}d, "
+        "isShellCall=%{public}d, isDevelopMode=%{public}d", MEMMGR_PROC_NAME, isMemmgrCall, isShellCall, isDevelopMode);
+        return ERR_INVALID_VALUE;
+    }
     return appRunningManager_->NotifyProcMemoryLevel(procLevelMap, isShellOrLocalDebug);
 }
 
@@ -5811,6 +5842,15 @@ void AppMgrServiceInner::SetAppInfo(const BundleInfo &bundleInfo, AppSpawnStartM
     startMsg.accessTokenIdEx = bundleInfo.applicationInfo.accessTokenIdEx;
     startMsg.apl = bundleInfo.applicationInfo.appPrivilegeLevel;
     startMsg.ownerId = bundleInfo.signatureInfo.appIdentifier;
+    auto token = bundleInfo.applicationInfo.accessTokenId;
+    if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+            token, PERMISSION_EXEC_CLI_TOOL, false) == Security::AccessToken::PERMISSION_GRANTED ||
+        Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+            token, PERMISSION_EXEC_PUBLIC_CLI_TOOL, false) == Security::AccessToken::PERMISSION_GRANTED) {
+        startMsg.agentId = bundleInfo.signatureInfo.appIdentifier;
+        startMsg.flags |= (START_FLAG_BASE << AppFlagsIndex::APP_FLAGS_AGENT);
+        TAG_LOGI(AAFwkTag::APPMGR, "agentId: %{private}s", startMsg.agentId.c_str());
+    }
     startMsg.provisionType = bundleInfo.applicationInfo.appProvisionType;
     startMsg.appDistributionType = bundleInfo.applicationInfo.appDistributionType;
     startMsg.apiTargetVersion = bundleInfo.applicationInfo.apiTargetVersion % API_VERSION_MOD;
@@ -8343,14 +8383,6 @@ int32_t AppMgrServiceInner::VerifyKillProcessPermissionCommon() const
         return ERR_OK;
     }
 
-    if (AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall()) {
-        return ERR_OK;
-    }
-
-    if (AAFwk::PermissionVerification::GetInstance()->IsCustomSandboxCall()) {
-        return ERR_OK;
-    }
-
     if (VerifyAPL()) {
         return ERR_OK;
     }
@@ -9915,6 +9947,15 @@ int32_t AppMgrServiceInner::IsAppRunningByBundleNameAndUserId(const std::string 
     bool &isRunning)
 {
     return appQueryHelper_.IsAppRunningByBundleNameAndUserId(bundleName, userId, isRunning);
+}
+
+pid_t AppMgrServiceInner::ResolveMainProcessPidByBundleName(const std::string &bundleName, int32_t userId)
+{
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return -1;
+    }
+    return appRunningManager_->GetMainProcessPidByBundleName(bundleName, userId);
 }
 
 bool AppMgrServiceInner::CreateAbilityInfo(const AAFwk::Want &want, AbilityInfo &abilityInfo)

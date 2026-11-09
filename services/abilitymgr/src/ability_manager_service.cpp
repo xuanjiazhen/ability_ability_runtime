@@ -271,6 +271,8 @@ constexpr static char WANT_PARAMS_VIEW_DATA_KEY[] = "ohos.ability.params.viewDat
 constexpr const char* WANT_PARAMS_HOST_WINDOW_ID_KEY = "ohos.extra.param.key.hostwindowid";
 
 constexpr int32_t FOUNDATION_UID = 5523;
+constexpr int32_t SUBFOUNDATION_UID = 6061;
+
 constexpr const char* FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
 constexpr const char* FOUNDATION_PROCESS_NAME = "foundation";
 constexpr const char* RSS_PROCESS_NAME = "resource_schedule_service";
@@ -379,6 +381,13 @@ bool IsEmbeddableStart(int32_t screenMode)
 {
     return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
         screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
+}
+
+// Check whether the caller is the foundation or subfoundation process.
+bool IsFoundationCall()
+{
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    return callingUid == FOUNDATION_UID || callingUid == SUBFOUNDATION_UID;
 }
 
 } // namespace
@@ -950,7 +959,7 @@ int AbilityManagerService::StartAbilityWithSpecifyTokenId(const Want &want, cons
         return INNER_ERR;
     }
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (!IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility with specialId, current process not foundation process");
         return CHECK_PERMISSION_FAILED;
     }
@@ -1181,7 +1190,7 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
         return INNER_ERR;
     }
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (!IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbility with specialId, process not foundation process");
         return CHECK_PERMISSION_FAILED;
     }
@@ -3904,29 +3913,21 @@ bool AbilityManagerService::IsDmsAlive() const
 
 void AbilityManagerService::AppUpgradeCompleted(int32_t uid, int32_t installType)
 {
-    auto userId = uid / BASE_USER_RANGE;
-    if (!VerifyPermissionAndUserForUpgrade(uid, userId)) {
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Permission denied: not SA call, uid=%{public}d", uid);
         return;
     }
-
-    auto bms = AbilityUtil::GetBundleManagerHelper();
-    CHECK_POINTER(bms);
+    auto userId = uid / BASE_USER_RANGE;
+    if (userId != U0_USER_ID && userId != U1_USER_ID &&
+        !AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Invalid user for upgrade: userId=%{public}d, uid=%{public}d",
+            userId, uid);
+        HandleUpgradeCompletedForBackgroundUser(uid, userId);
+        return;
+    }
 
     AppExecFwk::BundleInfo bundleInfo;
-    std::string bundleName;
-    int32_t appIndex;
-    if (IN_PROCESS_CALL(bms->GetNameAndIndexForUid(uid, bundleName, appIndex)) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get appIndex for %{public}s", bundleName.c_str());
-        return;
-    }
-    auto flags = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION)
-        | static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE)
-        | static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY)
-        | static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, userId: %{public}d, appIndex: %{public}d",
-        bundleName.c_str(), userId, appIndex);
-    if (IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName, flags, appIndex, bundleInfo, userId)) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundle info for %{public}s", bundleName.c_str());
+    if (!GetUpgradeBundleInfo(uid, userId, bundleInfo)) {
         return;
     }
 
@@ -3955,21 +3956,36 @@ void AbilityManagerService::AppUpgradeCompleted(int32_t uid, int32_t installType
     }
 }
 
-bool AbilityManagerService::VerifyPermissionAndUserForUpgrade(int32_t uid, int32_t userId) const
+bool AbilityManagerService::GetUpgradeBundleInfo(int32_t uid, int32_t userId, AppExecFwk::BundleInfo &bundleInfo)
 {
-    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Permission denied: not SA call, uid=%{public}d", uid);
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, false);
+    std::string bundleName;
+    int32_t appIndex;
+    if (IN_PROCESS_CALL(bms->GetNameAndIndexForUid(uid, bundleName, appIndex)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get appIndex for %{public}s", bundleName.c_str());
         return false;
     }
-
-    if (userId != U0_USER_ID && userId != U1_USER_ID &&
-        !AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Invalid user for upgrade: userId=%{public}d, uid=%{public}d",
-            userId, uid);
+    auto flags = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION)
+        | static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE)
+        | static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY)
+        | static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, userId: %{public}d, appIndex: %{public}d",
+        bundleName.c_str(), userId, appIndex);
+    if (IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName, flags, appIndex, bundleInfo, userId)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundle info for %{public}s", bundleName.c_str());
         return false;
     }
-
     return true;
+}
+
+void AbilityManagerService::HandleUpgradeCompletedForBackgroundUser(int32_t uid, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "upgrade restart rejected for background user:%{public}d, uid:%{public}d",
+        userId, uid);
+    if (KeepAliveProcessManager::GetInstance().KeepAliveCheckNeedRestartAfterUpgrade(uid)) {
+        KeepAliveProcessManager::GetInstance().AddNeedRestartKeepAliveUid(uid);
+    }
 }
 
 int32_t AbilityManagerService::RecordAppExitReason(const ExitReason &exitReason)
@@ -4412,6 +4428,9 @@ void AbilityManagerService::SubscribeBundleEventCallback()
     // Register abilityBundleEventCallback to receive hap updates
     abilityBundleEventCallback_ =
         new (std::nothrow) AbilityBundleEventCallback(taskHandler_, abilityAutoStartupService_);
+    if (abilityBundleEventCallback_ != nullptr) {
+        abilityBundleEventCallback_->SetNotifyAllUsers(true);
+    }
     auto bms = AbilityUtil::GetBundleManagerHelper();
     if (bms) {
         bool ret = IN_PROCESS_CALL(bms->RegisterBundleEventCallback(abilityBundleEventCallback_));
@@ -9630,7 +9649,9 @@ int AbilityManagerService::KillProcessWithUserId(const std::string &bundleName, 
     // check permission first
     auto isAllowKillProcessForCollaborator = CheckPermissionForKillCollaborator();
     if (!isAllowKillProcessForCollaborator &&
-        DelayedSingleton<AppScheduler>::GetInstance()->VerifyKillProcessPermission(bundleName) != ERR_OK) {
+        DelayedSingleton<AppScheduler>::GetInstance()->VerifyKillProcessPermission(bundleName) != ERR_OK &&
+        !AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall() &&
+        !AAFwk::PermissionVerification::GetInstance()->IsCustomSandboxCall()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "KillProcess permission verification fail");
         return ERR_PERMISSION_DENIED;
     }
@@ -10344,7 +10365,8 @@ void AbilityManagerService::KillDirectBootApps(int32_t userId)
 
 void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart, bool isDirectBoot)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAutoStartupApps called");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "try StartAutoStartupApps user:%{public}d isEDMStart:%{public}d "
+        "isDirectBoot:%{public}d", userId, isEDMStart, isDirectBoot);
     if (!IsAutoStartupAllowed(userId, isEDMStart, isDirectBoot)) {
         return;
     }
@@ -10895,7 +10917,7 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
     }
 
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
-    if (abilityRecord && !JudgeSelfCalled(abilityRecord)) {
+    if (abilityRecord && !JudgeSelfCalled(abilityRecord) && !IsFoundationCall()) {
         errMsg = "verify account permission failed";
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, CHECK_PERMISSION_FAILED,
             "startAbilityByCall verify caller permission failed");
@@ -15101,6 +15123,9 @@ int32_t AbilityManagerService::UnregisterAutoStartupSystemCallback(const sptr<IR
 
 int32_t AbilityManagerService::SetApplicationAutoStartup(const AutoStartupInfo &info)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetApplicationAutoStartup called, bundleName: %{public}s, "
+        "abilityName: %{public}s, userId: %{public}d, callerUid: %{public}d", info.bundleName.c_str(),
+        info.abilityName.c_str(), info.userId, IPCSkeleton::GetCallingUid());
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
@@ -15110,6 +15135,9 @@ int32_t AbilityManagerService::SetApplicationAutoStartup(const AutoStartupInfo &
 
 int32_t AbilityManagerService::CancelApplicationAutoStartup(const AutoStartupInfo &info)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CancelApplicationAutoStartup called, bundleName: %{public}s, "
+        "abilityName: %{public}s, userId: %{public}d, callerUid: %{public}d", info.bundleName.c_str(),
+        info.abilityName.c_str(), info.userId, IPCSkeleton::GetCallingUid());
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
@@ -15681,7 +15709,7 @@ int32_t AbilityManagerService::ExecuteUIAbilityForegroundIntentWithSpecifyTokenI
     const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param,
     uint64_t specifiedFullTokenId)
 {
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (!IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::INTENT, "not foundation process, reject");
         return CHECK_PERMISSION_FAILED;
     }
@@ -16539,6 +16567,9 @@ int32_t AbilityManagerService::QuerySkillType(const std::string &bundleName, con
 int32_t AbilityManagerService::SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag,
     bool isHiddenStart)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetApplicationAutoStartupByEDM called, bundleName: %{public}s, "
+        "abilityName: %{public}s, flag: %{public}d, isHiddenStart: %{public}d, callerUid: %{public}d",
+        info.bundleName.c_str(), info.abilityName.c_str(), flag, isHiddenStart, IPCSkeleton::GetCallingUid());
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
@@ -16548,6 +16579,9 @@ int32_t AbilityManagerService::SetApplicationAutoStartupByEDM(const AutoStartupI
 
 int32_t AbilityManagerService::CancelApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CancelApplicationAutoStartupByEDM called, bundleName: %{public}s, "
+        "abilityName: %{public}s, flag: %{public}d, callerUid: %{public}d",
+        info.bundleName.c_str(), info.abilityName.c_str(), flag, IPCSkeleton::GetCallingUid());
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
@@ -16659,17 +16693,20 @@ void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::
     if (!system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
         return;
     }
-
     auto userId =
         AbilityRuntime::UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyStartKeepAliveProcess called, diedPid: %{public}d, size: %{public}zu, "
+        "foregroundUserId: %{public}d", diedPid, bundleInfos.size(), userId);
     std::map<int32_t, std::vector<AppExecFwk::BundleInfo>> bundleInfosMap;
     std::vector<AppExecFwk::BundleInfo> bundleInfosForU1;
     for (const auto &item: bundleInfos) {
-        if (KeepAliveProcessManager::GetInstance().KeepAliveIsRestartAfterUpdate(item.uid)) {
-            TAG_LOGI(AAFwkTag::APPMGR, "KeepAliveIsRestartAfterUpdate uid: %{public}d", item.uid);
-            return;
-        }
         auto user = item.uid / BASE_USER_RANGE;
+        if (KeepAliveProcessManager::GetInstance().KeepAliveIsRestartAfterUpdate(item.uid) &&
+            (user == U1_USER_ID ||
+            AbilityRuntime::UserController::GetInstance().IsForegroundUser(user))) {
+            TAG_LOGI(AAFwkTag::APPMGR, "KeepAliveIsRestartAfterUpdate uid: %{public}d", item.uid);
+            continue;
+        }
         if (user == U1_USER_ID) {
             bundleInfosForU1.push_back(item);
         } else if (AbilityRuntime::UserController::GetInstance().IsForegroundUser(user)) {
@@ -16682,7 +16719,7 @@ void AbilityManagerService::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::
                 bundleInfosMap.emplace(user, bundleInfosForCurrentUser);
             }
         } else {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "keepAlive not U1 or current user.");
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "keepAlive not U1 or current user, uid: %{public}d", item.uid);
             KeepAliveProcessManager::GetInstance().AddNeedRestartKeepAliveUid(item.uid);
         }
     }
@@ -18888,6 +18925,9 @@ bool AbilityManagerService::IsSupportStatusBarByUserId(int32_t userId)
 
 int32_t AbilityManagerService::SetApplicationKeepAlive(const std::string &bundleName, int32_t userId, bool flag)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetApplicationKeepAlive called, bundleName: %{public}s, "
+        "userId: %{public}d, flag: %{public}d, callerUid: %{public}d", bundleName.c_str(), userId, flag,
+        IPCSkeleton::GetCallingUid());
     return KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(
         bundleName, userId, flag, false, false);
 }
@@ -18895,6 +18935,8 @@ int32_t AbilityManagerService::SetApplicationKeepAlive(const std::string &bundle
 int32_t AbilityManagerService::QueryKeepAliveApplications(int32_t appType, int32_t userId,
     std::vector<KeepAliveInfo> &list)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "QueryKeepAliveApplications called, appType: %{public}d, userId: %{public}d, "
+        "callerUid: %{public}d", appType, userId, IPCSkeleton::GetCallingUid());
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveApplications(
         appType, userId, list, false);
 }
@@ -18902,7 +18944,12 @@ int32_t AbilityManagerService::QueryKeepAliveApplications(int32_t appType, int32
 int32_t AbilityManagerService::SetApplicationKeepAliveByEDM(const std::string &bundleName, int32_t userId,
     bool flag, bool isAllowUserToCancel)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetApplicationKeepAliveByEDM called, bundleName: %{public}s, "
+        "userId: %{public}d, flag: %{public}d, isAllowUserToCancel: %{public}d, callerUid: %{public}d",
+        bundleName.c_str(), userId, flag, isAllowUserToCancel, IPCSkeleton::GetCallingUid());
     if (userId != U1_USER_ID && isAllowUserToCancel) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "isAllowUserToCancel only support u1, userId: %{public}d, callerUid: %{public}d",
+            userId, IPCSkeleton::GetCallingUid());
         return ERR_CAPABILITY_NOT_SUPPORT;
     }
 
@@ -18926,6 +18973,8 @@ int32_t AbilityManagerService::SetApplicationKeepAliveByEDM(const std::string &b
 int32_t AbilityManagerService::QueryKeepAliveApplicationsByEDM(int32_t appType, int32_t userId,
     std::vector<KeepAliveInfo> &list)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "QueryKeepAliveApplicationsByEDM called, appType: %{public}d, userId: %{public}d, "
+        "callerUid: %{public}d", appType, userId, IPCSkeleton::GetCallingUid());
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveApplications(
         appType, userId, list, true);
 }
@@ -19866,12 +19915,15 @@ int AbilityManagerService::ResumeExtensionAbility(sptr<IAbilityConnection> conne
 
 int32_t AbilityManagerService::SetAppServiceExtensionKeepAlive(const std::string &bundleName, bool flag)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetAppServiceExtensionKeepAlive called, bundleName: %{public}s, flag: %{public}d, "
+        "callerUid: %{public}d", bundleName.c_str(), flag, IPCSkeleton::GetCallingUid());
     return KeepAliveProcessManager::GetInstance().SetAppServiceExtensionKeepAlive(
         bundleName, flag, false, false);
 }
 
 int32_t AbilityManagerService::QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "QueryKeepAliveAppServiceExtensions called");
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveAppServiceExtensions(list, false);
 }
 

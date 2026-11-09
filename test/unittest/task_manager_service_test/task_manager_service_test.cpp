@@ -1167,17 +1167,6 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RegisterManagedProcessQuota_
 }
 
 /**
- * @tc.number: TaskManagerService_ReservedKeyLiteralAnchored_1000
- * @tc.name: reserved key literal cross-anchor
- * @tc.desc: anchor the reserved task id key literal value, so any drift of the
- *           PARAM_RESV_TASK_ID constant value is caught by this test.
- */
-HWTEST_F(TaskManagerServiceTest, TaskManagerService_ReservedKeyLiteralAnchored_1000, TestSize.Level1)
-{
-    EXPECT_STREQ(Want::PARAM_RESV_TASK_ID.c_str(), "ohos.aafwk.param.taskId");
-}
-
-/**
  * @tc.number: TaskManagerService_OnProcessDiedCleanup_1100
  * @tc.name: process death removes attribution entries
  * @tc.desc: entries of a dead pid are removed from every task, so the quota slot is

@@ -106,6 +106,11 @@ int32_t AppRunningManager::IsAppRunningByBundleName(const std::string &bundleNam
     return ERR_OK;
 }
 
+pid_t AppRunningManager::GetMainProcessPidByBundleName(const std::string &bundleName, int32_t userId)
+{
+    return -1;
+}
+
 int32_t AppRunningManager::GetAllAppRunningRecordCountByBundleName(const std::string &bundleName)
 {
     return 0;
@@ -290,6 +295,7 @@ int32_t AppRunningManager::NotifyMemoryLevel(int32_t level)
 int32_t AppRunningManager::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel> &procLevelMap, bool isShellCall)
 {
     AAFwk::MyStatus::GetInstance().notifyProcMemoryCall_++;
+    AAFwk::MyStatus::GetInstance().notifyProcMemoryMapSize_ = procLevelMap.size();
     if (isShellCall) {
         AAFwk::MyStatus::GetInstance().notifyProcMemoryShellCall_++;
     }
