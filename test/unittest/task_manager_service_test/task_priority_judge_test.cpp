@@ -76,7 +76,7 @@ public:
     void SetUp() override
     {
         auto &judge = TaskPriorityJudge::GetInstance();
-        judge.fgAbilityCounts_.clear();
+        judge.fgAbilities_.clear();
         judge.loadLevel_ = -1;
         judge.loadListenerRegistered_ = false;
         judge.SetLoadProvider(nullptr);
@@ -85,7 +85,7 @@ public:
     void TearDown() override
     {
         auto &judge = TaskPriorityJudge::GetInstance();
-        judge.fgAbilityCounts_.clear();
+        judge.fgAbilities_.clear();
         judge.loadLevel_ = -1;
         judge.loadListenerRegistered_ = false;
         judge.SetLoadProvider(nullptr);
@@ -137,14 +137,14 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_Matrix_0300, TestSize.Level1)
     judge.OnSystemLoadLevelChanged(2);
     EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_MEDIUM);
     // one foreground ability -> HIGH
-    judge.OnForegroundAbilityChanged(TEST_FG_PID, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, true);
     EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
     EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_HIGH);
     // load jumps to 6 while foreground -> still HIGH (foreground ignores load)
     judge.OnSystemLoadLevelChanged(6);
     EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_HIGH);
     // ability leaves foreground with load 6 -> LOW
-    judge.OnForegroundAbilityChanged(TEST_FG_PID, false);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, false);
     EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
     EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_LOW);
     // load drops back to 4 -> MEDIUM (boundary)
@@ -170,7 +170,7 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_Fallback_0100, TestSize.Level1
     judge.OnSystemLoadLevelChanged(-5);
     EXPECT_EQ(judge.CurrentLoadLevel(), -1);
     // foreground stays HIGH even with unavailable load
-    judge.OnForegroundAbilityChanged(TEST_FG_PID, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, true);
     EXPECT_EQ(judge.JudgeLevel(TEST_FG_PID), TASK_PRIORITY_HIGH);
     // provider registration failure keeps the listener unregistered and the load unavailable
     judge.SetLoadProvider(std::make_shared<StubLoadProvider>(-1, false));
@@ -187,15 +187,15 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_Fallback_0100, TestSize.Level1
 HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_ForegroundCount_0100, TestSize.Level1)
 {
     auto &judge = TaskPriorityJudge::GetInstance();
-    judge.OnForegroundAbilityChanged(TEST_FG_PID, true);
-    judge.OnForegroundAbilityChanged(TEST_FG_PID, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, true);
     EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
-    judge.OnForegroundAbilityChanged(TEST_FG_PID, false);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, false);
     EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
-    judge.OnForegroundAbilityChanged(TEST_FG_PID, false);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, false);
     EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
     // defensive: an extra foreground=false must not produce a negative count
-    judge.OnForegroundAbilityChanged(TEST_FG_PID, false);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, false);
     EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
 }
 
@@ -216,19 +216,118 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_LoadListener_0100, TestSize.Le
 
 /**
  * @tc.number: TaskPriorityJudge_ForegroundChanged_0100
- * @tc.name: OnForegroundAbilityChanged rejects non-positive uids (early-return branch).
- * @tc.desc: uid 0 and negative uids must not create any foreground count entry.
+ * @tc.name: OnForegroundAbilityChanged rejects non-positive pids (early-return branch).
+ * @tc.desc: pid 0 and negative pids must not create any foreground set entry.
  */
 HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_ForegroundChanged_0100, TestSize.Level1)
 {
     auto &judge = TaskPriorityJudge::GetInstance();
-    judge.OnForegroundAbilityChanged(0, true);
-    judge.OnForegroundAbilityChanged(-1, true);
+    judge.OnForegroundAbilityChanged(0, 0x1001, true);
+    judge.OnForegroundAbilityChanged(-1, 0x1001, true);
     {
         std::lock_guard<std::mutex> lock(judge.judgeMutex_);
-        EXPECT_TRUE(judge.fgAbilityCounts_.empty());
+        EXPECT_TRUE(judge.fgAbilities_.empty());
     }
     EXPECT_FALSE(judge.IsForeground(0));
+}
+
+/**
+ * @tc.number: TaskPriorityJudge_ForegroundChanged_0200
+ * @tc.name: the same ability token is idempotent under AMS double-dispatch (root cause
+ *           of the observed +2 per foreground switch).
+ * @tc.desc: two FOREGROUND events for the SAME token must collapse to one entry; the
+ *           count only drops when a BACKGROUND for that same token arrives.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_ForegroundChanged_0200, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    uintptr_t token = 0xABCD;
+    // double FOREGROUND dispatch (ChangeAbilityToForegroundIfNeeded + PopForegrounding)
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, token, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, token, true);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        ASSERT_EQ(judge.fgAbilities_.count(TEST_FG_PID), 1);
+        EXPECT_EQ(judge.fgAbilities_[TEST_FG_PID].size(), 1);
+    }
+    // BACKGROUND for the same token: count drops to zero
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, token, false);
+    EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        EXPECT_EQ(judge.fgAbilities_.count(TEST_FG_PID), 0);
+    }
+}
+
+/**
+ * @tc.number: TaskPriorityJudge_ForegroundChanged_0300
+ * @tc.name: distinct ability tokens accumulate; one leaving drops the count by one.
+ * @tc.desc: two different abilities of the same pid each hold an entry; one leaving the
+ *           foreground leaves the pid still foreground.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_ForegroundChanged_0300, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1002, true);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, false);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));  // 0x1002 still foreground
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1002, false);
+    EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
+}
+
+/**
+ * @tc.number: TaskPriorityJudge_ProcessDied_0100
+ * @tc.name: OnProcessDied clears the dead pid's whole foreground set.
+ * @tc.desc: after process death the pid must be absent from the map so the count cannot
+ *           leak into future tasks.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_ProcessDied_0100, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1002, true);
+    judge.OnProcessDied(TEST_FG_PID);
+    EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        EXPECT_EQ(judge.fgAbilities_.count(TEST_FG_PID), 0);
+    }
+}
+
+/**
+ * @tc.number: TaskPriorityJudge_SeedForeground_0100
+ * @tc.name: SeedForeground inserts the sentinel token 0; first real event replaces it.
+ * @tc.desc: the seeder marks a pid foreground with token 0; a real FOREGROUND for a
+ *           distinct token replaces the sentinel (no double count), and BACKGROUND for
+ *           the real token leaves no stale sentinel.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_SeedForeground_0100, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    judge.SeedForeground(TEST_FG_PID);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        ASSERT_EQ(judge.fgAbilities_[TEST_FG_PID].size(), 1);
+        EXPECT_EQ(*judge.fgAbilities_[TEST_FG_PID].begin(), 0);
+    }
+    // real ability arrives: set should transition to {real token}, not {0, real}
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x2001, true);
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        ASSERT_EQ(judge.fgAbilities_[TEST_FG_PID].size(), 1);
+        EXPECT_EQ(*judge.fgAbilities_[TEST_FG_PID].begin(), 0x2001);
+    }
+    // background of the real token: no stale sentinel remains
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x2001, false);
+    EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        EXPECT_EQ(judge.fgAbilities_.count(TEST_FG_PID), 0);
+    }
 }
 
 /**
@@ -315,7 +414,7 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_DumpJudgeState_0100, TestSize.
     EXPECT_NE(emptyDump.find("cached systemload level [-1]"), std::string::npos);
     EXPECT_NE(emptyDump.find("load listener [not registered]"), std::string::npos);
 
-    judge.OnForegroundAbilityChanged(TEST_FG_PID, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, true);
     auto provider = std::make_shared<StubLoadProvider>(4);
     judge.SetLoadProvider(provider);
     EXPECT_TRUE(judge.RegisterSystemLoadListener());

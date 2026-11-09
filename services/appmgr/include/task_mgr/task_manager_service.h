@@ -90,9 +90,10 @@ public:
      *        the judge and re-judges the tasks created by that process (20260914692273 /
      *        spec AC-6.7); unchanged levels are not propagated.
      * @param pid Indicates the pid of the process whose ability changed state.
+     * @param token Indicates the ability's IRObject token address (the judge's dedup key).
      * @param foreground Indicates true when an ability entered the foreground.
      */
-    void OnAbilityForegroundChanged(pid_t pid, bool foreground);
+    void OnAbilityForegroundChanged(pid_t pid, uintptr_t token, bool foreground);
 
     /**
      * @brief Feeds a fusion load level change into the judge and re-judges every running
@@ -376,6 +377,15 @@ private:
      *        the first task started is not judged as background.
      */
     void SeedForegroundState();
+
+    /**
+     * @brief Lazily reconciles ONE caller pid before its level is judged: if the judge has
+     *        no foreground entry for the pid but the running-record query says its app is
+     *        foreground, seed it. Covers the first startTask of an already-foreground app
+     *        when the observer registration or the bulk seed did not reach it.
+     * @param pid Indicates the caller process id about to be judged.
+     */
+    void ReconcileForegroundState(pid_t pid);
 
     /**
      * @brief Re-judges the priority of running tasks and propagates level changes to

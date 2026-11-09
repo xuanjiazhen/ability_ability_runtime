@@ -136,6 +136,7 @@ int32_t TaskManagerService::StartTask(const std::string &taskId)
     }
     TaskCallerInfo caller = GetCallerInfo();
     RegisterScheduleListeners();
+    ReconcileForegroundState(caller.pid);
     int32_t priority = TaskPriorityJudge::GetInstance().JudgeLevel(caller.pid);
     TAG_LOGI(AAFwkTag::APPMGR, "judged priority: %{public}d for caller uid: %{public}d",
         priority, caller.uid);
@@ -250,11 +251,13 @@ void TaskManagerService::OnProcessDied(pid_t pid, int32_t uid)
     // under the task mutex (20260914692273 / spec AC-6.3); the task records themselves
     // survive and only lose the attribution, so the task is not finished.
     RemoveManagedProcessFromAllTasksInner(pid);
+    // clear the dead process's foreground set so its count cannot leak into future tasks
+    TaskPriorityJudge::GetInstance().OnProcessDied(pid);
 }
 
-void TaskManagerService::OnAbilityForegroundChanged(pid_t pid, bool foreground)
+void TaskManagerService::OnAbilityForegroundChanged(pid_t pid, uintptr_t token, bool foreground)
 {
-    TaskPriorityJudge::GetInstance().OnForegroundAbilityChanged(pid, foreground);
+    TaskPriorityJudge::GetInstance().OnForegroundAbilityChanged(pid, token, foreground);
     RejudgeTasks(pid);
 }
 
@@ -277,7 +280,7 @@ void TaskManagerService::RejudgeTasks(pid_t pid)
             if (newLevel == record.priority) {
                 continue;  // first-line anti-jitter: unchanged level is not propagated
             }
-            TAG_LOGI(AAFwkTag::APPMGR, "task level re-judged, taskId: %{public}s %{public}d -> %{public}d",
+            TAG_LOGI(AAFwkTag::APPMGR, "yzk rejudge, taskId=%s %d -> %d",
                 record.taskId.c_str(), record.priority, newLevel);
             record.priority = newLevel;
             changedTasks.emplace_back(record.taskId, newLevel);
@@ -326,6 +329,29 @@ void TaskManagerService::RegisterScheduleListeners()
     }
 }
 
+void TaskManagerService::ReconcileForegroundState(pid_t pid)
+{
+    if (pid <= 0) {
+        return;
+    }
+    auto &judge = TaskPriorityJudge::GetInstance();
+    if (judge.IsForeground(pid)) {
+        return;
+    }
+    std::vector<pid_t> foregroundPids;
+    {
+        std::lock_guard<std::mutex> lock(seederMutex_);
+        if (foregroundSeeder_ == nullptr) {
+            return;
+        }
+        foregroundPids = foregroundSeeder_();
+    }
+    if (std::find(foregroundPids.begin(), foregroundPids.end(), pid) != foregroundPids.end()) {
+        judge.SeedForeground(pid);
+        TAG_LOGI(AAFwkTag::APPMGR, "yzk lazy fg reconcile, pid=%d", pid);
+    }
+}
+
 void TaskManagerService::SetForegroundSeeder(std::function<std::vector<pid_t>()> seeder)
 {
     std::lock_guard<std::mutex> lock(seederMutex_);
@@ -350,10 +376,12 @@ void TaskManagerService::SeedForegroundState()
     }
     auto &judge = TaskPriorityJudge::GetInstance();
     for (pid_t pid : foregroundPids) {
-        judge.OnForegroundAbilityChanged(pid, true);
+        judge.SeedForeground(pid);
     }
     if (!foregroundPids.empty()) {
-        TAG_LOGI(AAFwkTag::APPMGR, "foreground state seeded, pids: %{public}zu", foregroundPids.size());
+        TAG_LOGI(AAFwkTag::APPMGR, "yzk foreground seeded, pids=%zu", foregroundPids.size());
+        // re-judge so already-created tasks of seeded apps pick up the foreground input
+        RejudgeTasks(SYSTEM_INITIATED_UID);
     }
 }
 
