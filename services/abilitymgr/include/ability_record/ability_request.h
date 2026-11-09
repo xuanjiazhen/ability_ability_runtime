@@ -21,6 +21,7 @@
 
 #include "ability_connect_callback_interface.h"
 #include "ability_info.h"
+#include "ability_permission_checker.h"
 #include "ability_start_setting.h"
 #include "irequest_start_ability_callback.h"
 #include "launch_param.h"
@@ -79,6 +80,11 @@ struct AbilityRequest {
     std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
     std::shared_ptr<SandboxCloneParams> sandboxCloneParams = nullptr;
     sptr<UIExtensionAbilityConnectInfo> uiExtensionAbilityConnectInfo = nullptr;
+    // Permission policy attached by AMS for the channel that issued this request. nullptr means the
+    // channel carries no policy and every target-declared restriction is evaluated as before
+    // (GetPermissionChecker then answers with the all-checks default). The object is created inside
+    // AMS (never carried in a Want, never marshalled), so a caller cannot attach its own.
+    std::shared_ptr<const AbilityPermissionChecker> permissionChecker = nullptr;
 
     int64_t restartTime = 0;
     uint64_t specifiedFullTokenId = 0;
