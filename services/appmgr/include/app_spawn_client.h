@@ -97,6 +97,8 @@ struct AppSpawnStartMsg {
     bool isolatedNetworkFlag = false;
     bool isolatedSELinuxFlag = false;
     bool isScreenLockDataProtect = false;
+    std::vector<std::string> preloadSoList; // full sandbox paths of so to preload in subspawn
+    std::string appLibPath; // default namespace so search path for subspawn
 };
 
 constexpr auto LEN_PID = sizeof(pid_t);
