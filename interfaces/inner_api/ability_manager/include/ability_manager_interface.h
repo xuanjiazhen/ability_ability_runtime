@@ -2110,22 +2110,21 @@ public:
     }
 
     /**
-     * @brief Query whether the given intent id belongs to an insight intent call
-     *        owned by the specified caller token id.
+     * @brief Query the caller bundle name of the insight intent execution
+     *        identified by the given intent id.
      *
-     * The record must be live AND its originating caller token must match
-     * callerTokenId. Used by the privacy-center consent path to verify that the
-     * queried intent id was indeed originated by the given caller. Only system
-     * applications / SA are allowed to query.
+     * The record must be live (PENDING_CONSENT / EXECUTING); stale or missing
+     * records return an empty string. Used by the privacy-center consent path to
+     * identify who originated a given agent invocation. Only system applications
+     * / SA are allowed to query.
      *
      * @param intentId The insight intent execute id to query.
-     * @param callerTokenId The caller access token id that must own the record.
-     * @return Returns true if the intent id belongs to an insight intent call
-     *         owned by callerTokenId.
+     * @return Returns the caller bundle name, or an empty string if the intent id
+     *         does not belong to a live insight intent call.
      */
-    virtual bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId)
+    virtual std::string GetInsightIntentCaller(uint64_t intentId)
     {
-        return false;
+        return "";
     }
 
     /**

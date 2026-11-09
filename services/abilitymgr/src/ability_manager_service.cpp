@@ -15819,11 +15819,8 @@ bool AbilityManagerService::RequestAgentPrivacyDialog(const std::string &callerB
         callerAppIndex, targetBundleName.c_str(), targetBundleIndex);
 
     // The record must be pre-registered so the dialog can query it back while showing.
-    // Bind the check to the caller token so only the caller that pre-registered the
-    // record (via ExecuteIntentByAgent) can validate it.
     auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
-    if (executeManager == nullptr ||
-        !executeManager->IsInsightIntentCall(intentId, IPCSkeleton::GetCallingTokenID())) {
+    if (executeManager == nullptr || executeManager->GetInsightIntentCaller(intentId).empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "pre-registered record not queryable, intentId: %{public}" PRIu64, intentId);
         return false;
     }
@@ -15845,24 +15842,23 @@ int32_t AbilityManagerService::VerifyAgentCallPermission()
     return ERR_OK;
 }
 
-bool AbilityManagerService::IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId)
+std::string AbilityManagerService::GetInsightIntentCaller(uint64_t intentId)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called, intentId: %{public}" PRIu64 ", callerTokenId: %{public}u",
-        intentId, callerTokenId);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called, intentId: %{public}" PRIu64, intentId);
     // Restricted to system applications / SA: querying insight intent execution
     // state must not be exposed to arbitrary third-party processes.
     if (!PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI() &&
         !PermissionVerification::GetInstance()->IsShellCall()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "non-system caller is not allowed to query");
-        return false;
+        return "";
     }
 
     auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
     if (executeManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null execute manager");
-        return false;
+        return "";
     }
-    return executeManager->IsInsightIntentCall(intentId, callerTokenId);
+    return executeManager->GetInsightIntentCaller(intentId);
 }
 
 int32_t AbilityManagerService::ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,

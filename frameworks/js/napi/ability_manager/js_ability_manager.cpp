@@ -161,11 +161,6 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsAbilityManager, OnNotifyDebugAssertResult);
     }
 
-    static napi_value IsInsightIntentCall(napi_env env, napi_callback_info info)
-    {
-        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnIsInsightIntentCall);
-    }
-
     static napi_value OnPreloadedUIExtensionAbilityLoaded(napi_env env, napi_callback_info info)
     {
         GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnOnPreloadedUIExtensionAbilityLoaded);
@@ -814,47 +809,6 @@ private:
         return handleEscape.Escape(result);
     }
 
-    napi_value OnIsInsightIntentCall(napi_env env, NapiCallbackInfo& info)
-    {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-        HandleEscape handleEscape(env);
-        if (info.argc < ARGC_TWO) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
-            ThrowTooFewParametersError(env);
-            return CreateJsUndefined(env);
-        }
-
-        int64_t intentId = 0;
-        if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], intentId) || intentId <= 0) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "parse intentId failed");
-            ThrowInvalidParamError(env, "Parse param intentId failed, must be a positive integer.");
-            return CreateJsUndefined(env);
-        }
-        uint32_t callerTokenId = 0;
-        if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], callerTokenId) || callerTokenId == 0) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "parse callerTokenId failed");
-            ThrowInvalidParamError(env, "Parse param callerTokenId failed, must be a positive integer.");
-            return CreateJsUndefined(env);
-        }
-
-        auto sharedResult = std::make_shared<bool>(false);
-        NapiAsyncTask::ExecuteCallback execute = [sharedResult, intentId, callerTokenId]() {
-            *sharedResult = AbilityManagerClient::GetInstance()->IsInsightIntentCall(
-                static_cast<uint64_t>(intentId), callerTokenId);
-        };
-
-        NapiAsyncTask::CompleteCallback complete = [sharedResult](napi_env env, NapiAsyncTask &task, int32_t status) {
-            HandleScope handleScope(env);
-            task.Resolve(env, CreateJsValue(env, *sharedResult));
-        };
-
-        napi_value lastParam = (info.argc > ARGC_TWO) ? info.argv[ARGC_TWO] : nullptr;
-        napi_value result = nullptr;
-        NapiAsyncTask::Schedule("JsAbilityManager::OnIsInsightIntentCall", env,
-            CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return handleEscape.Escape(result);
-    }
-
     int AddQueryERMSObserver(napi_env env, sptr<IRemoteObject> token, const std::string &appId,
         const std::string &startTime, napi_value *result)
     {
@@ -1304,7 +1258,6 @@ napi_value JsAbilityManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "on", moduleName, JsAbilityManager::On);
     BindNativeFunction(env, exportObj, "off", moduleName, JsAbilityManager::Off);
     BindNativeFunction(env, exportObj, "isEmbeddedOpenAllowed", moduleName, JsAbilityManager::IsEmbeddedOpenAllowed);
-    BindNativeFunction(env, exportObj, "isInsightIntentCall", moduleName, JsAbilityManager::IsInsightIntentCall);
     BindNativeFunction(
         env, exportObj, "isEmbeddedUIExtensionSupported", moduleName, JsAbilityManager::IsEmbeddedUIExtensionSupported);
     BindNativeFunction(

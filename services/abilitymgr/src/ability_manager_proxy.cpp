@@ -5973,7 +5973,7 @@ int32_t AbilityManagerProxy::ExecuteIntentByAgent(const InsightIntentAgentCallPa
     return reply.ReadInt32();
 }
 
-bool AbilityManagerProxy::IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId)
+std::string AbilityManagerProxy::GetInsightIntentCaller(uint64_t intentId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     MessageParcel data;
@@ -5981,23 +5981,19 @@ bool AbilityManagerProxy::IsInsightIntentCall(uint64_t intentId, uint32_t caller
     MessageOption option;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
-        return false;
+        return "";
     }
     if (!data.WriteUint64(intentId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentId fail");
-        return false;
-    }
-    if (!data.WriteUint32(callerTokenId)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerTokenId fail");
-        return false;
+        return "";
     }
     int32_t error = SendRequest(
-        AbilityManagerInterfaceCode::IS_INSIGHT_INTENT_CALL_WITH_CALLER, data, reply, option);
+        AbilityManagerInterfaceCode::GET_INSIGHT_INTENT_CALLER, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
-        return false;
+        return "";
     }
-    return reply.ReadBool();
+    return reply.ReadString();
 }
 
 int32_t AbilityManagerProxy::ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,

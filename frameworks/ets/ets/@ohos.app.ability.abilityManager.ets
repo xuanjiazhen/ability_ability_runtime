@@ -62,8 +62,6 @@ export default namespace abilityManager {
   export native function nativeClearPreloadedUIExtensionAbilities(callback: AsyncCallbackWrapper<void>): void;
   export native function nativeNotifySaveAsResult(parameter: AbilityResult, requestCode: int, callback: AsyncCallbackWrapper<void>): void;
   export native function nativeNotifySaveAsResultCheck(parameter: AbilityResult): void;
-  export native function nativeIsInsightIntentCall(intentId: long, callerTokenId: int, callback: AsyncCallbackWrapper<boolean>): void;
-  export native function nativeIsInsightIntentCallCheck(intentId: long, callerTokenId: int): void;
 
   export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
     let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
@@ -139,22 +137,6 @@ export default namespace abilityManager {
 
   function isEmbeddedUIExtensionSupported(): boolean {
     return abilityManager.nativeIsEmbeddedUIExtensionSupported();
-  }
-
-  function isInsightIntentCall(intentId: long, callerTokenId: int): Promise<boolean> {
-    abilityManager.nativeIsInsightIntentCallCheck(intentId, callerTokenId);
-    return new Promise<boolean>((resolve: (data: boolean) => void, reject: (err: BusinessError) => void): void => {
-      let asyncCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined) => {
-        if (err == null || err.code == 0) {
-          resolve(data as boolean);
-        } else {
-          reject(err);
-        }
-      });
-      taskpool.execute((): void => {
-        abilityManager.nativeIsInsightIntentCall(intentId, callerTokenId, asyncCall);
-      });
-    });
   }
 
   function isEmbeddedOpenAllowed(context: Context, appId: string): Promise<boolean> {

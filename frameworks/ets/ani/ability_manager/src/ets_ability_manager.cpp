@@ -156,8 +156,6 @@ public:
     static void nativeNotifySaveAsResult(ani_env *env, ani_object aniParameter,
         ani_int requestCode, ani_object callback);
     static void nativeNotifySaveAsResultCheck(ani_env *env, ani_object aniParameter);
-    static void IsInsightIntentCall(ani_env *env, ani_long intentId, ani_int callerTokenId, ani_object callbackObj);
-    static void IsInsightIntentCallCheck(ani_env *env, ani_long intentId, ani_int callerTokenId);
 
 private:
     static sptr<AppExecFwk::IAbilityManager> GetAbilityManagerInstance();
@@ -1131,47 +1129,6 @@ void EtsAbilityManager::nativeNotifySaveAsResult(
     AppExecFwk::AsyncCallback(env, callback, nullptr, nullptr);
 }
 
-void EtsAbilityManager::IsInsightIntentCallCheck(ani_env *env, ani_long intentId, ani_int callerTokenId)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call IsInsightIntentCallCheck");
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
-        return;
-    }
-    if (intentId <= 0 || callerTokenId <= 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid params, intentId: %{public}" PRId64 ", callerTokenId: %{public}d",
-            intentId, callerTokenId);
-        EtsErrorUtil::ThrowInvalidParamError(env, "intentId and callerTokenId must be greater than zero.");
-        return;
-    }
-    auto selfToken = IPCSkeleton::GetSelfTokenID();
-    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "not system app");
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
-    }
-}
-
-void EtsAbilityManager::IsInsightIntentCall(ani_env *env, ani_long intentId, ani_int callerTokenId,
-    ani_object callbackObj)
-{
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call IsInsightIntentCall");
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
-        return;
-    }
-    auto amsClient = AAFwk::AbilityManagerClient::GetInstance();
-    if (amsClient == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null amsClient");
-        AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateErrorByNativeErr(env, AAFwk::INNER_ERR), nullptr);
-        return;
-    }
-    bool result = amsClient->IsInsightIntentCall(static_cast<uint64_t>(intentId),
-        static_cast<uint32_t>(callerTokenId));
-    AppExecFwk::AsyncCallback(env, callbackObj,
-        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), AppExecFwk::CreateBoolean(env, result));
-}
-
 void EtsAbilityManagerRegistryInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call EtsAbilityManagerRegistryInit");
@@ -1259,10 +1216,6 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAbilityManager::nativeNotifySaveAsResult) },
         ani_native_function { "nativeNotifySaveAsResultCheck", NOTIFY_SAVE_AS_RESULT_CHECK_SIGNATURE,
             reinterpret_cast<void *>(EtsAbilityManager::nativeNotifySaveAsResultCheck) },
-        ani_native_function { "nativeIsInsightIntentCall", "liC{utils.AbilityUtils.AsyncCallbackWrapper}:",
-            reinterpret_cast<void *>(EtsAbilityManager::IsInsightIntentCall) },
-        ani_native_function { "nativeIsInsightIntentCallCheck", "li:",
-            reinterpret_cast<void *>(EtsAbilityManager::IsInsightIntentCallCheck) },
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
     if (status != ANI_OK) {

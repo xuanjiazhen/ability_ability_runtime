@@ -491,19 +491,21 @@ int32_t InsightIntentExecuteManager::GetCallerBundleName(uint64_t intentId, std:
     return ERR_OK;
 }
 
-bool InsightIntentExecuteManager::IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId) const
+std::string InsightIntentExecuteManager::GetInsightIntentCaller(uint64_t intentId) const
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
     auto it = records_.find(intentId);
     if (it == records_.end() || it->second == nullptr) {
-        return false;
+        return "";
     }
-    // The record must be live AND owned by the exact caller token, so a caller cannot
-    // validate (or later reuse) a record it did not originate.
+    // Only a live invocation (waiting for user consent or actively executing)
+    // exposes its caller. Stale EXECUTE_DONE / REMOTE_DIED entries return empty.
     auto state = it->second->state;
-    return (state == InsightIntentExecuteState::PENDING_CONSENT ||
-            state == InsightIntentExecuteState::EXECUTING) &&
-        it->second->callerTokenId == callerTokenId;
+    if (state != InsightIntentExecuteState::PENDING_CONSENT &&
+        state != InsightIntentExecuteState::EXECUTING) {
+        return "";
+    }
+    return it->second->callerBundleName;
 }
 
 int32_t InsightIntentExecuteManager::UpdateRecordState(uint64_t intentId, InsightIntentExecuteState expected,

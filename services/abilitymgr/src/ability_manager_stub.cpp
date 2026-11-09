@@ -442,8 +442,8 @@ int AbilityManagerStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_AGENT) {
         return ExecuteIntentByAgentInner(data, reply);
     }
-    if (interfaceCode == AbilityManagerInterfaceCode::IS_INSIGHT_INTENT_CALL_WITH_CALLER) {
-        return IsInsightIntentCallWithCallerInner(data, reply);
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_INSIGHT_INTENT_CALLER) {
+        return GetInsightIntentCallerInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_WITH_SPECIFY_TOKEN_ID) {
         return ExecuteUIAbilityForegroundIntentWithSpecifyTokenIdInner(data, reply);
@@ -4699,12 +4699,11 @@ int32_t AbilityManagerStub::ExecuteIntentByAgentInner(MessageParcel &data, Messa
     return NO_ERROR;
 }
 
-int32_t AbilityManagerStub::IsInsightIntentCallWithCallerInner(MessageParcel &data, MessageParcel &reply)
+int32_t AbilityManagerStub::GetInsightIntentCallerInner(MessageParcel &data, MessageParcel &reply)
 {
     uint64_t intentId = data.ReadUint64();
-    uint32_t callerTokenId = data.ReadUint32();
-    bool result = IsInsightIntentCall(intentId, callerTokenId);
-    if (!reply.WriteBool(result)) {
+    std::string callerBundleName = GetInsightIntentCaller(intentId);
+    if (!reply.WriteString(callerBundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;
     }

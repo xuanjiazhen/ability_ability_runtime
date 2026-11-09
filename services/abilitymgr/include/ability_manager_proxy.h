@@ -1588,7 +1588,7 @@ public:
 
     int32_t ExecuteIntentByAgent(const InsightIntentAgentCallParam &param) override;
 
-    bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId) override;
+    std::string GetInsightIntentCaller(uint64_t intentId) override;
 
     /**
      * @brief Execute intent with specified token id.

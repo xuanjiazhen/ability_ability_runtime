@@ -144,10 +144,10 @@ public:
 
     int32_t GetCallerBundleName(uint64_t intentId, std::string &callerBundleName) const;
 
-    // Ownership-aware query used by the privacy-center consent path: the record must
-    // exist, be live (PENDING_CONSENT / EXECUTING) AND be owned by the exact caller
-    // token, so a caller cannot validate (or later reuse) a record it did not originate.
-    bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId) const;
+    // Query used by the privacy-center consent path: returns the caller bundle name
+    // of the record identified by intentId when the record exists and is live
+    // (PENDING_CONSENT / EXECUTING), or an empty string otherwise.
+    std::string GetInsightIntentCaller(uint64_t intentId) const;
 
     // CAS-style state transition: moves the record to `next` only when it currently
     // sits in `expected`. Returns ERR_OK when the transition happened.

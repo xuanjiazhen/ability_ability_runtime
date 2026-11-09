@@ -2454,15 +2454,13 @@ public:
     bool IsAbilityControllerStart(const Want &want);
 
     /**
-     * @brief Query whether the given insight intent execute id belongs to an
-     * insight intent call owned by the specified caller token id. Restricted to
-     * system applications / SA.
+     * @brief Query the caller bundle name of the insight intent execution
+     * identified by the given intent id. Restricted to system applications / SA.
      * @param intentId The insight intent execute id to query.
-     * @param callerTokenId The caller access token id that must own the record.
-     * @return Returns true if the intent id maps to a live execute record owned
-     *         by callerTokenId.
+     * @return Returns the caller bundle name, or an empty string if the intent id
+     *         does not map to a live execute record.
      */
-    bool IsInsightIntentCall(uint64_t intentId, uint32_t callerTokenId);
+    std::string GetInsightIntentCaller(uint64_t intentId);
 
     /**
      * @brief Open a file by uri through the registered reserve-type collaborator

@@ -816,9 +816,9 @@ enum class AbilityManagerInterfaceCode {
     // execute intent by agent (third-party agent function call)
     EXECUTE_INTENT_BY_AGENT = 6191,
 
-    // query whether the given intent id belongs to an insight intent call owned by
-    // the specified caller token id (privacy-center ownership verification)
-    IS_INSIGHT_INTENT_CALL_WITH_CALLER = 6192,
+    // query the caller bundle name of the insight intent execution with the
+    // given intent id (privacy-center ownership verification)
+    GET_INSIGHT_INTENT_CALLER = 6192,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
