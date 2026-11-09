@@ -152,11 +152,11 @@ public:
         MyFlag::flag_ = MyFlag::IS_SA_CALL;
         g_appServicePermissionState = {};
         g_appServicePermissionState.enabled = true;
-        g_appServicePermissionState.targetTokenId = TARGET_TOKEN;
-        caller_.tokenId = CALLER_TOKEN;
-        caller_.callerUid = 20001001;
+        g_appServicePermissionState.targetTokenId = targetToken;
+        caller_.tokenId = callerToken;
+        caller_.callerUid = callerUid;
         callerBundleName_ = "com.example.appservice.caller";
-        request_.appInfo.accessTokenId = TARGET_TOKEN;
+        request_.appInfo.accessTokenId = targetToken;
         request_.uid = caller_.callerUid;
         request_.abilityInfo.visible = false;
         request_.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::APP_SERVICE;
@@ -184,8 +184,9 @@ public:
         }
         service_.reset();
     }
-    static constexpr uint32_t CALLER_TOKEN = 111;
-    static constexpr uint32_t TARGET_TOKEN = 222;
+    static constexpr uint32_t callerToken = 111;
+    static constexpr uint32_t targetToken = 222;
+    static constexpr int32_t callerUid = 20001001;
     std::shared_ptr<AbilityManagerService> service_;
     IndirectCallerInfo caller_;
     std::string callerBundleName_;
@@ -2955,8 +2956,8 @@ HWTEST_F(AppServiceProxyTest, IndirectIdentity_001, TestSize.Level1)
 {
     request_.specifiedFullTokenId = 333;
     ASSERT_EQ(ERR_OK, service_->CheckCallServiceExtensionPermission(request_, caller_.tokenId));
-    EXPECT_EQ(CALLER_TOKEN, g_appServicePermissionState.verification.specifyTokenId);
-    EXPECT_EQ(TARGET_TOKEN, g_appServicePermissionState.verification.accessTokenId);
+    EXPECT_EQ(callerToken, g_appServicePermissionState.verification.specifyTokenId);
+    EXPECT_EQ(targetToken, g_appServicePermissionState.verification.accessTokenId);
     EXPECT_FALSE(g_appServicePermissionState.verification.visible);
 }
 

@@ -13561,7 +13561,6 @@ int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const Abil
     }
     if (isVerifyAppIdentifierAllowList &&
         !VerifySameAppOrAppIdentifierAllowListPermission(abilityRequest, indirectCaller, callerBundleName)) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "caller not allowed to start AppService extension");
         if (isFromConnect) {
             return ERR_TARGET_NOT_STARTED;
         }
@@ -13571,7 +13570,6 @@ int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const Abil
         PermissionConstants::PERMISSION_SUPPORT_APP_SERVICE_EXTENSION) &&
         !PermissionVerification::GetInstance()->VerifyPermissionByTokenId(abilityRequest.appInfo.accessTokenId,
         PermissionConstants::PERMISSION_SUPPORT_APP_SERVICE_EXTENSION_ADVANCED)) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "target lacks AppService extension permission");
         return TARGET_ABILITY_NOT_SERVICE;
     }
     return ERR_OK;
@@ -16922,7 +16920,6 @@ bool AbilityManagerService::VerifySameAppOrAppIdentifierAllowListPermission(cons
     AppExecFwk::SignatureInfo signatureInfo;
     auto abilityRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
     if (indirectCaller == nullptr && abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller ability record not found");
         return false;
     }
     std::string callerBundleName = indirectCaller != nullptr ? indirectCallerBundleName :

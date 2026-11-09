@@ -90,7 +90,8 @@ public:
     static constexpr int32_t TARGET_USER = 100;
     static constexpr int32_t CALLER_UID = 20001001;
     static constexpr int32_t TARGET_UID = 20001002;
-    static constexpr char TARGET_BUNDLE[] = "com.example.appservice.target";
+    static constexpr int32_t callerPid = 123;
+    static constexpr char targetBundle[] = "com.example.appservice.target";
 
     void SetUp() override
     {
@@ -114,19 +115,19 @@ public:
         auto &info = bundleMgr_->extensionInfo_;
         info.type = AppExecFwk::ExtensionAbilityType::APP_SERVICE;
         info.name = "AppService";
-        info.bundleName = TARGET_BUNDLE;
+        info.bundleName = targetBundle;
         info.moduleName = "entry";
         info.permissions = {"ohos.permission.TEST_APP_SERVICE_ACCESS"};
         info.applicationInfo.name = "target";
-        info.applicationInfo.bundleName = TARGET_BUNDLE;
+        info.applicationInfo.bundleName = targetBundle;
         info.applicationInfo.uid = TARGET_UID;
         info.applicationInfo.accessTokenId = TARGET_TOKEN;
         helper_->bundleMgr_ = bundleMgr_;
         identity_ = std::make_shared<IndirectCallerInfo>();
         identity_->tokenId = CALLER_TOKEN;
         identity_->callerUid = CALLER_UID;
-        identity_->callerPid = 123;
-        want_.SetElementName(TARGET_BUNDLE, "AppService");
+        identity_->callerPid = callerPid;
+        want_.SetElementName(targetBundle, "AppService");
         connection_ = sptr<InsightIntentExecuteConnection>::MakeSptr();
     }
 
@@ -5888,7 +5889,7 @@ HWTEST_F(AppServiceConnectTest, CallerIdentity_001, TestSize.Level1)
     identity_->callerPid = -1;
     EXPECT_EQ(ERR_INVALID_CALLER, Connect());
     EXPECT_EQ(0U, status.atkQueriedTokenId_);
-    identity_->callerPid = 123;
+    identity_->callerPid = callerPid;
     status.atkGetHapTokenInfo_ = -1;
     identity_->tokenId = 0;
     EXPECT_EQ(ERR_INVALID_CALLER, Connect());
