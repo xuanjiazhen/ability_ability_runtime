@@ -6697,5 +6697,126 @@ HWTEST_F(AbilityManagerStubTest, BackToCallerAbilityWithResult_FalseFlag, TestSi
     EXPECT_EQ(reply.ReadInt32(), ERR_OK);
 }
 
+/*
+ * Feature: AbilityManagerStub
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartAbilityForPrelaunchInner via OnRemoteRequest
+ * EnvConditions: code is START_PRELAUNCH_ABILITY, parcel carries the trailing userId
+ * CaseDescription: Verify dispatching START_PRELAUNCH_ABILITY through OnRemoteRequest
+ *                  parses want/frameNum/connect/userId in order and forwards the userId
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0100 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    const int32_t frameNum = 5;
+    ASSERT_TRUE(data.WriteInt32(frameNum));
+    ASSERT_TRUE(data.WriteBool(false));
+    ASSERT_TRUE(data.WriteInt32(USER_ID));
+
+    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, frameNum, _, USER_ID))
+        .WillOnce(Invoke([](const Want &parsed, int32_t parsedFrameNum,
+            const sptr<IAbilityConnection> &parsedConnect, int32_t parsedUserId) {
+            EXPECT_EQ(parsed.GetBundleNameRef(), "com.test.bundle");
+            EXPECT_EQ(parsed.GetAbilityNameRef(), "MainAbility");
+            EXPECT_EQ(parsedFrameNum, 5);
+            EXPECT_EQ(parsedConnect, nullptr);
+            EXPECT_EQ(parsedUserId, USER_ID);
+            return ERR_OK;
+        }));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_PRELAUNCH_ABILITY), data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0100 end");
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartAbilityForPrelaunchInner via OnRemoteRequest
+ * EnvConditions: code is START_PRELAUNCH_ABILITY, parcel carries the trailing userId and connect
+ * CaseDescription: Verify the optional connect object is read and the trailing userId is
+ *                  forwarded when hasConnect is true
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0200 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    ASSERT_TRUE(data.WriteInt32(0));
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+    ASSERT_TRUE(data.WriteBool(true));
+    ASSERT_TRUE(data.WriteRemoteObject(connect->AsObject()));
+    ASSERT_TRUE(data.WriteInt32(USER_ID));
+
+    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, 0, _, USER_ID))
+        .WillOnce(Invoke([](const Want &, int32_t, const sptr<IAbilityConnection> &parsedConnect, int32_t) {
+            EXPECT_NE(parsedConnect, nullptr);
+            return ERR_INVALID_VALUE;
+        }));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_PRELAUNCH_ABILITY), data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0200 end");
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartAbilityForPrelaunchInner via OnRemoteRequest
+ * EnvConditions: code is START_PRELAUNCH_ABILITY, parcel omits the trailing userId (old RSS)
+ * CaseDescription: Verify a legacy parcel without the trailing userId keeps the
+ *                  caller-derived user (DEFAULT_INVAL_VALUE is forwarded)
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartPrelaunchAbility_OnRemote_MissingUserId_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_MissingUserId_0100 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+
+    // legacy parcel layout: want + frameNum + hasConnect, no trailing userId
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    ASSERT_TRUE(data.WriteInt32(5));
+    ASSERT_TRUE(data.WriteBool(false));
+
+    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, 5, _, DEFAULT_INVAL_VALUE))
+        .WillOnce(Return(ERR_OK));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_PRELAUNCH_ABILITY), data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_MissingUserId_0100 end");
+}
 } // namespace AAFwk
 } // namespace OHOS

@@ -2651,6 +2651,343 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_01
  * Feature: AbilityManagerService
  * Function: StartAbilityForPrelaunch
  * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch with an explicit userId still rejects callers
+ *                 other than RSS
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_UidDenied_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_WithUserId_UidDenied_001 "
+        "start");
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    // only RSS (uid 1096) is allowed to trigger prelaunch, the userId entry keeps the same gate
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr, TEST_USER_ID),
+        RESOLVE_CALL_NO_PERMISSIONS);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_WithUserId_UidDenied_001 "
+        "end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch with an explicit userId rejects prelaunch when
+ *                 SceneBoard is disabled
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_SceneBoardDisabled_001,
+    TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_SceneBoardDisabled_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(false));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr, TEST_USER_ID), ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_SceneBoardDisabled_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch with an explicit userId does not support implicit start
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_Implicit_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_WithUserId_Implicit_001 "
+        "start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want want; // empty abilityName + bundle -> implicit start
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr, TEST_USER_ID), ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_WithUserId_Implicit_001 "
+        "end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch without the userId keeps the original behavior
+ *                 exactly (oriValidUserId = GetValidUserId(DEFAULT_INVAL_VALUE)): no account
+ *                 gate, identical result and want state as passing DEFAULT_INVAL_VALUE
+ *                 explicitly
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_DefaultUserId_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_DefaultUserId_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    // the default userId keeps the legacy path: no account gate even without the
+    // cross-user permission
+    MyFlag::flag_ = CHECK_PERMISSION_FAILED;
+    Want wantDefault;
+    wantDefault.SetElementName("com.test.bundle", "MainAbility");
+    int retDefault = abilityMs_->StartAbilityForPrelaunch(wantDefault, 5, nullptr);
+    EXPECT_NE(retDefault, CHECK_PERMISSION_FAILED);
+    // passing DEFAULT_INVAL_VALUE explicitly must be fully equivalent to not passing the
+    // userId: same return value and same want state (the caller-derived user derivation)
+    Want wantExplicit;
+    wantExplicit.SetElementName("com.test.bundle", "MainAbility");
+    int retExplicit = abilityMs_->StartAbilityForPrelaunch(wantExplicit, 5, nullptr, DEFAULT_INVAL_VALUE);
+    EXPECT_EQ(retExplicit, retDefault);
+    EXPECT_EQ(wantExplicit.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY),
+        wantDefault.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY));
+    if (wantExplicit.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        EXPECT_EQ(wantExplicit.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
+            wantDefault.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
+    }
+    MyFlag::flag_ = 1;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_DefaultUserId_001 end");
+}
+
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch denies a non-foreground explicit userId without
+ *                 INTERACT_ACROSS_LOCAL_ACCOUNTS (acceptance: mockSA without cross-user
+ *                 permission cannot start across users)
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_CrossUserNoPerm_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_CrossUserNoPerm_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    // TEST_USER_ID is not a foreground user (displayIdMap_ untouched), so the account
+    // permission gate applies and the mockSA grants no INTERACT_ACROSS_LOCAL_ACCOUNTS
+    MyFlag::flag_ = CHECK_PERMISSION_FAILED;
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr, TEST_USER_ID),
+        CHECK_PERMISSION_FAILED);
+    MyFlag::flag_ = 1;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_CrossUserNoPerm_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch passes the account gate when RSS holds
+ *                 INTERACT_ACROSS_LOCAL_ACCOUNTS for a non-foreground explicit userId
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_CrossUserWithPerm_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_CrossUserWithPerm_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    // mockSA holds the cross-user permission: the gate must pass and the flow proceeds
+    // (the later resolve fails in the UT environment, but never with CHECK_PERMISSION_FAILED)
+    MyFlag::flag_ = 0;
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    EXPECT_NE(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr, TEST_USER_ID),
+        CHECK_PERMISSION_FAILED);
+    MyFlag::flag_ = 1;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_CrossUserWithPerm_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch exempts a foreground userId from the cross-user
+ *                 permission
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_ForegroundUser_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_ForegroundUser_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    // a foreground user (any display) is exempt from the cross-user permission: the gate
+    // must pass even though the mockSA grants no INTERACT_ACROSS_LOCAL_ACCOUNTS
+    MyFlag::flag_ = CHECK_PERMISSION_FAILED;
+    AbilityRuntime::UserController::GetInstance().SetForegroundUserId(TEST_USER_ID,
+        AbilityRuntime::ServerConstant::DEFAULT_DISPLAY_ID);
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    EXPECT_NE(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr, TEST_USER_ID),
+        CHECK_PERMISSION_FAILED);
+    // restore the shared UserController state to keep tests isolated
+    AbilityRuntime::UserController::GetInstance().ClearUserId(TEST_USER_ID);
+    MyFlag::flag_ = 1;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_ForegroundUser_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForPrelaunch normalizes an explicit userId of 0 ("current
+ *                 user") to the caller-derived default, skipping the account gate
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_U0Normalized_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_U0Normalized_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    // 0 means "the current user" (same convention as the StartAbilityByCall paths), so the
+    // account gate must not apply even without the cross-user permission
+    MyFlag::flag_ = CHECK_PERMISSION_FAILED;
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    EXPECT_NE(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr, 0), CHECK_PERMISSION_FAILED);
+    MyFlag::flag_ = 1;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_U0Normalized_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: On clone-for-account (car) products the prelaunch with an explicit userId
+ *                 resolves the enabled appIndex of that user from the bundle manager: the
+ *                 caller-supplied clone index is reset and a failed enabled-info query
+ *                 aborts the prelaunch
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_CarCloneIndex_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_CarCloneIndex_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    // mockSA holds the cross-user permission so the account gate passes
+    MyFlag::flag_ = 0;
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    // a caller-supplied index is not trusted on car products: ProcessAppIndex strips it and
+    // re-resolves the enabled instance for the target user (bundle manager is unreachable in
+    // the UT environment, so the prelaunch aborts with RESOLVE_ABILITY_ERR)
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 2);
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr, TEST_USER_ID),
+        RESOLVE_ABILITY_ERR);
+    EXPECT_FALSE(want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY));
+    MyFlag::flag_ = 1;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_CarCloneIndex_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: On clone-for-account (car) products a DLP want is rejected by the shared
+ *                 prelaunch boundary guard even after the account gate passes: DLP instances
+ *                 must never be preloaded without authorization
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_CarDlpIndexRejected_001,
+    TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_CarDlpIndexRejected_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    // mockSA holds the cross-user permission so the account gate passes: the DLP want must
+    // still be rejected by the shared boundary guard, not by the account check
+    MyFlag::flag_ = 0;
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    want.SetParam(OHOS::AbilityRuntime::ServerConstant::DLP_INDEX,
+        OHOS::AbilityRuntime::GlobalConstant::MIN_PC_TABLET_DLP_INDEX);
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr, TEST_USER_ID),
+        CHECK_PERMISSION_FAILED);
+    MyFlag::flag_ = 1;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_CarDlpIndexRejected_001 end");
+}
+#else
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
+ * FunctionPoints: On non-car products the explicit userId never takes effect (the account
+ *                 gate is car-only): no CHECK_PERMISSION_FAILED even without the cross-user
+ *                 permission, an explicit valid clone index is preserved, and the result
+ *                 equals the default-user call (device differentiation: other devices stay
+ *                 unchanged for ANY input)
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_WithUserId_NonCarUnchanged_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_NonCarUnchanged_001 start");
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+    Want wantDefault;
+    wantDefault.SetElementName("com.test.bundle", "MainAbility");
+    wantDefault.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 2);
+    int retDefault = abilityMs_->StartAbilityForPrelaunch(wantDefault, 5, nullptr);
+    // an explicit non-foreground userId with NO cross-user permission: the account gate is
+    // car-only, so the parameter is simply ignored and the flow proceeds (no
+    // CHECK_PERMISSION_FAILED)
+    MyFlag::flag_ = CHECK_PERMISSION_FAILED;
+    Want wantExplicit;
+    wantExplicit.SetElementName("com.test.bundle", "MainAbility");
+    wantExplicit.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 2);
+    int retExplicit = abilityMs_->StartAbilityForPrelaunch(wantExplicit, 5, nullptr, TEST_USER_ID);
+    MyFlag::flag_ = 1;
+    EXPECT_NE(retExplicit, CHECK_PERMISSION_FAILED);
+    // non-car: a specified valid appIndex is preserved and the result matches the
+    // default-user call
+    EXPECT_EQ(retExplicit, retDefault);
+    EXPECT_EQ(wantExplicit.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), 2);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest "
+        "StartAbilityForPrelaunch_WithUserId_NonCarUnchanged_001 end");
+}
+#endif
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForPrelaunch
+ * SubFunction: NA
  * FunctionPoints: StartAbilityForPrelaunch validation branches (implicit / clone)
  */
 HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_Implicit_001, TestSize.Level1)
@@ -2975,9 +3312,9 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_InvalidDlpIn
     EXPECT_TRUE(abilityMs_ != nullptr);
     Want want;
     want.SetElementName("com.test.bundle", "MainAbility");
-    // a negative DLP index is not a valid DLP selector, GetAppIndex must reject it
+    // a negative DLP index is not a valid DLP selector, rejected by the prelaunch DLP guard
     want.SetParam(OHOS::AbilityRuntime::ServerConstant::DLP_INDEX, -1);
-    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr), ERR_APP_CLONE_INDEX_INVALID);
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr), CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_InvalidDlpIndex_001 end");
 }
 
@@ -3140,7 +3477,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_DlpSelectorB
     want.SetElementName("com.test.bundle", "MainAbility");
     // 0 is the main-instance value, but as a DLP selector it is not a valid DLP index
     want.SetParam(OHOS::AbilityRuntime::ServerConstant::DLP_INDEX, 0);
-    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr), ERR_APP_CLONE_INDEX_INVALID);
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(want, 5, nullptr), CHECK_PERMISSION_FAILED);
     Want wantTwo;
     wantTwo.SetElementName("com.test.bundle", "MainAbility");
     // 11999 (MAX_PC_TABLET_DLP_INDEX) is a valid DLP selector: passes validation,
@@ -3179,7 +3516,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityForPrelaunch_DlpPrecedenc
     // an invalid DLP selector shadows a valid clone index: index validation is never reached
     wantTwo.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 2);
     wantTwo.SetParam(OHOS::AbilityRuntime::ServerConstant::DLP_INDEX, 0);
-    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(wantTwo, 5, nullptr), ERR_APP_CLONE_INDEX_INVALID);
+    EXPECT_EQ(abilityMs_->StartAbilityForPrelaunch(wantTwo, 5, nullptr), CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST,
         "AbilityManagerServiceTwelfthTest StartAbilityForPrelaunch_DlpPrecedenceOverCloneIndex_001 end");
 }

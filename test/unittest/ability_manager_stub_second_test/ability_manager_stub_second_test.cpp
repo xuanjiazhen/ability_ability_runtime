@@ -1359,7 +1359,7 @@ HWTEST_F(AbilityManagerStubSecondTest, StartAbilityForPrelaunchInner_0100, TestS
     MessageParcel reply;
     MessageOption option;
 
-    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, _, _))
+    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, _, _, _))
         .Times(1)
         .WillOnce(Return(ERR_OK));
 
@@ -1457,7 +1457,7 @@ HWTEST_F(AbilityManagerStubSecondTest, StartAbilityForPrelaunchInner_0400, TestS
     MessageParcel reply;
     MessageOption option;
 
-    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, _, _))
+    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, _, _, _))
         .Times(1)
         .WillOnce(Return(ERR_OK));
 
@@ -1495,7 +1495,7 @@ HWTEST_F(AbilityManagerStubSecondTest, StartAbilityForPrelaunchInner_0500, TestS
     MessageOption option;
 
     sptr<IAbilityConnection> capturedConnect;
-    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, _, _))
+    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, _, _, _))
         .Times(1)
         .WillOnce(DoAll(SaveArg<2>(&capturedConnect), Return(ERR_OK)));
 
