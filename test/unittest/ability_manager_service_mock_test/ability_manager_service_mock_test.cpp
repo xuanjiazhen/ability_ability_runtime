@@ -21,6 +21,7 @@
 #define protected public
 #include "ability_manager_service.h"
 #include "extract_insight_intent_profile.h"
+#include "insight_intent_execute_manager.h"
 #include "session_info.h"
 #include "sub_managers_helper.h"
 #include "insight_intent_query_param.h"
@@ -802,32 +803,57 @@ HWTEST_F(AbilityManagerServiceMockTest, InsightIntentExecuteLiteParam_0400, Test
 }
 
 /**
- * @tc.name: IsInsightIntentCall_0100
- * @tc.desc: Want without intentId returns false.
+ * @tc.name: CreateInsightIntentPermissionChecker_0100
+ * @tc.desc: The insight intent channel waives exactly the two restrictions the target declared, and
+ *           the waiver is produced by the checker itself instead of a branch at the call site.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0100, TestSize.Level1)
+HWTEST_F(AbilityManagerServiceMockTest, CreateInsightIntentPermissionChecker_0100, TestSize.Level1)
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
-    Want want;
-    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, ""));
+
+    auto checker = abilityMs->CreateInsightIntentPermissionChecker();
+    ASSERT_NE(checker, nullptr);
+    EXPECT_EQ(checker->GetScene(), PermissionCheckScene::INSIGHT_INTENT);
+
+    bool realCheckCalled = false;
+    auto realCheck = [&realCheckCalled]() {
+        realCheckCalled = true;
+        return AppExecFwk::Constants::PERMISSION_NOT_GRANTED;
+    };
+    EXPECT_EQ(checker->CheckTargetStaticPermission(realCheck), AppExecFwk::Constants::PERMISSION_GRANTED);
+    EXPECT_FALSE(realCheckCalled);
+    EXPECT_FALSE(checker->NeedCheckTargetVisible());
+    EXPECT_TRUE(checker->ResolveTargetVisible(false));
 }
 
 /**
- * @tc.name: IsInsightIntentCall_0200
- * @tc.desc: Want with invalid intentId string returns false.
+ * @tc.name: CreateInsightIntentPermissionChecker_0200
+ * @tc.desc: A request that carries no policy keeps the default checker, which has every check
+ *           enabled, so the real evaluation always runs and the declared visibility is kept.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0200, TestSize.Level1)
+HWTEST_F(AbilityManagerServiceMockTest, CreateInsightIntentPermissionChecker_0200, TestSize.Level1)
 {
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs, nullptr);
-    Want want;
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("invalid"));
-    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, ""));
+    // The public entries pass no policy, and a request built elsewhere carries none either: both
+    // resolve to the same all-checks instance, so no call site needs a null check.
+    const auto &defaultChecker = GetPermissionChecker(nullptr);
+    EXPECT_EQ(defaultChecker.GetScene(), PermissionCheckScene::DEFAULT);
+    EXPECT_TRUE(defaultChecker.NeedCheckTargetStaticPermission());
+    EXPECT_TRUE(defaultChecker.NeedCheckTargetVisible());
+    auto deniedCheck = []() { return AppExecFwk::Constants::PERMISSION_NOT_GRANTED; };
+    EXPECT_EQ(defaultChecker.CheckTargetStaticPermission(deniedCheck),
+        AppExecFwk::Constants::PERMISSION_NOT_GRANTED);
+    EXPECT_FALSE(defaultChecker.ResolveTargetVisible(false));
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "com.test.plain";
+    const auto &ambient = GetPermissionChecker(abilityRequest.permissionChecker);
+    EXPECT_EQ(ambient.GetScene(), PermissionCheckScene::DEFAULT);
+    EXPECT_TRUE(ambient.NeedCheckTargetStaticPermission());
 }
 }
 }
