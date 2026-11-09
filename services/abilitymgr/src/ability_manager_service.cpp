@@ -9697,6 +9697,14 @@ int AbilityManagerService::KillProcessWithUserId(const std::string &bundleName, 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no kill alive process");
         return KILL_PROCESS_KEEP_ALIVE;
     }
+    // aa force-stop is the shell entry of this API: pre-record the kill id so the death report
+    // attributes "aaForceStop" instead of falling back to the kernel signal reason.
+    if (AAFwk::PermissionVerification::GetInstance()->IsShellCall() && appExitReasonHelper_ != nullptr) {
+        AAFwk::ExitReason exitReason = { REASON_NORMAL, reason };
+        exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP;
+        appExitReasonHelper_->AddBundleExitReason(bundleName, userId, appIndex,
+            AAFwk::ExitReasonCompability(exitReason), IPCSkeleton::GetCallingPid());
+    }
     int ret = DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(
         bundleName, clearPageStack, appIndex, reason, originUserId);
     return ret == ERR_OK ? ERR_OK : KILL_PROCESS_FAILED;
@@ -9757,7 +9765,11 @@ int32_t AbilityManagerService::UninstallAppInner(const std::string &bundleName, 
     } else {
         AAFwk::ExitReasonCompability exitReasonCompability(
             HiviewDFX::ProcessKillReason::KillEventId::REASON_UNINSTALL_APP);
-        RecordAppWithReason(NO_PID, uid, exitReasonCompability);
+        // Same-process BMS caller: call the helper directly to bypass the wrapper's self-call guard.
+        if (appExitReasonHelper_ != nullptr) {
+            appExitReasonHelper_->RecordAppWithReason(NO_PID, uid, exitReasonCompability,
+                IPCSkeleton::GetCallingPid());
+        }
         IN_PROCESS_CALL_WITHOUT_RET(
             KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleName, userId, false, true, false));
         if (userId == U1_USER_ID) {
