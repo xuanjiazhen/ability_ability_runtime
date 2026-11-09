@@ -31,6 +31,7 @@ public:
      *
      * @return AbilityImpl object
      */
+     而这里的能力是**显式的、可传递的、带权限子集的**对象引用
     std::shared_ptr<AbilityImpl> MakeAbilityImplObject(const std::shared_ptr<AbilityInfo> &info);
 };
 }  // namespace AppExecFwk
