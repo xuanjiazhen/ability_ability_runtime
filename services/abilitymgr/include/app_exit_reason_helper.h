@@ -47,7 +47,10 @@ public:
     int32_t RecordProcessExtensionExitReason(
         const int32_t pid, const std::string &bundleName, const ExitReason &exitReason,
         const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg);
-    int32_t RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason, bool fromKillWithReason);
+    int32_t RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason, bool fromKillWithReason,
+        int32_t callerPid = DEFAULT_INVAL_VALUE);
+    int32_t RecordAppKillId(const std::string &bundleName, int32_t uid, int32_t pid,
+        uint32_t accessTokenId, int32_t killId);
     int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason);
     int32_t RecordUIAbilityExitReason(const pid_t pid, const std::string &abilityName, const ExitReason &exitReason,
         int32_t callerPid = DEFAULT_INVAL_VALUE, bool isLastAbilityOfProcess = true);
@@ -67,7 +70,8 @@ public:
 private:
     int32_t RecordProcessExitReason(const int32_t pid, const std::string bundleName, const int32_t uid,
         const uint32_t accessTokenId, const ExitReason &exitReason,
-        const AppExecFwk::RunningProcessInfo &processInfo, bool fromKillWithReason);
+        const AppExecFwk::RunningProcessInfo &processInfo, bool fromKillWithReason,
+        int32_t callerPid = DEFAULT_INVAL_VALUE);
     void GetActiveAbilityList(int32_t uid, std::vector<std::string> &abilityLists, const int32_t pid);
     void GetActiveAbilityListFromUIAbilityManager(int32_t uid, std::vector<std::string> &abilityLists,
         const int32_t pid);
