@@ -87,5 +87,22 @@ std::unordered_set<std::string> ResSchedUtil::GetNWebPreloadSet() const
 {
     return std::unordered_set<std::string>();
 }
+
+int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
+    bool debugReportOnly, const std::string &perfCmd, int32_t &errcode)
+{
+    return -1;
+}
+
+int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleName, int32_t pid, int32_t &errcode)
+{
+    return -1;
+}
+
+int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName,
+    AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode)
+{
+    return -1;
+}
 } // namespace AAFwk
 } // namespace OHOS
