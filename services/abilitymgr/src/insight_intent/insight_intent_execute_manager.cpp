@@ -269,6 +269,13 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->callerToken = callerToken;
     record->bundleName = bundleName;
     record->callerBundleName = execParam.callerBundleName;
+    // Capture the record owner identity here, at the only place a record is created. AddRecord is
+    // reached synchronously from the IPC handler of the intent entry, so the IPC context still
+    // describes the caller that requested the execution. Capturing it here instead of accepting it
+    // as a parameter keeps every current and future call site from creating an identity-less
+    // record by accident.
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->callerTokenId = static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID());
     record->isDistributed = execParam.isDistributed;
     record->deviceId = execParam.srcDeviceId;
     record->requestCode = execParam.requestCode;
@@ -435,6 +442,26 @@ int32_t InsightIntentExecuteManager::GetBundleName(uint64_t intentId, std::strin
         return ERR_INVALID_VALUE;
     }
     bundleName = result->second->bundleName;
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::GetRecordCallerInfo(uint64_t intentId, std::string &bundleName,
+    uint32_t &callerUid, uint32_t &callerTokenId, bool &isDistributed) const
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto result = records_.find(intentId);
+    if (result == records_.end()) {
+        TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    if (result->second == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null intent record,id: %{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    bundleName = result->second->bundleName;
+    callerUid = result->second->callerUid;
+    callerTokenId = result->second->callerTokenId;
+    isDistributed = result->second->isDistributed;
     return ERR_OK;
 }
 
