@@ -1,123 +1,143 @@
 # AGENTS.md
 
-## 1. Code map
+## 1. 概述
 
-本 AGENTS.md 适用于 ability_runtime 仓库根目录。子目录 `services/abilitymgr/` 和 `services/uripermmgr/` 各有独立的 CLAUDE.md，提供更细粒度的架构和开发指引。
+本 AGENTS.md 用于指导开发与应用运行时管理相关特性分析、需求导入、设计、编码及验证各环节。在SDD流程开发各阶段，涉及本代码仓所有修改需要遵从本文档描述及其指向的其他更细则文档的内容，如果本文档指向的其他文档存在与本文档规定冲突内容，以本文档内容为准。本文档描述内容包括代码目录、知识体系、约束与限制三个章节，其中代码目录等内容就在本代码仓中，所引用的详细知识库内容均引自https://gitcode.com/abilitykit_public/abilitykit_sdd，在执行具体要求前，应在ability_runtime代码仓同级目录下执行git clone https://gitcode.com/abilitykit_public/abilitykit_sdd.git 下载代码仓后，在相应的代码仓中查找具体规则。
 
 本仓库实现 OpenHarmony **元能力运行时（ability_runtime）**，核心职责是管理应用生命周期、组件调度、Extension 扩展组件管理、URI 权限管理和意图框架。最重要的架构边界是 **服务层（services/）与公共 SDK 接口层（interfaces/kits/）之间的双向解耦**——服务不可直接暴露内部实现到 SDK，SDK 不可反向依赖服务内部细节。
 
-### 目录职责
+### 代码目录职责
 
-| 目录 | 职责 | 高风险标记 |
-|------|------|-----------|
-| `services/abilitymgr/` | AbilityManagerService（SA 180）：组件生命周期、启动/停止、连接、任务栈、拦截器、InsightIntent | 🔴 修改影响全局组件调度 |
-| `services/appmgr/` | AppManagerService（SA 501）：应用进程生命周期、AppSpawn 协调、进程状态、子进程 | 🔴 修改影响所有应用进程 |
-| `services/uripermmgr/` | UriPermissionManagerService（SA 183）：跨应用 URI 权限授予/撤销/校验 | 🔴 修改影响安全边界 |
-| `services/quickfixmgr/` | QuickFixManagerService（SA 184）：应用热修复补丁管理 | 🟡 修改影响应用更新流程 |
-| `services/appdfr/` | 应用 DFR：AppFreeze 管理、ANR 监听、崩溃收集 | 🟡 修改影响故障归因 |
-| `services/common/` | 服务侧工具封装：权限校验、日志封装、事件上报、HiSysEvent、XCollie | 🔴 包含 PermissionVerification 全局安全入口 |
-| `interfaces/kits/native/` | 公共 SDK 接口：Ability、Context、Extension、Caller/Callee、AppStartup | 🔴 公共 API 兼容性边界 |
-| `interfaces/kits/c/` | C 语言公共 API | 🔴 公共 API 兼容性边界 |
-| `interfaces/inner_api/` | 内部组件接口：IPC 客户端/代理/桩、错误码工具 | 🟡 内部接口，但仍需注意 IPC 兼容性 |
-| `frameworks/native/ability/native/` | 原生框架实现：UIAbility、各 Extension、Context、InsightIntent 执行器 | 🟢 客户端侧实现，可随 SDK 接口联动修改 |
-| `frameworks/native/appkit/` | 应用框架：Application、AbilityStage、TestRunner | 🟢 |
-| `frameworks/js/napi/` | JavaScript NAPI 绑定 | 🟡 NAPI 签名是公共 API |
-| `frameworks/ets/ani/` | ArkTS ANI 绑定 | 🟡 ANI 签名是公共 API |
-| `frameworks/cj/ffi/` | CJ FFI 绑定 | 🟡 |
-| `frameworks/c/` | C API 框架实现 | 🟡 |
-| `agent_runtime_framework/` | Agent 组件框架：AgentManagerService（SA 185）、AgentExtensinoAbility与AgentUIExtensionAbility | 🟢 |
-| `tools/aa/` | aa 命令行工具：Ability 调试管理 | 🟢 |
-| `js_environment/` / `ets_environment/` / `cj_environment/` | JS/ETS/CJ 运行时环境 | 🟢 |
+| 目录                                                       | 职责                                                         | 高风险标记                                 |
+| ---------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------ |
+| `services/abilitymgr/`                                     | AbilityManagerService（SA 180）：组件生命周期、启动/停止、连接、任务栈、拦截器、InsightIntent | 🔴 修改影响全局组件调度                     |
+| `services/appmgr/`                                         | AppManagerService（SA 501）：应用进程生命周期、AppSpawn 协调、进程状态、子进程 | 🔴 修改影响所有应用进程                     |
+| `services/uripermmgr/`                                     | UriPermissionManagerService（SA 183）：跨应用 URI 权限授予/撤销/校验 | 🔴 修改影响安全边界                         |
+| `services/quickfixmgr/`                                    | QuickFixManagerService（SA 184）：应用热修复补丁管理         | 🟡 修改影响应用更新流程                     |
+| `services/appdfr/`                                         | 应用 DFR：AppFreeze 管理、ANR 监听、崩溃收集                 | 🟡 修改影响故障归因                         |
+| `services/common/`                                         | 服务侧工具封装：权限校验、日志封装、事件上报、HiSysEvent、XCollie | 🔴 包含 PermissionVerification 全局安全入口 |
+| `interfaces/kits/native/`                                  | 公共 SDK 接口：Ability、Context、Extension、Caller/Callee、AppStartup | 🔴 公共 API 兼容性边界                      |
+| `interfaces/kits/c/`                                       | C 语言公共 API                                               | 🔴 公共 API 兼容性边界                      |
+| `interfaces/inner_api/`                                    | 内部组件接口：IPC 客户端/代理/桩、错误码工具                 | 🟡 内部接口，但仍需注意 IPC 兼容性          |
+| `frameworks/native/ability/native/`                        | 原生框架实现：UIAbility、各 Extension、Context、InsightIntent 执行器 | 🟢 客户端侧实现，可随 SDK 接口联动修改      |
+| `frameworks/native/appkit/`                                | 应用框架：Application、AbilityStage、TestRunner              | 🟢                                          |
+| `frameworks/js/napi/`                                      | JavaScript NAPI 绑定                                         | 🟡 NAPI 签名是公共 API                      |
+| `frameworks/ets/ani/`                                      | ArkTS ANI 绑定                                               | 🟡 ANI 签名是公共 API                       |
+| `frameworks/cj/ffi/`                                       | CJ FFI 绑定                                                  | 🟡                                          |
+| `frameworks/c/`                                            | C API 框架实现                                               | 🟡                                          |
+| `agent_runtime_framework/`                                 | Agent 组件框架：AgentManagerService（SA 185）、AgentExtensinoAbility与AgentUIExtensionAbility | 🟢                                          |
+| `tools/aa/`                                                | aa 命令行工具：Ability 调试管理                              | 🟢                                          |
+| `js_environment/` / `ets_environment/` / `cj_environment/` | JS/ETS/CJ 运行时环境                                         | 🟢                                          |
 
-### Where to look
 
-| 任务类型 | 先看 |
-|---|---|
-| Ability 生命周期（启动/停止/前台/后台） | `services/abilitymgr/` → `services/abilitymgr/CLAUDE.md` |
-| 应用进程管理（启动/杀死/预加载/ANR） | `services/appmgr/` → `app_mgr_service.cpp`、`app_running_manager.cpp` |
-| URI 权限（授予/撤销/校验） | `services/uripermmgr/` → `services/uripermmgr/CLAUDE.md` |
-| 拦截器相关（启动被拦截/生态规则/Kiosk） | `services/abilitymgr/src/interceptor/` |
-| 任务栈/Mission 管理 | `services/abilitymgr/src/mission/` → `mission_list_manager.cpp` |
-| InsightIntent（意图识别/分发/执行） | `services/abilitymgr/src/insight_intent/` + `frameworks/native/ability/native/insight_intent_executor/` |
-| 可靠性设计/开发（故障模式、资源限制风险） | `skills/Reliability/skill.md`（Want/InsightIntent 模块） |
-| 新增 Extension 类型 | `interfaces/kits/native/` → `frameworks/native/ability/native/` → `frameworks/ets/ani/` → `frameworks/js/napi/` → `services/abilitymgr/` |
-| 修改公共 SDK API 签名 | `interfaces/kits/native/` + `interfaces/kits/c/` → 需兼容性评估 |
-| NAPI 绑定修改 | `frameworks/js/napi/<module>/` → 对应 `nativecommon` 共享组件 |
-| ANI 绑定修改 | `frameworks/ets/ani/<module>/` → 对应 `ani_common/` 共享组件 |
-| 子进程相关 | `frameworks/native/child_process/` + `services/appmgr/src/child_process_record.cpp` |
-| 日志/DFX 修改 | `services/common/include/hilog_tag_wrapper.h` + `hisysevent.yaml` |
-| 错误码修改 | `interfaces/inner_api/error_utils/include/ability_runtime_error_util.h` + `interfaces/kits/native/ability/native/ability_business_error/ability_business_error.h` |
-| 权限校验逻辑 | `services/common/include/permission_verification.h` |
-| QuickFix 热修复 | `services/quickfixmgr/src/quick_fix_manager_service.cpp` |
-| AppFreeze/崩溃收集 | `services/appdfr/src/appfreeze_manager.cpp` + `application_anr_listener.cpp` |
-| Agent 组件框架 | `agent_runtime_framework/services/agentmgr/` |
-| 构建配置/特性开关 | `ability_runtime.gni` |
-| 系统能力注册 | `services/sa_profile/` |
 
-## 2. Knowledge routing
+## 2. 知识体系
 
-遇到问题先定位场景，再读对应文档。以下文档包含完整领域概念和操作指引，不是可选背景阅读。
+### 2.1 Summarys: 领域概念与概述
 
-### Task-based routing
+**文档路径：**abilitykit_sdd/summarys
 
-| 任务类别 | 先读 |
-|---|---|
-| 公共 API 或 SDK 行为变更 | `interfaces/kits/native/ability/native/ability_business_error/ability_business_error.h`（错误码兼容性边界）+ `interfaces/inner_api/error_utils/include/ability_runtime_error_util.h` |
-| AbilityManagerService 架构或子管理器变更 | `services/abilitymgr/CLAUDE.md` |
-| URI 权限/安全/认证变更 | `services/uripermmgr/CLAUDE.md` + `services/common/include/permission_verification.h` |
-| DFX/日志/故障归因变更 | `services/common/include/hilog_tag_wrapper.h` + `hisysevent.yaml` |
-| 构建特性开关变更 | `ability_runtime.gni` |
-| 应用进程管理/AppSpawn 协调变更 | `services/appmgr/` → `app_mgr_service.h`、`app_spawn_client.h` |
-| 拦截器新增或修改 | `services/abilitymgr/CLAUDE.md` 中的 Interceptor Framework 章节 |
-| InsightIntent 意图框架变更 | `services/abilitymgr/src/insight_intent/` 目录结构 + `核心功能特性总结.md` 意图框架章节 |
-| 元能力代码设计/开发的可靠性风险识别（故障模式、资源限制） | `skills/Reliability/skill.md`（元能力可靠性skill，覆盖 Want/InsightIntent 模块） |
+**文档内容**：abilitykit业务范围关键概念、概述、设计约束等基础知识。
 
-### Path-based routing
+**文档适用**：涉及abilitykit领域的相关问题、需求及业务讨论，均需要遵从本目录下文档所述相关术语、概念及要求。例如用户说"多HAP需要新增一个XXX规格"，需要先通过本目录下的文档查询多HAP相关概念。
 
-| 修改路径 | 先读 |
-|---|---|
-| `services/abilitymgr/` | `services/abilitymgr/CLAUDE.md` |
-| `services/uripermmgr/` | `services/uripermmgr/CLAUDE.md` |
-| `services/common/` | `services/common/include/permission_verification.h` + `services/common/include/hilog_tag_wrapper.h` |
-| `interfaces/kits/` | `interfaces/kits/native/ability/native/ability_business_error/ability_business_error.h`（公共 API 兼容性） |
-| `interfaces/inner_api/error_utils/` | `interfaces/inner_api/error_utils/include/ability_runtime_error_util.h` |
-| `frameworks/js/napi/` | 对应模块目录的 `native_module.cpp`（NAPI 模块注册入口） |
-| `frameworks/ets/ani/` | 对应模块目录的 ANI 注册入口 + `ani_common/` 共享工具 |
-| `services/appdfr/` | `services/appmgr/CLAUDE.md`（如存在）或 `services/appdfr/` 目录头文件 |
-| `services/abilitymgr/src/insight_intent/` | `skills/Reliability/skill.md`（InsightIntent 可靠性子skill）+ `services/abilitymgr/CLAUDE.md` |
+**SDD适用**：可在Define/Specify/Design/Plan等各阶段使用，重点在Define阶段使用。
 
-### Vocabulary-based routing
+### 2.2 Standards：编码与设计规范
 
-当任务、issue、日志、API 名称或变更文件包含以下术语时，在规划前先读对应文档：
+**文档路径：**abilitykit_sdd/standards
 
-| 术语 | 风险提示 | 先读 |
-|---|---|---|
-| UIAbility / Ability | 不是通用"能力"，而是 OpenHarmony 有界面的应用组件核心抽象，有严格生命周期状态机 | `services/abilitymgr/CLAUDE.md` |
-| Extension / ExtensionAbility | 不是通用"扩展"，而是 OpenHarmony 特定的无界面服务组件体系（10+ 类型各有独立生命周期） | `services/abilitymgr/CLAUDE.md` |
-| Want / WantAgent | 不是通用"意图"，而是 OpenHarmony 组件间调度的结构化描述对象，包含 bundle/module/ability 元数据 | `interfaces/inner_api/wantagent/` |
-| Mission / 任务栈 | 不是通用"任务"，而是 OpenHarmony 管理多 Ability 实例的栈结构，有持久化和跨设备同步 | `services/abilitymgr/CLAUDE.md` 中 Mission 章节 |
-| AppSpawn / 应用孵化 | 不是通用"进程创建"，而是 OpenHarmony 专属的应用进程孵化服务，有安全沙箱和参数注入机制 | `services/appmgr/` → `app_spawn_client.h` |
-| URI Permission / UriPerm | 不是通用"文件权限"，而是跨应用临时 URI 访问授权，涉及 Media/Docs/Sandbox 三种分发策略 | `services/uripermmgr/CLAUDE.md` |
-| InsightIntent / 意图框架 | 不是通用"AI 意图"，而是 OpenHarmony 系统级意图标准体系，连接应用内业务功能 | 意图框架章节 |
-| Kiosk / 展台模式 | 不是通用"锁定"，而是系统级设备锁定运行模式，涉及拦截器链和启动控制 | `services/abilitymgr/CLAUDE.md` |
-| Interceptor / 拦截器 | 不是通用"中间件"，而是 AbilityManagerService 的启动拦截链，10+ 拦截器按顺序执行 | `services/abilitymgr/CLAUDE.md` 中 Interceptor 章节 |
-| DFX / HiLog / HiSysEvent / XCollie | 不是通用"日志"，而是 OpenHarmony 故障归因体系，事件定义在 hisysevent.yaml 是硬性约束 | `hisysevent.yaml` + `hilog_tag_wrapper.h` |
-| FreeInstall / 免安装 | 不是通用"按需加载"，而是 OpenHarmony 原子化服务免安装机制，涉及 Bundle 和分发协调 | `services/abilitymgr/src/free_install_manager.cpp` |
-| KeepAlive / 保活 | 不是通用"后台运行"，而是系统级关键进程保活机制，有独立数据管理 | `services/abilitymgr/src/keep_alive/` |
-| SA / SystemAbility / 系统能力 | 不是通用"微服务"，而是 OpenHarmony 通过 samgr 注册的系统能力，有 SA ID、进程绑定和按需启动配置 | `services/sa_profile/` |
-| NAPI / ANI / CJ FFI | 三种多语言绑定机制，共享 nativecommon/ani_common 组件，签名变更都是公共 API 变更 | `frameworks/js/napi/` + `frameworks/ets/ani/ani_common/` |
-| PermissionVerification | 不是通用"权限检查"，而是 ability_runtime 的全局安全入口，所有组件操作都经过此单例 | `services/common/include/permission_verification.h` |
-| QuickFix / 热修复 | 不是通用"热更新"，而是 OpenHarmony 应用级补丁机制，有 Apply/Revert 和版本管理 | `services/quickfixmgr/` |
-| AutoFill / 自动填充 | 不是通用"表单填充"，而是跨应用隐私保护的自动填充扩展，有独立的 Extension 和 Manager | `ability_runtime.gni` 中 `ability_runtime_auto_fill` |
-| 故障模式 / 资源限制 / 可靠性设计 / FaultMode | 元能力可靠性风险库，覆盖 Want（序列化/fd传递）和 InsightIntent（执行记录/IPC回传）的已知故障模式和资源限制规格 | `skills/Reliability/skill.md` |
+**文档内容**：abilitykit业务范围编码规范要求及通用设计规范要求基础知识。
 
-在规划中声明：
-- 任务类别
-- 已读知识文档
-- 发现的约束
-- 是否需要使用 Skill 或子目录 CLAUDE.md
+**文档适用**：涉及abilitykit领域相关代码仓（主要包括ability_ability_runtime/ability_ability_base/bundlemanager_bundle_framework等代码仓）的代码修改，均需要严格遵从本文档规则。
 
-## 3. Constraints and boundaries
+**SDD适用**：可在Design/Plan等各阶段使用，重点在Plan阶段使用。
+
+### 2.3 Specifications：模块场景与特性规格
+
+**文档路径：**abilitykit_sdd/specifications
+
+**文档内容**：abilitykit业务范围全量模块、业务场景及特性规格等基础知识。
+
+**文档适用**：涉及abilitykit领域的相关问题、需求及业务讨论，均需要参考本目录下相关模块、场景及特性等基础知识。新增需求或业务讨论如果是或者新增模块、场景或特性，则需要关注不要与现有规格出现冲突；新增需求或业务讨论如果是对原有模块、场景或特性进行调整的，则需要和用户交互明确相关模块、场景和特性变更点。需要注意：不管是哪种情况，一旦出现specifications内容的变更（新增、删除或调整），都必须以当前用户身份向abilitykit_sdd代码仓中按照原有格式提交变更，并推送到远端请求Committer合入。
+
+**SDD适用**：可在Define/Specify/Design/Plan等各阶段使用，重点在Specify/Design阶段使用。
+
+### 2.4 Suits：研发工具套件
+
+**文档路径：**abilitykit_sdd/suits
+
+**文档内容**：abilitykit业务范围开发自测试工具套件。
+
+**文档适用**：涉及abilitykit领域的代码在完成编码后进行测试验证阶段时使用本目录下的相关工具。
+
+**SDD适用**：可在Plan阶段及Plan之后的阶段使用。
+
+
+
+## 3.编码、验证、检视及上库规则
+
+### 3.1 代码编写：Coding
+
+**触发条件**：SDD流程中Plan阶段主动触发或用户主动要求生成代码时触发。
+
+**执行规则**：
+
+1）编码前严格读取abilitykit_sdd/standards所有规则后开始编码，编码及后续修改不得出现违反规则的实现。
+
+2）所有业务代码修改都需要包含测试用例的同步编写和生成，其中单元测试用例可参考XXskill生成，XTS可参考XXskill生成。
+
+### 3.2 功能验证：Verify
+
+触发条件：完成编码之后，用户要求执行功能验证时触发，需要注意这里的流程是在模拟器中执行，在执行完模拟器后，需要提醒用户进行真机复测。
+
+执行规则：使用 abilitykit_sdd/suits/simulator_use skill进行系统编译、UT及XTS测试用例编译、系统烧录和测试，输出测试报告。
+
+### 3.3 代码检视：Review
+
+代码检视阶段需要继续读取abilitykit_sdd/standards下的通用编码及架构设计要求规则，进行多轮代码检视。
+
+当用户表达"检视一下代码""帮我审一下""做一次 code review""深度扫描""安全审计""查高危 bug""接口审计"等检视意图时，需要通过
+
+### 3.4 代码上库：Commit
+
+
+
+### 2.5 Review
+
+代码检视阶段需要继续读取abilitykit_sdd/standards下的通用编码及架构设计要求规则，进行多轮代码检视。
+
+当用户表达"检视一下代码""帮我审一下""做一次 code review""深度扫描""安全审计""查高危 bug""接口审计"等检视意图时，**不要凭记忆审查**——从代码检视工作台出发：
+
+**入口**：[`skills/codecheck/README.md`](skills/codecheck/README.md)
+
+该 README 是检视的导航与编排中枢，按以下顺序使用：
+
+1. **先读 README**：了解每个子 skill 的检视维度、触发场景、输出格式，以及按场景选择的 skill 组合表。
+2. **界定范围**：明确目标路径或 Kit、检视重点（通用/安全/高危 bug/API/外部输入）。未明确时向用户确认。
+3. **调用子 skill**：读对应子目录的 `SKILL.md` 按其工作流执行。通用检视默认走 `deep-scan {path}`（一次拿 bug+logic+security 三维度）；接口/SDK 变更补 `api-audit`；服务侧 IPC/持久化密集区补 `external-input-audit`。
+4. **合并报告**：把各 skill 产出汇总为一份 `codecheck_report_<scope>_<YYYYMMDD>.md`，跨维度去重后按 P0/P1/P1 排序。报告结构见 README 的 Step 4。
+
+### 检视维度速查
+
+| 维度                                      | 子 skill                | 何时用                    |
+| ----------------------------------------- | ----------------------- | ------------------------- |
+| 高影响缺陷（崩溃/挂死/OOM/UAF/死锁/泄漏） | `high-impact-bug-audit` | 通用检视、合入前排查      |
+| 逻辑影响与一致性                          | `logic_analyzer`        | 变更影响评估、状态机/边界 |
+| 安全/商用前审查                           | `security_review`       | 安全专项、商用前          |
+| 外部输入→持久化健壮性                     | `external-input-audit`  | 服务侧、IPC/DB/文件密集区 |
+| 对外 API 一致性                           | `api-audit`             | 接口/SDK 变更、Kit 级审计 |
+| 三层编排（bug+logic+security）            | `deep-scan`             | 通用深度扫描的默认入口    |
+
+### 检视约束
+
+- **静态语言实现默认排除**（`frameworks/ets/ani/`、`frameworks/ets/ets/`、`frameworks/cj/ffi/`、`ets_*.cpp`、`cj_*.cpp`），除非用户明确要求包含。
+- **证据要求**：每条发现可追溯到 `file:line` + 触发路径，不收无证据的代码气味项。
+- **检视阶段不改源码**：只产出报告与建议；修复由用户确认后另起任务，并回到本 AGENTS.md 的 Constraints/Verification 章节执行。
+
+
+
+## 4. 约束与限制
 
 ### Architecture/domain invariants
 
@@ -171,35 +191,14 @@
 
 ## 4. Verification
 
-构建命令从 OpenHarmony 源码根目录执行，不在本子目录执行。
-
-### Minimum checks
-
-- 编译验证：`./build.sh --product-name <product> --build-target ability_runtime`
-- 编译特定服务：`./build.sh --product-name <product> --build-target abilityms`（AMS）或 `libappms`（AppMS）
 - 单元测试：`run -t UT -tp ability_runtime`
 - 模块测试：`run -t UT -ts ability_caller_fw_module_test`
 - Fuzz 测试：`run -t UT -ts AbilityAppDebugInfoFuzzTest`
 
-### Task-specific checks
-
-| 变更类型 | 最小验证 |
-|---|---|
-| 修改 AbilityManagerService 内部实现 | 编译通过 + `ability_manager_service_first_test` 及后续编号单测 |
-| 修改 AppManagerService 内部实现 | 编译通过 + `app_manager_service_test` 相关单测 |
-| 修改 URI 权限逻辑 | 编译通过 + `uri_permission_manager_test` + `uri_permission_impl_test` |
-| 修改拦截器 | 编译通过 + `ability_connect_manager_test` + 相关拦截器单测 |
-| 新增/修改公共 API（interfaces/kits/） | 编译通过 + 全量单测 + NAPI/ANI/CJ 各语言绑定编译 + 兼容性评估 + `ability_business_error.h` 错误码一致性检查 |
-| 新增/修改 NAPI 绑定 | 编译通过 + 对应 NAPI 模块单测 |
-| 新增/修改 ANI 绑定 | 编译通过 + 对应 ANI 模块单测 |
-| 修改 DFX/日志 | 编译通过 + `hisysevent.yaml` 事件定义未被破坏 + 相关 DFR 单测 |
-| 修改特性标志 | 编译通过 + 受影响模块单测 + 检查 `ability_runtime.gni` 与 `bundle.json` features 一致性 |
-| 新增 Extension 类型 | 编译通过 + 按步骤清单（7 步）全部完成 + 各层绑定编译 + 服务端管理单测 |
-| 仅测试变更 | 运行变更的测试 + 至少一个相邻相关测试 |
-
 ### Done definition
 
 任务完成仅当：
+
 1. 请求的行为已实现。
 2. 相关编译/测试/lint/兼容性检查已运行，或已说明无法运行的原因。
 3. 最终回复包含：变更摘要、变更文件列表、验证命令和结果、兼容性/权限/DFX 影响评估（如相关）。
@@ -209,38 +208,9 @@
 ### Final response format
 
 完成任务时，回复应包含：
+
 - 变更摘要
 - 变更文件列表
 - 验证命令和结果
 - 兼容性、权限、DFX 或跨设备影响（如相关）
 - 遗留风险或后续项
-
-## 5. 代码检视
-
-当用户表达"检视一下代码""帮我审一下""做一次 code review""深度扫描""安全审计""查高危 bug""接口审计"等检视意图时，**不要凭记忆审查**——从代码检视工作台出发：
-
-**入口**：[`skills/codecheck/README.md`](skills/codecheck/README.md)
-
-该 README 是检视的导航与编排中枢，按以下顺序使用：
-
-1. **先读 README**：了解每个子 skill 的检视维度、触发场景、输出格式，以及按场景选择的 skill 组合表。
-2. **界定范围**：明确目标路径或 Kit、检视重点（通用/安全/高危 bug/API/外部输入）。未明确时向用户确认。
-3. **调用子 skill**：读对应子目录的 `SKILL.md` 按其工作流执行。通用检视默认走 `deep-scan {path}`（一次拿 bug+logic+security 三维度）；接口/SDK 变更补 `api-audit`；服务侧 IPC/持久化密集区补 `external-input-audit`。
-4. **合并报告**：把各 skill 产出汇总为一份 `codecheck_report_<scope>_<YYYYMMDD>.md`，跨维度去重后按 P0/P1/P1 排序。报告结构见 README 的 Step 4。
-
-### 检视维度速查
-
-| 维度 | 子 skill | 何时用 |
-|------|---------|--------|
-| 高影响缺陷（崩溃/挂死/OOM/UAF/死锁/泄漏） | `high-impact-bug-audit` | 通用检视、合入前排查 |
-| 逻辑影响与一致性 | `logic_analyzer` | 变更影响评估、状态机/边界 |
-| 安全/商用前审查 | `security_review` | 安全专项、商用前 |
-| 外部输入→持久化健壮性 | `external-input-audit` | 服务侧、IPC/DB/文件密集区 |
-| 对外 API 一致性 | `api-audit` | 接口/SDK 变更、Kit 级审计 |
-| 三层编排（bug+logic+security） | `deep-scan` | 通用深度扫描的默认入口 |
-
-### 检视约束
-
-- **静态语言实现默认排除**（`frameworks/ets/ani/`、`frameworks/ets/ets/`、`frameworks/cj/ffi/`、`ets_*.cpp`、`cj_*.cpp`），除非用户明确要求包含。
-- **证据要求**：每条发现可追溯到 `file:line` + 触发路径，不收无证据的代码气味项。
-- **检视阶段不改源码**：只产出报告与建议；修复由用户确认后另起任务，并回到本 AGENTS.md 的 Constraints/Verification 章节执行。
