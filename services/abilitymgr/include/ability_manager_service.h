@@ -36,6 +36,7 @@
 #include "ability_info.h"
 #include "ability_manager_event_subscriber.h"
 #include "ability_manager_stub.h"
+#include "ability_permission_checker.h"
 #include "ability_keep_alive_service.h"
 #include "ability_start_with_wait_observer_utils.h"
 #include "ams_configuration_parameter.h"
@@ -1484,7 +1485,8 @@ public:
         bool isImplicit = false,
         bool isDlp = false,
         bool isStartAsCaller = false,
-        uint32_t skillCallerTokenId = 0);
+        uint32_t skillCallerTokenId = 0,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker = nullptr);
 
     int RequestModalUIExtensionInner(Want want);
 
@@ -1870,7 +1872,20 @@ public:
 
     bool GetLocalDeviceId(std::string& localDeviceId);
 
-    int JudgeAbilityVisibleControl(const AppExecFwk::AbilityInfo &abilityInfo);
+    int JudgeAbilityVisibleControl(const AppExecFwk::AbilityInfo &abilityInfo,
+        const std::shared_ptr<const AbilityPermissionChecker> &permissionChecker = nullptr);
+
+    /**
+     * Judge whether the caller can start an ability with visible=false on a path that only has a
+     * want at hand (the UI extension session path, which builds no AbilityRequest before the check).
+     * The insight intent record is looked up and verified here; every other channel keeps the full
+     * visible check.
+     *
+     * @param want, indicate the want of the ability request.
+     * @param abilityInfo, indicate the ability info of the target ability.
+     * @return Returns ERR_OK if the operation is permitted, otherwise an error code.
+     */
+    int JudgeAbilityVisibleControl(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo);
 
     /**
      * Called to update mission snapshot.
@@ -3306,6 +3321,11 @@ private:
     int CheckStaticCfgPermission(const AppExecFwk::AbilityRequest &abilityRequest, bool isStartAsCaller,
         uint32_t callerTokenId, bool isData = false, bool isSaCall = false, bool isImplicit = false);
 
+    int CheckStaticCfgPermissionInner(const AppExecFwk::AbilityRequest &abilityRequest, bool isStartAsCaller,
+        uint32_t callerTokenId, bool isData, bool isSaCall, bool isImplicit);
+
+    int JudgeAbilityVisibleControlInner(const AppExecFwk::AbilityInfo &abilityInfo);
+
     int CheckPermissionForUIService(AppExecFwk::ExtensionAbilityType extensionType,
         const Want &want, const AbilityRequest &abilityRequest);
 
@@ -3797,6 +3817,20 @@ private:
         AbilityRuntime::ExtractInsightIntentInfo &extractInfo, AbilityRuntime::InsightIntentInfo &configInfo);
 
     bool IsInsightIntentCall(const Want &want, const std::string &targetBundleName);
+
+    /**
+     * Resolve the permission policy that applies to this request.
+     *
+     * A policy attached by the start channel itself is returned as is (it was built only after the
+     * channel verified the request). Requests that reach a check through an interface which cannot
+     * carry the policy (the public byCall entry builds its own AbilityRequest) fall back to an
+     * insight intent record lookup, which verifies the record owner against the current caller.
+     *
+     * @return the policy to apply. Never nullptr: a request that carries no policy resolves to the
+     *         default checker, which has every target-declared check enabled.
+     */
+    std::shared_ptr<const AbilityPermissionChecker> ResolvePermissionChecker(
+        const AppExecFwk::AbilityRequest &abilityRequest);
 
     int32_t RecordAppWithReasonByAccessTokenId(uint32_t accessTokenId,
         const ExitReasonCompability &exitReasonCompability);

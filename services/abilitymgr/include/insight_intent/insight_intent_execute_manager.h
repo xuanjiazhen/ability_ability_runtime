@@ -47,6 +47,11 @@ struct InsightIntentExecuteRecord {
     uint64_t key = 0;
     std::string bundleName;
     std::string callerBundleName;
+    // Identity of the caller that created the record, captured from the IPC context at record
+    // creation time. Used by AbilityManagerService::IsInsightIntentCall to reject intentId
+    // enumeration by callers other than the record owner.
+    uint32_t callerUid = 0;
+    uint32_t callerTokenId = 0;
     AppExecFwk::InsightIntentExecutionInfo executionInfo;
     pid_t targetPid = 0;
     InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
@@ -115,6 +120,22 @@ public:
     int32_t RemoteDied(uint64_t intentId);
 
     int32_t GetBundleName(uint64_t intentId, std::string &bundleName) const;
+
+    /**
+     * Query the target bundle name and captured caller identity of an insight intent
+     * execution record. The identity is captured from the IPC context at record
+     * creation time and is used by AbilityManagerService::IsInsightIntentCall to
+     * reject intentId enumeration by callers other than the record owner.
+     *
+     * @param intentId, indicate the intent id.
+     * @param bundleName, output the target bundle name of the record.
+     * @param callerUid, output the caller uid captured at record creation.
+     * @param callerTokenId, output the caller token id captured at record creation.
+     * @param isDistributed, output whether the record is a distributed intent.
+     * @return Returns ERR_OK if the record is found, otherwise ERR_INVALID_VALUE.
+     */
+    int32_t GetRecordCallerInfo(uint64_t intentId, std::string &bundleName, uint32_t &callerUid,
+        uint32_t &callerTokenId, bool &isDistributed) const;
 
     int32_t GetCallerBundleName(uint64_t intentId, std::string &callerBundleName) const;
 
