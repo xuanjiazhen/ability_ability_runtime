@@ -8699,6 +8699,76 @@ int32_t AbilityManagerProxy::NotifyInsightIntentExecute(uint64_t intentId)
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::NotifyInsightIntentExecuteV2(uint64_t intentId, const sptr<IRemoteObject> &cancelListener)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "notify insight intent execute v2 proxy, intentId:%{public}" PRIu64, intentId);
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteUint64(intentId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentId fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteRemoteObject(cancelListener)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write cancelListener fail");
+        return INNER_ERR;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::NOTIFY_INSIGHT_INTENT_EXECUTE_V2, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::CancelInsightIntent(uint64_t intentId)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "cancel insight intent proxy, intentId:%{public}" PRIu64, intentId);
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteUint64(intentId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentId fail");
+        return INNER_ERR;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::CANCEL_INSIGHT_INTENT, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::CancelInsightIntentByTaskId(const std::string &taskId)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "cancel insight intent by taskId proxy, taskId:%{public}s", taskId.c_str());
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteString(taskId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write taskId fail");
+        return INNER_ERR;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::CANCEL_INSIGHT_INTENT_BY_TASK_ID, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AbilityManagerProxy::RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)
 {
     TAG_LOGD(AAFwkTag::INTENT, "register will insight intent execute callback proxy");

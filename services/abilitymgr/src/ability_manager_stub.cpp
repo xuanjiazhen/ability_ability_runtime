@@ -1097,6 +1097,15 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::NOTIFY_INSIGHT_INTENT_EXECUTE) {
         return NotifyInsightIntentExecuteInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::NOTIFY_INSIGHT_INTENT_EXECUTE_V2) {
+        return NotifyInsightIntentExecuteV2Inner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::CANCEL_INSIGHT_INTENT) {
+        return CancelInsightIntentInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::CANCEL_INSIGHT_INTENT_BY_TASK_ID) {
+        return CancelInsightIntentByTaskIdInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK) {
         return RegisterWillInsightIntentExecuteCallbackInner(data, reply);
     }
@@ -6264,6 +6273,34 @@ int32_t AbilityManagerStub::NotifyInsightIntentExecuteInner(MessageParcel &data,
     TAG_LOGD(AAFwkTag::INTENT, "notify insight intent execute stub");
     uint64_t intentId = data.ReadUint64();
     int32_t ret = NotifyInsightIntentExecute(intentId);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::NotifyInsightIntentExecuteV2Inner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "notify insight intent execute v2 stub");
+    uint64_t intentId = data.ReadUint64();
+    sptr<IRemoteObject> cancelListener = data.ReadRemoteObject();
+    int32_t ret = NotifyInsightIntentExecuteV2(intentId, cancelListener);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::CancelInsightIntentInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "cancel insight intent stub");
+    uint64_t intentId = data.ReadUint64();
+    int32_t ret = CancelInsightIntent(intentId);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::CancelInsightIntentByTaskIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "cancel insight intent by taskId stub");
+    std::string taskId = data.ReadString();
+    int32_t ret = CancelInsightIntentByTaskId(taskId);
     reply.WriteInt32(ret);
     return NO_ERROR;
 }

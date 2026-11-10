@@ -2874,6 +2874,30 @@ ErrCode AbilityManagerClient::NotifyInsightIntentExecute(uint64_t intentId)
     return abms->NotifyInsightIntentExecute(intentId);
 }
 
+ErrCode AbilityManagerClient::NotifyInsightIntentExecuteV2(uint64_t intentId, const sptr<IRemoteObject> &cancelListener)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->NotifyInsightIntentExecuteV2(intentId, cancelListener);
+}
+
+ErrCode AbilityManagerClient::CancelInsightIntent(uint64_t intentId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->CancelInsightIntent(intentId);
+}
+
+ErrCode AbilityManagerClient::CancelInsightIntentByTaskId(const std::string &taskId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->CancelInsightIntentByTaskId(taskId);
+}
+
 ErrCode AbilityManagerClient::RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");

@@ -1853,6 +1853,12 @@ public:
 
     virtual int32_t NotifyInsightIntentExecute(uint64_t intentId) override;
 
+    virtual int32_t NotifyInsightIntentExecuteV2(uint64_t intentId, const sptr<IRemoteObject> &cancelListener) override;
+
+    virtual int32_t CancelInsightIntent(uint64_t intentId) override;
+
+    virtual int32_t CancelInsightIntentByTaskId(const std::string &taskId) override;
+
     virtual int32_t RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback) override;
 
     virtual int32_t UnregisterWillInsightIntentExecuteCallback() override;

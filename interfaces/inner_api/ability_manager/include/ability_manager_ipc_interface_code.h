@@ -815,6 +815,15 @@ enum class AbilityManagerInterfaceCode {
 
     // attribute the task id onto an existing ConnectionRecord after a reused agent connect (oneway)
     ATTRIBUTE_SAME_CONNECTION_RECORD_TASK_ID = 6189,
+
+    // notify that an insight intent execution has started, with cancellation listener registered
+    NOTIFY_INSIGHT_INTENT_EXECUTE_V2 = 6190,
+
+    // cancel a single in-flight insight intent by intentId
+    CANCEL_INSIGHT_INTENT = 6191,
+
+    // cancel all in-flight insight intents sharing a taskId
+    CANCEL_INSIGHT_INTENT_BY_TASK_ID = 6192,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

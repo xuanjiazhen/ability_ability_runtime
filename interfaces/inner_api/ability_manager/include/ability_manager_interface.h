@@ -2989,6 +2989,21 @@ public:
         return ERR_OK;
     }
 
+    virtual int32_t NotifyInsightIntentExecuteV2(uint64_t intentId, const sptr<IRemoteObject> &cancelListener)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t CancelInsightIntent(uint64_t intentId)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t CancelInsightIntentByTaskId(const std::string &taskId)
+    {
+        return ERR_OK;
+    }
+
     virtual int32_t RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)
     {
         return ERR_OK;

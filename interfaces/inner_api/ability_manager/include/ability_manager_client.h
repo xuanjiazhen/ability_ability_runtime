@@ -3197,6 +3197,12 @@ public:
      */
     ErrCode NotifyInsightIntentExecute(uint64_t intentId);
 
+    ErrCode NotifyInsightIntentExecuteV2(uint64_t intentId, const sptr<IRemoteObject> &cancelListener);
+
+    ErrCode CancelInsightIntent(uint64_t intentId);
+
+    ErrCode CancelInsightIntentByTaskId(const std::string &taskId);
+
     ErrCode RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback);
 
     ErrCode UnregisterWillInsightIntentExecuteCallback();
