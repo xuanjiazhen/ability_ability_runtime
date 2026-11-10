@@ -441,6 +441,18 @@ int AbilityManagerStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_FUNCTION_CALL) {
         return ExecuteIntentByFunctionCallInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_INSIGHT_INTENT_CALLER_BUNDLE_NAME) {
+        return GetInsightIntentCallerBundleNameInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::CHECK_INVOKE_FUNCTION_CALLER) {
+        return CheckInvokeFunctionCallerInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::CHECK_PUBLIC_FUNCTION_CALLER) {
+        return CheckPublicFunctionCallerInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::REMOVE_INSIGHT_INTENT_EXECUTE_RECORD) {
+        return RemoveInsightIntentExecuteRecordInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_WITH_SPECIFY_TOKEN_ID) {
         return ExecuteUIAbilityForegroundIntentWithSpecifyTokenIdInner(data, reply);
     }
@@ -4690,6 +4702,63 @@ int32_t AbilityManagerStub::ExecuteIntentByFunctionCallInner(MessageParcel &data
         return ERR_INVALID_VALUE;
     }
     auto result = ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, *wantParam);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetInsightIntentCallerBundleNameInner(MessageParcel &data, MessageParcel &reply)
+{
+    uint64_t intentId = data.ReadUint64();
+    std::string callerBundleName = GetInsightIntentCallerBundleName(intentId);
+    if (!reply.WriteString(callerBundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::CheckInvokeFunctionCallerInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t result = CheckInvokeFunctionCaller();
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::CheckPublicFunctionCallerInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName = data.ReadString();
+    if (bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName empty");
+        return ERR_INVALID_VALUE;
+    }
+    std::string intentName = data.ReadString();
+    if (intentName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "intentName empty");
+        return ERR_INVALID_VALUE;
+    }
+    uint64_t intentId = 0;
+    int32_t result = CheckPublicFunctionCaller(bundleName, intentName, intentId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteUint64(intentId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentId fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::RemoveInsightIntentExecuteRecordInner(MessageParcel &data, MessageParcel &reply)
+{
+    uint64_t intentId = data.ReadUint64();
+    auto result = RemoveInsightIntentExecuteRecord(intentId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;
