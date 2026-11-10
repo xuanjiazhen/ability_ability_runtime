@@ -48,6 +48,39 @@ public:
      */
     int32_t ExecuteIntentByFunctionCall(const ExecuteIntentParam &param);
 
+    /**
+     * @brief Pure permission validation for invokeFunction caller: any caller
+     *        (including third-party apps) holding EXECUTE_INSIGHT_INTENT.
+     * @return Returns ERR_OK on success, ERR_PERMISSION_DENIED on failure.
+     */
+    int32_t CheckInvokeFunctionCaller();
+
+    /**
+     * @brief Authorization pre-check for the invokePublicFunction caller
+     *        (third-party). The AMS resolves the target intent module by
+     *        {bundleName, intentName}, then checks the exported visibility flag
+     *        and ACCESS_PUBLIC_FUNCTION. Runs before the consent dialog to
+     *        avoid dialog-bombing. On success AMS pre-registers an insight-intent
+     *        execute record and returns its id for the consent dialog to query.
+     * @param bundleName The target function namespace (bundle name).
+     * @param intentName The target insight intent (function) name.
+     * @param intentId Output execute record id pre-registered by AMS; non-zero
+     *                 only when ERR_OK is returned.
+     * @return Returns ERR_OK on success, INTENT_NOT_EXIST when the target is
+     *         missing or not open to third-party callers, ERR_PERMISSION_DENIED
+     *         when ACCESS_PUBLIC_FUNCTION is absent.
+     */
+    int32_t CheckPublicFunctionCaller(const std::string &bundleName, const std::string &intentName, uint64_t &intentId);
+
+    /**
+     * @brief Remove the pre-registered insight intent execute record identified
+     *        by intentId. Called when the consent dialog is declined or dismissed
+     *        (no grant) so the PENDING_CONSENT record does not linger.
+     * @param intentId The execute record id returned by CheckPublicFunctionCaller.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RemoveInsightIntentExecuteRecord(uint64_t intentId);
+
 private:
     IntentClient() = default;
 
@@ -55,7 +88,7 @@ private:
 
     void ResetRemote(wptr<IRemoteObject> remote);
 
-    int32_t SendExecuteRequest(uint64_t key, const sptr<IRemoteObject> &callerToken,
+    int32_t SendExecuteRequest(uint32_t code, uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam);
 
     class DeathRecipient : public IRemoteObject::DeathRecipient {

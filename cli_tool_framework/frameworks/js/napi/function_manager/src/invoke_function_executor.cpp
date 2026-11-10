@@ -24,9 +24,14 @@
 #include "function_result_wrap.h"
 #include "hilog_tag_wrapper.h"
 #include "intent_client.h"
+#include "int_wrapper.h"
 #include "invoke_function_callback_client.h"
 #include "invoke_function_param.h"
+#include "insight_intent/insight_intent_execute_param.h"
+#include "long_wrapper.h"
+#include "remote_object_wrapper.h"
 #include "string_wrapper.h"
+#include "want_params_wrapper.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -55,13 +60,14 @@ std::shared_ptr<InvokeFunctionExecutor> InvokeFunctionExecutor::Create()
     return std::make_shared<InvokeFunctionExecutor>();
 }
 
-void InvokeFunctionExecutor::Execute(const InvokeFunctionParam &param, InvokeResultCallback callback)
+void InvokeFunctionExecutor::Execute(const InvokeFunctionParam &param, InvokeResultCallback callback,
+    bool isPublicInvoke, const sptr<IRemoteObject> &callerAbilityToken, uint64_t intentId)
 {
     callback_ = std::move(callback);
     auto self = shared_from_this();
     SetupTimeout();
-    ffrt::submit([self, param]() {
-        self->DoExecute(param);
+    ffrt::submit([self, param, isPublicInvoke, callerAbilityToken, intentId]() {
+        self->DoExecute(param, isPublicInvoke, callerAbilityToken, intentId);
     });
 }
 
@@ -86,13 +92,23 @@ void InvokeFunctionExecutor::ReportError(int32_t errorCode)
     }
 }
 
-void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
+void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param, bool isPublicInvoke,
+    const sptr<IRemoteObject> &callerAbilityToken, uint64_t intentId)
 {
     FunctionInfo functionInfo;
-    ErrCode queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(
-        param.functionNamespace, param.functionName, functionInfo);
+    // Public path: GetPublicFunctionInfo enforces the ACCESS_PUBLIC_FUNCTION permission and
+    // the open-to-third-party (visible) check on the service side; the system path keeps
+    // the original GetFunctionInfo (system app + ACCESS_FUNCTION) semantics.
+    ErrCode queryErr;
+    if (isPublicInvoke) {
+        queryErr = CliToolMGRClient::GetInstance().GetPublicFunctionInfo(
+            param.functionNamespace, param.functionName, functionInfo);
+    } else {
+        queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(
+            param.functionNamespace, param.functionName, functionInfo);
+    }
     if (queryErr != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo failed: %{public}d", queryErr);
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "query function info failed: %{public}d", queryErr);
         ReportError(queryErr);
         return;
     }
@@ -148,6 +164,13 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
     execParam.bundleName = hookParam.functionNamespace;
     execParam.intentName = hookParam.functionName;
     execParam.wantParam = hookParams;
+    // Reuse the consent pre-registered record (0 for the system path). The id is
+    // boxed into wantParam (INSIGHT_INTENT_EXECUTE_RECORD_ID) rather than threaded
+    // through a dedicated IPC parameter; the AMS reads and strips it.
+    if (intentId != 0) {
+        execParam.wantParam.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_RECORD_ID,
+            AAFwk::Long::Box64(static_cast<int64_t>(intentId)));
+    }
     // Authoritative injection point (ADR-8): re-assert the re-validated values
     // before the intent call; the NAPI pre-injection is only the transport leg.
     if (!toolCallId.empty()) {
@@ -159,13 +182,29 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
     if (!taskId.empty()) {
         execParam.wantParam.SetParam("ohos.task.id", AAFwk::String::Box(taskId));
     }
+    // Authoritative injection (transport leg): carry the caller ability token
+    // (context->GetToken(), third-party path only) through wantParam for launch
+    // attribution in StartAbilityInner. No identity / public-path flag is injected
+    // anymore — the AMS derives the caller identity from the calling token.
+    if (callerAbilityToken != nullptr) {
+        // Serialize the caller token through the WantParamWrapper envelope. A bare
+        // RemoteObjectWrap would be silently dropped by WantParams marshalling
+        // (its WriteMarshalling has no IRemoteObjectWrap branch), so the remote
+        // object must be nested under TYPE_PROPERTY / VALUE_PROPERTY.
+        AAFwk::WantParams tokenWrap;
+        tokenWrap.SetParam(AAFwk::TYPE_PROPERTY, AAFwk::String::Box(AAFwk::REMOTE_OBJECT));
+        tokenWrap.SetParam(AAFwk::VALUE_PROPERTY, AAFwk::RemoteObjectWrap::Box(callerAbilityToken));
+        execParam.wantParam.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN,
+            AAFwk::WantParamWrapper::Box(tokenWrap));
+    }
     execParam.callback = client;
 
     auto err = AAFwk::IntentClient::GetInstance().ExecuteIntentByFunctionCall(execParam);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecuteIntentByFunctionCall failed: %{public}d", err);
         int32_t reportErr = ERR_FUNCTION_EXECUTE_FAILED;
-        if (err == OHOS::ERR_PERMISSION_DENIED || err == OHOS::AAFwk::ERR_NOT_SYSTEM_APP) {
+        if (err == OHOS::ERR_PERMISSION_DENIED || err == OHOS::AAFwk::ERR_NOT_SYSTEM_APP ||
+            err == OHOS::AAFwk::INTENT_NOT_EXIST) {
             reportErr = err;
         }
         ReportError(reportErr);
