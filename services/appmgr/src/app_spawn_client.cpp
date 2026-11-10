@@ -58,24 +58,34 @@ constexpr const char* PRELOAD_SO_KEY_LIB_PATH = "libPath";
 constexpr const char* PRELOAD_SO_KEY_SO = "so";
 constexpr const char* PRELOAD_SO_KEY_NS = "ns";
 constexpr const char* PRELOAD_SO_DEFAULT_NS = "default";
+constexpr size_t MAX_SO_NAME_LENGTH = 128;
 
-std::string SerializePreloadSoList(const std::vector<std::string>& soPaths)
+std::string SerializePreloadSoList(const std::vector<std::string>& soNames,
+    const std::string& libPath)
 {
     nlohmann::json jsonArray = nlohmann::json::array();
-    for (const auto& path : soPaths) {
-        if (path.empty()) {
+    nlohmann::json soArray = nlohmann::json::array();
+    for (const auto& soName : soNames) {
+        if (soName.empty() || soName.size() > MAX_SO_NAME_LENGTH) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid so name length: %{public}s", soName.c_str());
             continue;
         }
-        auto lastSlash = path.find_last_of('/');
-        if (lastSlash == std::string::npos) {
+        if (soName.find('/') != std::string::npos ||
+            soName.find('\\') != std::string::npos ||
+            soName.find("..") != std::string::npos) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid so name (path traversal): %{public}s", soName.c_str());
             continue;
         }
-        nlohmann::json entry;
-        entry[PRELOAD_SO_KEY_LIB_PATH] = nlohmann::json::array({path.substr(0, lastSlash)});
-        entry[PRELOAD_SO_KEY_SO] = nlohmann::json::array({path.substr(lastSlash + 1)});
-        entry[PRELOAD_SO_KEY_NS] = PRELOAD_SO_DEFAULT_NS;
-        jsonArray.push_back(entry);
+        soArray.push_back(soName);
     }
+    if (soArray.empty()) {
+        return jsonArray.dump();
+    }
+    nlohmann::json entry;
+    entry[PRELOAD_SO_KEY_LIB_PATH] = nlohmann::json::array({libPath});
+    entry[PRELOAD_SO_KEY_SO] = soArray;
+    entry[PRELOAD_SO_KEY_NS] = PRELOAD_SO_DEFAULT_NS;
+    jsonArray.push_back(entry);
     return jsonArray.dump();
 }
 }
@@ -489,7 +499,7 @@ int32_t AppSpawnClient::AppspawnSetExtMsgMore(const AppSpawnStartMsg &startMsg, 
     }
 
     if (!startMsg.preloadSoList.empty()) {
-        std::string preloadSoListJson = SerializePreloadSoList(startMsg.preloadSoList);
+        std::string preloadSoListJson = SerializePreloadSoList(startMsg.preloadSoList, startMsg.appLibPath);
         ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_PRELOAD_SO_LIST, preloadSoListJson.c_str());
         if (ret) {
             TAG_LOGE(AAFwkTag::APPMGR, "PreloadSoList add fail, ret: %{public}d", ret);
