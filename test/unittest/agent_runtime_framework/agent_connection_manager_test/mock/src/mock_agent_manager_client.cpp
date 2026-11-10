@@ -46,6 +46,12 @@ int32_t AgentManagerClient::DisconnectAgentExtensionAbility(const sptr<AAFwk::IA
     return MyFlag::retDisconnectAgentExtensionAbility;
 }
 
+int32_t AgentManagerClient::AttributeTaskForA2AReusedConnectionRecord(const AAFwk::Want &,
+    const sptr<AAFwk::IAbilityConnection> &)
+{
+    return ERR_OK;
+}
+
 int32_t AgentManagerClient::ConnectServiceExtensionAbility(const sptr<IRemoteObject> &,
     const AAFwk::Want &, const sptr<AAFwk::IAbilityConnection> &)
 {
@@ -57,5 +63,7 @@ int32_t AgentManagerClient::DisconnectServiceExtensionAbility(const sptr<IRemote
 {
     return MyFlag::retDisconnectServiceExtensionAbility;
 }
+
+void AgentManagerClient::RegisterDeathCallback(DeathCallback) {}
 } // namespace AgentRuntime
 } // namespace OHOS

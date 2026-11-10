@@ -21,6 +21,8 @@
 #include "ams_mgr_interface.h"
 #include "app_foreground_state_observer_interface.h"
 #include "app_malloc_info.h"
+#include "process_lifecycle_observer_interface.h"
+#include "focused_application_observer_interface.h"
 #include "app_mem_dump_info.h"
 #include "app_mgr_ipc_interface_code.h"
 #include "app_record_id.h"
@@ -37,6 +39,7 @@
 #include "kia_interceptor_interface.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
+#include "ichild_process_state_observer.h"
 #include "iconfiguration_observer.h"
 #include "image_error_handler_interface.h"
 #include "image_process_state_observer_interface.h"
@@ -84,7 +87,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1)
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0)
     {
         return 0;
     }
@@ -99,7 +102,7 @@ public:
     }
 
     virtual int32_t MakeImage(const AAFwk::Want &want, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1, sptr<IImageErrorHandler> errorHandler = nullptr)
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr)
     {
         return 0;
     }
@@ -134,6 +137,18 @@ public:
     virtual int32_t NotifyTemplateProcessReadyDone()
     {
         return 0;
+    }
+
+    /**
+     * Query whether the current process is doing snapshot initialization.
+     *
+     * @return Returns true if the current process is doing snapshot initialization,
+     *         false otherwise (completed, failed, not a template process,
+     *         or service unavailable).
+     */
+    virtual bool IsHyperSnapInitializing()
+    {
+        return false;
     }
 
     /**
@@ -617,7 +632,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
-        int32_t appIndex = -1) = 0;
+        int32_t appIndex = 0) = 0;
 
     /**
      * Register configuration observer.
@@ -870,6 +885,36 @@ public:
      */
     virtual int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer) = 0;
 
+    virtual int32_t RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer)
+    {
+        return 0;
+    }
+
+    virtual int32_t UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer)
+    {
+        return 0;
+    }
+
+    /**
+     * Register focused application observer.
+     * @param observer Is focused application observer
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+    {
+        return 0;
+    }
+
+    /**
+     * Unregister focused application observer.
+     * @param observer Is focused application observer.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnregisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+    {
+        return 0;
+    }
+
     /**
      * Check whether the bundle is running.
      *
@@ -957,6 +1002,26 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UnregisterRenderStateObserver(const sptr<IRenderStateObserver> &observer) = 0;
+
+    /**
+     * Register child process state observer.
+     * @param observer Child process state observer.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer)
+    {
+        return 0;
+    }
+
+    /**
+     * Unregister child process state observer.
+     * @param observer Child process state observer.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnregisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer)
+    {
+        return 0;
+    }
 
     /**
      * Register KIA interceptor.
@@ -1331,6 +1396,102 @@ public:
     virtual int32_t FinishTask(const std::string &taskId)
     {
         return ERR_OK;
+    }
+
+    /*
+     * @brief Attributes the target Agent process into the task after a successful
+     *        A2A connect. Performs ownership + alive-state verification, then
+     *        registers an AttributionRecord with AttributionTool::A2A. Best-effort:
+     *        failures are logged and do NOT fail the connect result.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.aafwk.param.agent.taskId].
+     * @param callerTokenId Indicates the app's token id captured at the convergence point.
+     * @param targetPid Indicates the target Agent process pid (resolved post-connect).
+     * @param attributionId Indicates the server-assigned attribution handle for later
+     *        unregister; 0 on failure.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    virtual int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, int64_t &attributionId) { return ERR_OK; }
+
+    /**
+     * @brief Unregisters the A2A attribution previously created by AttributeTaskForA2A.
+     *        Only the Foundation process may call this.
+     * @param taskId Indicates the task id.
+     * @param attributionId Indicates the attribution handle returned by AttributeTaskForA2A.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    virtual int32_t UnregisterTaskForA2A(const std::string &taskId, int64_t attributionId) { return ERR_OK; }
+
+    /**
+     * @brief Attributes a process into the task owned by the caller and hands back the
+     *        server-assigned attribution id used for later unregistration.
+     * @param taskId Indicates the attribution key of the task.
+     * @param pid Indicates the pid of the managed process to attribute.
+     * @param tool Indicates the tool type of the attribution (AttributionTool value).
+     * @param callerUid Indicates the forensic uid of the original task creator, forwarded
+     *        by the trusted caller; a negative value skips the ownership check.
+     * @param attributionId Outputs the server-assigned attribution id on success,
+     *        or 0 on any failure.
+     * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters;
+     *         ERR_TASK_NOT_FOUND if the task does not exist or the caller does not own it.
+     */
+    virtual int32_t RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
+        int32_t callerUid, int64_t &attributionId)
+    {
+        attributionId = 0;
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Removes the attribution record with the given id from the task owned by
+     *        the caller (idempotent).
+     * @param taskId Indicates the attribution key of the task.
+     * @param attributionId Indicates the id returned by RegisterManagedProcess.
+     * @param callerUid Indicates the forensic uid of the original task creator, forwarded
+     *        by the trusted caller; a negative value skips the ownership check.
+     * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters;
+     *         ERR_TASK_NOT_FOUND if the task does not exist or the caller does not own it.
+     */
+    virtual int32_t UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+        int32_t callerUid)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Attributes the main process of the running application into the task. The
+     *        target process is located server-side by the bundle name, so the caller does
+     *        not need any process-query capability.
+     * @param taskId Indicates the attribution key of the task.
+     * @param bundleName Indicates the bundle name used only for process location.
+     * @param callerUid Indicates the forensic uid of the original task creator, forwarded
+     *        by the trusted caller; a negative value skips the ownership check.
+     * @param resolvedPid Outputs the located pid on success, or -1 on any failure.
+     * @param attributionId Outputs the server-assigned attribution id on success,
+     *        or 0 on any failure.
+     * @return Returns ERR_OK on success; INNER_ERR when the target application is not
+     *         running or is still being started; ERR_TASK_NOT_FOUND if the task does not
+     *         exist or the caller does not own it.
+     */
+    virtual int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
+        int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId)
+    {
+        resolvedPid = -1;
+        attributionId = 0;
+        return ERR_OK;
+    }
+
+    /**
+     * Notify the state change of a child process.
+     *
+     * @param pid The pid of the child process whose state has changed.
+     * @param state The new state of the child process.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    virtual int32_t NotifyChildProcessState(int32_t pid, int32_t state)
+    {
+        return 0;
     }
 };
 }  // namespace AppExecFwk

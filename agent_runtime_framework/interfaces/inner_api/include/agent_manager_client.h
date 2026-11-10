@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace AgentRuntime {
 using ClearProxyCallback = std::function<void(const wptr<IRemoteObject>&)>;
+using DeathCallback = std::function<void()>;
 
 class AgentManagerClient final {
 public:
@@ -39,6 +40,16 @@ public:
      * @brief Wakes blocked callers when the agent manager service cannot be loaded.
      */
     void OnLoadSystemAbilityFail();
+
+    /**
+     * @brief Registers a callback fired once when the agent manager service (subfoundation)
+     * dies. Subscribers drop in-process connection state that the normal disconnect-done chain
+     * cannot reach: the AgentServiceConnection that forwards OnAbilityDisconnectDone to the
+     * caller lives in the dead process, so app-side registries (AgentConnectionManager,
+     * JS-layer g_agentConnects) are never notified. Callbacks fire outside mutex_ on the
+     * binder death thread.
+     */
+    void RegisterDeathCallback(DeathCallback callback);
 
     int32_t GetAllAgentCards(std::vector<AgentCard> &cards);
     int32_t GetAgentCardsByBundleName(const std::string &bundleName, std::vector<AgentCard> &cards);
@@ -84,6 +95,20 @@ public:
     int32_t VerifyAgentDisconnectRequests(const std::vector<AAFwk::Want> &wants,
         const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity);
 
+    /**
+     * @brief Best-effort, oneway notification that a connect request hit an already-connected
+     *        AgentConnection on the caller side (reused connection). The service resolves the
+     *        tracked AgentServiceConnection and forwards to AMS so AMS can attribute the task
+     *        id onto the same ConnectionRecord. Failures are logged and do NOT affect the
+     *        connect result.
+     * @param want Indicates the original connect want (carries agentId / taskId params).
+     * @param connection Indicates the existing AgentConnection (IAbilityConnection) registered
+     *        with the service on the first connect.
+     * @return Returns ERR_OK on success (best-effort); others on local/proxy failure.
+     */
+    int32_t AttributeTaskForA2AReusedConnectionRecord(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection);
+
 private:
     sptr<IAgentManager> GetAgentMgrProxy();
     // Clears the cached proxy only if it holds the died remote (stale notifications ignored).
@@ -113,6 +138,7 @@ private:
     // protected by the stale-callback guard; others cannot be proven live.
     wptr<IRemoteObject> registeredRemote_;
     sptr<IAgentManager> agentMgr_ = nullptr;
+    std::vector<DeathCallback> deathCallbacks_;
 };
 } // namespace AgentRuntime
 } // namespace OHOS

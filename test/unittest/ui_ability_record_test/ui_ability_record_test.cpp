@@ -13,8 +13,17 @@
  * limitations under the License.
  */
 
+#include <unistd.h>
+
+#include <algorithm>
+#include <mutex>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include <gtest/gtest.h>
 
+#include "app_scheduler.h"
 #include "ui_ability_record.h"
 #include "global_constant.h"
 #include "native_ability_util.h"
@@ -656,6 +665,241 @@ HWTEST_F(UIAbilityRecordTest, NotifyCallersOnPrelaunchTimeout_0100, TestSize.Lev
     abilityRecord->callContainer_ = callContainer;
     EXPECT_CALL(*callContainer, NotifyDisconnectOnTimeout(_)).Times(1);
     abilityRecord->NotifyCallersOnPrelaunchTimeout();
+}
+/**
+ * @tc.name: TaskAttributionBookkeeping_0001
+ * @tc.desc: AddTaskAttribution ignores an exact duplicate (taskId, handle) pair.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0001, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-1", 42);
+    abilityRecord->AddTaskAttribution("task-1", 42);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(1));
+    EXPECT_EQ(attributions.front().first, "task-1");
+    EXPECT_EQ(attributions.front().second, 42);
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0002
+ * @tc.desc: Distinct (taskId, handle) pairs coexist in the bookkeeping vector.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0002, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-1", 42);
+    abilityRecord->AddTaskAttribution("task-1", 43);
+    abilityRecord->AddTaskAttribution("task-2", 42);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    EXPECT_EQ(attributions.size(), static_cast<size_t>(3));
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0003
+ * @tc.desc: Same taskId with different handles coexist in insertion order.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0003, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-1", 42);
+    abilityRecord->AddTaskAttribution("task-1", 43);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(2));
+    EXPECT_EQ(attributions[0].first, "task-1");
+    EXPECT_EQ(attributions[0].second, 42);
+    EXPECT_EQ(attributions[1].first, "task-1");
+    EXPECT_EQ(attributions[1].second, 43);
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0004
+ * @tc.desc: Same handle attributed to different taskIds coexist in insertion order.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0004, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-a", 7);
+    abilityRecord->AddTaskAttribution("task-b", 7);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(2));
+    EXPECT_EQ(attributions[0].first, "task-a");
+    EXPECT_EQ(attributions[1].first, "task-b");
+    EXPECT_EQ(attributions[0].second, 7);
+    EXPECT_EQ(attributions[1].second, 7);
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0005
+ * @tc.desc: A mixed sequence keeps content and order; only exact duplicates are ignored.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0005, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("task-1", 1);
+    abilityRecord->AddTaskAttribution("task-2", 2);
+    abilityRecord->AddTaskAttribution("task-1", 2);
+    abilityRecord->AddTaskAttribution("task-1", 1); // exact duplicate of the 1st
+    abilityRecord->AddTaskAttribution("task-2", 2); // exact duplicate of the 2nd
+    abilityRecord->AddTaskAttribution("task-3", 1);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(4));
+    EXPECT_EQ(attributions[0], (std::make_pair(std::string("task-1"), static_cast<int64_t>(1))));
+    EXPECT_EQ(attributions[1], (std::make_pair(std::string("task-2"), static_cast<int64_t>(2))));
+    EXPECT_EQ(attributions[2], (std::make_pair(std::string("task-1"), static_cast<int64_t>(2))));
+    EXPECT_EQ(attributions[3], (std::make_pair(std::string("task-3"), static_cast<int64_t>(1))));
+}
+
+/**
+ * @tc.name: TaskAttributionBookkeeping_0006
+ * @tc.desc: Boundary keys and handles are bookkept verbatim (validation lives upstream).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionBookkeeping_0006, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->AddTaskAttribution("", 0);
+    abilityRecord->AddTaskAttribution("", -1);
+    abilityRecord->AddTaskAttribution("task-neg", -100);
+
+    const auto &attributions = abilityRecord->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(3));
+    EXPECT_EQ(attributions[0].first, "");
+    EXPECT_EQ(attributions[0].second, 0);
+    EXPECT_EQ(attributions[1].first, "");
+    EXPECT_EQ(attributions[1].second, -1);
+    EXPECT_EQ(attributions[2].first, "task-neg");
+    EXPECT_EQ(attributions[2].second, -100);
+}
+
+/**
+ * @tc.name: PendingTaskAttribution_0001
+ * @tc.desc: Parallel task stashes do not displace each other.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, PendingTaskAttribution_0001, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingTaskAttribution("task-a", 11, 21);
+    abilityRecord->SetPendingTaskAttribution("task-b", 12, 22);
+
+    const auto &pending = abilityRecord->GetPendingTaskAttributions();
+    ASSERT_EQ(pending.size(), static_cast<size_t>(2));
+    EXPECT_EQ(pending.at("task-a").callerUid, 11);
+    EXPECT_EQ(pending.at("task-a").callerPid, 21);
+    EXPECT_EQ(pending.at("task-b").callerUid, 12);
+    EXPECT_EQ(pending.at("task-b").callerPid, 22);
+}
+
+/**
+ * @tc.name: PendingTaskAttribution_0002
+ * @tc.desc: Re-stashing the same taskId keeps only the latest caller identity.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, PendingTaskAttribution_0002, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingTaskAttribution("task-a", 11, 21);
+    abilityRecord->SetPendingTaskAttribution("task-a", 12, 22);
+
+    const auto &pending = abilityRecord->GetPendingTaskAttributions();
+    ASSERT_EQ(pending.size(), static_cast<size_t>(1));
+    EXPECT_EQ(pending.at("task-a").callerUid, 12);
+    EXPECT_EQ(pending.at("task-a").callerPid, 22);
+}
+
+/**
+ * @tc.name: PendingTaskAttribution_0003
+ * @tc.desc: Clear empties the pending map; a later stash starts fresh.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, PendingTaskAttribution_0003, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_TRUE(abilityRecord->GetPendingTaskAttributions().empty());
+
+    abilityRecord->SetPendingTaskAttribution("task-a", 11, 21);
+    abilityRecord->ClearPendingTaskAttributions();
+    EXPECT_TRUE(abilityRecord->GetPendingTaskAttributions().empty());
+
+    abilityRecord->SetPendingTaskAttribution("task-b", 12, 22);
+    const auto &pending = abilityRecord->GetPendingTaskAttributions();
+    ASSERT_EQ(pending.size(), static_cast<size_t>(1));
+    EXPECT_EQ(pending.at("task-b").callerUid, 12);
+}
+
+/**
+ * @tc.name: TaskAttributionDestructorAsyncUnregister_0001
+ * @tc.desc: The destructor must post the async unregister with the bookkept pairs.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, TaskAttributionDestructorAsyncUnregister_0001, TestSize.Level1)
+{
+    AppScheduler::ResetUnregisterRecords();
+
+    {
+        AbilityRequest abilityRequest;
+        auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+        ASSERT_NE(abilityRecord, nullptr);
+        abilityRecord->AddTaskAttribution("task-dtor-async-1", 101);
+        abilityRecord->AddTaskAttribution("task-dtor-async-2", 102);
+    } // record dropped: ~UIAbilityRecord posts the async unregister task
+
+    // bounded poll for the posted task; unique taskIds avoid straggler collision
+    for (int waitedMs = 0; waitedMs < 5000; waitedMs += 10) {
+        if (AppScheduler::unregisterCallCount.load() >= 2) {
+            break;
+        }
+        usleep(10 * 1000); // 10ms
+    }
+    ASSERT_GE(AppScheduler::unregisterCallCount.load(), 2);
+
+    // copy the records under the mutex before asserting on them
+    std::vector<std::pair<std::string, int64_t>> recorded;
+    {
+        std::lock_guard lock(AppScheduler::unregisterMutex);
+        recorded = AppScheduler::recordedUnregisters;
+    }
+    auto first = std::make_pair(std::string("task-dtor-async-1"), static_cast<int64_t>(101));
+    auto second = std::make_pair(std::string("task-dtor-async-2"), static_cast<int64_t>(102));
+    EXPECT_EQ(std::count(recorded.begin(), recorded.end(), first), 1);
+    EXPECT_EQ(std::count(recorded.begin(), recorded.end(), second), 1);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

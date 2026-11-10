@@ -94,6 +94,9 @@ public:
     int32_t VerifyAgentDisconnectRequests(const std::vector<AAFwk::Want> &wants,
         const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity) override;
 
+    int32_t AttributeTaskForA2AReusedConnectionRecord(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection) override;
+
 private:
     friend class AgentServiceConnection;
     friend class AgentHostConnection;
@@ -103,6 +106,9 @@ private:
     void RegisterBundleEventCallback();
     /**
      * @brief Triggers the pre-install AgentCard backfill once both BMS and accountmgr are ready.
+     * On first start after migration to subfoundation, also migrates dynamic (API-source) cards
+     * from the old KV store via AMS, and backfills ALL installed apps (not just pre-installed).
+     * Subsequent starts skip migration and run pre-install backfill only.
      */
     void TryBackfillPreInstallCards();
     /**

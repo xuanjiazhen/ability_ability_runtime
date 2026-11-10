@@ -798,8 +798,29 @@ enum class AbilityManagerInterfaceCode {
     // kill process with user id
     KILL_PROCESS_WITH_USER_ID = 6183,
 
+    // extend game prelaunch timeout
+    EXTEND_GAME_PRELAUNCH_TIMEOUT = 6184,
+
+    // register listener that an insight intent is about to be executed
+    REGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK = 6185,
+
+    // unregister listener that an insight intent is about to be executed
+    UNREGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK = 6186,
+
+    // get pid by call stub (RSS only)
+    GET_PID_BY_CALL_STUB = 6187,
+
+    // get dynamic agent cards (API-source) from the old KV store for migration
+    GET_DYNAMIC_AGENT_CARDS_FOR_MIGRATION = 6188,
+
+    // attribute the task id onto an existing ConnectionRecord after a reused agent connect (oneway)
+    ATTRIBUTE_SAME_CONNECTION_RECORD_TASK_ID = 6189,
+
+    // kill collaborator process
+    KILL_COLLABORATOR_PROCESS = 6190,
+
     // complete game prelaunch by pid
-    COMPLETE_GAME_PRELAUNCH_BY_PID = 6185,
+    COMPLETE_GAME_PRELAUNCH_BY_PID = 6191,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

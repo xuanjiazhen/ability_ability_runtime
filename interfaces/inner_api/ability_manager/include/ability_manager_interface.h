@@ -48,6 +48,7 @@
 
 #include "insight_intent/insight_intent_info_for_query.h"
 #include "insight_intent/insight_intent_query_param.h"
+#include "insight_intent/insight_intent_execution_info.h"
 #include "iprepare_terminate_callback_interface.h"
 #include "irequest_start_ability_callback.h"
 #include "keep_alive_info.h"
@@ -485,7 +486,8 @@ public:
     virtual int StartAbilityOnlyUIAbility(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
-        uint32_t specifyTokenId)
+        uint32_t specifyTokenId,
+        int32_t userId = DEFAULT_INVAL_VALUE)
     {
         return 0;
     }
@@ -667,10 +669,11 @@ public:
      * @param resultCode, the resultCode of the ability to terminate.
      * @param resultWant, the Want of the ability to return.
      * @param callerRequestCode, the requestCode of caller ability.·
+     * @param isBackToCallerApp, whether the request is from backToCallerAppWithResult.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
-        const Want *resultWant, int64_t callerRequestCode)
+        const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp = false)
     {
         return 0;
     };
@@ -1006,7 +1009,7 @@ public:
      * @param bundleName.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+    virtual int KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
         const std::string& reason = "Abilityms::KillProcess") = 0;
 
     /**
@@ -1017,7 +1020,21 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false,
-        int32_t appIndex = -1, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1)
+        int32_t appIndex = 0, const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1)
+    {
+        return 0;
+    }
+
+    /**
+     * Kill collaborator process. Validates FOUNDATION_UID on service side.
+     *
+     * @param collaboratorType collaborator type (1=RESERVE, 2=OTHERS).
+     * @param bundleName target bundle name.
+     * @param userId target user id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillCollaboratorProcess(int32_t collaboratorType,
+        const std::string &bundleName, int32_t userId)
     {
         return 0;
     }
@@ -1068,7 +1085,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpgradeApp(const std::string &bundleName, const int32_t uid, const std::string &exitMsg,
-        int32_t appIndex = -1)
+        int32_t appIndex = 0)
     {
         return 0;
     }
@@ -1597,6 +1614,19 @@ public:
     virtual void GetAbilityTokenByCalleeObj(const sptr<IRemoteObject> &callStub, sptr<IRemoteObject> &token) = 0;
 
     /**
+     * Get the callee process pid by the call stub returned via OnAbilityConnectDone.
+     * RSS process ONLY (RSS_UID check) — all other callers get RESOLVE_CALL_NO_PERMISSIONS.
+     *
+     * @param callStub The callee stub received in OnAbilityConnectDone.
+     * @param pid Output: the callee process pid.
+     * @return ERR_OK on success; RESOLVE_CALL_NO_PERMISSIONS for non-RSS callers;
+     *         ERR_INVALID_VALUE for null callStub;
+     *         ERR_CALL_STUB_NOT_FOUND when no callee record maps to the callStub;
+     *         ERR_CALLEE_PID_INVALID when the callee record exists but pid is invalid.
+     */
+    virtual int32_t GetPidByCallStub(const sptr<IRemoteObject> &callStub, int32_t &pid) { return ERR_INVALID_VALUE; }
+
+    /**
      * Called when client complete dump.
      *
      * @param infos The dump info.
@@ -1987,7 +2017,7 @@ public:
      * @param appIndex app clone index. Currently, only appIndex = 0 is supported.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = -1)
+    virtual int32_t LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = 0)
     {
         return 0;
     }
@@ -1999,6 +2029,17 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual ErrCode SetGamePreLaunchCompleteTime(int32_t userId, int64_t completeTime)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Extend game prelaunch timeout. Resets the game pre-launch foreground countdown.
+     * @param pid Indicates the process ID of the game pre-launch ability to extend.
+     * @param extendTime The extended time in microseconds, must be in range (30s, 4h).
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode ExtendGamePreLaunchTimeout(int32_t pid, int64_t extendTime)
     {
         return ERR_OK;
     }
@@ -2968,6 +3009,37 @@ public:
     }
 
     virtual int32_t NotifyInsightIntentExecute(uint64_t intentId)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t UnregisterWillInsightIntentExecuteCallback()
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t GetDynamicAgentCardsForMigration(std::string &jsonStr)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Best-effort, oneway attribution of the task id (carried in Want.parameters) onto
+     *        an existing ConnectionRecord that AMS already holds for a reused agent connection.
+     *        Called by AgentManagerService when a client-side connect hit an already-connected
+     *        AgentConnection (so ScheduleConnectAbilityDoneLocked will not fire again). The
+     *        connect argument MUST be the same AgentServiceConnection AMS received on the first
+     *        connect. Failures are logged and do NOT affect the connect result.
+     * @param want Indicates the original connect want (carries taskId / agentId params).
+     * @param connect Indicates the AgentServiceConnection AMS already holds for this connection.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    virtual int32_t AttributeTaskForA2AReusedConnectionRecord(const Want &want, sptr<IAbilityConnection> connect)
     {
         return ERR_OK;
     }

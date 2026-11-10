@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -286,6 +286,13 @@ bool BundleMgrHelper::QueryDataGroupInfos(const std::string& bundleName,
     return AAFwk::MyStatus::GetInstance().queryDataGroupInfos_;
 }
 
+ErrCode BundleMgrHelper::QueryIpcGroupInfos(
+    const std::string& bundleName, int32_t userId, std::vector<IpcGroupInfo>& infos)
+{
+    infos = AAFwk::MyStatus::GetInstance().queryIpcGroupInfoData_;
+    return AAFwk::MyStatus::GetInstance().queryIpcGroupInfosRet_;
+}
+
 bool BundleMgrHelper::RegisterBundleEventCallback(const sptr<IBundleEventCallback>& bundleEventCallback)
 {
     return false;
@@ -310,6 +317,18 @@ bool BundleMgrHelper::QueryAppGalleryBundleName(std::string& bundleName)
 ErrCode BundleMgrHelper::GetUidByBundleName(const std::string& bundleName, int32_t userId, int32_t appCloneIndex)
 {
     return ERR_OK;
+}
+
+ErrCode BundleMgrHelper::IsApplicationDisableForbidden(const std::string& bundleName, int32_t userId,
+    int32_t appIndex, bool& forbidden)
+{
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.isApplicationDisableForbiddenCall_++;
+    status.disableForbiddenBundleName_ = bundleName;
+    status.disableForbiddenUserId_ = userId;
+    status.disableForbiddenAppIndex_ = appIndex;
+    forbidden = status.isApplicationDisableForbidden_;
+    return status.isApplicationDisableForbiddenRet_;
 }
 
 ErrCode BundleMgrHelper::QueryExtensionAbilityInfosOnlyWithTypeName(const std::string& extensionTypeName,
@@ -386,6 +405,22 @@ ErrCode BundleMgrHelper::RegisterPluginEventCallback(sptr<IBundleEventCallback> 
 }
 
 ErrCode BundleMgrHelper::UnregisterPluginEventCallback(sptr<IBundleEventCallback> pluginEventCallback)
+{
+    return ERR_OK;
+}
+
+ErrCode BundleMgrHelper::GetDualModeBundleInfo(const std::string& bundleName, int32_t userId, int32_t &appIndex)
+{
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.getDualModeBundleInfoCall_++;
+    status.dualModeBundleName_ = bundleName;
+    status.dualModeUserId_ = userId;
+    appIndex = status.dualModeAppIndex_;
+    return ERR_OK;
+}
+
+ErrCode BundleMgrHelper::GetCloneBundleInfoExt(const std::string& bundleName,
+    uint32_t flags, int32_t appIndex, int32_t userId, BundleInfo& bundleInfo)
 {
     return ERR_OK;
 }

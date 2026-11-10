@@ -708,6 +708,14 @@ void AppRunningRecord::ScheduleTrimMemory()
 
 void AppRunningRecord::ScheduleMemoryLevel(int32_t level, bool isShellCall)
 {
+    auto state = makeImageState_.load(std::memory_order_relaxed);
+    if (state == MakeImageState::MAKE_PRELOAD_START
+        || state == MakeImageState::MAKE_PRELOAD_FINISH
+        || state == MakeImageState::MAKE_IMAGE_START) {
+        TAG_LOGI(AAFwkTag::APPMGR, "skip memory level schedule, makeImageState is %{public}d",
+            static_cast<int32_t>(state));
+        return;
+    }
     if (appLifeCycleDeal_) {
         appLifeCycleDeal_->ScheduleMemoryLevel(level, isShellCall);
     }
@@ -1286,8 +1294,7 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
     }
     bool isLastUIAbility = (abilityRecord != nullptr && abilityRecord->GetAbilityInfo() != nullptr &&
         abilityRecord->GetAbilityInfo()->type == AppExecFwk::AbilityType::PAGE);
-    auto moduleRecordList = GetAllModuleRecord();
-    if (moduleRecordList.empty() && (!IsKeepAliveApp()
+    if (!IsAlreadyHaveAbility() && (!IsKeepAliveApp()
         || AAFwk::UIExtensionWrapper::IsUIExtension(GetExtensionType())
         || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !isExtensionDebug
         && !needCache) {
@@ -1516,12 +1523,18 @@ bool AppRunningRecord::IsLastAbilityRecord(const sptr<IRemoteObject> &token)
         return false;
     }
 
+    int32_t abilitySize = 0;
     auto moduleRecordList = GetAllModuleRecord();
-    if (moduleRecordList.size() == 1) {
-        return moduleRecord->IsLastAbilityRecord(token);
+    for (auto moduleRecord : moduleRecordList) {
+        if (moduleRecord) {
+            abilitySize += moduleRecord->GetAbilitySize();
+        }
+        if (abilitySize > 1) {
+            return false;
+        }
     }
 
-    return false;
+    return abilitySize == 1;
 }
 
 bool AppRunningRecord::ExtensionAbilityRecordExists()
@@ -1554,7 +1567,9 @@ bool AppRunningRecord::IsLastPageAbilityRecord(const sptr<IRemoteObject> &token)
     auto moduleRecordList = GetAllModuleRecord();
     for (auto moduleRecord : moduleRecordList) {
         if (moduleRecord) {
-            pageAbilitySize += moduleRecord->GetPageAbilitySize();
+            // terminating siblings are excluded so that concurrently cleaned sessions still
+            // judge the last one correctly; the queried token itself always counts
+            pageAbilitySize += moduleRecord->GetActivePageAbilitySize(token);
         }
         if (pageAbilitySize > 1) {
             return false;
@@ -2699,12 +2714,12 @@ bool AppRunningRecord::IsPreloaded() const
 
 void AppRunningRecord::SetMakeImageState(MakeImageState state)
 {
-    makeImageState_ = state;
+    makeImageState_.store(state, std::memory_order_relaxed);
 }
 
 MakeImageState AppRunningRecord::GetMakeImageState() const
 {
-    return makeImageState_;
+    return makeImageState_.load(std::memory_order_relaxed);
 }
 
 void AppRunningRecord::SetIsCreateFromImage(bool flag)

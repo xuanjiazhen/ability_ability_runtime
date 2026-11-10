@@ -78,4 +78,9 @@ export function getLastError(errType: HyperSnapErrorType): Promise<HyperSnapErro
         });
     });
 }
+
+export native function nativeIsHyperSnapInitializing(): boolean;
+export function isHyperSnapInitializing(): boolean {
+    return hyperSnapManager.nativeIsHyperSnapInitializing();
+}
 } // namespace hyperSnapManager

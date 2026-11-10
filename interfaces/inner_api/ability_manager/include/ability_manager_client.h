@@ -573,7 +573,8 @@ public:
     ErrCode StartAbilityOnlyUIAbility(
         const Want &want,
         sptr<IRemoteObject> callerToken,
-        uint32_t specifyTokenId);
+        uint32_t specifyTokenId,
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
      * Start a UIAbility and receive an asynchronous result callback. IMPORTANT: the callback is
@@ -769,20 +770,21 @@ public:
     ErrCode StartSelf(sptr<IRemoteObject> token);
 
     /**
-     * Return the result to the CALLER ability and finish (terminateSelfWithResult for FA/
-     * delegated scenarios). The callerRequestCode (int64) identifies the caller's outstanding
+     * Return the result to the CALLER ability without terminating the current ability.
+     * The callerRequestCode (int64) identifies the caller's outstanding
      * request. The ability record must exist; the caller must have started this ability for
      * result, otherwise the result is dropped with an error.
      *
      * @param token The token of the ability returning the result.
      * @param resultCode Result code delivered to the caller.
-     * @param resultWant Result data delivered to the caller; may be nullptr.
+     * @param resultWant Result data delivered to the caller.
      * @param callerRequestCode The request code under which the caller awaits the result.
+     * @param isBackToCallerApp Whether the request is from backToCallerAppWithResult.
      * @return ERR_OK on success; ERR_INVALID_VALUE for unknown token; error when no caller
      *         request matches.
      */
     ErrCode BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
-        const Want *resultWant, int64_t callerRequestCode);
+        const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp = false);
 
     /**
      * Terminate a UIServiceExtensionAbility. SceneBoard callers ONLY (ERR_WRONG_INTERFACE_CALL
@@ -1200,7 +1202,7 @@ public:
      *         GET_BUNDLE_INFO_FAILED when the bundle cannot be resolved;
      *         KILL_PROCESS_KEEP_ALIVE for persistent apps; KILL_PROCESS_FAILED on failure.
      */
-    ErrCode KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+    ErrCode KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
         const std::string& reason = "Abilityms::KillProcess");
 
     /**
@@ -1215,8 +1217,20 @@ public:
      *         GET_BUNDLE_INFO_FAILED when the bundle cannot be resolved;
      *         KILL_PROCESS_KEEP_ALIVE for persistent apps; KILL_PROCESS_FAILED on failure.
      */
-    ErrCode KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
+    ErrCode KillProcessWithUserId(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
         const std::string& reason = "Abilityms::KillProcess", int32_t userId = -1);
+
+    /**
+     * Kill collaborator process. Delegates to AbilityManagerService which validates FOUNDATION_UID.
+     *
+     * @param collaboratorType collaborator type (1=RESERVE, 2=OTHERS).
+     * @param bundleName Bundle name of the application to kill.
+     * @param userId The user id to kill process for.
+     * @return ERR_OK on success; ERR_PERMISSION_DENIED if not foundation call;
+     *         KILL_PROCESS_FAILED on failure.
+     */
+    ErrCode KillCollaboratorProcess(int32_t collaboratorType,
+        const std::string &bundleName, int32_t userId);
 
     #ifdef ABILITY_COMMAND_FOR_TEST
     /**
@@ -1653,6 +1667,19 @@ public:
     void GetAbilityTokenByCalleeObj(sptr<IRemoteObject> callStub, sptr<IRemoteObject> &token);
 
     /**
+     * Get the callee process pid by the call stub returned via OnAbilityConnectDone.
+     * RSS process ONLY (RSS_UID check) — all other callers get RESOLVE_CALL_NO_PERMISSIONS.
+     *
+     * @param callStub The callee stub received in OnAbilityConnectDone.
+     * @param pid Output: the callee process pid.
+     * @return ERR_OK on success; RESOLVE_CALL_NO_PERMISSIONS for non-RSS callers;
+     *         ERR_INVALID_VALUE for null callStub;
+     *         ERR_CALL_STUB_NOT_FOUND when no callee record maps to the callStub;
+     *         ERR_CALLEE_PID_INVALID when the callee record exists but pid is invalid.
+     */
+    ErrCode GetPidByCallStub(sptr<IRemoteObject> callStub, int32_t &pid);
+
+    /**
      * Release a call established by StartAbilityByCall: disconnect the connection and, when the
      * callee has no remaining callers, stop the callee ability. element identifies the callee
      * (remote device id in the element routes the release to DMS). connect must be non-null.
@@ -1887,7 +1914,7 @@ public:
      * @param appIndex App clone index; only appIndex = 0 is supported.
      * @return Returns ERR_OK on success; CHECK_PERMISSION_FAILED for others.
      */
-    ErrCode LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = -1);
+    ErrCode LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = 0);
     
     /**
      * @brief Report the pre-launch completion time (ms) of a game.
@@ -1899,6 +1926,15 @@ public:
      *         when the AMS proxy is unavailable.
      */
     ErrCode SetGamePreLaunchCompleteTime(int32_t userId, int64_t completeTime);
+
+    /**
+     * @brief Extend game prelaunch timeout (reset the pre-launch foreground countdown).
+     * Internal: only game SA (GAME_SA_UID) may call.
+     * @param pid Process ID of the game pre-launch ability to extend.
+     * @param extendTime Extended time in microseconds, must be in range (30s, 4h).
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ExtendGamePreLaunchTimeout(int32_t pid, int64_t extendTime);
 
     /**
      * @brief Query whether a UIAbility's onPrepareToTerminate allows termination.
@@ -3180,6 +3216,24 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode NotifyInsightIntentExecute(uint64_t intentId);
+
+    ErrCode RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback);
+
+    ErrCode UnregisterWillInsightIntentExecuteCallback();
+
+    ErrCode GetDynamicAgentCardsForMigration(std::string &jsonStr);
+
+    /**
+     * @brief Best-effort attribution of the task id onto an existing ConnectionRecord
+     *        after a reused Agent-to-Agent (A2A) connect. The connect MUST be the
+     *        AgentServiceConnection that AbilityManagerService (AMS) already holds.
+     *        This is an oneway IPC: the caller does not wait for a reply, so failure
+     *        is logged and never blocks the connect result.
+     * @param want Indicates the original connect want (carries agentId / taskId params).
+     * @param connect Indicates the AgentServiceConnection AMS already holds for this connection.
+     * @return Returns ERR_OK on success; others on local/proxy failure.
+     */
+    ErrCode AttributeTaskForA2AReusedConnectionRecord(const Want &want, sptr<IAbilityConnection> connect);
 
     /**
      * @brief Query the type of a configured skill (e.g. UI ability vs service

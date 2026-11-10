@@ -152,6 +152,15 @@ public:
     int32_t SetGamePreLaunchCompleteTime(int64_t completeTime);
 
     /**
+     * ExtendGamePreLaunchTimeout, reset the game pre-launch foreground countdown.
+     *
+     * @param pid The process ID of the game pre-launch ability to extend.
+     * @param extendTime The extended time in microseconds for the game pre-launch.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ExtendGamePreLaunchTimeout(int32_t pid, int64_t extendTime);
+
+    /**
      * Notify SCB to minimize UIAbility
      *
      * @param token ability's token
@@ -181,7 +190,7 @@ public:
     UIAbilityRecordPtr GetUIAbilityRecordBySessionInfo(const sptr<SessionInfo> &sessionInfo);
 
     int32_t BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
-        int resultCode, const Want *resultWant, int64_t callerRequestCode);
+        int resultCode, const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp = false);
 
     int CloseUIAbility(const UIAbilityRecordPtr &abilityRecord,
         int resultCode, const Want *resultWant, bool isClearSession, bool isIndependentRecovery);
@@ -352,28 +361,6 @@ public:
     UIAbilityRecordPtr GetAbilityRecordsById(int32_t sessionId) const;
 
     /**
-     * Get check ability number.
-     *
-     * @param bundleName record ability info bundle name.
-     * @param abilityName record ability info ability name.
-     * @param moduleName recode ability info module name.
-     * @return Return find ability number.
-     */
-    int32_t CheckAbilityNumber(
-        const std::string &bundleName, const std::string &abilityName, const std::string &moduleName) const;
-
-    /**
-     * If ability number more then one, send event info.
-     *
-     * @param userId record ability info user id.
-     * @param bundleName record ability info bundle name.
-     * @param abilityName record ability info ability name.
-     * @param moduleName recode ability info module name.
-     */
-    void MoreAbilityNumbersSendEventInfo(
-        int32_t userId, const std::string &bundleName, const std::string &abilityName, const std::string &moduleName);
-
-    /**
      * Report grant uri permission event.
      *
      * @param abilityRequest ability request info.
@@ -499,7 +486,9 @@ public:
         int32_t appIndex);
 
     /**
-     * @brief Get ability record by token
+     * @brief Get ability record by token (thread-safe).
+     *        Acquires sessionLock_ internally; do NOT call while holding sessionLock_
+     *        (use GetAbilityRecordByTokenLocked instead).
      * @param token The ability token
      * @return Shared pointer to the ability record, nullptr if not found
      */
@@ -831,6 +820,38 @@ private:
     bool IsContainsAbilityInner(const sptr<IRemoteObject> &token) const;
 
     /**
+     * @brief Get ability record by token, caller must hold sessionLock_.
+     *        Iterates terminateAbilityList_ and sessionAbilityMap_ without locking.
+     * @param token The ability token
+     * @return Shared pointer to the ability record, nullptr if not found
+     */
+    UIAbilityRecordPtr GetAbilityRecordByTokenLocked(const sptr<IRemoteObject> &token) const;
+
+    /**
+     * @brief Get check ability number, caller must hold sessionLock_.
+     *        Iterates sessionAbilityMap_ without locking.
+     *
+     * @param bundleName record ability info bundle name.
+     * @param abilityName record ability info ability name.
+     * @param moduleName recode ability info module name.
+     * @return Return find ability number.
+     */
+    int32_t CheckAbilityNumber(
+        const std::string &bundleName, const std::string &abilityName, const std::string &moduleName) const;
+
+    /**
+     * @brief If ability number more then one, send event info.
+     *        Caller must hold sessionLock_ (delegates to CheckAbilityNumber).
+     *
+     * @param userId record ability info user id.
+     * @param bundleName record ability info bundle name.
+     * @param abilityName record ability info ability name.
+     * @param moduleName recode ability info module name.
+     */
+    void MoreAbilityNumbersSendEventInfo(
+        int32_t userId, const std::string &bundleName, const std::string &abilityName, const std::string &moduleName);
+
+    /**
      * @brief Check ability properties against request
      * @param abilityRecord The ability record to check
      * @param abilityRequest The ability request to compare
@@ -871,6 +892,15 @@ private:
      * @return ERR_OK if successful, error code otherwise
      */
     int32_t BackToCallerAbilityWithResultLocked(sptr<SessionInfo> currentSessionInfo,
+        std::shared_ptr<AbilityRecord> callerAbilityRecord);
+
+    /**
+     * @brief Return to caller ability with result (locked)
+     * @param currentSessionInfo Current session info
+     * @param callerAbilityRecord The caller ability record
+     * @return ERR_OK if successful, error code otherwise
+     */
+    int32_t BackToCallerAppWithResultLocked(sptr<SessionInfo> currentSessionInfo,
         std::shared_ptr<AbilityRecord> callerAbilityRecord);
 
     // byCall
@@ -1422,6 +1452,16 @@ private:
 
     mutable ffrt::mutex abilitySessionInfoMapLock_;
     std::unordered_map<int32_t, AbilitySessionInfo> abilitySessionInfoMap_;
+
+    /**
+     * Cleanup the game pre-launch extend delayed task handle for the given ability record.
+     *
+     * @param abilityRecordId The record id of the ability.
+     */
+    void CleanupExtendTask(int32_t abilityRecordId);
+
+    ffrt::mutex extendTaskMutex_;
+    std::unordered_map<int32_t, ffrt::task_handle> extendTaskMap_; // for game pre-launch extend delayed task
 };
 }  // namespace AAFwk
 }  // namespace OHOS

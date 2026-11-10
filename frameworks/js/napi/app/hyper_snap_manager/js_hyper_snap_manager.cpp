@@ -138,6 +138,11 @@ public:
     {
         GET_CB_INFO_AND_CALL(env, info, JsHyperSnapManager, OnGetLastError);
     }
+
+    static napi_value IsHyperSnapInitializing(napi_env env, napi_callback_info info)
+    {
+        GET_CB_INFO_AND_CALL(env, info, JsHyperSnapManager, OnIsHyperSnapInitializing);
+    }
 private:
 
     napi_value OnSetHyperSnapEnabled(napi_env env, const size_t argc, napi_value* argv)
@@ -229,6 +234,19 @@ private:
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
         return result;
     }
+
+    napi_value OnIsHyperSnapInitializing(napi_env env, const size_t argc, napi_value* argv)
+    {
+        TAG_LOGD(AAFwkTag::APPKIT, "OnIsHyperSnapInitializing");
+        auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+        if (appMgrClient == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "appMgrClient is null");
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            return CreateJsValue(env, false);
+        }
+        bool result = appMgrClient->IsHyperSnapInitializing();
+        return CreateJsValue(env, result);
+    }
 };
 } // namespace
 
@@ -266,6 +284,8 @@ napi_value JsHyperSnapManagerInit(napi_env env, napi_value exportObj)
         JsHyperSnapManager::RequestRebuildHyperSnap);
     BindNativeFunction(env, exportObj, "getLastError", moduleName,
         JsHyperSnapManager::GetLastError);
+    BindNativeFunction(env, exportObj, "isHyperSnapInitializing", moduleName,
+        JsHyperSnapManager::IsHyperSnapInitializing);
     TAG_LOGD(AAFwkTag::APPKIT, "JsHyperSnapManager end");
     return CreateJsUndefined(env);
 }

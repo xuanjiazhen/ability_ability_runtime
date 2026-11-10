@@ -28,6 +28,7 @@
 #undef private
 #undef protected
 #include "ability_manager_errors.h"
+#include "bundle_mgr_helper.h"
 #include "start_ability_utils.h"
 #include "message_parcel.h"
 
@@ -51,7 +52,11 @@ void AbilityManagerServiceMockTest::SetUpTestCase() {}
     
 void AbilityManagerServiceMockTest::TearDownTestCase() {}
     
-void AbilityManagerServiceMockTest::SetUp() {}
+void AbilityManagerServiceMockTest::SetUp()
+{
+    AppExecFwk::BundleMgrHelper::mockExtensionInfoSuccess = false;
+    AppExecFwk::BundleMgrHelper::mockDualModeAppIndexZero = false;
+}
     
 void AbilityManagerServiceMockTest::TearDown() {}
 
@@ -462,40 +467,8 @@ HWTEST_F(AbilityManagerServiceMockTest, PreloadUIExtensionAbilityInner_0100, Tes
     std::string abilityName_ = "testAbility";
     Want want;
     want.SetElementName(bundleName, abilityName_);
-    StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
-    AppExecFwk::ApplicationInfo applicationInfo;
-    applicationInfo.bundleName = bundleName;
-    applicationInfo.name = "test";
-    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo = applicationInfo;
-    StartAbilityUtils::startAbilityInfo->status = ERR_OK;
-    StartAbilityUtils::startAbilityInfo->abilityInfo.visible = true;
-    abilityMs->subManagersHelper_ = nullptr;
-    int32_t preloadId = 1;
-    int32_t userId = 1;
-    auto ret = abilityMs->PreloadUIExtensionAbilityInner(want, bundleName, preloadId, userId);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-}
-
-/**
- * @tc.name: PreloadUIExtensionAbilityInner_0200
- * @tc.desc: Test PreloadUIExtensionAbilityInner
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerServiceMockTest, PreloadUIExtensionAbilityInner_0200, TestSize.Level1)
-{
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs, nullptr);
-    std::string bundleName = "com.ohos.sceneboard";
-    std::string abilityName_ = "MainAbility";
-    Want want;
-    want.SetElementName(bundleName, abilityName_);
-    StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
-    AppExecFwk::ApplicationInfo applicationInfo;
-    applicationInfo.bundleName = bundleName;
-    applicationInfo.name = "test";
-    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo = applicationInfo;
-    StartAbilityUtils::startAbilityInfo->status = ERR_OK;
-    StartAbilityUtils::startAbilityInfo->abilityInfo.visible = true;
+    AppExecFwk::BundleMgrHelper::mockExtensionInfoSuccess = true;
+    AppExecFwk::BundleMgrHelper::mockDualModeAppIndexZero = true;
     abilityMs->subManagersHelper_ = nullptr;
     int32_t preloadId = 1;
     int32_t userId = 1;
@@ -826,6 +799,35 @@ HWTEST_F(AbilityManagerServiceMockTest, InsightIntentExecuteLiteParam_0400, Test
     EXPECT_EQ(param2->key, 0U);
     EXPECT_EQ(param2->insightIntentHostClient, nullptr);
     delete param2;
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0100
+ * @tc.desc: Want without intentId returns false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0100, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, ""));
+}
+
+/**
+ * @tc.name: IsInsightIntentCall_0200
+ * @tc.desc: Want with invalid intentId string returns false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0200, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("invalid"));
+    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, ""));
 }
 }
 }

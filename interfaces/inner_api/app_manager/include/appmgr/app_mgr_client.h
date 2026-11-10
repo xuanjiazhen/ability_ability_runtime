@@ -31,9 +31,11 @@
 #include "fault_data.h"
 #include "iapplication_state_observer.h"
 #include "iapp_state_callback.h"
+#include "ichild_process_state_observer.h"
 #include "iconfiguration_observer.h"
 #include "image_error_handler_interface.h"
 #include "image_process_state_observer_interface.h"
+#include "process_lifecycle_observer_interface.h"
 #include "iremote_object.h"
 #include "irender_scheduler.h"
 #include "irender_state_observer.h"
@@ -177,6 +179,30 @@ public:
     virtual AppMgrResultCode SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch);
 
     /**
+     * Report task attribution for a start-ability call. Caller identity is the
+     * system-stamped reserved params; validation happens on the appmgr side.
+     *
+     * @param taskId Attribution key of the task.
+     * @param callerUid Uid of the start caller (system stamped).
+     * @param callerPid Pid of the start caller (system stamped).
+     * @param targetPid Pid of the target process.
+     * @param attributionId Server-assigned handle of the created attribution.
+     * @return Raw result code from the service; attribution failure never blocks startup.
+     */
+    virtual int32_t AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+        int32_t targetPid, int64_t &attributionId);
+
+    /**
+     * Remove an attribution by its handle, called when the attributed ability
+     * dies unexpectedly.
+     *
+     * @param taskId Attribution key of the task.
+     * @param attributionId Handle returned by AttributeProcessForAbility.
+     * @return Raw result code from the service.
+     */
+    virtual int32_t UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId);
+
+    /**
      * Kill all application processes of the given user. Typically invoked when a
      * user is removed or stopped.
      *
@@ -209,6 +235,8 @@ public:
      */
     virtual AppMgrResultCode KillProcessesByPids(const std::vector<int32_t> &pids,
         const std::string &reason = "KillProcessesByPids", bool subProcess = false, bool isKillPrecedeStart = false);
+
+    virtual bool CheckProcessAvailable(int32_t pid);
 
     /**
      * Establish the parent-child relationship between two ability processes.
@@ -255,7 +283,7 @@ public:
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
     virtual AppMgrResultCode KillApplication(const std::string &bundleName, bool clearPageStack = false,
-        int32_t appIndex = -1, const std::string &reason = "KillApplication", int32_t userId = -1);
+        int32_t appIndex = 0, const std::string &reason = "KillApplication", int32_t userId = -1);
 
     /**
      * Force kill the application. Restricted: the server only accepts calls from
@@ -270,7 +298,7 @@ public:
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
     virtual AppMgrResultCode ForceKillApplication(const std::string &bundleName, const int userId = -1,
-        const int appIndex = -1);
+        const int appIndex = 0);
 
     /**
      * Kill the application for the specified user. Same permission policy as
@@ -285,7 +313,7 @@ public:
      *         Note: killing an app that is not running is treated as success.
      */
     virtual AppMgrResultCode KillApplicationWithUserId(const std::string &bundleName, const int userId = -1,
-        const int appIndex = -1);
+        const int appIndex = 0);
 
     /**
      * Kill all processes whose access token id equals accessTokenId.
@@ -699,7 +727,7 @@ public:
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
     virtual AppMgrResultCode UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
-        int32_t appIndex = -1);
+        int32_t appIndex = 0);
 
     /**
      * Register an observer to receive OnConfigurationUpdated callbacks.
@@ -1156,6 +1184,9 @@ public:
      */
     int32_t UnregisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer);
 
+    int32_t RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer);
+    int32_t UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer);
+
     /**
      * Register a callback to be notified when native child processes exit.
      *
@@ -1234,6 +1265,15 @@ public:
     bool IsFinalAppProcess();
 
     /**
+     * Query whether the current process is doing snapshot initialization.
+     *
+     * @return Returns true if the current process is doing snapshot initialization,
+     *         false otherwise (completed, failed, not a template process,
+     *         or service unavailable).
+     */
+    bool IsHyperSnapInitializing();
+
+    /**
      * Register an observer for render process state changes.
      *
      * @param observer Render process state observer.
@@ -1250,6 +1290,24 @@ public:
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
     int32_t UnregisterRenderStateObserver(const sptr<IRenderStateObserver> &observer);
+
+    /**
+     * Register an observer for child process state changes.
+     *
+     * @param observer Child process state observer.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t RegisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer);
+
+    /**
+     * Unregister a child process state observer.
+     *
+     * @param observer The observer to remove.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t UnregisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer);
 
     /**
      * Update the foreground/background state of a render process; registered
@@ -1373,7 +1431,7 @@ public:
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1);
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0);
 
     /**
      * Create an application image (process snapshot) for fast cold start: the
@@ -1393,7 +1451,7 @@ public:
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
     int32_t MakeImage(const AAFwk::Want &want, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1, sptr<IImageErrorHandler> errorHandler = nullptr);
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr);
 
     /**
      * Destroy a previously created application image identified by its checkpoint
@@ -1808,6 +1866,16 @@ public:
     int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos);
 
     /**
+     * Notify the state change of a child process.
+     *
+     * @param pid The pid of the child process whose state has changed.
+     * @param state The new state of the child process.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t NotifyChildProcessState(int32_t pid, int32_t state);
+
+    /**
      * Enable/disable delayed exit for the calling process: when enabled, the
      * process is kept briefly after its last ability terminates (process-cache
      * cooperation).
@@ -1844,6 +1912,71 @@ public:
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
     int32_t FinishTask(const std::string &taskId);
+
+    /*
+     * Attribute the target Agent process into the task after a successful A2A
+     * connect. Best-effort: failures are logged and do NOT fail the connect result.
+     *
+     * @param taskId Task id claimed in Want.parameters[ohos.aafwk.param.agent.taskId].
+     * @param callerTokenId App's token id captured at the convergence point.
+     * @param targetPid Target Agent process pid (resolved post-connect).
+     * @param attributionId Server-assigned attribution handle for later unregister; 0 on failure.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, int64_t &attributionId);
+
+    int32_t UnregisterTaskForA2A(const std::string &taskId, int64_t attributionId);
+
+    /**
+     * Attribute a process into the task owned by the caller. Reserved for the trusted
+     * caller process that forwards the forensic creator uid.
+     *
+     * @param taskId Attribution key of the task (1~256 characters).
+     * @param pid Pid of the managed process to attribute (> 0).
+     * @param tool Tool type of the attribution (AttributionTool value).
+     * @param callerUid Forensic uid of the original task creator; negative skips the
+     *        ownership check.
+     * @param attributionId Outputs the server-assigned attribution id on success,
+     *        or 0 on any failure.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
+        int32_t callerUid, int64_t &attributionId);
+
+    /**
+     * Remove the attribution record with the given id from the task owned by the caller
+     * (idempotent). Reserved for the trusted caller process that forwards the forensic
+     * creator uid.
+     *
+     * @param taskId Attribution key of the task (1~256 characters).
+     * @param attributionId Id returned by RegisterManagedProcess (> 0).
+     * @param callerUid Forensic uid of the original task creator; negative skips the
+     *        ownership check.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+        int32_t callerUid);
+
+    /**
+     * Attribute the main process of the running application into the task. The target
+     * process is located server-side by the bundle name. Reserved for the trusted caller
+     * process that forwards the forensic creator uid.
+     *
+     * @param taskId Attribution key of the task (1~256 characters).
+     * @param bundleName Bundle name used only for process location.
+     * @param callerUid Forensic uid of the original task creator; negative skips the
+     *        ownership check.
+     * @param resolvedPid Outputs the located pid on success, or -1 on any failure.
+     * @param attributionId Outputs the server-assigned attribution id on success,
+     *        or 0 on any failure.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
+        int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId);
 
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);

@@ -94,6 +94,7 @@ public:
     int32_t IsAppRunning(const std::string &bundleName, int32_t appCloneIndex, int32_t userId,
         bool &isRunning);
     bool IsFinalAppProcessByBundleName(const std::string &bundleName);
+    bool IsHyperSnapInitializing();
     bool IsProcessContainsOnlyUIAbility(const pid_t pid);
     bool IsProcessAttached(sptr<IRemoteObject> token) const;
     int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported);
@@ -154,6 +155,7 @@ public:
         const std::shared_ptr<AppRunningRecord> appRecord, ChildProcessInfo &info);
     int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info);
     int GetSelfChildrenProcesses(std::vector<ChildProcessInfo> &info);
+    bool QueryIsSelfChildrenProcesses(int32_t pid, int32_t &uid);
     void GetChildrenProcesses(const std::shared_ptr<AppRunningRecord> &appRecord,
         std::vector<ChildProcessInfo> &info);
 #endif // SUPPORT_CHILD_PROCESS

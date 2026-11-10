@@ -21,6 +21,7 @@
 
 #include "ability_business_error.h"
 #include "ability_manager_client.h"
+#include "ability_stage_context.h"
 #include "app_utils.h"
 #include "application_configuration_manager.h"
 #include "configuration_convertor.h"
@@ -462,12 +463,13 @@ ErrCode AbilityContextImpl::TerminateAbilityWithResult(const AAFwk::Want& want, 
 #endif
 }
 
-ErrCode AbilityContextImpl::BackToCallerAbilityWithResult(const AAFwk::Want& want, int resultCode, int64_t requestCode)
+ErrCode AbilityContextImpl::BackToCallerAbilityWithResult(const AAFwk::Want& want, int resultCode, int64_t requestCode,
+    bool isBackToCallerApp)
 {
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->BackToCallerAbilityWithResult(
-        token_, resultCode, &want, requestCode);
+        token_, resultCode, want, requestCode, isBackToCallerApp);
     TAG_LOGI(AAFwkTag::CONTEXT, "ret:%{public}d", err);
-    return static_cast<int32_t>(err);
+    return err;
 }
 
 void AbilityContextImpl::SetWeakSessionToken(const wptr<IRemoteObject>& sessionToken)
@@ -678,6 +680,21 @@ std::shared_ptr<Context> AbilityContextImpl::CreateModuleContext(const std::stri
     const std::string& moduleName)
 {
     return stageContext_ ? stageContext_->CreateModuleContext(bundleName, moduleName) : nullptr;
+}
+
+std::shared_ptr<Context> AbilityContextImpl::CreateModuleContext(const std::string& moduleName,
+    std::shared_ptr<Context> inputContext)
+{
+    if (stageContext_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "stageContext null");
+        return nullptr;
+    }
+    auto abilityStageContext = Context::ConvertTo<AbilityStageContext>(stageContext_);
+    if (abilityStageContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "stageContext null");
+        return nullptr;
+    }
+    return abilityStageContext->CreateModuleContext(moduleName, inputContext);
 }
 
 std::shared_ptr<Global::Resource::ResourceManager> AbilityContextImpl::CreateModuleResourceManager(

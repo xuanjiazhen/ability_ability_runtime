@@ -139,6 +139,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::KILL_PROCESS_WITH_USER_ID) {
         return KillProcessWithUserIdInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_COLLABORATOR_PROCESS) {
+        return KillCollaboratorProcessInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::UNINSTALL_APP) {
         return UninstallAppInner(data, reply);
     }
@@ -536,6 +539,9 @@ int AbilityManagerStub::OnRemoteRequestInnerEleventh(uint32_t code, MessageParce
     }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_ABILITY_TOKEN) {
         return GetAbilityTokenByCalleeObjInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_PID_BY_CALL_STUB) {
+        return GetPidByCallStubInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::FORCE_EXIT_APP) {
         return ForceExitAppInner(data, reply);
@@ -1097,8 +1103,23 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::NOTIFY_INSIGHT_INTENT_EXECUTE) {
         return NotifyInsightIntentExecuteInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK) {
+        return RegisterWillInsightIntentExecuteCallbackInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK) {
+        return UnregisterWillInsightIntentExecuteCallbackInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::QUERY_SKILL_TYPE) {
         return QuerySkillTypeInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::EXTEND_GAME_PRELAUNCH_TIMEOUT) {
+        return ExtendGamePreLaunchTimeoutInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_DYNAMIC_AGENT_CARDS_FOR_MIGRATION) {
+        return GetDynamicAgentCardsForMigrationInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::ATTRIBUTE_SAME_CONNECTION_RECORD_TASK_ID) {
+        return AttributeSameConnectionRecordTaskIDInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -1339,17 +1360,18 @@ int AbilityManagerStub::BackToCallerInner(MessageParcel &data, MessageParcel &re
         token = data.ReadRemoteObject();
     }
     int resultCode = data.ReadInt32();
-    Want *resultWant = data.ReadParcelable<Want>();
-    if (resultWant != nullptr) {
-        SanitizeWantParams(*resultWant);
-        resultWant->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
+    std::unique_ptr<Want> resultWant(data.ReadParcelable<Want>());
+    if (resultWant == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "resultWant null");
+        return ERR_INVALID_VALUE;
     }
+    SanitizeWantParams(*resultWant);
+    resultWant->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     int64_t callerRequestCode = data.ReadInt64();
-    int32_t result = BackToCallerAbilityWithResult(token, resultCode, resultWant, callerRequestCode);
+    bool isBackToCallerApp = data.ReadBool();
+    int32_t result = BackToCallerAbilityWithResult(token, resultCode, *resultWant, callerRequestCode,
+        isBackToCallerApp);
     reply.WriteInt32(result);
-    if (resultWant != nullptr) {
-        delete resultWant;
-    }
     return NO_ERROR;
 }
 
@@ -1621,6 +1643,32 @@ int AbilityManagerStub::KillProcessWithUserIdInner(MessageParcel &data, MessageP
     int result = KillProcessWithUserId(bundleName, clearPageStack, appIndex, reason, userId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "remove stack error");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::KillCollaboratorProcessInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t collaboratorType = 0;
+    if (!data.ReadInt32(collaboratorType)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read collaboratorType failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::u16string bundleNameU16;
+    if (!data.ReadString16(bundleNameU16)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read bundleName failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::string bundleName = Str16ToStr8(bundleNameU16);
+    int32_t userId = -1;
+    if (!data.ReadInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read userId failed");
+        return ERR_INVALID_VALUE;
+    }
+    int result = KillCollaboratorProcess(collaboratorType, bundleName, userId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result failed");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
@@ -2949,6 +2997,7 @@ int AbilityManagerStub::StartUIAbilityBySCBInner(MessageParcel &data, MessagePar
     }
     if (sessionInfo != nullptr) {
         sessionInfo->want.AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
+        SanitizeWantParams(sessionInfo->want);
     }
     std::unique_ptr<AbilityRuntime::StartParamsBySCB> params(data.ReadParcelable<AbilityRuntime::StartParamsBySCB>());
     if (params == nullptr) {
@@ -3654,6 +3703,22 @@ int AbilityManagerStub::GetAbilityTokenByCalleeObjInner(MessageParcel &data, Mes
     sptr<IRemoteObject> result;
     GetAbilityTokenByCalleeObj(callStub, result);
     reply.WriteRemoteObject(result);
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::GetPidByCallStubInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> callStub = data.ReadRemoteObject();
+    if (!callStub) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read call stub fail");
+        return ERR_NULL_OBJECT;
+    }
+    int32_t pid = 0;
+    int32_t result = GetPidByCallStub(callStub, pid);
+    reply.WriteInt32(result);
+    if (result == ERR_OK) {
+        reply.WriteInt32(pid);
+    }
     return NO_ERROR;
 }
 
@@ -4445,6 +4510,18 @@ int32_t AbilityManagerStub::SetGamePreLaunchCompleteTimeInner(MessageParcel &dat
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::ExtendGamePreLaunchTimeoutInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t pid = data.ReadInt32();
+    int64_t extendTime = data.ReadInt64();
+    ErrCode result = ExtendGamePreLaunchTimeout(pid, extendTime);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int AbilityManagerStub::RegisterSessionHandlerInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> handler = data.ReadRemoteObject();
@@ -4795,7 +4872,8 @@ int32_t AbilityManagerStub::StartAbilityOnlyUIAbilityInner(MessageParcel &data, 
     }
     callerToken = data.ReadRemoteObject();
     uint32_t specifyTokenId = data.ReadUint32();
-    int32_t result = StartAbilityOnlyUIAbility(*want, callerToken, specifyTokenId);
+    int32_t userId = data.ReadInt32();
+    int32_t result = StartAbilityOnlyUIAbility(*want, callerToken, specifyTokenId, userId);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -6235,6 +6313,23 @@ int32_t AbilityManagerStub::NotifyInsightIntentExecuteInner(MessageParcel &data,
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::RegisterWillInsightIntentExecuteCallbackInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "register will insight intent execute callback stub");
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    int32_t ret = RegisterWillInsightIntentExecuteCallback(callback);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::UnregisterWillInsightIntentExecuteCallbackInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "unregister will insight intent execute callback stub");
+    int32_t ret = UnregisterWillInsightIntentExecuteCallback();
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
 int32_t AbilityManagerStub::QuerySkillTypeInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "query skill type stub");
@@ -6283,6 +6378,36 @@ int32_t AbilityManagerStub::StartSandboxCloneAbilityInner(MessageParcel &data, M
 
     int32_t result = StartSandboxCloneAbility(*want, *params);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetDynamicAgentCardsForMigrationInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetDynamicAgentCardsForMigration stub called");
+    std::string jsonStr;
+    int32_t ret = GetDynamicAgentCardsForMigration(jsonStr);
+    reply.WriteInt32(ret);
+    if (ret == ERR_OK) {
+        reply.WriteString(jsonStr);
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::AttributeSameConnectionRecordTaskIDInner(MessageParcel &data, MessageParcel &reply)
+{
+    // oneway dispatch: reply is not delivered to the async proxy, but keep the write for uniformity.
+    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AttributeTaskForA2AReusedConnectionRecord null want");
+        return ERR_INVALID_VALUE;
+    }
+    sptr<IAbilityConnection> connect = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
+    if (connect == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AttributeTaskForA2AReusedConnectionRecord null connect");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t ret = AttributeTaskForA2AReusedConnectionRecord(*want, connect);
+    reply.WriteInt32(ret);
     return NO_ERROR;
 }
 } // namespace AAFwk

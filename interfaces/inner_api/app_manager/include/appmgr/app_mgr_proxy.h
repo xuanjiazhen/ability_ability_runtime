@@ -54,7 +54,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1) override;
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0) override;
 
     /**
      * Launch Application Finished
@@ -63,7 +63,7 @@ public:
     virtual void PreloadModuleFinished(const int32_t recordId) override;
 
     virtual int32_t MakeImage(const AAFwk::Want &want, int32_t userId, AppExecFwk::PreloadMode preloadMode,
-        int32_t appIndex = -1, sptr<IImageErrorHandler> errorHandler = nullptr) override;
+        int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr) override;
 
     virtual int32_t DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler = nullptr) override;
 
@@ -518,7 +518,7 @@ public:
         const AppExecFwk::ConfigurationPolicy &policy, const int32_t userId = -1) override;
 
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
-        int32_t appIndex = -1) override;
+        int32_t appIndex = 0) override;
 
     virtual int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer,
         const int32_t userId = -1) override;
@@ -684,6 +684,11 @@ public:
      */
     int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer) override;
 
+    int32_t RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer) override;
+    int32_t UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer) override;
+    int32_t RegisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer) override;
+    int32_t UnregisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer) override;
+
     /**
      * Check whether the bundle is running.
      *
@@ -768,6 +773,15 @@ public:
     bool IsFinalAppProcess() override;
 
     /**
+     * Query whether the current process is doing snapshot initialization.
+     *
+     * @return Returns true if the current process is doing snapshot initialization,
+     *         false otherwise (completed, failed, not a template process,
+     *         or service unavailable).
+     */
+    bool IsHyperSnapInitializing() override;
+
+    /**
      * Register render state observer.
      * @param observer Render process state observer.
      * @return Returns ERR_OK on success, others on failure.
@@ -780,6 +794,20 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UnregisterRenderStateObserver(const sptr<IRenderStateObserver> &observer) override;
+
+    /**
+     * Register child process state observer.
+     * @param observer Child process state observer.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer) override;
+
+    /**
+     * Unregister child process state observer.
+     * @param observer Child process state observer.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnregisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer) override;
 
     /**
      * Register KIA interceptor.
@@ -1025,6 +1053,16 @@ public:
     virtual int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos) override;
 
     /**
+     * Notify the state change of a child process.
+     *
+     * @param pid The pid of the child process whose state has changed.
+     * @param state The new state of the child process.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t NotifyChildProcessState(int32_t pid, int32_t state) override;
+
+    /**
      * Enable delayed process exit.
      *
      * @param enabled Whether enable delayed process exit.
@@ -1034,6 +1072,15 @@ public:
     void CancelDelayedExitTask(int32_t pid) override;
     int32_t StartTask(const std::string &taskId, int32_t priority) override;
     int32_t FinishTask(const std::string &taskId) override;
+    int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, int64_t &attributionId) override;
+    int32_t UnregisterTaskForA2A(const std::string &taskId, int64_t attributionId) override;
+    int32_t RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
+        int32_t callerUid, int64_t &attributionId) override;
+    int32_t UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+        int32_t callerUid) override;
+    int32_t RegisterInAppSkillProcess(const std::string &taskId, const std::string &bundleName,
+        int32_t callerUid, int32_t &resolvedPid, int64_t &attributionId) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

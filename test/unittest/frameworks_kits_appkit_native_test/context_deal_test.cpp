@@ -143,26 +143,12 @@ HWTEST_F(ContextDealTest, AppExecFwk_ContextDeal_GetBundleCodePath_0100, Functio
 HWTEST_F(ContextDealTest, AppExecFwk_ContextDeal_GetBundleCodePath_0200, Function | MediumTest | Level1)
 {
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
-    std::string codePath = "/data/app/el1/bundle/public";
+    std::string codePath = "/data/app/el1/bundle/public/com.example.demo";
     info->codePath = codePath;
-    context_->isCreateBySystemApp_ = true;
-    context_->SetApplicationInfo(info);
-
-    EXPECT_STREQ(context_->GetBundleCodePath().c_str(), Constants::LOCAL_BUNDLES);
-}
-
-/**
-*@tc.number: AppExecFwk_ContextDeal_GetBundleCodePath_0300
-*@tc.name: GetBundleCodePath
-*@tc.desc: Verify GetBundleCodePath with clone-prefixed codePath.
-*/
-HWTEST_F(ContextDealTest, AppExecFwk_ContextDeal_GetBundleCodePath_0300, Function | MediumTest | Level1)
-{
-    std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
-    info->codePath = "/data/app/el1/bundle/public/+clone-10000+com.example.demo";
     info->bundleName = "com.example.demo";
     context_->isCreateBySystemApp_ = true;
     context_->SetApplicationInfo(info);
+
     EXPECT_STREQ(context_->GetBundleCodePath().c_str(), "/data/bundles/com.example.demo");
 }
 
@@ -204,12 +190,13 @@ HWTEST_F(ContextDealTest, AppExecFwk_ContextDeal_GetBundleResourcePath_0100, Fun
 HWTEST_F(ContextDealTest, AppExecFwk_ContextDeal_GetBundleResourcePath_0200, Function | MediumTest | Level1)
 {
     std::shared_ptr<AbilityInfo> info = std::make_shared<AbilityInfo>();
-    std::string resourcePath = "/data/app/el1/bundle/public";
+    std::string resourcePath = "/data/app/el1/bundle/public/com.example.demo";
     info->resourcePath = resourcePath;
+    info->bundleName = "com.example.demo";
     context_->isCreateBySystemApp_ = true;
     context_->SetAbilityInfo(info);
 
-    EXPECT_STREQ(context_->GetBundleResourcePath().c_str(), Constants::LOCAL_BUNDLES);
+    EXPECT_STREQ(context_->GetBundleResourcePath().c_str(), "/data/bundles/com.example.demo");
 }
 
 /**

@@ -179,6 +179,26 @@ int32_t AppScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool 
     return appMgrClient_->SetGameSAPrelaunch(token, isGameSAPrelaunch);
 }
 
+int32_t AppScheduler::AttributeProcessForAbility(const std::string &taskId, int32_t callerUid, int32_t callerPid,
+    int32_t targetPid, int64_t &attributionId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AttributeProcessForAbility");
+    CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    // Reset the binder identity to this process so the appmgr side foundation check
+    // passes regardless of the outer caller; also skips parcel roundtrip in-process.
+    return IN_PROCESS_CALL(
+        appMgrClient_->AttributeProcessForAbility(taskId, callerUid, callerPid, targetPid, attributionId));
+}
+
+int32_t AppScheduler::UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "UnregisterTaskAttribution");
+    CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    // Reset the binder identity to this process so the appmgr side foundation check
+    // passes regardless of the outer caller; also skips parcel roundtrip in-process.
+    return IN_PROCESS_CALL(appMgrClient_->UnregisterTaskAttribution(taskId, attributionId));
+}
+
 void AppScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
     sptr<AAFwk::IUserCallback> callback)
 {
@@ -199,6 +219,13 @@ int32_t AppScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, cons
         return ret;
     }
     return ERR_OK;
+}
+
+bool AppScheduler::CheckProcessAvailable(int32_t pid)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "pid:%{public}d", pid);
+    CHECK_POINTER_AND_RETURN(appMgrClient_, true);
+    return IN_PROCESS_CALL(appMgrClient_->CheckProcessAvailable(pid));
 }
 
 void AppScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)

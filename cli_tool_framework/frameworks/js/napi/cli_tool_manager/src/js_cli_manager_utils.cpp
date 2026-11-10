@@ -307,6 +307,11 @@ bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options, std::
     if (!UnwrapOptionalTraceId(env, obj, "dmSessionId", options.dmSessionId, msg)) {
         return false;
     }
+
+    UnwrapStringProperty(env, obj, "policy", options.policy);
+    if (!UnwrapOptionalTraceId(env, obj, "taskId", options.taskId, msg)) {
+        return false;
+    }
     return true;
 }
 
@@ -348,7 +353,8 @@ bool UnwrapExecCmdOptions(napi_env env, napi_value obj, ExecCmdOptions &options,
     // a present value must satisfy the shared trace-id rule (1~256 [A-Za-z0-9_-]).
     std::string traceMsg;
     if (!UnwrapOptionalTraceId(env, obj, "toolCallId", options.toolCallId, traceMsg) ||
-        !UnwrapOptionalTraceId(env, obj, "dmSessionId", options.dmSessionId, traceMsg)) {
+        !UnwrapOptionalTraceId(env, obj, "dmSessionId", options.dmSessionId, traceMsg) ||
+        !UnwrapOptionalTraceId(env, obj, "taskId", options.taskId, traceMsg)) {
         msg = traceMsg;
         TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
         return false;
@@ -596,6 +602,9 @@ napi_value CreateJsExecOptions(napi_env env, const ExecOptions &opts)
     }
     if (!opts.dmSessionId.empty()) {
         napi_set_named_property(env, jsObj, "dmSessionId", AppExecFwk::WrapStringToJS(env, opts.dmSessionId));
+    }
+    if (!opts.policy.empty()) {
+        napi_set_named_property(env, jsObj, "policy", AppExecFwk::WrapStringToJS(env, opts.policy));
     }
     return jsObj;
 }

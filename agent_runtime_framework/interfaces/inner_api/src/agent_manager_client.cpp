@@ -232,6 +232,22 @@ int32_t AgentManagerClient::VerifyAgentDisconnectRequests(const std::vector<AAFw
     return agentMgr->VerifyAgentDisconnectRequests(wants, connection, callerIdentity);
 }
 
+int32_t AgentManagerClient::AttributeTaskForA2AReusedConnectionRecord(const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connection)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    // oneway IPC: proxy sends TF_ASYNC and does not read reply. Best-effort: log only.
+    auto ret = agentMgr->AttributeTaskForA2AReusedConnectionRecord(want, connection);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "AttributeTaskForA2AReusedConnectionRecord send failed: %{public}d", ret);
+    }
+    return ret;
+}
+
 sptr<IAgentManager> AgentManagerClient::GetAgentMgrProxy()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -305,20 +321,38 @@ bool AgentManagerClient::RegisterDeathRecipient(const sptr<IRemoteObject> &remot
     return true;
 }
 
-void AgentManagerClient::ClearProxyIfMatch(const wptr<IRemoteObject> &remote)
+void AgentManagerClient::RegisterDeathCallback(DeathCallback callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    // Compare the broker proxy's AsObject() with the died remote (agentMgr_ != remote object).
-    if (agentMgr_ == nullptr) {
-        TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr death notification after proxy already cleared, ignore");
-        return;
+    deathCallbacks_.push_back(std::move(callback));
+}
+
+void AgentManagerClient::ClearProxyIfMatch(const wptr<IRemoteObject> &remote)
+{
+    std::vector<DeathCallback> callbacks;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        // Compare the broker proxy's AsObject() with the died remote (agentMgr_ != remote object).
+        if (agentMgr_ == nullptr) {
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr death notification after proxy already cleared, ignore");
+            return;
+        }
+        if (agentMgr_->AsObject() != remote) {
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "stale agentmgr death notification, ignore");
+            return;
+        }
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr service died, clear cached proxy");
+        agentMgr_ = nullptr;
+        callbacks = deathCallbacks_;
     }
-    if (agentMgr_->AsObject() != remote) {
-        TAG_LOGI(AAFwkTag::SER_ROUTER, "stale agentmgr death notification, ignore");
-        return;
+    // Fire outside mutex_: subscriber callbacks take their own locks (e.g. AgentConnectionManager
+    // connectionsLock_), and a disconnect path takes connectionsLock_ before reaching
+    // GetAgentMgrProxy/registerMutex_/mutex_, so nesting under mutex_ would invert lock order.
+    for (const auto &callback : callbacks) {
+        if (callback != nullptr) {
+            callback();
+        }
     }
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr service died, clear cached proxy");
-    agentMgr_ = nullptr;
 }
 
 void AgentManagerClient::AgentManagerServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)

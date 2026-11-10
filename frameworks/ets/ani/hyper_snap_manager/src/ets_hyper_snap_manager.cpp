@@ -103,6 +103,8 @@ public:
     static void RequestRebuildHyperSnap(ani_env *env);
 
     static void NativeGetLastError(ani_env *env, ani_enum_item errType, ani_object call);
+
+    static ani_boolean NativeIsHyperSnapInitializing(ani_env *env);
 };
 
 void EtsHyperSnapManager::SetHyperSnapEnabled(ani_env *env, ani_boolean enabledFlag)
@@ -193,6 +195,27 @@ void EtsHyperSnapManager::NativeGetLastError(ani_env *env, ani_enum_item errType
     AppExecFwk::AsyncCallback(env, call, errOk, info);
 }
 
+ani_boolean EtsHyperSnapManager::NativeIsHyperSnapInitializing(ani_env *env)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "NativeIsHyperSnapInitializing called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "NativeIsHyperSnapInitializing: null env");
+        return ANI_FALSE;
+    }
+
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "NativeIsHyperSnapInitializing: null appMgrClient");
+        AbilityRuntime::EtsErrorUtil::ThrowError(env,
+            AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        return ANI_FALSE;
+    }
+
+    bool result = appMgrClient->IsHyperSnapInitializing();
+    TAG_LOGI(AAFwkTag::APPKIT, "NativeIsHyperSnapInitializing result: %{public}d", result);
+    return result ? ANI_TRUE : ANI_FALSE;
+}
+
 void EtsHyperSnapManagerRegisterInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "EtsHyperSnapManagerRegisterInit call");
@@ -218,6 +241,8 @@ void EtsHyperSnapManagerRegisterInit(ani_env *env)
             reinterpret_cast<void *>(EtsHyperSnapManager::RequestRebuildHyperSnap)},
         ani_native_function{"nativeGetLastError", nullptr,
             reinterpret_cast<void *>(EtsHyperSnapManager::NativeGetLastError)},
+        ani_native_function{"nativeIsHyperSnapInitializing", nullptr,
+            reinterpret_cast<void *>(EtsHyperSnapManager::NativeIsHyperSnapInitializing)},
     };
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());
     if (status != ANI_OK) {

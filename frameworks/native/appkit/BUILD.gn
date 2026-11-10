@@ -457,6 +457,7 @@ ohos_shared_library("ability_stage_ani") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
+    "node:node_header_notice",
     "resource_management:global_resmgr",
     "runtime_core:ani",
     "runtime_core:ani_helpers",
@@ -501,6 +502,7 @@ ohos_shared_library("app_context") {
     "${ability_runtime_native_path}/appkit/ability_runtime/context/interop_object_instance.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/context/js_ability_lifecycle_callback.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/context/js_system_configuration_updated_callback.cpp",
+    "${ability_runtime_native_path}/appkit/ability_runtime/context/js_process_lifecycle_observer.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/context/ability_native_thread.cpp",
     "${ability_runtime_native_path}/appkit/app/overlay_event_subscriber.cpp",
     "${ability_runtime_native_path}/appkit/app/sys_mgr_client.cpp",
@@ -720,6 +722,7 @@ ohos_shared_library("appkit_delegator") {
 }
 
 ohos_shared_library("test_runner_ani") {
+  version_script = "libtest_runner_ani.map"
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -978,6 +981,7 @@ ohos_shared_library("appkit_child") {
     "napi:ace_napi",
     "libuv:uv",
     "node:node_header_notice",
+    "samgr:samgr_proxy",
   ]
 
   defines = [ "SUPPORT_CHILD_PROCESS" ]

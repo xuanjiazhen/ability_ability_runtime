@@ -1299,6 +1299,26 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_KillProcessInner_001, TestSi
 
 /*
  * Feature: AbilityManagerService
+ * Function: KillCollaboratorProcessInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub KillCollaboratorProcessInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function KillCollaboratorProcessInner is normal flow.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_KillCollaboratorProcessInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    data.WriteInt32(1);
+    data.WriteString16(Str8ToStr16("test_bundle"));
+    data.WriteInt32(0);
+    auto res = stub_->KillCollaboratorProcessInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), 0);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: UninstallAppInner
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService UninstallAppInner
@@ -3126,6 +3146,47 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetAbilityTokenByCalleeObjIn
     MessageParcel reply;
     auto res = stub_->GetAbilityTokenByCalleeObjInner(data, reply);
     EXPECT_EQ(res, ERR_NULL_OBJECT);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetPidByCallStubInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetPidByCallStubInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function GetPidByCallStubInner with null callStub.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetPidByCallStubInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    auto res = stub_->GetPidByCallStubInner(data, reply);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetPidByCallStubInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetPidByCallStubInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function GetPidByCallStubInner with valid callStub and successful result.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetPidByCallStubInner_002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    sptr<IRemoteObject> callStub = sptr<AppExecFwk::MockAbilityToken>(new AppExecFwk::MockAbilityToken());
+    ASSERT_TRUE(data.WriteRemoteObject(callStub));
+    int32_t expectedPid = 5678;
+    EXPECT_CALL(*stub_, GetPidByCallStub(_, _))
+        .WillOnce(DoAll(SetArgReferee<1>(expectedPid), Return(ERR_OK)));
+    auto res = stub_->GetPidByCallStubInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+    int32_t result = reply.ReadInt32();
+    EXPECT_EQ(result, ERR_OK);
+    int32_t pid = reply.ReadInt32();
+    EXPECT_EQ(pid, expectedPid);
 }
 
 #ifdef ABILITY_COMMAND_FOR_TEST
@@ -5475,6 +5536,59 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_SetGamePreLaunchCompleteTime
 
 /*
  * Feature: AbilityManagerStub
+ * Function: ExtendGamePreLaunchTimeoutInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub ExtendGamePreLaunchTimeoutInner
+ * EnvConditions: NA
+ * CaseDescription: Verify ExtendGamePreLaunchTimeoutInner with valid parameters
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExtendGamePreLaunchTimeoutInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    // Write pid
+    data.WriteInt32(100);
+
+    // Write extendTime
+    data.WriteInt64(60 * 1000 * 1000); // 60s in microseconds
+
+    auto res = stub_->ExtendGamePreLaunchTimeoutInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+
+    // Verify the result was written to reply
+    int32_t result = reply.ReadInt32();
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub ExtendGamePreLaunchTimeoutInner via OnRemoteRequest
+ * EnvConditions: code is EXTEND_GAME_PRELAUNCH_TIMEOUT
+ * CaseDescription: Verify dispatching EXTEND_GAME_PRELAUNCH_TIMEOUT through OnRemoteRequest
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExtendGamePreLaunchTimeoutInner_002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    data.WriteInt32(100); // pid
+    data.WriteInt64(60 * 1000 * 1000); // extendTime, 60s in microseconds
+
+    auto res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::EXTEND_GAME_PRELAUNCH_TIMEOUT), data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+
+    int32_t result = reply.ReadInt32();
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerStub
  * Function: OnRemoteRequest
  * SubFunction: NA
  * FunctionPoints: AbilityManagerStub StartSandboxCloneAbilityInner via OnRemoteRequest
@@ -6525,5 +6639,131 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExecuteInAppSkillWithTokenId
     EXPECT_EQ(captured.skillArgs->GetStringParam("key0"), "value0");
     EXPECT_EQ(captured.skillArgs->GetStringParam("toolCallId"), "business-value");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: BackToCallerInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService BackToCallerInner
+ * EnvConditions: NA
+ * CaseDescription: Reject a null result Want before forwarding the request.
+ */
+HWTEST_F(AbilityManagerStubTest, BackToCallerAppWithResult_NullWant, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    ASSERT_TRUE(data.WriteBool(false));
+    ASSERT_TRUE(data.WriteInt32(0));
+    ASSERT_TRUE(data.WriteParcelable(nullptr));
+    ASSERT_TRUE(data.WriteInt64(1));
+    ASSERT_TRUE(data.WriteBool(true));
+
+    EXPECT_CALL(*stub_, BackToCallerAbilityWithResult).Times(0);
+    EXPECT_EQ(stub_->BackToCallerInner(data, reply), ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub BackToCallerInner
+ * EnvConditions: NA
+ * CaseDescription: The shared IPC code dispatches the new interface flag and preserves the service result.
+ */
+HWTEST_F(AbilityManagerStubTest, BackToCallerAppWithResult_RemoteRequest, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    Want want;
+    want.SetParam("result", std::string("test"));
+    sptr<IRemoteObject> token = new AppExecFwk::MockAbilityToken();
+    int64_t requestCode = 0x100000001;
+    WriteInterfaceToken(data);
+    ASSERT_TRUE(data.WriteBool(true));
+    ASSERT_TRUE(data.WriteRemoteObject(token));
+    ASSERT_TRUE(data.WriteInt32(100));
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    ASSERT_TRUE(data.WriteInt64(requestCode));
+    ASSERT_TRUE(data.WriteBool(true));
+    EXPECT_CALL(*stub_, BackToCallerAbilityWithResult)
+        .WillOnce(Invoke([&](const sptr<IRemoteObject> &actualToken, int resultCode, const Want &resultWant,
+            int64_t actualRequestCode, bool isBackToCallerApp) {
+            EXPECT_EQ(actualToken, token);
+            EXPECT_EQ(resultCode, 100);
+            EXPECT_EQ(resultWant.GetStringParam("result"), "test");
+            EXPECT_EQ(actualRequestCode, requestCode);
+            EXPECT_TRUE(isBackToCallerApp);
+            return ERR_CALLER_NOT_EXISTS;
+        }));
+    auto result = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::BACK_TO_CALLER_UIABILITY), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_CALLER_NOT_EXISTS);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: BackToCallerInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService BackToCallerInner
+ * EnvConditions: NA
+ * CaseDescription: A request without the trailing flag selects the old interface.
+ */
+HWTEST_F(AbilityManagerStubTest, BackToCallerAbilityWithResult_MissingFlag, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    Want want;
+    ASSERT_TRUE(data.WriteBool(false));
+    ASSERT_TRUE(data.WriteInt32(100));
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    ASSERT_TRUE(data.WriteInt64(1));
+    EXPECT_CALL(*stub_, BackToCallerAbilityWithResult)
+        .WillOnce(Invoke([](const sptr<IRemoteObject> &token, int resultCode, const Want &, int64_t requestCode,
+            bool isBackToCallerApp) {
+            EXPECT_EQ(token, nullptr);
+            EXPECT_EQ(resultCode, 100);
+            EXPECT_EQ(requestCode, 1);
+            EXPECT_FALSE(isBackToCallerApp);
+            return ERR_CALLER_NOT_EXISTS;
+        }));
+
+    EXPECT_EQ(stub_->BackToCallerInner(data, reply), NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_CALLER_NOT_EXISTS);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: BackToCallerInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService BackToCallerInner
+ * EnvConditions: NA
+ * CaseDescription: A false trailing flag selects the old interface.
+ */
+HWTEST_F(AbilityManagerStubTest, BackToCallerAbilityWithResult_FalseFlag, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    Want want;
+    ASSERT_TRUE(data.WriteBool(false));
+    ASSERT_TRUE(data.WriteInt32(100));
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    ASSERT_TRUE(data.WriteInt64(1));
+    ASSERT_TRUE(data.WriteBool(false));
+    EXPECT_CALL(*stub_, BackToCallerAbilityWithResult)
+        .WillOnce(Invoke([](const sptr<IRemoteObject> &token, int resultCode, const Want &, int64_t requestCode,
+            bool isBackToCallerApp) {
+            EXPECT_EQ(token, nullptr);
+            EXPECT_EQ(resultCode, 100);
+            EXPECT_EQ(requestCode, 1);
+            EXPECT_FALSE(isBackToCallerApp);
+            return ERR_OK;
+        }));
+
+    EXPECT_EQ(stub_->BackToCallerInner(data, reply), NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+}
+
 } // namespace AAFwk
 } // namespace OHOS

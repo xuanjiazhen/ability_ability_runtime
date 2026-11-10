@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,9 @@
 #include "app_mgr_interface.h"
 #include "ets_ability_first_frame_state_observer.h"
 #include "ets_app_foreground_state_observer.h"
+#ifdef SUPPORT_SCREEN
+#include "ets_focused_application_observer.h"
+#endif
 #include "ets_app_manager_utils.h"
 #include "ets_app_state_observer.h"
 #include "ani_common_app_state_filter.h"
@@ -68,6 +71,9 @@ static const char *OFF_SIGNATURE_ABILITY_FIRST_FRAME_STATE
     = "C{std.core.String}C{application.AbilityFirstFrameStateObserver.AbilityFirstFrameStateObserver}:";
 static const char *OFF_SIGNATURE_APP_FOREGROUND_STATE
     = "C{std.core.String}C{application.AppForegroundStateObserver.AppForegroundStateObserver}:";
+static const char *ON_SIGNATURE_FOCUSED_APPLICATION =
+    "C{application.FocusedApplicationObserver.FocusedApplicationObserver}:i";
+static const char *OFF_SIGNATURE_FOCUSED_APPLICATION = "i:";
 constexpr const char *BUNDLE_NAME_CHECK_SIG = "C{std.core.String}:";
 constexpr const char *CLEAR_UP_APPLICATION_DATA_SIG = "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *GET_KEEP_ALIVE_APP_SERVICE_EXTENSION_SIG = "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
@@ -99,6 +105,8 @@ public:
         ani_object callback);
     static void NativeKillProcessWithAccount(ani_env *env, ani_object callback, ani_string aniBundleName,
         ani_int aniAccountId, ani_boolean clearPageStack, ani_object aniAppIndex);
+    static void NativeKillProcessWithAccountSafely(ani_env *env, ani_object callback, ani_string aniBundleName,
+        ani_int aniAccountId, ani_boolean clearPageStack, ani_object aniAppIndex);
     static void NativeGetProcessMemoryByPid(ani_env *env, ani_int aniPid, ani_object callback);
     static void GetRunningProcessInformationByBundleType(
         ani_env *env, ani_enum_item aniBundleType, ani_object callback);
@@ -121,6 +129,8 @@ public:
     static void OffApplicationStateCheck(ani_env *env, ani_int etsObserverId);
     static void OnOnAppForegroundState(ani_env *env, ani_string type, ani_object observer);
     static void OnOffAppForegroundState(ani_env *env, ani_string type, ani_object observer);
+    static ani_int OnOnFocusedApplicationChanged(ani_env *env, ani_object observer);
+    static void OnOffFocusedApplicationChanged(ani_env *env, ani_int observerId);
     static void OnOnAbilityFirstFrameState(
         ani_env *env, ani_string type, ani_object aniObserver, ani_object aniBundleName);
     static void OnOffAbilityFirstFrameState(ani_env *env, ani_string type, ani_object aniObserver);
@@ -143,22 +153,29 @@ private:
         ani_object observer, const ani_object &etsAppStateFilter, OHOS::AppExecFwk::AppStateFilter &appStateFilter);
     static ani_int OnOnApplicationStateInner(
         ani_env *env, ani_string type, ani_object observer, ani_object aniBundleNameList);
+    static bool GetAppIndex(ani_env *env, ani_object aniAppIndex, int32_t &appIndex);
     static void KillProcessesByBundleNameInner(ani_env *env, ani_object callback, ani_string etsBundleName,
         ani_boolean clearPageStack, ani_object etsAppIndex);
     static void KillProcessWithAccountInner(ani_env *env, ani_object callback, ani_string aniBundleName,
-        ani_int aniAccountId, ani_boolean clearPageStack, ani_object aniAppIndex);
+        ani_int aniAccountId, ani_boolean clearPageStack, ani_object aniAppIndex, bool safely);
     static void OnOnAbilityFirstFrameStateInner(ani_env *env, ani_object aniObserver, const std::string &strBundleName);
     static void OnOffInner(ani_env *env, ani_int etsObserverId, ani_object callback);
     static int32_t GetObserverId();
     static std::atomic<int32_t> serialNumber_;
     static sptr<AbilityRuntime::EtsAppStateObserver> appStateObserver_;
     static sptr<OHOS::AbilityRuntime::ETSAppForegroundStateObserver> observerForeground_;
+#ifdef SUPPORT_SCREEN
+    static sptr<AbilityRuntime::ETSFocusedApplicationObserver> observerFocusedApp_;
+#endif
     static std::mutex appStateObserverLock_;
 };
 
 std::atomic<int32_t> EtsAppManager::serialNumber_(0);
 sptr<AbilityRuntime::EtsAppStateObserver> EtsAppManager::appStateObserver_ = nullptr;
 sptr<OHOS::AbilityRuntime::ETSAppForegroundStateObserver> EtsAppManager::observerForeground_ = nullptr;
+#ifdef SUPPORT_SCREEN
+sptr<AbilityRuntime::ETSFocusedApplicationObserver> EtsAppManager::observerFocusedApp_ = nullptr;
+#endif
 std::mutex EtsAppManager::appStateObserverLock_;
 
 sptr<AppExecFwk::IAppMgr> EtsAppManager::GetAppManagerInstance()
@@ -219,7 +236,7 @@ void EtsAppManager::PreloadApplication(ani_env *env, ani_object callback, ani_st
     }
 
     ani_status status = ANI_OK;
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     ani_boolean isUndefined = false;
     if ((status = env->Reference_IsUndefined(aniAppIndex, &isUndefined)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "Failed to check undefined status : %{public}d", status);
@@ -911,7 +928,7 @@ void EtsAppManager::KillProcessesByBundleNameInner(ani_env *env, ani_object call
                 env, "Parse param bundleName failed, must be a string."), nullptr);
         return;
     }
-    int32_t appIndex = -1;
+    int32_t appIndex = 0;
     ani_status status = ANI_OK;
     ani_boolean isUndefined = false;
     if ((status = env->Reference_IsUndefined(etsAppIndex, &isUndefined)) != ANI_OK) {
@@ -947,7 +964,7 @@ void EtsAppManager::NativeKillProcessWithAccountSync(ani_env *env, ani_string an
     ani_ref undefined = nullptr;
     env->GetUndefined(&undefined);
     KillProcessWithAccountInner(env, callback, aniBundleName, aniAccountId,
-        false, static_cast<ani_object>(undefined));
+        false, static_cast<ani_object>(undefined), false);
 }
 
 void EtsAppManager::NativeKillProcessWithAccount(ani_env *env, ani_object callback, ani_string aniBundleName,
@@ -962,11 +979,45 @@ void EtsAppManager::NativeKillProcessWithAccount(ani_env *env, ani_object callba
         return;
     }
     KillProcessWithAccountInner(env, callback, aniBundleName, aniAccountId,
-        clearPageStack, aniAppIndex);
+        clearPageStack, aniAppIndex, false);
+}
+
+void EtsAppManager::NativeKillProcessWithAccountSafely(ani_env *env, ani_object callback,
+    ani_string aniBundleName, ani_int aniAccountId, ani_boolean clearPageStack, ani_object aniAppIndex)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+        return;
+    }
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "callback null ptr");
+        return;
+    }
+    KillProcessWithAccountInner(env, callback, aniBundleName, aniAccountId,
+        clearPageStack, aniAppIndex, true);
+}
+
+bool EtsAppManager::GetAppIndex(ani_env *env, ani_object aniAppIndex, int32_t &appIndex)
+{
+    ani_boolean isUndefined = false;
+    ani_status status = env->Reference_IsUndefined(aniAppIndex, &isUndefined);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to check undefined status : %{public}d", status);
+        return false;
+    }
+    if (isUndefined) {
+        return true;
+    }
+    status = env->Object_CallMethodByName_Int(aniAppIndex, "toInt", nullptr, &appIndex);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Object_CallMethodByName_Int status : %{public}d", status);
+        return false;
+    }
+    return true;
 }
 
 void EtsAppManager::KillProcessWithAccountInner(ani_env *env, ani_object callback, ani_string aniBundleName,
-    ani_int aniAccountId, ani_boolean clearPageStack, ani_object aniAppIndex)
+    ani_int aniAccountId, ani_boolean clearPageStack, ani_object aniAppIndex, bool safely)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "KillProcessWithAccountInner called");
     if (env == nullptr) {
@@ -994,22 +1045,19 @@ void EtsAppManager::KillProcessWithAccountInner(ani_env *env, ani_object callbac
         return;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "KillProcessWithAccount accountId:%{public}d", aniAccountId);
-    int32_t appIndex = -1;
-    ani_status status = ANI_OK;
-    ani_boolean isUndefined = false;
-    if ((status = env->Reference_IsUndefined(aniAppIndex, &isUndefined)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to check undefined status : %{public}d", status);
+    int32_t appIndex = 0;
+    if (!GetAppIndex(env, aniAppIndex, appIndex)) {
         return;
     }
-    if (!isUndefined) {
-        if ((status = env->Object_CallMethodByName_Int(aniAppIndex,
-            "toInt", nullptr, &appIndex)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Object_CallMethodByName_Int status : %{public}d", status);
-            return;
-        }
-        TAG_LOGD(AAFwkTag::APPMGR, "stsAppIndex: %{public}d", appIndex);
+    TAG_LOGD(AAFwkTag::APPMGR, "appIndex: %{public}d", appIndex);
+    int32_t ret = 0;
+    if (safely) {
+        ret = appMgr->GetAmsMgr()->KillProcessWithAccountSafely(
+            bundleName, aniAccountId, clearPageStack, appIndex);
+    } else {
+        ret = appMgr->GetAmsMgr()->KillProcessWithAccount(
+            bundleName, aniAccountId, clearPageStack, appIndex);
     }
-    auto ret = appMgr->GetAmsMgr()->KillProcessWithAccount(bundleName, aniAccountId, clearPageStack, appIndex);
     TAG_LOGD(AAFwkTag::APPMGR, "KillProcessWithAccount ret: %{public}d", ret);
     AppExecFwk::AsyncCallback(env, callback,
         AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
@@ -1621,6 +1669,115 @@ void EtsAppManager::OnOffAppForegroundState(ani_env *env, ani_string type, ani_o
     TAG_LOGD(AAFwkTag::APPMGR, "OnOffAppForegroundState end");
 }
 
+ani_int EtsAppManager::OnOnFocusedApplicationChanged(ani_env *env, ani_object observer)
+{
+#ifdef SUPPORT_SCREEN
+    TAG_LOGD(AAFwkTag::APPMGR, "OnOnFocusedApplicationChanged called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+        return 0;
+    }
+    ani_vm *aniVM = nullptr;
+    if (env->GetVM(&aniVM) != ANI_OK || aniVM == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get aniVM failed");
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
+        return 0;
+    }
+    sptr<AppExecFwk::IAppMgr> appMgr = GetAppManagerInstance();
+    if (appMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appManager null ptr");
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
+        return 0;
+    }
+    std::lock_guard<std::mutex> lock(appStateObserverLock_);
+    if (observerFocusedApp_ == nullptr) {
+        observerFocusedApp_ = new (std::nothrow) ETSFocusedApplicationObserver(aniVM);
+    }
+    if (observerFocusedApp_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null observerFocusedApp_");
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED)));
+        return 0;
+    }
+    if (observerFocusedApp_->IsEmpty()) {
+        int32_t ret = appMgr->RegisterFocusedApplicationObserver(observerFocusedApp_);
+        if (ret != NO_ERROR) {
+            TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
+            EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(ret), "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
+            return 0;
+        }
+    }
+    int32_t observerId = GetObserverId();
+    observerFocusedApp_->AddEtsObserverObject(env, observerId, observer);
+    TAG_LOGI(AAFwkTag::APPMGR, "observerId: %{public}d", observerId);
+    return static_cast<ani_int>(observerId);
+#else
+    TAG_LOGE(AAFwkTag::APPMGR, "not support");
+    EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+        static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+        GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
+    return 0;
+#endif
+}
+
+void EtsAppManager::OnOffFocusedApplicationChanged(ani_env *env, ani_int observerId)
+{
+#ifdef SUPPORT_SCREEN
+    TAG_LOGD(AAFwkTag::APPMGR, "OnOffFocusedApplicationChanged called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+        return;
+    }
+    sptr<AppExecFwk::IAppMgr> appMgr = GetAppManagerInstance();
+    if (appMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appManager null ptr");
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
+        return;
+    }
+    std::lock_guard<std::mutex> lock(appStateObserverLock_);
+    if (observerFocusedApp_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null observerFocusedApp_");
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND), "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+        return;
+    }
+    int32_t id = static_cast<int32_t>(observerId);
+    bool isExist = observerFocusedApp_->RemoveEtsObserverObjectById(id);
+    if (!isExist) {
+        TAG_LOGE(AAFwkTag::APPMGR, "observerId not exist: %{public}d", id);
+        EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND), "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+        return;
+    }
+    if (observerFocusedApp_->IsEmpty()) {
+        int32_t ret = appMgr->UnregisterFocusedApplicationObserver(observerFocusedApp_);
+        if (ret != NO_ERROR) {
+            TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d.", ret);
+            EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(ret), "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+        }
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "OnOffFocusedApplicationChanged end");
+#else
+    TAG_LOGE(AAFwkTag::APPMGR, "not support");
+    EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env,
+        static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+        GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
+#endif
+}
+
 void EtsAppManager::ClearUpApplicationDataCheck(ani_env *env, ani_string aniBundleName)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "ClearUpApplicationDataCheck called");
@@ -1962,6 +2119,8 @@ void EtsAppManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAppManager::NativeKillProcessWithAccountSync)},
         ani_native_function {"nativeKillProcessWithAccount", nullptr,
             reinterpret_cast<void *>(EtsAppManager::NativeKillProcessWithAccount)},
+        ani_native_function {"nativeKillProcessWithAccountSafely", nullptr,
+            reinterpret_cast<void *>(EtsAppManager::NativeKillProcessWithAccountSafely)},
         ani_native_function {"nativeGetProcessMemoryByPid", nullptr,
             reinterpret_cast<void *>(EtsAppManager::NativeGetProcessMemoryByPid)},
         ani_native_function {"nativeGetRunningProcessInformationByBundleType", nullptr,
@@ -1982,6 +2141,10 @@ void EtsAppManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAppManager::OnOnAppForegroundState)},
         ani_native_function {"nativeOffAppForeGroundState", OFF_SIGNATURE_APP_FOREGROUND_STATE,
             reinterpret_cast<void *>(EtsAppManager::OnOffAppForegroundState)},
+        ani_native_function {"nativeOnFocusedApplicationChanged", ON_SIGNATURE_FOCUSED_APPLICATION,
+            reinterpret_cast<void *>(EtsAppManager::OnOnFocusedApplicationChanged)},
+        ani_native_function {"nativeOffFocusedApplicationChanged", OFF_SIGNATURE_FOCUSED_APPLICATION,
+            reinterpret_cast<void *>(EtsAppManager::OnOffFocusedApplicationChanged)},
         ani_native_function {"nativeOnAbilityFirstFrameState", ON_SIGNATURE_ABILITY_FIRST_FRAME_STATE,
             reinterpret_cast<void *>(EtsAppManager::OnOnAbilityFirstFrameState)},
         ani_native_function {"nativeOffAbilityFirstFrameState", OFF_SIGNATURE_ABILITY_FIRST_FRAME_STATE,

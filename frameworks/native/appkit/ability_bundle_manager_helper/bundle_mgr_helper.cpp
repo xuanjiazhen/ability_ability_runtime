@@ -23,6 +23,7 @@
 #include "system_ability_definition.h"
 #include "app_utils.h"
 #include "record_cost_time_util.h"
+#include "in_process_call_wrapper.h"
 
 namespace OHOS {
 using AAFwk::RecordCostTimeUtil;
@@ -710,11 +711,12 @@ bool BundleMgrHelper::GetApplicationInfoWithAppIndex(
     RecordCostTimeUtil timeRecord("GetApplicationInfoWithAppIndex");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     BundleInfo bundleInfo;
-    if (appIndex == 0 || appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
+    if (appIndex == 0) {
         if (bundleMgr->GetApplicationInfo(appName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, userId, appInfo)) {
             return true;
         }
     } else if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+               appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX ||
                AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
         if (bundleMgr->GetCloneBundleInfo(appName,
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
@@ -895,6 +897,20 @@ bool BundleMgrHelper::QueryDataGroupInfos(
     return bundleMgr->QueryDataGroupInfos(bundleName, userId, infos);
 }
 
+ErrCode BundleMgrHelper::QueryIpcGroupInfos(
+    const std::string &bundleName, int32_t userId, std::vector<IpcGroupInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
+        return ERR_APPEXECFWK_SERVICE_INTERNAL_ERROR;
+    }
+
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    return bundleMgr->QueryIpcGroupInfos(bundleName, userId, infos);
+}
+
 bool BundleMgrHelper::RegisterBundleEventCallback(const sptr<IBundleEventCallback> &bundleEventCallback)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
@@ -950,6 +966,20 @@ ErrCode BundleMgrHelper::GetUidByBundleName(const std::string &bundleName, int32
 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     return bundleMgr->GetUidByBundleName(bundleName, userId, appCloneIndex);
+}
+
+ErrCode BundleMgrHelper::IsApplicationDisableForbidden(const std::string &bundleName, int32_t userId,
+    int32_t appIndex, bool &forbidden)
+{
+    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
+        return ERR_APPEXECFWK_SERVICE_INTERNAL_ERROR;
+    }
+
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    return bundleMgr->IsApplicationDisableForbidden(bundleName, userId, appIndex, forbidden);
 }
 
 ErrCode BundleMgrHelper::QueryExtensionAbilityInfosOnlyWithTypeName(const std::string &extensionTypeName,
@@ -1109,7 +1139,7 @@ ErrCode BundleMgrHelper::GetDualModeBundleInfo(const std::string &bundleName, in
     }
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     DualModeBundleInfo preference;
-    auto ret = bundleMgr->GetDualModeBundleInfo(bundleName, userId, preference);
+    auto ret = IN_PROCESS_CALL(bundleMgr->GetDualModeBundleInfo(bundleName, userId, preference));
     if (ret == ERR_OK) {
         appIndex = preference.appIndex;
     } else {

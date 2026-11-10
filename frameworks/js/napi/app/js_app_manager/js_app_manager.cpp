@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,9 @@
 #include "tokenid_kit.h"
 #endif
 #endif
+#ifdef SUPPORT_SCREEN
+#include "js_focused_application_observer.h"
+#endif
 #include "js_error_utils.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
@@ -80,6 +83,11 @@ public:
         if (observerForeground_ != nullptr) {
             observerForeground_->SetValid(false);
         }
+#ifdef SUPPORT_SCREEN
+        if (observerFocusedApp_ != nullptr) {
+            observerFocusedApp_->SetValid(false);
+        }
+#endif
     }
 
     static void Finalizer(napi_env env, void* data, void* hint)
@@ -126,6 +134,11 @@ public:
     static napi_value KillProcessWithAccount(napi_env env, napi_callback_info info)
     {
         GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnKillProcessWithAccount);
+    }
+
+    static napi_value KillProcessWithAccountSafely(napi_env env, napi_callback_info info)
+    {
+        GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnKillProcessWithAccountSafely);
     }
 
     static napi_value KillProcessesInBatch(napi_env env, napi_callback_info info)
@@ -261,12 +274,37 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnPreloadApplication);
     }
 
+    static napi_value OnFocusedApplicationChanged(napi_env env, napi_callback_info info)
+    {
+#ifdef SUPPORT_SCREEN
+        GET_CB_INFO_AND_CALL(env, info, JsAppManager, HandleOnFocusedApplicationChanged);
+#else
+        TAG_LOGE(AAFwkTag::APPMGR, "not support");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "Screen is not supported.");
+        return CreateJsUndefined(env);
+#endif
+    }
+
+    static napi_value OffFocusedApplicationChanged(napi_env env, napi_callback_info info)
+    {
+#ifdef SUPPORT_SCREEN
+        GET_CB_INFO_AND_CALL(env, info, JsAppManager, HandleOffFocusedApplicationChanged);
+#else
+        TAG_LOGE(AAFwkTag::APPMGR, "not support");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "Screen is not supported.");
+        return CreateJsUndefined(env);
+#endif
+    }
+
 private:
     sptr<OHOS::AppExecFwk::IAppMgr> appManager_ = nullptr;
     sptr<OHOS::AAFwk::IAbilityManager> abilityManager_ = nullptr;
     sptr<JSAppStateObserver> observer_ = nullptr;
     sptr<JSAppStateObserver> observerSync_ = nullptr;
     sptr<JSAppForegroundStateObserver> observerForeground_ = nullptr;
+#ifdef SUPPORT_SCREEN
+    sptr<JSFocusedApplicationObserver> observerFocusedApp_ = nullptr;
+#endif
     std::atomic<uint32_t> serialNumber_ = 0;
     std::shared_ptr<std::mutex> observerMtx_ = std::make_shared<std::mutex>();
 
@@ -346,21 +384,22 @@ private:
             }
         }
         int64_t observerId = serialNumber_.fetch_add(1, std::memory_order_relaxed);
+        int32_t ret = 0;
         {
             std::lock_guard<std::mutex> lock(*observerMtx_);
             if (observer_->GetJsObserverMapSize() == 0) {
-                int32_t ret = appManager_->RegisterApplicationStateObserverWithFilter(observer_,
+                ret = appManager_->RegisterApplicationStateObserverWithFilter(observer_,
                     bundleNameList, appStateFilter, isUsingFilter);
-                if (ret == 0) {
-                    TAG_LOGD(AAFwkTag::APPMGR, "success");
-                } else {
-                    TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
-                    napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
-                        GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
-                    return CreateJsUndefined(env);
-                }
             }
-            observer_->AddJsObserverObject(observerId, argv[INDEX_ONE]);
+            if (ret == 0) {
+                observer_->AddJsObserverObject(observerId, argv[INDEX_ONE]);
+            }
+        }
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
+            napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
+            return CreateJsUndefined(env);
         }
         return CreateJsValue(env, observerId);
     }
@@ -401,6 +440,97 @@ private:
         observerForeground_->AddJsObserverObject(argv[INDEX_ONE]);
         return CreateJsUndefined(env);
     }
+
+#ifdef SUPPORT_SCREEN
+    napi_value HandleOnFocusedApplicationChanged(napi_env env, size_t argc, napi_value *argv)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "called");
+        if (argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        if (!AppExecFwk::IsTypeForNapiValue(env, argv[INDEX_ZERO], napi_object)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid param");
+            ThrowInvalidParamError(env, "Parse param observer failed, must be a AppFocusedApplicationObserver.");
+            return CreateJsUndefined(env);
+        }
+        if (observerFocusedApp_ == nullptr) {
+            observerFocusedApp_ = new (std::nothrow) JSFocusedApplicationObserver(env);
+        }
+        if (appManager_ == nullptr || observerFocusedApp_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null appMgr or observer");
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE));
+            return CreateJsUndefined(env);
+        }
+        if (observerFocusedApp_->IsEmpty()) {
+            int32_t ret = appManager_->RegisterFocusedApplicationObserver(observerFocusedApp_);
+            if (ret != NO_ERROR) {
+                TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
+                napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
+                return CreateJsUndefined(env);
+            }
+        }
+        int32_t observerId = static_cast<int32_t>(serialNumber_++);
+        observerFocusedApp_->AddJsObserverObjectWithId(observerId, argv[INDEX_ZERO]);
+        TAG_LOGI(AAFwkTag::APPMGR, "observerId: %{public}d", observerId);
+        return CreateJsValue(env, observerId);
+    }
+
+    napi_value HandleOffFocusedApplicationChanged(napi_env env, size_t argc, napi_value *argv)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "called");
+        if (argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        if (!AppExecFwk::IsTypeForNapiValue(env, argv[INDEX_ZERO], napi_number)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid param");
+            ThrowInvalidParamError(env, "Parse param observerId failed, must be a number.");
+            return CreateJsUndefined(env);
+        }
+        if (appManager_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null appMgr");
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED));
+            return CreateJsUndefined(env);
+        }
+        if (observerFocusedApp_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "observer does not exist, no observer registered");
+            napi_throw(env, CreateJsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND), "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+            return CreateJsUndefined(env);
+        }
+        int32_t observerId = 0;
+        if (napi_get_value_int32(env, argv[INDEX_ZERO], &observerId) != napi_ok) {
+            TAG_LOGE(AAFwkTag::APPMGR, "parse observerId failed");
+            ThrowInvalidParamError(env, "Parse param observerId failed, must be a number.");
+            return CreateJsUndefined(env);
+        }
+        bool isExist = observerFocusedApp_->RemoveJsObserverObjectById(observerId);
+        if (!isExist) {
+            TAG_LOGE(AAFwkTag::APPMGR, "observer does not exist: %{public}d", observerId);
+            napi_throw(env, CreateJsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND), "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+            return CreateJsUndefined(env);
+        }
+        if (observerFocusedApp_->IsEmpty()) {
+            int32_t ret = appManager_->UnregisterFocusedApplicationObserver(observerFocusedApp_);
+            if (ret != NO_ERROR) {
+                TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d.", ret);
+                napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+                return CreateJsUndefined(env);
+            }
+        }
+        return CreateJsUndefined(env);
+    }
+#endif
 
     napi_value OnOff(napi_env env, size_t argc, napi_value *argv)
     {
@@ -520,16 +650,19 @@ private:
                 GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
             return;
         }
-        std::lock_guard<std::mutex> lock(*mtx);
-        observer->RemoveJsObserverObject(observerId);
-        if (observer->GetJsObserverMapSize() == 0) {
-            int32_t ret = appManager->UnregisterApplicationStateObserver(observer);
-            if (ret != 0) {
-                TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
-                task->Reject(env, CreateJsErrorByNativeErr(env, ret, "",
-                    GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
-                return;
+        int32_t ret = 0;
+        {
+            std::lock_guard<std::mutex> lock(*mtx);
+            observer->RemoveJsObserverObject(observerId);
+            if (observer->GetJsObserverMapSize() == 0) {
+                ret = appManager->UnregisterApplicationStateObserver(observer);
             }
+        }
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
+            task->Reject(env, CreateJsErrorByNativeErr(env, ret, "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+            return;
         }
         TAG_LOGI(AAFwkTag::APPMGR, "unregister success size:%{public}zu", observer->GetJsObserverMapSize());
         task->ResolveWithNoError(env, CreateJsUndefined(env));
@@ -556,15 +689,17 @@ private:
             ThrowInvalidParamError(env, "observer is nullptr, please register first.");
             return CreateJsUndefined(env);
         }
+        bool isExist = false;
         {
             std::lock_guard<std::mutex> lock(*observerMtx_);
-            if (!observer_->FindObserverByObserverId(observerId)) {
-                TAG_LOGE(AAFwkTag::APPMGR, "not find observer:%{public}d", observerId);
-                ThrowInvalidParamError(env, "not find observerId.");
-                return CreateJsUndefined(env);
-            }
-            TAG_LOGD(AAFwkTag::APPMGR, "find observer exist:%{public}d", observerId);
+            isExist = observer_->FindObserverByObserverId(observerId);
         }
+        if (!isExist) {
+            TAG_LOGE(AAFwkTag::APPMGR, "not find observer:%{public}d", observerId);
+            ThrowInvalidParamError(env, "not find observerId.");
+            return CreateJsUndefined(env);
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "find observer exist:%{public}d", observerId);
         napi_value lastParam = (argc > ARGC_TWO) ? argv[INDEX_TWO] : nullptr;
         napi_value result = nullptr;
         std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
@@ -855,7 +990,7 @@ private:
         if (argc > ARGC_ONE && ConvertFromJsValue(env, argv[INDEX_ONE], clearPageStack)) {
             hasClearPageStack = true;
         }
-        int32_t appIndex = -1;
+        int32_t appIndex = 0;
         if (hasClearPageStack && argc == ARGC_THREE && !ConvertFromJsValue(env, argv[INDEX_TWO], appIndex)) {
             TAG_LOGE(AAFwkTag::APPMGR, "get appIndex failed");
             ThrowInvalidParamError(env, "Parse param appIndex failed, must be a number.");
@@ -1098,7 +1233,7 @@ private:
         if (argc > ARGC_TWO && ConvertFromJsValue(env, argv[INDEX_TWO], clearPageStack)) {
             hasClearPageStack = true;
         }
-        int32_t appIndex = -1;
+        int32_t appIndex = 0;
         if (hasClearPageStack && argc == ARGC_FOUR && !ConvertFromJsValue(env, argv[INDEX_THREE], appIndex)) {
             ThrowInvalidParamError(env, "Parse param appIndex failed, must be a number.");
             return CreateJsUndefined(env);
@@ -1134,6 +1269,73 @@ private:
             napiAsyncTask.release();
         }
         return result;
+    }
+
+    napi_value CreateKillProcessWithAccountSafelyTask(napi_env env, const std::string &bundleName,
+        int32_t accountId, bool clearPageStack, int32_t appIndex)
+    {
+        napi_value result = nullptr;
+        std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, nullptr, &result);
+        auto asyncTask = [appManager = appManager_, bundleName, accountId, clearPageStack, appIndex,
+            env, task = napiAsyncTask.get()]() {
+            HandleScope handleScope(env);
+            if (appManager == nullptr || appManager->GetAmsMgr() == nullptr) {
+                TAG_LOGW(AAFwkTag::APPMGR, "null appMgr or amsMgr");
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
+                delete task;
+                return;
+            }
+            auto ret = appManager->GetAmsMgr()->KillProcessWithAccountSafely(
+                bundleName, accountId, clearPageStack, appIndex);
+            if (ret == 0) {
+                task->ResolveWithNoError(env, CreateJsUndefined(env));
+            } else {
+                task->Reject(env, CreateJsErrorByNativeErr(env, ret, "Kill processes safely failed."));
+            }
+            delete task;
+        };
+        if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_immediate)) {
+            napiAsyncTask->Reject(env, CreateJsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "send event failed!"));
+        } else {
+            napiAsyncTask.release();
+        }
+        return result;
+    }
+
+    napi_value OnKillProcessWithAccountSafely(napi_env env, size_t argc, napi_value* argv)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "called");
+        if (argc < ARGC_THREE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Params mismatch");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        std::string bundleName;
+        if (!ConvertFromJsValue(env, argv[INDEX_ZERO], bundleName)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Parse bundleName failed");
+            ThrowInvalidParamError(env, "Parse param bundleName failed, must be a string.");
+            return CreateJsUndefined(env);
+        }
+        int32_t accountId = -1;
+        if (!ConvertFromJsValue(env, argv[INDEX_ONE], accountId)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Parse userId failed");
+            ThrowInvalidParamError(env, "Parse param accountId failed, must be a number.");
+            return CreateJsUndefined(env);
+        }
+        bool clearPageStack = false;
+        if (!ConvertFromJsValue(env, argv[INDEX_TWO], clearPageStack)) {
+            ThrowInvalidParamError(env, "Parse param clearPageStack failed, must be a boolean.");
+            return CreateJsUndefined(env);
+        }
+        int32_t appIndex = 0;
+        if (argc > ARGC_THREE && !ConvertFromJsValue(env, argv[INDEX_THREE], appIndex)) {
+            ThrowInvalidParamError(env, "Parse param appIndex failed, must be a number.");
+            return CreateJsUndefined(env);
+        }
+        return CreateKillProcessWithAccountSafelyTask(
+            env, bundleName, accountId, clearPageStack, appIndex);
     }
 
     napi_value OnKillProcessesInBatch(napi_env env, size_t argc, napi_value* argv)
@@ -1846,9 +2048,20 @@ napi_value JsAppManagerInit(napi_env env, napi_value exportObj)
         GetAppManagerInstance(), GetAbilityManagerInstance());
     napi_wrap(env, exportObj, jsAppManager.release(), JsAppManager::Finalizer, nullptr, nullptr);
     JsAppManagerInitProperty(env, exportObj);
+    JsAppManagerInitFunctions(env, exportObj);
+    TAG_LOGD(AAFwkTag::APPMGR, "end");
+    return CreateJsUndefined(env);
+}
+
+void JsAppManagerInitFunctions(napi_env env, napi_value exportObj)
+{
     const char *moduleName = "AppManager";
     BindNativeFunction(env, exportObj, "on", moduleName, JsAppManager::On);
     BindNativeFunction(env, exportObj, "off", moduleName, JsAppManager::Off);
+    BindNativeFunction(env, exportObj, "onFocusedApplicationChanged", moduleName,
+        JsAppManager::OnFocusedApplicationChanged);
+    BindNativeFunction(env, exportObj, "offFocusedApplicationChanged", moduleName,
+        JsAppManager::OffFocusedApplicationChanged);
     BindNativeFunction(env, exportObj, "getForegroundApplications", moduleName,
         JsAppManager::GetForegroundApplications);
     BindNativeFunction(env, exportObj, "getProcessRunningInfos", moduleName,
@@ -1857,6 +2070,8 @@ napi_value JsAppManagerInit(napi_env env, napi_value exportObj)
         JsAppManager::GetRunningProcessInformation);
     BindNativeFunction(env, exportObj, "isRunningInStabilityTest", moduleName, JsAppManager::IsRunningInStabilityTest);
     BindNativeFunction(env, exportObj, "killProcessWithAccount", moduleName, JsAppManager::KillProcessWithAccount);
+    BindNativeFunction(env, exportObj, "killProcessWithAccountSafely", moduleName,
+        JsAppManager::KillProcessWithAccountSafely);
     BindNativeFunction(env, exportObj, "killProcessesInBatch", moduleName, JsAppManager::KillProcessesInBatch);
     BindNativeFunction(env, exportObj, "killProcessesByBundleName", moduleName,
         JsAppManager::KillProcessesByBundleName);
@@ -1883,8 +2098,6 @@ napi_value JsAppManagerInit(napi_env env, napi_value exportObj)
         JsAppManager::SetKeepAliveForAppServiceExtension);
     BindNativeFunction(env, exportObj, "getKeepAliveAppServiceExtensions", moduleName,
         JsAppManager::GetKeepAliveAppServiceExtensions);
-    TAG_LOGD(AAFwkTag::APPMGR, "end");
-    return CreateJsUndefined(env);
 }
 
 void JsAppManagerInitProperty(napi_env env, napi_value exportObj)

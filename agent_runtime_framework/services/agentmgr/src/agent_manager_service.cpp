@@ -35,6 +35,7 @@
 #include "agent_service_connection.h"
 #include "app_mgr_client.h"
 #include "bundle_mgr_helper.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "in_process_call_wrapper.h"
@@ -177,7 +178,6 @@ void AgentManagerService::OnRemoveSystemAbility(int32_t systemAbilityId, const s
 
 void AgentManagerService::TryBackfillPreInstallCards()
 {
-    // Fire once, after both BMS and accountmgr report ready.
     bool shouldTrigger = false;
     {
         std::lock_guard<std::mutex> lock(backfillState_.mutex);
@@ -187,7 +187,9 @@ void AgentManagerService::TryBackfillPreInstallCards()
         }
     }
     if (shouldTrigger) {
-        AgentCardMgr::BackfillPreInstallCards();
+        ffrt::submit([] {
+            AgentCardMgr::BackfillCards();
+        });
     }
 }
 
@@ -1196,6 +1198,55 @@ int32_t AgentManagerService::VerifyAgentDisconnectRequests(const std::vector<AAF
         return ERR_INVALID_VALUE;
     }
     return AgentConnectManager::GetInstance().VerifyAgentDisconnectRequests(remote, wants, callerIdentity);
+}
+
+int32_t AgentManagerService::AttributeTaskForA2AReusedConnectionRecord(const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connection)
+{
+    // Best-effort, oneway notification: a client-side connect hit an already-connected
+    // AgentConnection (reused). Resolve the tracked AgentServiceConnection (the wrapper
+    // AMS already knows) and forward so AMS can attribute the task id onto the same
+    // ConnectionRecord. Failures are logged and must NOT affect the connect result.
+    AAFwk::Want connectWant;
+    std::string agentId;
+    AgentCard card;
+    int32_t callerUid = 0;
+    int32_t permRet = ValidateConnectAgentPermission(callerUid);
+    if (permRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "permission denied: %{public}d", permRet);
+        return permRet;
+    }
+    int32_t ret = ResolveConnectAgentTarget(want, connectWant, agentId, card, callerUid);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    connectWant.SetParam(AGENT_CARD_TYPE_KEY, static_cast<int32_t>(card.type));
+
+    // Step 3: low-code agents use dedicated shared-host session management.
+    if (card.type == AgentCardType::LOW_CODE) {
+        int32_t hostUid = 0;
+        ret = ResolveLowCodeHostInfo(connectWant, callerUid / BASE_USER_RANGE, hostUid);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "Resolve lowCode host info error.");
+            return ret;
+        }
+    }
+
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null connection");
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceConnection = AgentConnectManager::GetInstance().GetServiceConnectionForTracked(connection);
+    if (serviceConnection == nullptr) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "serviceConnection not found, skip");
+        return ERR_INVALID_VALUE;
+    }
+    ret = AAFwk::AbilityManagerClient::GetInstance()->AttributeTaskForA2AReusedConnectionRecord(
+        connectWant, serviceConnection);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "Attribute task for A2AReusedConnectionRecord failed: %{public}d", ret);
+    }
+    return ret;
 }
 
 void AgentManagerService::HandleCallerConnectionDied(const sptr<IRemoteObject> &remote)

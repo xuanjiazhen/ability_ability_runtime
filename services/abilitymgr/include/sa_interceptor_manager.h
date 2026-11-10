@@ -45,6 +45,7 @@ private:
     SAInterceptorManager();
     ~SAInterceptorManager();
     bool ObserverExist(sptr<IRemoteBroker> observer);
+    bool IsGamePrelaunchProcess(const AppExecFwk::AbilityInfo &abilityInfo);
 private:
     std::mutex saInterceptorLock_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;

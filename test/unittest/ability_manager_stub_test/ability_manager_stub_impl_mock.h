@@ -78,6 +78,7 @@ public:
     MOCK_METHOD2(AcquireShareData, int32_t(const int32_t &missionId, const sptr<IAcquireShareDataCallback> &shareData));
     MOCK_METHOD4(ShareDataDone, int32_t(const sptr<IRemoteObject> &token,
         const int32_t &resultCode, const int32_t &uniqueId, WantParams &wantParam));
+    MOCK_METHOD2(GetPidByCallStub, int32_t(const sptr<IRemoteObject> &, int32_t &));
 
     int InvokeSendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
     {
@@ -521,6 +522,7 @@ int32_t GetUserLockedBundleList(int32_t userId, std::unordered_set<std::string> 
         const std::string &));
     MOCK_METHOD4(QuerySkillType, int32_t(const std::string &, const std::string &,
         const std::string &, int32_t &));
+    MOCK_METHOD5(BackToCallerAbilityWithResult, int(const sptr<IRemoteObject> &, int, const Want &, int64_t, bool));
 
     void SanitizeWantParamsForTest(Want &want)
     {

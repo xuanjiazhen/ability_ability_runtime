@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,6 +45,8 @@ constexpr const char* ERROR_MSG_INVALID_CONTEXT = "The context does not exist.";
 constexpr const char* ERROR_MSG_INVALID_MODULENAME = "Invalid moduleName.";
 constexpr const char* ERROR_MSG_CONTROLLED = "The application is controlled.";
 constexpr const char* ERROR_MSG_EDM_CONTROLLED = "The application is controlled by EDM.";
+constexpr const char* ERROR_MSG_KILL_PROCESS_KEEP_ALIVE =
+    "The target process is protected by an MDM application and cannot be terminated.";
 constexpr const char* ERROR_MSG_NETWORK_ABNORMAL = "Network error.";
 constexpr const char* ERROR_MSG_NOT_SUPPORT_FREE_INSTALL = "Installation-free is not supported.";
 constexpr const char* ERROR_MSG_NOT_TOP_ABILITY = "The ability is not on the top of the UI.";
@@ -100,6 +102,10 @@ constexpr const char* ERROR_MSG_MULTI_INSTANCE_NOT_SUPPORTED = "Multi-instance i
 constexpr const char* ERROR_MSG_INVALID_APP_INSTANCE_KEY = "The app instance key does not exist.";
 constexpr const char* ERROR_MSG_UPPER_LIMIT = "The number of app instances reaches the limit.";
 constexpr const char* ERROR_MSG_APP_INSTANCE_KEY_NOT_SUPPORT = "The APP_INSTANCE_KEY cannot be specified.";
+constexpr int32_t ERR_OBSERVER_NOT_FOUND =
+    static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND);
+constexpr int32_t ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT =
+    static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT);
 constexpr const char* ERROR_MSG_CREATE_NEW_INSTANCE_NOT_SUPPORT = "Creating a new instance is not supported.";
 constexpr const char* ERROR_MSG_UI_ABILITY_IS_STARTING = "The UIAbility is being started.";
 constexpr const char* ERROR_MSG_EXTENSION_START_ABILITY_CONTROLLED =
@@ -110,6 +116,8 @@ constexpr const char* ERROR_MSG_FROM_WINDOW =
 constexpr const char* ERROR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST =
     "The caller is not in the appIdentifierAllowList of the target appliaction.";
 constexpr const char* ERROR_TARGET_NOT_STARTED = "The target service has not been started yet.";
+constexpr const char* ERROR_MSG_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT =
+    "The specified application is not authorized to start before the user is unlocked.";
 constexpr const char* ERROR_MSG_CALLER_NOT_ATOMIC_SERVICE =
     "The caller is not an atomic service.";
 constexpr const char* ERROR_MSG_AGENT_ID_NOT_EXIST =
@@ -278,6 +286,8 @@ constexpr const char* ERROR_MSG_OBSERVER_CREATE_FAILED =
     "Internal error. Failed to create the observer.";
 constexpr const char* ERROR_MSG_OBSERVER_NOT_EXIST =
     "Internal error. The observer does not exist. Register the observer first.";
+constexpr const char* ERROR_MSG_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT =
+    "The number of registered observers for the current application has reached the upper limit.";
 constexpr const char* ERROR_MSG_REGISTER_OBSERVER_FAILED =
     "Internal error. Failed to register the observer. Try again later.";
 constexpr const char* ERROR_MSG_UNREGISTER_OBSERVER_FAILED =
@@ -375,6 +385,7 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_INVALID_MODULENAME, ERROR_MSG_INVALID_MODULENAME },
     { AbilityErrorCode::ERROR_CODE_CONTROLLED, ERROR_MSG_CONTROLLED },
     { AbilityErrorCode::ERROR_CODE_EDM_CONTROLLED, ERROR_MSG_EDM_CONTROLLED },
+    { AbilityErrorCode::ERROR_CODE_KILL_PROCESS_KEEP_ALIVE, ERROR_MSG_KILL_PROCESS_KEEP_ALIVE },
     { AbilityErrorCode::ERROR_CODE_NETWORK_ABNORMAL, ERROR_MSG_NETWORK_ABNORMAL },
     { AbilityErrorCode::ERROR_CODE_NOT_SUPPORT_FREE_INSTALL, ERROR_MSG_NOT_SUPPORT_FREE_INSTALL },
     { AbilityErrorCode::ERROR_CODE_NOT_TOP_ABILITY, ERROR_MSG_NOT_TOP_ABILITY },
@@ -429,6 +440,8 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST,
         ERROR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST},
     { AbilityErrorCode::ERROR_CODE_TARGET_NOT_STARTED, ERROR_TARGET_NOT_STARTED},
+    { AbilityErrorCode::ERROR_CODE_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT,
+        ERROR_MSG_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT },
     { AbilityErrorCode::ERROR_CODE_CALLER_NOT_ATOMIC_SERVICE, ERROR_MSG_CALLER_NOT_ATOMIC_SERVICE},
     { AbilityErrorCode::ERROR_CODE_AGENT_ID_NOT_EXIST, ERROR_MSG_AGENT_ID_NOT_EXIST},
     { AbilityErrorCode::ERROR_CODE_AGENT_CARD_LIST_OUT_OF_RANGE, ERROR_MSG_AGENT_CARD_LIST_OUT_OF_RANGE},
@@ -472,11 +485,15 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_NOT_PENDING, ERROR_MSG_DELAYED_PROCESS_EXIT_NOT_PENDING },
     { AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY,
         ERROR_MSG_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY },
+    { AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND, ERROR_MSG_OBSERVER_NOT_EXIST },
+    { AbilityErrorCode::ERROR_CODE_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT,
+        ERROR_MSG_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT },
 };
 
 static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP {
     {0, AbilityErrorCode::ERROR_OK},
     {CHECK_PERMISSION_FAILED, AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED},
+    {ERR_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT, AbilityErrorCode::ERROR_CODE_APP_NOT_AUTHORIZED_FOR_DIRECT_BOOT},
     {ERR_PERMISSION_DENIED, AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED},
     {ERR_NOT_SYSTEM_APP, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP},
     {ERR_EVICT_FILE_TYPE, AbilityErrorCode::ERROR_CODE_FILE_TYPE_ERROR},
@@ -518,6 +535,7 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {START_ABILITY_WAITING, AbilityErrorCode::ERROR_START_ABILITY_WAITTING},
     {ERR_APP_CONTROLLED, AbilityErrorCode::ERROR_CODE_CONTROLLED},
     {ERR_EDM_APP_CONTROLLED, AbilityErrorCode::ERROR_CODE_EDM_CONTROLLED},
+    {ERR_KILL_PROCESS_MDM_PROTECTED, AbilityErrorCode::ERROR_CODE_KILL_PROCESS_KEEP_ALIVE},
     {ERR_INSIGHT_INTENT_START_INVALID_COMPONENT, AbilityErrorCode::ERROR_CODE_OPERATION_NOT_SUPPORTED},
     {ERR_RESTART_APP_INCORRECT_ABILITY, AbilityErrorCode::ERROR_CODE_RESTART_APP_INCORRECT_ABILITY},
     {ERR_RESTART_APP_FREQUENT, AbilityErrorCode::ERROR_CODE_RESTART_APP_FREQUENT},
@@ -604,6 +622,9 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY,
         AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY},
     {ERR_INVALID_EXTENSION_TYPE, AbilityErrorCode::ERROR_CODE_INNER},
+    {ERR_OBSERVER_NOT_FOUND, AbilityErrorCode::ERROR_CODE_OBSERVER_NOT_FOUND},
+    {ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT,
+        AbilityErrorCode::ERROR_CODE_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT},
 };
 
 static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {

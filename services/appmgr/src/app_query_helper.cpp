@@ -425,6 +425,40 @@ int AppQueryHelper::GetSelfChildrenProcesses(std::vector<ChildProcessInfo> &info
     }
     return ERR_OK;
 }
+
+bool AppQueryHelper::QueryIsSelfChildrenProcesses(int32_t pid, int32_t &uid)
+{
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return false;
+    }
+    auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    bool isMainProcessCall = false;
+    bool iscallerChildProcess = false;
+    for (const auto &item : appRunningManager_->GetAppRunningRecordMap()) {
+        const auto &appRecord = item.second;
+        if (!appRecord) {
+            continue;
+        }
+        auto applicationInfo = appRecord->GetApplicationInfo();
+        if (!applicationInfo) {
+            continue;
+        }
+        if (callingTokenId != applicationInfo->accessTokenId) {
+            continue;
+        }
+        if (appRecord->GetPid() == callingPid) {
+            isMainProcessCall = true;
+        }
+        auto childProcessRecord = appRecord->GetChildProcessRecordByPid(pid);
+        if (childProcessRecord != nullptr) {
+            uid = childProcessRecord->GetUid();
+            iscallerChildProcess = true;
+        }
+    }
+    return isMainProcessCall && iscallerChildProcess;
+}
 #endif // SUPPORT_CHILD_PROCESS
 
 void AppQueryHelper::GetRunningProcesses(const std::shared_ptr<AppRunningRecord> &appRecord,
@@ -976,6 +1010,27 @@ bool AppQueryHelper::IsFinalAppProcessByBundleName(const std::string &bundleName
     return count == 1;
 }
 
+bool AppQueryHelper::IsHyperSnapInitializing()
+{
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "running manager null");
+        return false;
+    }
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    auto appRecord = appRunningManager_->GetAppRunningRecordByPid(callingPid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "get running record null, pid: %{public}d", callingPid);
+        return false;
+    }
+    auto state = appRecord->GetMakeImageState();
+    bool isInitializing = state == MakeImageState::MAKE_PRELOAD_START
+        || state == MakeImageState::MAKE_PRELOAD_FINISH
+        || state == MakeImageState::MAKE_IMAGE_START;
+    TAG_LOGD(AAFwkTag::APPMGR, "pid: %{public}d, makeImageState: %{public}d, isInitializing: %{public}d",
+        callingPid, static_cast<int32_t>(state), isInitializing);
+    return isInitializing;
+}
+
 int32_t AppQueryHelper::GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRunningUniqueId)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call.");
@@ -988,9 +1043,20 @@ int32_t AppQueryHelper::GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRu
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     auto isLocalDebugOtherAppsCall = AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall();
     bool isDevelopMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
-    if (!isCallingPermission && !(isShellCall && isDevelopMode) && !isLocalDebugOtherAppsCall) {
-        TAG_LOGE(AAFwkTag::APPMGR, "GetAppRunningUniqueIdByPid not SA call or verification failed");
-        return ERR_PERMISSION_DENIED;
+    if (!isCallingPermission && !(isShellCall && isDevelopMode)) {
+        if (!isLocalDebugOtherAppsCall) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetAppRunningUniqueIdByPid not SA call or verification failed");
+            return ERR_PERMISSION_DENIED;
+        }
+        auto appRecord = GetAppRunningRecordByPid(pid);
+        if (appRecord == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall appRecord null, pid:%{public}d", pid);
+            return ERR_PERMISSION_DENIED;
+        }
+        if (GetUserIdByUid(appRecord->GetUid()) != GetUserIdByUid(IPCSkeleton::GetCallingUid())) {
+            TAG_LOGE(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall not same user, permission denied");
+            return ERR_PERMISSION_DENIED;
+        }
     }
     return appRunningManager_->GetAppRunningUniqueIdByPid(pid, appRunningUniqueId);
 }

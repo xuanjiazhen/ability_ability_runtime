@@ -49,6 +49,7 @@ const std::string JSON_KEY_SETTER_USERID = "setterUserId";
 const std::string JSON_KEY_USERID = "userId";
 const std::string JSON_KEY_SETTER_TYPE = "setterType";
 const std::string JSON_KEY_IS_HIDDEN_START = "isHiddenStart";
+const std::string JSON_KEY_IS_DIRECT_BOOT = "isDirectBoot";
 } // namespace
 const DistributedKv::AppId AbilityAutoStartupDataManager::APP_ID = { "auto_startup_storage" };
 const DistributedKv::StoreId AbilityAutoStartupDataManager::STORE_ID = { "auto_startup_infos" };
@@ -542,6 +543,48 @@ int32_t AbilityAutoStartupDataManager::GetCurrentAppAutoStartupData(
     return ERR_OK;
 }
 
+int32_t AbilityAutoStartupDataManager::ResetAutoStartupDirectBoot(const AutoStartupInfo &info)
+{
+    if (info.bundleName.empty() || info.abilityName.empty() || info.accessTokenId.empty() || info.userId < 0) {
+        return ERR_INVALID_VALUE;
+    }
+    auto key = ConvertAutoStartupDataToKey(info);
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (!CheckKvStore()) {
+            return ERR_NO_INIT;
+        }
+        DistributedKv::Value value;
+        auto status = kvStorePtr_->Get(key, value);
+        if (status == DistributedKv::Status::KEY_NOT_FOUND) {
+            return ERR_OK;
+        }
+        if (status != DistributedKv::Status::SUCCESS) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "get direct boot data error: %{public}d", status);
+            RestoreKvStore(status);
+            return ERR_INVALID_OPERATION;
+        }
+        auto jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
+        if (jsonObject.is_discarded() || !jsonObject.is_object()) {
+            return ERR_INVALID_VALUE;
+        }
+        if (!jsonObject.contains(JSON_KEY_IS_DIRECT_BOOT) || !jsonObject[JSON_KEY_IS_DIRECT_BOOT].is_boolean() ||
+            !jsonObject[JSON_KEY_IS_DIRECT_BOOT].get<bool>()) {
+            return ERR_OK;
+        }
+        jsonObject[JSON_KEY_IS_DIRECT_BOOT] = false;
+        status = kvStorePtr_->Put(key, DistributedKv::Value(jsonObject.dump()));
+        if (status != DistributedKv::Status::SUCCESS) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "reset direct boot data error: %{public}d", status);
+            RestoreKvStore(status);
+            return ERR_INVALID_OPERATION;
+        }
+    }
+    dbWriteCounter_.UpdateWriteCount(AUTO_STARTUP_STORAGE_DIR);
+    BackupKvStore();
+    return ERR_OK;
+}
+
 int32_t AbilityAutoStartupDataManager::GetAutoStartupStatusForSelf(uint32_t callerTokenId, bool &isAutoStartEnabled)
 {
     auto callerTokenIdStr = std::to_string(callerTokenId);
@@ -585,6 +628,7 @@ DistributedKv::Value AbilityAutoStartupDataManager::ConvertAutoStartupStatusToVa
         { JSON_KEY_SETTER_USERID, info.setterUserId },
         { JSON_KEY_SETTER_TYPE, info.setterType },
         { JSON_KEY_IS_HIDDEN_START, info.isHiddenStart },
+        { JSON_KEY_IS_DIRECT_BOOT, info.isDirectBoot },
     };
     DistributedKv::Value value(jsonObject.dump());
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "value: %{public}s", value.ToString().c_str());
@@ -620,6 +664,9 @@ void AbilityAutoStartupDataManager::ConvertAutoStartupStatusFromValue(
     }
     if (jsonObject.contains(JSON_KEY_IS_HIDDEN_START) && jsonObject[JSON_KEY_IS_HIDDEN_START].is_boolean()) {
         startupStatus.isHiddenStart = jsonObject.at(JSON_KEY_IS_HIDDEN_START).get<bool>();
+    }
+    if (jsonObject.contains(JSON_KEY_IS_DIRECT_BOOT) && jsonObject[JSON_KEY_IS_DIRECT_BOOT].is_boolean()) {
+        startupStatus.isDirectBoot = jsonObject.at(JSON_KEY_IS_DIRECT_BOOT).get<bool>();
     }
 }
 
@@ -704,6 +751,9 @@ void AbilityAutoStartupDataManager::ConvertAutoStartupInfoFromValue(
 
     if (jsonValueObject.contains(JSON_KEY_IS_HIDDEN_START) && jsonValueObject[JSON_KEY_IS_HIDDEN_START].is_boolean()) {
         info.isHiddenStart = jsonValueObject.at(JSON_KEY_IS_HIDDEN_START).get<bool>();
+    }
+    if (jsonValueObject.contains(JSON_KEY_IS_DIRECT_BOOT) && jsonValueObject[JSON_KEY_IS_DIRECT_BOOT].is_boolean()) {
+        info.isDirectBoot = jsonValueObject.at(JSON_KEY_IS_DIRECT_BOOT).get<bool>();
     }
 }
 

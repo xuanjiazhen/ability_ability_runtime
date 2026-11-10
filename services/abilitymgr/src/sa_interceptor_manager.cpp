@@ -18,8 +18,11 @@
 
 #include "ability_manager_errors.h"
 #include "ability_manager_service.h"
+#include "app_scheduler.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "in_process_call_wrapper.h"
+#include "running_process_info.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -151,6 +154,24 @@ bool SAInterceptorManager::ObserverExist(sptr<IRemoteBroker> observer)
     return false;
 }
 
+bool SAInterceptorManager::IsGamePrelaunchProcess(const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    const auto &appInfo = abilityInfo.applicationInfo;
+    std::vector<AppExecFwk::RunningProcessInfo> runningProcessInfos;
+    if (IN_PROCESS_CALL(DelayedSingleton<AAFwk::AppScheduler>::GetInstance()->
+        GetProcessRunningInfosByAccessTokenId(appInfo.accessTokenId, runningProcessInfos)) != ERR_OK) {
+        return false;
+    }
+    for (const auto &info : runningProcessInfos) {
+        if (info.uid_ != appInfo.uid ||
+            std::find(info.bundleNames.begin(), info.bundleNames.end(), appInfo.bundleName) == info.bundleNames.end()) {
+            continue;
+        }
+        return info.preloadMode_ == AppExecFwk::PreloadMode::GAME_PRELAUNCH;
+    }
+    return false;
+}
+
 std::string SAInterceptorManager::GenerateSAInterceptorParams(const AAFwk::Want &want, sptr<IRemoteObject> callerToken,
     const AppExecFwk::AbilityInfo &abilityInfo, const std::string &dialogSessionId)
 {
@@ -161,10 +182,12 @@ std::string SAInterceptorManager::GenerateSAInterceptorParams(const AAFwk::Want 
         jsonObj["callerBundleName"] = callerAbilityInfo.bundleName;
         jsonObj["callerModuleName"] = callerAbilityInfo.moduleName;
         jsonObj["callerAbilityName"] = callerAbilityInfo.name;
+        jsonObj["gamePrelaunching"] = IsGamePrelaunchProcess(callerAbilityInfo);
     } else {
         jsonObj["callerBundleName"] = "";
         jsonObj["callerModuleName"] = "";
         jsonObj["callerAbilityName"] = "";
+        jsonObj["gamePrelaunching"] = false;
     }
     jsonObj["callerUid"] = IPCSkeleton::GetCallingUid();
     jsonObj["callerAppState"] = abilityRecord ? static_cast<int32_t>(abilityRecord->GetAppState()) : 0;
