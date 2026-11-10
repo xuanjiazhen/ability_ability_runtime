@@ -818,6 +818,14 @@ enum class AbilityManagerInterfaceCode {
 
     // kill collaborator process
     KILL_COLLABORATOR_PROCESS = 6190,
+
+    // query the caller bundle name of the insight intent execution with the
+    // given intent id (privacy-center ownership verification)
+    GET_INSIGHT_INTENT_CALLER = 6191,
+
+    // pure permission validation for the invokeFunction caller (system app
+    // holding EXECUTE_INSIGHT_INTENT) before the execution dispatch
+    CHECK_INVOKE_FUNCTION_CALLER = 6192,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

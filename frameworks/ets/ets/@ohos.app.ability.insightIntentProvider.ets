@@ -111,6 +111,7 @@ export default namespace insightIntentProvider {
 
   export native function nativeOnWillInsightIntentExecute(callback: InsightIntentExecutionCallBack): void;
   export native function nativeOffWillInsightIntentExecute(callback?: InsightIntentExecutionCallBack): void;
+  export native function nativeGetInsightIntentCaller(intentId: long, callback: AsyncCallbackWrapper<string>): void;
 
   export function onWillInsightIntentExecute(callback: InsightIntentExecutionCallBack): void {
     insightIntentProvider.nativeOnWillInsightIntentExecute(callback);
@@ -118,5 +119,20 @@ export default namespace insightIntentProvider {
 
   export function offWillInsightIntentExecute(callback?: InsightIntentExecutionCallBack): void {
     insightIntentProvider.nativeOffWillInsightIntentExecute(callback);
+  }
+
+  export function getInsightIntentCaller(intentId: long): Promise<string> {
+    return new Promise<string>((resolve: (data: string) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<string>((err: BusinessError | null, data: string | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as string);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        insightIntentProvider.nativeGetInsightIntentCaller(intentId, asyncCall);
+      });
+    });
   }
 }
