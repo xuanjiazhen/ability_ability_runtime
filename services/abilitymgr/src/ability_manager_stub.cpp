@@ -674,6 +674,9 @@ int AbilityManagerStub::OnRemoteRequestInnerFourteenth(uint32_t code, MessagePar
     if (interfaceCode == AbilityManagerInterfaceCode::GET_UI_EXTENSION_SESSION_INFO) {
         return GetUIExtensionSessionInfoInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID) {
+        return GetUIExtensionRootHostInfoByIdInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY) {
         return PreloadUIExtensionAbilityInner(data, reply);
     }
@@ -5138,6 +5141,24 @@ int32_t AbilityManagerStub::GetUIExtensionSessionInfoInner(MessageParcel &data, 
     auto result = GetUIExtensionSessionInfo(callerToken, uiExtensionSessionInfo, userId);
     if (!reply.WriteParcelable(&uiExtensionSessionInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write ui extension session info fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetUIExtensionRootHostInfoByIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t abilityRecordId = data.ReadInt32();
+    UIExtensionHostInfo hostInfo;
+    auto result = GetUIExtensionRootHostInfoById(abilityRecordId, hostInfo);
+    if (!reply.WriteParcelable(&hostInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write ui extension host info fail");
         return ERR_INVALID_VALUE;
     }
 
