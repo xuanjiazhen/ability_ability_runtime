@@ -818,6 +818,9 @@ enum class AbilityManagerInterfaceCode {
 
     // kill collaborator process
     KILL_COLLABORATOR_PROCESS = 6190,
+
+    // get ui extension root host info by ability record id
+    GET_UI_EXTENSION_HOST_INFO_BY_ID = 6191,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
