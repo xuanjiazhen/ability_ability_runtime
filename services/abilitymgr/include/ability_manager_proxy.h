@@ -1565,6 +1565,9 @@ public:
     int32_t ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const InsightIntentExecuteParam &param) override;
 
+    int32_t ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const InsightIntentExecuteParam &param, uint64_t &intentId) override;
+
     /**
      * @brief Execute intent for distributed scenario.
      *
@@ -1588,6 +1591,10 @@ public:
      */
     int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
+
+    int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+        uint64_t &intentId) override;
 
     /**
      * @brief Execute intent with specified token id.
@@ -1855,6 +1862,12 @@ public:
         const std::string &requestCode) override;
 
     virtual int32_t NotifyInsightIntentExecute(uint64_t intentId) override;
+
+    virtual int32_t NotifyInsightIntentExecuteV2(uint64_t intentId, const sptr<IRemoteObject> &cancelListener) override;
+
+    virtual int32_t CancelInsightIntent(uint64_t intentId) override;
+
+    virtual int32_t CancelInsightIntentByTaskId(const std::string &taskId) override;
 
     virtual int32_t RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback) override;
 
