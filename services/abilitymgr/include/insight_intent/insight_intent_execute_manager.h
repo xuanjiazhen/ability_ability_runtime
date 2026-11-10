@@ -36,6 +36,9 @@ namespace OHOS {
 namespace AAFwk {
 enum class InsightIntentExecuteState {
     UNKNOWN = 0,
+    // Pre-registered by the consent pre-check; only a grant moves it forward, a
+    // deny or timeout drops the record.
+    PENDING_CONSENT,
     EXECUTING,
     EXECUTE_DONE,
     REMOTE_DIED
@@ -45,8 +48,9 @@ struct InsightIntentExecuteRecord {
     sptr<IRemoteObject> callerToken = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient = nullptr;
     uint64_t key = 0;
-    std::string bundleName;
-    std::string callerBundleName;
+    std::string bundleName;           // target bundle name
+    std::string callerBundleName;     // caller bundle name
+    uint32_t callerTokenId = 0;       // caller access token id (IPC caller identity)
     AppExecFwk::InsightIntentExecutionInfo executionInfo;
     pid_t targetPid = 0;
     InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
@@ -101,10 +105,25 @@ public:
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const ExecuteParam &execParam = ExecuteParam{});
 
+    // Reuse when insightIntentId_ != 0: same bundle in PENDING_CONSENT (promote) or
+    // EXECUTING (reuse); otherwise AddRecord allocates a fresh id. No validation here.
+    int32_t AcquireExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
+        const ExecuteParam &execParam);
+
+    // Pre-register in PENDING_CONSENT (agent path): queryable while the consent dialog
+    // shows, later reused via param->insightIntentId_.
+    int32_t RegisterExecuteRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const ExecuteParam &execParam, uint64_t &intentId);
+
     int32_t CheckAndUpdateWant(Want &want, AppExecFwk::ExecuteMode executeMode, int32_t userId,
         std::string callerBundleName = "");
 
     int32_t RemoveExecuteIntent(uint64_t intentId);
+
+    // Ownership-gated removal: drop only when the current caller token id matches the
+    // token id captured at pre-check; a missing record is a no-op.
+    int32_t RemoveExecuteRecordIfCaller(uint64_t intentId);
 
     int32_t ExecuteIntentDone(uint64_t intentId, int32_t resultCode,
         const AppExecFwk::InsightIntentExecuteResult &result, int32_t callerUid = 0, uint32_t accessToken = 0);
@@ -117,6 +136,15 @@ public:
     int32_t GetBundleName(uint64_t intentId, std::string &bundleName) const;
 
     int32_t GetCallerBundleName(uint64_t intentId, std::string &callerBundleName) const;
+
+    // Returns the caller bundle name of a live (PENDING_CONSENT / EXECUTING) record,
+    // or an empty string otherwise.
+    std::string GetInsightIntentCallerBundleName(uint64_t intentId) const;
+
+    // CAS-style state transition: moves the record to `next` only when it currently
+    // sits in `expected`. Returns ERR_OK when the transition happened.
+    int32_t UpdateRecordState(uint64_t intentId, InsightIntentExecuteState expected,
+        InsightIntentExecuteState next);
 
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
@@ -132,6 +160,19 @@ public:
     static int32_t CheckCallerPermission(uint64_t specifiedFullTokenId = 0,
         const std::string &callerBundleName = "",
         const std::string &targetBundleName = "");
+
+    // Third-party gate: the target intent must be exported, and the caller must
+    // hold ACCESS_PUBLIC_FUNCTION. A private target is reported with the same code
+    // as a missing one (INTENT_NOT_EXIST) so its existence is not leaked.
+    static int32_t CheckExportedIntentCallerPermission(const std::string &targetBundleName,
+        const std::string &targetModuleName, const std::string &targetIntentName,
+        int32_t userId);
+
+    // Query the exported flag of the target intent profile (dual-mode storage:
+    // config info first, extract info fallback); false when not found / private.
+    static bool GetInsightIntentExported(const std::string &targetBundleName,
+        const std::string &targetModuleName, const std::string &targetIntentName,
+        int32_t userId);
 
     static int32_t CheckGetInsightIntenInfoPermission(
         const std::string &targetBundleName = "");
@@ -179,7 +220,8 @@ private:
     std::map<pid_t, sptr<IInsightIntentWillExecuteCallback>> insightIntentWillExecuteCallbacks_;
 
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
-        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "");
+        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "",
+        InsightIntentExecuteState initialState = InsightIntentExecuteState::EXECUTING);
 
     static int32_t IsValidCall(const Want &want);
 
