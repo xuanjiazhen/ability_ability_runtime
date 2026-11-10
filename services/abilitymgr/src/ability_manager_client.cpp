@@ -2172,10 +2172,17 @@ ErrCode AbilityManagerClient::DetachAppDebug(const std::string &bundleName, bool
 ErrCode AbilityManagerClient::ExecuteIntent(uint64_t key, sptr<IRemoteObject> callerToken,
     const InsightIntentExecuteParam &param)
 {
+    uint64_t intentId = 0;
+    return ExecuteIntent(key, callerToken, param, intentId);
+}
+
+ErrCode AbilityManagerClient::ExecuteIntent(uint64_t key, sptr<IRemoteObject> callerToken,
+    const InsightIntentExecuteParam &param, uint64_t &intentId)
+{
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->ExecuteIntent(key, callerToken, param);
+    return abms->ExecuteIntent(key, callerToken, param, intentId);
 }
 
 ErrCode AbilityManagerClient::ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
@@ -2872,6 +2879,30 @@ ErrCode AbilityManagerClient::NotifyInsightIntentExecute(uint64_t intentId)
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->NotifyInsightIntentExecute(intentId);
+}
+
+ErrCode AbilityManagerClient::NotifyInsightIntentExecuteV2(uint64_t intentId, const sptr<IRemoteObject> &cancelListener)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->NotifyInsightIntentExecuteV2(intentId, cancelListener);
+}
+
+ErrCode AbilityManagerClient::CancelInsightIntent(uint64_t intentId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->CancelInsightIntent(intentId);
+}
+
+ErrCode AbilityManagerClient::CancelInsightIntentByTaskId(const std::string &taskId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->CancelInsightIntentByTaskId(taskId);
 }
 
 ErrCode AbilityManagerClient::RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)

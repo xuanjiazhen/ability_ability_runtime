@@ -2081,6 +2081,22 @@ public:
         const InsightIntentExecuteParam &param) = 0;
 
     /**
+     * @brief Execute intent and return the generated intent id.
+     *
+     * @param key The key of intent executing client.
+     * @param callerToken Caller ability token.
+     * @param param The Intent execute param.
+     * @param intentId The generated insight intent id, valid only when the
+     *        return value is ERR_OK.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const InsightIntentExecuteParam &param, uint64_t &intentId)
+    {
+        return ExecuteIntent(key, callerToken, param);
+    }
+
+    /**
       * @brief Execute intent by function call with simplified parameters.
       *
       * @param key The callback key for result notification.
@@ -2094,6 +2110,25 @@ public:
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
     {
         return 0;
+    }
+
+    /**
+      * @brief Execute intent by function call and return the generated intent id.
+      *
+      * @param key The callback key for result notification.
+      * @param callerToken The caller ability token.
+      * @param bundleName The target bundle name.
+      * @param intentName The insight intent name.
+      * @param wantParam The execution arguments.
+      * @param intentId The generated insight intent id, valid only when the
+      *        return value is ERR_OK.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+    virtual int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+        uint64_t &intentId)
+    {
+        return ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, wantParam);
     }
 
     /**
@@ -2985,6 +3020,21 @@ public:
     }
 
     virtual int32_t NotifyInsightIntentExecute(uint64_t intentId)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t NotifyInsightIntentExecuteV2(uint64_t intentId, const sptr<IRemoteObject> &cancelListener)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t CancelInsightIntent(uint64_t intentId)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t CancelInsightIntentByTaskId(const std::string &taskId)
     {
         return ERR_OK;
     }
