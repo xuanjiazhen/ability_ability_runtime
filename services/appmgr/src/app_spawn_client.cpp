@@ -58,7 +58,7 @@ constexpr const char* PRELOAD_SO_KEY_LIB_PATH = "libPath";
 constexpr const char* PRELOAD_SO_KEY_SO = "so";
 constexpr const char* PRELOAD_SO_KEY_NS = "ns";
 constexpr const char* PRELOAD_SO_DEFAULT_NS = "default";
-constexpr size_t MAX_SO_NAME_LENGTH = 128;
+constexpr size_t MAX_SO_NAME_LENGTH = 255;
 
 std::string SerializePreloadSoList(const std::vector<std::string>& soNames,
     const std::string& libPath)
