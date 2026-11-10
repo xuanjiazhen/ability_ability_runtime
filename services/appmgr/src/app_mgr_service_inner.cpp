@@ -10978,9 +10978,12 @@ int32_t AppMgrServiceInner::StartChildProcessImpl(const std::shared_ptr<ChildPro
     {
         std::lock_guard<ffrt::mutex> lock(startChildProcessLock_);
 #ifdef SUPPORT_SUBSPAWN
+        auto appInfo = appRecord->GetApplicationInfo();
+        const auto &preloadSoList = appInfo ? appInfo->nativeChildProcessPreloadSoList :
+            std::vector<std::string>();
         if (SubSpawnManager::GetInstance().ShouldUseSubSpawn(
-                appRecord->GetPreloadSoList(), options.isolationMode)) {
-            startMsg.preloadSoList = appRecord->GetPreloadSoList();
+                preloadSoList, options.isolationMode)) {
+            startMsg.preloadSoList = preloadSoList;
             pid_t subSpawnChildPid = SubSpawnManager::GetInstance().StartChildViaSubSpawn(
                 appRecord->GetPid(), startMsg.uid, startMsg);
             if (subSpawnChildPid > 0) {
