@@ -16,10 +16,17 @@
 #ifndef OHOS_FUNCTION_JS_FUNCTION_MANAGER_H
 #define OHOS_FUNCTION_JS_FUNCTION_MANAGER_H
 
+#include <memory>
+
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+class AbilityContext;
+}
 namespace CliTool {
+
+struct InvokeFunctionParam;
 
 /**
  * @class JSFunctionManager
@@ -50,6 +57,8 @@ public:
      */
     static napi_value QueryFunctions(napi_env env, napi_callback_info info);
 
+    static napi_value QueryPublicFunctions(napi_env env, napi_callback_info info);
+
     /**
      * @brief Native method for invoking a function.
      *
@@ -58,6 +67,15 @@ public:
      * @return Returns the N-API value.
      */
     static napi_value InvokeFunction(napi_env env, napi_callback_info info);
+
+    /**
+     * @brief Native method for invoking a public function (open to third-party apps).
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value InvokePublicFunction(napi_env env, napi_callback_info info);
 
     static napi_value RegisterFunctionHook(napi_env env, napi_callback_info info);
 
@@ -74,6 +92,8 @@ private:
      */
     napi_value OnQueryFunctions(napi_env env, size_t argc, napi_value *argv);
 
+    napi_value OnQueryPublicFunctions(napi_env env, size_t argc, napi_value *argv);
+
     /**
      * @brief Implementation for invoking a function.
      *
@@ -83,6 +103,25 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnInvokeFunction(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnInvokePublicFunction(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Shared promise/tsfn/executor start logic for invokeFunction and
+     *        invokePublicFunction. The caller identity (system app vs third-party)
+     *        is derived locally from the caller's own full token id. A system app
+     *        dispatches straight to the service side without a consent dialog; a
+     *        third-party caller must carry a non-null UIAbilityContext, in which
+     *        case the privacy-center consent dialog is mounted before the executor
+     *        runs (grant proceeds, refusal rejects with ERR_PERMISSION_DENIED).
+     *
+     * @param env The N-API environment.
+     * @param param The parsed invocation parameters.
+     * @param abilityContext Optional UIAbilityContext hosting the consent dialog.
+     * @return Returns the N-API promise value.
+     */
+    napi_value StartInvokeFunction(napi_env env, const InvokeFunctionParam &param,
+        const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext);
 
     napi_value OnRegisterFunctionHook(napi_env env, size_t argc, napi_value *argv);
 
