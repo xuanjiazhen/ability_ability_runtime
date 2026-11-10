@@ -79,7 +79,8 @@ void IntentClient::DeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remot
 }
 
 int32_t IntentClient::SendExecuteRequest(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
+    const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+    uint64_t &intentId)
 {
     auto remote = GetAbilityManagerRemote();
     if (remote == nullptr) {
@@ -120,11 +121,24 @@ int32_t IntentClient::SendExecuteRequest(uint64_t key, const sptr<IRemoteObject>
         TAG_LOGE(AAFwkLogTag::INTENT, "send request failed: %{public}d", err);
         return err;
     }
-    return reply.ReadInt32();
+    int32_t result = reply.ReadInt32();
+    if (!reply.ReadUint64(intentId)) {
+        // Backward compatible with an old service reply that carries only the
+        // int32 result; keep intentId 0 in that case.
+        intentId = 0;
+    }
+    return result;
 }
 
 int32_t IntentClient::ExecuteIntentByFunctionCall(const ExecuteIntentParam &param)
 {
+    uint64_t intentId = 0;
+    return ExecuteIntentByFunctionCall(param, intentId);
+}
+
+int32_t IntentClient::ExecuteIntentByFunctionCall(const ExecuteIntentParam &param, uint64_t &intentId)
+{
+    intentId = 0;
     if (param.callback == nullptr) {
         TAG_LOGE(AAFwkLogTag::INTENT, "null callback");
         return ERR_INVALID_VALUE;
@@ -133,7 +147,7 @@ int32_t IntentClient::ExecuteIntentByFunctionCall(const ExecuteIntentParam &para
     auto hostClient = AbilityRuntime::InsightIntentHostClient::GetInstance();
     uint64_t key = hostClient->AddInsightIntentExecute(param.callback);
 
-    int32_t err = SendExecuteRequest(key, hostClient, param.bundleName, param.intentName, param.wantParam);
+    int32_t err = SendExecuteRequest(key, hostClient, param.bundleName, param.intentName, param.wantParam, intentId);
     if (err != ERR_OK) {
         hostClient->RemoveInsightIntentExecute(key);
     }

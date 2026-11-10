@@ -59,8 +59,9 @@ bool InsightIntentExecutorMgr::ExecuteInsightIntent(Runtime& runtime, const Insi
     callback->Push(asyncCallback);
 
     // Notify AMS that this intent execution has started (AMS records the process pid).
+    // TODO: attach the executor's IInsightIntentCancelListener here to receive OnCanceled.
     AAFwk::AbilityManagerClient::GetInstance()->NotifyInsightIntentExecute(
-        executeParam->insightIntentId_);
+        executeParam->insightIntentId_, nullptr);
 
     // Create insight intent executor
     InsightIntentType type = static_cast<InsightIntentType>(executeParam->decoratorType_);
