@@ -60,6 +60,13 @@ ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam &param)
         return ERR_OK;
     }
 
+    if (param.startAbilityCtx.ConsumeSkipScreenLock() &&
+        param.abilityInfo->type == AppExecFwk::AbilityType::PAGE) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "allow direct boot UIAbility %{public}s/%{public}s",
+            param.abilityInfo->bundleName.c_str(), param.abilityInfo->name.c_str());
+        return ERR_OK;
+    }
+
 #ifdef SUPPORT_SCREEN
 #ifdef ABILITY_RUNTIME_SCREENLOCK_ENABLE
     if (!OHOS::ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {

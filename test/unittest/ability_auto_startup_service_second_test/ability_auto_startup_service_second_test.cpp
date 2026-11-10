@@ -1811,5 +1811,202 @@ HWTEST_F(AbilityAutoStartupServiceSecondTest, DirectBoot_ResetStorageFailureKeep
     EXPECT_EQ(manager->ResetAutoStartupDirectBoot(info), ERR_INVALID_OPERATION);
     EXPECT_EQ(context.store_->entries.front().value.ToString(), original);
 }
+class DirectBootRegistrationTest : public AbilityAutoStartupServiceSecondTest {
+public:
+    AppExecFwk::AbilityInfo TargetAbility(const AutoStartupInfo &info, bool systemApp = false)
+    {
+        AppExecFwk::AbilityInfo ability;
+        ability.type = AppExecFwk::AbilityType::PAGE;
+        ability.bundleName = info.bundleName;
+        ability.moduleName = info.moduleName;
+        ability.name = info.abilityName;
+        ability.applicationInfo.accessTokenId = static_cast<uint32_t>(std::stoul(info.accessTokenId));
+        ability.applicationInfo.isSystemApp = systemApp;
+        return ability;
+    }
+};
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_RegisteredTarget, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    const auto info = context.Target("direct.screen.registered");
+    context.Register(info);
+    auto &state = GetDirectBootTestState();
+    state.targets[info.bundleName].allowWindow = false;
+    const auto writes = context.store_->writes;
+    for (bool systemApp : {false, true}) {
+        const auto ability = TargetAbility(info, systemApp);
+        EXPECT_TRUE(context.service_->IsDirectBootApp(ability, info.userId, info.appCloneIndex));
+    }
+    EXPECT_EQ(state.permissionQueries, 2);
+    EXPECT_EQ(state.windowPermissionQueries, 0);
+    EXPECT_EQ(context.store_->writes, writes);
+}
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_OrdinaryAndDisabledRegistration, TestSize.Level1)
+{
+    for (bool directBoot : {false, true}) {
+        SCOPED_TRACE(directBoot);
+        DirectBootServiceTestContext context;
+        const auto info = context.Target("direct.screen.disabled", directBoot);
+        context.Register(info, !directBoot);
+        EXPECT_FALSE(context.service_->IsDirectBootApp(TargetAbility(info), info.userId, info.appCloneIndex));
+        EXPECT_EQ(GetDirectBootTestState().permissionQueries, 0);
+    }
+}
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_MissingAndCancelledRegistration, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    const auto info = context.Target("direct.screen.cancelled");
+    const auto ability = TargetAbility(info);
+    EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, info.appCloneIndex));
+    context.Register(info);
+    EXPECT_TRUE(context.service_->IsDirectBootApp(ability, info.userId, info.appCloneIndex));
+    ASSERT_EQ(context.store_->Delete(context.store_->entries.front().key), DistributedKv::Status::SUCCESS);
+    EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, info.appCloneIndex));
+    EXPECT_EQ(context.store_->writes, 1);
+    EXPECT_EQ(GetDirectBootTestState().permissionQueries, 1);
+}
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_RejectsDifferentIdentity, TestSize.Level1)
+{
+    for (int32_t field = 0; field < 8; ++field) {
+        SCOPED_TRACE(field);
+        DirectBootServiceTestContext context;
+        const auto info = context.Target("direct.screen.identity");
+        auto stored = info;
+        switch (field) {
+            case 0: stored.bundleName += ".other"; break;
+            case 1: stored.moduleName = "otherModule"; break;
+            case 2: stored.abilityName = "OtherAbility"; break;
+            case 3: stored.userId = info.userId + 1; break;
+            case 4: stored.appCloneIndex = 1; break;
+            case 5: stored.accessTokenId = std::to_string(DIRECT_BOOT_TEST_TOKEN_BASE); break;
+            case 6: stored.userId = 0; break;
+            case 7: stored.userId = 1; break;
+        }
+        context.Register(stored);
+        EXPECT_FALSE(context.service_->IsDirectBootApp(TargetAbility(info), info.userId, info.appCloneIndex));
+        EXPECT_EQ(GetDirectBootTestState().permissionQueries, 0);
+    }
+}
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_MatchesCloneRegistration, TestSize.Level1)
+{
+    for (int32_t appCloneIndex : {1, MAX_APP_CLONE_INDEX_NUM - 1}) {
+        SCOPED_TRACE(appCloneIndex);
+        DirectBootServiceTestContext context;
+        auto info = context.Target("direct.screen.clone");
+        info.appCloneIndex = appCloneIndex;
+        context.Register(info);
+        const auto ability = TargetAbility(info);
+        EXPECT_TRUE(context.service_->IsDirectBootApp(ability, info.userId, appCloneIndex));
+        EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, 0));
+        EXPECT_EQ(GetDirectBootTestState().permissionQueries, 1);
+    }
+}
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_RejectsInvalidTarget, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    const auto info = context.Target("direct.screen.invalid");
+    context.Register(info);
+    const auto target = TargetAbility(info);
+    for (auto type : {AppExecFwk::AbilityType::UNKNOWN, AppExecFwk::AbilityType::SERVICE,
+        AppExecFwk::AbilityType::DATA, AppExecFwk::AbilityType::EXTENSION}) {
+        auto ability = target;
+        ability.type = type;
+        EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, 0));
+    }
+    auto ability = target;
+    ability.bundleName.clear();
+    EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, 0));
+    ability = target;
+    ability.moduleName.clear();
+    EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, 0));
+    ability = target;
+    ability.name.clear();
+    EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, 0));
+    ability = target;
+    ability.applicationInfo.accessTokenId = 0;
+    EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, 0));
+    EXPECT_FALSE(context.service_->IsDirectBootApp(target, -1, 0));
+    EXPECT_FALSE(context.service_->IsDirectBootApp(target, info.userId, -1));
+    EXPECT_FALSE(context.service_->IsDirectBootApp(target, info.userId, MAX_APP_CLONE_INDEX_NUM));
+    EXPECT_EQ(GetDirectBootTestState().permissionQueries, 0);
+}
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_RechecksCurrentPermission, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    const auto info = context.Target("direct.screen.permission");
+    context.Register(info);
+    const auto ability = TargetAbility(info);
+    auto &state = GetDirectBootTestState();
+    EXPECT_TRUE(context.service_->IsDirectBootApp(ability, info.userId, info.appCloneIndex));
+    state.targets[info.bundleName].allowDirectBoot = false;
+    EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, info.appCloneIndex));
+    state.targets[info.bundleName].allowDirectBoot = true;
+    EXPECT_TRUE(context.service_->IsDirectBootApp(ability, info.userId, info.appCloneIndex));
+    EXPECT_EQ(state.permissionQueries, 3);
+    EXPECT_EQ(context.store_->writes, 1);
+}
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_StorageFailure, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    const auto info = context.Target("direct.screen.storage");
+    context.Register(info);
+    context.store_->readResult = DistributedKv::Status::ERROR;
+    EXPECT_FALSE(context.service_->IsDirectBootApp(TargetAbility(info), info.userId, info.appCloneIndex));
+    EXPECT_EQ(GetDirectBootTestState().permissionQueries, 0);
+    EXPECT_EQ(context.store_->writes, 1);
+}
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_UnsupportedProduct, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    const auto info = context.Target("direct.screen.product");
+    context.Register(info);
+    AppUtils::GetInstance().isAutoStartupSupported_.isLoaded = true;
+    AppUtils::GetInstance().isAutoStartupSupported_.value = false;
+    EXPECT_FALSE(context.service_->IsDirectBootApp(TargetAbility(info), info.userId, info.appCloneIndex));
+    EXPECT_EQ(GetDirectBootTestState().permissionQueries, 0);
+}
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_LegacyAndInvalidValues, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    const auto info = context.Target("direct.screen.legacy");
+    context.Register(info);
+    for (const auto *value : {"{", "[]", "{}", R"({"isAutoStartup":true})",
+        R"({"isAutoStartup":true,"isDirectBoot":false})",
+        R"({"isAutoStartup":true,"isDirectBoot":"true"})"}) {
+        SCOPED_TRACE(value);
+        context.store_->entries.front().value = DistributedKv::Value(value);
+        EXPECT_FALSE(context.service_->IsDirectBootApp(TargetAbility(info), info.userId, info.appCloneIndex));
+        EXPECT_EQ(context.store_->entries.front().value.ToString(), value);
+    }
+    EXPECT_EQ(GetDirectBootTestState().permissionQueries, 0);
+    EXPECT_EQ(context.store_->writes, 1);
+}
+
+HWTEST_F(DirectBootRegistrationTest, IsDirectBootApp_RechecksCurrentRegistration, TestSize.Level1)
+{
+    DirectBootServiceTestContext context;
+    auto info = context.Target("direct.screen.changed");
+    context.Register(info);
+    const auto ability = TargetAbility(info);
+    EXPECT_TRUE(context.service_->IsDirectBootApp(ability, info.userId, info.appCloneIndex));
+    info.isDirectBoot = false;
+    context.Register(info);
+    EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, info.appCloneIndex));
+    info.isDirectBoot = true;
+    context.Register(info, false);
+    EXPECT_FALSE(context.service_->IsDirectBootApp(ability, info.userId, info.appCloneIndex));
+    EXPECT_EQ(GetDirectBootTestState().permissionQueries, 1);
+}
+
 } // namespace AAFwk
 } // namespace OHOS
