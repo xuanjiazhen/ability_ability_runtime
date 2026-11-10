@@ -25,6 +25,7 @@
 #include "insight_intent_execute_param.h"
 #include "ipc_skeleton.h"
 #include "permission_verification.h"
+#include "server_constant.h"
 #include "skill_execute_param.h"
 
 namespace OHOS {
@@ -134,6 +135,7 @@ void AMSWantParamFilter::OnDeserialized(WantParams &params)
     if (IPCSkeleton::GetCallingPid() == getpid()) {
         return;
     }
+    params.Remove(AbilityRuntime::ServerConstant::DIRECT_BOOT_SKIP_SCREEN_LOCK);
     // System callers pass through untouched; only third-party callers are stripped.
     // This relies on WantParams being unmarshalled in the IPC stub thread, where
     // GetCallingPid() is valid; stubs must not defer deserialization to another thread.

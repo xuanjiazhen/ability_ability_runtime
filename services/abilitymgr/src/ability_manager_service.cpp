@@ -19,6 +19,7 @@
 #include <set>
 #include <sys/epoll.h>
 #include <unordered_map>
+#include <unistd.h>
 
 #include "ability_background_connection.h"
 #include "ability_business_error.h"
@@ -79,6 +80,7 @@
 #include "interceptor/kiosk_interceptor.h"
 #include "interceptor/screen_unlock_interceptor.h"
 #include "int_wrapper.h"
+#include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "os_account_constants.h"
@@ -801,6 +803,9 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
 int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
     uint64_t specifiedFullTokenId)
 {
+    const bool skipScreenLock = IPCSkeleton::GetCallingPid() == getpid() &&
+        want.GetBoolParam(DIRECT_BOOT_SKIP_SCREEN_LOCK, false);
+    const_cast<Want &>(want).RemoveParam(DIRECT_BOOT_SKIP_SCREEN_LOCK);
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
         return INNER_ERR;
@@ -877,6 +882,7 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
         .userId = userId,
         .specifiedFullTokenId = specifiedFullTokenId,
     };
+    startAbilityWrapParam.startAbilityCtx.skipScreenLock = skipScreenLock;
     int32_t ret = StartAbilityInner(startAbilityWrapParam);
     AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityInner", want.GetFlags(), ret);
     if (ret != ERR_OK) {
@@ -2601,6 +2607,9 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     StartAbilityContext ctx;
+    ctx.skipScreenLock = IPCSkeleton::GetCallingPid() == getpid() &&
+        want.GetBoolParam(DIRECT_BOOT_SKIP_SCREEN_LOCK, false);
+    const_cast<Want &>(want).RemoveParam(DIRECT_BOOT_SKIP_SCREEN_LOCK);
     auto eventInfo = BuildEventInfo(want, userId);
     int32_t oriValidUserId = GetValidUserId(userId);
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
@@ -10445,8 +10454,13 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
         result = StartExtensionAbility(
             want, nullptr, userId, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
     } else {
+        if (info.isDirectBoot && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
+            want.SetParam(DIRECT_BOOT_SKIP_SCREEN_LOCK, true);
+        }
         if (info.isHiddenStart && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
             result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId);
+        } else if (info.isDirectBoot && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
+            result = IN_PROCESS_CALL(StartAbility(want, userId));
         } else {
             result = StartAbility(want, userId);
         }
