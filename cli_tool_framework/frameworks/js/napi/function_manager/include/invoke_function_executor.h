@@ -23,6 +23,7 @@
 
 #include "invoke_function_param.h"
 #include "invoke_function_result.h"
+#include "iremote_object.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -50,10 +51,21 @@ public:
 
     static std::shared_ptr<InvokeFunctionExecutor> Create();
 
-    void Execute(const InvokeFunctionParam &param, InvokeResultCallback callback);
+    /**
+     * @brief Start an invocation. When isPublicInvoke is true, the function info is
+     *        obtained via GetPublicFunctionInfo (permission + open-to-third-party check
+     *        on the service side); otherwise via GetFunctionInfo (system app path).
+     *        callerAbilityToken is the caller UIAbility token (context->GetToken())
+     *        threaded to the AMS for launch attribution; null for the system path.
+     *        intentId is the pre-registered execute record id from the consent
+     *        pre-check (0 for the system path); the AMS reuses that record.
+     */
+    void Execute(const InvokeFunctionParam &param, InvokeResultCallback callback, bool isPublicInvoke = false,
+        const sptr<IRemoteObject> &callerAbilityToken = nullptr, uint64_t intentId = 0);
 
 private:
-    void DoExecute(const InvokeFunctionParam &param);
+    void DoExecute(const InvokeFunctionParam &param, bool isPublicInvoke,
+        const sptr<IRemoteObject> &callerAbilityToken, uint64_t intentId);
     void ReportError(int32_t errorCode);
     void SetupTimeout();
 
