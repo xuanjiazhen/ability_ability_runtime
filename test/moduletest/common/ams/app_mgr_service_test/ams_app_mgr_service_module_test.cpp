@@ -623,7 +623,7 @@ HWTEST_F(AppMgrServiceModuleTest, AppMgrService_RegisterInAppSkillProcess_0200, 
     const std::string bundleName = "com.example.skill.host";
 
     IPCSkeleton::SetCallingUid(creatorUid);
-    ASSERT_EQ(TaskManagerService::GetInstance().StartTask(taskId, 200), ERR_OK);
+    ASSERT_EQ(TaskManagerService::GetInstance().StartTask(taskId), ERR_OK);
 
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = bundleName;
