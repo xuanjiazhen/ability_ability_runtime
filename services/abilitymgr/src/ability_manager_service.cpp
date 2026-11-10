@@ -15672,11 +15672,20 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
     const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
     const std::string &intentName, const WantParams &wantParam)
 {
-    const auto toolCallId = wantParam.GetStringParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID);
-    const auto taskId = wantParam.GetStringParam(AppExecFwk::INSIGHT_INTENT_TASK_ID);
+    // Read and strip the isPublicInvoke transport flag. It is stamped by the
+    // executor (authoritative, after climgr-side visibility/permission checks)
+    // and must not leak into the target intent params consumed downstream.
+    WantParams cleanedWantParam = wantParam;
+    bool isPublicInvoke = cleanedWantParam.GetIntParam(
+        AppExecFwk::INSIGHT_INTENT_IS_PUBLIC_INVOKE, 0) != 0;
+    cleanedWantParam.Remove(AppExecFwk::INSIGHT_INTENT_IS_PUBLIC_INVOKE);
+
+    const auto toolCallId = cleanedWantParam.GetStringParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID);
+    const auto taskId = cleanedWantParam.GetStringParam(AppExecFwk::INSIGHT_INTENT_TASK_ID);
     TAG_LOGI(AAFwkTag::INTENT, "called, bundleName: %{public}s, intentName: %{public}s, "
-        "toolCallId: %{public}s, taskId: %{public}s, wantParam: %{public}s",
-        bundleName.c_str(), intentName.c_str(), toolCallId.c_str(), taskId.c_str(), wantParam.ToString().c_str());
+        "toolCallId: %{public}s, taskId: %{public}s, isPublicInvoke: %{public}d, wantParam: %{public}s",
+        bundleName.c_str(), intentName.c_str(), toolCallId.c_str(), taskId.c_str(), isPublicInvoke,
+        cleanedWantParam.ToString().c_str());
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (bundleName.empty() || intentName.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid params, bundleName or intentName empty");
@@ -15685,7 +15694,7 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
 
     int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
     AbilityRuntime::InsightIntentParamParser::ParseResult parseResult;
-    int32_t ret = PrepareFunctionCallParam(bundleName, intentName, wantParam, callerUserId, parseResult);
+    int32_t ret = PrepareFunctionCallParam(bundleName, intentName, cleanedWantParam, callerUserId, parseResult);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -15704,7 +15713,7 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
 
     auto callerBundleName = InsightIntentGetcallerBundleName();
     ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
-        key, callerToken, param, {callerBundleName, ignoreAbilityName});
+        key, callerToken, param, {callerBundleName, ignoreAbilityName, false, "", 0, 0, 0, 0, isPublicInvoke});
     if (ret != ERR_OK) {
         return ret;
     }
@@ -15717,10 +15726,50 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
     AbilityRuntime::ExecuteIntentCommonOptions options(ignoreAbilityName, parseResult.matchedInfo, key);
     options.extractInfo = std::move(extractInfo);
     options.configInfo = std::move(configInfo);
+    options.isPublicInvoke = isPublicInvoke;
     TAG_LOGI(AAFwkTag::INTENT, "dispatch to ExecuteIntentCommon, ignoreAbilityName: %{public}d, "
-        "openLink: %{public}d, callerBundle: %{public}s",
-        ignoreAbilityName, openLinkExecuteFlag, callerBundleName.c_str());
+        "openLink: %{public}d, callerBundle: %{public}s, isPublicInvoke: %{public}d",
+        ignoreAbilityName, openLinkExecuteFlag, callerBundleName.c_str(), isPublicInvoke);
     return ExecuteIntentCommon(callerToken, param, callerBundleName, options);
+}
+
+std::string AbilityManagerService::GetInsightIntentCaller(uint64_t intentId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called, intentId: %{public}" PRIu64, intentId);
+    // Restricted to system applications and SA: querying insight intent execution
+    // state must not be exposed to arbitrary third-party processes or shell.
+    if (!PermissionVerification::GetInstance()->IsSystemAppCall() &&
+        !PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "non-system caller is not allowed to query");
+        return "";
+    }
+
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    if (executeManager == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null execute manager");
+        return "";
+    }
+    return executeManager->GetInsightIntentCaller(intentId);
+}
+
+int32_t AbilityManagerService::CheckInvokeFunctionCaller()
+{
+    // invokeFunction keeps system semantics: the caller must be a system app / SA
+    // and hold EXECUTE_INSIGHT_INTENT. Third-party apps reach functions through the
+    // public path (invokePublicFunction), which is gated by ACCESS_PUBLIC_FUNCTION
+    // and the function's visible flag on the climgr side, not by this check.
+    bool isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
+    if (!isSystemAppCall) {
+        TAG_LOGE(AAFwkTag::INTENT, "invokeFunction caller is not a system app");
+        return ERR_NOT_SYSTEM_APP;
+    }
+    bool hasPermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
+        PermissionConstants::PERMISSION_EXECUTE_INSIGHT_INTENT);
+    if (!hasPermission) {
+        TAG_LOGE(AAFwkTag::INTENT, "system caller lacks EXECUTE_INSIGHT_INTENT");
+        return ERR_PERMISSION_DENIED;
+    }
+    return ERR_OK;
 }
 
 int32_t AbilityManagerService::ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,
@@ -15818,7 +15867,7 @@ int32_t AbilityManagerService::ExecuteIntentCommon(const sptr<IRemoteObject> &ca
 
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
         options.key, callerToken, param, {callerBundleName, options.ignoreAbilityName, isDistributed,
-        options.srcDeviceId, options.requestCode, options.specifiedFullTokenId});
+        options.srcDeviceId, options.requestCode, options.specifiedFullTokenId, 0, 0, options.isPublicInvoke});
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "CheckAndUpdateParam failed: %{public}d", ret);
         return ret;
@@ -15954,76 +16003,94 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
         TAG_LOGE(AAFwkTag::INTENT, "param null");
         return ERR_INVALID_VALUE;
     }
-    // Extract the task attribution id for system-side use and strip it from
-    // the params before any downstream consumer merges them into the target Want.
-    // paramPtr->insightIntentParam_ aliases param.insightIntentParam_, so the
-    // strip also covers the StartAbilityWithServiceMatch(param) path below.
+    // Strip the task attribution id before it reaches the target Want (covers the
+    // service-match path since paramPtr->insightIntentParam_ aliases param's).
     HandleTaskIdAttribution(paramPtr);
 
-    ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
-        key, callerToken, paramPtr, {callerBundlename, ignoreAbilityName});
+    // Validate once; each route acquires its record exactly once (local route inside
+    // ExecuteIntentCommon, distributed / service-match below).
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    ExecuteParam execParam;
+    execParam.callerBundleName = callerBundlename;
+    execParam.ignoreAbilityName = ignoreAbilityName;
+    ret = executeManager->ValidateExecuteParam(callerToken, execParam, paramPtr);
     if (ret != ERR_OK) {
         return ret;
     }
 
     TAG_LOGI(AAFwkTag::INTENT, "execute insight intent, bundleName: %{public}s, moduleName: %{public}s, "
-        "intentName: %{public}s, intentId:%{public}" PRIu64 ", openLinkExecuteFlag: %{public}d, "
-        "executeMode: %{public}d, userId: %{public}d, deviceId: %{private}s, toolCallId: %{public}s",
+        "intentName: %{public}s, openLinkExecuteFlag: %{public}d, executeMode: %{public}d, "
+        "userId: %{public}d, deviceId: %{private}s, toolCallId: %{public}s",
         param.bundleName_.c_str(), param.moduleName_.c_str(), param.insightIntentName_.c_str(),
-        paramPtr->insightIntentId_, openLinkExecuteFlag, param.executeMode_, param.userId_,
+        openLinkExecuteFlag, param.executeMode_, param.userId_,
         param.deviceId_.c_str(), param.toolCallId_.c_str());
 
     if (!param.deviceId_.empty()) {
+        // Distributed route. All checks run before the record is acquired, so a failed
+        // attempt cannot leave a stale record behind.
+        ret = executeManager->CheckCallerPermission(0, callerBundlename, paramPtr->bundleName_);
+        if (ret != ERR_OK) {
+            return ret;
+        }
         if (IsFloodAttackByCallerUid(IPCSkeleton::GetCallingUid())) {
             TAG_LOGW(AAFwkTag::INTENT, "distributed intent flood attack");
-            DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(
-                paramPtr->insightIntentId_);
             return INNER_ERR;
         }
-
- 	    bool hasDistributedPermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
- 	        PermissionConstants::PERMISSION_EXECUTE_DISTRIBUTED_INTENT);
- 	    if (!hasDistributedPermission) {
- 	        TAG_LOGE(AAFwkTag::INTENT, "distributed intent permission denied");
- 	        return CHECK_PERMISSION_FAILED;
- 	    }
- 	    Want want;
+        bool hasDistributedPermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
+            PermissionConstants::PERMISSION_EXECUTE_DISTRIBUTED_INTENT);
+        if (!hasDistributedPermission) {
+            TAG_LOGE(AAFwkTag::INTENT, "distributed intent permission denied");
+            return CHECK_PERMISSION_FAILED;
+        }
+        ret = executeManager->AcquireExecuteRecord(key, callerToken, paramPtr, execParam);
+        if (ret != ERR_OK) {
+            return ret;
+        }
         paramPtr->callerBundleName_ = callerBundlename;
         paramPtr->callerTokenId_ = std::to_string(static_cast<uint32_t>(IPCSkeleton::GetCallingTokenID()));
         paramPtr->callerUid_ = IPCSkeleton::GetCallingUid();
-        auto ret = InsightIntentExecuteManager::GenerateWant(paramPtr, infos, extractInfo, want);
+        Want want;
+        ret = InsightIntentExecuteManager::GenerateWant(paramPtr, infos, extractInfo, want);
         auto element = want.GetElement();
- 	    if (ret != ERR_OK) {
- 	        TAG_LOGE(AAFwkTag::INTENT, "GenerateWant failed: %{public}d", ret);
- 	        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(paramPtr->insightIntentId_);
- 	        return ret;
- 	    }
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "GenerateWant failed: %{public}d", ret);
+            executeManager->RemoveExecuteIntent(paramPtr->insightIntentId_);
+            return ret;
+        }
         TAG_LOGI(AAFwkTag::INTENT, "GenerateWant success");
         IntentCallerInfo callerInfo;
         callerInfo.callerUid = IPCSkeleton::GetCallingUid();
         callerInfo.requestCode = paramPtr->insightIntentId_;
         callerInfo.accessToken = IPCSkeleton::GetCallingTokenID();
         sptr<IRemoteObject> callback = new (std::nothrow) AAFwk::RemoteIntentResultCallback();
- 	    DistributedClient dmsClient;
+        DistributedClient dmsClient;
         want.SetDeviceId(param.deviceId_);
- 	    if (dmsClient.StartRemoteIntent(want, callerInfo, callback) != ERR_OK) {
- 	        TAG_LOGE(AAFwkTag::INTENT, "StartRemoteIntent failed");
- 	        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(
-                paramPtr->insightIntentId_);
- 	        return ERR_INTENT_CONNECTION_FAILED;
- 	    }
+        if (dmsClient.StartRemoteIntent(want, callerInfo, callback) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "StartRemoteIntent failed");
+            executeManager->RemoveExecuteIntent(paramPtr->insightIntentId_);
+            return ERR_INTENT_CONNECTION_FAILED;
+        }
         SetRemoteIntentTimeout(paramPtr->insightIntentId_);
         return ERR_OK;
- 	}
+    }
 
-    AbilityRuntime::ExecuteIntentCommonOptions options(ignoreAbilityName, infos, key);
-    options.extractInfo = std::move(extractInfo);
-    options.configInfo = std::move(configInfo);
     if (param.isServiceMatch_) {
+        ret = executeManager->CheckCallerPermission(0, callerBundlename, paramPtr->bundleName_);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+        ret = executeManager->AcquireExecuteRecord(key, callerToken, paramPtr, execParam);
+        if (ret != ERR_OK) {
+            return ret;
+        }
         // insightIntentParam_ is shared with paramPtr, so HandleTaskIdAttribution
         // already stripped the task id from this path's want params.
         return StartAbilityWithServiceMatch(param);
     }
+
+    AbilityRuntime::ExecuteIntentCommonOptions options(ignoreAbilityName, infos, key);
+    options.extractInfo = std::move(extractInfo);
+    options.configInfo = std::move(configInfo);
     return ExecuteIntentCommon(callerToken, paramPtr, callerBundlename, options);
 }
 

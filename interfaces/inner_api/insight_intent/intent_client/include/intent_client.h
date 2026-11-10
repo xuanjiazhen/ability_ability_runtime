@@ -48,6 +48,13 @@ public:
      */
     int32_t ExecuteIntentByFunctionCall(const ExecuteIntentParam &param);
 
+    /**
+     * @brief Pure permission validation for invokeFunction caller: any caller
+     *        (including third-party apps) holding EXECUTE_INSIGHT_INTENT.
+     * @return Returns ERR_OK on success, ERR_PERMISSION_DENIED on failure.
+     */
+    int32_t CheckInvokeFunctionCaller();
+
 private:
     IntentClient() = default;
 
@@ -55,7 +62,7 @@ private:
 
     void ResetRemote(wptr<IRemoteObject> remote);
 
-    int32_t SendExecuteRequest(uint64_t key, const sptr<IRemoteObject> &callerToken,
+    int32_t SendExecuteRequest(uint32_t code, uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam);
 
     class DeathRecipient : public IRemoteObject::DeathRecipient {

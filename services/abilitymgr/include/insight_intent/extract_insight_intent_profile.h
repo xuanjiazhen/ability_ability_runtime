@@ -182,6 +182,7 @@ struct ExtractInsightIntentInfo {
     std::string result;
     std::string example;
     std::string arkTSMode;
+    bool exported = false;
 
     ExtractInsightIntentInfo() = default;
 };
@@ -226,6 +227,7 @@ struct ExtractInsightIntentProfileInfo {
     std::string functionReturnType;
     std::string formName;
     std::string arkTSMode;
+    bool exported = false;
 };
 
 struct ExtractInsightIntentProfileInfoVec {
@@ -241,6 +243,9 @@ struct ExecuteIntentCommonOptions {
     std::string srcDeviceId;
     uint64_t requestCode = 0;
     uint64_t specifiedFullTokenId = 0;
+    // Function-call public path (invokePublicFunction): propagated to the second
+    // CheckAndUpdateParam so the execution stage skips the system identity gate.
+    bool isPublicInvoke = false;
     ExecuteIntentCommonOptions(bool ignoreAbilityName, const ExtractInsightIntentGenericInfo &infos,
         uint64_t key): ignoreAbilityName(ignoreAbilityName), infos(infos), key(key){};
 };

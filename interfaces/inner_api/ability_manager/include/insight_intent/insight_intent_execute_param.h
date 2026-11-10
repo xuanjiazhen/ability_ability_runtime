@@ -94,6 +94,11 @@ constexpr size_t INSIGHT_INTENT_TASK_ID_MAX_LEN = 256;
 constexpr char INSIGHT_INTENT_CALLER_BUNDLE_NAME[] = "ohos.insightIntent.executeParam.callerBundleName";
 constexpr char INSIGHT_INTENT_CALLER_TOKEN_ID[] = "ohos.insightIntent.executeParam.callerTokenId";
 constexpr char INSIGHT_INTENT_CALLER_UID[] = "ohos.insightIntent.executeParam.callerUid";
+// Transport-only flag stamped by the executor for the invokePublicFunction path.
+// It tells the AMS execution stage to skip the system app / SA identity gate,
+// since function-level authorization (ACCESS_PUBLIC_FUNCTION + visible) was
+// already enforced on the climgr side. Stripped before reaching the target intent.
+constexpr char INSIGHT_INTENT_IS_PUBLIC_INVOKE[] = "ohos.insightIntent.isPublicInvoke";
 
 constexpr int32_t INVALID_DISPLAY_ID = -1;
 constexpr char METHOD_PARAM_SEPARATOR = '\x1f';

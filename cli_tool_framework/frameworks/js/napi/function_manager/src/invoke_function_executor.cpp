@@ -24,8 +24,10 @@
 #include "function_result_wrap.h"
 #include "hilog_tag_wrapper.h"
 #include "intent_client.h"
+#include "int_wrapper.h"
 #include "invoke_function_callback_client.h"
 #include "invoke_function_param.h"
+#include "insight_intent/insight_intent_execute_param.h"
 #include "string_wrapper.h"
 
 namespace OHOS {
@@ -55,13 +57,14 @@ std::shared_ptr<InvokeFunctionExecutor> InvokeFunctionExecutor::Create()
     return std::make_shared<InvokeFunctionExecutor>();
 }
 
-void InvokeFunctionExecutor::Execute(const InvokeFunctionParam &param, InvokeResultCallback callback)
+void InvokeFunctionExecutor::Execute(const InvokeFunctionParam &param, InvokeResultCallback callback,
+    bool isPublicInvoke)
 {
     callback_ = std::move(callback);
     auto self = shared_from_this();
     SetupTimeout();
-    ffrt::submit([self, param]() {
-        self->DoExecute(param);
+    ffrt::submit([self, param, isPublicInvoke]() {
+        self->DoExecute(param, isPublicInvoke);
     });
 }
 
@@ -86,13 +89,22 @@ void InvokeFunctionExecutor::ReportError(int32_t errorCode)
     }
 }
 
-void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
+void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param, bool isPublicInvoke)
 {
     FunctionInfo functionInfo;
-    ErrCode queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(
-        param.functionNamespace, param.functionName, functionInfo);
+    // Public path: GetPublicFunctionInfo enforces the ACCESS_PUBLIC_FUNCTION permission and
+    // the open-to-third-party (visible) check on the service side; the system path keeps
+    // the original GetFunctionInfo (system app + ACCESS_FUNCTION) semantics.
+    ErrCode queryErr;
+    if (isPublicInvoke) {
+        queryErr = CliToolMGRClient::GetInstance().GetPublicFunctionInfo(
+            param.functionNamespace, param.functionName, functionInfo);
+    } else {
+        queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(
+            param.functionNamespace, param.functionName, functionInfo);
+    }
     if (queryErr != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo failed: %{public}d", queryErr);
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "query function info failed: %{public}d", queryErr);
         ReportError(queryErr);
         return;
     }
@@ -159,6 +171,12 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
     if (!taskId.empty()) {
         execParam.wantParam.SetParam("ohos.task.id", AAFwk::String::Box(taskId));
     }
+    // Authoritative injection (transport leg): mark the public-invoke path so the
+    // AMS execution stage skips the system app / SA identity gate. Function-level
+    // authorization (ACCESS_PUBLIC_FUNCTION + visible) was already enforced by
+    // GetPublicFunctionInfo above. Uses Integer (WantParams has no bool getter).
+    execParam.wantParam.SetParam(AppExecFwk::INSIGHT_INTENT_IS_PUBLIC_INVOKE,
+        AAFwk::Integer::Box(isPublicInvoke ? 1 : 0));
     execParam.callback = client;
 
     auto err = AAFwk::IntentClient::GetInstance().ExecuteIntentByFunctionCall(execParam);

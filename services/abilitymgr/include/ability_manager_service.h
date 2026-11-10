@@ -2268,6 +2268,10 @@ public:
     int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
 
+    std::string GetInsightIntentCaller(uint64_t intentId) override;
+
+    int32_t CheckInvokeFunctionCaller() override;
+
     /**
      * @brief Execute UIAbility foreground intent with specified token id.
      * @param want The info of the target ability and custom parameters.
