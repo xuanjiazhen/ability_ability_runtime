@@ -78,11 +78,6 @@ void TaskPriorityJudge::OnForegroundAbilityChanged(pid_t pid, uintptr_t token, b
         abilities.insert(token);
         TAG_LOGI(AAFwkTag::APPMGR, "yzk fg +, pid=%d token=0x%lx count=%zu", pid, static_cast<unsigned long>(token), abilities.size());
     } else {
-        if (token == 0) {
-            // background for the seed sentinel only: leave the real set untouched (we
-            // cannot match a real ability by sentinel)
-            return;
-        }
         abilities.erase(token);
         if (abilities.empty()) {
             fgAbilities_.erase(pid);
@@ -93,14 +88,17 @@ void TaskPriorityJudge::OnForegroundAbilityChanged(pid_t pid, uintptr_t token, b
     }
 }
 
-void TaskPriorityJudge::SeedForeground(pid_t pid)
+void TaskPriorityJudge::SeedForeground(pid_t pid, const std::vector<uintptr_t> &tokens)
 {
     if (pid <= 0) {
         return;
     }
     std::lock_guard<std::mutex> lock(judgeMutex_);
-    fgAbilities_[pid].insert(0);  // sentinel; first real ability event replaces it
-    TAG_LOGI(AAFwkTag::APPMGR, "yzk seed fg pid=%d", pid);
+    auto &abilities = fgAbilities_[pid];
+    for (uintptr_t token : tokens) {
+        abilities.insert(token);
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "yzk seed fg pid=%d count=%zu", pid, tokens.size());
 }
 
 void TaskPriorityJudge::OnProcessDied(pid_t pid)

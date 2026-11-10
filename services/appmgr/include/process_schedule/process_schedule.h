@@ -99,7 +99,6 @@ private:
     void ApplyControlLocked(pid_t pid, int32_t newLevel, int32_t oldLevel);
     void RevokeControlLocked(pid_t pid, int32_t oldLevel);
     void ReleaseControlRefLocked(pid_t pid, const std::string &taskId);
-    static const char *ActionText(bool apply);
 
     mutable std::mutex scheduleMutex_;
     std::map<std::string, std::set<pid_t>> taskToPids_;

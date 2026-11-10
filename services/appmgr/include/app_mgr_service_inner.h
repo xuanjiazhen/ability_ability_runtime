@@ -1071,16 +1071,17 @@ public:
     int32_t GetForegroundApplications(std::vector<AppStateData> &list);
 
     /**
-     * Count the abilities of the given process that are in the foreground ability state.
-     * Ability-level state is used deliberately: the application-level foreground flag can
-     * diverge from the per-ability state. Internal state read with NO IPC-facing permission
-     * gate: the task manager reconciles the judge while handling a startTask call from a
-     * system app that is not required to hold GET_RUNNING_INFO.
+     * Collect the tokens of the abilities of the given process that are in the foreground
+     * ability state. Ability-level state is used deliberately: the application-level
+     * foreground flag can diverge from the per-ability state. Internal state read with NO
+     * IPC-facing permission gate: the task manager reconciles the judge while handling a
+     * startTask call from a system app that is not required to hold GET_RUNNING_INFO.
      *
      * @param pid, the process id to inspect.
-     * @return the number of foreground abilities of the process (0 when not found).
+     * @param tokens, output token addresses of the foreground abilities (empty when none
+     *        or when the process is not found).
      */
-    int32_t GetForegroundAbilityCountByPid(pid_t pid) const;
+    void GetForegroundAbilityTokensByPid(pid_t pid, std::vector<uintptr_t> &tokens) const;
 
     /**
      * Start user test process.

@@ -352,21 +352,21 @@ void TaskManagerService::ReconcileForegroundState(pid_t pid)
     if (judge.IsForeground(pid)) {
         return;
     }
-    int32_t foregroundAbilityCount;
+    std::vector<uintptr_t> tokens;
     {
         std::lock_guard<std::mutex> lock(seederMutex_);
         if (foregroundSeeder_ == nullptr) {
             return;
         }
-        foregroundAbilityCount = foregroundSeeder_(pid);
+        foregroundSeeder_(pid, tokens);
     }
-    if (foregroundAbilityCount > 0) {
-        judge.SeedForeground(pid);
-        TAG_LOGI(AAFwkTag::APPMGR, "yzk fg reconcile, pid=%d fgAbilities=%d", pid, foregroundAbilityCount);
+    if (!tokens.empty()) {
+        judge.SeedForeground(pid, tokens);
+        TAG_LOGI(AAFwkTag::APPMGR, "yzk fg reconcile, pid=%d fgAbilities=%zu", pid, tokens.size());
     }
 }
 
-void TaskManagerService::SetForegroundSeeder(std::function<int32_t(pid_t)> seeder)
+void TaskManagerService::SetForegroundSeeder(std::function<void(pid_t, std::vector<uintptr_t>&)> seeder)
 {
     std::lock_guard<std::mutex> lock(seederMutex_);
     foregroundSeeder_ = std::move(seeder);

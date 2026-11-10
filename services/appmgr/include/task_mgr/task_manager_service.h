@@ -110,13 +110,15 @@ public:
     void RegisterScheduleListeners();
 
     /**
-     * @brief Wires the per-pid foreground ability count query used to reconcile the judge
-     *        before a task level is judged. Wired by the app manager service, which owns
-     *        the running-application records.
-     * @param seeder Indicates the query returning the foreground ability count of one
+     * @brief Wires the per-pid foreground ability token query used to reconcile the judge
+     *        before a task level is judged; the tokens are the same identity the ability
+     *        state observer reports, so a seeded entry and an observed entry are
+     *        indistinguishable. Wired by the app manager service, which owns the
+     *        running-application records.
+     * @param seeder Indicates the query collecting the foreground ability tokens of one
      *        process, or null to unwire (the reconcile is then skipped).
      */
-    void SetForegroundSeeder(std::function<int32_t(pid_t)> seeder);
+    void SetForegroundSeeder(std::function<void(pid_t, std::vector<uintptr_t>&)> seeder);
 
     /**
      * @brief Attributes an entity into the task and restarts its inactivity timeout
@@ -445,7 +447,7 @@ private:
 
     static std::atomic<AttributionId> attributionRecordId_;
     std::mutex seederMutex_;
-    std::function<int32_t(pid_t)> foregroundSeeder_;
+    std::function<void(pid_t, std::vector<uintptr_t>&)> foregroundSeeder_;
     ffrt::mutex tasksMutex_;
     std::unordered_map<std::string, TaskRecord> tasks_;
     std::function<bool(pid_t)> pidValidator_;

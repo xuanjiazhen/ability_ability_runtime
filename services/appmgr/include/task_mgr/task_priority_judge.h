@@ -72,11 +72,8 @@ public:
      *        PopForegroundingAbilityTokens, app_running_record.cpp:1016,1203) collapse
      *        onto one entry. Uses the ability's IRObject token address as the identity
      *        key; a foreground event is inserted, background/terminated/ended is erased.
-     *        The sentinel token (token == nullptr, encoded as 0) is the seed marker: the
-     *        very first real ability event for a seeded pid clears the sentinel so the
-     *        set transitions from "foreground but unknown identity" to an explicit set.
      * @param pid Indicates the caller process id.
-     * @param token Indicates the ability's IRObject token (nullptr encodes the seed sentinel).
+     * @param token Indicates the ability's IRObject token address.
      * @param foreground Indicates true when an ability entered the foreground; false when
      *        it left the foreground (including termination).
      */
@@ -114,12 +111,14 @@ public:
     void OnProcessDied(pid_t pid);
 
     /**
-     * @brief Seeds a foreground entry for a pid that is ALREADY foreground at observer
-     *        registration time (the observer is incremental-only). Uses the sentinel
-     *        token 0; the first real ability event for that pid replaces it.
+     * @brief Seeds the foreground entries of a tracked pid with the given ability tokens,
+     *        the same identity the ability state observer reports; idempotent per token.
+     *        Used to reconcile a pid that was already foreground before its tracking
+     *        started (the observer is incremental-only).
      * @param pid Indicates the process id to seed.
+     * @param tokens Indicates the token addresses of the pid's foreground abilities.
      */
-    void SeedForeground(pid_t pid);
+    void SeedForeground(pid_t pid, const std::vector<uintptr_t> &tokens);
 
     /**
      * @brief Queries the cached fusion level.
