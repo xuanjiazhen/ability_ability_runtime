@@ -15,6 +15,8 @@
 
 #include "js_insight_intent_context.h"
 
+#include <mutex>
+
 #include "ability_window_configuration.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -29,6 +31,192 @@ constexpr static char CONTEXT_MODULE_NAME[] = "InsightIntentContext";
 constexpr int32_t INDEX_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 }
+
+namespace {
+// Holds the napi_ref of the app-registered cancel listener. The ref is
+// reference-counted so a callback invocation already posted to the JS thread
+// stays valid even if the JS signal object is garbage collected concurrently.
+struct JsCancelCallbackRefHolder {
+    napi_env env = nullptr;
+    napi_ref ref = nullptr;
+
+    ~JsCancelCallbackRefHolder()
+    {
+        if (env != nullptr && ref != nullptr) {
+            napi_delete_reference(env, ref);
+        }
+        env = nullptr;
+        ref = nullptr;
+    }
+};
+
+napi_value CreateJsString(napi_env env, const std::string &value)
+{
+    napi_value result = nullptr;
+    napi_create_string_utf8(env, value.c_str(), value.length(), &result);
+    return result;
+}
+
+// JS wrapper of InsightIntentCancellationSignal. In the v0.5 model this is the
+// signal proxy the system reconstructs in the executor process and hands to the
+// app as the trailing onExecuteXXX parameter: setOnCancelListener((reason,
+// executeId) => {}) subscribes, isCancelled() polls. It marshals the callback
+// from the IPC thread onto the JS thread.
+class JsInsightIntentCancellationSignal
+    : public std::enable_shared_from_this<JsInsightIntentCancellationSignal> {
+public:
+    JsInsightIntentCancellationSignal(napi_env env, const std::shared_ptr<InsightIntentCancellationSignal>& signal)
+        : signal_(signal)
+    {
+        (void)env;
+    }
+
+    ~JsInsightIntentCancellationSignal()
+    {
+        if (signal_ != nullptr) {
+            signal_->SetOnCancel(nullptr);
+        }
+    }
+
+    // Must be called after make_shared so weak_from_this() returns a valid weak
+    // reference (enable_shared_from_this is only bound once the shared_ptr
+    // owns the object, i.e. after the constructor returns).
+    void RegisterCancelCallback()
+    {
+        if (signal_ == nullptr) {
+            return;
+        }
+        std::weak_ptr<JsInsightIntentCancellationSignal> weak = weak_from_this();
+        signal_->SetOnCancel([weak](int32_t reason, const std::string &executeId) {
+            auto self = weak.lock();
+            if (self != nullptr) {
+                self->NotifyCancel(reason, executeId);
+            }
+        });
+    }
+
+    static std::shared_ptr<JsInsightIntentCancellationSignal> Unwrap(napi_env env, napi_callback_info info)
+    {
+        napi_value thisVar = nullptr;
+        napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+        std::shared_ptr<JsInsightIntentCancellationSignal>* holder = nullptr;
+        napi_unwrap(env, thisVar, reinterpret_cast<void**>(&holder));
+        return (holder != nullptr) ? *holder : std::shared_ptr<JsInsightIntentCancellationSignal>();
+    }
+
+    static napi_value GetIsCanceled(napi_env env, napi_callback_info info)
+    {
+        auto self = Unwrap(env, info);
+        bool isCanceled = self != nullptr && self->signal_ != nullptr && self->signal_->IsCanceled();
+        napi_value result = nullptr;
+        napi_get_boolean(env, isCanceled, &result);
+        return result;
+    }
+
+    // Alias kept for API symmetry with the polling alternative isExecutionCancelled().
+    static napi_value IsCancelled(napi_env env, napi_callback_info info)
+    {
+        return GetIsCanceled(env, info);
+    }
+
+    static napi_value SetOnCancelListener(napi_env env, napi_callback_info info)
+    {
+        auto self = Unwrap(env, info);
+        if (self == nullptr) {
+            return CreateJsUndefined(env);
+        }
+        size_t argc = 1;
+        napi_value argv[1] = { nullptr };
+        napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+        if (argc < ARGC_ONE) {
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        napi_valuetype type = napi_undefined;
+        napi_typeof(env, argv[INDEX_ZERO], &type);
+        if (type != napi_function) {
+            ThrowInvalidParamError(env, "Parameter error: setOnCancelListener callback must be a function.");
+            return CreateJsUndefined(env);
+        }
+
+        napi_ref ref = nullptr;
+        napi_create_reference(env, argv[INDEX_ZERO], 1, &ref);
+        auto holder = std::make_shared<JsCancelCallbackRefHolder>();
+        holder->env = env;
+        holder->ref = ref;
+        {
+            std::lock_guard<std::mutex> lock(self->refMutex_);
+            self->callbackHolder_ = holder;
+        }
+        return CreateJsUndefined(env);
+    }
+
+    // Runs on the IPC thread; posts the callback onto the JS thread with
+    // (reason, executeId) as the listener arguments.
+    void NotifyCancel(int32_t reason, const std::string &executeId)
+    {
+        std::shared_ptr<JsCancelCallbackRefHolder> holder;
+        {
+            std::lock_guard<std::mutex> lock(refMutex_);
+            holder = callbackHolder_;
+        }
+        if (holder == nullptr || holder->env == nullptr || holder->ref == nullptr) {
+            return;
+        }
+        if (napi_send_event(holder->env,
+            [holder, reason, executeId]() {
+                HandleScope handleScope(holder->env);
+                napi_value callback = nullptr;
+                napi_get_reference_value(holder->env, holder->ref, &callback);
+                napi_value undefined = nullptr;
+                napi_get_undefined(holder->env, &undefined);
+                napi_value argv[2] = { nullptr };
+                napi_create_int32(holder->env, reason, &argv[0]);
+                argv[1] = CreateJsString(holder->env, executeId);
+                napi_call_function(holder->env, undefined, callback, 2, argv, nullptr);
+            }, napi_eprio_immediate) != napi_ok) {
+            TAG_LOGE(AAFwkTag::INTENT, "send cancellation callback to JS thread failed");
+        }
+    }
+
+private:
+    std::shared_ptr<InsightIntentCancellationSignal> signal_ = nullptr;
+    std::shared_ptr<JsCancelCallbackRefHolder> callbackHolder_ = nullptr;
+    std::mutex refMutex_;
+};
+
+void JsInsightIntentCancellationSignalFinalizer(napi_env env, void* data, void* hint)
+{
+    if (data == nullptr) {
+        return;
+    }
+    delete static_cast<std::shared_ptr<JsInsightIntentCancellationSignal>*>(data);
+}
+
+napi_value CreateJsInsightIntentCancellationSignal(
+    napi_env env, const std::shared_ptr<InsightIntentCancellationSignal>& signal)
+{
+    HandleEscape handleEscape(env);
+    napi_value obj = nullptr;
+    napi_create_object(env, &obj);
+    if (signal == nullptr) {
+        return handleEscape.Escape(obj);
+    }
+    auto wrapper = std::make_shared<JsInsightIntentCancellationSignal>(env, signal);
+    wrapper->RegisterCancelCallback();
+    auto holder = new (std::nothrow) std::shared_ptr<JsInsightIntentCancellationSignal>(wrapper);
+    if (holder == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null cancellation signal holder");
+        return handleEscape.Escape(obj);
+    }
+    napi_wrap(env, obj, holder, JsInsightIntentCancellationSignalFinalizer, nullptr, nullptr);
+    BindNativeProperty(env, obj, "isCanceled", JsInsightIntentCancellationSignal::GetIsCanceled);
+    BindNativeProperty(env, obj, "isCancelled", JsInsightIntentCancellationSignal::IsCancelled);
+    BindNativeFunction(env, obj, "setOnCancelListener", "InsightIntentCancellationSignal",
+        JsInsightIntentCancellationSignal::SetOnCancelListener);
+    return handleEscape.Escape(obj);
+}
+} // namespace
 
 void JsInsightIntentContext::Finalizer(napi_env env, void* data, void* hint)
 {
@@ -58,6 +246,24 @@ napi_value JsInsightIntentContext::GetInsightIntentExecutionInfo(napi_env env, n
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentContext, OnGetInsightIntentExecutionInfo);
+}
+
+napi_value JsInsightIntentContext::GetCancellationSignal(napi_env env, napi_callback_info info)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentContext, OnGetCancellationSignal);
+}
+
+napi_value JsInsightIntentContext::GetExecuteId(napi_env env, napi_callback_info info)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentContext, OnGetExecuteId);
+}
+
+napi_value JsInsightIntentContext::IsExecutionCancelled(napi_env env, napi_callback_info info)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentContext, OnIsExecutionCancelled);
 }
 
 napi_value JsInsightIntentContext::OnStartAbility(napi_env env, NapiCallbackInfo& info)
@@ -210,6 +416,47 @@ napi_value JsInsightIntentContext::OnGetInsightIntentExecutionInfo(napi_env env,
     return CreateJsInsightIntentExecutionInfo(env, executeInfo);
 }
 
+napi_value JsInsightIntentContext::OnGetCancellationSignal(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null context");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return CreateJsUndefined(env);
+    }
+    return CreateJsInsightIntentCancellationSignal(env, context->GetCancellationSignal());
+}
+
+napi_value JsInsightIntentContext::OnGetExecuteId(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null context");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return CreateJsUndefined(env);
+    }
+    return CreateJsString(env, context->GetExecuteId());
+}
+
+napi_value JsInsightIntentContext::OnIsExecutionCancelled(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null context");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return CreateJsUndefined(env);
+    }
+    napi_value result = nullptr;
+    napi_get_boolean(env, context->IsExecutionCancelled(), &result);
+    return result;
+}
+
 napi_value CreateJsInsightIntentContext(napi_env env, const std::shared_ptr<InsightIntentContext>& context)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
@@ -229,6 +476,11 @@ napi_value CreateJsInsightIntentContext(napi_env env, const std::shared_ptr<Insi
         JsInsightIntentContext::SetReturnModeForUiExtensionAbility);
     BindNativeProperty(env, contextObj, "insightIntentExecutionInfo",
         JsInsightIntentContext::GetInsightIntentExecutionInfo);
+    BindNativeFunction(env, contextObj, "getCancellationSignal", CONTEXT_MODULE_NAME,
+        JsInsightIntentContext::GetCancellationSignal);
+    BindNativeProperty(env, contextObj, "executeId", JsInsightIntentContext::GetExecuteId);
+    BindNativeFunction(env, contextObj, "isExecutionCancelled", CONTEXT_MODULE_NAME,
+        JsInsightIntentContext::IsExecutionCancelled);
     TAG_LOGD(AAFwkTag::INTENT, "end");
     return handleEscape.Escape(contextObj);
 }
