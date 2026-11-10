@@ -41,6 +41,7 @@
 #include "iacquire_share_data_callback_interface.h"
 #include "insight_intent/insight_intent_execute_param.h"
 #include "insight_intent/insight_intent_execute_lite_param.h"
+#include "insight_intent/insight_intent_agent_call_param.h"
 #include "insight_intent/insight_intent_execute_result.h"
 #include "skill/skill_execute_param.h"
 #include "skill/skill_execute_result.h"
@@ -99,6 +100,7 @@ using KeepAliveInfo = AbilityRuntime::KeepAliveInfo;
 using AutoStartupInfo = AbilityRuntime::AutoStartupInfo;
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
 using InsightIntentExecuteLiteParam = AppExecFwk::InsightIntentExecuteLiteParam;
+using InsightIntentAgentCallParam = AppExecFwk::InsightIntentAgentCallParam;
 using InsightIntentExecuteResult = AppExecFwk::InsightIntentExecuteResult;
 using InsightIntentQueryParam = AppExecFwk::InsightIntentQueryParam;
 using SkillExecuteParam = AppExecFwk::SkillExecuteParam;
@@ -2094,6 +2096,51 @@ public:
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
     {
         return 0;
+    }
+
+    /**
+     * @brief Execute intent by agent: authorize, pre-register (PENDING_CONSENT),
+     * request consent, then execute.
+     * @param param The agent invoke parameters.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ExecuteIntentByAgent(const InsightIntentAgentCallParam &param)
+    {
+        return 0;
+    }
+
+    /**
+     * @brief Query the caller bundle name of the insight intent execution
+     *        identified by the given intent id.
+     *
+     * The record must be live (PENDING_CONSENT / EXECUTING); stale or missing
+     * records return an empty string. Used by the privacy-center consent path to
+     * identify who originated a given agent invocation. Only system applications
+     * / SA are allowed to query.
+     *
+     * @param intentId The insight intent execute id to query.
+     * @return Returns the caller bundle name, or an empty string if the intent id
+     *         does not belong to a live insight intent call.
+     */
+    virtual std::string GetInsightIntentCaller(uint64_t intentId)
+    {
+        return "";
+    }
+
+    /**
+     * @brief Pure permission validation for invokeFunction caller. A system-app
+     *        caller must hold EXECUTE_INSIGHT_INTENT; non-system callers are
+     *        rejected. No shell/self-intent exemption is applied here.
+     *
+     * This is a defense-in-depth gate front-moved from the execution path; the
+     * authoritative permission check remains CheckCallerPermission in
+     * InsightIntentExecuteManager.
+     *
+     * @return ERR_OK on success, ERR_NOT_SYSTEM_APP / ERR_PERMISSION_DENIED otherwise.
+     */
+    virtual int32_t CheckInvokeFunctionCaller()
+    {
+        return ERR_OK;
     }
 
     /**

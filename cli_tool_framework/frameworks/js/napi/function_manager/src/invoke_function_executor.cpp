@@ -104,6 +104,15 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
         return;
     }
 
+    // ValidatePermission (front-moved): once the intent dispatch path is confirmed,
+    // run the permission check before any execution / hook work.
+    int32_t validatePermission = AAFwk::IntentClient::GetInstance().CheckInvokeFunctionCaller();
+    if (validatePermission != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ValidatePermission failed: %{public}d", validatePermission);
+        ReportError(validatePermission);
+        return;
+    }
+
     InvokeFunctionParam hookParam = param;
     CliToolMGRClient::GetInstance().BeforeInvokeFunction(hookParam);
 

@@ -18,6 +18,7 @@
 #include <mutex>
 #include <string>
 
+#include "ability_context.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_tool_mgr_client.h"
@@ -27,9 +28,13 @@
 #include "js_error_utils.h"
 #include "js_function_hook.h"
 #include "js_function_manager_utils.h"
+#include "napi_base_context.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "string_wrapper.h"
+#ifdef SUPPORT_GRAPHICS
+#include "ui_content.h"
+#endif
 
 using namespace OHOS::AbilityRuntime;
 
@@ -43,6 +48,38 @@ constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
 constexpr int32_t ERR_CONTEXT_NOT_ABILITY = 16000020;
+
+napi_value CreateJsBoolValue(napi_env env, bool value)
+{
+    AbilityRuntime::HandleEscape handleEscape(env);
+    napi_value jsValue = nullptr;
+    napi_status status = napi_get_boolean(env, value, &jsValue);
+    if (status != napi_ok) {
+        return nullptr;
+    }
+    return handleEscape.Escape(jsValue);
+}
+
+std::shared_ptr<AbilityRuntime::AbilityContext> GetAbilityContext(napi_env env, napi_value value)
+{
+    bool stageMode = false;
+    napi_status status = AbilityRuntime::IsStageContext(env, value, stageMode);
+    if (status != napi_ok || !stageMode) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "createModalUIExtension: not a stage context");
+        return nullptr;
+    }
+    auto context = AbilityRuntime::GetStageModeContext(env, value);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "createModalUIExtension: get stage context failed");
+        return nullptr;
+    }
+    auto abilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "createModalUIExtension: convert to AbilityContext failed");
+        return nullptr;
+    }
+    return abilityContext;
+}
 
 struct InvokeFunctionTsfnContext {
     napi_deferred deferred = nullptr;
@@ -328,6 +365,11 @@ napi_value JSFunctionManager::UnregisterFunctionHook(napi_env env, napi_callback
     GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnUnregisterFunctionHook);
 }
 
+napi_value JSFunctionManager::CreateModalUIExtension(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnCreateModalUIExtension);
+}
+
 namespace {
 sptr<JsFunctionHook> g_functionHookStub = nullptr;
 std::mutex g_functionHookMutex;
@@ -480,6 +522,52 @@ napi_value JSFunctionManager::OnUnregisterFunctionHook(napi_env env, size_t argc
     return handleEscape.Escape(promise);
 }
 
+napi_value JSFunctionManager::OnCreateModalUIExtension(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnCreateModalUIExtension called");
+    if (argc < INDEX_THREE) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "createModalUIExtension: invalid arg count");
+        return CreateJsBoolValue(env, false);
+    }
+
+    auto abilityContext = GetAbilityContext(env, argv[INDEX_ZERO]);
+    if (abilityContext == nullptr) {
+        return CreateJsBoolValue(env, false);
+    }
+
+#ifdef SUPPORT_GRAPHICS
+    auto uiContent = abilityContext->GetUIContent();
+    if (uiContent == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "createModalUIExtension: null uiContent");
+        return CreateJsBoolValue(env, false);
+    }
+
+    std::string bundleName;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ONE], bundleName) || bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "createModalUIExtension: invalid bundleName");
+        return CreateJsBoolValue(env, false);
+    }
+    std::string abilityName;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_TWO], abilityName) || abilityName.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "createModalUIExtension: invalid abilityName");
+        return CreateJsBoolValue(env, false);
+    }
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+    want.SetParam("ability.want.params.uiExtensionType", std::string("sys/commonUI"));
+
+    Ace::ModalUIExtensionCallbacks callbacks;
+    Ace::ModalUIExtensionConfig config;
+    int32_t sessionId = uiContent->CreateModalUIExtension(want, callbacks, config);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "createModalUIExtension sessionId: %{public}d", sessionId);
+    return CreateJsBoolValue(env, sessionId != 0);
+#else
+    TAG_LOGE(AAFwkTag::CLI_TOOL, "createModalUIExtension: graphics not supported");
+    return CreateJsBoolValue(env, false);
+#endif
+}
+
 napi_value JSFunctionManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSFunctionManager");
@@ -503,6 +591,7 @@ napi_value JSFunctionManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "invokeFunction", moduleName, JSFunctionManager::InvokeFunction);
     BindNativeFunction(env, exportObj, "registerFunctionHook", moduleName, JSFunctionManager::RegisterFunctionHook);
     BindNativeFunction(env, exportObj, "unregisterFunctionHook", moduleName, JSFunctionManager::UnregisterFunctionHook);
+    BindNativeFunction(env, exportObj, "createModalUIExtension", moduleName, JSFunctionManager::CreateModalUIExtension);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSFunctionManagerInit end");
     return CreateJsUndefined(env);

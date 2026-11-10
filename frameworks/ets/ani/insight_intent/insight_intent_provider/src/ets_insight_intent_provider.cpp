@@ -20,6 +20,8 @@
 #include <vector>
 
 #include "ability_business_error.h"
+#include "ability_manager_client.h"
+#include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_result.h"
 #include "ani_common_execute_result.h"
@@ -52,6 +54,26 @@ public:
     {
         TAG_LOGD(AAFwkTag::INTENT, "OnSendIntentResult called");
         HandleSendExecuteResultCommon(env, intentId, aniResult, callback, true);
+    }
+
+    static void OnGetInsightIntentCaller(ani_env *env, ani_long intentId, ani_object callback)
+    {
+        TAG_LOGD(AAFwkTag::INTENT, "OnGetInsightIntentCaller called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null env");
+            return;
+        }
+        auto amsClient = AAFwk::AbilityManagerClient::GetInstance();
+        if (amsClient == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null amsClient");
+            AppExecFwk::AsyncCallback(env, callback,
+                EtsErrorUtil::CreateErrorByNativeErr(env, AAFwk::INNER_ERR), nullptr);
+            return;
+        }
+        std::string callerBundleName = amsClient->GetInsightIntentCaller(static_cast<uint64_t>(intentId));
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK),
+            reinterpret_cast<ani_object>(AppExecFwk::GetAniString(env, callerBundleName)));
     }
 
 private:
@@ -231,6 +253,8 @@ void EtsInsightIntentProviderInit(ani_env *env)
             reinterpret_cast<void *>(EtsInsightIntentWillExecuteCallback::OnWillInsightIntentExecute) },
         ani_native_function { "nativeOffWillInsightIntentExecute", nullptr,
             reinterpret_cast<void *>(EtsInsightIntentWillExecuteCallback::OffWillInsightIntentExecute) },
+        ani_native_function { "nativeGetInsightIntentCaller", nullptr,
+            reinterpret_cast<void *>(EtsInsightIntentProvider::OnGetInsightIntentCaller) },
     };
 
     status = env->Namespace_BindNativeFunctions(ns, nativeFunctions.data(), nativeFunctions.size());

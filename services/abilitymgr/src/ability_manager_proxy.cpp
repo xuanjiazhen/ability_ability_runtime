@@ -5950,6 +5950,52 @@ int32_t AbilityManagerProxy::ExecuteIntentByFunctionCall(uint64_t key, const spt
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::ExecuteIntentByAgent(const InsightIntentAgentCallParam &param)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteParcelable(&param)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write param fail");
+        return INNER_ERR;
+    }
+    int32_t error = SendRequest(
+        AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_AGENT, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+std::string AbilityManagerProxy::GetInsightIntentCaller(uint64_t intentId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return "";
+    }
+    if (!data.WriteUint64(intentId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentId fail");
+        return "";
+    }
+    int32_t error = SendRequest(
+        AbilityManagerInterfaceCode::GET_INSIGHT_INTENT_CALLER, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return "";
+    }
+    return reply.ReadString();
+}
+
 int32_t AbilityManagerProxy::ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,
     const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param,
     uint64_t specifiedFullTokenId)

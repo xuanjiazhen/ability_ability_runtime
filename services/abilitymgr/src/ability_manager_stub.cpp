@@ -24,6 +24,7 @@
 #include "hitrace_meter.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_lite_param.h"
+#include "insight_intent_agent_call_param.h"
 #include "insight_intent_execute_manager.h"
 #include "permission_verification.h"
 #include "process_options.h"
@@ -437,6 +438,15 @@ int AbilityManagerStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel 
     }
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_FUNCTION_CALL) {
         return ExecuteIntentByFunctionCallInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_AGENT) {
+        return ExecuteIntentByAgentInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_INSIGHT_INTENT_CALLER) {
+        return GetInsightIntentCallerInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::CHECK_INVOKE_FUNCTION_CALLER) {
+        return CheckInvokeFunctionCallerInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_WITH_SPECIFY_TOKEN_ID) {
         return ExecuteUIAbilityForegroundIntentWithSpecifyTokenIdInner(data, reply);
@@ -4661,6 +4671,54 @@ int32_t AbilityManagerStub::ExecuteIntentByFunctionCallInner(MessageParcel &data
         return ERR_INVALID_VALUE;
     }
     auto result = ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, *wantParam);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::ExecuteIntentByAgentInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<InsightIntentAgentCallParam> param(data.ReadParcelable<InsightIntentAgentCallParam>());
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null param");
+        return ERR_INVALID_VALUE;
+    }
+    if (param->callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return ERR_INVALID_VALUE;
+    }
+    if (param->bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName empty");
+        return ERR_INVALID_VALUE;
+    }
+    if (param->intentName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "intentName empty");
+        return ERR_INVALID_VALUE;
+    }
+    auto result = ExecuteIntentByAgent(*param);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetInsightIntentCallerInner(MessageParcel &data, MessageParcel &reply)
+{
+    uint64_t intentId = data.ReadUint64();
+    std::string callerBundleName = GetInsightIntentCaller(intentId);
+    if (!reply.WriteString(callerBundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::CheckInvokeFunctionCallerInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t result = CheckInvokeFunctionCaller();
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;

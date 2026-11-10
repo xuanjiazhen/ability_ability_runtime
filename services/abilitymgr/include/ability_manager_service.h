@@ -2268,6 +2268,28 @@ public:
     int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
 
+    int32_t ExecuteIntentByAgent(const InsightIntentAgentCallParam &param) override;
+
+    std::string GetInsightIntentCaller(uint64_t intentId) override;
+
+    int32_t CheckInvokeFunctionCaller() override;
+
+    /**
+     * @brief Reserved hook to obtain user consent for a third-party agent function
+     *        invocation. Synchronous seam: returns true (user grants consent) or
+     *        false (user declines); called inline from ExecuteIntentByAgent, so the
+     *        consent dialog showing time is covered by this call.
+     *
+     * MOCK implementation for now: the real consent dialog is provided by the
+     * privacy-center domain (RequestDialogService / ams_system_dialog). The
+     * pre-registered record is queryable via GetInsightIntentCaller(intentId)
+     * (IPC 6192) while this call blocks on the dialog.
+     * @return true if consent is granted, false if declined or the pre-registered
+     *         record is no longer queryable.
+     */
+    bool RequestAgentPrivacyDialog(const std::string &callerBundleName, int32_t callerAppIndex,
+        const std::string &targetBundleName, int32_t targetBundleIndex, uint64_t intentId);
+
     /**
      * @brief Execute UIAbility foreground intent with specified token id.
      * @param want The info of the target ability and custom parameters.
@@ -3837,6 +3859,9 @@ private:
         const std::shared_ptr<InsightIntentExecuteParam> &param, const std::string &callerBundleName,
         AbilityRuntime::ExecuteIntentCommonOptions &options);
     void SetRemoteIntentTimeout(uint64_t insightIntentId);
+    // Agent-path authorization gate (skeleton): TODO(agent) real permission +
+    // agentCallable declaration check implemented by the owning domain.
+    int32_t VerifyAgentCallPermission();
     // 清理 wantParam 残留意图参数 + 意图候选匹配 + parser.Build 组装执行参数。
     int32_t PrepareFunctionCallParam(const std::string &bundleName, const std::string &intentName,
         const WantParams &wantParam, int32_t callerUserId,
