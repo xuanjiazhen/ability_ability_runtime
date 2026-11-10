@@ -50,6 +50,7 @@ public:
      * @param taskId Indicates the attribution key of the task.
      * @param priority Indicates the task priority.
      * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters;
+     *         INNER_ERR if the security fence rejects the task;
      *         ERR_TASK_ALREADY_EXISTS if the task already exists.
      */
     int32_t StartTask(const std::string &taskId, int32_t priority);

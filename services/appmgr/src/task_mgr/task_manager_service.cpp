@@ -30,6 +30,8 @@
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
+#include "saf_agent_fence.h"
+#include "saf_result_code.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -132,6 +134,14 @@ int32_t TaskManagerService::StartTask(const std::string &taskId, int32_t priorit
         return INVALID_PARAMETERS_ERR;
     }
     TaskCallerInfo caller = GetCallerInfo();
+    std::vector<int32_t> authToken;
+    // shortcut: authToken is reserved for the later el3-el5 file decryption, not consumed in this phase.
+    int32_t fenceRet = OHOS::Security::SAF::SafAgentFence::RetrieveAuthTokenByTaskId(
+        static_cast<int32_t>(caller.tokenId), taskId, authToken);
+    if (fenceRet != SAF_SUCCESS) {
+        TAG_LOGW(AAFwkTag::APPMGR, "task rejected by security fence, ret: %{public}d", fenceRet);
+        return INNER_ERR;
+    }
     return StartTaskInner(caller, taskId, priority);
 }
 

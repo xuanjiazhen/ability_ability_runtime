@@ -1358,6 +1358,7 @@ public:
      * @param priority Indicates the task priority.
      * @return Returns ERR_OK on success; INVALID_PARAMETERS_ERR on invalid parameters;
      *         ERR_NOT_SYSTEM_APP if the caller is not a system app;
+     *         INNER_ERR if the security fence rejects the task;
      *         ERR_TASK_ALREADY_EXISTS if the task already exists.
      */
     virtual int32_t StartTask(const std::string &taskId, int32_t priority)
