@@ -220,7 +220,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReasonForTimeout(const AppExecFwk:
 }
 
 int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason,
-    bool fromKillWithReason)
+    bool fromKillWithReason, int32_t callerPid)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AppExecFwk::ApplicationInfo application;
@@ -244,7 +244,25 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const Ex
     }
 
     return RecordProcessExitReason(pid, bundleName, application.uid, application.accessTokenId, exitReason,
-        processInfo, fromKillWithReason);
+        processInfo, fromKillWithReason, callerPid);
+}
+
+int32_t AppExitReasonHelper::RecordAppKillId(const std::string &bundleName, int32_t uid, int32_t pid,
+    uint32_t accessTokenId, int32_t killId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    // kill-id-only record of THIS force stop event: a minimal field set that keeps the
+    // lastExitReason the app reads identical to pre-change (REASON_NORMAL) while the new
+    // killReason stays obtainable on its next launch
+    std::vector<std::string> abilityLists;
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        GetActiveAbilityListFromUIAbilityManager(uid, abilityLists, pid);
+    } else {
+        GetActiveAbilityList(uid, abilityLists, pid);
+    }
+    return DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->UpdateAppKillId(
+        bundleName, accessTokenId, abilityLists, killId);
 }
 
 int32_t AppExitReasonHelper::RecordAppExitReason(const std::string &bundleName, int32_t uid, int32_t appIndex,
@@ -280,7 +298,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(int32_t pid, int32_t uid, c
 
 int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const std::string bundleName,
     const int32_t uid, const uint32_t accessTokenId, const ExitReason &exitReason,
-    const AppExecFwk::RunningProcessInfo &processInfo, bool fromKillWithReason)
+    const AppExecFwk::RunningProcessInfo &processInfo, bool fromKillWithReason, int32_t callerPid)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!IsExitReasonValid(exitReason)) {
@@ -307,7 +325,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const st
         ExitReasonCompability exitReasonCompability(exitReason);
         int32_t ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReasonCompability(
             pid, exitReasonCompability.killId, exitReasonCompability.killMsg,
-            exitReasonCompability.innerMsg, exitReasonCompability.reason, DEFAULT_INVAL_VALUE);
+            exitReasonCompability.innerMsg, exitReasonCompability.reason, callerPid);
         if (ret != ERR_OK) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "notify compability failed: %{public}d", ret);
         }

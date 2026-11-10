@@ -818,6 +818,9 @@ enum class AbilityManagerInterfaceCode {
 
     // kill collaborator process
     KILL_COLLABORATOR_PROCESS = 6190,
+
+    // force stop process with kill id for cli tool
+    FORCE_STOP_PROCESS = 6191,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
