@@ -27,7 +27,7 @@ namespace AAFwk {
 // AMS-domain WantParams filter. It strips the system-internal parameters in the
 // first layer of Want parameters; setting these parameters from a third-party
 // app is ineffective (they are stripped), while system callers pass through
-// untouched.
+// untouched except for the AMS-local DirectBoot screen-lock marker.
 class AMSWantParamFilter : public WantParamsDeserializationObserver {
 public:
     AMSWantParamFilter() = default;
@@ -44,9 +44,9 @@ public:
 
 private:
     // Observer callback invoked after the outermost WantParams is deserialized.
-    // Local deserialization and system callers (SA / system app) are left
-    // untouched; otherwise the first-layer params from a third-party app are
-    // stripped (exact match and prefix match).
+    // Local deserialization is left untouched. The AMS-local DirectBoot marker
+    // is removed for every IPC caller; other first-layer internal parameters
+    // retain the existing SA / system-app exemption.
     void OnDeserialized(WantParams &params) override;
 
     // Strip the first-layer keys matched by exact name.

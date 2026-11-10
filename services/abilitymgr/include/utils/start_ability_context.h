@@ -45,6 +45,7 @@ struct StartAbilityContext {
     // --- interceptor-writable (synced back by SyncFrom) ---
     bool skipCrowTest = false;               // consumed by CrowdTestInterceptor
     bool skipErms = false;                   // consumed by EcologicalRuleInterceptor::NoNeedErms
+    bool skipScreenLock = false;             // consumed by ScreenUnlockInterceptor
     bool ermsSupportBackToCallerFlag = false; // written by EcologicalRuleInterceptor
     int32_t ermsResultCode = ERMS_ISALLOW_RESULTCODE; // written by EcologicalRuleInterceptor
 
@@ -68,6 +69,13 @@ struct StartAbilityContext {
         return v;
     }
 
+    bool ConsumeSkipScreenLock()
+    {
+        bool v = skipScreenLock;
+        skipScreenLock = false;
+        return v;
+    }
+
     bool ConsumeIsWantWithAppCloneIndex()
     {
         bool v = isWantWithAppCloneIndex;
@@ -84,6 +92,7 @@ struct StartAbilityContext {
         ermsSupportBackToCallerFlag = other.ermsSupportBackToCallerFlag;
         skipCrowTest = other.skipCrowTest;
         skipErms = other.skipErms;
+        skipScreenLock = other.skipScreenLock;
     }
 };
 } // namespace AAFwk
