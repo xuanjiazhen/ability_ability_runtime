@@ -2117,7 +2117,7 @@ public:
      * The record must be live (PENDING_CONSENT / EXECUTING); stale or missing
      * records return an empty string. Used by the privacy-center consent path to
      * identify who originated a given agent invocation. Only system applications
-     * / SA are allowed to query.
+     * and SA are allowed to query.
      *
      * @param intentId The insight intent execute id to query.
      * @return Returns the caller bundle name, or an empty string if the intent id
@@ -2129,15 +2129,15 @@ public:
     }
 
     /**
-     * @brief Pure permission validation for invokeFunction caller. A system-app
-     *        caller must hold EXECUTE_INSIGHT_INTENT; non-system callers are
-     *        rejected. No shell/self-intent exemption is applied here.
+     * @brief Pure permission validation for invokeFunction caller. Any caller
+     *        (including third-party apps) must hold EXECUTE_INSIGHT_INTENT;
+     *        callers lacking the permission are rejected.
      *
      * This is a defense-in-depth gate front-moved from the execution path; the
      * authoritative permission check remains CheckCallerPermission in
      * InsightIntentExecuteManager.
      *
-     * @return ERR_OK on success, ERR_NOT_SYSTEM_APP / ERR_PERMISSION_DENIED otherwise.
+     * @return ERR_OK on success, ERR_PERMISSION_DENIED otherwise.
      */
     virtual int32_t CheckInvokeFunctionCaller()
     {

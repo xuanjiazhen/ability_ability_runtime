@@ -15719,10 +15719,10 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
 std::string AbilityManagerService::GetInsightIntentCaller(uint64_t intentId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called, intentId: %{public}" PRIu64, intentId);
-    // Restricted to system applications / SA: querying insight intent execution
-    // state must not be exposed to arbitrary third-party processes.
-    if (!PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI() &&
-        !PermissionVerification::GetInstance()->IsShellCall()) {
+    // Restricted to system applications and SA: querying insight intent execution
+    // state must not be exposed to arbitrary third-party processes or shell.
+    if (!PermissionVerification::GetInstance()->IsSystemAppCall() &&
+        !PermissionVerification::GetInstance()->IsSACall()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "non-system caller is not allowed to query");
         return "";
     }
@@ -15737,15 +15737,13 @@ std::string AbilityManagerService::GetInsightIntentCaller(uint64_t intentId)
 
 int32_t AbilityManagerService::CheckInvokeFunctionCaller()
 {
-    bool isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
-    if (!isSystemAppCall) {
-        TAG_LOGE(AAFwkTag::INTENT, "invokeFunction caller is not a system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
+    // invokeFunction may be initiated by third-party apps, so do not gate on
+    // system-app / SA identity. The only gate is the EXECUTE_INSIGHT_INTENT
+    // permission.
     bool hasPermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
         PermissionConstants::PERMISSION_EXECUTE_INSIGHT_INTENT);
     if (!hasPermission) {
-        TAG_LOGE(AAFwkTag::INTENT, "system caller lacks EXECUTE_INSIGHT_INTENT");
+        TAG_LOGE(AAFwkTag::INTENT, "caller lacks EXECUTE_INSIGHT_INTENT");
         return ERR_PERMISSION_DENIED;
     }
     return ERR_OK;

@@ -49,10 +49,9 @@ public:
     int32_t ExecuteIntentByFunctionCall(const ExecuteIntentParam &param);
 
     /**
-     * @brief Pure permission validation for invokeFunction caller (system app
-     *        holding EXECUTE_INSIGHT_INTENT). Non-system callers are rejected.
-     * @return Returns ERR_OK on success, ERR_NOT_SYSTEM_APP / ERR_PERMISSION_DENIED
-     *         on failure.
+     * @brief Pure permission validation for invokeFunction caller: any caller
+     *        (including third-party apps) holding EXECUTE_INSIGHT_INTENT.
+     * @return Returns ERR_OK on success, ERR_PERMISSION_DENIED on failure.
      */
     int32_t CheckInvokeFunctionCaller();
 
