@@ -136,7 +136,7 @@ public:
      * @param bundleName The bundle name of the target application.
      * @return Whether the ability start is allowed (true) or should be blocked (false).
      */
-    bool CheckStartUIAbilityByUserLockStatus(const std::string &bundleName);
+    bool CheckStartUIAbilityByUserLockStatus(const std::string &bundleName, int32_t appIndex = 0);
 
 private:
     /**

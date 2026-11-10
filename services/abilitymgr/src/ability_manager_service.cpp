@@ -1833,7 +1833,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
                     {param.isStartAsCaller, isTargetPlugin, param.hostBundleName})
                 .Context<AbilityInterceptorParam::DisposedCtx>({appIndex, nullptr})
                 .BlockAllEscapeCheck(MakeBlockAllEscapeCheck(abilityRequest))
-                .StartAbilityCtx(param.startAbilityCtx).Build();
+                .StartAbilityCtx(param.startAbilityCtx).DirectBootStartup(param.isDirectBootStartup).Build();
             result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
                 interceptorExecuter_->DoProcess(interceptorParam);
             param.startAbilityCtx.SyncFrom(interceptorParam.startAbilityCtx);
@@ -3596,7 +3596,8 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, Ab
         return ERR_WRONG_INTERFACE_CALL;
     }
     const auto &targetBundleName = sessionInfo->want.GetBundleNameRef();
-    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName)) {
+    int32_t appIndex = sessionInfo->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName, appIndex)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user lock");
         return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
     }
@@ -10447,6 +10448,14 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
     } else {
         if (info.isHiddenStart && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
             result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId);
+        } else if (info.isDirectBoot && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
+            StartAbilityWrapParam param = {
+                .want = want,
+                .userId = userId,
+                .removeInsightIntentFlag = true,
+                .isDirectBootStartup = info.isDirectBoot,
+            };
+            result = IN_PROCESS_CALL(StartAbilityWithRemoveIntentFlag(param));
         } else {
             result = StartAbility(want, userId);
         }
@@ -14857,7 +14866,8 @@ int32_t AbilityManagerService::StartSpecifiedAbilityBySCB(const Want &want, cons
         return ERR_PERMISSION_DENIED;
     }
     const auto &targetBundleName = want.GetBundleNameRef();
-    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName)) {
+    int32_t appIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName, appIndex)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user lock");
         return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
     }

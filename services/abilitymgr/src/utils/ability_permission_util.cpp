@@ -410,7 +410,7 @@ bool AbilityPermissionUtil::NeedCheckStatusBar(std::shared_ptr<AbilityRecord> ab
     return true;
 }
 
-bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::string &bundleName)
+bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::string &bundleName, int32_t appIndex)
 {
     if (bundleName.empty()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "empty name");
@@ -427,14 +427,33 @@ bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::strin
         return true;
     }
     AppExecFwk::BundleInfo bundleInfo;
-    auto ret =
-        IN_PROCESS_CALL(bms->GetBundleInfo(bundleName,
-            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION), bundleInfo, userId));
-    bool isSystemApp = ret ? bundleInfo.applicationInfo.isSystemApp : false;
-    if (!isSystemApp) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "not system app");
+    int32_t flags = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION);
+    bool ret = false;
+    if (appIndex == 0 || appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
+        ret = IN_PROCESS_CALL(bms->GetBundleInfo(bundleName, flags, bundleInfo, userId));
+    } else if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
+        ret = IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName, flags, appIndex, bundleInfo, userId)) == ERR_OK;
+    } else if (appIndex > 0) {
+        ret = IN_PROCESS_CALL(bms->GetSandboxBundleInfo(bundleName, appIndex, userId, bundleInfo)) == ERR_OK;
     }
-    return isSystemApp;
+    if (!ret) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "get locked target failed, bundle:%{public}s user:%{public}d appIndex:%{public}d",
+            bundleName.c_str(), userId, appIndex);
+        return false;
+    }
+    if (bundleInfo.applicationInfo.isSystemApp) {
+        return true;
+    }
+    auto tokenId = bundleInfo.applicationInfo.accessTokenId;
+    if (tokenId != Security::AccessToken::INVALID_TOKENID &&
+        AccessTokenKit::VerifyAccessToken(tokenId, PermissionConstants::PERMISSION_ALLOW_DIRECT_BOOT, false) ==
+            Security::AccessToken::PERMISSION_GRANTED) {
+        return true;
+    }
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "locked target lacks direct boot permission, bundle:%{public}s appIndex:%{public}d",
+        bundleName.c_str(), appIndex);
+    return false;
 }
 } // AAFwk
 } // OHOS
