@@ -84,6 +84,7 @@ protected:
         // to a clean success baseline before each case overrides what it needs.
         auto &mgrClient = CliToolMGRClient::GetInstance();
         mgrClient.mockStatus_ = ERR_OK;
+        mgrClient.mockPublicStatus_ = ERR_OK;
         mgrClient.mockFunctionType_ = FunctionType::INTENT_FUNCTION;
         mgrClient.mockHookModify_ = false;
         mgrClient.mockHookToolCallId_.clear();
@@ -151,6 +152,15 @@ protected:
         return capture;
     }
 
+    // Public (third-party) invocation path: the executor queries via GetPublicFunctionInfo.
+    static std::shared_ptr<ResultCapture> RunPublic()
+    {
+        auto capture = std::make_shared<ResultCapture>();
+        auto executor = InvokeFunctionExecutor::Create();
+        executor->Execute(MakeParam(), MakeCallback(capture), true);
+        return capture;
+    }
+
     // Kick off an executor run without trace identifiers and return the capture
     // the callback will report into.
     static std::shared_ptr<ResultCapture> Run()
@@ -212,6 +222,52 @@ HWTEST_F(InvokeFunctionExecutorTest, InvokeFunctionExecutor_QueryFunctionNotExis
     ASSERT_TRUE(WaitForResult(capture));
     EXPECT_FALSE(capture->result.result.success);
     EXPECT_EQ(capture->result.innerError, ERR_FUNCTION_NOT_EXIST);
+}
+
+/**
+ * @tc.name: InvokePublicFunctionExecutor_QueryFailed_1100
+ * @tc.desc: Public path: GetPublicFunctionInfo failure is propagated verbatim
+ *           (permission/visible checks happen on the service side).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokeFunctionExecutorTest, InvokePublicFunctionExecutor_QueryFailed_1100, TestSize.Level1)
+{
+    // The system-path mock stays ERR_OK: the public path must NOT fall back to it.
+    CliToolMGRClient::GetInstance().mockStatus_ = ERR_OK;
+    CliToolMGRClient::GetInstance().mockPublicStatus_ = ERR_PERMISSION_DENIED;
+    auto capture = RunPublic();
+    ASSERT_TRUE(WaitForResult(capture));
+    EXPECT_FALSE(capture->result.result.success);
+    EXPECT_EQ(capture->result.innerError, ERR_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: InvokePublicFunctionExecutor_QueryNotExist_1200
+ * @tc.desc: Public path: ERR_FUNCTION_NOT_EXIST (function not open to third-party apps)
+ *           is preserved verbatim.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokeFunctionExecutorTest, InvokePublicFunctionExecutor_QueryNotExist_1200, TestSize.Level1)
+{
+    CliToolMGRClient::GetInstance().mockPublicStatus_ = ERR_FUNCTION_NOT_EXIST;
+    auto capture = RunPublic();
+    ASSERT_TRUE(WaitForResult(capture));
+    EXPECT_FALSE(capture->result.result.success);
+    EXPECT_EQ(capture->result.innerError, ERR_FUNCTION_NOT_EXIST);
+}
+
+/**
+ * @tc.name: InvokePublicFunctionExecutor_Success_1300
+ * @tc.desc: Public path: a successful GetPublicFunctionInfo flows into the regular
+ *           type-validation and intent-execution steps.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokeFunctionExecutorTest, InvokePublicFunctionExecutor_Success_1300, TestSize.Level1)
+{
+    CliToolMGRClient::GetInstance().mockPublicStatus_ = ERR_OK;
+    auto capture = RunPublic();
+    ASSERT_TRUE(WaitForResult(capture));
+    EXPECT_TRUE(capture->result.result.success);
 }
 
 /**

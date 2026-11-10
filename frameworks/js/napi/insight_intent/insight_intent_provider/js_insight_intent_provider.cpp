@@ -19,6 +19,7 @@
 #include <mutex>
 #include <vector>
 
+#include "ability_manager_client.h"
 #include "hilog_tag_wrapper.h"
 #include "js_runtime_utils.h"
 #include "js_error_utils.h"
@@ -208,6 +209,11 @@ public:
         GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentProvider, OnSendIntentResult);
     }
 
+    static napi_value GetInsightIntentCallerBundleName(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentProvider, OnGetInsightIntentCallerBundleName);
+    }
+
 private:
     napi_value OnSendExecuteResult(napi_env env, NapiCallbackInfo& info)
     {
@@ -219,6 +225,41 @@ private:
     {
         TAG_LOGD(AAFwkTag::INTENT, "called");
         return OnSendExecuteResultCommon(env, info, true);
+    }
+
+    napi_value OnGetInsightIntentCallerBundleName(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::INTENT, "called");
+        HandleEscape handleEscape(env);
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        int32_t intentId = 0;
+        if (!ConvertFromJsValue(env, info.argv[0], intentId) || intentId <= 0) {
+            TAG_LOGE(AAFwkTag::INTENT, "parse intentId failed");
+            ThrowInvalidParamError(env, "Parse param intentId failed, must be a positive integer.");
+            return CreateJsUndefined(env);
+        }
+
+        auto sharedResult = std::make_shared<std::string>();
+        NapiAsyncTask::ExecuteCallback execute = [sharedResult, intentId]() {
+            *sharedResult = AAFwk::AbilityManagerClient::GetInstance()->GetInsightIntentCallerBundleName(
+                static_cast<uint64_t>(intentId));
+        };
+
+        NapiAsyncTask::CompleteCallback complete = [sharedResult](napi_env env, NapiAsyncTask &task, int32_t status) {
+            HandleScope handleScope(env);
+            task.Resolve(env, CreateJsValue(env, *sharedResult));
+        };
+
+        napi_value lastParam = (info.argc > ARGC_ONE) ? info.argv[ARGC_ONE] : nullptr;
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("JsInsightIntentProvider::OnGetInsightIntentCallerBundleName", env,
+            CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+        return handleEscape.Escape(result);
     }
 
     napi_value OnSendExecuteResultCommon(napi_env env, NapiCallbackInfo& info, bool isDecorator)
@@ -282,6 +323,8 @@ napi_value CreateJsInsightIntentProvider(napi_env env, napi_value exportObj)
         JsInsightIntentProvider::SendExecuteResult);
     BindNativeFunction(env, exportObj, "sendIntentResult", JS_INSIGHT_INTENT_PROVIDER_NAME,
         JsInsightIntentProvider::SendIntentResult);
+    BindNativeFunction(env, exportObj, "getInsightIntentCallerBundleName", JS_INSIGHT_INTENT_PROVIDER_NAME,
+        JsInsightIntentProvider::GetInsightIntentCallerBundleName);
     BindNativeFunction(env, exportObj, "onWillInsightIntentExecute", JS_INSIGHT_INTENT_PROVIDER_NAME,
         JsInsightIntentWillExecuteCallback::OnWillInsightIntentExecute);
     BindNativeFunction(env, exportObj, "offWillInsightIntentExecute", JS_INSIGHT_INTENT_PROVIDER_NAME,
