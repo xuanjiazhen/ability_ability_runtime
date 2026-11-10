@@ -335,30 +335,30 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_ProcessDied_0100, TestSize.Lev
 
 /**
  * @tc.number: TaskPriorityJudge_SeedForeground_0100
- * @tc.name: SeedForeground inserts the sentinel token 0; first real event replaces it.
- * @tc.desc: the seeder marks a pid foreground with token 0; a real FOREGROUND for a
- *           distinct token replaces the sentinel (no double count), and BACKGROUND for
- *           the real token leaves no stale sentinel.
+ * @tc.name: SeedForeground inserts the given tokens with the same identity as the observer.
+ * @tc.desc: seeding with the real foreground ability tokens makes a seeded entry
+ *           indistinguishable from an observed one: a repeated FOREGROUND for the same
+ *           token is idempotent, and BACKGROUND for a seeded token removes it exactly.
  */
 HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_SeedForeground_0100, TestSize.Level1)
 {
     auto &judge = TaskPriorityJudge::GetInstance();
-    judge.SeedForeground(TEST_FG_PID);
+    judge.SeedForeground(TEST_FG_PID, {0x2001, 0x2002});
     EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
     {
         std::lock_guard<std::mutex> lock(judge.judgeMutex_);
-        ASSERT_EQ(judge.fgAbilities_[TEST_FG_PID].size(), 1);
-        EXPECT_EQ(*judge.fgAbilities_[TEST_FG_PID].begin(), 0);
+        EXPECT_EQ(judge.fgAbilities_[TEST_FG_PID].size(), 2);
     }
-    // real ability arrives: set should transition to {real token}, not {0, real}
+    // repeated foreground for a seeded token is idempotent (no double count)
     judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x2001, true);
     {
         std::lock_guard<std::mutex> lock(judge.judgeMutex_);
-        ASSERT_EQ(judge.fgAbilities_[TEST_FG_PID].size(), 1);
-        EXPECT_EQ(*judge.fgAbilities_[TEST_FG_PID].begin(), 0x2001);
+        EXPECT_EQ(judge.fgAbilities_[TEST_FG_PID].size(), 2);
     }
-    // background of the real token: no stale sentinel remains
+    // background removes one seeded token; the other keeps the pid foreground
     judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x2001, false);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x2002, false);
     EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
     {
         std::lock_guard<std::mutex> lock(judge.judgeMutex_);

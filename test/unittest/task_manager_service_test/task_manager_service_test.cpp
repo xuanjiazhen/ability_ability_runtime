@@ -926,9 +926,13 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_LazyFgReconcile_0100, TestSi
     ResetJudgeState();
     ResetScheduleState();
     auto &service = TaskManagerService::GetInstance();
-    // seeder reports one foreground ability for the caller pid
+    // seeder reports one foreground ability token for the caller pid
     service.SetForegroundSeeder(
-        [](pid_t pid) { return pid == TEST_CREATOR_PID ? 1 : 0; });
+        [](pid_t pid, std::vector<uintptr_t> &tokens) {
+            if (pid == TEST_CREATOR_PID) {
+                tokens.push_back(0x8001);
+            }
+        });
     std::string taskId = MakeTaskId("lazy_fg_0100");
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     {
@@ -938,7 +942,10 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_LazyFgReconcile_0100, TestSi
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
 
     // seeder no longer reports foreground abilities: a new task falls back
-    service.SetForegroundSeeder([](pid_t pid) { (void)pid; return 0; });
+    service.SetForegroundSeeder([](pid_t pid, std::vector<uintptr_t> &tokens) {
+        (void)pid;
+        (void)tokens;
+    });
     std::string taskId2 = MakeTaskId("lazy_fg_0101");
     EXPECT_EQ(service.StartTask(taskId2), ERR_OK);
     {

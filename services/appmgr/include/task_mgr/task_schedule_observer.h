@@ -53,7 +53,8 @@ public:
         uintptr_t token = reinterpret_cast<uintptr_t>(abilityStateData.token.GetRefPtr());
         bool enteringForeground = foreground;
         TAG_LOGD(AAFwkTag::APPMGR, "yzk ability state, pid=%d token=0x%lx state=%d fg=%d",
-            abilityStateData.pid, static_cast<unsigned long>(token), abilityStateData.abilityState, enteringForeground);
+            abilityStateData.pid, static_cast<unsigned long>(token), abilityStateData.abilityState,
+            enteringForeground);
         TaskManagerService::GetInstance().OnAbilityForegroundChanged(
             abilityStateData.pid, static_cast<unsigned long>(token), enteringForeground);
     }

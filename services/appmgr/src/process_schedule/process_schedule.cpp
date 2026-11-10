@@ -38,11 +38,6 @@ int32_t ProcessSchedule::MergeLevel(const PidEntry &entry)
     return level;
 }
 
-const char *ProcessSchedule::ActionText(bool apply)
-{
-    return apply ? "APPLY" : "REVOKE";
-}
-
 void ProcessSchedule::OnAttributionAdded(const std::string &taskId, int32_t taskLevel,
     pid_t pid, AttributionTool tool)
 {
@@ -216,7 +211,6 @@ void ProcessSchedule::ApplyControlLocked(pid_t pid, int32_t newLevel, int32_t ol
     TAG_LOGI(AAFwkTag::APPMGR,
         "yzk sched control apply(stub) pid=%d %s -> %s",
         pid, TaskPriorityToString(oldLevel), TaskPriorityToString(newLevel));
-    (void)ActionText(true);
 }
 
 void ProcessSchedule::RevokeControlLocked(pid_t pid, int32_t oldLevel)
@@ -226,7 +220,6 @@ void ProcessSchedule::RevokeControlLocked(pid_t pid, int32_t oldLevel)
     TAG_LOGI(AAFwkTag::APPMGR,
         "yzk sched control revoke(stub) pid=%d %s",
         pid, TaskPriorityToString(oldLevel));
-    (void)ActionText(false);
 }
 
 std::string ProcessSchedule::DumpSchedule() const

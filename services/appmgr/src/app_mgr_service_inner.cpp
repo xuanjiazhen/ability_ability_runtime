@@ -7297,16 +7297,16 @@ int32_t AppMgrServiceInner::GetForegroundApplications(std::vector<AppStateData> 
     return appQueryHelper_.GetForegroundApplications(list);
 }
 
-int32_t AppMgrServiceInner::GetForegroundAbilityCountByPid(pid_t pid) const
+void AppMgrServiceInner::GetForegroundAbilityTokensByPid(pid_t pid, std::vector<uintptr_t> &tokens) const
 {
+    tokens.clear();
     if (appRunningManager_ == nullptr) {
-        return 0;
+        return;
     }
     auto appRecord = appRunningManager_->GetAppRunningRecordByPid(pid);
     if (appRecord == nullptr) {
-        return 0;
+        return;
     }
-    int32_t count = 0;
     for (const auto &moduleRecord : appRecord->GetAllModuleRecord()) {
         if (moduleRecord == nullptr) {
             continue;
@@ -7314,11 +7314,10 @@ int32_t AppMgrServiceInner::GetForegroundAbilityCountByPid(pid_t pid) const
         for (const auto &abilityItem : moduleRecord->GetAbilities()) {
             const auto &ability = abilityItem.second;
             if (ability != nullptr && ability->GetState() == AbilityState::ABILITY_STATE_FOREGROUND) {
-                count++;
+                tokens.push_back(reinterpret_cast<uintptr_t>(ability->GetToken().GetRefPtr()));
             }
         }
     }
-    return count;
 }
 
 int AppMgrServiceInner::StartUserTestProcess(
