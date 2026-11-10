@@ -12,6 +12,8 @@
 
 #include "tool_info.h"
 
+#include "function_info.h"
+
 namespace OHOS {
 namespace CliTool {
 class CliToolDataManagerMock {
@@ -40,6 +42,8 @@ public:
     static int32_t unregisterByNamespaceResult;
     static int32_t resetNamespaceFunctionsResult;
     static int32_t resetNamespaceFunctionsSuccessCount;
+    static std::vector<FunctionInfo> mockFunctions;
+    static FunctionInfo mockFunctionInfo;
 
     static void Reset();
 };

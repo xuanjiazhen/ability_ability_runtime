@@ -55,13 +55,14 @@ std::shared_ptr<InvokeFunctionExecutor> InvokeFunctionExecutor::Create()
     return std::make_shared<InvokeFunctionExecutor>();
 }
 
-void InvokeFunctionExecutor::Execute(const InvokeFunctionParam &param, InvokeResultCallback callback)
+void InvokeFunctionExecutor::Execute(const InvokeFunctionParam &param, InvokeResultCallback callback,
+    bool isPublicInvoke)
 {
     callback_ = std::move(callback);
     auto self = shared_from_this();
     SetupTimeout();
-    ffrt::submit([self, param]() {
-        self->DoExecute(param);
+    ffrt::submit([self, param, isPublicInvoke]() {
+        self->DoExecute(param, isPublicInvoke);
     });
 }
 
@@ -86,13 +87,22 @@ void InvokeFunctionExecutor::ReportError(int32_t errorCode)
     }
 }
 
-void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
+void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param, bool isPublicInvoke)
 {
     FunctionInfo functionInfo;
-    ErrCode queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(
-        param.functionNamespace, param.functionName, functionInfo);
+    // Public path: GetPublicFunctionInfo enforces the ACCESS_PUBLIC_FUNCTION permission and
+    // the open-to-third-party (visible) check on the service side; the system path keeps
+    // the original GetFunctionInfo (system app + ACCESS_FUNCTION) semantics.
+    ErrCode queryErr;
+    if (isPublicInvoke) {
+        queryErr = CliToolMGRClient::GetInstance().GetPublicFunctionInfo(
+            param.functionNamespace, param.functionName, functionInfo);
+    } else {
+        queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(
+            param.functionNamespace, param.functionName, functionInfo);
+    }
     if (queryErr != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo failed: %{public}d", queryErr);
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "query function info failed: %{public}d", queryErr);
         ReportError(queryErr);
         return;
     }

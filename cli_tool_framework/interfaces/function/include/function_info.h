@@ -44,6 +44,14 @@ public:
     std::string outputSchema;
     FunctionType functionType;
     int32_t userId;
+    /**
+     * Controls whether this Function is open to third-party applications.
+     * - true:  the Function is open ("public"), third-party apps can query and invoke it
+     * - false: the Function is not open to third-party apps, only system apps/SAs
+     *          can query and invoke it
+     * Default is false (deny-by-default): missing or invalid config results in not open.
+     */
+    bool visible = false;
 
     FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION), userId(-1) {}
     ~FunctionInfo() override = default;

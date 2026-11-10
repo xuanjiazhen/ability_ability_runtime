@@ -50,10 +50,15 @@ public:
 
     static std::shared_ptr<InvokeFunctionExecutor> Create();
 
-    void Execute(const InvokeFunctionParam &param, InvokeResultCallback callback);
+    /**
+     * @brief Start an invocation. When isPublicInvoke is true, the function info is
+     *        obtained via GetPublicFunctionInfo (permission + open-to-third-party check
+     *        on the service side); otherwise via GetFunctionInfo (system app path).
+     */
+    void Execute(const InvokeFunctionParam &param, InvokeResultCallback callback, bool isPublicInvoke = false);
 
 private:
-    void DoExecute(const InvokeFunctionParam &param);
+    void DoExecute(const InvokeFunctionParam &param, bool isPublicInvoke);
     void ReportError(int32_t errorCode);
     void SetupTimeout();
 
