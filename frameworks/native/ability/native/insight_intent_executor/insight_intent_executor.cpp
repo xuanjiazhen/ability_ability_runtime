@@ -99,4 +99,22 @@ std::shared_ptr<InsightIntentContext> InsightIntentExecutor::GetContext()
 {
     return context_;
 }
+
+void InsightIntentExecutor::Cancel(int32_t reason)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "cancel executor, reason: %{public}d", reason);
+    canceled_.store(true);
+    // Propagate the cancellation to the signal handed to the target app code so
+    // the app can observe it (poll IsCanceled / subscribe onCancel). The context
+    // is created in Init() before this executor can ever receive a Cancel, so it
+    // is safe to dereference here.
+    if (context_ != nullptr && context_->GetCancellationSignal() != nullptr) {
+        context_->GetCancellationSignal()->Cancel(reason);
+    }
+}
+
+bool InsightIntentExecutor::IsCanceled() const
+{
+    return canceled_.load();
+}
 } // namespace OHOS::AbilityRuntime

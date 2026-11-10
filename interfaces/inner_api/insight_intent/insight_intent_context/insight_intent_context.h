@@ -17,6 +17,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_CONTEXT_H
 
+#include "insight_intent_cancellation_signal.h"
 #include "insight_intent_constant.h"
 #include "insight_intent_execution_info.h"
 #include "iremote_object.h"
@@ -107,6 +108,21 @@ public:
         return delayReturnMode_;
     }
 
+    /**
+     * @brief Gets the cancellation signal of this context.
+     *
+     * The signal is the observability surface handed to the target app code.
+     * The executor flips it (via InsightIntentExecutor::Cancel) when AMS cancels
+     * this intent, so the app can poll IsCanceled or subscribe to the callback
+     * to stop its long running work early.
+     *
+     * @return The shared cancellation signal; never null.
+     */
+    std::shared_ptr<InsightIntentCancellationSignal> GetCancellationSignal()
+    {
+        return cancellationSignal_;
+    }
+
 private:
     sptr<IRemoteObject> token_ = nullptr;
     std::string bundleName_ = "";
@@ -116,6 +132,8 @@ private:
     AppExecFwk::InsightIntentExecutionInfo executionInfo_;
     int32_t executeMode_ = -1;
     InsightIntentReturnMode delayReturnMode_ = InsightIntentReturnMode::CALLBACK;
+    std::shared_ptr<InsightIntentCancellationSignal> cancellationSignal_ =
+        std::make_shared<InsightIntentCancellationSignal>();
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
