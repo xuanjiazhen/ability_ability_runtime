@@ -19,6 +19,8 @@
 
 #include "ability_auto_startup_data_manager.h"
 #include "ability_manager_service.h"
+#include "ability_manager_xcollie.h"
+#include "ability_util.h"
 #include "accesstoken_kit.h"
 #include "app_utils.h"
 #include "auto_startup_callback_proxy.h"
@@ -28,6 +30,7 @@
 #include "exit_reason.h"
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"
+#include "hitrace_meter.h"
 #include "in_process_call_wrapper.h"
 #include "permission_constants.h"
 #include "process_options.h"
@@ -36,6 +39,9 @@
 #include "user_controller/user_controller.h"
 #include "utils/main_element_utils.h"
 #include "xcollie/process_kill_reason.h"
+#ifdef SUPPORT_SCREEN
+#include "utils/dms_util.h"
+#endif
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -724,7 +730,8 @@ int32_t AbilityAutoStartupService::GetAbilityInfo(
     return ERR_OK;
 }
 
-int32_t AbilityAutoStartupService::HiddenStartAutoStartupApp(AAFwk::Want &want, int32_t userId)
+int32_t AbilityAutoStartupService::HiddenStartAutoStartupApp(AAFwk::Want &want, int32_t userId,
+    bool isDirectBootStartup)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "HiddenStartAutoStartupApp called");
     if (!DelayedSingleton<AbilityManagerService>::GetInstance()->IsSupportStatusBarByUserId(userId)) {
@@ -737,6 +744,16 @@ int32_t AbilityAutoStartupService::HiddenStartAutoStartupApp(AAFwk::Want &want, 
     options.processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
     want.SetParam(HIDDEN_START_AUTOSTARTUP, true);
 
+    if (isDirectBootStartup) {
+        XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
+        HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+        AbilityUtil::RemoveShowModeKey(want);
+#ifdef SUPPORT_SCREEN
+        DmsUtil::GetInstance().UpdateFlagForCollaboration(want);
+#endif
+        return IN_PROCESS_CALL(DelayedSingleton<AbilityManagerService>::GetInstance()->StartUIAbilityForOptionWrap(
+            want, options, nullptr, false, userId, DEFAULT_INVAL_VALUE, 0, false, false, false, isDirectBootStartup));
+    }
     return IN_PROCESS_CALL(DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(want,
         options, nullptr, userId, DEFAULT_INVAL_VALUE));
 }

@@ -1833,7 +1833,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
                     {param.isStartAsCaller, isTargetPlugin, param.hostBundleName})
                 .Context<AbilityInterceptorParam::DisposedCtx>({appIndex, nullptr})
                 .BlockAllEscapeCheck(MakeBlockAllEscapeCheck(abilityRequest))
-                .StartAbilityCtx(param.startAbilityCtx).Build();
+                .StartAbilityCtx(param.startAbilityCtx).DirectBootStartup(param.isDirectBootStartup).Build();
             result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
                 interceptorExecuter_->DoProcess(interceptorParam);
             param.startAbilityCtx.SyncFrom(interceptorParam.startAbilityCtx);
@@ -2504,7 +2504,7 @@ int AbilityManagerService::ImplicitStartAbility(const Want &want, const StartOpt
 int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options,
     sptr<IRemoteObject> callerToken, bool isPendingWantCaller, int32_t userId,
     int requestCode, uint32_t callerTokenId, bool isImplicit,
-    bool isCallByShortcut, bool isCallByDelayed)
+    bool isCallByShortcut, bool isCallByDelayed, bool isDirectBootStartup)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
@@ -2517,7 +2517,7 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
         return ret;
     }
     return StartAbilityForOptionInner(want, options, callerToken, isPendingWantCaller, userId, requestCode, false,
-        callerTokenId, isImplicit, isCallByShortcut, isCallByDelayed);
+        callerTokenId, isImplicit, isCallByShortcut, isCallByDelayed, isDirectBootStartup);
 }
 
 int AbilityManagerService::StartAbilityAsCaller(const Want &want, const StartOptions &startOptions,
@@ -2597,7 +2597,8 @@ int AbilityManagerService::StartAbilityForResultAsCaller(const Want &want, const
 
 int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const StartOptions &startOptions,
     const sptr<IRemoteObject> &callerToken, bool isPendingWantCaller, int32_t userId, int requestCode,
-    bool isStartAsCaller, uint32_t specifyTokenId, bool isImplicit, bool isCallByShortcut, bool isCallByDelayed)
+    bool isStartAsCaller, uint32_t specifyTokenId, bool isImplicit, bool isCallByShortcut, bool isCallByDelayed,
+    bool isDirectBootStartup)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     StartAbilityContext ctx;
@@ -2942,7 +2943,8 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         .AbilityInfo(std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo))
         .Context<AbilityInterceptorParam::EcologicalCtx>({isStartAsCaller, isTargetPlugin, ""})
         .Context<AbilityInterceptorParam::DisposedCtx>({appIndex, &startOptions})
-        .BlockAllEscapeCheck(MakeBlockAllEscapeCheck(abilityRequest)).StartAbilityCtx(ctx).Build();
+        .BlockAllEscapeCheck(MakeBlockAllEscapeCheck(abilityRequest)).StartAbilityCtx(ctx)
+        .DirectBootStartup(isDirectBootStartup).Build();
     result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
         interceptorExecuter_->DoProcess(interceptorParam);
     ctx.SyncFrom(interceptorParam.startAbilityCtx);
@@ -3596,7 +3598,8 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, Ab
         return ERR_WRONG_INTERFACE_CALL;
     }
     const auto &targetBundleName = sessionInfo->want.GetBundleNameRef();
-    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName)) {
+    int32_t appIndex = sessionInfo->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName, appIndex)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user lock");
         return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
     }
@@ -10446,7 +10449,15 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
             want, nullptr, userId, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
     } else {
         if (info.isHiddenStart && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
-            result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId);
+            result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId, info.isDirectBoot);
+        } else if (info.isDirectBoot && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
+            StartAbilityWrapParam param = {
+                .want = want,
+                .userId = userId,
+                .removeInsightIntentFlag = true,
+                .isDirectBootStartup = info.isDirectBoot,
+            };
+            result = IN_PROCESS_CALL(StartAbilityWithRemoveIntentFlag(param));
         } else {
             result = StartAbility(want, userId);
         }
@@ -14857,7 +14868,8 @@ int32_t AbilityManagerService::StartSpecifiedAbilityBySCB(const Want &want, cons
         return ERR_PERMISSION_DENIED;
     }
     const auto &targetBundleName = want.GetBundleNameRef();
-    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName)) {
+    int32_t appIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName, appIndex)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user lock");
         return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
     }
