@@ -123,6 +123,14 @@
     {
       "name": "message_cancel_permission",
       "value": "拒绝"
+    },
+    {
+      "name": "InsightIntentConsentDialog_desc",
+      "value": "授权确认弹窗"
+    },
+    {
+      "name": "InsightIntentConsentDialog_label",
+      "value": "授权确认弹窗"
     }
   ]
 }

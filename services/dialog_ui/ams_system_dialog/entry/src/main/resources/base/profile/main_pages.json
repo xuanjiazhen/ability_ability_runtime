@@ -7,6 +7,7 @@
     "pages/jumpInterceptorDialog",
     "pages/PhonePage",
     "pages/assertFaultDialog",
-    "pages/permissionConfirmDialog"
+    "pages/permissionConfirmDialog",
+    "pages/insightIntentConsentDialog"
   ]
 }

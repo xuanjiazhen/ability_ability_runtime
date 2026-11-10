@@ -103,6 +103,14 @@
     {
       "name": "message_cancel_permission",
       "value": "reject"
+    },
+    {
+      "name": "InsightIntentConsentDialog_desc",
+      "value": "InsightIntentConsentDialog"
+    },
+    {
+      "name": "InsightIntentConsentDialog_label",
+      "value": "InsightIntentConsentDialog"
     }
   ]
 }
