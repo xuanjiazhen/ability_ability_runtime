@@ -16,18 +16,13 @@
 #include <gtest/gtest.h>
 #define private public
 #define protected public
-#include "ability_manager_service.h"
+#include "interceptor/ability_interceptor_executer.h"
 #include "extension_config.h"
 #include "interceptor/screen_unlock_interceptor.h"
 #undef private
 #undef protected
 
-#include "ability_util.h"
-#include "bundle_mgr_helper.h"
-#include "event_report.h"
 #include "nlohmann/json.hpp"
-#include "parameters.h"
-#include "scene_board_judgement.h"
 #include "screenlock_manager.h"
 
 using namespace testing;
@@ -830,6 +825,168 @@ HWTEST_F(ScreenUnlockInterceptorCoverageTest,
     // IPC fails in test env, appIdentifier="" not in blocklist → allow
     EXPECT_EQ(ret, ERR_OK);
     GTEST_LOG_(INFO) << "CheckThirdPartyExt_DefaultInterceptionFalse_NonEmptyBlockList_NeedIPC end";
+}
+
+class ScreenUnlockDirectBootTest : public ScreenUnlockInterceptorCoverageTest {
+public:
+    void SetUp() override
+    {
+        ScreenUnlockInterceptorCoverageTest::SetUp();
+        auto manager = ScreenLock::ScreenLockManager::GetInstance();
+        oldLocked_ = manager->IsScreenLocked();
+        manager->SetScreenLockedState(true);
+    }
+
+    void TearDown() override
+    {
+        ScreenLock::ScreenLockManager::GetInstance()->SetScreenLockedState(oldLocked_);
+        ScreenUnlockInterceptorCoverageTest::TearDown();
+    }
+
+    AbilityInterceptorParam MakeParam(bool systemApp, bool skipScreenLock, AbilityType type = AbilityType::PAGE)
+    {
+        auto info = std::make_shared<AppExecFwk::AbilityInfo>();
+        info->type = type;
+        info->bundleName = "com.test.directboot";
+        info->name = "MainAbility";
+        info->applicationInfo.bundleName = info->bundleName;
+        info->applicationInfo.isSystemApp = systemApp;
+        info->applicationInfo.allowAppRunWhenDeviceFirstLocked = false;
+        StartAbilityContext ctx;
+        ctx.skipScreenLock = skipScreenLock;
+        return InterceptorParamBuilder(Want(), 0, 100).AbilityInfo(info).StartAbilityCtx(ctx).Build();
+    }
+
+private:
+    bool oldLocked_ = true;
+};
+
+/**
+ * @tc.name: DirectBoot_UIAbilityConsumesSkip
+ * @tc.desc: Trusted direct-boot UI requests pass for system and non-system applications only once.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockDirectBootTest, DirectBoot_UIAbilityConsumesSkip, TestSize.Level1)
+{
+    ScreenUnlockInterceptor interceptor;
+    for (bool systemApp : {false, true}) {
+        auto param = MakeParam(systemApp, true);
+        EXPECT_EQ(interceptor.DoProcess(param), ERR_OK);
+        EXPECT_FALSE(param.startAbilityCtx.skipScreenLock);
+        EXPECT_EQ(interceptor.DoProcess(param), ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    }
+}
+
+/**
+ * @tc.name: DirectBoot_OrdinaryRequestsRemainBlocked
+ * @tc.desc: System and non-system requests retain the existing lock policy without the trusted skip.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockDirectBootTest, DirectBoot_OrdinaryRequestsRemainBlocked, TestSize.Level1)
+{
+    ScreenUnlockInterceptor interceptor;
+    for (bool systemApp : {false, true}) {
+        auto param = MakeParam(systemApp, false);
+        EXPECT_EQ(interceptor.DoProcess(param), ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    }
+}
+
+/**
+ * @tc.name: DirectBoot_WantCannotSetSkip
+ * @tc.desc: Client-controlled launch reason and boolean parameters cannot grant lock-screen access.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockDirectBootTest, DirectBoot_WantCannotSetSkip, TestSize.Level1)
+{
+    ScreenUnlockInterceptor interceptor;
+    auto param = MakeParam(false, false);
+    param.want.SetParam("isDirectBoot", true);
+    param.want.SetParam("skipScreenLock", true);
+    param.want.SetParam("hiddenStartAutoStartup", true);
+    param.want.SetParam(Want::PARAM_APP_AUTO_STARTUP_LAUNCH_REASON, true);
+    EXPECT_EQ(interceptor.DoProcess(param), ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+}
+
+/**
+ * @tc.name: DirectBoot_ConsumedSkipIsSyncedBack
+ * @tc.desc: Builder copy and SyncFrom preserve consumption and do not pass it to another request.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockDirectBootTest, DirectBoot_ConsumedSkipIsSyncedBack, TestSize.Level1)
+{
+    ScreenUnlockInterceptor interceptor;
+    StartAbilityContext ctx;
+    ctx.skipScreenLock = true;
+    auto target = MakeParam(false, false).abilityInfo;
+    auto param = InterceptorParamBuilder(Want(), 0, 100).AbilityInfo(target).StartAbilityCtx(ctx).Build();
+    EXPECT_EQ(interceptor.DoProcess(param), ERR_OK);
+    EXPECT_TRUE(ctx.skipScreenLock);
+    ctx.SyncFrom(param.startAbilityCtx);
+    EXPECT_FALSE(ctx.skipScreenLock);
+    auto next = InterceptorParamBuilder(Want(), 0, 100).AbilityInfo(target).StartAbilityCtx(ctx).Build();
+    EXPECT_EQ(interceptor.DoProcess(next), ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    auto ordinary = MakeParam(false, false);
+    EXPECT_EQ(interceptor.DoProcess(ordinary), ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+}
+
+/**
+ * @tc.name: DirectBoot_ExtensionPolicyIsNotSkipped
+ * @tc.desc: The UI-only skip does not bypass extension configuration, even if present in the context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockDirectBootTest, DirectBoot_ExtensionPolicyIsNotSkipped, TestSize.Level1)
+{
+    LoadTestConfig(R"({"ams_extension_config":[{"name":"FormExtension","extension_type_name":"form",
+        "screen_unlock_access":{"defaultInterception":true}}]})");
+    ScreenUnlockInterceptor interceptor;
+    for (bool systemApp : {false, true}) {
+        auto param = MakeParam(systemApp, true, AbilityType::EXTENSION);
+        param.abilityInfo->extensionTypeName = "form";
+        param.abilityInfo->applicationInfo.allowAppRunWhenDeviceFirstLocked = true;
+        EXPECT_EQ(interceptor.DoProcess(param), ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+        EXPECT_FALSE(param.startAbilityCtx.skipScreenLock);
+    }
+}
+
+/**
+ * @tc.name: DirectBoot_NonPageIsNotSkipped
+ * @tc.desc: A trusted UI skip cannot authorize SERVICE or DATA abilities.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockDirectBootTest, DirectBoot_NonPageIsNotSkipped, TestSize.Level1)
+{
+    ScreenUnlockInterceptor interceptor;
+    for (auto type : {AbilityType::SERVICE, AbilityType::DATA}) {
+        auto param = MakeParam(false, true, type);
+        EXPECT_EQ(interceptor.DoProcess(param), ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+        EXPECT_FALSE(param.startAbilityCtx.skipScreenLock);
+    }
+}
+
+/**
+ * @tc.name: DirectBoot_DoesNotSkipFollowingInterceptors
+ * @tc.desc: Passing ScreenUnlock leaves subsequent policy enforcement active.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockDirectBootTest, DirectBoot_DoesNotSkipFollowingInterceptors, TestSize.Level1)
+{
+    class BlockingInterceptor : public IAbilityInterceptor {
+    public:
+        ErrCode DoProcess(AbilityInterceptorParam &param) override
+        {
+            called = true;
+            return INNER_ERR;
+        }
+        bool called = false;
+    };
+    auto blocking = std::make_shared<BlockingInterceptor>();
+    AbilityInterceptorExecuter executer;
+    executer.AddInterceptor("ScreenUnlock", std::make_shared<ScreenUnlockInterceptor>());
+    executer.AddInterceptor("Blocking", blocking);
+    auto param = MakeParam(false, true);
+    EXPECT_EQ(executer.DoProcess(param), INNER_ERR);
+    EXPECT_TRUE(blocking->called);
+    EXPECT_FALSE(param.startAbilityCtx.skipScreenLock);
 }
 
 } // namespace AAFwk

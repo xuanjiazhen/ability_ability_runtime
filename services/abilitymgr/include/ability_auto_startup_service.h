@@ -130,7 +130,7 @@ public:
     void AddHandledAutoStartupUsers(int32_t userId);
     void RemoveHandledAutoStartupUsers(int32_t userId);
     bool FindHandledAutoStartupUsers(int32_t userId);
-    int32_t HiddenStartAutoStartupApp(AAFwk::Want &want, int32_t userId);
+    int32_t HiddenStartAutoStartupApp(AAFwk::Want &want, int32_t userId, bool isDirectBoot = false);
     std::function<void()> CreateHiddenStartCheckTask(std::shared_ptr<AAFwk::AbilityRecord> abilityRecord);
 
     /**

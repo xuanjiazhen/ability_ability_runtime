@@ -103,15 +103,20 @@ class RootSceneToken : public IRemoteStub<IAbilityToken> {};
 
 class RecordingAbilityManager : public AbilityManagerService {
 public:
-    int StartAbility(const Want &want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId) override
+    using AbilityManagerService::StartAbility;
+
+    int StartAbility(const Want &want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId,
+        const StartAbilityContext &ctx) override
     {
         launched.push_back(want.GetElement().GetBundleName());
         launchUsers.push_back(userId);
+        screenLockSkips.push_back(ctx.skipScreenLock);
         return failedBundle == launched.back() ? INNER_ERR : ERR_OK;
     }
 
     std::vector<std::string> launched;
     std::vector<int32_t> launchUsers;
+    std::vector<bool> screenLockSkips;
     std::string failedBundle;
 };
 } // namespace
@@ -4387,6 +4392,42 @@ HWTEST_F(AbilityManagerServiceFirstTest, DirectBoot_RetryIsBoundedAndDoesNotRepe
     context.DrainTasks();
     EXPECT_EQ(context.abilityManager_->launched,
         (std::vector<std::string>{"direct.failure", "direct.success", "direct.failure", "direct.failure"}));
+}
+
+/**
+ * @tc.name: DirectBoot_QueuePassesScreenLockSkipOnEachRetry
+ * @tc.desc: Only direct-boot records carry the skip, including retries after an ordinary record.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, DirectBoot_QueuePassesScreenLockSkipOnEachRetry, TestSize.Level1)
+{
+    DirectBootTestContext context;
+    auto direct = context.Target("direct.retry");
+    direct.retryCount = TEST_RETRY_COUNT;
+    auto ordinary = context.Target("ordinary", false);
+    context.abilityManager_->failedBundle = direct.bundleName;
+    context.StartQueue({direct, ordinary});
+    context.DrainTasks();
+    EXPECT_EQ(context.abilityManager_->launched,
+        (std::vector<std::string>{"direct.retry", "ordinary", "direct.retry", "direct.retry"}));
+    EXPECT_EQ(context.abilityManager_->screenLockSkips, (std::vector<bool>{true, false, true, true}));
+}
+
+/**
+ * @tc.name: DirectBoot_PublicStartDoesNotTrustWant
+ * @tc.desc: The public start entry creates an unprivileged context despite forged Want parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, DirectBoot_PublicStartDoesNotTrustWant, TestSize.Level1)
+{
+    DirectBootTestContext context;
+    Want want;
+    want.SetElementName("ordinary", "MainAbility");
+    want.SetParam("isDirectBoot", true);
+    want.SetParam("skipScreenLock", true);
+    want.SetParam(Want::PARAM_APP_AUTO_STARTUP_LAUNCH_REASON, true);
+    EXPECT_EQ(context.abilityManager_->StartAbility(want, DIRECT_BOOT_TEST_USER), ERR_OK);
+    EXPECT_EQ(context.abilityManager_->screenLockSkips, (std::vector<bool>{false}));
 }
 
 HWTEST_F(AbilityManagerServiceFirstTest, DirectBoot_UnlockDoesNotCancelQueuedRequests, TestSize.Level1)

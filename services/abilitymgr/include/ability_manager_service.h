@@ -194,6 +194,9 @@ public:
         const Want &want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE,
         uint64_t specifiedFullTokenId = 0) override;
 
+    virtual int StartAbility(const Want &want, int32_t userId, int requestCode,
+        uint64_t specifiedFullTokenId, const StartAbilityContext &startAbilityCtx);
+
     /**
      * StartAbility with want, send want to ability manager service.
      *
@@ -349,6 +352,10 @@ public:
         const sptr<IRemoteObject> &callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE) override;
+
+    int StartAbility(const Want &want, const StartOptions &startOptions,
+        const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode,
+        const StartAbilityContext &startAbilityCtx);
 
     /**
      * Starts a new ability using the original caller information.
@@ -1503,7 +1510,8 @@ public:
         uint32_t specifyTokenId = 0,
         bool isImplicit = false,
         bool isCallByShortcut = false,
-        bool isCallByDelayed = false);
+        bool isCallByDelayed = false,
+        const StartAbilityContext &startAbilityCtx = {});
 
     int ImplicitStartAbility(
         const Want &want,
@@ -2617,7 +2625,7 @@ public:
 
     int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
         bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
-        bool isCallByShortcut = false, bool isCallByDelayed = false);
+        bool isCallByShortcut = false, bool isCallByDelayed = false, const StartAbilityContext &startAbilityCtx = {});
 
     /**
      * KillProcessForPermissionUpdate, call KillProcessForPermissionUpdate() through proxy object,
