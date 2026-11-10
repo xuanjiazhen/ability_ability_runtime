@@ -82,12 +82,65 @@ Distribute GetDistributeFunc()
     }
     return g_distributeFunc;
 }
+
+// Native data stored on the object returned by executeWithHandle. It carries the
+// intentId to cancel plus a shared "canceled" flag that both the cancel() call and
+// the AMS INTENT_CANCELED callback write to.
+struct CancelHandleData {
+    uint64_t intentId = 0;
+    std::shared_ptr<std::atomic<bool>> canceled = nullptr;
+};
+
+napi_value CreateJsBigIntUint64(napi_env env, uint64_t value)
+{
+    // intentId is 64-bit and reaches the JS/ArkTS side as a bigint.
+    uint64_t word = value;
+    napi_value result = nullptr;
+    napi_create_bigint_words(env, 0, 1, &word, &result);
+    return result;
+}
+
+void CancelHandleFinalizer(napi_env env, void *data, void *hint)
+{
+    if (data != nullptr) {
+        delete static_cast<CancelHandleData *>(data);
+    }
+}
+
+napi_value CancelHandleCancel(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+    CancelHandleData *data = nullptr;
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&data));
+    if (data != nullptr) {
+        AbilityManagerClient::GetInstance()->CancelInsightIntent(data->intentId);
+        if (data->canceled != nullptr) {
+            data->canceled->store(true, std::memory_order_release);
+        }
+    }
+    return CreateJsUndefined(env);
+}
+
+napi_value CancelHandleGetIsCanceled(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+    CancelHandleData *data = nullptr;
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&data));
+    bool isCanceled = data != nullptr && data->canceled != nullptr &&
+        data->canceled->load(std::memory_order_acquire);
+    napi_value result = nullptr;
+    napi_get_boolean(env, isCanceled, &result);
+    return result;
+}
 }
 class JsInsightIntentExecuteCallbackClient : public InsightIntentExecuteCallbackInterface,
     public std::enable_shared_from_this<JsInsightIntentExecuteCallbackClient> {
 public:
-    JsInsightIntentExecuteCallbackClient(napi_env env, napi_deferred nativeDeferred, napi_ref callbackRef)
-        : env_(env), nativeDeferred_(nativeDeferred), callbackRef_(callbackRef) {}
+    JsInsightIntentExecuteCallbackClient(napi_env env, napi_deferred nativeDeferred, napi_ref callbackRef,
+        std::shared_ptr<std::atomic<bool>> canceled = nullptr)
+        : env_(env), nativeDeferred_(nativeDeferred), callbackRef_(callbackRef), canceled_(canceled) {}
 
     virtual ~JsInsightIntentExecuteCallbackClient() = default;
 
@@ -95,6 +148,9 @@ public:
         AppExecFwk::InsightIntentExecuteResult executeResult) override
     {
         TAG_LOGI(AAFwkTag::INTENT, "complete");
+        if (resultCode == AAFwk::INTENT_CANCELED && canceled_ != nullptr) {
+            canceled_->store(true, std::memory_order_release);
+        }
         NapiAsyncTask::CompleteCallback complete = [resultCode = resultCode, executeResult = executeResult]
             (napi_env env, NapiAsyncTask &task, int32_t status) {
             HandleScope handleScope(env);
@@ -118,6 +174,7 @@ private:
     napi_env env_;
     napi_deferred nativeDeferred_ = nullptr;
     napi_ref callbackRef_ = nullptr;
+    std::shared_ptr<std::atomic<bool>> canceled_ = nullptr;
 };
 
 class JsInsightIntentDriver {
@@ -134,6 +191,11 @@ public:
     static napi_value Execute(napi_env env, napi_callback_info info)
     {
         GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentDriver, OnExecute);
+    }
+
+    static napi_value ExecuteWithHandle(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentDriver, OnExecuteWithHandle);
     }
 
     static napi_value GetAllInsightIntentInfo(napi_env env, napi_callback_info info)
@@ -303,6 +365,83 @@ private:
             asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
         }
+        return handleEscape.Escape(result);
+    }
+
+    // Like OnExecute, but captures the intentId and returns a cancellable handle
+    // (temporary name; exposed as executeWithHandle and subject to rename).
+    napi_value OnExecuteWithHandle(napi_env env, NapiCallbackInfo& info)
+    {
+        HandleEscape handleEscape(env);
+        TAG_LOGI(AAFwkTag::INTENT, "on execute with handle");
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        InsightIntentExecuteParam param;
+        if (!UnwrapExecuteParam(env, info.argv[INDEX_ZERO], param)) {
+            TAG_LOGE(AAFwkTag::INTENT, "parse on off type failed");
+            ThrowInvalidParamError(env, "Parameter error: Parse param failed, param must be a ExecuteParam.");
+            return CreateJsUndefined(env);
+        }
+
+        napi_value lastParam = (info.argc == 1) ? nullptr : info.argv[INDEX_ONE];
+        napi_valuetype type = napi_undefined;
+        napi_typeof(env, lastParam, &type);
+
+        napi_value result = nullptr;
+        napi_deferred nativeDeferred = nullptr;
+        napi_ref callbackRef = nullptr;
+        std::unique_ptr<NapiAsyncTask> asyncTask = nullptr;
+        if (lastParam == nullptr || type != napi_function) {
+            napi_create_promise(env, &nativeDeferred, &result);
+            asyncTask = std::make_unique<NapiAsyncTask>(nativeDeferred, nullptr, nullptr);
+        } else {
+            napi_create_object(env, &result);
+            napi_create_reference(env, lastParam, 1, &callbackRef);
+            asyncTask = std::make_unique<NapiAsyncTask>(callbackRef, nullptr, nullptr);
+        }
+
+        if (asyncTask == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null asyncTask");
+            return CreateJsUndefined(env);
+        }
+
+        auto canceled = std::make_shared<std::atomic<bool>>(false);
+        auto client = std::make_shared<JsInsightIntentExecuteCallbackClient>(env, nativeDeferred,
+            callbackRef, canceled);
+        uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(client);
+
+        uint64_t intentId = 0;
+        if (IsServiceMatch(param) && NeedStartByContext(param)) {
+            // service_match route has no AMS record, so there is no intentId to cancel.
+            HandleServiceMatch(env, info, param);
+        } else {
+            auto err = AbilityManagerClient::GetInstance()->ExecuteIntent(key,
+                InsightIntentHostClient::GetInstance(), param, intentId);
+            if (err != 0) {
+                asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
+                InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
+            }
+        }
+
+        auto data = new (std::nothrow) CancelHandleData();
+        if (data == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "new CancelHandleData failed");
+            return handleEscape.Escape(result);
+        }
+        data->intentId = intentId;
+        data->canceled = canceled;
+        napi_wrap(env, result, data, CancelHandleFinalizer, nullptr, nullptr);
+
+        napi_property_descriptor properties[] = {
+            DECLARE_NAPI_PROPERTY("intentId", CreateJsBigIntUint64(env, intentId)),
+            DECLARE_NAPI_FUNCTION("cancel", CancelHandleCancel),
+            DECLARE_NAPI_GETTER("isCanceled", CancelHandleGetIsCanceled),
+        };
+        napi_define_properties(env, result, sizeof(properties) / sizeof(properties[0]), properties);
         return handleEscape.Escape(result);
     }
 
@@ -662,6 +801,7 @@ napi_value JsInsightIntentDriverInit(napi_env env, napi_value exportObj)
 
     const char *moduleName = "JsInsightIntentDriver";
     BindNativeFunction(env, exportObj, "execute", moduleName, JsInsightIntentDriver::Execute);
+    BindNativeFunction(env, exportObj, "executeWithHandle", moduleName, JsInsightIntentDriver::ExecuteWithHandle);
     BindNativeFunction(env, exportObj,
         "getAllInsightIntentInfo", moduleName, JsInsightIntentDriver::GetAllInsightIntentInfo);
     BindNativeFunction(env, exportObj,

@@ -24,6 +24,7 @@
 #include "cpp/mutex.h"
 #include "event_report.h"
 #include "extract_insight_intent_profile.h"
+#include "insight_intent_cancel_listener_interface.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_result.h"
 #include "insight_intent_execution_info.h"
@@ -38,7 +39,8 @@ enum class InsightIntentExecuteState {
     UNKNOWN = 0,
     EXECUTING,
     EXECUTE_DONE,
-    REMOTE_DIED
+    REMOTE_DIED,
+    CANCELED
 };
 
 struct InsightIntentExecuteRecord {
@@ -56,6 +58,14 @@ struct InsightIntentExecuteRecord {
     std::string taskId;
     // Attribution id allocated by the in-process TaskManagerService (0 means not registered).
     int64_t attributionId = 0;
+    // uid of the original caller, used to authorize a later CancelInsightIntent.
+    int32_t callerUid = 0;
+    // Cancellation listener registered by the target app via NotifyInsightIntentExecute.
+    sptr<IInsightIntentCancelListener> cancelListener = nullptr;
+    sptr<IRemoteObject::DeathRecipient> cancelListenerDeathRecipient = nullptr;
+    // Reason recorded when the intent is cancelled; used to close the cold-start
+    // gap when the listener is attached after the cancellation already happened.
+    InsightIntentCancelReason cancelReason = InsightIntentCancelReason::USER_REQUESTED;
 };
 
 class InsightIntentExecuteConnection : public AbilityConnectionStub {
@@ -78,6 +88,19 @@ public:
     {}
 
     ~InsightIntentExecuteRecipient() override = default;
+
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+
+private:
+    uint64_t intentId_ = 0;
+};
+
+class InsightIntentCancelListenerRecipient : public IRemoteObject::DeathRecipient {
+public:
+    explicit InsightIntentCancelListenerRecipient(uint64_t intentId) : intentId_(intentId)
+    {}
+
+    ~InsightIntentCancelListenerRecipient() override = default;
 
     void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
 
@@ -142,6 +165,12 @@ public:
 
     void SetTargetPid(uint64_t intentId, pid_t pid);
 
+    int32_t CancelIntent(uint64_t intentId, int32_t callerUid);
+
+    int32_t CancelIntentByTaskId(const std::string &taskId, int32_t callerUid);
+
+    int32_t AttachCancelListener(uint64_t intentId, const sptr<IRemoteObject> &listener);
+
     int32_t CheckAndUpdateQueryEntityParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
         std::shared_ptr<OHOS::AppExecFwk::InsightIntentQueryParam> &param, const std::string &callerBundleName);
 
@@ -180,6 +209,10 @@ private:
 
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
         uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "");
+
+    static bool IsPrivilegedCancelAllowed();
+
+    void OnCancelListenerDied(uint64_t intentId);
 
     static int32_t IsValidCall(const Want &want);
 
