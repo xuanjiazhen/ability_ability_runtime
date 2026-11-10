@@ -38,9 +38,10 @@ using namespace OHOS::AAFwk;
 namespace {
 constexpr int64_t MILLIS_PER_SECOND = 1000;
 constexpr int32_t BASE_USER_RANGE = 200000;
-// Sentinel caller uid for the system-initiated finish paths (timeout / creator death):
-// a negative value skips the creator-ownership check in FinishTaskInner.
+// Sentinel caller identity for the system-initiated finish paths (timeout / creator death):
+// a negative uid skips the creator-ownership check in FinishTaskInner.
 constexpr int32_t SYSTEM_INITIATED_UID = -1;
+constexpr pid_t SYSTEM_INITIATED_PID = -1;
 // Sentinel expected deadline for the finish paths that must not match a specific deadline.
 constexpr int64_t SKIP_DEADLINE_CHECK = 0;
 constexpr int64_t MIN_TIMER_DELAY_MILLIS = 1;
@@ -144,7 +145,7 @@ int32_t TaskManagerService::FinishTask(const std::string &taskId)
         return INVALID_PARAMETERS_ERR;
     }
     return FinishTaskInner(taskId, TaskFinishReason::FINISHED_BY_CALLER, IPCSkeleton::GetCallingAppUid(),
-        SKIP_DEADLINE_CHECK);
+        IPCSkeleton::GetCallingPid(), SKIP_DEADLINE_CHECK);
 }
 
 int32_t TaskManagerService::StartTaskInner(const TaskCallerInfo &caller, const std::string &taskId,
@@ -184,7 +185,7 @@ int32_t TaskManagerService::StartTaskInner(const TaskCallerInfo &caller, const s
 }
 
 int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinishReason reason,
-    int32_t callerUid, int64_t expectedDeadline)
+    int32_t callerUid, pid_t callerPid, int64_t expectedDeadline)
 {
     std::unique_ptr<TimeoutContext> timerCtx;
     {
@@ -198,10 +199,11 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
             TAG_LOGW(AAFwkTag::APPMGR, "deadline mismatch, skip, taskId: %{public}s", taskId.c_str());
             return ERR_TASK_NOT_FOUND;
         }
-        if (callerUid >= 0 && it->second.creatorUid != callerUid) {
-            TAG_LOGW(AAFwkTag::APPMGR, "caller is not the creator, rejected, taskId: %{public}s, "
-                "creator uid: %{public}d, caller uid: %{public}d", taskId.c_str(), it->second.creatorUid,
-                callerUid);
+        // One app uid hosts several processes; only the creating process itself may finish.
+        if (callerUid >= 0 && (it->second.creatorUid != callerUid || it->second.creatorPid != callerPid)) {
+            TAG_LOGW(AAFwkTag::APPMGR, "caller is not the creator process, rejected, taskId: %{public}s, "
+                "creator uid: %{public}d, pid: %{public}d, caller uid: %{public}d, pid: %{public}d",
+                taskId.c_str(), it->second.creatorUid, it->second.creatorPid, callerUid, callerPid);
             return ERR_TASK_NOT_FOUND;
         }
         int64_t aliveMillis = NowMillis() - it->second.createTimeMillis;
@@ -223,7 +225,7 @@ void TaskManagerService::OnTaskTimeout(const std::string &taskId, int64_t expect
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called, taskId: %{public}s", taskId.c_str());
     FinishTaskInner(taskId, TaskFinishReason::FINISHED_BY_TIMEOUT, SYSTEM_INITIATED_UID,
-        expectedDeadline);
+        SYSTEM_INITIATED_PID, expectedDeadline);
 }
 
 void TaskManagerService::OnProcessDied(pid_t pid, int32_t uid)
@@ -246,7 +248,7 @@ void TaskManagerService::FinishTasksByCreatorInner(pid_t pid, int32_t uid)
     size_t finishedCount = 0;
     for (const auto &taskId : creatorTaskIds) {
         if (FinishTaskInner(taskId, TaskFinishReason::FINISHED_BY_CREATOR_DIED, SYSTEM_INITIATED_UID,
-            SKIP_DEADLINE_CHECK) == ERR_OK) {
+            SYSTEM_INITIATED_PID, SKIP_DEADLINE_CHECK) == ERR_OK) {
             finishedCount++;
         }
     }
@@ -354,6 +356,60 @@ int32_t TaskManagerService::UnregisterManagedProcess(const std::string &taskId,
         return INVALID_PARAMETERS_ERR;
     }
     return UnregisterManagedProcessInner(taskId, attributionId);
+}
+
+bool TaskManagerService::PrecheckTaskForA2A(const std::string &taskId, uint32_t callerTokenId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (!IsTaskIdValidForAttribution(taskId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "A2A precheck invalid taskId: %{public}zu", taskId.size());
+        return false;
+    }
+    std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+    auto it = tasks_.find(taskId);
+    if (it == tasks_.end()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "A2A precheck task not found, taskId: %{public}s", taskId.c_str());
+        return false;
+    }
+    const TaskRecord &record = it->second;
+    if (record.creatorTokenId != callerTokenId) {
+        TAG_LOGE(AAFwkTag::APPMGR,
+            "A2A precheck ownership mismatch, taskId: %{public}s, "
+            "creator tokenId: %{public}u, caller tokenId: %{public}u",
+            taskId.c_str(), record.creatorTokenId, callerTokenId);
+        return false;
+    }
+    return true;
+}
+
+int32_t TaskManagerService::AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+    pid_t targetPid, AttributionId &attributionId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    attributionId = 0;
+    TAG_LOGD(AAFwkTag::APPMGR, "called, taskId: %{public}s, targetPid: %{public}d",
+        taskId.c_str(), targetPid);
+    if (targetPid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "A2A attribute invalid targetPid: %{public}d", targetPid);
+        return ERR_INVALID_VALUE;
+    }
+    if (!PrecheckTaskForA2A(taskId, callerTokenId)) {
+        return ERR_INVALID_VALUE;
+    }
+    if (!IsLiveManagedProcess(targetPid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "A2A attribute target pid not live managed process, "
+            "taskId: %{public}s, targetPid: %{public}d", taskId.c_str(), targetPid);
+        return ERR_INVALID_VALUE;
+    }
+    AttributionRecord attribution;
+    attribution.pid = targetPid;
+    attribution.tool = AttributionTool::A2A;
+    int32_t ret = RegisterManagedProcessInner(taskId, attribution, attributionId);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "A2A attribute register failed, taskId: %{public}s, ret: %{public}d",
+            taskId.c_str(), ret);
+    }
+    return ret;
 }
 
 int32_t TaskManagerService::UnregisterManagedProcessForCaller(const std::string &taskId,

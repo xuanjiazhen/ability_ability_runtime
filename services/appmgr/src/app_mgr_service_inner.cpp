@@ -55,6 +55,7 @@
 #include "appspawn_util.h"
 #include "bundle_constants.h"
 #include "bundle_mgr_helper.h"
+#include "child_process_state_observer_manager.h"
 #include "common_event.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
@@ -404,6 +405,9 @@ constexpr int32_t PROCESS_KILL_EXIT_PARAM = 10; // PROCESS_KILL exit params
 constexpr int32_t FORK_ALL_LIVING_BEGIN = 0;
 constexpr int32_t FORK_ALL_LIVING_END = 1;
 
+constexpr int32_t CHILD_PROCESS_STATE_ACTIVE = 0;
+constexpr int32_t CHILD_PROCESS_STATE_INACTIVE = 1;
+
 constexpr const char* TEMPLATE_MONITOR_PATH = "/proc/checkpoint/monitor";
 
 // Precomputed bundle info flag combinations to avoid repeated runtime OR operations.
@@ -539,6 +543,7 @@ void AppMgrServiceInner::Init()
     ParseServiceExtMultiProcessWhiteList();
     DelayedSingleton<AppStateObserverManager>::GetInstance()->Init();
     DelayedSingleton<RenderStateObserverManager>::GetInstance()->Init();
+    DelayedSingleton<ChildProcessStateObserverManager>::GetInstance()->Init();
     dfxTaskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler(
         "dfx_freeze_task_queue", DFX_TASKWORKER_NUM, AAFwk::TaskQoS::USER_INITIATED);
     dfxTaskHandler_->SetPrintTaskLog(true);
@@ -4021,10 +4026,10 @@ int32_t AppMgrServiceInner::KillApplicationByUserIdSafely(
     auto ret = IN_PROCESS_CALL(bundleMgrHelper->IsApplicationDisableForbidden(
         bundleName, userId, appCloneIndex, isDisableForbidden));
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::APPMGR, "query disable forbidden failed, ret=%{public}d", ret);
-        return ret;
+        TAG_LOGW(AAFwkTag::APPMGR,
+            "query disable forbidden failed, continue safe kill, ret=%{public}d", ret);
     }
-    if (isDisableForbidden) {
+    if (ret == ERR_OK && isDisableForbidden) {
         TAG_LOGW(AAFwkTag::APPMGR, "safe kill rejected for disable forbidden bundle=%{public}s",
             bundleName.c_str());
         return AAFwk::ERR_KILL_PROCESS_MDM_PROTECTED;
@@ -5920,6 +5925,12 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
         TAG_LOGD(AAFwkTag::APPMGR, "the bundle has no groupInfos.");
     }
     QueryExtensionSandBox(param.moduleName, param.abilityName, bundleInfo, startMsg, dataGroupInfoList, param.want);
+    IpcGroupInfoList ipcGroupInfoList;
+    ret = IN_PROCESS_CALL(bundleMgrHelper->QueryIpcGroupInfos(bundleInfo.name, userId, ipcGroupInfoList));
+    if (ret != ERR_OK || ipcGroupInfoList.empty()) {
+        TAG_LOGD(AAFwkTag::APPMGR, "the bundle has no ipcGroupInfos.");
+    }
+    startMsg.ipcGroupInfoList = ipcGroupInfoList;
     SetStartMsgStrictMode(startMsg, param);
     startMsg.bundleName = bundleInfo.name;
     startMsg.renderParam = RENDER_PARAM;
@@ -13080,6 +13091,28 @@ void AppMgrServiceInner::HandleForegroundAbilityDied(
 int32_t AppMgrServiceInner::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
 {
     return appQueryHelper_.GetAllAbilityInfos(pid, infos);
+}
+
+int32_t AppMgrServiceInner::NotifyChildProcessState(int32_t pid, int32_t state)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "NotifyChildProcessState called, pid: %{public}d, state: %{public}d", pid, state);
+#ifdef SUPPORT_CHILD_PROCESS
+    int32_t uid = 0;
+    if (!appQueryHelper_.QueryIsSelfChildrenProcesses(pid, uid)) {
+        TAG_LOGE(AAFwkTag::APPMGR,
+            "child process does not exist, or is not created by the caller main process, pid: %{public}d", pid);
+        return AAFwk::ERR_CHECK_CHILD_PROCESS_FAILED;
+    }
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (state != CHILD_PROCESS_STATE_ACTIVE && state != CHILD_PROCESS_STATE_INACTIVE) {
+        return ERR_INVALID_VALUE;
+    } 
+    return DelayedSingleton<ChildProcessStateObserverManager>::GetInstance()->OnChildProcessStateChanged(
+        pid, uid, callingPid, callingUid, state);
+#else
+    return AAFwk::ERR_CHECK_CHILD_PROCESS_FAILED;
+#endif
 }
 
 int32_t AppMgrServiceInner::EnableDelayedProcessExit(int32_t pid, bool enabled)

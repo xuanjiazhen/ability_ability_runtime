@@ -433,6 +433,29 @@ public:
      */
     int32_t FinishTask(const std::string &taskId) override;
 
+    /*
+     * @brief Attributes the target Agent process into the task after a successful
+     *        A2A connect. Best-effort: failures are logged and do NOT fail the
+     *        connect result.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.aafwk.param.agent.taskId].
+     * @param callerTokenId Indicates the app's token id captured at the convergence.
+     * @param targetPid Indicates the target Agent process pid (resolved post-connect).
+     * @param attributionId Indicates the server-assigned attribution handle for later
+     *        unregister; 0 on failure.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, int64_t &attributionId) override;
+
+    /**
+     * @brief Unregisters the A2A attribution previously created by AttributeTaskForA2A.
+     *        Only the Foundation process may call this.
+     * @param taskId Indicates the task id.
+     * @param attributionId Indicates the attribution handle returned by AttributeTaskForA2A.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t UnregisterTaskForA2A(const std::string &taskId, int64_t attributionId) override;
+
     /**
      * @brief Attributes a process into the task owned by the caller and hands back
      *        the server-assigned attribution id used for later unregistration. Only
@@ -880,6 +903,22 @@ public:
     int32_t UnregisterRenderStateObserver(const sptr<IRenderStateObserver> &observer) override;
 
     /**
+     * @brief register a child process state observer to receive change.
+     * @param observer the child process state observer to receive notify.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RegisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer) override;
+
+    /**
+     * @brief unregister a child process state observer registered before.
+     * @param observer the child process state observer registered before.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UnregisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer) override;
+
+    /**
      * @brief update a render process state.
      * @param renderPid the pid of the render process to be updated.
      * @param state the new state value of the render process.
@@ -1110,6 +1149,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos) override;
+
+    /**
+     * Notify the state change of a child process.
+     *
+     * @param pid The pid of the child process whose state has changed.
+     * @param state The new state of the child process.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t NotifyChildProcessState(int32_t pid, int32_t state) override;
 
 private:
     /**

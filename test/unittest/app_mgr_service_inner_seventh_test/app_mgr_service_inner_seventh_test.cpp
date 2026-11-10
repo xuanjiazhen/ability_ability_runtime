@@ -1587,6 +1587,63 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, CreateStartMsg_004, TestSize.Level1)
 }
 
 /**
+* @tc.name: CreateStartMsg_005
+* @tc.desc: CreateStartMsg, QueryIpcGroupInfos succeeds with non-empty list,
+*           ipcGroupInfoList is assigned to startMsg (branch false-side: no early log).
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, CreateStartMsg_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CreateStartMsg_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getBaseSharedBundleInfos_ = ERR_OK;
+    AppExecFwk::IpcGroupInfo info;
+    info.ipcGroupId = "ipcGroup1";
+    info.gid = 100;
+    info.uid = 200;
+    AAFwk::MyStatus::GetInstance().queryIpcGroupInfosRet_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().queryIpcGroupInfoData_ = {info};
+
+    CreateStartMsgParam param;
+    AppSpawnStartMsg startMsg;
+    auto ret = appMgrServiceInner->CreateStartMsg(param, startMsg);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(startMsg.ipcGroupInfoList.size(), 1U);
+    EXPECT_EQ(startMsg.ipcGroupInfoList[0].ipcGroupId, "ipcGroup1");
+    AAFwk::MyStatus::GetInstance().queryIpcGroupInfoData_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "CreateStartMsg_005 end");
+}
+
+/**
+* @tc.name: CreateStartMsg_006
+* @tc.desc: CreateStartMsg, QueryIpcGroupInfos returns error (ret != ERR_OK),
+*           the log branch is taken and startMsg.ipcGroupInfoList stays empty.
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, CreateStartMsg_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CreateStartMsg_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getBaseSharedBundleInfos_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().queryIpcGroupInfosRet_ = ERR_INVALID_VALUE;
+    AAFwk::MyStatus::GetInstance().queryIpcGroupInfoData_.clear();
+
+    CreateStartMsgParam param;
+    AppSpawnStartMsg startMsg;
+    auto ret = appMgrServiceInner->CreateStartMsg(param, startMsg);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(startMsg.ipcGroupInfoList.empty());
+
+    AAFwk::MyStatus::GetInstance().queryIpcGroupInfosRet_ = ERR_OK;
+    ret = appMgrServiceInner->CreateStartMsg(param, startMsg);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(startMsg.ipcGroupInfoList.empty());
+    TAG_LOGI(AAFwkTag::TEST, "CreateStartMsg_006 end");
+}
+
+/**
 * @tc.name: CheckGetRunningInfoPermission_001
 * @tc.desc: test CheckGetRunningInfoPermission_001
 * @tc.type: FUNC
@@ -4041,7 +4098,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_005, TestS
 
 /**
  * @tc.name: KillApplicationByUserIdSafely_006
- * @tc.desc: Propagate a bundle manager policy-query failure without killing the process.
+ * @tc.desc: Continue the legacy kill path when the bundle manager policy query fails.
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_006, TestSize.Level1)
@@ -4054,9 +4111,12 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_006, TestS
 
     int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely("com.example.test", 2, 100, true, "test");
 
-    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(status.isApplicationDisableForbiddenCall_, 1);
-    EXPECT_EQ(status.processExitCall_, 0);
+    EXPECT_EQ(status.processExitCall_, 1);
+    EXPECT_TRUE(status.processExitClearPageStack_);
+    EXPECT_TRUE(status.processExitAddKillingCaller_);
+    EXPECT_EQ(status.processExitReason_, "test");
 }
 
 /**
@@ -4169,6 +4229,30 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_010, TestS
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
     EXPECT_EQ(status.isApplicationDisableForbiddenCall_, 0);
     EXPECT_EQ(status.processExitCall_, 0);
+}
+
+/**
+ * @tc.name: KillApplicationByUserIdSafely_011
+ * @tc.desc: Continue the legacy kill path when the target bundle does not exist.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplicationByUserIdSafely_011, TestSize.Level1)
+{
+    SafeKillMockStatusGuard guard;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    status.isApplicationDisableForbiddenRet_ = ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST;
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    int32_t ret = appMgrServiceInner->KillApplicationByUserIdSafely(
+        "com.example.missing", 2, 100, true, "test");
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(status.isApplicationDisableForbiddenCall_, 1);
+    EXPECT_EQ(status.processExitCall_, 1);
+    EXPECT_TRUE(status.processExitClearPageStack_);
+    EXPECT_TRUE(status.processExitAddKillingCaller_);
+    EXPECT_EQ(status.processExitReason_, "test");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

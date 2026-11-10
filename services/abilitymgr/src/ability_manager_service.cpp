@@ -1328,8 +1328,7 @@ int AbilityManagerService::CheckExtensionCallPermission(const Want& want, const 
         isSystemAppCall = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCallByTokenId(specifyTokenId);
     }
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCallByTokenId(specifyTokenId);
-    auto isToPermissionMgr = IsTargetPermission(want);
-    if (!isSACall && !isSystemAppCall && !isShellCall && !isToPermissionMgr &&
+    if (!isSACall && !isSystemAppCall && !isShellCall && !IsTargetPermission(want) &&
         !AAFwk::PermissionVerification::GetInstance()->
             IsLocalDebugOtherAppsCall(specifyTokenId, abilityRequest.userId) &&
         !AAFwk::PermissionVerification::GetInstance()->
@@ -16544,6 +16543,41 @@ int32_t AbilityManagerService::GetDynamicAgentCardsForMigration(std::string &jso
         return CHECK_PERMISSION_FAILED;
     }
     return AgentCardMigrationHelper::GetInstance().GetDynamicAgentCardsAsJson(jsonStr);
+}
+
+int32_t AbilityManagerService::AttributeTaskForA2AReusedConnectionRecord(const Want &want,
+    sptr<IAbilityConnection> connect)
+{
+    // Best-effort: a reused agent connect hit an already-connected AgentConnection on the
+    // caller side, so ScheduleConnectAbilityDoneLocked will NOT fire again for this connection.
+    // Resolve the target connectManager the same way as the original connect path, then delegate
+    // to the connect manager to attribute the task id onto the existing ConnectionRecord.
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (connect == nullptr || connect->AsObject() == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null connect");
+        return ERR_INVALID_VALUE;
+    }
+    constexpr const char *SUBFOUNDATION_PROCESS_NAME = "subfoundation";
+    if (!PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        SUBFOUNDATION_PROCESS_NAME)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "non-subfoundation caller, denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+    int32_t validUserId = GetValidUserId(DEFAULT_INVAL_VALUE);
+    AbilityRequest abilityRequest;
+    auto result = GenerateExtensionAbilityRequest(want, abilityRequest, nullptr, validUserId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "generate request failed: %{public}d", result);
+        return result;
+    }
+    const auto &abilityInfo = abilityRequest.abilityInfo;
+    validUserId = abilityInfo.applicationInfo.appUid / BASE_USER_RANGE;
+    auto connectManager = GetConnectManagerByUserId(validUserId, abilityInfo.extensionAbilityType);
+    if (connectManager == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null userId=%{public}d", validUserId);
+        return ERR_INVALID_VALUE;
+    }
+    return connectManager->AttributeTaskForA2AReusedConnectionRecordLocked(abilityRequest, connect);
 }
 
 int32_t AbilityManagerService::QuerySkillType(const std::string &bundleName, const std::string &moduleName,
