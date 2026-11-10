@@ -213,9 +213,19 @@ napi_value JSFunctionManager::QueryFunctions(napi_env env, napi_callback_info in
     GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnQueryFunctions);
 }
 
+napi_value JSFunctionManager::QueryPublicFunctions(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnQueryPublicFunctions);
+}
+
 napi_value JSFunctionManager::InvokeFunction(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnInvokeFunction);
+}
+
+napi_value JSFunctionManager::InvokePublicFunction(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnInvokePublicFunction);
 }
 
 napi_value JSFunctionManager::OnQueryFunctions(napi_env env, size_t argc, napi_value *argv)
@@ -261,6 +271,49 @@ napi_value JSFunctionManager::OnQueryFunctions(napi_env env, size_t argc, napi_v
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSFunctionManager::OnQueryPublicFunctions(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnQueryPublicFunctions called");
+    HandleEscape handleEscape(env);
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    auto functions = std::make_shared<std::vector<FunctionInfo>>();
+
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, functions]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().GetPublicFunctions(*functions);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, functions](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "QueryPublicFunctions error: %{public}d", *innerErrCode);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+
+        napi_value jsArray = nullptr;
+        napi_status napiStatus = napi_create_array(env, &jsArray);
+        if (napiStatus != napi_ok) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_create_array failed, %{public}d", napiStatus);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, ERR_INNER_PARAM_INVALID));
+            return;
+        }
+        for (size_t i = 0; i < functions->size(); i++) {
+            napi_value jsFunction = CreateJsFunctionInfo(env, (*functions)[i]);
+            if (jsFunction != nullptr) {
+                napi_set_element(env, jsArray, i, jsFunction);
+            }
+        }
+        task.ResolveWithNoError(env, jsArray);
+    };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JSFunctionManager::OnQueryPublicFunctions", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
 napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_value *argv)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnInvokeFunction called");
@@ -271,6 +324,27 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         return CreateJsUndefined(env);  // validation already threw a JS exception
     }
 
+    napi_value result = StartInvokeFunction(env, param, false);
+    return handleEscape.Escape(result);
+}
+
+napi_value JSFunctionManager::OnInvokePublicFunction(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnInvokePublicFunction called");
+    HandleEscape handleEscape(env);
+
+    InvokeFunctionParam param;
+    if (!ParseInvokeFunctionParam(env, argc, argv, param)) {
+        return CreateJsUndefined(env);  // validation already threw a JS exception
+    }
+
+    napi_value result = StartInvokeFunction(env, param, true);
+    return handleEscape.Escape(result);
+}
+
+napi_value JSFunctionManager::StartInvokeFunction(napi_env env, const InvokeFunctionParam &param,
+    bool isPublicInvoke)
+{
     // Create promise
     napi_value promise = nullptr;
     napi_deferred deferred = nullptr;
@@ -296,7 +370,7 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create threadsafe function");
         napi_value jsError = CreateCliJsErrorByNativeErr(env, ERR_INNER_PARAM_INVALID);
         napi_reject_deferred(env, deferred, jsError);
-        return handleEscape.Escape(promise);
+        return promise;
     }
     finalizeData.release();
 
@@ -311,11 +385,12 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         }
     };
 
-    InjectTransportTraceIds(param);
+    InvokeFunctionParam invokeParam = param;
+    InjectTransportTraceIds(invokeParam);
 
-    InvokeFunctionExecutor::Create()->Execute(param, bridge);
+    InvokeFunctionExecutor::Create()->Execute(invokeParam, bridge, isPublicInvoke);
 
-    return handleEscape.Escape(promise);
+    return promise;
 }
 
 napi_value JSFunctionManager::RegisterFunctionHook(napi_env env, napi_callback_info info)
@@ -500,7 +575,9 @@ napi_value JSFunctionManagerInit(napi_env env, napi_value exportObj)
 
     const char *moduleName = "FunctionManager";
     BindNativeFunction(env, exportObj, "queryFunctions", moduleName, JSFunctionManager::QueryFunctions);
+    BindNativeFunction(env, exportObj, "queryPublicFunctions", moduleName, JSFunctionManager::QueryPublicFunctions);
     BindNativeFunction(env, exportObj, "invokeFunction", moduleName, JSFunctionManager::InvokeFunction);
+    BindNativeFunction(env, exportObj, "invokePublicFunction", moduleName, JSFunctionManager::InvokePublicFunction);
     BindNativeFunction(env, exportObj, "registerFunctionHook", moduleName, JSFunctionManager::RegisterFunctionHook);
     BindNativeFunction(env, exportObj, "unregisterFunctionHook", moduleName, JSFunctionManager::UnregisterFunctionHook);
 
