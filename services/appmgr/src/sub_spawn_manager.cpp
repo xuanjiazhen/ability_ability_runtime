@@ -46,14 +46,18 @@ SubSpawnManager &SubSpawnManager::GetInstance()
 bool SubSpawnManager::ShouldUseSubSpawn(const std::vector<std::string> &preloadSoList, bool isolationMode)
 {
     if (!AppUtils::GetInstance().IsSupportSubSpawn()) {
+        TAG_LOGD(AAFwkTag::APPMGR, "ShouldUseSubSpawn: device not support");
         return false;
     }
     if (preloadSoList.empty()) {
+        TAG_LOGD(AAFwkTag::APPMGR, "ShouldUseSubSpawn: preloadSoList empty");
         return false;
     }
     if (!isolationMode) {
+        TAG_LOGD(AAFwkTag::APPMGR, "ShouldUseSubSpawn: not isolated mode");
         return false;
     }
+    TAG_LOGD(AAFwkTag::APPMGR, "ShouldUseSubSpawn: true, soList size:%{public}zu", preloadSoList.size());
     return true;
 }
 
@@ -178,6 +182,10 @@ pid_t SubSpawnManager::StartChildViaSubSpawn(pid_t appPid, int32_t uid, const Ap
         return -1;
     }
     auto &record = it->second;
+    if (record.terminating) {
+        TAG_LOGD(AAFwkTag::APPMGR, "subspawn terminating, appPid:%{public}d", appPid);
+        return -1;
+    }
     if (record.socketName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "subspawn socketName empty, appPid:%{public}d", appPid);
         return -1;
@@ -248,6 +256,8 @@ void SubSpawnManager::OnChildProcessCreated(pid_t appPid)
     if (it != subSpawnMap_.end()) {
         it->second.childProcessCount++;
         CancelIdleTimer(appPid);
+        TAG_LOGD(AAFwkTag::APPMGR, "OnChildProcessCreated: appPid:%{public}d, count:%{public}d",
+            appPid, it->second.childProcessCount);
     }
 }
 
@@ -257,9 +267,12 @@ void SubSpawnManager::OnChildProcessExited(pid_t appPid)
     auto it = subSpawnMap_.find(appPid);
     if (it != subSpawnMap_.end()) {
         it->second.childProcessCount--;
+        TAG_LOGD(AAFwkTag::APPMGR, "OnChildProcessExited: appPid:%{public}d, count:%{public}d",
+            appPid, it->second.childProcessCount);
         if (it->second.childProcessCount <= 0) {
             it->second.childProcessCount = 0;
             StartIdleTimer(appPid);
+            TAG_LOGD(AAFwkTag::APPMGR, "OnChildProcessExited: start idle timer, appPid:%{public}d", appPid);
         }
     }
 }
@@ -273,6 +286,11 @@ void SubSpawnManager::OnAppProcessDied(pid_t appPid)
         if (it == subSpawnMap_.end()) {
             return;
         }
+        if (it->second.terminating) {
+            TAG_LOGD(AAFwkTag::APPMGR, "subspawn already terminating, appPid:%{public}d", appPid);
+            return;
+        }
+        it->second.terminating = true;
         subSpawnPid = it->second.subSpawnPid;
     }
 
@@ -318,11 +336,19 @@ void SubSpawnManager::HandleIdleTimeout(pid_t appPid)
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = subSpawnMap_.find(appPid);
         if (it == subSpawnMap_.end()) {
+            TAG_LOGD(AAFwkTag::APPMGR, "HandleIdleTimeout: no record, appPid:%{public}d", appPid);
             return;
         }
         if (it->second.childProcessCount > 0 || !it->second.idleTimerActive) {
+            TAG_LOGD(AAFwkTag::APPMGR, "HandleIdleTimeout: skip, count:%{public}d, active:%{public}d",
+                it->second.childProcessCount, it->second.idleTimerActive);
             return;
         }
+        if (it->second.terminating) {
+            TAG_LOGD(AAFwkTag::APPMGR, "HandleIdleTimeout: already terminating, appPid:%{public}d", appPid);
+            return;
+        }
+        it->second.terminating = true;
         subSpawnPid = it->second.subSpawnPid;
     }
 

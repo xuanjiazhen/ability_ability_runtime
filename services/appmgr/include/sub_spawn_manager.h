@@ -115,6 +115,7 @@ private:
         int32_t uid = 0;
         int32_t childProcessCount = 0;
         bool idleTimerActive = false;
+        bool terminating = false;
         std::string socketName;
     };
 
