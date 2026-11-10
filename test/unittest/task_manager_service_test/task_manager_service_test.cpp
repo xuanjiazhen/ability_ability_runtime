@@ -354,7 +354,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_FinishTask_0400, TestSize.Le
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("finish_0400");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     SetTestCaller(TEST_CREATOR_UID, TEST_OTHER_PID);
     EXPECT_EQ(service.FinishTask(taskId), AAFwk::ERR_TASK_NOT_FOUND);
     EXPECT_NE(service.DumpActiveTasks().find(taskId), std::string::npos);
@@ -935,7 +935,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_0
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_0100");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     int64_t deadline = 0;
     {
         std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
@@ -974,7 +974,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_0
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_0200");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionRecord attribution;
     attribution.pid = TEST_OTHER_PID;
     attribution.tool = AttributionTool::INSIGHT;
@@ -1001,7 +1001,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_0
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_0300");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionId attributionId = 0;
     EXPECT_EQ(service.AttributeProcessForAbility(taskId, TEST_OTHER_UID, TEST_OTHER_PID,
         TEST_MANAGED_PID, attributionId), AAFwk::ERR_TASK_NOT_FOUND);
@@ -1024,7 +1024,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_0
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_0400");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
     AttributionId attributionId = 0;
     // finished task: replay
@@ -1046,7 +1046,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_0
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_0500");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionId attributionId = 0;
     EXPECT_EQ(service.AttributeProcessForAbility("", TEST_CREATOR_UID, TEST_CREATOR_PID,
         TEST_MANAGED_PID, attributionId), AAFwk::INVALID_PARAMETERS_ERR);
@@ -1059,7 +1059,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_0
     EXPECT_EQ(service.AttributeProcessForAbility(injectedTaskId, TEST_CREATOR_UID, TEST_CREATOR_PID,
         TEST_MANAGED_PID, attributionId), AAFwk::INVALID_PARAMETERS_ERR);
     // one-character taskId is the valid length boundary
-    EXPECT_EQ(service.StartTask("x", TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask("x"), ERR_OK);
     EXPECT_EQ(service.AttributeProcessForAbility("x", TEST_CREATOR_UID, TEST_CREATOR_PID,
         TEST_MANAGED_PID, attributionId), ERR_OK);
     EXPECT_EQ(service.FinishTask("x"), ERR_OK);
@@ -1079,7 +1079,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_0
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_0600");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionId firstId = 0;
     EXPECT_EQ(service.AttributeProcessForAbility(taskId, TEST_CREATOR_UID, TEST_CREATOR_PID,
         TEST_MANAGED_PID, firstId), ERR_OK);
@@ -1118,7 +1118,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_0
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_0700");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionRecord attribution;
     attribution.pid = TEST_OTHER_PID;
     attribution.tool = AttributionTool::INSIGHT;
@@ -1146,7 +1146,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_0
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_0800");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionId attributionId = 0;
     for (size_t i = 0; i < TASK_MAX_ATTRIBUTIONS_PER_TASK; ++i) {
         EXPECT_EQ(service.AttributeProcessForAbility(taskId, TEST_CREATOR_UID, TEST_CREATOR_PID,
@@ -1168,7 +1168,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RegisterManagedProcessQuota_
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_0900");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionId attributionId = 0;
     for (size_t i = 0; i < TASK_MAX_ATTRIBUTIONS_PER_TASK; ++i) {
         AttributionRecord record;
@@ -1194,7 +1194,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_OnProcessDiedCleanup_1100, T
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_1100");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionId attributionId = 0;
     EXPECT_EQ(service.AttributeProcessForAbility(taskId, TEST_CREATOR_UID, TEST_CREATOR_PID,
         TEST_MANAGED_PID, attributionId), ERR_OK);
@@ -1220,7 +1220,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeRegisterReuse_1200,
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_1200");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     // creator attributes a process; the refresh path (retire + re-register) keeps one entry
     AttributionId abilityId = 0;
     EXPECT_EQ(service.AttributeProcessForAbility(taskId, TEST_CREATOR_UID, TEST_CREATOR_PID,
@@ -1258,7 +1258,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_1
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("attr_1300");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     // creator uid with an arbitrary (unrelated) caller pid: accepted
     AttributionId attributionId = 0;
     EXPECT_EQ(service.AttributeProcessForAbility(taskId, TEST_CREATOR_UID, 98765,
@@ -1283,7 +1283,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_1
 {
     auto &service = TaskManagerService::GetInstance();
     std::string maxLenTaskId(TASK_ID_MAX_LEN, 'a');
-    EXPECT_EQ(service.StartTask(maxLenTaskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(maxLenTaskId), ERR_OK);
     AttributionId attributionId = 0;
     EXPECT_EQ(service.AttributeProcessForAbility(maxLenTaskId, TEST_CREATOR_UID, TEST_CREATOR_PID,
         TEST_MANAGED_PID, attributionId), ERR_OK);
@@ -1299,7 +1299,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_AttributeProcessForAbility_1
 
     // multi-byte UTF-8 (bytes >= 0x80) is legitimate
     std::string utf8TaskId = "\u4efb\u52a1";
-    EXPECT_EQ(service.StartTask(utf8TaskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(utf8TaskId), ERR_OK);
     EXPECT_EQ(service.AttributeProcessForAbility(utf8TaskId, TEST_CREATOR_UID, TEST_CREATOR_PID,
         TEST_MANAGED_PID, attributionId), ERR_OK);
     EXPECT_EQ(service.FinishTask(utf8TaskId), ERR_OK);
@@ -1315,8 +1315,8 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_OnProcessDiedCleanup_1500, T
     auto &service = TaskManagerService::GetInstance();
     std::string taskId1 = MakeTaskId("attr_1500_a");
     std::string taskId2 = MakeTaskId("attr_1500_b");
-    EXPECT_EQ(service.StartTask(taskId1, TASK_PRIORITY_DEFAULT), ERR_OK);
-    EXPECT_EQ(service.StartTask(taskId2, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId1), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId2), ERR_OK);
     AttributionId id1 = 0;
     EXPECT_EQ(service.AttributeProcessForAbility(taskId1, TEST_CREATOR_UID, TEST_CREATOR_PID,
         TEST_MANAGED_PID, id1), ERR_OK);
@@ -1345,7 +1345,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RegisterManagedProcessForCal
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("for_caller_0100");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
 
     AttributionRecord attribution;
     attribution.pid = TEST_MANAGED_PID;
@@ -1388,7 +1388,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_UnregisterManagedProcessForC
 {
     auto &service = TaskManagerService::GetInstance();
     std::string taskId = MakeTaskId("for_caller_unreg_0100");
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
 
     AttributionRecord attribution;
     attribution.pid = TEST_MANAGED_PID;
