@@ -76,15 +76,15 @@ void TaskPriorityJudge::OnForegroundAbilityChanged(pid_t pid, uintptr_t token, b
     auto &abilities = fgAbilities_[pid];
     if (foreground) {
         abilities.insert(token);
-        TAG_LOGI(AAFwkTag::APPMGR, "yzk fg +, pid=%d token=0x%lx count=%zu", pid, static_cast<unsigned long>(token), abilities.size());
+        TAG_LOGI(AAFwkTag::APPMGR, "fg ability added, pid: %{public}d count: %{public}zu",
+            pid, abilities.size());
     } else {
         abilities.erase(token);
         if (abilities.empty()) {
             fgAbilities_.erase(pid);
         }
-        TAG_LOGI(AAFwkTag::APPMGR, "yzk fg -, pid=%d token=0x%lx count=%zu",
-            pid, static_cast<unsigned long>(token),
-            fgAbilities_.count(pid) ? fgAbilities_[pid].size() : 0);
+        TAG_LOGI(AAFwkTag::APPMGR, "fg ability removed, pid: %{public}d count: %{public}zu",
+            pid, fgAbilities_.count(pid) ? fgAbilities_[pid].size() : 0);
     }
 }
 
@@ -98,7 +98,7 @@ void TaskPriorityJudge::SeedForeground(pid_t pid, const std::vector<uintptr_t> &
     for (uintptr_t token : tokens) {
         abilities.insert(token);
     }
-    TAG_LOGI(AAFwkTag::APPMGR, "yzk seed fg pid=%d count=%zu", pid, tokens.size());
+    TAG_LOGI(AAFwkTag::APPMGR, "fg abilities seeded, pid: %{public}d count: %{public}zu", pid, tokens.size());
 }
 
 void TaskPriorityJudge::OnProcessDied(pid_t pid)
@@ -112,14 +112,15 @@ void TaskPriorityJudge::OnProcessDied(pid_t pid)
     if (it != fgAbilities_.end()) {
         size_t dropped = it->second.size();
         fgAbilities_.erase(it);
-        TAG_LOGI(AAFwkTag::APPMGR, "yzk process died fg clear, pid=%d dropped=%zu", pid, dropped);
+        TAG_LOGI(AAFwkTag::APPMGR, "fg abilities cleared on process died, pid: %{public}d dropped: %{public}zu",
+            pid, dropped);
     }
 }
 
 void TaskPriorityJudge::OnSystemLoadLevelChanged(int32_t loadLevel)
 {
     std::lock_guard<std::mutex> lock(judgeMutex_);
-    TAG_LOGD(AAFwkTag::APPMGR, "yzk OnSystemLoadLevelChanged %{public}d", loadLevel);
+    TAG_LOGD(AAFwkTag::APPMGR, "systemload level changed: %{public}d", loadLevel);
     if (loadLevel < 0 || loadLevel > FUSION_LEVEL_HIGH_LOAD_MAX) {
         TAG_LOGW(AAFwkTag::APPMGR, "systemload level out of range: %{public}d", loadLevel);
         loadLevel_ = -1;

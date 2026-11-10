@@ -295,7 +295,7 @@ void TaskManagerService::RejudgeTasks(pid_t pid)
             if (newLevel == record.priority) {
                 continue;  // first-line anti-jitter: unchanged level is not propagated
             }
-            TAG_LOGI(AAFwkTag::APPMGR, "yzk rejudge, taskId=%s %d -> %d",
+            TAG_LOGI(AAFwkTag::APPMGR, "task level re-judged, taskId: %{public}s %{public}d -> %{public}d",
                 record.taskId.c_str(), record.priority, newLevel);
             record.priority = newLevel;
             changedTasks.emplace_back(record.taskId, newLevel);
@@ -362,7 +362,7 @@ void TaskManagerService::ReconcileForegroundState(pid_t pid)
     }
     if (!tokens.empty()) {
         judge.SeedForeground(pid, tokens);
-        TAG_LOGI(AAFwkTag::APPMGR, "yzk fg reconcile, pid=%d fgAbilities=%zu", pid, tokens.size());
+        TAG_LOGI(AAFwkTag::APPMGR, "fg abilities reconciled, pid: %{public}d count: %{public}zu", pid, tokens.size());
     }
 }
 

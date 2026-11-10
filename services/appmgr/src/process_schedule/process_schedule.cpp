@@ -51,7 +51,7 @@ void ProcessSchedule::OnAttributionAdded(const std::string &taskId, int32_t task
     controlRefs_[taskId][pid]++;
     if (refs > 1) {
         // the merge state already reflects this (taskId, pid); only the reference grew
-        TAG_LOGD(AAFwkTag::APPMGR, "yzk sched refcount++, taskId=%s pid=%d refs=%d",
+        TAG_LOGD(AAFwkTag::APPMGR, "attribution refcount grown, taskId: %{public}s pid: %{public}d refs: %{public}d",
             taskId.c_str(), pid, refs);
         return;
     }
@@ -59,7 +59,8 @@ void ProcessSchedule::OnAttributionAdded(const std::string &taskId, int32_t task
     taskToPids_[taskId].insert(pid);
     int32_t newLevel = MergeLevel(entry);
     TAG_LOGI(AAFwkTag::APPMGR,
-        "yzk sched add, taskId=%s pid=%d tool=%s level=%d effective=%d",
+        "sched attribution added, taskId: %{public}s pid: %{public}d tool: %{public}s level: %{public}d "
+        "effective: %{public}d",
         taskId.c_str(), pid, AttributionToolToString(tool), taskLevel, newLevel);
     ApplyControlLocked(pid, newLevel, entry.level);
     entry.level = newLevel;
@@ -140,7 +141,7 @@ void ProcessSchedule::OnProcessDied(pid_t pid)
     }
     pidEntries_.erase(entryIt);
     TAG_LOGI(AAFwkTag::APPMGR,
-        "yzk sched process died, pid=%d tasks=%zu", pid, taskIds.size());
+        "sched process died cleaned, pid: %{public}d tasks: %{public}zu", pid, taskIds.size());
 }
 
 void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t pid)
@@ -157,7 +158,7 @@ void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t p
         // one of several attribution records of this (taskId, pid) is gone; the merge state
         // is unchanged, only the reference and the control count shrink
         ReleaseControlRefLocked(pid, taskId);
-        TAG_LOGD(AAFwkTag::APPMGR, "yzk sched refcount--, taskId=%s pid=%d refs=%d",
+        TAG_LOGD(AAFwkTag::APPMGR, "attribution refcount shrunk, taskId: %{public}s pid: %{public}d refs: %{public}d",
             taskId.c_str(), pid, refIt->second);
         return;
     }
@@ -196,7 +197,7 @@ void ProcessSchedule::ReleaseControlRefLocked(pid_t pid, const std::string &task
     }
     if (--pidIt->second <= 0) {
         exIt->second.erase(pidIt);
-        TAG_LOGI(AAFwkTag::APPMGR, "yzk control ref released, taskId=%s pid=%d",
+        TAG_LOGI(AAFwkTag::APPMGR, "sched control ref released, taskId: %{public}s pid: %{public}d",
             taskId.c_str(), pid);
     }
     if (exIt->second.empty()) {
@@ -209,7 +210,7 @@ void ProcessSchedule::ApplyControlLocked(pid_t pid, int32_t newLevel, int32_t ol
     // Placeholder delivery: emits the ordered event for the resource-schedule control
     // module to consume when wired in.
     TAG_LOGI(AAFwkTag::APPMGR,
-        "yzk sched control apply(stub) pid=%d %s -> %s",
+        "sched control apply(stub) pid: %{public}d %{public}s -> %{public}s",
         pid, TaskPriorityToString(oldLevel), TaskPriorityToString(newLevel));
 }
 
@@ -218,7 +219,7 @@ void ProcessSchedule::RevokeControlLocked(pid_t pid, int32_t oldLevel)
     // Placeholder delivery: emits the ordered event for the resource-schedule control
     // module to consume when wired in.
     TAG_LOGI(AAFwkTag::APPMGR,
-        "yzk sched control revoke(stub) pid=%d %s",
+        "sched control revoke(stub) pid: %{public}d %{public}s",
         pid, TaskPriorityToString(oldLevel));
 }
 
