@@ -410,7 +410,7 @@ bool AbilityPermissionUtil::NeedCheckStatusBar(std::shared_ptr<AbilityRecord> ab
     return true;
 }
 
-bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::string &bundleName)
+bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::string &bundleName, int32_t appIndex)
 {
     if (bundleName.empty()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "empty name");
@@ -427,12 +427,23 @@ bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::strin
         return true;
     }
     AppExecFwk::BundleInfo bundleInfo;
-    auto ret =
-        IN_PROCESS_CALL(bms->GetBundleInfo(bundleName,
-            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION), bundleInfo, userId));
+    int32_t flags = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION);
+    bool isDirectBootAppIndex = appIndex >= 0 && appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX;
+    bool ret = false;
+    if (isDirectBootAppIndex && appIndex > 0) {
+        ret = IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName, flags, appIndex, bundleInfo, userId)) == ERR_OK;
+    } else {
+        ret = IN_PROCESS_CALL(bms->GetBundleInfo(bundleName, flags, bundleInfo, userId));
+    }
     bool isSystemApp = ret ? bundleInfo.applicationInfo.isSystemApp : false;
     if (!isSystemApp) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "not system app");
+        auto tokenId = bundleInfo.applicationInfo.accessTokenId;
+        if (ret && isDirectBootAppIndex && tokenId != Security::AccessToken::INVALID_TOKENID &&
+            AccessTokenKit::VerifyAccessToken(tokenId, PermissionConstants::PERMISSION_ALLOW_DIRECT_BOOT, false) ==
+                Security::AccessToken::PERMISSION_GRANTED) {
+            return true;
+        }
     }
     return isSystemApp;
 }
