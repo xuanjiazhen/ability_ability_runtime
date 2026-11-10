@@ -211,6 +211,8 @@ int32_t QuickFixManagerService::RevokeQuickFix(const std::string &bundleName)
         return QUICK_FIX_VERIFY_PERMISSION_FAILED;
     }
 
+    // Fast fail before bundle info query; the authoritative duplicate check is done atomically
+    // in AddApplyTask to close the gap between check and add (concurrent IPC threads).
     if (CheckTaskRunningState(bundleName)) {
         TAG_LOGE(AAFwkTag::QUICKFIX, "apply quick fix task");
         return QUICK_FIX_DEPLOYING_TASK;
@@ -243,21 +245,36 @@ int32_t QuickFixManagerService::RevokeQuickFix(const std::string &bundleName)
     }
     auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr, appMgr, handler, this);
     applyTask->InitRevokeTask(bundleName, isSoContained);
-    AddApplyTask(applyTask);
+    if (!AddApplyTask(applyTask)) {
+        TAG_LOGE(AAFwkTag::QUICKFIX, "apply quick fix task already running, bundleName: %{public}s",
+            bundleName.c_str());
+        return QUICK_FIX_DEPLOYING_TASK;
+    }
     applyTask->RunRevoke();
     return QUICK_FIX_OK;
 }
 
-void QuickFixManagerService::AddApplyTask(std::shared_ptr<QuickFixManagerApplyTask> applyTask)
+bool QuickFixManagerService::AddApplyTask(std::shared_ptr<QuickFixManagerApplyTask> applyTask)
 {
-    std::lock_guard<std::mutex> lock(taskMutex_);
-    applyTasks_.emplace_back(applyTask);
-}
+    if (applyTask == nullptr) {
+        TAG_LOGE(AAFwkTag::QUICKFIX, "null applyTask");
+        return false;
+    }
 
-std::shared_ptr<AppExecFwk::EventHandler> QuickFixManagerService::GetEventHandler()
-{
-    std::lock_guard<std::mutex> lock(eventMutex_);
-    return eventHandler_;
+    // Check and add in the same critical section to avoid duplicate tasks for the same bundle
+    // when concurrent revoke/apply requests pass CheckTaskRunningState simultaneously.
+    std::lock_guard<std::mutex> lock(taskMutex_);
+    std::string bundleName = applyTask->GetBundleName();
+    if (!bundleName.empty()) {
+        for (auto &item : applyTasks_) {
+            if (item != nullptr && item->GetBundleName() == bundleName) {
+                TAG_LOGE(AAFwkTag::QUICKFIX, "bundleName %{public}s task already exists", bundleName.c_str());
+                return false;
+            }
+        }
+    }
+    applyTasks_.emplace_back(applyTask);
+    return true;
 }
 
 void QuickFixManagerService::RemoveApplyTask(std::shared_ptr<QuickFixManagerApplyTask> applyTask)
@@ -270,6 +287,12 @@ void QuickFixManagerService::RemoveApplyTask(std::shared_ptr<QuickFixManagerAppl
             it++;
         }
     }
+}
+
+std::shared_ptr<AppExecFwk::EventHandler> QuickFixManagerService::GetEventHandler()
+{
+    std::lock_guard<std::mutex> lock(eventMutex_);
+    return eventHandler_;
 }
 
 bool QuickFixManagerService::CheckTaskRunningState(const std::string &bundleName)
