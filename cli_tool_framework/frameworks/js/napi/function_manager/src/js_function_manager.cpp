@@ -15,21 +15,34 @@
 
 #include "js_function_manager.h"
 
+#include <atomic>
+#include <functional>
 #include <mutex>
 #include <string>
+#include <vector>
 
+#include <nlohmann/json.hpp>
+
+#include "ability_context.h"
+#include "permission_dialog.h"
+#include "accesstoken_kit.h"
+#include "ability_manager_errors.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_tool_mgr_client.h"
 #include "function_info.h"
 #include "hilog_tag_wrapper.h"
+#include "intent_client.h"
 #include "invoke_function_executor.h"
+#include "ipc_skeleton.h"
 #include "js_error_utils.h"
 #include "js_function_hook.h"
 #include "js_function_manager_utils.h"
+#include "napi_base_context.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "string_wrapper.h"
+#include "tokenid_kit.h"
 
 using namespace OHOS::AbilityRuntime;
 
@@ -43,6 +56,50 @@ constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
 constexpr int32_t ERR_CONTEXT_NOT_ABILITY = 16000020;
+
+std::shared_ptr<AbilityRuntime::AbilityContext> GetAbilityContext(napi_env env, napi_value value)
+{
+    bool stageMode = false;
+    napi_status status = AbilityRuntime::IsStageContext(env, value, stageMode);
+    if (status != napi_ok || !stageMode) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "get ability context: not a stage context");
+        return nullptr;
+    }
+    auto context = AbilityRuntime::GetStageModeContext(env, value);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "get ability context: get stage context failed");
+        return nullptr;
+    }
+    auto abilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "get ability context: convert to AbilityContext failed");
+        return nullptr;
+    }
+    return abilityContext;
+}
+
+// Resolve the optional UIAbilityContext carried by options.context (the 4th
+// invokeFunction argument). Returns nullptr when absent / non-object / not a
+// UIAbilityContext.
+std::shared_ptr<AbilityRuntime::AbilityContext> GetInvokeContext(napi_env env, size_t argc, napi_value *argv)
+{
+    if (argc < INDEX_FOUR || argv[INDEX_THREE] == nullptr) {
+        return nullptr;
+    }
+    napi_valuetype optionsType = napi_undefined;
+    napi_typeof(env, argv[INDEX_THREE], &optionsType);
+    if (optionsType != napi_object) {
+        return nullptr;
+    }
+    napi_value contextValue = nullptr;
+    napi_get_named_property(env, argv[INDEX_THREE], "context", &contextValue);
+    napi_valuetype contextType = napi_undefined;
+    napi_typeof(env, contextValue, &contextType);
+    if (contextType == napi_undefined || contextType == napi_null) {
+        return nullptr;
+    }
+    return GetAbilityContext(env, contextValue);
+}
 
 struct InvokeFunctionTsfnContext {
     napi_deferred deferred = nullptr;
@@ -200,6 +257,187 @@ void InjectTransportTraceIds(InvokeFunctionParam &param)
         param.args.SetParam("ohos.task.id", AAFwk::String::Box(param.invokeOptions.taskId));
     }
 }
+
+// Dispatch the executor through the threadsafe-function bridge. Shared by the
+// system path (intentId == 0) and the third-party consent path.
+void SubmitInvokeFunction(napi_env env, napi_deferred deferred, const InvokeFunctionParam &param,
+    bool isPublicInvoke, const sptr<IRemoteObject> &callerAbilityToken, uint64_t intentId)
+{
+    auto tsfnContext = std::make_shared<InvokeFunctionTsfnContext>();
+    tsfnContext->deferred = deferred;
+
+    napi_value workName = nullptr;
+    napi_create_string_utf8(env, "InvokeFunctionTsfn", NAPI_AUTO_LENGTH, &workName);
+    auto finalizeData = std::make_unique<std::shared_ptr<InvokeFunctionTsfnContext>>(tsfnContext);
+    napi_status tsfnStatus = napi_create_threadsafe_function(env, nullptr, nullptr, workName, 0, 1,
+        finalizeData.get(), InvokeFunctionFinalize,
+        tsfnContext.get(), InvokeFunctionCallJs, &tsfnContext->tsfn);
+    if (tsfnStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create threadsafe function");
+        napi_value jsError = CreateCliJsErrorByNativeErr(env, ERR_INNER_PARAM_INVALID);
+        napi_reject_deferred(env, deferred, jsError);
+        return;
+    }
+    finalizeData.release();
+
+    InvokeResultCallback bridge = [tsfnContext](const FunctionResultHolder &holder) {
+        auto *data = new FunctionResultHolder(holder);
+        napi_status status = napi_call_threadsafe_function(tsfnContext->tsfn, data, napi_tsfn_nonblocking);
+        if (status != napi_ok) {
+            delete data;
+        }
+    };
+
+    InvokeFunctionParam execParam = param;
+    InjectTransportTraceIds(execParam);
+    InvokeFunctionExecutor::Create()->Execute(execParam, bridge, isPublicInvoke, callerAbilityToken, intentId);
+}
+
+// Shared state for the third-party consent path: the NAPI handles plus the
+// pre-registered execute record id rewritten by the server-side pre-check.
+struct PublicInvokeContext {
+    napi_env env = nullptr;
+    napi_deferred deferred = nullptr;
+    std::shared_ptr<uint64_t> intentId = std::make_shared<uint64_t>(0);
+};
+
+// Automation-control shortcut: skip the consent dialog only on an explicit
+// pre-grant; every other outcome falls back to the dialog. Returns true when the
+// invoke was submitted directly (no dialog needed).
+bool TryAutomationControlShortcut(const InvokeFunctionParam &param, const std::function<void()> &submit)
+{
+    Security::AccessToken::AccessTokenID controllerTokenId =
+        static_cast<Security::AccessToken::AccessTokenID>(IPCSkeleton::GetSelfTokenID());
+    Security::AccessToken::HapTokenInfo callerHapInfo;
+    if (Security::AccessToken::AccessTokenKit::GetHapTokenInfo(controllerTokenId, callerHapInfo) !=
+        Security::AccessToken::RET_SUCCESS) {
+        return false;
+    }
+    Security::AccessToken::AccessTokenID targetTokenId =
+        Security::AccessToken::AccessTokenKit::GetHapTokenID(callerHapInfo.userID, param.functionNamespace, 0);
+    if (targetTokenId == Security::AccessToken::INVALID_TOKENID) {
+        return false;
+    }
+    std::vector<Security::AccessToken::AccessTokenID> targetList{targetTokenId};
+    std::vector<Security::AccessToken::AutomationControlAccessDecision> decisions;
+    int32_t checkRet = Security::AccessToken::AccessTokenKit::CheckAutomationControlAccess(
+        controllerTokenId, targetList, decisions);
+    if (checkRet != Security::AccessToken::RET_SUCCESS || decisions.size() != 1) {
+        return false;
+    }
+    if (decisions[0] != Security::AccessToken::AutomationControlAccessDecision::NO_POPUP_NEEDED_GRANTED) {
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "invokePublicFunction: automation control pre-granted, skip dialog");
+    submit();
+    return true;
+}
+
+// NAPI-side adapter bridging the pure-C++ permission dialog callback back to
+// the invokePublicFunction settlement closure (grant -> submit, otherwise
+// reject).
+#ifdef SUPPORT_GRAPHICS
+class PermissionDialogCallbackImpl : public AbilityRuntime::PermissionDialogCallback {
+public:
+    explicit PermissionDialogCallbackImpl(const std::function<void(bool)> &settle) : settle_(settle) {}
+    ~PermissionDialogCallbackImpl() override = default;
+
+    void OnResult(bool granted) override
+    {
+        settle_(granted);
+    }
+
+private:
+    std::function<void(bool)> settle_;
+};
+#endif // SUPPORT_GRAPHICS
+
+// Mount the permission dialog through the framework layer; every outcome (grant,
+// decline, error, release) settles the user decision through the callback.
+void CreateConsentDialog(const PublicInvokeContext &ctx, const InvokeFunctionParam &param,
+    const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext,
+    const std::function<void(bool)> &settle)
+{
+#ifdef SUPPORT_GRAPHICS
+    auto callback = std::make_shared<PermissionDialogCallbackImpl>(settle);
+    ErrCode ret = AbilityRuntime::StartPermissionDialog(abilityContext, param.functionNamespace,
+        static_cast<int32_t>(*ctx.intentId), callback);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "invokePublicFunction: create permission dialog failed");
+        settle(false);
+    }
+#else
+    TAG_LOGE(AAFwkTag::CLI_TOOL, "invokePublicFunction: graphics not supported");
+    settle(false);
+#endif
+}
+
+// Mount the privacy-center consent dialog; the user decision settles exactly once.
+void MountConsentDialog(const PublicInvokeContext &ctx, const InvokeFunctionParam &param,
+    const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext, const std::function<void()> &submit)
+{
+    auto fired = std::make_shared<std::atomic<bool>>(false);
+    auto settle = [ctx, submit, fired](bool granted) {
+        bool expected = false;
+        if (!fired->compare_exchange_strong(expected, true)) {
+            return;  // already settled
+        }
+        if (!granted) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "invokePublicFunction consent not granted");
+            // Drop the pre-registered record so a declined or dismissed dialog
+            // does not linger until eviction.
+            AAFwk::IntentClient::GetInstance().RemoveIntentRecord(*ctx.intentId);
+            napi_reject_deferred(ctx.env, ctx.deferred,
+                CreateCliJsErrorByNativeErr(ctx.env, OHOS::ERR_PERMISSION_DENIED));
+            return;
+        }
+        submit();
+    };
+    CreateConsentDialog(ctx, param, abilityContext, settle);
+}
+
+// Third-party invoke path: run the service-side authorization pre-check, then
+// mount the privacy-center consent dialog before dispatching the executor.
+napi_value StartPublicFunctionInvoke(napi_env env, const InvokeFunctionParam &param,
+    const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext,
+    const sptr<IRemoteObject> &callerAbilityToken, napi_deferred deferred, napi_value promise)
+{
+    // The public path must carry a UIAbilityContext to host the consent dialog.
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "invokePublicFunction missing UIAbilityContext");
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INNER_PARAM_INVALID));
+        return promise;
+    }
+
+    // Pre-registered consent record id lives in the shared context so both the
+    // pre-check and the dialog mount read/write the same value.
+    PublicInvokeContext ctx;
+    ctx.env = env;
+    ctx.deferred = deferred;
+    auto submit = [ctx, param, callerAbilityToken]() {
+        SubmitInvokeFunction(ctx.env, ctx.deferred, param, true, callerAbilityToken, *ctx.intentId);
+    };
+
+    // Service-side authorization pre-check (exported visibility + permission).
+    // Unauthorized targets fail fast without a dialog (anti-dialog-bombing). On
+    // success AMS pre-registers an execute record and returns its id.
+    int32_t precheck = AAFwk::IntentClient::GetInstance().PreRegisterIntentRecord(
+        param.functionNamespace, param.functionName, *ctx.intentId);
+    if (precheck != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "invokePublicFunction pre-check failed: %{public}d", precheck);
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, precheck));
+        return promise;
+    }
+
+    // Automation-control shortcut: skip the dialog only on an explicit grant;
+    // every other decision falls back to the consent dialog.
+    if (TryAutomationControlShortcut(param, submit)) {
+        return promise;
+    }
+
+    MountConsentDialog(ctx, param, abilityContext, submit);
+    return promise;
+}
 } // namespace
 
 void JSFunctionManager::Finalizer(napi_env env, void *data, void *hint)
@@ -213,9 +451,19 @@ napi_value JSFunctionManager::QueryFunctions(napi_env env, napi_callback_info in
     GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnQueryFunctions);
 }
 
+napi_value JSFunctionManager::QueryPublicFunctions(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnQueryPublicFunctions);
+}
+
 napi_value JSFunctionManager::InvokeFunction(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnInvokeFunction);
+}
+
+napi_value JSFunctionManager::InvokePublicFunction(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnInvokePublicFunction);
 }
 
 napi_value JSFunctionManager::OnQueryFunctions(napi_env env, size_t argc, napi_value *argv)
@@ -261,6 +509,49 @@ napi_value JSFunctionManager::OnQueryFunctions(napi_env env, size_t argc, napi_v
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSFunctionManager::OnQueryPublicFunctions(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnQueryPublicFunctions called");
+    HandleEscape handleEscape(env);
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    auto functions = std::make_shared<std::vector<FunctionInfo>>();
+
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, functions]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().GetPublicFunctions(*functions);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, functions](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "QueryPublicFunctions error: %{public}d", *innerErrCode);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+
+        napi_value jsArray = nullptr;
+        napi_status napiStatus = napi_create_array(env, &jsArray);
+        if (napiStatus != napi_ok) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_create_array failed, %{public}d", napiStatus);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, ERR_INNER_PARAM_INVALID));
+            return;
+        }
+        for (size_t i = 0; i < functions->size(); i++) {
+            napi_value jsFunction = CreateJsFunctionInfo(env, (*functions)[i]);
+            if (jsFunction != nullptr) {
+                napi_set_element(env, jsArray, i, jsFunction);
+            }
+        }
+        task.ResolveWithNoError(env, jsArray);
+    };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JSFunctionManager::OnQueryPublicFunctions", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
 napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_value *argv)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnInvokeFunction called");
@@ -271,6 +562,32 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         return CreateJsUndefined(env);  // validation already threw a JS exception
     }
 
+    // Caller identity is derived inside StartInvokeFunction; the system entry
+    // carries no context (system callers never mount the consent dialog).
+    napi_value result = StartInvokeFunction(env, param, nullptr);
+    return handleEscape.Escape(result);
+}
+
+napi_value JSFunctionManager::OnInvokePublicFunction(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnInvokePublicFunction called");
+    HandleEscape handleEscape(env);
+
+    InvokeFunctionParam param;
+    if (!ParseInvokeFunctionParam(env, argc, argv, param)) {
+        return CreateJsUndefined(env);  // validation already threw a JS exception
+    }
+
+    // Resolve the caller's UIAbilityContext from options.context; it hosts the
+    // privacy-center consent dialog for third-party callers.
+    auto abilityContext = GetInvokeContext(env, argc, argv);
+    napi_value result = StartInvokeFunction(env, param, abilityContext);
+    return handleEscape.Escape(result);
+}
+
+napi_value JSFunctionManager::StartInvokeFunction(napi_env env, const InvokeFunctionParam &param,
+    const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext)
+{
     // Create promise
     napi_value promise = nullptr;
     napi_deferred deferred = nullptr;
@@ -281,41 +598,25 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         return CreateJsUndefined(env);
     }
 
-    // Create threadsafe function context.
-    auto tsfnContext = std::make_shared<InvokeFunctionTsfnContext>();
-    tsfnContext->deferred = deferred;
+    // Caller identity is derived locally; it only drives the consent-dialog UX and
+    // never substitutes for the service-side authorization.
+    bool isSystemApp = Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(
+        IPCSkeleton::GetSelfTokenID());
 
-    // Create threadsafe function
-    napi_value workName = nullptr;
-    napi_create_string_utf8(env, "InvokeFunctionTsfn", NAPI_AUTO_LENGTH, &workName);
-    auto finalizeData = std::make_unique<std::shared_ptr<InvokeFunctionTsfnContext>>(tsfnContext);
-    napi_status tsfnStatus = napi_create_threadsafe_function(env, nullptr, nullptr, workName, 0, 1,
-        finalizeData.get(), InvokeFunctionFinalize,
-        tsfnContext.get(), InvokeFunctionCallJs, &tsfnContext->tsfn);
-    if (tsfnStatus != napi_ok) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create threadsafe function");
-        napi_value jsError = CreateCliJsErrorByNativeErr(env, ERR_INNER_PARAM_INVALID);
-        napi_reject_deferred(env, deferred, jsError);
-        return handleEscape.Escape(promise);
+    // Caller UIAbility token for launch attribution (null on the system path).
+    sptr<IRemoteObject> callerAbilityToken =
+        (abilityContext != nullptr) ? abilityContext->GetToken() : nullptr;
+
+    // Third-party: run the consent flow (pre-check + dialog) before dispatch.
+    if (!isSystemApp) {
+        return StartPublicFunctionInvoke(env, param, abilityContext, callerAbilityToken, deferred, promise);
     }
-    finalizeData.release();
 
-    // Bridge: forward the pure-C++ outcome from the executor (worker/binder thread)
-    // into the threadsafe-function payload. InvokeFunctionExecutor owns all business
-    // logic and is fully decoupled from napi.
-    InvokeResultCallback bridge = [tsfnContext](const FunctionResultHolder &holder) {
-        auto *data = new FunctionResultHolder(holder);
-        napi_status status = napi_call_threadsafe_function(tsfnContext->tsfn, data, napi_tsfn_nonblocking);
-        if (status != napi_ok) {
-            delete data;
-        }
-    };
+    // System app: dispatch without a dialog; the service-side permission gate runs
+    // inside ExecuteIntentByFunctionCall.
+    SubmitInvokeFunction(env, deferred, param, false, callerAbilityToken, 0);
 
-    InjectTransportTraceIds(param);
-
-    InvokeFunctionExecutor::Create()->Execute(param, bridge);
-
-    return handleEscape.Escape(promise);
+    return promise;
 }
 
 napi_value JSFunctionManager::RegisterFunctionHook(napi_env env, napi_callback_info info)
@@ -500,7 +801,9 @@ napi_value JSFunctionManagerInit(napi_env env, napi_value exportObj)
 
     const char *moduleName = "FunctionManager";
     BindNativeFunction(env, exportObj, "queryFunctions", moduleName, JSFunctionManager::QueryFunctions);
+    BindNativeFunction(env, exportObj, "queryPublicFunctions", moduleName, JSFunctionManager::QueryPublicFunctions);
     BindNativeFunction(env, exportObj, "invokeFunction", moduleName, JSFunctionManager::InvokeFunction);
+    BindNativeFunction(env, exportObj, "invokePublicFunction", moduleName, JSFunctionManager::InvokePublicFunction);
     BindNativeFunction(env, exportObj, "registerFunctionHook", moduleName, JSFunctionManager::RegisterFunctionHook);
     BindNativeFunction(env, exportObj, "unregisterFunctionHook", moduleName, JSFunctionManager::UnregisterFunctionHook);
 

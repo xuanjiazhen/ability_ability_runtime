@@ -25,6 +25,8 @@ int32_t CliToolMgrClientFlag::retResetNamespaceFunctionsAsync = ERR_OK;
 int32_t CliToolMgrClientFlag::retGetFunctionInfo = ERR_OK;
 int32_t CliToolMgrClientFlag::retUnregisterFunction = ERR_OK;
 int32_t CliToolMgrClientFlag::retGetAllFunctions = ERR_OK;
+int32_t CliToolMgrClientFlag::retGetPublicFunctions = ERR_OK;
+int32_t CliToolMgrClientFlag::retGetPublicFunctionInfo = ERR_OK;
 int32_t CliToolMgrClientFlag::retExecTool = ERR_OK;
 int32_t CliToolMgrClientFlag::retExecCmd = ERR_OK;
 int32_t CliToolMgrClientFlag::retSubscribeSession = ERR_OK;
@@ -62,58 +64,72 @@ std::vector<ToolSummary> CliToolMgrClientFlag::summaries;
 CliSessionInfo CliToolMgrClientFlag::querySession;
 std::vector<CommandPermission> CliToolMgrClientFlag::commandPermissions;
 
+namespace {
+void ResetCliToolRetCodes()
+{
+    CliToolMgrClientFlag::retGetAllToolSummaries = ERR_OK;
+    CliToolMgrClientFlag::retGetToolInfoByName = ERR_OK;
+    CliToolMgrClientFlag::retGetAllToolInfos = ERR_OK;
+    CliToolMgrClientFlag::retRegisterFunction = ERR_OK;
+    CliToolMgrClientFlag::retBatchRegisterFunctions = ERR_OK;
+    CliToolMgrClientFlag::batchRegisterFunctionsSuccessCount = 0;
+    CliToolMgrClientFlag::retResetNamespaceFunctions = ERR_OK;
+    CliToolMgrClientFlag::resetNamespaceFunctionsSuccessCount = 0;
+    CliToolMgrClientFlag::retBatchRegisterFunctionsAsync = ERR_OK;
+    CliToolMgrClientFlag::retUnregisterIntentFunctionsByNamespaceAsync = ERR_OK;
+    CliToolMgrClientFlag::retResetNamespaceFunctionsAsync = ERR_OK;
+    CliToolMgrClientFlag::retGetFunctionInfo = ERR_OK;
+    CliToolMgrClientFlag::retUnregisterFunction = ERR_OK;
+    CliToolMgrClientFlag::retGetAllFunctions = ERR_OK;
+    CliToolMgrClientFlag::retGetPublicFunctions = ERR_OK;
+    CliToolMgrClientFlag::retGetPublicFunctionInfo = ERR_OK;
+    CliToolMgrClientFlag::retExecTool = ERR_OK;
+    CliToolMgrClientFlag::retExecCmd = ERR_OK;
+    CliToolMgrClientFlag::retSubscribeSession = ERR_OK;
+    CliToolMgrClientFlag::retUnsubscribeSession = ERR_OK;
+    CliToolMgrClientFlag::retClearSession = ERR_OK;
+    CliToolMgrClientFlag::retQuerySession = ERR_OK;
+    CliToolMgrClientFlag::retSendMessage = ERR_OK;
+    CliToolMgrClientFlag::retBatchQueryPermission = ERR_OK;
+    CliToolMgrClientFlag::retLoadSystemAbility = ERR_OK;
+    CliToolMgrClientFlag::retRegisterCliHook = ERR_OK;
+    CliToolMgrClientFlag::retUnregisterCliHook = ERR_OK;
+    CliToolMgrClientFlag::retRegisterFunctionHook = ERR_OK;
+    CliToolMgrClientFlag::retUnregisterFunctionHook = ERR_OK;
+    CliToolMgrClientFlag::retBeforeInvokeFunction = ERR_OK;
+    CliToolMgrClientFlag::retAfterInvokeFunction = ERR_OK;
+    CliToolMgrClientFlag::registerCliHookCount = 0;
+    CliToolMgrClientFlag::unregisterCliHookCount = 0;
+    CliToolMgrClientFlag::registerFunctionHookCount = 0;
+    CliToolMgrClientFlag::unregisterFunctionHookCount = 0;
+    CliToolMgrClientFlag::beforeInvokeFunctionCount = 0;
+    CliToolMgrClientFlag::afterInvokeFunctionCount = 0;
+    CliToolMgrClientFlag::lastHookActiveMethods = 0;
+}
+
+void ResetCliToolRuntimeState()
+{
+    CliToolMgrClientFlag::lastInvokeFunctionNamespace.clear();
+    CliToolMgrClientFlag::lastInvokeFunctionName.clear();
+    CliToolMgrClientFlag::nullSystemAbility = false;
+    CliToolMgrClientFlag::shouldCallback = true;
+    CliToolMgrClientFlag::devModeEnabled = false;
+    CliToolMgrClientFlag::cliToolMgr = nullptr;
+    CliToolMgrClientFlag::lastEventId.clear();
+    CliToolMgrClientFlag::lastSubscriptionId.clear();
+    CliToolMgrClientFlag::lastTaskId.clear();
+    CliToolMgrClientFlag::toolInfos.clear();
+    CliToolMgrClientFlag::functionInfos.clear();
+    CliToolMgrClientFlag::summaries.clear();
+    CliToolMgrClientFlag::querySession = {};
+    CliToolMgrClientFlag::commandPermissions.clear();
+}
+} // namespace
+
 void CliToolMgrClientFlag::Reset()
 {
-    retGetAllToolSummaries = ERR_OK;
-    retGetToolInfoByName = ERR_OK;
-    retGetAllToolInfos = ERR_OK;
-    retRegisterFunction = ERR_OK;
-    retBatchRegisterFunctions = ERR_OK;
-    batchRegisterFunctionsSuccessCount = 0;
-    retResetNamespaceFunctions = ERR_OK;
-    resetNamespaceFunctionsSuccessCount = 0;
-    retBatchRegisterFunctionsAsync = ERR_OK;
-    retUnregisterIntentFunctionsByNamespaceAsync = ERR_OK;
-    retResetNamespaceFunctionsAsync = ERR_OK;
-    retGetFunctionInfo = ERR_OK;
-    retUnregisterFunction = ERR_OK;
-    retGetAllFunctions = ERR_OK;
-    retExecTool = ERR_OK;
-    retExecCmd = ERR_OK;
-    retSubscribeSession = ERR_OK;
-    retUnsubscribeSession = ERR_OK;
-    retClearSession = ERR_OK;
-    retQuerySession = ERR_OK;
-    retSendMessage = ERR_OK;
-    retBatchQueryPermission = ERR_OK;
-    retLoadSystemAbility = ERR_OK;
-    retRegisterCliHook = ERR_OK;
-    retUnregisterCliHook = ERR_OK;
-    retRegisterFunctionHook = ERR_OK;
-    retUnregisterFunctionHook = ERR_OK;
-    retBeforeInvokeFunction = ERR_OK;
-    retAfterInvokeFunction = ERR_OK;
-    registerCliHookCount = 0;
-    unregisterCliHookCount = 0;
-    registerFunctionHookCount = 0;
-    unregisterFunctionHookCount = 0;
-    beforeInvokeFunctionCount = 0;
-    afterInvokeFunctionCount = 0;
-    lastHookActiveMethods = 0;
-    lastInvokeFunctionNamespace.clear();
-    lastInvokeFunctionName.clear();
-    nullSystemAbility = false;
-    shouldCallback = true;
-    devModeEnabled = false;
-    cliToolMgr = nullptr;
-    lastEventId.clear();
-    lastSubscriptionId.clear();
-    lastTaskId.clear();
-    toolInfos.clear();
-    functionInfos.clear();
-    summaries.clear();
-    querySession = {};
-    commandPermissions.clear();
+    ResetCliToolRetCodes();
+    ResetCliToolRuntimeState();
 }
 
 int32_t MockCliToolMgrService::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
@@ -198,6 +214,21 @@ int32_t MockCliToolMgrService::GetAllFunctions(FunctionsRawData &functions)
 {
     FunctionsRawData::FromFunctionInfoVec(CliToolMgrClientFlag::functionInfos, functions);
     return CliToolMgrClientFlag::retGetAllFunctions;
+}
+
+int32_t MockCliToolMgrService::GetPublicFunctions(FunctionsRawData &functions)
+{
+    FunctionsRawData::FromFunctionInfoVec(CliToolMgrClientFlag::functionInfos, functions);
+    return CliToolMgrClientFlag::retGetPublicFunctions;
+}
+
+int32_t MockCliToolMgrService::GetPublicFunctionInfo(const std::string &,
+    const std::string &, FunctionInfo &function)
+{
+    if (!CliToolMgrClientFlag::functionInfos.empty()) {
+        function = CliToolMgrClientFlag::functionInfos.front();
+    }
+    return CliToolMgrClientFlag::retGetPublicFunctionInfo;
 }
 
 int32_t MockCliToolMgrService::BatchRegisterFunctionsAsync(const FunctionsRawData &functions)

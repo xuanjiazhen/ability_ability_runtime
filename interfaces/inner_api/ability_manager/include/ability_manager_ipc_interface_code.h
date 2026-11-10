@@ -818,6 +818,18 @@ enum class AbilityManagerInterfaceCode {
 
     // kill collaborator process
     KILL_COLLABORATOR_PROCESS = 6190,
+
+    // query the caller bundle name of the insight intent execution with the
+    // given intent id (privacy-center ownership verification)
+    GET_INSIGHT_INTENT_CALLER_BUNDLE_NAME = 6191,
+
+    // pre-register the insight intent execute record for the invokePublicFunction
+    // caller (exported visibility + ACCESS_PUBLIC_FUNCTION) before the consent dialog
+    PRE_REGISTER_INTENT_RECORD = 6193,
+
+    // remove the pre-registered insight intent execute record when the
+    // third-party consent dialog is declined / dismissed (no grant)
+    REMOVE_INTENT_RECORD = 6194,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
