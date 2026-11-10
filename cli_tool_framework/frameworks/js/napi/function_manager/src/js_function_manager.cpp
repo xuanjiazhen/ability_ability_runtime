@@ -59,6 +59,9 @@ constexpr const char* SYSTEM_CONSENT_ABILITY_NAME = "CollaborationAccessAbility"
 // to invoke capability Y".
 constexpr const char* CONSENT_PARAM_CALLER_BUNDLE = "ohos.insightIntent.consent.callerBundle";
 constexpr const char* CONSENT_PARAM_TARGET_BUNDLE = "ohos.insightIntent.consent.targetBundle";
+// Multi-target variant handed to the consent dialog; invokeFunction is single
+// target, so this always carries one element (the functionNamespace).
+constexpr const char* CONSENT_PARAM_TARGET_BUNDLE_LIST = "ohos.insightIntent.consent.targetBundleNameList";
 constexpr const char* CONSENT_PARAM_TARGET_INTENT = "ohos.insightIntent.consent.targetIntent";
 // Result key the dialog writes back (true = granted, false = declined).
 constexpr const char* CONSENT_PARAM_RESULT = "ohos.insightIntent.consent.result";
@@ -446,6 +449,7 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         want.SetParam("ability.want.params.uiExtensionType", std::string("sys/commonUI"));
         want.SetParam(CONSENT_PARAM_CALLER_BUNDLE, abilityContext->GetBundleName());
         want.SetParam(CONSENT_PARAM_TARGET_BUNDLE, param.functionNamespace);
+        want.SetParam(CONSENT_PARAM_TARGET_BUNDLE_LIST, std::vector<std::string>{param.functionNamespace});
         want.SetParam(CONSENT_PARAM_TARGET_INTENT, param.functionName);
 
         Ace::ModalUIExtensionCallbacks callbacks;
