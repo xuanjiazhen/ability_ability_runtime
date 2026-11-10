@@ -1826,6 +1826,8 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         }
 #endif // SUPPORT_SCREEN
         if (!param.isLaunchSCB) {
+            param.startAbilityCtx.skipScreenLock = abilityAutoStartupService_ != nullptr &&
+                abilityAutoStartupService_->IsDirectBootApp(abilityInfo, validUserId, appIndex);
             AbilityInterceptorParam interceptorParam = InterceptorParamBuilder(newWant, param.requestCode,
                 validUserId).WithUI(true).Visible(true).CallerToken(param.callerToken)
                 .AbilityInfo(std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo))
@@ -2936,6 +2938,8 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         abilityRequest.want.RemoveParam(Want::PARAM_RESV_WINDOW_FOCUSED);
     }
 
+    ctx.skipScreenLock = abilityAutoStartupService_ != nullptr &&
+        abilityAutoStartupService_->IsDirectBootApp(abilityInfo, validUserId, appIndex);
     Want newWant = abilityRequest.want;
     AbilityInterceptorParam interceptorParam = InterceptorParamBuilder(newWant, requestCode, validUserId)
         .WithUI(true).Visible(true).CallerToken(callerToken)
