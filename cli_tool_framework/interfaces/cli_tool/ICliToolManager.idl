@@ -64,4 +64,7 @@ interface ICliToolManager {
     void UnregisterFunctionHook([in] IFunctionHookInterface hook);
     void BeforeInvokeFunction([inout] InvokeFunctionParam param);
     void AfterInvokeFunction([inout] FunctionResultWrap functionResultWrap);
+    void GetPublicFunctions([out] FunctionsRawData functions);
+    void GetPublicFunctionInfo([in] String functionNamespace, [in] String functionName,
+        [out] FunctionInfo function);
 }
