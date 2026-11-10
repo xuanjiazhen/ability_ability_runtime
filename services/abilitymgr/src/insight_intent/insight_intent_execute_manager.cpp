@@ -141,6 +141,17 @@ void InsightIntentExecuteRecipient::OnRemoteDied(const wptr<OHOS::IRemoteObject>
     DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoteDied(intentId_);
 }
 
+void InsightIntentCancelListenerRecipient::OnRemoteDied(const wptr<OHOS::IRemoteObject> &remote)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "InsightIntentCancelListenerRecipient OnRemoteDied, %{public}" PRIu64, intentId_);
+    auto object = remote.promote();
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null object");
+        return;
+    }
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->OnCancelListenerDied(intentId_);
+}
+
 InsightIntentExecuteManager::InsightIntentExecuteManager() = default;
 
 InsightIntentExecuteManager::~InsightIntentExecuteManager() = default;
@@ -273,6 +284,7 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->deviceId = execParam.srcDeviceId;
     record->requestCode = execParam.requestCode;
     record->taskId = taskId;
+    record->callerUid = IPCSkeleton::GetCallingUid();
     if (callerToken != nullptr) {
         record->deathRecipient = sptr<InsightIntentExecuteRecipient>::MakeSptr(intentId);
         callerToken->AddDeathRecipient(record->deathRecipient);
@@ -419,6 +431,175 @@ int32_t InsightIntentExecuteManager::RemoteDied(uint64_t intentId)
     }
     result->second->callerToken = nullptr;
     result->second->state = InsightIntentExecuteState::REMOTE_DIED;
+    return ERR_OK;
+}
+
+bool InsightIntentExecuteManager::IsPrivilegedCancelAllowed()
+{
+    // TODO(competitor-analysis): decide whether SA/system callers may force-cancel
+    // intents owned by other callers. Default denies cross-caller cancellation.
+    return false;
+}
+
+void InsightIntentExecuteManager::OnCancelListenerDied(uint64_t intentId)
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto it = records_.find(intentId);
+    if (it == records_.end() || it->second == nullptr) {
+        TAG_LOGD(AAFwkTag::INTENT, "cancel listener died on missing record, intentId: %{public}" PRIu64, intentId);
+        return;
+    }
+    TAG_LOGD(AAFwkTag::INTENT, "cancel listener died, intentId: %{public}" PRIu64, intentId);
+    it->second->cancelListener = nullptr;
+    it->second->cancelListenerDeathRecipient = nullptr;
+}
+
+int32_t InsightIntentExecuteManager::CancelIntent(uint64_t intentId, int32_t callerUid)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "cancel intent start, intentId: %{public}" PRIu64, intentId);
+    sptr<IInsightIntentCancelListener> listener = nullptr;
+    sptr<IInsightIntentExecuteCallback> callerCallback = nullptr;
+    uint64_t key = 0;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        auto it = records_.find(intentId);
+        if (it == records_.end() || it->second == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
+            return INTENT_NOT_EXIST;
+        }
+        std::shared_ptr<InsightIntentExecuteRecord> record = it->second;
+        if (record->isDistributed) {
+            TAG_LOGW(AAFwkTag::INTENT, "distributed intent cancel not supported, id: %{public}" PRIu64, intentId);
+            return INTENT_CANCEL_NOT_SUPPORT;
+        }
+        if (callerUid != record->callerUid && !IsPrivilegedCancelAllowed()) {
+            TAG_LOGE(AAFwkTag::INTENT, "caller %{public}d not allowed to cancel intent %{public}" PRIu64
+                " owned by %{public}d", callerUid, intentId, record->callerUid);
+            return CHECK_PERMISSION_FAILED;
+        }
+        if (record->state == InsightIntentExecuteState::EXECUTE_DONE) {
+            TAG_LOGW(AAFwkTag::INTENT, "intent already executed, id: %{public}" PRIu64, intentId);
+            return INTENT_ALREADY_EXECUTED;
+        }
+        if (record->state != InsightIntentExecuteState::EXECUTING) {
+            TAG_LOGW(AAFwkTag::INTENT, "intent not executing, id: %{public}" PRIu64 ", state: %{public}d",
+                intentId, static_cast<int>(record->state));
+            return INTENT_STATE_NOT_EXECUTING;
+        }
+        record->state = InsightIntentExecuteState::CANCELED;
+        record->cancelReason = InsightIntentCancelReason::USER_REQUESTED;
+        listener = record->cancelListener;
+        callerCallback = iface_cast<IInsightIntentExecuteCallback>(record->callerToken);
+        key = record->key;
+        if (record->callerToken != nullptr && record->deathRecipient != nullptr) {
+            record->callerToken->RemoveDeathRecipient(record->deathRecipient);
+            record->callerToken = nullptr;
+        }
+    }
+    if (listener != nullptr) {
+        listener->OnCanceled(static_cast<int32_t>(InsightIntentCancelReason::USER_REQUESTED));
+    }
+    if (callerCallback != nullptr) {
+        AppExecFwk::InsightIntentExecuteResult cancelResult{};
+        cancelResult.innerErr = INTENT_CANCELED;
+        callerCallback->OnExecuteDone(key, INTENT_CANCELED, cancelResult);
+    }
+    TAG_LOGI(AAFwkTag::INTENT, "cancel intent done, intentId: %{public}" PRIu64, intentId);
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::CancelIntentByTaskId(const std::string &taskId, int32_t callerUid)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "cancel intent by taskId start, taskId: %{public}s", taskId.c_str());
+    if (taskId.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "empty taskId");
+        return ERR_INVALID_VALUE;
+    }
+    std::vector<sptr<IInsightIntentCancelListener>> listeners;
+    std::vector<std::pair<uint64_t, sptr<IInsightIntentExecuteCallback>>> settlements;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        for (auto &[intentId, record] : records_) {
+            if (record == nullptr || record->taskId != taskId) {
+                continue;
+            }
+            if (record->isDistributed) {
+                continue;
+            }
+            if (callerUid != record->callerUid && !IsPrivilegedCancelAllowed()) {
+                continue;
+            }
+            if (record->state != InsightIntentExecuteState::EXECUTING) {
+                continue;
+            }
+            record->state = InsightIntentExecuteState::CANCELED;
+            record->cancelReason = InsightIntentCancelReason::PLAN_CHANGED;
+            if (record->cancelListener != nullptr) {
+                listeners.push_back(record->cancelListener);
+            }
+            auto callerCallback = iface_cast<IInsightIntentExecuteCallback>(record->callerToken);
+            if (callerCallback != nullptr) {
+                settlements.emplace_back(record->key, callerCallback);
+            }
+            if (record->callerToken != nullptr && record->deathRecipient != nullptr) {
+                record->callerToken->RemoveDeathRecipient(record->deathRecipient);
+                record->callerToken = nullptr;
+            }
+        }
+    }
+    for (const auto &listener : listeners) {
+        listener->OnCanceled(static_cast<int32_t>(InsightIntentCancelReason::PLAN_CHANGED));
+    }
+    for (const auto &[key, callerCallback] : settlements) {
+        AppExecFwk::InsightIntentExecuteResult cancelResult{};
+        cancelResult.innerErr = INTENT_CANCELED;
+        callerCallback->OnExecuteDone(key, INTENT_CANCELED, cancelResult);
+    }
+    TAG_LOGI(AAFwkTag::INTENT, "cancel intent by taskId done, taskId: %{public}s, listeners: %{public}zu, "
+        "settlements: %{public}zu", taskId.c_str(), listeners.size(), settlements.size());
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::AttachCancelListener(uint64_t intentId, const sptr<IRemoteObject> &listener)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "attach cancel listener, intentId: %{public}" PRIu64, intentId);
+    if (listener == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null listener");
+        return ERR_INVALID_VALUE;
+    }
+    sptr<IInsightIntentCancelListener> cancelListener = iface_cast<IInsightIntentCancelListener>(listener);
+    if (cancelListener == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid cancel listener");
+        return ERR_INVALID_VALUE;
+    }
+
+    bool alreadyCanceled = false;
+    int32_t reason = static_cast<int32_t>(InsightIntentCancelReason::USER_REQUESTED);
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        auto it = records_.find(intentId);
+        if (it == records_.end() || it->second == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
+            return INTENT_NOT_EXIST;
+        }
+        std::shared_ptr<InsightIntentExecuteRecord> record = it->second;
+        if (record->cancelListener != nullptr) {
+            TAG_LOGW(AAFwkTag::INTENT, "cancel listener already attached, id: %{public}" PRIu64, intentId);
+            return ERR_OK;
+        }
+        record->cancelListener = cancelListener;
+        record->cancelListenerDeathRecipient =
+            sptr<InsightIntentCancelListenerRecipient>::MakeSptr(intentId);
+        listener->AddDeathRecipient(record->cancelListenerDeathRecipient);
+        if (record->state == InsightIntentExecuteState::CANCELED) {
+            alreadyCanceled = true;
+            reason = static_cast<int32_t>(record->cancelReason);
+        }
+    }
+    if (alreadyCanceled) {
+        TAG_LOGI(AAFwkTag::INTENT, "already canceled, notify listener, intentId: %{public}" PRIu64, intentId);
+        cancelListener->OnCanceled(reason);
+    }
     return ERR_OK;
 }
 

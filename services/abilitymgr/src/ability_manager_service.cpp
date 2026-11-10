@@ -15665,6 +15665,15 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
     const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
     const std::string &intentName, const WantParams &wantParam)
 {
+    uint64_t intentId = 0;
+    return ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, wantParam, intentId);
+}
+
+int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
+    const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
+    const std::string &intentName, const WantParams &wantParam, uint64_t &intentId)
+{
+    intentId = 0;
     const auto toolCallId = wantParam.GetStringParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID);
     const auto taskId = wantParam.GetStringParam(AppExecFwk::INSIGHT_INTENT_TASK_ID);
     TAG_LOGI(AAFwkTag::INTENT, "called, bundleName: %{public}s, intentName: %{public}s, "
@@ -15701,6 +15710,7 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
     if (ret != ERR_OK) {
         return ret;
     }
+    intentId = param->insightIntentId_;
 
     AbilityRuntime::ExtractInsightIntentInfo extractInfo;
     AbilityRuntime::InsightIntentInfo configInfo;
@@ -15713,7 +15723,11 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
     TAG_LOGI(AAFwkTag::INTENT, "dispatch to ExecuteIntentCommon, ignoreAbilityName: %{public}d, "
         "openLink: %{public}d, callerBundle: %{public}s",
         ignoreAbilityName, openLinkExecuteFlag, callerBundleName.c_str());
-    return ExecuteIntentCommon(callerToken, param, callerBundleName, options);
+    auto ret = ExecuteIntentCommon(callerToken, param, callerBundleName, options);
+    // Same as ExecuteIntent: the id captured above is pre-dispatch; synchronize the out
+    // param with the record id that ExecuteIntentCommon actually generates for execution.
+    intentId = param->insightIntentId_;
+    return ret;
 }
 
 int32_t AbilityManagerService::ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,
@@ -15919,7 +15933,15 @@ int32_t AbilityManagerService::ExecuteIntentCommon(const sptr<IRemoteObject> &ca
 int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const InsightIntentExecuteParam &param)
 {
+    uint64_t intentId = 0;
+    return ExecuteIntent(key, callerToken, param, intentId);
+}
+
+int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
+    const InsightIntentExecuteParam &param, uint64_t &intentId)
+{
     TAG_LOGD(AAFwkTag::INTENT, "called");
+    intentId = 0;
 
     auto callerBundlename = InsightIntentGetcallerBundleName();
     if (callerBundlename.empty()) {
@@ -15958,6 +15980,7 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (ret != ERR_OK) {
         return ret;
     }
+    intentId = paramPtr->insightIntentId_;
 
     TAG_LOGI(AAFwkTag::INTENT, "execute insight intent, bundleName: %{public}s, moduleName: %{public}s, "
         "intentName: %{public}s, intentId:%{public}" PRIu64 ", openLinkExecuteFlag: %{public}d, "
@@ -16017,7 +16040,12 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
         // already stripped the task id from this path's want params.
         return StartAbilityWithServiceMatch(param);
     }
-    return ExecuteIntentCommon(callerToken, paramPtr, callerBundlename, options);
+    auto ret = ExecuteIntentCommon(callerToken, paramPtr, callerBundlename, options);
+    // ExecuteIntentCommon re-generates the record id inside CheckAndUpdateParam; the
+    // intent id that actually executes / routes the callback is that later one, not the
+    // id captured before dispatch. Keep the out param consistent with the executing record.
+    intentId = paramPtr->insightIntentId_;
+    return ret;
 }
 
 void AbilityManagerService::SetRemoteIntentTimeout(uint64_t insightIntentId)
@@ -16520,6 +16548,43 @@ int32_t AbilityManagerService::NotifyInsightIntentExecute(uint64_t intentId)
     }
     executeManager->SetTargetPid(intentId, IPCSkeleton::GetCallingPid());
     return ERR_OK;
+}
+
+int32_t AbilityManagerService::NotifyInsightIntentExecuteV2(uint64_t intentId, const sptr<IRemoteObject> &cancelListener)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "notify insight intent execute v2, intentId:%{public}" PRIu64, intentId);
+    if (cancelListener == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null cancelListener");
+        return ERR_INVALID_VALUE;
+    }
+    auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
+    std::string targetBundleName;
+    if (executeManager->GetBundleName(intentId, targetBundleName) != ERR_OK || targetBundleName.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "intent record not found, intentId:%{public}" PRIu64, intentId);
+        return ERR_INVALID_VALUE;
+    }
+    std::string callerBundleName = InsightIntentGetcallerBundleName();
+    if (callerBundleName != targetBundleName) {
+        TAG_LOGE(AAFwkTag::INTENT, "caller bundle %{public}s mismatch target bundle %{public}s",
+            callerBundleName.c_str(), targetBundleName.c_str());
+        return CHECK_PERMISSION_FAILED;
+    }
+    executeManager->SetTargetPid(intentId, IPCSkeleton::GetCallingPid());
+    return executeManager->AttachCancelListener(intentId, cancelListener);
+}
+
+int32_t AbilityManagerService::CancelInsightIntent(uint64_t intentId)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "cancel insight intent, intentId:%{public}" PRIu64, intentId);
+    return DelayedSingleton<InsightIntentExecuteManager>::GetInstance()
+        ->CancelIntent(intentId, IPCSkeleton::GetCallingUid());
+}
+
+int32_t AbilityManagerService::CancelInsightIntentByTaskId(const std::string &taskId)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "cancel insight intent by taskId, taskId:%{public}s", taskId.c_str());
+    return DelayedSingleton<InsightIntentExecuteManager>::GetInstance()
+        ->CancelIntentByTaskId(taskId, IPCSkeleton::GetCallingUid());
 }
 
 int32_t AbilityManagerService::RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)
