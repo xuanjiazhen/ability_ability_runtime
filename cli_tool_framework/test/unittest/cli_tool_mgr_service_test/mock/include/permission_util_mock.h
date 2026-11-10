@@ -27,6 +27,8 @@ public:
     static bool execCliToolPermitted;
     static bool execPublicCliToolPermitted;
     static bool registerAgentHookPermitted;
+    static bool accessFunctionPermitted;
+    static bool accessPublicFunctionPermitted;
 
     static void Reset();
 };
