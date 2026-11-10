@@ -69,6 +69,16 @@
         "type": "sys/commonUI",
         "visible": false,
         "srcEntry": "./ets/ShareExtAbility/AssertFaultShareExtAbility.ts"
+      },
+      {
+        "name": "InsightIntentConsentDialog",
+        "srcEntry": "./ets/ServiceExtAbility/InsightIntentConsentDialog.ts",
+        "description": "$string:InsightIntentConsentDialog_desc",
+        "icon": "$media:icon",
+        "label": "$string:InsightIntentConsentDialog_label",
+        "type": "sys/commonUI",
+        "visible": false,
+        "exported": false
       }
     ],
     "metadata": [
