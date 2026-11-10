@@ -1,0 +1,637 @@
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_client.h b/interfaces/inner_api/ability_manager/include/ability_manager_client.h
+index 666d120c3e..528cfb4915 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_client.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_client.h
+@@ -2576,6 +2576,14 @@ public:
+     ErrCode GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token, UIExtensionHostInfo &hostInfo,
+         int32_t userId = DEFAULT_INVAL_VALUE);
+ 
++    /**
++     * @brief Get root host info of a UIExtension by ability record id. SA only.
++     * @param abilityRecordId The record id of the UIExtension (AbilityRecord::recordId_).
++     * @param hostInfo Output root host info.
++     * @return Returns ERR_OK on success, others on failure.
++     */
++    ErrCode GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo);
++
+     /**
+      * @brief Get session info of a UIExtension. SA or SCB only.
+      * @param token The ability token.
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_interface.h b/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
+index 273374d8d5..8a77a840c6 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
+@@ -2218,6 +2218,17 @@ public:
+         return 0;
+     }
+ 
++    /**
++     * @brief Get root host info of a UIExtension by ability record id.
++     * @param abilityRecordId The record id of the UIExtension.
++     * @param hostInfo Output host info.
++     * @return int32_t Returns 0 on success, others on failure.
++     */
++    virtual int32_t GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo)
++    {
++        return 0;
++    }
++
+     /**
+      * @brief Get ui extension session info
+      *
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h b/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
+index 3f5e150021..f9ee712137 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
+@@ -812,6 +812,9 @@ enum class AbilityManagerInterfaceCode {
+ 
+     // get dynamic agent cards (API-source) from the old KV store for migration
+     GET_DYNAMIC_AGENT_CARDS_FOR_MIGRATION = 6188,
++
++    // get ui extension root host info by ability record id
++    GET_UI_EXTENSION_HOST_INFO_BY_ID = 6191,
+ };
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/interfaces/inner_api/ability_manager/include/ui_extension/ui_extension_host_info.h b/interfaces/inner_api/ability_manager/include/ui_extension/ui_extension_host_info.h
+index da6850712f..d811002eb6 100755
+--- a/interfaces/inner_api/ability_manager/include/ui_extension/ui_extension_host_info.h
++++ b/interfaces/inner_api/ability_manager/include/ui_extension/ui_extension_host_info.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2024 Huawei Device Co., Ltd.
++ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+@@ -32,6 +32,8 @@ public:
+ 
+     AppExecFwk::ElementName elementName_;
+     std::string sessionName;
++    int32_t persistentId_ = 0;
++    std::string moduleName;
+ };
+ } // namespace AbilityRuntime
+ } // namespace OHOS
+diff --git a/services/abilitymgr/include/ability_manager_proxy.h b/services/abilitymgr/include/ability_manager_proxy.h
+index a89982b4a7..c86e245bc0 100644
+--- a/services/abilitymgr/include/ability_manager_proxy.h
++++ b/services/abilitymgr/include/ability_manager_proxy.h
+@@ -1685,6 +1685,14 @@ public:
+     int32_t GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token, UIExtensionHostInfo &hostInfo,
+         int32_t userId = DEFAULT_INVAL_VALUE) override;
+ 
++    /**
++     * @brief Get root host info of a UIExtension by ability record id.
++     * @param abilityRecordId The record id of the UIExtension.
++     * @param hostInfo Output host info.
++     * @return int32_t Returns 0 on success, others on failure.
++     */
++    int32_t GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo) override;
++
+     /**
+      * @brief Get ui extension session info
+      *
+diff --git a/services/abilitymgr/include/ability_manager_service.h b/services/abilitymgr/include/ability_manager_service.h
+index 1deeb5072b..225e2ccf0e 100644
+--- a/services/abilitymgr/include/ability_manager_service.h
++++ b/services/abilitymgr/include/ability_manager_service.h
+@@ -2404,6 +2404,14 @@ public:
+     int32_t GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token, UIExtensionHostInfo &hostInfo,
+         int32_t userId = DEFAULT_INVAL_VALUE) override;
+ 
++    /**
++     * @brief Get root host info of a UIExtension by ability record id.
++     * @param abilityRecordId The record id of the UIExtension.
++     * @param hostInfo Output host info.
++     * @return int32_t Returns ERR_OK on success, others on failure.
++     */
++    int32_t GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo) override;
++
+     /**
+      * @brief Get ui extension session info
+      *
+diff --git a/services/abilitymgr/include/ability_manager_stub.h b/services/abilitymgr/include/ability_manager_stub.h
+index 7425347ef7..134186fbe1 100644
+--- a/services/abilitymgr/include/ability_manager_stub.h
++++ b/services/abilitymgr/include/ability_manager_stub.h
+@@ -353,6 +353,7 @@ private:
+     int32_t RestartAppInner(MessageParcel &data, MessageParcel &reply);
+ 
+     int32_t GetUIExtensionRootHostInfoInner(MessageParcel &data, MessageParcel &reply);
++    int32_t GetUIExtensionRootHostInfoByIdInner(MessageParcel &data, MessageParcel &reply);
+     int32_t GetUIExtensionSessionInfoInner(MessageParcel &data, MessageParcel &reply);
+     int32_t RequestAssertFaultDialogInner(MessageParcel &data, MessageParcel &reply);
+     int32_t NotifyDebugAssertResultInner(MessageParcel &data, MessageParcel &reply);
+diff --git a/services/abilitymgr/src/ability_manager_client.cpp b/services/abilitymgr/src/ability_manager_client.cpp
+index bbaec32528..635c925edd 100644
+--- a/services/abilitymgr/src/ability_manager_client.cpp
++++ b/services/abilitymgr/src/ability_manager_client.cpp
+@@ -2280,6 +2280,14 @@ ErrCode AbilityManagerClient::GetUIExtensionRootHostInfo(const sptr<IRemoteObjec
+     return abms->GetUIExtensionRootHostInfo(token, hostInfo, userId);
+ }
+ 
++ErrCode AbilityManagerClient::GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo)
++{
++    TAG_LOGD(AAFwkTag::ABILITYMGR, "Get ui extension host info by id: %{public}d.", abilityRecordId);
++    auto abms = GetAbilityManager();
++    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
++    return abms->GetUIExtensionRootHostInfoById(abilityRecordId, hostInfo);
++}
++
+ ErrCode AbilityManagerClient::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
+     UIExtensionSessionInfo &uiExtensionSessionInfo, int32_t userId)
+ {
+diff --git a/services/abilitymgr/src/ability_manager_proxy.cpp b/services/abilitymgr/src/ability_manager_proxy.cpp
+index cad037394f..21c1774ade 100644
+--- a/services/abilitymgr/src/ability_manager_proxy.cpp
++++ b/services/abilitymgr/src/ability_manager_proxy.cpp
+@@ -6377,6 +6377,47 @@ int32_t AbilityManagerProxy::GetUIExtensionRootHostInfo(const sptr<IRemoteObject
+     return reply.ReadInt32();
+ }
+ 
++int32_t AbilityManagerProxy::GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo)
++{
++    MessageParcel data;
++    if (!WriteInterfaceToken(data)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write object fail");
++        return INNER_ERR;
++    }
++
++    if (!data.WriteInt32(abilityRecordId)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write abilityRecordId fail");
++        return INNER_ERR;
++    }
++
++    MessageParcel reply;
++    MessageOption option;
++    auto error = SendRequest(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID, data, reply, option);
++    if (error != NO_ERROR) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
++        return error;
++    }
++
++    std::unique_ptr<UIExtensionHostInfo> info(reply.ReadParcelable<UIExtensionHostInfo>());
++    if (info == nullptr) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "read host info fail");
++        return INNER_ERR;
++    }
++    hostInfo = *info;
++    int32_t result = reply.ReadInt32();
++
++    int32_t persistentId = 0;
++    if (!reply.ReadInt32(persistentId)) {
++        TAG_LOGW(AAFwkTag::ABILITYMGR, "read persistentId failed, use default value");
++        persistentId = 0;
++    }
++    std::string moduleName = reply.ReadString();
++    hostInfo.persistentId_ = persistentId;
++    hostInfo.moduleName = moduleName;
++    hostInfo.elementName_.SetModuleName(moduleName);
++    return result;
++}
++
+ int32_t AbilityManagerProxy::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
+     UIExtensionSessionInfo &uiExtensionSessionInfo, int32_t userId)
+ {
+diff --git a/services/abilitymgr/src/ability_manager_service.cpp b/services/abilitymgr/src/ability_manager_service.cpp
+index c3c3ce0b09..86e2c285fa 100644
+--- a/services/abilitymgr/src/ability_manager_service.cpp
++++ b/services/abilitymgr/src/ability_manager_service.cpp
+@@ -17251,6 +17251,58 @@ std::shared_ptr<AbilityRecord> AbilityManagerService::GetUIExtensionRootCaller(c
+     return callerRecord;
+ }
+ 
++int32_t AbilityManagerService::GetUIExtensionRootHostInfoById(int32_t abilityRecordId,
++    UIExtensionHostInfo &hostInfo)
++{
++    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
++    TAG_LOGD(AAFwkTag::ABILITYMGR, "Get ui extension host info by id: %{public}d.", abilityRecordId);
++    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission deny");
++        return ERR_PERMISSION_DENIED;
++    }
++
++    if (abilityRecordId < 0) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityRecordId");
++        return ERR_INVALID_VALUE;
++    }
++
++    auto recordId = static_cast<int64_t>(abilityRecordId);
++    std::shared_ptr<UIExtensionAbilityManager> connectManager = nullptr;
++    std::shared_ptr<BaseExtensionRecord> extensionRecord = nullptr;
++    for (auto& item : subManagersHelper_->GetUIExtensionAbilityManagers()) {
++        if (item.second == nullptr) {
++            continue;
++        }
++        extensionRecord = item.second->GetExtensionByIdFromServiceMap(recordId);
++        if (extensionRecord == nullptr) {
++            extensionRecord = item.second->GetExtensionByIdFromTerminatingMap(recordId);
++        }
++        if (extensionRecord != nullptr) {
++            connectManager = item.second;
++            break;
++        }
++    }
++    if (connectManager == nullptr || extensionRecord == nullptr || extensionRecord->GetToken() == nullptr) {
++        TAG_LOGW(AAFwkTag::ABILITYMGR, "record not found or not a ui extension, id: %{public}d", abilityRecordId);
++        return ERR_INVALID_VALUE;
++    }
++
++    auto hostRecord = connectManager->GetUIExtensionRootHostInfo(extensionRecord->GetToken());
++    if (hostRecord == nullptr) {
++        TAG_LOGW(AAFwkTag::ABILITYMGR, "root host record not found, id: %{public}d", abilityRecordId);
++        return ERR_INVALID_VALUE;
++    }
++
++    hostInfo.elementName_ = hostRecord->GetElementName();
++    hostInfo.moduleName = hostInfo.elementName_.GetModuleName();
++    auto sessionInfo = hostRecord->GetSessionInfo();
++    if (sessionInfo != nullptr) {
++        hostInfo.sessionName = sessionInfo->sessionName;
++        hostInfo.persistentId_ = sessionInfo->persistentId;
++    }
++    return ERR_OK;
++}
++
+ int32_t AbilityManagerService::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
+     UIExtensionSessionInfo &uiExtensionSessionInfo, int32_t userId)
+ {
+diff --git a/services/abilitymgr/src/ability_manager_stub.cpp b/services/abilitymgr/src/ability_manager_stub.cpp
+index 978789a7c6..f4f1d962c5 100644
+--- a/services/abilitymgr/src/ability_manager_stub.cpp
++++ b/services/abilitymgr/src/ability_manager_stub.cpp
+@@ -671,6 +671,9 @@ int AbilityManagerStub::OnRemoteRequestInnerFourteenth(uint32_t code, MessagePar
+     if (interfaceCode == AbilityManagerInterfaceCode::GET_UI_EXTENSION_SESSION_INFO) {
+         return GetUIExtensionSessionInfoInner(data, reply);
+     }
++    if (interfaceCode == AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID) {
++        return GetUIExtensionRootHostInfoByIdInner(data, reply);
++    }
+     if (interfaceCode == AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY) {
+         return PreloadUIExtensionAbilityInner(data, reply);
+     }
+@@ -5116,6 +5119,34 @@ int32_t AbilityManagerStub::GetUIExtensionSessionInfoInner(MessageParcel &data,
+     return NO_ERROR;
+ }
+ 
++int32_t AbilityManagerStub::GetUIExtensionRootHostInfoByIdInner(MessageParcel &data, MessageParcel &reply)
++{
++    int32_t abilityRecordId = data.ReadInt32();
++    UIExtensionHostInfo hostInfo;
++    auto result = GetUIExtensionRootHostInfoById(abilityRecordId, hostInfo);
++    if (!reply.WriteParcelable(&hostInfo)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write ui extension host info fail");
++        return ERR_INVALID_VALUE;
++    }
++
++    if (!reply.WriteInt32(result)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
++        return ERR_INVALID_VALUE;
++    }
++
++    if (!reply.WriteInt32(hostInfo.persistentId_)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write persistentId fail");
++        return ERR_INVALID_VALUE;
++    }
++
++    if (!reply.WriteString(hostInfo.moduleName)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write moduleName fail");
++        return ERR_INVALID_VALUE;
++    }
++
++    return NO_ERROR;
++}
++
+ int32_t AbilityManagerStub::OpenAtomicServiceInner(MessageParcel &data, MessageParcel &reply)
+ {
+     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+diff --git a/services/abilitymgr/src/ui_extension/ui_extension_host_info.cpp b/services/abilitymgr/src/ui_extension/ui_extension_host_info.cpp
+index 8a1dca9cd9..458d427ee9 100755
+--- a/services/abilitymgr/src/ui_extension/ui_extension_host_info.cpp
++++ b/services/abilitymgr/src/ui_extension/ui_extension_host_info.cpp
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2024 Huawei Device Co., Ltd.
++ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+diff --git a/test/unittest/ability_manager_client_branch_test/ability_manager_client_branch_test.cpp b/test/unittest/ability_manager_client_branch_test/ability_manager_client_branch_test.cpp
+index a60b0203ad..4d570ca465 100644
+--- a/test/unittest/ability_manager_client_branch_test/ability_manager_client_branch_test.cpp
++++ b/test/unittest/ability_manager_client_branch_test/ability_manager_client_branch_test.cpp
+@@ -18,6 +18,7 @@
+ #define protected public
+ #include "ability_manager_client.h"
+ #include "ability_manager_stub_mock_test.h"
++#include "ability_manager_proxy.h"
+ #include "ability_connect_manager.h"
+ #include "ability_manager_interface.h"
+ #undef private
+@@ -2685,6 +2686,196 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetUIExtensionRoot
+     GTEST_LOG_(INFO) << "GetUIExtensionRootHostInfo_0100 end";
+ }
+ 
++namespace {
++constexpr int32_t HOST_INFO_RECORD_ID = 12025;
++constexpr int32_t LEAF_RECORD_ID = 12042;
++constexpr int32_t HOST_INFO_PERSISTENT_ID = 100;
++
++UIExtensionHostInfo g_hostInfoReply;
++int32_t g_hostInfoReplyCode = ERR_OK;
++
++UIExtensionHostInfo MakeHostInfo(const char *bundle, const char *module, const char *ability,
++    const char *session, int32_t persistentId)
++{
++    UIExtensionHostInfo info;
++    info.elementName_.SetBundleName(bundle);
++    info.elementName_.SetModuleName(module);
++    info.elementName_.SetAbilityName(ability);
++    info.moduleName = module;
++    info.sessionName = session;
++    info.persistentId_ = persistentId;
++    return info;
++}
++
++// The mock transport writes a real UIExtensionHostInfo into the reply, so the case below runs the
++// production AbilityManagerProxy encoding/decoding (including the moduleName slot) end to end.
++int32_t InvokeSendRequestWithHostInfo(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
++{
++    if (!reply.WriteParcelable(&g_hostInfoReply)) {
++        return -1;
++    }
++    if (!reply.WriteInt32(g_hostInfoReplyCode)) {
++        return -1;
++    }
++    if (!reply.WriteInt32(g_hostInfoReply.persistentId_)) {
++        return -1;
++    }
++    if (!reply.WriteString(g_hostInfoReply.moduleName)) {
++        return -1;
++    }
++    return 0;
++}
++
++int32_t InvokeSendRequestWithLegacyHostInfo(uint32_t code, MessageParcel &data, MessageParcel &reply,
++    MessageOption &option)
++{
++    if (!reply.WriteParcelable(&g_hostInfoReply)) {
++        return -1;
++    }
++    if (!reply.WriteInt32(g_hostInfoReplyCode)) {
++        return -1;
++    }
++    return 0;
++}
++} // namespace
++
++/**
++ * @tc.name: AbilityManagerClient_GetUIExtensionRootHostInfoById_0100
++ * @tc.desc: the request carries the expected IPC code and returns all host ElementName fields unchanged.
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetUIExtensionRootHostInfoById_0100, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "GetUIExtensionRootHostInfoById_0100 start";
++    client_->proxy_ = new AbilityManagerProxy(mock_);
++    g_hostInfoReply = MakeHostInfo("com.ohos.host", "entry", "MainAbility", "session_host", HOST_INFO_PERSISTENT_ID);
++    g_hostInfoReplyCode = ERR_OK;
++    EXPECT_CALL(*mock_, SendRequest(
++        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID), _, _, _))
++        .WillOnce(Invoke(InvokeSendRequestWithHostInfo));
++
++    UIExtensionHostInfo hostInfo;
++    auto ret = client_->GetUIExtensionRootHostInfoById(HOST_INFO_RECORD_ID, hostInfo);
++
++    EXPECT_EQ(ret, ERR_OK);
++    EXPECT_EQ(hostInfo.elementName_.GetBundleName(), "com.ohos.host");
++    EXPECT_EQ(hostInfo.elementName_.GetModuleName(), "entry");
++    EXPECT_EQ(hostInfo.elementName_.GetAbilityName(), "MainAbility");
++    EXPECT_EQ(hostInfo.moduleName, "entry");
++    GTEST_LOG_(INFO) << "GetUIExtensionRootHostInfoById_0100 end ret=" << ret;
++}
++
++/**
++ * @tc.name: AbilityManagerClient_GetUIExtensionRootHostInfoById_0200
++ * @tc.desc: session info is returned unchanged, and a host without a window session yields empty/0.
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetUIExtensionRootHostInfoById_0200, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "GetUIExtensionRootHostInfoById_0200 start";
++    client_->proxy_ = new AbilityManagerProxy(mock_);
++    g_hostInfoReply = MakeHostInfo("com.ohos.host", "entry", "MainAbility", "session_host", HOST_INFO_PERSISTENT_ID);
++    g_hostInfoReplyCode = ERR_OK;
++    EXPECT_CALL(*mock_, SendRequest(
++        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID), _, _, _))
++        .WillOnce(Invoke(InvokeSendRequestWithHostInfo));
++
++    UIExtensionHostInfo hostInfo;
++    EXPECT_EQ(client_->GetUIExtensionRootHostInfoById(HOST_INFO_RECORD_ID, hostInfo), ERR_OK);
++    EXPECT_EQ(hostInfo.sessionName, "session_host");
++    EXPECT_EQ(hostInfo.persistentId_, HOST_INFO_PERSISTENT_ID);
++
++    g_hostInfoReply = MakeHostInfo("com.ohos.host", "entry", "MainAbility", "", 0);
++    EXPECT_CALL(*mock_, SendRequest(
++        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID), _, _, _))
++        .WillOnce(Invoke(InvokeSendRequestWithHostInfo));
++    UIExtensionHostInfo noSession;
++    EXPECT_EQ(client_->GetUIExtensionRootHostInfoById(HOST_INFO_RECORD_ID, noSession), ERR_OK);
++    EXPECT_TRUE(noSession.sessionName.empty());
++    EXPECT_EQ(noSession.persistentId_, 0);
++    GTEST_LOG_(INFO) << "GetUIExtensionRootHostInfoById_0200 end";
++}
++
++/**
++ * @tc.name: AbilityManagerClient_GetUIExtensionRootHostInfoById_0300
++ * @tc.desc: querying the leaf id of an A->B->C chain returns the root host A without substitution.
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetUIExtensionRootHostInfoById_0300, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "GetUIExtensionRootHostInfoById_0300 start";
++    client_->proxy_ = new AbilityManagerProxy(mock_);
++    g_hostInfoReply = MakeHostInfo("com.ohos.host", "entry", "RootAbility", "session_root", HOST_INFO_PERSISTENT_ID);
++    g_hostInfoReplyCode = ERR_OK;
++    EXPECT_CALL(*mock_, SendRequest(
++        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID), _, _, _))
++        .WillOnce(Invoke(InvokeSendRequestWithHostInfo));
++
++    UIExtensionHostInfo hostInfo;
++    auto ret = client_->GetUIExtensionRootHostInfoById(LEAF_RECORD_ID, hostInfo);
++
++    EXPECT_EQ(ret, ERR_OK);
++    EXPECT_EQ(hostInfo.elementName_.GetBundleName(), "com.ohos.host");
++    EXPECT_EQ(hostInfo.elementName_.GetAbilityName(), "RootAbility");
++    EXPECT_NE(hostInfo.elementName_.GetAbilityName(), "MiddleAbility");
++    EXPECT_NE(hostInfo.elementName_.GetAbilityName(), "LeafAbility");
++    EXPECT_EQ(hostInfo.sessionName, "session_root");
++    EXPECT_EQ(hostInfo.persistentId_, HOST_INFO_PERSISTENT_ID);
++    GTEST_LOG_(INFO) << "GetUIExtensionRootHostInfoById_0300 end ret=" << ret;
++}
++
++/**
++ * @tc.name: AbilityManagerClient_GetUIExtensionRootHostInfoById_0400
++ * @tc.desc: a reply without the ById-only tail fields still decodes correctly; the extra fields fall back
++ *           to defaults instead of shifting the return code (mixed-version compatibility guard).
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_GetUIExtensionRootHostInfoById_0400, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "GetUIExtensionRootHostInfoById_0400 start";
++    client_->proxy_ = new AbilityManagerProxy(mock_);
++    g_hostInfoReply = MakeHostInfo("com.ohos.host", "entry", "MainAbility", "session_host", HOST_INFO_PERSISTENT_ID);
++    g_hostInfoReplyCode = ERR_OK;
++    EXPECT_CALL(*mock_, SendRequest(
++        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID), _, _, _))
++        .WillOnce(Invoke(InvokeSendRequestWithLegacyHostInfo));
++
++    UIExtensionHostInfo hostInfo;
++    auto ret = client_->GetUIExtensionRootHostInfoById(HOST_INFO_RECORD_ID, hostInfo);
++
++    EXPECT_EQ(ret, ERR_OK);
++    EXPECT_EQ(hostInfo.elementName_.GetBundleName(), "com.ohos.host");
++    EXPECT_EQ(hostInfo.sessionName, "session_host");
++    EXPECT_EQ(hostInfo.persistentId_, 0);
++    EXPECT_TRUE(hostInfo.moduleName.empty());
++    GTEST_LOG_(INFO) << "GetUIExtensionRootHostInfoById_0400 end ret=" << ret;
++}
++
++/**
++ * @tc.name: AbilityManagerClient_UIExtensionHostInfoParcel_0100
++ * @tc.desc: UIExtensionHostInfo marshals only ElementName + sessionName, keeping the legacy wire layout of
++ *           GET_UI_EXTENSION_ROOT_HOST_INFO unchanged (persistentId/moduleName must not be serialized).
++ * @tc.type: FUNC
++ */
++HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_UIExtensionHostInfoParcel_0100, TestSize.Level1)
++{
++    GTEST_LOG_(INFO) << "UIExtensionHostInfoParcel_0100 start";
++    auto info = MakeHostInfo("com.ohos.host", "entry", "MainAbility", "session_host", HOST_INFO_PERSISTENT_ID);
++    MessageParcel parcel;
++    ASSERT_TRUE(info.Marshalling(parcel));
++
++    std::unique_ptr<UIExtensionHostInfo> parsed(UIExtensionHostInfo::Unmarshalling(parcel));
++    ASSERT_NE(parsed, nullptr);
++    EXPECT_EQ(parsed->elementName_.GetBundleName(), "com.ohos.host");
++    EXPECT_EQ(parsed->sessionName, "session_host");
++    EXPECT_EQ(parsed->persistentId_, 0);
++    EXPECT_TRUE(parsed->moduleName.empty());
++
++    int32_t extra = 0;
++    EXPECT_FALSE(parcel.ReadInt32(extra));
++    GTEST_LOG_(INFO) << "UIExtensionHostInfoParcel_0100 end";
++}
++
+ /**
+  * @tc.name: AbilityManagerClient_RestartApp_0100
+  * @tc.desc: RestartApp
+diff --git a/test/unittest/ui_extension/ui_extension_get_host_info_test/ui_extension_get_host_info_test.cpp b/test/unittest/ui_extension/ui_extension_get_host_info_test/ui_extension_get_host_info_test.cpp
+index ca8cd37797..c824032ff5 100644
+--- a/test/unittest/ui_extension/ui_extension_get_host_info_test/ui_extension_get_host_info_test.cpp
++++ b/test/unittest/ui_extension/ui_extension_get_host_info_test/ui_extension_get_host_info_test.cpp
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2024 Huawei Device Co., Ltd.
++ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+@@ -13,6 +13,11 @@
+  * limitations under the License.
+  */
+ 
++#include <cstdint>
++#include <cstdlib>
++#include <memory>
++#include <string>
++
+ #include <gtest/gtest.h>
+ 
+ #include "hilog_tag_wrapper.h"
+@@ -26,6 +31,11 @@ using namespace testing::ext;
+ 
+ namespace OHOS {
+ namespace AAFwk {
++namespace {
++constexpr int32_t HOST_RECORD_ID = 12025;
++constexpr int32_t NON_EXIST_RECORD_ID = 0x7FFFFFFF;
++} // namespace
++
+ class UIExtensionGetHostInfoTest : public testing::Test {
+ public:
+ 
+@@ -35,8 +45,12 @@ public:
+     void TearDown() override;
+ };
+ 
+-void UIExtensionGetHostInfoTest::SetUpTestCase(void)
+-{}
++static uint32_t g_savedSelfTokenId = 0;
++
++void UIExtensionGetHostInfoTest::SetUpTestCase()
++{
++    g_savedSelfTokenId = GetSelfTokenID();
++}
+ 
+ void UIExtensionGetHostInfoTest::TearDownTestCase(void)
+ {}
+@@ -133,5 +147,58 @@ HWTEST_F(UIExtensionGetHostInfoTest, GetUIExtensionRootHostInfo_0400, TestSize.L
+     SetSelfTokenID(currentID);
+     TAG_LOGI(AAFwkTag::TEST, "end.");
+ }
++
++/**
++ * @tc.name: GetUIExtensionRootHostInfoById_0100
++ * @tc.desc: a non-SA caller is rejected with ERR_PERMISSION_DENIED and no host info is returned.
++ * @tc.type: FUNC
++ */
++HWTEST_F(UIExtensionGetHostInfoTest, GetUIExtensionRootHostInfoById_0100, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    ASSERT_NE(g_savedSelfTokenId, 0);
++    SetSelfTokenID(g_savedSelfTokenId);
++
++    UIExtensionHostInfo hostInfo;
++    auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetUIExtensionRootHostInfoById(HOST_RECORD_ID, hostInfo);
++
++    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
++    EXPECT_TRUE(hostInfo.elementName_.GetBundleName().empty());
++    EXPECT_TRUE(hostInfo.elementName_.GetAbilityName().empty());
++    EXPECT_TRUE(hostInfo.sessionName.empty());
++    EXPECT_EQ(hostInfo.persistentId_, 0);
++    SetSelfTokenID(g_savedSelfTokenId);
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
++
++/**
++ * @tc.name: GetUIExtensionRootHostInfoById_0200
++ * @tc.desc: 0 is a legal first record id (returns ERR_INVALID_VALUE only because no record matches);
++ *           negative ids and non-exist ids also return ERR_INVALID_VALUE.
++ * @tc.type: FUNC
++ */
++HWTEST_F(UIExtensionGetHostInfoTest, GetUIExtensionRootHostInfoById_0200, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "begin.");
++    auto currentID = GetSelfTokenID();
++    AppExecFwk::MockNativeToken::SetNativeToken();
++    UIExtensionHostInfo hostInfo;
++    EXPECT_EQ(AbilityManagerClient::GetInstance()->GetUIExtensionRootHostInfoById(0, hostInfo), ERR_INVALID_VALUE);
++    EXPECT_EQ(AbilityManagerClient::GetInstance()->GetUIExtensionRootHostInfoById(-1, hostInfo), ERR_INVALID_VALUE);
++    EXPECT_EQ(AbilityManagerClient::GetInstance()->GetUIExtensionRootHostInfoById(INT32_MIN, hostInfo),
++        ERR_INVALID_VALUE);
++    EXPECT_TRUE(hostInfo.elementName_.GetBundleName().empty());
++
++    UIExtensionHostInfo liveInfo;
++    auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetUIExtensionRootHostInfoById(
++        NON_EXIST_RECORD_ID, liveInfo);
++    EXPECT_EQ(ret, ERR_INVALID_VALUE);
++    EXPECT_TRUE(liveInfo.elementName_.GetBundleName().empty());
++    EXPECT_TRUE(liveInfo.elementName_.GetAbilityName().empty());
++    EXPECT_TRUE(liveInfo.sessionName.empty());
++    EXPECT_EQ(liveInfo.persistentId_, 0);
++    SetSelfTokenID(currentID);
++    TAG_LOGI(AAFwkTag::TEST, "end.");
++}
+ } // namespace AAFwk
+ } // namespace OHOS
