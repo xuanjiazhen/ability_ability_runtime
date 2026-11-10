@@ -19,6 +19,8 @@
 #include <mutex>
 #include <string>
 
+#include <nlohmann/json.hpp>
+
 #include "ability_context.h"
 #include "ability_manager_errors.h"
 #include "cli_error_code.h"
@@ -63,6 +65,9 @@ constexpr const char* CONSENT_PARAM_TARGET_BUNDLE = "ohos.insightIntent.consent.
 // target, so this always carries one element (the functionNamespace).
 constexpr const char* CONSENT_PARAM_TARGET_BUNDLE_LIST = "ohos.insightIntent.consent.targetBundleNameList";
 constexpr const char* CONSENT_PARAM_TARGET_INTENT = "ohos.insightIntent.consent.targetIntent";
+// Structured AMS param consumed by the privacy-center consent dialog: carries
+// the caller (sourceBundleInfo.bundleName) and the invoke target (targetInfo).
+constexpr const char* CONSENT_PARAM_AMS = "amsParam";
 // Result key the dialog writes back (true = granted, false = declined).
 constexpr const char* CONSENT_PARAM_RESULT = "ohos.insightIntent.consent.result";
 
@@ -451,6 +456,11 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         want.SetParam(CONSENT_PARAM_TARGET_BUNDLE, param.functionNamespace);
         want.SetParam(CONSENT_PARAM_TARGET_BUNDLE_LIST, std::vector<std::string>{param.functionNamespace});
         want.SetParam(CONSENT_PARAM_TARGET_INTENT, param.functionName);
+
+        nlohmann::json amsParam;
+        amsParam["sourceBundleInfo"]["bundleName"] = abilityContext->GetBundleName();
+        amsParam["targetInfo"]["bundleName"] = param.functionNamespace;
+        want.SetParam(CONSENT_PARAM_AMS, amsParam.dump());
 
         Ace::ModalUIExtensionCallbacks callbacks;
         callbacks.onResult = [settle](int32_t code, const AAFwk::Want &result) {

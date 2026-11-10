@@ -65,6 +65,7 @@ ohos_shared_library("functionmanager_napi") {
     "napi:ace_napi",
     "node:node_header_notice",
     "libuv:uv",
+    "json:nlohmann_json_static",
   ]
 
   relative_install_dir = "module/app/function"
