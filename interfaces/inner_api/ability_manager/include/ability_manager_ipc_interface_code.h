@@ -815,6 +815,14 @@ enum class AbilityManagerInterfaceCode {
 
     // attribute the task id onto an existing ConnectionRecord after a reused agent connect (oneway)
     ATTRIBUTE_SAME_CONNECTION_RECORD_TASK_ID = 6189,
+
+    // query the caller bundle name of the insight intent execution with the
+    // given intent id (privacy-center ownership verification)
+    GET_INSIGHT_INTENT_CALLER = 6190,
+
+    // pure permission validation for the invokeFunction caller (system app
+    // holding EXECUTE_INSIGHT_INTENT) before the execution dispatch
+    CHECK_INVOKE_FUNCTION_CALLER = 6191,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
