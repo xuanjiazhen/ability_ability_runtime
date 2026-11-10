@@ -43,6 +43,7 @@ constexpr int32_t TEST_UID = 1000;
 constexpr char PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED[] = "const.product.enterprisefeature.setting.enabled";
 constexpr char PRODUCT_APPBOOT_SETTING_ENABLED[] = "const.product.appboot.setting.enabled";
 constexpr int32_t FOUNDATION_UID = 5523;
+constexpr int32_t SUBFOUNDATION_UID = 6061;
 constexpr uint32_t TEST_FLAG_ABILITY_CONTINUATION = 0x00000008;
 constexpr int32_t TEST_U0_USER_ID = 0;
 constexpr int32_t ONE = 1;
@@ -364,7 +365,7 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartAbilityOnlyUIAbility_001, TestSiz
     IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
     int result = abilityMs_->StartAbilityOnlyUIAbility(want, callerToken, specifyTokenId);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    IPCSkeleton::SetCallingUid(SUBFOUNDATION_UID);
     result = abilityMs_->StartAbilityOnlyUIAbility(want, callerToken, specifyTokenId);
     EXPECT_NE(result, ERR_OK);
     want.SetFlags(TEST_FLAG_ABILITY_CONTINUATION);

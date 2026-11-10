@@ -1192,8 +1192,8 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
         return INNER_ERR;
     }
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
-    if (!IsFoundationCall()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbility with specialId, process not foundation process");
+    if (IPCSkeleton::GetCallingUid() != SUBFOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbility with specialId, process not subfoundation process");
         return CHECK_PERMISSION_FAILED;
     }
 
