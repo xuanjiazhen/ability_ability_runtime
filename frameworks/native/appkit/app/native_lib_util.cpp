@@ -20,6 +20,10 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+namespace {
+constexpr const char* ABS_CODE_PATH = "/data/app/el1/bundle/public";
+}
+
 std::string GetLibPath(const std::string &hapPath, bool isPreInstallApp)
 {
     std::string libPath = AbilityBase::Constants::LOCAL_CODE_PATH;
@@ -138,6 +142,38 @@ void TraverseLibrarySupportDirectory(
         std::string supportLibPath = prefixPath + "/" + dir;
         TAG_LOGD(AAFwkTag::APPKIT, "supportLibPath: %{public}s", supportLibPath.c_str());
         appLibPaths[appLibPathKey].emplace_back(supportLibPath);
+    }
+}
+
+std::string GetDefaultAppLibPath(const std::string &nativeLibraryPath)
+{
+    if (nativeLibraryPath.empty()) {
+        return "";
+    }
+    std::string path = nativeLibraryPath;
+    if (path.back() == '/') {
+        path.pop_back();
+    }
+    std::string libPath = AbilityBase::Constants::LOCAL_CODE_PATH;
+    libPath += (libPath.back() == '/') ? path : "/" + path;
+    TAG_LOGD(AAFwkTag::APPKIT, "default app lib path: %{private}s", libPath.c_str());
+    return libPath;
+}
+
+void GetModuleSoPaths(const BundleInfo &bundleInfo, const HspList &hspList,
+    AppLibPathMap &appLibPaths)
+{
+    for (auto &hapInfo : bundleInfo.hapModuleInfos) {
+        TAG_LOGD(AAFwkTag::APPKIT,
+            "moduleName: %{public}s, isLibIsolated: %{public}d, compressNativeLibs: %{public}d",
+            hapInfo.moduleName.c_str(), hapInfo.isLibIsolated, hapInfo.compressNativeLibs);
+        GetHapSoPath(hapInfo, appLibPaths, hapInfo.hapPath.find(ABS_CODE_PATH) != 0u);
+    }
+
+    for (auto &hspInfo : hspList) {
+        TAG_LOGD(AAFwkTag::APPKIT, "bundle:%s, module:%s, nativeLibraryPath:%s",
+            hspInfo.bundleName.c_str(), hspInfo.moduleName.c_str(), hspInfo.nativeLibraryPath.c_str());
+        GetHspNativeLibPath(hspInfo, appLibPaths, hspInfo.hapPath.find(ABS_CODE_PATH) != 0u);
     }
 }
 } // AppExecFwk
