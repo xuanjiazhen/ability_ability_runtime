@@ -2111,6 +2111,65 @@ public:
     }
 
     /**
+     * @brief Query the caller bundle name of the insight intent execution
+     *        identified by the given intent id.
+     *
+     * The record must be live (PENDING_CONSENT / EXECUTING); stale or missing
+     * records return an empty string. Used by the privacy-center consent path to
+     * identify who originated a given agent invocation. Only system applications
+     * and SA are allowed to query.
+     *
+     * @param intentId The insight intent execute id to query.
+     * @return Returns the caller bundle name, or an empty string if the intent id
+     *         does not belong to a live insight intent call.
+     */
+    virtual std::string GetInsightIntentCallerBundleName(uint64_t intentId)
+    {
+        return "";
+    }
+
+    /**
+     * @brief Pure permission validation for invokeFunction caller. Any caller
+     *        (including third-party apps) must hold EXECUTE_INSIGHT_INTENT;
+     *        callers lacking the permission are rejected.
+     *
+     * This is a defense-in-depth gate front-moved from the execution path; the
+     * authoritative permission check remains CheckCallerPermission in
+     * InsightIntentExecuteManager.
+     *
+     * @return ERR_OK on success, ERR_PERMISSION_DENIED otherwise.
+     */
+    virtual int32_t CheckInvokeFunctionCaller()
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Authorization pre-check for the invokePublicFunction caller. It
+     *        mirrors the third-party branch of the execution-stage permission
+     *        gate (exported visibility + ACCESS_PUBLIC_FUNCTION) so an
+     *        unauthorized or invisible target fails before the consent dialog is
+     *        mounted (anti-dialog-bombing). On success it pre-registers an
+     *        insight-intent execute record (PENDING_CONSENT) so the consent
+     *        dialog can resolve the invoking bundle through
+     *        GetInsightIntentCallerBundleName. System callers use
+     *        CheckInvokeFunctionCaller instead.
+     *
+     * @param bundleName The target function namespace (target bundle name).
+     * @param intentName The target insight intent (function) name.
+     * @param intentId Output execute record id for the pre-registered invocation;
+     *                 valid (non-zero) only when ERR_OK is returned.
+     * @return Returns ERR_OK on success, INTENT_NOT_EXIST when the target is
+     *         missing or not open to third-party callers, ERR_PERMISSION_DENIED
+     *         when ACCESS_PUBLIC_FUNCTION is absent.
+     */
+    virtual int32_t CheckPublicFunctionCaller(const std::string &bundleName, const std::string &intentName,
+        uint64_t &intentId)
+    {
+        return ERR_OK;
+    }
+
+    /**
      * @brief Execute UIAbility foreground intent with specified token id.
      * @param want The info of the target ability and custom parameters.
      * @param callerAbilityToken The caller ability token.
