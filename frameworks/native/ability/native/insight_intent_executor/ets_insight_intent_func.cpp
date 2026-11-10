@@ -315,7 +315,21 @@ bool EtsInsightIntentFunc::HandleExecuteIntent(std::shared_ptr<InsightIntentExec
     }
 
     callback_ = std::move(callback);
+    if (IsCanceled()) {
+        TAG_LOGI(AAFwkTag::INTENT, "EtsInsightIntentFunc::canceled before execution");
+        ReplyFailedInner();
+        return false;
+    }
     return ExecuteInsightIntent(env, executeParam, isAsync);
+}
+
+void EtsInsightIntentFunc::Cancel(int32_t reason)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "EtsInsightIntentFunc::Cancel, reason: %{public}d", reason);
+    // Only flip the atomic flag here. This method runs on the IPC thread while
+    // execution proceeds on the ETS worker thread; state_ and callback_ are only
+    // touched by the execution thread at its IsCanceled checkpoints.
+    InsightIntentExecutor::Cancel(reason);
 }
 
 bool EtsInsightIntentFunc::GetDecodedMethodParam(const std::string &encodedMethodParam,
@@ -468,6 +482,10 @@ bool EtsInsightIntentFunc::ExecuteInsightIntent(ani_env *env,
 
 bool EtsInsightIntentFunc::HandleVoidExecuteResult()
 {
+    if (IsCanceled()) {
+        TAG_LOGI(AAFwkTag::INTENT, "EtsInsightIntentFunc::canceled, drop void result");
+        return ExecuteIntentCheckError();
+    }
     auto resultCpp = std::make_shared<AppExecFwk::InsightIntentExecuteResult>();
     resultCpp->result = std::make_shared<AAFwk::WantParams>();
     resultCpp->code = InsightIntentInnerErr::INSIGHT_INTENT_ERR_OK;
@@ -552,6 +570,11 @@ bool EtsInsightIntentFunc::HandleResultReturnedFromEtsFunc(ani_env *env, ani_ref
     if (env == nullptr || result == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid env or result");
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
+    }
+
+    if (IsCanceled()) {
+        TAG_LOGI(AAFwkTag::INTENT, "EtsInsightIntentFunc::canceled, drop result");
+        return ExecuteIntentCheckError();
     }
 
     ani_object resultRecord = isAsync ? static_cast<ani_object>(result) : CreateMethodResultRecord(env, result);

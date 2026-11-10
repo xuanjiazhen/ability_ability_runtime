@@ -99,4 +99,15 @@ std::shared_ptr<InsightIntentContext> InsightIntentExecutor::GetContext()
 {
     return context_;
 }
+
+void InsightIntentExecutor::Cancel(int32_t reason)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "cancel executor, reason: %{public}d", reason);
+    canceled_.store(true);
+}
+
+bool InsightIntentExecutor::IsCanceled() const
+{
+    return canceled_.load();
+}
 } // namespace OHOS::AbilityRuntime
