@@ -724,7 +724,7 @@ int32_t AbilityAutoStartupService::GetAbilityInfo(
     return ERR_OK;
 }
 
-int32_t AbilityAutoStartupService::HiddenStartAutoStartupApp(AAFwk::Want &want, int32_t userId)
+int32_t AbilityAutoStartupService::HiddenStartAutoStartupApp(AAFwk::Want &want, int32_t userId, bool isDirectBoot)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "HiddenStartAutoStartupApp called");
     if (!DelayedSingleton<AbilityManagerService>::GetInstance()->IsSupportStatusBarByUserId(userId)) {
@@ -737,8 +737,10 @@ int32_t AbilityAutoStartupService::HiddenStartAutoStartupApp(AAFwk::Want &want, 
     options.processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
     want.SetParam(HIDDEN_START_AUTOSTARTUP, true);
 
-    return IN_PROCESS_CALL(DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(want,
-        options, nullptr, userId, DEFAULT_INVAL_VALUE));
+    StartAbilityContext ctx;
+    ctx.skipScreenLock = isDirectBoot;
+    return IN_PROCESS_CALL(DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityWithContext(want,
+        options, nullptr, userId, DEFAULT_INVAL_VALUE, ctx));
 }
 
 int32_t AbilityAutoStartupService::SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag,

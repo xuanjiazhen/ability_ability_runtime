@@ -124,6 +124,7 @@ public:
     friend class PreloadManagerService;
     friend class StartOptionsUtils;
     friend class UIAbilityLifecycleManager;
+    friend class AbilityRuntime::AbilityAutoStartupService;
     static std::shared_ptr<AbilityManagerService> GetPubInstance();
 
     void OnStart() override;
@@ -1503,7 +1504,8 @@ public:
         uint32_t specifyTokenId = 0,
         bool isImplicit = false,
         bool isCallByShortcut = false,
-        bool isCallByDelayed = false);
+        bool isCallByDelayed = false,
+        const StartAbilityContext &startAbilityCtx = {});
 
     int ImplicitStartAbility(
         const Want &want,
@@ -2617,7 +2619,7 @@ public:
 
     int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
         bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
-        bool isCallByShortcut = false, bool isCallByDelayed = false);
+        bool isCallByShortcut = false, bool isCallByDelayed = false, const StartAbilityContext &startAbilityCtx = {});
 
     /**
      * KillProcessForPermissionUpdate, call KillProcessForPermissionUpdate() through proxy object,
@@ -3287,6 +3289,11 @@ private:
 
     void StartAutoStartupApps(int32_t userId, bool isEDMStart, bool isDirectBoot);
     void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList, int32_t userId);
+    virtual int StartAbilityWithContext(const Want &want, int32_t userId, int requestCode,
+        uint64_t specifiedFullTokenId, const StartAbilityContext &startAbilityCtx);
+    virtual int StartAbilityWithContext(const Want &want, const StartOptions &startOptions,
+        const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode,
+        const StartAbilityContext &startAbilityCtx);
     bool IsAutoStartupAllowed(int32_t userId, bool isEDMStart, bool isDirectBoot);
     void KillDirectBootApps(int32_t userId);
     void SubscribeUserUnlockedEvent();

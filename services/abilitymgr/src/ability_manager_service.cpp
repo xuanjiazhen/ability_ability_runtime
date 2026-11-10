@@ -801,6 +801,12 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
 int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
     uint64_t specifiedFullTokenId)
 {
+    return StartAbilityWithContext(want, userId, requestCode, specifiedFullTokenId, {});
+}
+
+int AbilityManagerService::StartAbilityWithContext(const Want &want, int32_t userId, int requestCode,
+    uint64_t specifiedFullTokenId, const StartAbilityContext &startAbilityCtx)
+{
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
         return INNER_ERR;
@@ -876,6 +882,7 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
         .requestCode = requestCode,
         .userId = userId,
         .specifiedFullTokenId = specifiedFullTokenId,
+        .startAbilityCtx = startAbilityCtx,
     };
     int32_t ret = StartAbilityInner(startAbilityWrapParam);
     AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityInner", want.GetFlags(), ret);
@@ -2479,6 +2486,13 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
 int AbilityManagerService::StartAbility(const Want &want, const StartOptions &startOptions,
     const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode)
 {
+    return StartAbilityWithContext(want, startOptions, callerToken, userId, requestCode, {});
+}
+
+int AbilityManagerService::StartAbilityWithContext(const Want &want, const StartOptions &startOptions,
+    const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode,
+    const StartAbilityContext &startAbilityCtx)
+{
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
         return INNER_ERR;
@@ -2490,7 +2504,8 @@ int AbilityManagerService::StartAbility(const Want &want, const StartOptions &st
 #ifdef SUPPORT_SCREEN
     DmsUtil::GetInstance().UpdateFlagForCollaboration(want);
 #endif
-    return StartUIAbilityForOptionWrap(want, startOptions, callerToken, false, userId, requestCode);
+    return StartUIAbilityForOptionWrap(want, startOptions, callerToken, false, userId, requestCode,
+        0, false, false, false, startAbilityCtx);
 }
 
 int AbilityManagerService::ImplicitStartAbility(const Want &want, const StartOptions &startOptions,
@@ -2504,7 +2519,7 @@ int AbilityManagerService::ImplicitStartAbility(const Want &want, const StartOpt
 int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options,
     sptr<IRemoteObject> callerToken, bool isPendingWantCaller, int32_t userId,
     int requestCode, uint32_t callerTokenId, bool isImplicit,
-    bool isCallByShortcut, bool isCallByDelayed)
+    bool isCallByShortcut, bool isCallByDelayed, const StartAbilityContext &startAbilityCtx)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
@@ -2517,7 +2532,7 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
         return ret;
     }
     return StartAbilityForOptionInner(want, options, callerToken, isPendingWantCaller, userId, requestCode, false,
-        callerTokenId, isImplicit, isCallByShortcut, isCallByDelayed);
+        callerTokenId, isImplicit, isCallByShortcut, isCallByDelayed, startAbilityCtx);
 }
 
 int AbilityManagerService::StartAbilityAsCaller(const Want &want, const StartOptions &startOptions,
@@ -2597,10 +2612,11 @@ int AbilityManagerService::StartAbilityForResultAsCaller(const Want &want, const
 
 int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const StartOptions &startOptions,
     const sptr<IRemoteObject> &callerToken, bool isPendingWantCaller, int32_t userId, int requestCode,
-    bool isStartAsCaller, uint32_t specifyTokenId, bool isImplicit, bool isCallByShortcut, bool isCallByDelayed)
+    bool isStartAsCaller, uint32_t specifyTokenId, bool isImplicit, bool isCallByShortcut, bool isCallByDelayed,
+    const StartAbilityContext &startAbilityCtx)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    StartAbilityContext ctx;
+    StartAbilityContext ctx = startAbilityCtx;
     auto eventInfo = BuildEventInfo(want, userId);
     int32_t oriValidUserId = GetValidUserId(userId);
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
@@ -10446,9 +10462,11 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
             want, nullptr, userId, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
     } else {
         if (info.isHiddenStart && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
-            result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId);
+            result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId, info.isDirectBoot);
         } else {
-            result = StartAbility(want, userId);
+            StartAbilityContext ctx;
+            ctx.skipScreenLock = info.isDirectBoot;
+            result = StartAbilityWithContext(want, userId, DEFAULT_INVAL_VALUE, 0, ctx);
         }
     }
     if ((result != ERR_OK) && (info.retryCount > 0)) {
