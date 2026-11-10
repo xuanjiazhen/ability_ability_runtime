@@ -58,6 +58,7 @@ ohos_shared_library("ability_context_native") {
     "ability_runtime/authorization_result.cpp",
     "ability_runtime/caller_callback.cpp",
     "ability_runtime/connection_manager.cpp",
+    "ability_runtime/consent_modal_ui_extension.cpp",
     "ability_runtime/dialog_request_callback_impl.cpp",
     "ability_runtime/dialog_ui_extension_callback.cpp",
     "ability_runtime/js_extension_context.cpp",
