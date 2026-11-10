@@ -317,6 +317,30 @@ int32_t AbilityAutoStartupService::QueryAllAutoStartupApplicationsWithoutPermiss
         userId, false);
 }
 
+bool AbilityAutoStartupService::IsDirectBootApp(
+    const AppExecFwk::AbilityInfo &abilityInfo, int32_t userId, int32_t appCloneIndex)
+{
+    if (abilityInfo.type != AppExecFwk::AbilityType::PAGE || abilityInfo.bundleName.empty() ||
+        abilityInfo.moduleName.empty() || abilityInfo.name.empty() || userId < 0 || appCloneIndex < 0 ||
+        appCloneIndex > GlobalConstant::MAX_APP_CLONE_INDEX ||
+        abilityInfo.applicationInfo.accessTokenId == Security::AccessToken::INVALID_TOKENID) {
+        return false;
+    }
+    std::vector<AutoStartupInfo> infoList;
+    if (QueryAllAutoStartupApplicationsWithoutPermission(infoList, userId) != ERR_OK) {
+        return false;
+    }
+    const auto tokenId = std::to_string(abilityInfo.applicationInfo.accessTokenId);
+    for (const auto &info : infoList) {
+        if (info.isDirectBoot && info.userId == userId && info.appCloneIndex == appCloneIndex &&
+            info.bundleName == abilityInfo.bundleName && info.moduleName == abilityInfo.moduleName &&
+            info.abilityName == abilityInfo.name && info.accessTokenId == tokenId) {
+            return CheckBootAppPermission(info) == ERR_OK;
+        }
+    }
+    return false;
+}
+
 int32_t AbilityAutoStartupService::DeleteAutoStartupData(const std::string &bundleName, const int32_t accessTokenId)
 {
     return DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->DeleteAutoStartupData(
