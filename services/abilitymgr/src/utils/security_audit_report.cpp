@@ -1,7 +1,8 @@
 /*
  * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may obtain a copy of the License at
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -55,7 +56,7 @@ void SecurityAuditReport::ReportEdmBlockedStart(const AbilityInterceptorParam &p
         "ReportEdmBlockedStart ret:%{public}d, bundle:%{public}s, isPreload:%{public}d",
         ret, param.want.GetBundleNameRef().c_str(), param.IsPreloadStartAbility());
 #else
-    TAG_LOGW(AAFwkTag::ABILITYMGR, "ReportEdmBlockedStart sg not enable");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ReportEdmBlockedStart sg not enable");
 #endif
 }
 } // namespace AAFwk

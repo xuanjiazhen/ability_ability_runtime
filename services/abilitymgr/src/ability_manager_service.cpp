@@ -2593,11 +2593,6 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     StartAbilityContext ctx;
     auto eventInfo = BuildEventInfo(want, userId);
-    // 取 isPreloadStart 源真值（PreloadManagerService 设置）赋给 eventInfo.isPreload，
-    // 区分用户主动拉起(false)与系统预加载拉起(true)，供拦截事件上报携带（design DD-2 / AC-2.1/2.2）。
-    if (startOptions.processOptions != nullptr) {
-        eventInfo->isPreload = startOptions.processOptions->isPreloadStart;
-    }
     int32_t oriValidUserId = GetValidUserId(userId);
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
     if (!AbilityUtil::IsStartFreeInstall(want)) {

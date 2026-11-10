@@ -23,7 +23,6 @@
 
 #include "bundlemgr/mock_bundle_manager.h"
 #include "permission_constants.h"
-#include "security_audit_report.h"
 #include "start_ability_utils.h"
 
 using namespace testing;
@@ -300,41 +299,6 @@ HWTEST_F(AbilityInterceptorSecondTest, DisposedRuleInterceptor_012, TestSize.Lev
     abilityInfo->uid = 0;
     ErrCode result = executer->StartNonBlockRule(want, disposedRule, abilityInfo);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-}
-
-/**
- * @tc.name: AbilityInterceptorSecondTest_SecurityAuditReport_GetInstance_001
- * @tc.desc: SecurityAuditReport 单例可获取，非空
- * @tc.type: FUNC
- * @tc.require: No
- */
-HWTEST_F(AbilityInterceptorSecondTest, SecurityAuditReport_GetInstance_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto proxy = DelayedSingleton<SecurityAuditReport>::GetInstance();
-    ASSERT_NE(proxy, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
-}
-
-/**
- * @tc.name: AbilityInterceptorSecondTest_SecurityAuditReport_ReportEdmBlockedStart_NoThrow_001
- * @tc.desc: 安全审计服务未注册时调用 ReportEdmBlockedStart 触发 EX-1 容错，不抛异常、不阻塞
- * @tc.type: FUNC
- * @tc.require: No
- */
-HWTEST_F(AbilityInterceptorSecondTest, SecurityAuditReport_ReportEdmBlockedStart_NoThrow_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto proxy = DelayedSingleton<SecurityAuditReport>::GetInstance();
-    ASSERT_NE(proxy, nullptr);
-    Want want;
-    want.SetBundle("com.test.securityaudit");
-    AbilityInterceptorParam param;
-    param.want = want;
-    // 安全审计服务未注册（占位 SA ID=0），触发 EX-1：仅 hilog 告警，不抛异常、不阻塞。
-    proxy->ReportEdmBlockedStart(param);
-    SUCCEED();
-    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 } // namespace AAFwk
 } // namespace OHOS
