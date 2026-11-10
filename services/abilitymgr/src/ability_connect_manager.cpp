@@ -89,7 +89,6 @@ constexpr char BUNDLE_NAME_DIALOG[] = "com.ohos.amsdialog";
 constexpr char ABILITY_NAME_ASSERT_FAULT_DIALOG[] = "AssertFaultDialog";
 constexpr const char* WANT_PARAMS_APP_RESTART_FLAG = "ohos.aafwk.app.restart";
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
-constexpr const char* WANT_PARAMS_TASK_ID_KEY = "ohos.aafwk.param.agent.taskId";
 constexpr int32_t HALF_TIMEOUT = 2;
 const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 
@@ -997,7 +996,7 @@ void AbilityConnectManager::TryAttributeTaskForA2A(
             static_cast<int32_t>(abilityInfo.extensionAbilityType));
         return;
     }
-    std::string taskId = abilityRecord->GetWant().GetStringParam(WANT_PARAMS_TASK_ID_KEY);
+    std::string taskId = abilityRecord->GetWant().GetStringParam(Want::PARAM_RESV_AGENT_TASK_ID);
     if (taskId.empty()) {
         TAG_LOGE(AAFwkTag::EXT, "A2A taskId is empty, skipping attribution");
         return;
@@ -1049,7 +1048,7 @@ int32_t AbilityConnectManager::PrepareAttributeTaskForA2AReusedConnectionRecord(
         TAG_LOGE(AAFwkTag::EXT, "null connect");
         return ERR_INVALID_VALUE;
     }
-    std::string taskId = abilityRequest.want.GetStringParam(WANT_PARAMS_TASK_ID_KEY);
+    std::string taskId = abilityRequest.want.GetStringParam(Want::PARAM_RESV_AGENT_TASK_ID);
     if (taskId.empty()) {
         TAG_LOGW(AAFwkTag::EXT, "empty taskId");
         return ERR_INVALID_VALUE;
