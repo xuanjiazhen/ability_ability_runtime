@@ -2268,6 +2268,12 @@ public:
     int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
 
+    std::string GetInsightIntentCallerBundleName(uint64_t intentId) override;
+
+    int32_t CheckInvokeFunctionCaller() override;
+
+    int32_t CheckPublicFunctionCaller(const std::string &bundleName, const std::string &intentName) override;
+
     /**
      * @brief Execute UIAbility foreground intent with specified token id.
      * @param want The info of the target ability and custom parameters.
@@ -3840,6 +3846,13 @@ private:
     int32_t ExecuteIntentCommon(const sptr<IRemoteObject> &callerToken,
         const std::shared_ptr<InsightIntentExecuteParam> &param, const std::string &callerBundleName,
         AbilityRuntime::ExecuteIntentCommonOptions &options);
+    // Resolve the caller ability token carried by the function-call execution
+    // entry (ADR-10). System app / SA: the passed token is used as-is, an absent
+    // token resolves to null. Third-party: the token must be non-null and belong
+    // to the calling uid, otherwise ERR_PERMISSION_DENIED. Only invoked from
+    // ExecuteIntentByFunctionCall (not the pre-check / generic execute paths).
+    int32_t ResolveCallerAbilityToken(const sptr<IRemoteObject> &inToken,
+        sptr<IRemoteObject> &outToken);
     void SetRemoteIntentTimeout(uint64_t insightIntentId);
     // 清理 wantParam 残留意图参数 + 意图候选匹配 + parser.Build 组装执行参数。
     int32_t PrepareFunctionCallParam(const std::string &bundleName, const std::string &intentName,

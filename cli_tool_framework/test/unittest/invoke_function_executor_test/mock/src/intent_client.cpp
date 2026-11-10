@@ -42,5 +42,10 @@ int32_t IntentClient::ExecuteIntentByFunctionCall(const ExecuteIntentParam &para
     return ERR_OK;
 }
 
+int32_t IntentClient::CheckInvokeFunctionCaller()
+{
+    return ERR_OK;
+}
+
 } // namespace AAFwk
 } // namespace OHOS
