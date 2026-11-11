@@ -20,17 +20,19 @@
 // child process creation falls back to the existing nativespawn path.
 // Remove this file once appspawn repo implements these interfaces.
 
+extern "C" {
 char *GetSubSpawnSocketName(int uid)
 {
     return nullptr;
 }
 
-int AppSpawnClientInitSubSpawn(const char *socketName, AppSpawnClientHandle *handle)
+int AppSpawnClientInitSubspawn(const char *socketName, AppSpawnClientHandle *handle)
 {
     return -1;
 }
 
-bool IsSupportSubSpawn()
+bool IsSupportSubSpawn(void)
 {
     return false;
+}
 }
