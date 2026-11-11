@@ -30,6 +30,7 @@
 #include "hitrace/hitracechain.h"
 #endif
 #include "appfreeze_util.h"
+#include "task_handler_wrap.h"
 #include "xcollie/process_kill_reason.h"
 
 using namespace testing;
@@ -1565,6 +1566,50 @@ HWTEST_F(AppfreezeManagerTest, Req2LifecycleCaptureAlwaysCreatesFreshStackFiles,
         }
     }
     appfreezeManager->DeleteStack(app.pid);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest_PrepareAppfreezeNotification_001
+ * @tc.desc: Test PrepareAppfreezeNotification returns ERR_OK for both valid and invalid freeze names,
+ *           since validation moved to the async timeoutNotifyApp lambda.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_PrepareAppfreezeNotification_001, TestSize.Level1)
+{
+    AppfreezeManager::AppInfo app;
+    app.pid = 99990;
+    app.uid = 200001;
+    app.bundleName = "test.prepare.appfreeze";
+    app.processName = "test_process";
+    app.instanceId = 1;
+    app.refresh = [](AppfreezeAppInfo& current, bool checkDebug) -> bool {
+        current.pid = 99990;
+        current.uid = 200001;
+        current.bundleName = "test.prepare.appfreeze";
+        current.processName = "test_process";
+        current.instanceId = 1;
+        return true;
+    };
+    app.handleFault = [](const FaultData&, const AppfreezeAppInfo&, bool) {};
+
+    auto handler = AAFwk::TaskHandlerWrap::CreateQueueHandler("test_freeze_queue");
+    ASSERT_NE(handler, nullptr);
+
+    FaultData validFault;
+    validFault.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
+    validFault.faultType = FaultDataType::APP_FREEZE;
+    AppfreezeManager::FreezeInfo reserved;
+    int32_t ret = appfreezeManager->PrepareAppfreezeNotification(validFault, app, handler, reserved);
+    EXPECT_EQ(ret, ERR_OK);
+    appfreezeManager->ClearAppfreezeTasks(app.pid, app.uid, app.instanceId);
+
+    FaultData invalidFault;
+    invalidFault.errorObject.name = "INVALID_FREEZE_NAME";
+    invalidFault.faultType = FaultDataType::APP_FREEZE;
+    AppfreezeManager::FreezeInfo invalidReserved;
+    ret = appfreezeManager->PrepareAppfreezeNotification(invalidFault, app, handler, invalidReserved);
+    EXPECT_EQ(ret, ERR_OK);
+    appfreezeManager->ClearAppfreezeTasks(app.pid, app.uid, app.instanceId);
 }
 
 }  // namespace AppExecFwk

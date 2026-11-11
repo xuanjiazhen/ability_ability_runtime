@@ -316,16 +316,22 @@ int32_t AppfreezeManager::PrepareAppfreezeNotification(FaultData& faultData, App
     faultData.timeoutMarkers = "notifyFault:" + std::to_string(appInfo.pid) + ":" +
         std::to_string(appInfo.instanceId) + ":" + std::to_string(notifyTime) + ":" +
         std::to_string(notifySequence.fetch_add(1));
-    faultData.ipcLatency = faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_3S ||
-        faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_6S ?
-        IPC_LATENCY_THREAD_BLOCK : IPC_LATENCY_NOT_MEASURED;
+    std::string eventName = faultData.errorObject.name;
+    faultData.ipcLatency = eventName == AppFreezeType::THREAD_BLOCK_3S ||
+        eventName == AppFreezeType::THREAD_BLOCK_6S ? IPC_LATENCY_THREAD_BLOCK : IPC_LATENCY_NOT_MEASURED;
     AppfreezeSubmitResult admission;
     reserved = ReserveAppfreezeTask(faultData, appInfo, faultData.timeoutMarkers, admission);
     if (!reserved) {
         return admission == AppfreezeSubmitResult::DUPLICATE ? ERR_OK : ERR_NO_INIT;
     }
-    auto timeoutNotifyApp = [weak = weak_from_this(), appInfo, faultData,
+    auto timeoutNotifyApp = [weak = weak_from_this(), appInfo, faultData, eventName,
         weakHandler = std::weak_ptr<AAFwk::TaskHandlerWrap>(handler)] {
+        if (!IsValidFreezeTypeName(eventName)) {
+            auto pos = eventName.find_first_of("\r\n");
+            std::string safeName = (pos == std::string::npos) ? eventName : eventName.substr(0, pos);
+            TAG_LOGE(AAFwkTag::APPDFR, "TimeoutNotifyApp invalid freeze name: %{public}s", safeName.c_str());
+            return ERR_INVALID_VALUE;
+        }
         if (auto manager = weak.lock()) {
             manager->TimeoutNotifyApp(faultData, appInfo, weakHandler.lock());
         }
