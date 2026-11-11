@@ -104,6 +104,7 @@ int32_t PreloadManagerService::LaunchGameCustomized(const std::string &bundleNam
         return CHECK_PERMISSION_FAILED;
     }
 
+    launchWant.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
     StartAbilityWrapParam startAbilityWrapParam;
     startAbilityWrapParam.want = launchWant;
     startAbilityWrapParam.userId = userId;
