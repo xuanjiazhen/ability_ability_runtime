@@ -23,7 +23,9 @@
 
 #include "accesstoken_kit.h"
 #include "mock_ipc_skeleton.h"
+#include "mock_saf_agent_fence.h"
 #include "nativetoken_kit.h"
+#include "saf_result_code.h"
 #include "token_setproc.h"
 
 // Workaround to access private members for testing
@@ -124,6 +126,7 @@ void TaskManagerServiceTest::SetUp(void)
 
 void TaskManagerServiceTest::TearDown(void)
 {
+    SetMockFenceResult(SAF_SUCCESS);
     TaskManagerService::GetInstance().SetPidValidator(nullptr);
 }
 
@@ -297,6 +300,35 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_0700, TestSize.Lev
     for (const auto &taskId : filledTaskIds) {
         EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
     }
+}
+
+/**
+ * @tc.number: TaskManagerService_StartTask_0800
+ * @tc.name: start task rejected by the security fence
+ * @tc.desc: any fence failure (invalid, expired, revoked or mismatched task identity,
+ *           fence IPC failure or fence service unavailable) rejects the task, and a
+ *           later valid verdict recovers.
+ */
+HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_0800, TestSize.Level1)
+{
+    auto &service = TaskManagerService::GetInstance();
+    std::string taskId = MakeTaskId("start_0800");
+    const int32_t fenceRejects[] = {
+        SAF_ERR_TASK_IDENTITY_NOT_FOUND,
+        SAF_ERR_TASK_IDENTITY_EXPIRED,
+        SAF_ERR_TASK_IDENTITY_REVOKED,
+        SAF_ERR_TASK_IDENTITY_MISMATCH,
+        SAF_ERR_IPC_PROXY_FAIL,
+        SAF_ERR_SERVICE_UNAVAILABLE,
+    };
+    for (int32_t fenceRet : fenceRejects) {
+        SetMockFenceResult(fenceRet);
+        EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), AAFwk::INNER_ERR);
+    }
+    EXPECT_EQ(service.DumpActiveTasks().find(taskId), std::string::npos);
+    SetMockFenceResult(SAF_SUCCESS);
+    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
 }
 
 /**

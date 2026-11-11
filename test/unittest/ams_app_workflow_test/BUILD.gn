@@ -74,6 +74,7 @@ ohos_unittest("AmsWorkFlowTest") {
     "ability_runtime:ability_deps_wrapper",
     "access_token:libaccesstoken_sdk",
     "appspawn:appspawn_client",
+    "asset:saf_agent_fence",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
