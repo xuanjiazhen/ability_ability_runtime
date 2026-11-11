@@ -88,6 +88,7 @@ ohos_unittest("AmsRecentAppListTest") {
     "ability_runtime:ability_deps_wrapper",
     "access_token:libaccesstoken_sdk",
     "appspawn:appspawn_client",
+    "asset:saf_agent_fence",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

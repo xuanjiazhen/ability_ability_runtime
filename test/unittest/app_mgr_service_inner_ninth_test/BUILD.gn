@@ -131,6 +131,7 @@ ohos_unittest("app_mgr_service_inner_ninth_test") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "appspawn:appspawn_client",
+    "asset:saf_agent_fence",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
