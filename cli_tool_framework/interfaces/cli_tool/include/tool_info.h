@@ -74,6 +74,12 @@ public:
     bool hasSubCommand = false;
     std::map<std::string, SubCommandInfo> subcommands;
     bool isLockScreenExecutionAllowed = false;  // Allow execution when screen is locked
+    // Internal visibility of the tool: only the exact string "public" opens it to
+    // third-party queries; default and fallback value is "private". Not exposed to NAPI.
+    std::string visibility = "private";
+    // Device types on which the tool can run (e.g. "default", "tablet");
+    // empty array means no device restriction.
+    std::vector<std::string> supportedDevices;
 
     ToolInfo() = default;
     ~ToolInfo() = default;
