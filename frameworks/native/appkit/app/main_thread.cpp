@@ -2063,6 +2063,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             auto appThread = weak.promote();
             if (appThread == nullptr) {
                 TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+                return;
             }
             AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
             appThread->ScheduleProcessSecurityExit();

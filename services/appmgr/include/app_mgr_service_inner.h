@@ -778,19 +778,6 @@ public:
     virtual int32_t IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
         bool &isRunning);
 
-    /**
-     * Resolve the main-process pid of a running application by bundle name, in process.
-     * Thin delegate over AppRunningManager::GetMainProcessPidByBundleName for the
-     * AppMgrService::RegisterInAppSkillProcess wrapper (the wrapper itself has no direct
-     * AppRunningManager handle).
-     *
-     * @param bundleName Indicates the bundle name of the application.
-     * @param userId Indicates the user the record must run under; negative skips the filter.
-     * @return Returns the main-process pid on success, or -1 when no running
-     *         main-process record matches.
-     */
-    pid_t ResolveMainProcessPidByBundleName(const std::string &bundleName, int32_t userId);
-
     int32_t IsAppRunning(const std::string &bundleName, int32_t appCloneIndex, int32_t userId, bool &isRunning);
 
     /**
@@ -1956,6 +1943,13 @@ private:
     
     int32_t KillApplicationWithUserIdInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
+
+    int32_t KillApplicationByUserIdImpl(
+        const std::string &bundleName, int32_t appCloneIndex, int32_t userId,
+        const bool clearPageStack, const std::string& reason, bool checkMDM);
+
+    int32_t GetCollaboratorTypeForKill(
+        const std::string &bundleName, int32_t &appCloneIndex, int32_t userId, int32_t &collaboratorType);
 
     std::string FaultTypeToString(FaultDataType type);
 

@@ -2382,6 +2382,36 @@ int AbilityManagerProxy::KillProcessWithUserId(const std::string &bundleName, bo
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::KillCollaboratorProcess(int32_t collaboratorType,
+    const std::string &bundleName, int32_t userId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        return IPC_PROXY_ERR;
+    }
+    if (!data.WriteInt32(collaboratorType)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "collaboratorType write fail");
+        return IPC_PROXY_ERR;
+    }
+    if (!data.WriteString16(Str8ToStr16(bundleName))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName write fail");
+        return IPC_PROXY_ERR;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
+        return IPC_PROXY_ERR;
+    }
+    int error = SendRequest(AbilityManagerInterfaceCode::KILL_COLLABORATOR_PROCESS, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 void AbilityManagerProxy::ScheduleClearRecoveryPageStack()
 {
     MessageParcel data;
@@ -8598,6 +8628,14 @@ int32_t AbilityManagerProxy::ExecuteInAppSkillWithTokenId(const AppExecFwk::Skil
     }
     if (!data.WriteString16(Str8ToStr16(request.toolCallId))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write toolCallId fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteString16(Str8ToStr16(request.taskId))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write taskId fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteInt32(request.callerUid)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerUid fail");
         return INNER_ERR;
     }
     MessageParcel reply;
