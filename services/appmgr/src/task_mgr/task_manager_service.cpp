@@ -36,6 +36,8 @@
 #include "parameters.h"
 #include "task_mgr/process_schedule.h"
 #include "task_mgr/task_priority_judge.h"
+#include "saf_agent_fence.h"
+#include "saf_result_code.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -173,6 +175,14 @@ int32_t TaskManagerService::StartTask(const std::string &taskId)
         return INVALID_PARAMETERS_ERR;
     }
     TaskCallerInfo caller = GetCallerInfo();
+    std::vector<int32_t> authToken;
+    // shortcut: authToken is reserved for the later el3-el5 file decryption, not consumed in this phase.
+    int32_t safRet = OHOS::Security::SAF::SafAgentFence::RetrieveAuthTokenByTaskId(
+        static_cast<int32_t>(caller.tokenId), taskId, authToken);
+    if (safRet != SAF_SUCCESS) {
+        TAG_LOGW(AAFwkTag::APPMGR, "task rejected by security fence, ret: %{public}d", safRet);
+        return INVALID_PARAMETERS_ERR;
+    }
     RegisterScheduleListeners();
     auto &judge = TaskPriorityJudge::GetInstance();
     judge.TrackForeground(caller.pid);
