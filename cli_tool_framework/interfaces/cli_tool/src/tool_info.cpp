@@ -28,6 +28,8 @@ namespace CliTool {
 
 namespace {
 constexpr uint32_t MAX_TOOL_INFO_COUNT = 200000;
+constexpr const char *TOOL_VISIBILITY_PUBLIC = "public";
+constexpr const char *TOOL_VISIBILITY_PRIVATE = "private";
 } // namespace
 
 // ToolInfo implementation
@@ -54,7 +56,9 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
            parcel.WriteStringVector(eventTypes) &&
            parcel.WriteBool(hasSubCommand) &&
            parcel.WriteString(subcommandsJson) &&
-           parcel.WriteBool(isLockScreenExecutionAllowed);
+           parcel.WriteBool(isLockScreenExecutionAllowed) &&
+           parcel.WriteString(visibility) &&
+           parcel.WriteStringVector(supportedDevices);
 }
 
 ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
@@ -76,7 +80,9 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         !parcel.ReadStringVector(&tool->eventTypes) ||
         !parcel.ReadBool(tool->hasSubCommand) ||
         !parcel.ReadString(subcommandsJson) ||
-        !parcel.ReadBool(tool->isLockScreenExecutionAllowed)) {
+        !parcel.ReadBool(tool->isLockScreenExecutionAllowed) ||
+        !parcel.ReadString(tool->visibility) ||
+        !parcel.ReadStringVector(&tool->supportedDevices)) {
         delete tool;
         return nullptr;
     }
@@ -325,6 +331,61 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         tool.isLockScreenExecutionAllowed = json["isLockScreenExecutionAllowed"];
     }
 
+    // visibility is optional: only the exact string "public"/"private" is accepted;
+    // missing key, non-string type or unknown value falls back to "private" (R-7 conservative)
+    if (json.contains("visibility")) {
+        const nlohmann::json &visibilityJson = json["visibility"];
+        if (visibilityJson.is_string()) {
+            std::string visibility = visibilityJson.get<std::string>();
+            if (visibility == TOOL_VISIBILITY_PUBLIC || visibility == TOOL_VISIBILITY_PRIVATE) {
+                tool.visibility = visibility;
+            } else {
+                TAG_LOGW(AAFwkTag::CLI_TOOL,
+                    "ParseFromJson: unknown visibility of tool %{public}s, fallback to private", tool.name.c_str());
+                tool.visibility = TOOL_VISIBILITY_PRIVATE;
+            }
+        } else {
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "ParseFromJson: visibility of tool %{public}s is not a string, fallback to private",
+                tool.name.c_str());
+            tool.visibility = TOOL_VISIBILITY_PRIVATE;
+        }
+    } else {
+        tool.visibility = TOOL_VISIBILITY_PRIVATE;
+    }
+
+    // supportedDevices is optional: non-array value or non-string element falls back to
+    // an empty array (no device restriction, R-3 conservative default)
+    if (json.contains("supportedDevices")) {
+        const nlohmann::json &devicesJson = json["supportedDevices"];
+        if (devicesJson.is_array()) {
+            std::vector<std::string> devices;
+            bool allStringItems = true;
+            for (const auto &device : devicesJson) {
+                if (!device.is_string()) {
+                    allStringItems = false;
+                    break;
+                }
+                devices.push_back(device.get<std::string>());
+            }
+            if (allStringItems) {
+                tool.supportedDevices = std::move(devices);
+            } else {
+                TAG_LOGW(AAFwkTag::CLI_TOOL,
+                    "ParseFromJson: supportedDevices of tool %{public}s contains a non-string item, "
+                    "fallback to empty array", tool.name.c_str());
+                tool.supportedDevices.clear();
+            }
+        } else {
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "ParseFromJson: supportedDevices of tool %{public}s is not an array, fallback to empty array",
+                tool.name.c_str());
+            tool.supportedDevices.clear();
+        }
+    } else {
+        tool.supportedDevices.clear();
+    }
+
     return true;
 }
 
@@ -371,6 +432,8 @@ nlohmann::json ToolInfo::ParseToJson() const
         j["subcommands"] = subcommandsJson;
     }
     j["isLockScreenExecutionAllowed"] = isLockScreenExecutionAllowed;
+    j["visibility"] = visibility;
+    j["supportedDevices"] = supportedDevices;
 
     return j;
 }
