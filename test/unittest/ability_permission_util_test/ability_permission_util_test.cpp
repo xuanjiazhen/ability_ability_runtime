@@ -47,6 +47,25 @@ using OHOS::AppExecFwk::AbilityType;
 using OHOS::AAFwk::AbilityPermissionUtil;
 using OHOS::AppExecFwk::MockAppMgrImpl;
 
+namespace {
+uint32_t grantedDirectBootToken = 0;
+uint32_t lastVerifiedDirectBootToken = 0;
+std::string lastVerifiedPermission;
+int32_t directBootPermissionChecks = 0;
+}
+
+namespace OHOS::Security::AccessToken {
+int AccessTokenKit::VerifyAccessToken(AccessTokenID tokenID, const std::string &permissionName, bool crossIpc)
+{
+    lastVerifiedDirectBootToken = tokenID;
+    lastVerifiedPermission = permissionName;
+    ++directBootPermissionChecks;
+    return tokenID != INVALID_TOKENID && tokenID == grantedDirectBootToken &&
+        permissionName == AAFwk::PermissionConstants::PERMISSION_ALLOW_DIRECT_BOOT ?
+        PERMISSION_GRANTED : PERMISSION_DENIED;
+}
+}
+
 namespace OHOS {
 namespace AAFwk {
 bool AppUtils::isSupportMultiInstance = false;
@@ -71,6 +90,10 @@ bool BundleMgrHelper::isNullBundleMgrInstance = false;
 int32_t BundleMgrHelper::retGetNameForUid = 0;
 BundleInfo BundleMgrHelper::retBundleInfo;
 bool BundleMgrHelper::retGetBundleInfo = 0;
+BundleInfo BundleMgrHelper::retCloneBundleInfo;
+ErrCode BundleMgrHelper::retGetCloneBundleInfo = ERR_INVALID_VALUE;
+int32_t BundleMgrHelper::cloneQueryCount = 0;
+int32_t BundleMgrHelper::lastCloneIndex = -1;
 } // namespace AppExecFwk
 
 namespace AbilityRuntime {
@@ -106,6 +129,17 @@ void AbilityPermissionUtilTest::SetUpTestCase(void)
 void AbilityPermissionUtilTest::TearDownTestCase(void) {}
 void AbilityPermissionUtilTest::SetUp()
 {
+    grantedDirectBootToken = 0;
+    lastVerifiedDirectBootToken = 0;
+    lastVerifiedPermission.clear();
+    directBootPermissionChecks = 0;
+    BundleMgrHelper::isNullBundleMgrInstance = false;
+    BundleMgrHelper::retGetBundleInfo = false;
+    BundleMgrHelper::retBundleInfo = {};
+    BundleMgrHelper::retCloneBundleInfo = {};
+    BundleMgrHelper::retGetCloneBundleInfo = ERR_INVALID_VALUE;
+    BundleMgrHelper::cloneQueryCount = 0;
+    BundleMgrHelper::lastCloneIndex = -1;
     // Reset UserController mock status before each test
     AbilityRuntime::UserController::GetInstance().SetMockUserLockStatus(
         AbilityRuntime::UserController::UserLockStatus::USER_LOCK_STATUS_BUTT);
@@ -1460,5 +1494,139 @@ HWTEST_F(AbilityPermissionUtilTest, CheckStartUIAbilityByUserLockStatus_0400, Te
     BundleMgrHelper::isNullBundleMgrInstance = false;
     TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0400 end");
 }
+HWTEST_F(AbilityPermissionUtilTest, DirectBoot_MainAppPermissionGranted, TestSize.Level1)
+{
+    UserController::GetInstance().SetMockUserLockStatus(UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.accessTokenId = 12345;
+    grantedDirectBootToken = 12345;
+
+    EXPECT_TRUE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus("com.example.directboot"));
+    EXPECT_EQ(lastVerifiedDirectBootToken, 12345u);
+    EXPECT_EQ(lastVerifiedPermission, PermissionConstants::PERMISSION_ALLOW_DIRECT_BOOT);
+    EXPECT_EQ(directBootPermissionChecks, 1);
+    EXPECT_EQ(BundleMgrHelper::cloneQueryCount, 0);
+}
+
+HWTEST_F(AbilityPermissionUtilTest, DirectBoot_MainAppPermissionDenied, TestSize.Level1)
+{
+    UserController::GetInstance().SetMockUserLockStatus(UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.accessTokenId = 12345;
+    grantedDirectBootToken = 54321;
+
+    EXPECT_FALSE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus("com.example.directboot"));
+    EXPECT_EQ(lastVerifiedDirectBootToken, 12345u);
+    EXPECT_EQ(directBootPermissionChecks, 1);
+}
+
+HWTEST_F(AbilityPermissionUtilTest, DirectBoot_InvalidTargetTokenRejected, TestSize.Level1)
+{
+    UserController::GetInstance().SetMockUserLockStatus(UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.accessTokenId = Security::AccessToken::INVALID_TOKENID;
+
+    EXPECT_FALSE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus("com.example.directboot"));
+    EXPECT_EQ(directBootPermissionChecks, 0);
+}
+
+HWTEST_F(AbilityPermissionUtilTest, DirectBoot_BundleQueryFailureRejected, TestSize.Level1)
+{
+    UserController::GetInstance().SetMockUserLockStatus(UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retBundleInfo.applicationInfo.isSystemApp = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.accessTokenId = 12345;
+    grantedDirectBootToken = 12345;
+
+    EXPECT_FALSE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus("com.example.directboot"));
+    EXPECT_EQ(directBootPermissionChecks, 0);
+}
+
+HWTEST_F(AbilityPermissionUtilTest, DirectBoot_CloneUsesTargetTokenAndIndex, TestSize.Level1)
+{
+    UserController::GetInstance().SetMockUserLockStatus(UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.accessTokenId = 12345;
+    BundleMgrHelper::retGetCloneBundleInfo = ERR_OK;
+    BundleMgrHelper::retCloneBundleInfo.applicationInfo.accessTokenId = 54321;
+    grantedDirectBootToken = 54321;
+
+    for (int32_t index : {1, 1000}) {
+        EXPECT_TRUE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(
+            "com.example.directboot", index));
+        EXPECT_EQ(BundleMgrHelper::lastCloneIndex, index);
+        EXPECT_EQ(lastVerifiedDirectBootToken, 54321u);
+    }
+    EXPECT_EQ(BundleMgrHelper::cloneQueryCount, 2);
+    EXPECT_EQ(directBootPermissionChecks, 2);
+}
+
+HWTEST_F(AbilityPermissionUtilTest, DirectBoot_MainPermissionDoesNotAuthorizeClone, TestSize.Level1)
+{
+    UserController::GetInstance().SetMockUserLockStatus(UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.accessTokenId = 12345;
+    BundleMgrHelper::retGetCloneBundleInfo = ERR_OK;
+    BundleMgrHelper::retCloneBundleInfo.applicationInfo.accessTokenId = 54321;
+    grantedDirectBootToken = 12345;
+
+    EXPECT_FALSE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(
+        "com.example.directboot", 1));
+    EXPECT_EQ(lastVerifiedDirectBootToken, 54321u);
+    EXPECT_EQ(BundleMgrHelper::cloneQueryCount, 1);
+}
+
+HWTEST_F(AbilityPermissionUtilTest, DirectBoot_CloneQueryFailureDoesNotUseMainApp, TestSize.Level1)
+{
+    UserController::GetInstance().SetMockUserLockStatus(UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.isSystemApp = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.accessTokenId = 12345;
+    grantedDirectBootToken = 12345;
+
+    EXPECT_FALSE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(
+        "com.example.directboot", 1));
+    EXPECT_EQ(BundleMgrHelper::cloneQueryCount, 1);
+    EXPECT_EQ(directBootPermissionChecks, 0);
+}
+
+HWTEST_F(AbilityPermissionUtilTest, DirectBoot_OtherIndicesDoNotGainPermissionBypass, TestSize.Level1)
+{
+    UserController::GetInstance().SetMockUserLockStatus(UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.accessTokenId = 12345;
+    grantedDirectBootToken = 12345;
+
+    for (int32_t index : {-1, 1001, 10000}) {
+        EXPECT_FALSE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(
+            "com.example.directboot", index));
+    }
+    EXPECT_EQ(BundleMgrHelper::cloneQueryCount, 0);
+    EXPECT_EQ(directBootPermissionChecks, 0);
+}
+
+HWTEST_F(AbilityPermissionUtilTest, DirectBoot_OtherIndicesPreserveSystemAppBehavior, TestSize.Level1)
+{
+    UserController::GetInstance().SetMockUserLockStatus(UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.isSystemApp = true;
+
+    for (int32_t index : {-1, 1001, 10000}) {
+        EXPECT_TRUE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(
+            "com.example.system", index));
+    }
+    EXPECT_EQ(BundleMgrHelper::cloneQueryCount, 0);
+    EXPECT_EQ(directBootPermissionChecks, 0);
+}
+
+HWTEST_F(AbilityPermissionUtilTest, DirectBoot_UnlockedSkipsPermissionAndCloneQuery, TestSize.Level1)
+{
+    UserController::GetInstance().SetMockUserLockStatus(UserController::UserLockStatus::USER_UNLOCKED);
+
+    EXPECT_TRUE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(
+        "com.example.directboot", 1));
+    EXPECT_EQ(BundleMgrHelper::cloneQueryCount, 0);
+    EXPECT_EQ(directBootPermissionChecks, 0);
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
