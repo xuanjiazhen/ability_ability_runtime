@@ -316,16 +316,22 @@ int32_t AppfreezeManager::PrepareAppfreezeNotification(FaultData& faultData, App
     faultData.timeoutMarkers = "notifyFault:" + std::to_string(appInfo.pid) + ":" +
         std::to_string(appInfo.instanceId) + ":" + std::to_string(notifyTime) + ":" +
         std::to_string(notifySequence.fetch_add(1));
-    faultData.ipcLatency = faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_3S ||
-        faultData.errorObject.name == AppFreezeType::THREAD_BLOCK_6S ?
-        IPC_LATENCY_THREAD_BLOCK : IPC_LATENCY_NOT_MEASURED;
+    std::string eventName = faultData.errorObject.name;
+    faultData.ipcLatency = eventName == AppFreezeType::THREAD_BLOCK_3S ||
+        eventName == AppFreezeType::THREAD_BLOCK_6S ? IPC_LATENCY_THREAD_BLOCK : IPC_LATENCY_NOT_MEASURED;
     AppfreezeSubmitResult admission;
     reserved = ReserveAppfreezeTask(faultData, appInfo, faultData.timeoutMarkers, admission);
     if (!reserved) {
         return admission == AppfreezeSubmitResult::DUPLICATE ? ERR_OK : ERR_NO_INIT;
     }
-    auto timeoutNotifyApp = [weak = weak_from_this(), appInfo, faultData,
+    auto timeoutNotifyApp = [weak = weak_from_this(), appInfo, faultData, eventName,
         weakHandler = std::weak_ptr<AAFwk::TaskHandlerWrap>(handler)] {
+        if (!IsValidFreezeTypeName(eventName)) {
+            auto pos = eventName.find_first_of("\r\n");
+            std::string safeName = (pos == std::string::npos) ? eventName : eventName.substr(0, pos);
+            TAG_LOGE(AAFwkTag::APPDFR, "TimeoutNotifyApp invalid freeze name: %{public}s", safeName.c_str());
+            return ERR_INVALID_VALUE;
+        }
         if (auto manager = weak.lock()) {
             manager->TimeoutNotifyApp(faultData, appInfo, weakHandler.lock());
         }
@@ -1251,6 +1257,7 @@ bool AppfreezeManager::CaptureAppfreeze(const FaultData& faultData,
     const auto deadline = std::chrono::steady_clock::now() + APPFREEZE_ATTACHMENT_TIMEOUT;
     auto attachments = CollectAppfreezeAttachments(faultData, appInfo.pid, request, deadline);
     result.processStart = request->processStartTime;
+    result.stackTraceStartTime = AbilityRuntime::TimeUtil::DefaultCurrentTimeStr();
     DumpTiming timing;
     std::string stack;
     if (faultData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING ||
@@ -1289,6 +1296,8 @@ int AppfreezeManager::ReportAppfreeze(const FaultData& faultData, const AppInfo&
     }
     FaultData report = faultData;
     const auto& event = report.errorObject.name;
+    report.errorObject.message += "\nCatche stack trace start time: " +
+        result.stackTraceStartTime + "\n";
     const bool usedAcquireStack = event == AppFreezeType::APP_INPUT_BLOCK ||
         event == AppFreezeType::THREAD_BLOCK_3S || event == AppFreezeType::LIFECYCLE_HALF_TIMEOUT ||
         event == AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING;
@@ -1307,6 +1316,8 @@ int AppfreezeManager::ReportAppfreeze(const FaultData& faultData, const AppInfo&
     if (appInfo.isOccurException) {
         report.errorObject.message += "\nnotifyAppFault exception.\n";
     }
+    report.errorObject.message += "Catche stack trace end time: " +
+        AbilityRuntime::TimeUtil::DefaultCurrentTimeStr();
     // A negative transport result can already be queued by HiSysEvent. Releasing
     // this claim would let a waiter submit a second copy of the same report.
     return NotifyANR(report, appInfo, result.binderInfo, result.memoryContent);
