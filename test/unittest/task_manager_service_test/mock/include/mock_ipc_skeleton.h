@@ -16,6 +16,7 @@
 #ifndef OHOS_IPC_IPC_SKELETON_H
 #define OHOS_IPC_IPC_SKELETON_H
 
+#include <cstdint>
 #include <sys/types.h>
 
 namespace OHOS {

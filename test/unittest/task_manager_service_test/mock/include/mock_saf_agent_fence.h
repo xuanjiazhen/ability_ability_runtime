@@ -16,6 +16,8 @@
 #ifndef MOCK_SAF_AGENT_FENCE_H
 #define MOCK_SAF_AGENT_FENCE_H
 
+#include <cstdint>
+
 namespace OHOS {
 namespace Security {
 namespace SAF {

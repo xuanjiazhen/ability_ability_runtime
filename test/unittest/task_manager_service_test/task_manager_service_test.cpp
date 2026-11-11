@@ -150,7 +150,7 @@ void TaskManagerServiceTest::SetUp(void)
 
 void TaskManagerServiceTest::TearDown(void)
 {
-    SetMockFenceResult(SAF_SUCCESS);
+    OHOS::Security::SAF::SetMockFenceResult(SAF_SUCCESS);
     TaskManagerService::GetInstance().SetPidValidator(nullptr);
 }
 
@@ -358,11 +358,11 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_0800, TestSize.Lev
         SAF_ERR_SERVICE_UNAVAILABLE,
     };
     for (int32_t fenceRet : fenceRejects) {
-        SetMockFenceResult(fenceRet);
+        OHOS::Security::SAF::SetMockFenceResult(fenceRet);
         EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), AAFwk::INNER_ERR);
     }
     EXPECT_EQ(service.DumpActiveTasks().find(taskId), std::string::npos);
-    SetMockFenceResult(SAF_SUCCESS);
+    OHOS::Security::SAF::SetMockFenceResult(SAF_SUCCESS);
     EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
 }
