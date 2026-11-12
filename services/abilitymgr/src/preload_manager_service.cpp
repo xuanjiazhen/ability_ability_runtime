@@ -89,7 +89,7 @@ int32_t PreloadManagerService::LaunchGameCustomized(const std::string &bundleNam
     AppExecFwk::AbilityInfo abilityInfo;
     if (appIndex == 0) {
         auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
-        bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appIndex);
+        bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appIndex);//如果index传0，双模式会改变index值
     }
     if (auto ret = PreloadApplicationVerification(bundleName, userId, appIndex, launchWant,
         abilityInfo); ret != ERR_OK) {
@@ -109,6 +109,7 @@ int32_t PreloadManagerService::LaunchGameCustomized(const std::string &bundleNam
     }
 
     StartAbilityWrapParam startAbilityWrapParam;
+    launchWant.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
     startAbilityWrapParam.want = std::move(launchWant);
     startAbilityWrapParam.userId = userId;
     startAbilityWrapParam.isGamePrelaunch = true;
@@ -121,7 +122,10 @@ int32_t PreloadManagerService::PreloadApplicationVerification(const std::string 
     userId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetValidUserId(userId);
     CHECK_TRUE_RETURN_RET(!DelayedSingleton<AbilityManagerService>::GetInstance()->JudgeMultiUserConcurrency(userId),
         ERR_CROSS_USER, "multi-user non-concurrent unsatisfied");
-
+    if (!AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex)) { //PreloadApplication 也会走此校验
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "PreloadApplicationVerification invalid appIndex: %{public}d", appIndex);
+        return ERR_APP_CLONE_INDEX_INVALID;
+    }
     bool isExist = false;
     int32_t ret = ERR_OK;
     CHECK_TRUE_RETURN_RET((ret = DelayedSingleton<AppScheduler>::GetInstance()->CheckPreloadAppRecordExist(
