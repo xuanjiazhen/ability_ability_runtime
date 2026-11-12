@@ -46,7 +46,6 @@ void ResetSchedule()
     std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
     sched.taskToPids_.clear();
     sched.pidEntries_.clear();
-    sched.controlRefs_.clear();
 }
 }  // namespace
 
@@ -127,33 +126,34 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_DegradeToNextPriority_0100, TestSi
 }
 
 /**
- * @tc.number: ProcessSchedule_ControlRefIdempotent_0100
- * @tc.name: control references are keyed by taskId+pid and reference counted
- * @tc.desc: three tasks on one pid hold three control references; each removal drops
- *           only its own key; the pid entry release clears its references without leaking.
+ * @tc.number: ProcessSchedule_TaskRefIdempotent_0100
+ * @tc.name: duplicate attribution registration/removal keeps the index consistent.
+ * @tc.desc: registering two tasks on one pid builds two index entries; removing one task
+ *           drops only its entry and a duplicate removal of the same attribution is a
+ *           safe no-op (idempotent channel).
  */
-HWTEST_F(ProcessScheduleTest, ProcessSchedule_ControlRefIdempotent_0100, TestSize.Level1)
+HWTEST_F(ProcessScheduleTest, ProcessSchedule_TaskRefIdempotent_0100, TestSize.Level1)
 {
     auto &sched = ProcessSchedule::GetInstance();
     sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
     sched.OnAttributionAdded(TEST_TASK_LOW, TASK_PRIORITY_LOW, TEST_PID_A, AttributionTool::CLI);
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
-        EXPECT_EQ(sched.controlRefs_[TEST_TASK_HIGH][TEST_PID_A], 1);
-        EXPECT_EQ(sched.controlRefs_[TEST_TASK_LOW][TEST_PID_A], 1);
+        EXPECT_EQ(sched.taskToPids_[TEST_TASK_HIGH].count(TEST_PID_A), 1);
+        EXPECT_EQ(sched.taskToPids_[TEST_TASK_LOW].count(TEST_PID_A), 1);
     }
     sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
-        EXPECT_EQ(sched.controlRefs_.count(TEST_TASK_HIGH), 0);
-        EXPECT_EQ(sched.controlRefs_[TEST_TASK_LOW][TEST_PID_A], 1);
+        EXPECT_EQ(sched.taskToPids_.count(TEST_TASK_HIGH), 0);
+        EXPECT_EQ(sched.taskToPids_[TEST_TASK_LOW].count(TEST_PID_A), 1);
     }
     // duplicate removal of the same attribution is a safe no-op (idempotent channel)
     sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
-        EXPECT_EQ(sched.controlRefs_.count(TEST_TASK_HIGH), 0);
-        EXPECT_EQ(sched.controlRefs_[TEST_TASK_LOW][TEST_PID_A], 1);
+        EXPECT_EQ(sched.taskToPids_.count(TEST_TASK_HIGH), 0);
+        EXPECT_EQ(sched.taskToPids_[TEST_TASK_LOW].count(TEST_PID_A), 1);
     }
 }
 
@@ -173,8 +173,6 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_ProcessDeathCleanup_0100, TestSize
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_EQ(sched.pidEntries_.count(TEST_PID_B), 0);
-        EXPECT_EQ(sched.controlRefs_.count(TEST_TASK_HIGH), 1);
-        EXPECT_EQ(sched.controlRefs_[TEST_TASK_HIGH].count(TEST_PID_B), 0);
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].level, TASK_PRIORITY_HIGH);
         EXPECT_EQ(sched.taskToPids_[TEST_TASK_HIGH].count(TEST_PID_A), 1);
         EXPECT_EQ(sched.taskToPids_[TEST_TASK_HIGH].count(TEST_PID_B), 0);
@@ -199,7 +197,6 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_AllProcessesDeadTaskAlive_0100, Te
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_TRUE(sched.pidEntries_.empty());
         EXPECT_TRUE(sched.taskToPids_.empty());
-        EXPECT_TRUE(sched.controlRefs_.empty());
     }
 }
 
@@ -228,7 +225,6 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_Concurrent10Tasks_0100, TestSize.L
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_TRUE(sched.taskToPids_.empty());
         EXPECT_TRUE(sched.pidEntries_.empty());
-        EXPECT_TRUE(sched.controlRefs_.empty());
     }
 }
 
@@ -246,7 +242,6 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionAdded_0100, TestSize.
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_TRUE(sched.taskToPids_.empty());
         EXPECT_TRUE(sched.pidEntries_.empty());
-        EXPECT_TRUE(sched.controlRefs_.empty());
     }
 }
 
@@ -254,7 +249,7 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionAdded_0100, TestSize.
  * @tc.number: ProcessSchedule_OnAttributionAdded_0200
  * @tc.name: a duplicated attribution grows the reference count, not the merge state.
  * @tc.desc: adding the same taskId+pid twice mirrors the two task-side attribution records
- *           (refs=2, exemption count=2) while the task level entry stays single.
+ *           (refs=2) while the task level entry stays single.
  */
 HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionAdded_0200, TestSize.Level1)
 {
@@ -266,15 +261,14 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionAdded_0200, TestSize.
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].taskRefs[TEST_TASK_HIGH], 2);
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].taskLevels.size(), 1);
         EXPECT_EQ(sched.taskToPids_[TEST_TASK_HIGH].size(), 1);
-        EXPECT_EQ(sched.controlRefs_[TEST_TASK_HIGH][TEST_PID_A], 2);
     }
 }
 
 /**
  * @tc.number: ProcessSchedule_RefCountRemoval_0100
- * @tc.name: removing one of two same-pid attributions keeps the control (F-01 regression).
+ * @tc.name: removing one of two same-pid attributions keeps the merge state (F-01 regression).
  * @tc.desc: register the same taskId+pid twice, remove once: the pid must stay in the index
- *           with its level and one exemption; only the second removal releases it.
+ *           with its level and one live reference; only the second removal releases it.
  */
 HWTEST_F(ProcessScheduleTest, ProcessSchedule_RefCountRemoval_0100, TestSize.Level1)
 {
@@ -287,14 +281,12 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_RefCountRemoval_0100, TestSize.Lev
         ASSERT_EQ(sched.pidEntries_.count(TEST_PID_A), 1);
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].level, TASK_PRIORITY_HIGH);
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].taskRefs[TEST_TASK_HIGH], 1);
-        EXPECT_EQ(sched.controlRefs_[TEST_TASK_HIGH][TEST_PID_A], 1);
     }
     sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_TRUE(sched.pidEntries_.empty());
         EXPECT_TRUE(sched.taskToPids_.empty());
-        EXPECT_TRUE(sched.controlRefs_.empty());
     }
 }
 
@@ -334,7 +326,6 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_OnAttributionRemoved_0100, TestSiz
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         ASSERT_EQ(sched.pidEntries_.count(TEST_PID_A), 1);
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].taskLevels.count(TEST_TASK_HIGH), 1);
-        EXPECT_EQ(sched.controlRefs_[TEST_TASK_HIGH][TEST_PID_A], 1);
     }
 }
 

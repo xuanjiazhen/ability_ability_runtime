@@ -29,10 +29,9 @@ namespace OHOS {
 namespace AppExecFwk {
 
 /**
- * @brief Owns the process-side scheduling attribution: the bidirectional task<->pid index,
- *        the effective control level per pid (max over its attributing tasks) and the
- *        scheduling-control bookkeeping (idempotent per taskId+pid, pid-reference
- *        counted), tracking the control applications delivered for each process.
+ * @brief Owns the process-side scheduling attribution: the bidirectional task<->pid index
+ *        and the effective control level per pid (max over its attributing tasks, with
+ *        per taskId+pid reference counting so duplicate registrations collapse).
  *        All state is protected by scheduleMutex_, a self-contained leaf lock: the
  *        methods never call back into task_mgr or into the resource-schedule proxy while
  *        holding it.
@@ -98,16 +97,10 @@ private:
     void RemoveAttributionLocked(const std::string &taskId, pid_t pid);
     void ApplyControlLocked(pid_t pid, int32_t newLevel, int32_t oldLevel);
     void RevokeControlLocked(pid_t pid, int32_t oldLevel);
-    void ReleaseControlRefLocked(pid_t pid, const std::string &taskId);
 
     mutable std::mutex scheduleMutex_;
     std::map<std::string, std::set<pid_t>> taskToPids_;
     std::map<pid_t, PidEntry> pidEntries_;
-    // Scheduling-control reference count keyed by taskId + pid: how many control
-    // applications of the task are held for the process. A single implicit control type
-    // is counted per (taskId, pid); the control types owned by the resource-schedule
-    // control module add a type dimension to the key when wired in.
-    std::map<std::string, std::map<pid_t, int32_t>> controlRefs_;
 };
 
 }  // namespace AppExecFwk

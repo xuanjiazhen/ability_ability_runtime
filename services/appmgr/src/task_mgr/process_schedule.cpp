@@ -47,8 +47,6 @@ void ProcessSchedule::OnAttributionAdded(const std::string &taskId, int32_t task
     std::lock_guard<std::mutex> lock(scheduleMutex_);
     auto &entry = pidEntries_[pid];
     int32_t refs = ++entry.taskRefs[taskId];
-    // every registration holds one scheduling-control application (idempotency key taskId+pid)
-    controlRefs_[taskId][pid]++;
     if (refs > 1) {
         // the merge state already reflects this (taskId, pid); only the reference grew
         TAG_LOGD(AAFwkTag::APPMGR, "attribution refcount grown, taskId: %{public}s pid: %{public}d refs: %{public}d",
@@ -118,17 +116,6 @@ void ProcessSchedule::OnProcessDied(pid_t pid)
         taskIds.push_back(item.first);
     }
     int32_t oldLevel = entryIt->second.level;
-    for (const auto &taskId : taskIds) {
-        // the pid is gone: drop its whole control key (mirrors the task side removing
-        // every attribution record of the dead pid at once)
-        auto exIt = controlRefs_.find(taskId);
-        if (exIt != controlRefs_.end()) {
-            exIt->second.erase(pid);
-            if (exIt->second.empty()) {
-                controlRefs_.erase(exIt);
-            }
-        }
-    }
     RevokeControlLocked(pid, oldLevel);
     for (const auto &taskId : taskIds) {
         auto ttIt = taskToPids_.find(taskId);
@@ -156,8 +143,7 @@ void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t p
     }
     if (--refIt->second > 0) {
         // one of several attribution records of this (taskId, pid) is gone; the merge state
-        // is unchanged, only the reference and the control count shrink
-        ReleaseControlRefLocked(pid, taskId);
+        // is unchanged, only the reference shrinks
         TAG_LOGD(AAFwkTag::APPMGR, "attribution refcount shrunk, taskId: %{public}s pid: %{public}d refs: %{public}d",
             taskId.c_str(), pid, refIt->second);
         return;
@@ -166,7 +152,6 @@ void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t p
     entryIt->second.taskLevels.erase(taskId);
     int32_t oldLevel = entryIt->second.level;
     int32_t newLevel = MergeLevel(entryIt->second);
-    ReleaseControlRefLocked(pid, taskId);
     if (entryIt->second.taskRefs.empty()) {
         RevokeControlLocked(pid, oldLevel);
         pidEntries_.erase(entryIt);
@@ -182,26 +167,6 @@ void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t p
         if (ttIt->second.empty()) {
             taskToPids_.erase(ttIt);
         }
-    }
-}
-
-void ProcessSchedule::ReleaseControlRefLocked(pid_t pid, const std::string &taskId)
-{
-    auto exIt = controlRefs_.find(taskId);
-    if (exIt == controlRefs_.end()) {
-        return;
-    }
-    auto pidIt = exIt->second.find(pid);
-    if (pidIt == exIt->second.end()) {
-        return;
-    }
-    if (--pidIt->second <= 0) {
-        exIt->second.erase(pidIt);
-        TAG_LOGI(AAFwkTag::APPMGR, "sched control ref released, taskId: %{public}s pid: %{public}d",
-            taskId.c_str(), pid);
-    }
-    if (exIt->second.empty()) {
-        controlRefs_.erase(exIt);
     }
 }
 

@@ -71,7 +71,6 @@ void ResetScheduleState()
     std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
     sched.taskToPids_.clear();
     sched.pidEntries_.clear();
-    sched.controlRefs_.clear();
 }
 
 // Clears the judge inputs so a task started in a service test gets the deterministic
@@ -798,7 +797,6 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_OnProcessDied_KeepsTask_0100
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         ASSERT_EQ(sched.pidEntries_.count(TEST_MANAGED_PID), 1);
-        EXPECT_EQ(sched.controlRefs_.count(taskId), 1);
     }
 
     service.OnProcessDied(TEST_MANAGED_PID, TEST_OTHER_UID);
@@ -809,7 +807,6 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_OnProcessDied_KeepsTask_0100
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_TRUE(sched.pidEntries_.empty());
-        EXPECT_TRUE(sched.controlRefs_.empty());
     }
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
     ResetJudgeState();
@@ -994,7 +991,6 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_CreatorDeathCleanup_0100, Te
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_TRUE(sched.pidEntries_.empty());
-        EXPECT_TRUE(sched.controlRefs_.empty());
     }
     ResetJudgeState();
     ResetScheduleState();
