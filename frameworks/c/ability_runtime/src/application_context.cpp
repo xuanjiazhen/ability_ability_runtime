@@ -410,7 +410,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbility(AbilityBase_Want *
         return ret;
     }
     Want abilityWant;
-    AbilityBase_ErrorCode errCode = CWantManager::TransformToWant(*want, false, abilityWant);
+    AbilityBase_ErrorCode errCode = CWantManager::TransformToWant(*want, abilityWant);
     if (errCode != ABILITY_BASE_ERROR_CODE_NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPKIT, "transform error:%{public}d", errCode);
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
@@ -432,7 +432,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbilityWithStartOptions(Ab
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     Want abilityWant;
-    AbilityBase_ErrorCode errCode = CWantManager::TransformToWant(*want, false, abilityWant);
+    AbilityBase_ErrorCode errCode = CWantManager::TransformToWant(*want, abilityWant);
     if (errCode != ABILITY_BASE_ERROR_CODE_NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPKIT, "transform error:%{public}d", errCode);
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
@@ -491,7 +491,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbilityWithPidResult(Abili
         return ret;
     }
     Want abilityWant;
-    AbilityBase_ErrorCode errCode = CWantManager::TransformToWant(*want, false, abilityWant);
+    AbilityBase_ErrorCode errCode = CWantManager::TransformToWant(*want, abilityWant);
     if (errCode != ABILITY_BASE_ERROR_CODE_NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPKIT, "transform error:%{public}d", errCode);
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;

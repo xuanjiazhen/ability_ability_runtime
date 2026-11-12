@@ -19,7 +19,7 @@
 namespace OHOS {
 namespace AAFwk {
 
-AbilityBase_ErrorCode CWantManager::TransformToWant(AbilityBase_Want &cWant, bool flag, Want &abilityWant)
+AbilityBase_ErrorCode CWantManager::TransformToWant(const AbilityBase_Want &cWant, Want &abilityWant)
 {
     if (MyFlag::retTransformToWant != 0) {
         return static_cast<AbilityBase_ErrorCode>(MyFlag::retTransformToWant);

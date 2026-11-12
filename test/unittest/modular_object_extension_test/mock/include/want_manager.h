@@ -33,7 +33,7 @@ namespace AAFwk {
 
 class CWantManager {
 public:
-    static int TransformToWant(const AbilityBase_Want &cWant, bool flag, Want &abilityWant)
+    static int TransformToWant(const AbilityBase_Want &cWant, Want &abilityWant)
     {
         return g_transformResult;
     }

@@ -29,7 +29,11 @@ AbilityRuntime_ErrorCode CheckWant(AbilityBase_Want *want)
         TAG_LOGE(AAFwkTag::APPKIT, "null want");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    AbilityBase_Element element = want->element;
+    AbilityBase_Element element {};
+    if (OH_AbilityBase_GetWantElement(want, &element) != ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get want element");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
     if (element.bundleName == nullptr || element.abilityName == nullptr || element.moduleName == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "bundleName or abilityName or moduleName null");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;

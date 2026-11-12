@@ -107,7 +107,7 @@ AbilityRuntime_ErrorCode CModularObjectUtils::TransformWant(AbilityBase_Want *wa
         TAG_LOGE(AAFwkTag::APPKIT, "invalid want");
         return ret;
     }
-    auto errCode = CWantManager::TransformToWant(*want, false, abilityWant);
+    auto errCode = CWantManager::TransformToWant(*want, abilityWant);
     if (errCode != ABILITY_BASE_ERROR_CODE_NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPKIT, "transform want failed: %{public}d", errCode);
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;

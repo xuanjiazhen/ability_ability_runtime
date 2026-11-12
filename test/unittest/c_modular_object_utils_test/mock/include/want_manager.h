@@ -25,7 +25,7 @@ class Want {};
 
 class CWantManager {
 public:
-    static AbilityBase_ErrorCode TransformToWant(AbilityBase_Want &cWant, bool flag, Want &abilityWant);
+    static AbilityBase_ErrorCode TransformToWant(const AbilityBase_Want &cWant, Want &abilityWant);
 };
 
 } // namespace AAFwk
