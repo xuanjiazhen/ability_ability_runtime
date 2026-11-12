@@ -65,8 +65,10 @@
 #include "iremote_object.h"
 #include "kiosk_manager.h"
 #include "mission_list_manager_interface.h"
+#ifdef SUPPORT_MODULAR_OBJECT
 #include "modular_object_event_mgr.h"
 #include "modular_object_manager.h"
+#endif // SUPPORT_MODULAR_OBJECT
 #include "parameter.h"
 #include "pending_want_manager.h"
 #include "permission_verification.h"
@@ -2978,8 +2980,10 @@ protected:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
+#ifdef SUPPORT_MODULAR_OBJECT
     virtual int32_t QuerySelfModularObjectExtensionInfos(
         std::vector<ModularObjectExtensionInfo> &extensionInfos) override;
+#endif // SUPPORT_MODULAR_OBJECT
 
     /**
      * @brief Get list of applications launched before the first unlock.
@@ -3766,7 +3770,9 @@ private:
 
     std::shared_ptr<AbilityRuntime::InsightIntentEventMgr> insightIntentEventMgr_;
 
+#ifdef SUPPORT_MODULAR_OBJECT
     std::shared_ptr<AbilityRuntime::ModularObjectExtensionEventMgr> modularObjectExtensionEventMgr_;
+#endif // SUPPORT_MODULAR_OBJECT
 
     bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
 

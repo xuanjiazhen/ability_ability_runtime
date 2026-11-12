@@ -158,7 +158,6 @@ ohos_shared_library("abilityms") {
     "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection/include",
   ]
   deps = [
-    ":modular_object",
     ":wantagent_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
@@ -305,6 +304,11 @@ ohos_shared_library("abilityms") {
     deps += [
       "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     ]
+  }
+
+  if (ability_runtime_modular_object) {
+    defines += [ "SUPPORT_MODULAR_OBJECT" ]
+    deps += [ ":modular_object" ]
   }
 
   if (ability_runtime_feature_sandboxmanager) {
