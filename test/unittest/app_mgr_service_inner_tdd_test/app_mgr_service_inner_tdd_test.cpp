@@ -975,8 +975,8 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_009, TestSize.Level1)
 
 /**
  * @tc.name: IsAmsForegroundDetermined_001
- * @tc.desc: Verify IsAmsForegroundDetermined treats FOREGROUND/FOCUS/BACKGROUND/CACHED/TERMINATED as
- *           determined, so a signal-kill report keeps the AppMgr recorded foreground flag
+ * @tc.desc: Verify IsAmsForegroundDetermined treats FOREGROUND/FOCUS/BACKGROUND/CACHED as determined,
+ *           so a signal-kill report keeps the AppMgr recorded foreground flag
  * @tc.type: FUNC
  * @tc.Function: IsAmsForegroundDetermined
  * @tc.SubFunction: NA
@@ -990,7 +990,6 @@ HWTEST_F(AppMgrServiceInnerTest, IsAmsForegroundDetermined_001, TestSize.Level1)
         ApplicationState::APP_STATE_FOCUS,
         ApplicationState::APP_STATE_BACKGROUND,
         ApplicationState::APP_STATE_CACHED,
-        ApplicationState::APP_STATE_TERMINATED,
     };
     for (auto state : determinedStates) {
         EXPECT_TRUE(AppMgrServiceInner::IsAmsForegroundDetermined(state));
@@ -1000,8 +999,8 @@ HWTEST_F(AppMgrServiceInnerTest, IsAmsForegroundDetermined_001, TestSize.Level1)
 
 /**
  * @tc.name: IsAmsForegroundDetermined_002
- * @tc.desc: Verify IsAmsForegroundDetermined treats CREATE/READY/PRE_FOREGROUND/END/SET_COLD_START as
- *           undetermined, so the kernel kill record stays the last resort for them
+ * @tc.desc: Verify IsAmsForegroundDetermined treats CREATE/READY/PRE_FOREGROUND/END/SET_COLD_START and
+ *           TERMINATED as undetermined, so the kernel kill record stays the last resort for them
  * @tc.type: FUNC
  * @tc.Function: IsAmsForegroundDetermined
  * @tc.SubFunction: NA
@@ -1016,6 +1015,7 @@ HWTEST_F(AppMgrServiceInnerTest, IsAmsForegroundDetermined_002, TestSize.Level1)
         ApplicationState::APP_STATE_PRE_FOREGROUND,
         ApplicationState::APP_STATE_END,
         ApplicationState::APP_STATE_SET_COLD_START,
+        ApplicationState::APP_STATE_TERMINATED,
     };
     for (auto state : undeterminedStates) {
         EXPECT_FALSE(AppMgrServiceInner::IsAmsForegroundDetermined(state));

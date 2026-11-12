@@ -6527,9 +6527,9 @@ static void ReportProcessKillEvent(std::string versionCode, std::string versionN
 }
 
 // AppMgr's recorded application state is authoritative for the foreground flag.
-// CREATE, READY and PRE_FOREGROUND do not carry a reliable foreground or background meaning.
-// APP_STATE_END and APP_STATE_SET_COLD_START are rejected by AppRunningRecord::SetState(), so they
-// never reach this point. The kernel kill record stays the last resort for all of them.
+// FOREGROUND and FOCUS mean the process was in the foreground, BACKGROUND and CACHED mean it was
+// not. The other states do not carry a reliable foreground or background meaning, TERMINATED only
+// says that the process is gone. The kernel kill record stays the last resort for all of them.
 bool AppMgrServiceInner::IsAmsForegroundDetermined(ApplicationState state)
 {
     switch (state) {
@@ -6537,9 +6537,6 @@ bool AppMgrServiceInner::IsAmsForegroundDetermined(ApplicationState state)
         case ApplicationState::APP_STATE_FOCUS:
         case ApplicationState::APP_STATE_BACKGROUND:
         case ApplicationState::APP_STATE_CACHED:
-        // The record already left the foreground and the background lifecycle, so the process is
-        // reported as a background process.
-        case ApplicationState::APP_STATE_TERMINATED:
             return true;
         default:
             return false;
@@ -6610,7 +6607,9 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     };
     if (!res) {
         ffrt::submit([versionCode, versionName, reportData, queryKillInfo, killInfo]() mutable {
-            queryKillInfo(killInfo, reportData.killId, reportData.killMsg);
+            if (!queryKillInfo(killInfo, reportData.killId, reportData.killMsg)) {
+                TAG_LOGD(AAFwkTag::APPMGR, "read kernel kill record failed, pid:%{public}d", killInfo.pid);
+            }
             ReportProcessKillEvent(versionCode, versionName, reportData, killInfo);
         }, ffrt::task_attr().name("reportProcessKill").delay(PROCESS_KILL_DELAY_TIME).
         timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));

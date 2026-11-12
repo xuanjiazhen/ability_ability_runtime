@@ -596,7 +596,8 @@ static void FillProcessKillInfoFromKernel(const KillInfo& info, int64_t currentT
     int killId = static_cast<int>(info.data.id);
     killInfo.killId = killId;
     killInfo.adj = static_cast<int>(info.data.adj);
-    // foreground: signal/Exit death takes kernel record as authority (overrides AppMgr inferred value)
+    // foreground: the kernel kill record is the fallback, the AppMgr recorded state overrides it
+    // when AppMgr can tell foreground from background (see AppMgrServiceInner::SendProcessKillEvent)
     killInfo.foreground = info.data.foreground;
     killInfo.timestamp = static_cast<int64_t>(info.data.timestamp);
     killInfo.killReason = HiviewDFX::ProcessKillReason::GetKillReason(killId);
