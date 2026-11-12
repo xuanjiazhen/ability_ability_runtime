@@ -34,7 +34,9 @@
 #include "extension_config.h"
 #include "extension_running_info.h"
 #include "modular_object_extension_info.h"
+#ifdef SUPPORT_MODULAR_OBJECT
 #include "modular_object_manager.h"
+#endif // SUPPORT_MODULAR_OBJECT
 #include "connection_record.h"
 #include "element_name.h"
 #include "res_sched_util.h"

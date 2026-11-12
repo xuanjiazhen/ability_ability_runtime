@@ -94,8 +94,10 @@
 #include "mock_session_manager_service.h"
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
 #include "modal_system_ui_extension.h"
+#ifdef SUPPORT_MODULAR_OBJECT
 #include "modular_object_manager.h"
 #include "modular_object_utils.h"
+#endif // SUPPORT_MODULAR_OBJECT
 #include "multi_app_utils.h"
 #include "native_ability_util.h"
 #include "os_account_manager_wrapper.h"
@@ -567,11 +569,13 @@ bool AbilityManagerService::Init()
     InitAppSpawnMsgPipe();
     insightIntentEventMgr_ = std::make_shared<AbilityRuntime::InsightIntentEventMgr>();
     insightIntentEventMgr_->SubscribeSysEventReceiver();
+#ifdef SUPPORT_MODULAR_OBJECT
     if (AppUtils::GetInstance().IsSupportModularObjectExtension() &&
         !AppUtils::GetInstance().IsBopdOrRescueMode()) {
         modularObjectExtensionEventMgr_ = std::make_shared<AbilityRuntime::ModularObjectExtensionEventMgr>();
         modularObjectExtensionEventMgr_->SubscribeSysEventReceiver();
     }
+#endif // SUPPORT_MODULAR_OBJECT
     ReportDataPartitionUsageManager::SendReportDataPartitionUsageEvent();
     InitWantAgentAppStateObserver();
     DelayedSingleton<AAFwk::ExtensionRunningTimeoutMonitor>::GetInstance()->StartMonitor();
@@ -6377,12 +6381,14 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         return result;
     }
     CheckExtensionRateLimit(checkedWant);
+#ifdef SUPPORT_MODULAR_OBJECT
     if (extensionType == AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         auto ret = ModularObjectUtils::CheckRateLimit();
         if (ret != ERR_OK) {
             return ret;
         }
     }
+#endif // SUPPORT_MODULAR_OBJECT
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(connect->AsObject(), ERR_INVALID_VALUE);
     if (extensionType != AppExecFwk::ExtensionAbilityType::UI_SERVICE &&
@@ -13807,9 +13813,11 @@ int AbilityManagerService::CheckCallOtherExtensionPermission(const AbilityReques
     if (extensionType == AppExecFwk::ExtensionAbilityType::CALLER_INFO_QUERY) {
         return CheckCallerInfoQueryExtensionPermission(abilityRequest);
     }
+#ifdef SUPPORT_MODULAR_OBJECT
     if (extensionType == AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         return ModularObjectUtils::CheckPermission(abilityRequest);
     }
+#endif // SUPPORT_MODULAR_OBJECT
     TAG_LOGE(AAFwkTag::ABILITYMGR, "not SA, can't start other extension");
     return CHECK_PERMISSION_FAILED;
 }
@@ -19110,6 +19118,7 @@ int AbilityManagerService::StartSelfUIAbilityInner(StartSelfUIAbilityParam param
         CHECK_PERMISSION_FAILED, "permission denied");
 
     pid_t checkPid = callingPid;
+#ifdef SUPPORT_MODULAR_OBJECT
     if (param.callerToken && ModularObjectUtils::GetPidToCheckByCallerToken(param.callerToken, checkPid)) {
         AppExecFwk::RunningProcessInfo checkProcessInfo;
         DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByChildProcessPid(
@@ -19121,6 +19130,10 @@ int AbilityManagerService::StartSelfUIAbilityInner(StartSelfUIAbilityParam param
         CHECK_TRUE_RETURN_RET(processInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND,
             NOT_TOP_ABILITY, "caller not foreground");
     }
+#else
+    CHECK_TRUE_RETURN_RET(processInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND,
+        NOT_TOP_ABILITY, "caller not foreground");
+#endif // SUPPORT_MODULAR_OBJECT
 
     if (!param.hasStartOptions) {
         return StartAbility(param.want);
@@ -20312,6 +20325,7 @@ int32_t AbilityManagerService::UnRegisterPreloadUIExtensionHostClient(int32_t ca
     return connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
 }
 
+#ifdef SUPPORT_MODULAR_OBJECT
 int32_t AbilityManagerService::QuerySelfModularObjectExtensionInfos(
     std::vector<ModularObjectExtensionInfo> &extensionInfos)
 {
@@ -20333,6 +20347,7 @@ int32_t AbilityManagerService::QuerySelfModularObjectExtensionInfos(
     return DelayedSingleton<ModularObjectManager>::GetInstance()->QuerySelfModularObjectExtensionInfos(userId,
         callerBundleName, callerAppIndex, extensionInfos);
 }
+#endif // SUPPORT_MODULAR_OBJECT
 
 int32_t AbilityManagerService::GetUserLockedBundleList(int32_t userId,
     std::unordered_set<std::string> &userLockedBundleList)

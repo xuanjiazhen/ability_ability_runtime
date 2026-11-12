@@ -1076,9 +1076,11 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::MANUAL_START_AUTO_STARTUP_APPS) {
         return ManualStartAutoStartupAppsInner(data, reply);
     }
+#ifdef SUPPORT_MODULAR_OBJECT
     if (interfaceCode == AbilityManagerInterfaceCode::QUERY_SELF_MODULAR_OBJECT_EXTENSION_INFOS) {
         return QuerySelfModularObjectExtensionInfosInner(data, reply);
     }
+#endif // SUPPORT_MODULAR_OBJECT
     if (interfaceCode == AbilityManagerInterfaceCode::GET_USER_LOCKED_BUNDLE_LIST) {
         return GetUserLockedBundleListInner(data, reply);
     }
@@ -6159,6 +6161,7 @@ int32_t AbilityManagerStub::UnRegisterPreloadUIExtensionHostClientInner(MessageP
     return NO_ERROR;
 }
 
+#ifdef SUPPORT_MODULAR_OBJECT
 int32_t AbilityManagerStub::QuerySelfModularObjectExtensionInfosInner(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -6179,6 +6182,7 @@ int32_t AbilityManagerStub::QuerySelfModularObjectExtensionInfosInner(MessagePar
     }
     return NO_ERROR;
 }
+#endif // SUPPORT_MODULAR_OBJECT
 
 int32_t AbilityManagerStub::GetUserLockedBundleListInner(MessageParcel &data, MessageParcel &reply)
 {
