@@ -30,11 +30,13 @@ ohos_moduletest("AmsAppMgrServiceModuleTest") {
     "${ability_runtime_test_path}/mock/common/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
     "mock/include",
+    "${ability_runtime_test_path}/unittest/task_manager_service_test/mock/include",
   ]
 
   sources = [
     "${ability_runtime_services_path}/appmgr/src/cache_process_manager.cpp",
     "${ability_runtime_test_path}/mock/common/src/mock_native_token.cpp",
+    "${ability_runtime_test_path}/unittest/task_manager_service_test/mock/src/mock_saf_agent_fence.cpp",
     "ams_app_mgr_service_module_test.cpp",
     "mock/src/mock_ipc_skeleton.cpp",
   ]
@@ -55,6 +57,7 @@ ohos_moduletest("AmsAppMgrServiceModuleTest") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "appspawn:appspawn_client",
+    "asset:saf_agent_fence",
     "bundle_framework:appexecfwk_base",
     "cJSON:cjson",
     "ffrt:libffrt",
