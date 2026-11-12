@@ -46,6 +46,8 @@ public:
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
         bool &isAsync) override;
 
+    void Cancel(int32_t reason) override;
+
 private:
     using State = EtsInsightIntentUtils::State;
 

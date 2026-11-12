@@ -85,6 +85,7 @@ bool InsightIntentExecutor::Init(const InsightIntentExecutorInfo& intentInfo)
 
     InsightIntentContextExecParam execParam;
     execParam.intentId = executeParam->insightIntentId_;
+    execParam.executeId = executeParam->signalId_;
     execParam.toolCallId = executeParam->toolCallId_;
     execParam.executionInfo.intentName = executeParam->insightIntentName_;
     execParam.executionInfo.callerBundleName = executeParam->callerBundleName_;
@@ -92,11 +93,32 @@ bool InsightIntentExecutor::Init(const InsightIntentExecutorInfo& intentInfo)
     execParam.executionInfo.callerUid = executeParam->callerUid_;
     context_ = std::make_shared<InsightIntentContext>(intentInfo.token, executeParam->bundleName_,
         intentInfo.windowMode, execParam);
+    if (context_->GetCancellationSignal() != nullptr) {
+        context_->GetCancellationSignal()->SetExecuteId(context_->GetExecuteId());
+    }
     return true;
 }
 
 std::shared_ptr<InsightIntentContext> InsightIntentExecutor::GetContext()
 {
     return context_;
+}
+
+void InsightIntentExecutor::Cancel(int32_t reason)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "cancel executor, reason: %{public}d", reason);
+    canceled_.store(true);
+    // Propagate the cancellation to the signal handed to the target app code so
+    // the app can observe it (poll isCancelled / setOnCancelListener). The context
+    // is created in Init() before this executor can ever receive a Cancel, so it
+    // is safe to dereference here.
+    if (context_ != nullptr && context_->GetCancellationSignal() != nullptr) {
+        context_->GetCancellationSignal()->Cancel(reason);
+    }
+}
+
+bool InsightIntentExecutor::IsCanceled() const
+{
+    return canceled_.load();
 }
 } // namespace OHOS::AbilityRuntime
