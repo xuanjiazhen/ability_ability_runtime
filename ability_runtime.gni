@@ -117,6 +117,7 @@ declare_args() {
   ability_runtime_smart_auto_fill_ability =
       "com.ohos.textautofill/entry/TextAutoFillAbility"
   ability_runtime_upms = true
+  ability_runtime_modular_object = false
   cj_frontend = true
   ability_runtime_app_no_response_dialog = false
   ability_runtime_app_no_response_dialog_wearable = false

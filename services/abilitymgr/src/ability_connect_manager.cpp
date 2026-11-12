@@ -41,8 +41,10 @@
 #include "insight_intent_execute_param.h"
 #include "int_wrapper.h"
 #include "multi_instance_utils.h"
+#ifdef SUPPORT_MODULAR_OBJECT
 #include "modular_object_manager.h"
 #include "modular_object_utils.h"
+#endif // SUPPORT_MODULAR_OBJECT
 #include "param.h"
 #include "request_id_util.h"
 #include "res_sched_util.h"
@@ -3775,7 +3777,11 @@ int32_t AbilityConnectManager::HandleExtensionSetup(const AbilityRequest &abilit
         AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         return ERR_OK;
     }
+#ifdef SUPPORT_MODULAR_OBJECT
     return ModularObjectUtils::SetupNewRecord(abilityRequest, targetService, serviceKey);
+#else
+    return ERR_OK;
+#endif // SUPPORT_MODULAR_OBJECT
 }
 
 void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abilityRequest,
@@ -3807,6 +3813,7 @@ int32_t AbilityConnectManager::CheckModularObjectLimits(const AbilityRequest &ab
         AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         return ERR_OK;
     }
+#ifdef SUPPORT_MODULAR_OBJECT
     AppExecFwk::ElementName element(abilityRequest.abilityInfo.deviceId,
         GenerateBundleName(abilityRequest),
         abilityRequest.abilityInfo.name, abilityRequest.abilityInfo.moduleName);
@@ -3841,6 +3848,9 @@ int32_t AbilityConnectManager::CheckModularObjectLimits(const AbilityRequest &ab
         }
     }
     return ModularObjectUtils::CheckLimits(instanceCount, connectionCount);
+#else
+    return ERR_OK;
+#endif // SUPPORT_MODULAR_OBJECT
 }
 
 }  // namespace AAFwk
