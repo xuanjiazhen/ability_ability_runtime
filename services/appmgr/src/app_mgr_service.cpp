@@ -310,11 +310,11 @@ ErrCode AppMgrService::Init()
         [appMgrServiceInner = appMgrServiceInner_](pid_t pid) {
             return appMgrServiceInner->GetAppRunningRecordByPid(pid) != nullptr;
         });
-    // Reconcile the judge with the caller foreground ability tokens before a task level
-    // is judged. The query is per-pid, ability-level and returns the same token identity
-    // the ability observer reports; it bypasses the IPC-facing permission gates (the
-    // startTask caller is a system app without GET_RUNNING_INFO).
-    TaskManagerService::GetInstance().SetForegroundSeeder(
+    // Reconcile the judge with the caller foreground ability tokens when a pid starts
+    // being tracked. The query is per-pid, ability-level and returns the same token
+    // identity the ability observer reports; it bypasses the IPC-facing permission gates
+    // (the startTask caller is a system app without GET_RUNNING_INFO).
+    TaskPriorityJudge::GetInstance().SetForegroundSeeder(
         [appMgrServiceInner = appMgrServiceInner_](pid_t pid, std::vector<uintptr_t> &tokens) {
             appMgrServiceInner->GetForegroundAbilityTokensByPid(pid, tokens);
         });

@@ -82,6 +82,7 @@ public:
         judge.loadListenerRegistered_ = false;
         judge.SetLoadProvider(nullptr);
         judge.loadProvider_ = nullptr;
+        judge.SetForegroundSeeder(nullptr);
         judge.TrackForeground(TEST_FG_PID);
     }
     void TearDown() override
@@ -93,6 +94,7 @@ public:
         judge.loadListenerRegistered_ = false;
         judge.SetLoadProvider(nullptr);
         judge.loadProvider_ = nullptr;
+        judge.SetForegroundSeeder(nullptr);
     }
 };
 
@@ -248,6 +250,52 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_TrackForeground_0100, TestSize
     // events after untrack are ignored again
     judge.OnForegroundAbilityChanged(untrackedPid, 0x5002, true);
     EXPECT_FALSE(judge.IsForeground(untrackedPid));
+}
+
+/**
+ * @tc.number: TaskPriorityJudge_TrackForeground_0200
+ * @tc.name: TrackForeground reconciles the initial foreground state through the seeder.
+ * @tc.desc: a tracked pid with an empty foreground set consults the wired seeder and is
+ *           seeded (the observer is incremental-only, so an already-foreground pid would
+ *           otherwise stay invisible until its next transition); an empty seeder result
+ *           leaves the pid background, and a pid that already has foreground entries is
+ *           not queried again.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_TrackForeground_0200, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    // seeder reports one foreground ability token for the tracked pid
+    judge.SetForegroundSeeder([](pid_t pid, std::vector<uintptr_t> &tokens) {
+        if (pid == TEST_FG_PID) {
+            tokens.push_back(0x8001);
+        }
+    });
+    judge.TrackForeground(TEST_FG_PID);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    {
+        std::lock_guard<std::mutex> lock(judge.judgeMutex_);
+        ASSERT_EQ(judge.fgAbilities_[TEST_FG_PID].count(0x8001), 1);
+    }
+    // re-tracking an already-foreground pid must not consult the seeder again
+    bool queried = false;
+    judge.SetForegroundSeeder([&queried](pid_t pid, std::vector<uintptr_t> &tokens) {
+        (void)pid;
+        (void)tokens;
+        queried = true;
+    });
+    judge.TrackForeground(TEST_FG_PID);
+    EXPECT_FALSE(queried);
+
+    // a fresh pid with an empty seeder result stays background
+    constexpr pid_t otherPid = TEST_FG_PID + 1;
+    judge.TrackForeground(otherPid);
+    EXPECT_FALSE(judge.IsForeground(otherPid));
+
+    // a fresh pid with no seeder wired stays background too
+    judge.SetForegroundSeeder(nullptr);
+    constexpr pid_t thirdPid = TEST_FG_PID + 2;
+    judge.TrackForeground(thirdPid);
+    EXPECT_FALSE(judge.IsForeground(thirdPid));
 }
 
 /**

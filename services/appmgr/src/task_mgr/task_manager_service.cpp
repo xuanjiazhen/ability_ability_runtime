@@ -176,7 +176,6 @@ int32_t TaskManagerService::StartTask(const std::string &taskId)
     RegisterScheduleListeners();
     auto &judge = TaskPriorityJudge::GetInstance();
     judge.TrackForeground(caller.pid);
-    ReconcileForegroundState(caller.pid);
     int32_t priority = judge.JudgeLevel(caller.pid);
     TAG_LOGI(AAFwkTag::APPMGR, "judged priority: %{public}d for caller uid: %{public}d",
         priority, caller.uid);
@@ -320,36 +319,43 @@ void TaskManagerService::OnSystemLoadLevelChanged(int32_t /* loadLevel: judge ca
 
 void TaskManagerService::RejudgeTasks(pid_t pid)
 {
-    std::vector<std::pair<std::string, int32_t>> changedTasks;
-    {
-        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
-        for (auto &item : tasks_) {
-            TaskRecord &record = item.second;
-            if (pid > 0 && record.creatorPid != pid) {
-                continue;
-            }
-            int32_t newLevel = TaskPriorityJudge::GetInstance().JudgeLevel(record.creatorPid);
-            if (newLevel == record.priority) {
-                continue;  // first-line anti-jitter: unchanged level is not propagated
-            }
-            TAG_LOGI(AAFwkTag::APPMGR, "task level re-judged, taskId: %{public}s %{public}d -> %{public}d",
-                record.taskId.c_str(), record.priority, newLevel);
-            record.priority = newLevel;
-            changedTasks.emplace_back(record.taskId, newLevel);
-            // same-mutex delivery keeps the schedule index consistent with the records
-            ProcessSchedule::GetInstance().OnTaskLevelChanged(record.taskId, newLevel);
+    std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+    for (auto &item : tasks_) {
+        TaskRecord &record = item.second;
+        if (pid > 0 && record.creatorPid != pid) {
+            continue;
         }
+        int32_t newLevel = TaskPriorityJudge::GetInstance().JudgeLevel(record.creatorPid);
+        if (newLevel == record.priority) {
+            continue;  // first-line anti-jitter: unchanged level is not propagated
+        }
+        TAG_LOGI(AAFwkTag::APPMGR, "task level re-judged, taskId: %{public}s %{public}d -> %{public}d",
+            record.taskId.c_str(), record.priority, newLevel);
+        record.priority = newLevel;
+        // same-mutex delivery keeps the schedule index consistent with the records
+        ProcessSchedule::GetInstance().OnTaskLevelChanged(record.taskId, newLevel);
     }
 }
 
 void TaskManagerService::RegisterScheduleListeners()
 {
     auto &judge = TaskPriorityJudge::GetInstance();
-    judge.SetLevelChangedHook([](int32_t level) {
-        TaskManagerService::GetInstance().OnSystemLoadLevelChanged(level);
-    });
-    // The judge guards re-registration with loadListenerRegistered_; retrying here covers
-    // the ressched late-start window instead of giving up forever after the first failure.
+    // One-shot wiring: the hook is stateless, repeated assignment would only add
+    // judgeMutex_ contention on every startTask for zero effect.
+    static std::mutex hookMutex;
+    static bool hookWired = false;
+    if (!hookWired) {
+        std::lock_guard<std::mutex> lock(hookMutex);
+        if (!hookWired) {
+            judge.SetLevelChangedHook([](int32_t level) {
+                TaskManagerService::GetInstance().OnSystemLoadLevelChanged(level);
+            });
+            hookWired = true;
+        }
+    }
+    // Deliberately retried on every call: the judge early-returns once registered, and
+    // a failed registration is retried on the next task start until the ressched service
+    // accepts it (covers the ressched late-start window).
     if (!judge.RegisterSystemLoadListener()) {
         TAG_LOGW(AAFwkTag::APPMGR, "system load listener unavailable, judge falls back to MEDIUM");
     }
@@ -389,35 +395,6 @@ void TaskManagerService::RegisterScheduleListeners()
         // retried on the next task start
         TAG_LOGW(AAFwkTag::APPMGR, "register ability state observer failed: %{public}d", ret);
     }
-}
-
-void TaskManagerService::ReconcileForegroundState(pid_t pid)
-{
-    if (pid <= 0) {
-        return;
-    }
-    auto &judge = TaskPriorityJudge::GetInstance();
-    if (judge.IsForeground(pid)) {
-        return;
-    }
-    std::vector<uintptr_t> tokens;
-    {
-        std::lock_guard<std::mutex> lock(seederMutex_);
-        if (foregroundSeeder_ == nullptr) {
-            return;
-        }
-        foregroundSeeder_(pid, tokens);
-    }
-    if (!tokens.empty()) {
-        judge.SeedForeground(pid, tokens);
-        TAG_LOGI(AAFwkTag::APPMGR, "fg abilities reconciled, pid: %{public}d count: %{public}zu", pid, tokens.size());
-    }
-}
-
-void TaskManagerService::SetForegroundSeeder(std::function<void(pid_t, std::vector<uintptr_t>&)> seeder)
-{
-    std::lock_guard<std::mutex> lock(seederMutex_);
-    foregroundSeeder_ = std::move(seeder);
 }
 
 void TaskManagerService::FinishTasksByCreatorInner(pid_t pid, int32_t uid)

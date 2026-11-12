@@ -53,8 +53,30 @@ void TaskPriorityJudge::TrackForeground(pid_t pid)
     if (pid <= 0) {
         return;
     }
-    std::lock_guard<std::mutex> lock(judgeMutex_);
-    trackedPids_.insert(pid);
+    std::function<void(pid_t, std::vector<uintptr_t>&)> seeder;
+    {
+        std::lock_guard<std::mutex> lock(judgeMutex_);
+        trackedPids_.insert(pid);
+        auto it = fgAbilities_.find(pid);
+        if (it != fgAbilities_.end() && !it->second.empty()) {
+            return;
+        }
+        seeder = foregroundSeeder_;
+    }
+    // The seeder enters the appmgr running-record locks, so it must run WITHOUT
+    // judgeMutex_ (lock order: no judge lock while holding appmgr locks). SeedForeground
+    // re-takes the judge lock and is idempotent per token, so a concurrent ability
+    // event landing in between collapses onto the same entry.
+    if (seeder == nullptr) {
+        return;
+    }
+    std::vector<uintptr_t> tokens;
+    seeder(pid, tokens);
+    if (!tokens.empty()) {
+        SeedForeground(pid, tokens);
+        TAG_LOGI(AAFwkTag::APPMGR, "fg abilities reconciled, pid: %{public}d count: %{public}zu",
+            pid, tokens.size());
+    }
 }
 
 void TaskPriorityJudge::UntrackForeground(pid_t pid)
@@ -199,6 +221,12 @@ void TaskPriorityJudge::SetLevelChangedHook(std::function<void(int32_t)> hook)
 {
     std::lock_guard<std::mutex> lock(judgeMutex_);
     levelChangedHook_ = std::move(hook);
+}
+
+void TaskPriorityJudge::SetForegroundSeeder(std::function<void(pid_t, std::vector<uintptr_t>&)> seeder)
+{
+    std::lock_guard<std::mutex> lock(judgeMutex_);
+    foregroundSeeder_ = std::move(seeder);
 }
 
 void TaskPriorityJudge::NotifyLevelChanged(int32_t level)

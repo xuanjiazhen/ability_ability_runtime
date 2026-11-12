@@ -17,11 +17,13 @@
 #define OHOS_APP_EXECFWK_TASK_MGR_TASK_PRIORITY_JUDGE_H
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <mutex>
 #include <set>
 #include <string>
 #include <sys/types.h>
+#include <vector>
 
 #include "task_mgr/system_load_provider.h"
 
@@ -53,9 +55,15 @@ public:
     static int32_t DetermineLevel(bool foreground, int32_t loadLevel);
 
     /**
-     * @brief Starts recording the foreground abilities of a process; idempotent. Only
-     *        tracked processes are recorded: ability state events of untracked pids are
-     *        ignored, so the recorded state stays bounded by the live task creators.
+     * @brief Starts recording the foreground abilities of a process and reconciles the
+     *        initial state in the same call: the ability observer only delivers
+     *        incremental events, so a pid that was already foreground before its
+     *        tracking started would otherwise stay invisible until its next transition.
+     *        When the tracked pid has no foreground entry yet and the foreground seeder
+     *        is wired, the current foreground ability tokens are queried through the
+     *        seeder and seeded. Only tracked processes are recorded: ability state
+     *        events of untracked pids are ignored, so the recorded state stays bounded
+     *        by the live task creators.
      * @param pid Indicates the caller process id.
      */
     void TrackForeground(pid_t pid);
@@ -150,6 +158,17 @@ public:
     void SetLevelChangedHook(std::function<void(int32_t)> hook);
 
     /**
+     * @brief Wires the per-pid foreground ability token query used by TrackForeground to
+     *        reconcile the initial state of a newly tracked pid; the tokens must be the
+     *        same identity the ability state observer reports, so a seeded entry and an
+     *        observed entry are indistinguishable. Wired by the app manager service,
+     *        which owns the running-application records.
+     * @param seeder Indicates the query collecting the foreground ability tokens of one
+     *        process, or null to unwire (the reconcile is then skipped).
+     */
+    void SetForegroundSeeder(std::function<void(pid_t, std::vector<uintptr_t>&)> seeder);
+
+    /**
      * @brief Unregisters the fusion level listener.
      */
     void UnregisterSystemLoadListener();
@@ -174,6 +193,10 @@ private:
 
     std::shared_ptr<ISystemLoadProvider> loadProvider_;
     std::function<void(int32_t)> levelChangedHook_;
+    // Per-pid foreground ability token query wired by the app manager service; invoked
+    // WITHOUT judgeMutex_ held (it enters the appmgr running-record locks) and only for
+    // a tracked pid whose foreground set is still empty.
+    std::function<void(pid_t, std::vector<uintptr_t>&)> foregroundSeeder_;
     mutable std::mutex judgeMutex_;
     // Foreground ability set per process: the set stores the ability's IRObject token
     // address (uintptr_t). A sentinel value 0 represents the seeder "some ability is

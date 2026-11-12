@@ -83,6 +83,7 @@ void ResetJudgeState()
     judge.trackedPids_.clear();
     judge.fgAbilities_.clear();
     judge.loadLevel_ = -1;
+    judge.foregroundSeeder_ = nullptr;
 }
 
 void SetTestCaller(int32_t uid, pid_t pid)
@@ -909,51 +910,6 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_DoubleAttributionRefCount_01
         EXPECT_TRUE(sched.pidEntries_.empty());
     }
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
-    ResetJudgeState();
-    ResetScheduleState();
-}
-
-/**
- * @tc.number: TaskManagerService_LazyFgReconcile_0100
- * @tc.name: the first startTask of an already-foreground app is judged HIGH via the lazy
- *           reconcile (test finding: count was 0 on the first startTask)
- * @tc.desc: with a seeder reporting the caller pid as foreground and an empty judge set,
- *           StartTask must consult the seeder, seed the pid and judge HIGH; when the seeder
- *           does not list the pid the task stays at the fallback level.
- */
-HWTEST_F(TaskManagerServiceTest, TaskManagerService_LazyFgReconcile_0100, TestSize.Level1)
-{
-    ResetJudgeState();
-    ResetScheduleState();
-    auto &service = TaskManagerService::GetInstance();
-    // seeder reports one foreground ability token for the caller pid
-    service.SetForegroundSeeder(
-        [](pid_t pid, std::vector<uintptr_t> &tokens) {
-            if (pid == TEST_CREATOR_PID) {
-                tokens.push_back(0x8001);
-            }
-        });
-    std::string taskId = MakeTaskId("lazy_fg_0100");
-    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
-    {
-        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
-        EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_HIGH);
-    }
-    EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
-
-    // seeder no longer reports foreground abilities: a new task falls back
-    service.SetForegroundSeeder([](pid_t pid, std::vector<uintptr_t> &tokens) {
-        (void)pid;
-        (void)tokens;
-    });
-    std::string taskId2 = MakeTaskId("lazy_fg_0101");
-    EXPECT_EQ(service.StartTask(taskId2), ERR_OK);
-    {
-        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
-        EXPECT_EQ(service.tasks_[taskId2].priority, TASK_PRIORITY_MEDIUM);
-    }
-    EXPECT_EQ(service.FinishTask(taskId2), ERR_OK);
-    service.SetForegroundSeeder(nullptr);
     ResetJudgeState();
     ResetScheduleState();
 }

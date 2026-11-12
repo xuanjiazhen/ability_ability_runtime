@@ -110,17 +110,6 @@ public:
     void RegisterScheduleListeners();
 
     /**
-     * @brief Wires the per-pid foreground ability token query used to reconcile the judge
-     *        before a task level is judged; the tokens are the same identity the ability
-     *        state observer reports, so a seeded entry and an observed entry are
-     *        indistinguishable. Wired by the app manager service, which owns the
-     *        running-application records.
-     * @param seeder Indicates the query collecting the foreground ability tokens of one
-     *        process, or null to unwire (the reconcile is then skipped).
-     */
-    void SetForegroundSeeder(std::function<void(pid_t, std::vector<uintptr_t>&)> seeder);
-
-    /**
      * @brief Attributes an entity into the task and restarts its inactivity timeout
      *        window. Every registration creates a new record under a fresh
      *        server-assigned attribution id.
@@ -428,15 +417,6 @@ private:
     bool IsLiveManagedProcess(pid_t pid);
 
     /**
-     * @brief Lazily reconciles ONE caller pid before its level is judged: if the judge has
-     *        no foreground entry for the pid but the running-record query says its app is
-     *        foreground, seed it. Covers the first startTask of an already-foreground app
-     *        when the observer registration or the bulk seed did not reach it.
-     * @param pid Indicates the caller process id about to be judged.
-     */
-    void ReconcileForegroundState(pid_t pid);
-
-    /**
      * @brief Re-judges the priority of running tasks and propagates level changes to
      *        process_schedule; updates the records under tasksMutex_ and calls
      *        process_schedule only after the mutex is released (lock order).
@@ -446,8 +426,6 @@ private:
     void RejudgeTasks(pid_t pid);
 
     static std::atomic<AttributionId> attributionRecordId_;
-    std::mutex seederMutex_;
-    std::function<void(pid_t, std::vector<uintptr_t>&)> foregroundSeeder_;
     ffrt::mutex tasksMutex_;
     std::unordered_map<std::string, TaskRecord> tasks_;
     std::function<bool(pid_t)> pidValidator_;
