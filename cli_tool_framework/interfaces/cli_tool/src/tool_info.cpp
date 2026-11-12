@@ -28,6 +28,10 @@ namespace CliTool {
 
 namespace {
 constexpr uint32_t MAX_TOOL_INFO_COUNT = 200000;
+// Upper bound for the supportedDevices array. System device types (default/tablet/tv/watch/
+// car/2in1/...) form a small closed set; anything beyond this bound is treated as invalid
+// input to prevent oversized-array memory exhaustion (PR self-check: array size validation).
+constexpr uint32_t MAX_SUPPORTED_DEVICES_COUNT = 100;
 constexpr const char *TOOL_VISIBILITY_PUBLIC = "public";
 constexpr const char *TOOL_VISIBILITY_PRIVATE = "private";
 } // namespace
@@ -354,11 +358,21 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         tool.visibility = TOOL_VISIBILITY_PRIVATE;
     }
 
-    // supportedDevices is optional: non-array value or non-string element falls back to
-    // an empty array (no device restriction, R-3 conservative default)
+    // supportedDevices is optional: a non-array value, a non-string element or an oversized
+    // array falls back to an empty array (no device restriction, R-3 conservative default)
     if (json.contains("supportedDevices")) {
         const nlohmann::json &devicesJson = json["supportedDevices"];
-        if (devicesJson.is_array()) {
+        if (!devicesJson.is_array()) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "ParseFromJson: supportedDevices of tool %{public}s is not an array, fallback to empty array",
+                tool.name.c_str());
+            tool.supportedDevices.clear();
+        } else if (devicesJson.size() > MAX_SUPPORTED_DEVICES_COUNT) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "ParseFromJson: supportedDevices of tool %{public}s exceeds max count %{public}u, "
+                "fallback to empty array", tool.name.c_str(), MAX_SUPPORTED_DEVICES_COUNT);
+            tool.supportedDevices.clear();
+        } else {
             std::vector<std::string> devices;
             bool allStringItems = true;
             for (const auto &device : devicesJson) {
@@ -376,11 +390,6 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
                     "fallback to empty array", tool.name.c_str());
                 tool.supportedDevices.clear();
             }
-        } else {
-            TAG_LOGW(AAFwkTag::CLI_TOOL,
-                "ParseFromJson: supportedDevices of tool %{public}s is not an array, fallback to empty array",
-                tool.name.c_str());
-            tool.supportedDevices.clear();
         }
     } else {
         tool.supportedDevices.clear();
