@@ -65,6 +65,8 @@ public:
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
         bool& isAsync) override;
 
+    void Cancel(int32_t reason) override;
+
 private:
     bool LoadJsCode(const InsightIntentExecutorInfo& insightIntentInfo, JsRuntime& runtime);
 

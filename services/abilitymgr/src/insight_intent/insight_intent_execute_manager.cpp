@@ -17,6 +17,7 @@
 #include "json_safe_util.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cinttypes>
 #include <new>
 #include <unordered_map>
@@ -46,6 +47,10 @@ using AppExecFwk::ParamType;
 
 namespace {
 constexpr size_t INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE = 256;
+// Sticky cancel marks (design 6.2.2 point 5): bounded, with a short TTL so a
+// stale mark cannot reject an unrelated future execution that reuses a signalId.
+constexpr int64_t STICKY_CANCEL_MARK_TTL_MS = 10000;
+constexpr size_t STICKY_CANCEL_MARK_MAX_SIZE = 1024;
 constexpr char EXECUTE_INSIGHT_INTENT_PERMISSION[] = "ohos.permission.EXECUTE_INSIGHT_INTENT";
 constexpr char PERMISSION_GET_BUNDLE_INFO_PRIVILEGED[] = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
 constexpr const char *KEY_INTERACTION_INFO = "interactionInfo";
@@ -123,6 +128,21 @@ bool GetMethodParamNamesFromSchema(const std::vector<std::string> &methodParams,
     }
     return true;
 }
+
+// Delivers the cancellation notifications collected by CancelIntentByTaskId
+// after releasing the lock: cancel listeners first, then the caller callbacks.
+void NotifyTaskCancellations(const std::vector<sptr<IInsightIntentCancelListener>> &listeners,
+    const std::vector<std::pair<uint64_t, sptr<IInsightIntentExecuteCallback>>> &settlements)
+{
+    for (const auto &listener : listeners) {
+        listener->OnCanceled(static_cast<int32_t>(InsightIntentCancelReason::CALLER_CANCELLED));
+    }
+    for (const auto &[key, callerCallback] : settlements) {
+        AppExecFwk::InsightIntentExecuteResult cancelResult{};
+        cancelResult.innerErr = INTENT_CANCELED;
+        callerCallback->OnExecuteDone(key, INTENT_CANCELED, cancelResult);
+    }
+}
 }
 using namespace AppExecFwk;
 using InsightIntentType = AbilityRuntime::InsightIntentType;
@@ -139,6 +159,17 @@ void InsightIntentExecuteRecipient::OnRemoteDied(const wptr<OHOS::IRemoteObject>
         return;
     }
     DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoteDied(intentId_);
+}
+
+void InsightIntentCancelListenerRecipient::OnRemoteDied(const wptr<OHOS::IRemoteObject> &remote)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "InsightIntentCancelListenerRecipient OnRemoteDied, %{public}" PRIu64, intentId_);
+    auto object = remote.promote();
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null object");
+        return;
+    }
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->OnCancelListenerDied(intentId_);
 }
 
 InsightIntentExecuteManager::InsightIntentExecuteManager() = default;
@@ -169,7 +200,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
         return ERR_INVALID_VALUE;
     }
     uint64_t intentId = 0;
-    result = AddRecord(key, callerToken, param->bundleName_, intentId, execParam, param->taskId_);
+    result = AddRecord(key, callerToken, param->bundleName_, intentId, execParam, param->taskId_, param->signalId_);
     if (result != ERR_OK) {
         return result;
     }
@@ -258,10 +289,57 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
     return ERR_OK;
 }
 
+void InsightIntentExecuteManager::RecordStickyCancel(const std::string &signalId, InsightIntentCancelReason reason)
+{
+    if (signalId.empty()) {
+        return;
+    }
+    int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    // Prune expired marks to keep the map bounded (TTL policy, design 6.2.2 point 5).
+    auto it = stickyCanceledSignalIds_.begin();
+    while (it != stickyCanceledSignalIds_.end()) {
+        if (it->second.expireTimeMs <= nowMs) {
+            it = stickyCanceledSignalIds_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    // Bound the map size: evict the (arbitrarily) smallest-keyed entry when full.
+    if (stickyCanceledSignalIds_.size() >= STICKY_CANCEL_MARK_MAX_SIZE) {
+        stickyCanceledSignalIds_.erase(stickyCanceledSignalIds_.begin());
+    }
+    stickyCanceledSignalIds_[signalId] = StickyCancelMark { reason, nowMs + STICKY_CANCEL_MARK_TTL_MS };
+}
+
+bool InsightIntentExecuteManager::ConsumeStickyCancelLocked(const std::string &signalId)
+{
+    if (signalId.empty()) {
+        return false;
+    }
+    auto it = stickyCanceledSignalIds_.find(signalId);
+    if (it == stickyCanceledSignalIds_.end()) {
+        return false;
+    }
+    int64_t expireTimeMs = it->second.expireTimeMs;
+    stickyCanceledSignalIds_.erase(it);
+    // A mark past its TTL is treated as absent.
+    int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    return expireTimeMs > nowMs;
+}
+
 int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, uint64_t &intentId, const ExecuteParam &execParam, const std::string &taskId)
+    const std::string &bundleName, uint64_t &intentId, const ExecuteParam &execParam, const std::string &taskId,
+    const std::string &signalId)
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
+    // Design 6.2.2 point 5: a cancel that arrived before this execute IPC must
+    // reject the execution instead of letting it run (sticky mark consumption).
+    if (ConsumeStickyCancelLocked(signalId)) {
+        TAG_LOGW(AAFwkTag::INTENT, "execute rejected by sticky cancel, signalId: %{public}s", signalId.c_str());
+        return INTENT_CANCELED;
+    }
     intentId = ++intentIdCount_;
     auto record = std::make_shared<InsightIntentExecuteRecord>();
     record->key = key;
@@ -273,6 +351,8 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->deviceId = execParam.srcDeviceId;
     record->requestCode = execParam.requestCode;
     record->taskId = taskId;
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->signalId = signalId;
     if (callerToken != nullptr) {
         record->deathRecipient = sptr<InsightIntentExecuteRecipient>::MakeSptr(intentId);
         callerToken->AddDeathRecipient(record->deathRecipient);
@@ -280,6 +360,9 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
 
     // replace
     records_[intentId] = record;
+    if (!signalId.empty()) {
+        signalIdToIntentId_[signalId] = intentId;
+    }
     if (intentId > INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE) {
         // save the latest INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE records
         auto oldIt = records_.find(intentId - INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE);
@@ -304,6 +387,9 @@ int32_t InsightIntentExecuteManager::RemoveExecuteIntent(uint64_t intentId)
         if (it != records_.end() && it->second != nullptr) {
             taskId = it->second->taskId;
             attributionId = it->second->attributionId;
+            if (!it->second->signalId.empty()) {
+                signalIdToIntentId_.erase(it->second->signalId);
+            }
         }
         records_.erase(intentId);
         TAG_LOGI(AAFwkTag::INTENT, "remove intentId: %{public}" PRIu64 ", records_ size: %{public}zu",
@@ -419,6 +505,190 @@ int32_t InsightIntentExecuteManager::RemoteDied(uint64_t intentId)
     }
     result->second->callerToken = nullptr;
     result->second->state = InsightIntentExecuteState::REMOTE_DIED;
+    return ERR_OK;
+}
+
+bool InsightIntentExecuteManager::IsPrivilegedCancelAllowed()
+{
+    // TODO(competitor-analysis): decide whether SA/system callers may force-cancel
+    // intents owned by other callers. Default denies cross-caller cancellation.
+    return false;
+}
+
+void InsightIntentExecuteManager::OnCancelListenerDied(uint64_t intentId)
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto it = records_.find(intentId);
+    if (it == records_.end() || it->second == nullptr) {
+        TAG_LOGD(AAFwkTag::INTENT, "cancel listener died on missing record, intentId: %{public}" PRIu64, intentId);
+        return;
+    }
+    TAG_LOGD(AAFwkTag::INTENT, "cancel listener died, intentId: %{public}" PRIu64, intentId);
+    it->second->cancelListener = nullptr;
+    it->second->cancelListenerDeathRecipient = nullptr;
+}
+
+int32_t InsightIntentExecuteManager::CancelIntent(const std::string &signalId, int32_t callerUid)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "cancel intent start, signalId: %{public}s", signalId.c_str());
+    sptr<IInsightIntentCancelListener> listener = nullptr;
+    sptr<IRemoteObject> callerToken = nullptr;
+    uint64_t key = 0;
+    bool shouldNotify = false;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        shouldNotify = ResolveAndCancelIntentLocked(signalId, callerUid, listener, callerToken, key);
+    }
+    if (!shouldNotify) {
+        return ERR_OK;
+    }
+    if (listener != nullptr) {
+        listener->OnCanceled(static_cast<int32_t>(InsightIntentCancelReason::CALLER_CANCELLED));
+    }
+    sptr<IInsightIntentExecuteCallback> callerCallback = iface_cast<IInsightIntentExecuteCallback>(callerToken);
+    if (callerCallback != nullptr) {
+        AppExecFwk::InsightIntentExecuteResult cancelResult{};
+        cancelResult.innerErr = INTENT_CANCELED;
+        callerCallback->OnExecuteDone(key, INTENT_CANCELED, cancelResult);
+    }
+    TAG_LOGI(AAFwkTag::INTENT, "cancel intent done, signalId: %{public}s", signalId.c_str());
+    return ERR_OK;
+}
+
+bool InsightIntentExecuteManager::ResolveAndCancelIntentLocked(const std::string &signalId, int32_t callerUid,
+    sptr<IInsightIntentCancelListener> &listener, sptr<IRemoteObject> &callerToken, uint64_t &key)
+{
+    if (signalId.empty()) {
+        TAG_LOGW(AAFwkTag::INTENT, "cancel on empty signalId, no-op");
+        return false;
+    }
+    auto idIt = signalIdToIntentId_.find(signalId);
+    if (idIt == signalIdToIntentId_.end()) {
+        TAG_LOGW(AAFwkTag::INTENT, "cancel on unknown signalId, record sticky, no-op: %{public}s",
+            signalId.c_str());
+        RecordStickyCancel(signalId, InsightIntentCancelReason::CALLER_CANCELLED);
+        return false;
+    }
+    uint64_t intentId = idIt->second;
+    auto it = records_.find(intentId);
+    if (it == records_.end() || it->second == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "cancel on missing record, no-op, signalId: %{public}s", signalId.c_str());
+        signalIdToIntentId_.erase(idIt);
+        return false;
+    }
+    std::shared_ptr<InsightIntentExecuteRecord> record = it->second;
+    if (record->isDistributed) {
+        TAG_LOGW(AAFwkTag::INTENT, "distributed intent cancel not supported, no-op, signalId: %{public}s",
+            signalId.c_str());
+        return false;
+    }
+    if (callerUid != record->callerUid && !IsPrivilegedCancelAllowed()) {
+        TAG_LOGW(AAFwkTag::INTENT, "caller %{public}d not owner of signalId %{public}s, no-op",
+            callerUid, signalId.c_str());
+        return false;
+    }
+    if (record->state != InsightIntentExecuteState::EXECUTING) {
+        TAG_LOGW(AAFwkTag::INTENT, "intent not executing, cancel no-op, signalId: %{public}s"
+            ", state: %{public}d", signalId.c_str(), static_cast<int>(record->state));
+        return false;
+    }
+    record->state = InsightIntentExecuteState::CANCELED;
+    record->cancelReason = InsightIntentCancelReason::CALLER_CANCELLED;
+    listener = record->cancelListener;
+    callerToken = record->callerToken;
+    key = record->key;
+    if (record->callerToken != nullptr && record->deathRecipient != nullptr) {
+        record->callerToken->RemoveDeathRecipient(record->deathRecipient);
+        record->callerToken = nullptr;
+    }
+    return true;
+}
+
+int32_t InsightIntentExecuteManager::CancelIntentByTaskId(const std::string &taskId, int32_t callerUid)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "cancel intent by taskId start, taskId: %{public}s", taskId.c_str());
+    if (taskId.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "empty taskId");
+        return ERR_INVALID_VALUE;
+    }
+    std::vector<sptr<IInsightIntentCancelListener>> listeners;
+    std::vector<std::pair<uint64_t, sptr<IInsightIntentExecuteCallback>>> settlements;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        for (auto &[intentId, record] : records_) {
+            if (record == nullptr || record->taskId != taskId) {
+                continue;
+            }
+            if (record->isDistributed) {
+                continue;
+            }
+            if (callerUid != record->callerUid && !IsPrivilegedCancelAllowed()) {
+                continue;
+            }
+            if (record->state != InsightIntentExecuteState::EXECUTING) {
+                continue;
+            }
+            record->state = InsightIntentExecuteState::CANCELED;
+            record->cancelReason = InsightIntentCancelReason::CALLER_CANCELLED;
+            if (record->cancelListener != nullptr) {
+                listeners.push_back(record->cancelListener);
+            }
+            auto callerCallback = iface_cast<IInsightIntentExecuteCallback>(record->callerToken);
+            if (callerCallback != nullptr) {
+                settlements.emplace_back(record->key, callerCallback);
+            }
+            if (record->callerToken != nullptr && record->deathRecipient != nullptr) {
+                record->callerToken->RemoveDeathRecipient(record->deathRecipient);
+                record->callerToken = nullptr;
+            }
+        }
+    }
+    NotifyTaskCancellations(listeners, settlements);
+    TAG_LOGI(AAFwkTag::INTENT, "cancel intent by taskId done, taskId: %{public}s, listeners: %{public}zu, "
+        "settlements: %{public}zu", taskId.c_str(), listeners.size(), settlements.size());
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::AttachCancelListener(uint64_t intentId, const sptr<IRemoteObject> &listener)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "attach cancel listener, intentId: %{public}" PRIu64, intentId);
+    if (listener == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null listener");
+        return ERR_INVALID_VALUE;
+    }
+    sptr<IInsightIntentCancelListener> cancelListener = iface_cast<IInsightIntentCancelListener>(listener);
+    if (cancelListener == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid cancel listener");
+        return ERR_INVALID_VALUE;
+    }
+
+    bool alreadyCanceled = false;
+    int32_t reason = static_cast<int32_t>(InsightIntentCancelReason::CALLER_CANCELLED);
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        auto it = records_.find(intentId);
+        if (it == records_.end() || it->second == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
+            return INTENT_NOT_EXIST;
+        }
+        std::shared_ptr<InsightIntentExecuteRecord> record = it->second;
+        if (record->cancelListener != nullptr) {
+            TAG_LOGW(AAFwkTag::INTENT, "cancel listener already attached, id: %{public}" PRIu64, intentId);
+            return ERR_OK;
+        }
+        record->cancelListener = cancelListener;
+        record->cancelListenerDeathRecipient =
+            sptr<InsightIntentCancelListenerRecipient>::MakeSptr(intentId);
+        listener->AddDeathRecipient(record->cancelListenerDeathRecipient);
+        if (record->state == InsightIntentExecuteState::CANCELED) {
+            alreadyCanceled = true;
+            reason = static_cast<int32_t>(record->cancelReason);
+        }
+    }
+    if (alreadyCanceled) {
+        TAG_LOGI(AAFwkTag::INTENT, "already canceled, notify listener, intentId: %{public}" PRIu64, intentId);
+        cancelListener->OnCanceled(reason);
+    }
     return ERR_OK;
 }
 
@@ -714,6 +984,9 @@ void InsightIntentExecuteManager::SetInsightIntentBaseParams(
     want.SetParam(INSIGHT_INTENT_CALLER_BUNDLE_NAME, param->callerBundleName_);
     want.SetParam(INSIGHT_INTENT_CALLER_TOKEN_ID, param->callerTokenId_);
     want.SetParam(INSIGHT_INTENT_CALLER_UID, param->callerUid_);
+    if (!param->signalId_.empty()) {
+        want.SetParam(INSIGHT_INTENT_EXECUTE_SIGNAL_ID, param->signalId_);
+    }
     if (param->displayId_ != INVALID_DISPLAY_ID) {
         want.SetParam(Want::PARAM_RESV_DISPLAY_ID, param->displayId_);
         TAG_LOGD(AAFwkTag::INTENT, "Generate want with displayId: %{public}d", param->displayId_);
