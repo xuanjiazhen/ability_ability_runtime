@@ -168,6 +168,7 @@
 #endif
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
 #include "res_sched_client.h"
+#include "nlohmann/json.hpp"
 #endif
 #include "xcollie/process_kill_reason.h"
 #include "xcollie/watchdog.h"
@@ -11109,7 +11110,7 @@ int32_t AbilityManagerService::ExecutePrelaunchInterceptors(AbilityRequest &abil
     int32_t appIndex, const std::shared_ptr<EventInfo> &eventInfo)
 {
     AbilityInterceptorParam interceptorParam = InterceptorParamBuilder(abilityRequest.want, -1, userId)
-        .WithUI(false).Visible(false)
+        .WithUI(false).Visible(false).Prelaunch(true)
         .AbilityInfo(std::make_shared<AppExecFwk::AbilityInfo>(abilityRequest.abilityInfo))
         .Context<AbilityInterceptorParam::EcologicalCtx>({false, false, ""})
         // Dispose/running-control rules are stored per appIndex; pass the resolved clone index
