@@ -15885,8 +15885,10 @@ int32_t AbilityManagerService::ExecuteIntentCommon(const sptr<IRemoteObject> &ca
     switch (param->executeMode_) {
         case AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND:
             TAG_LOGI(AAFwkTag::INTENT, "ExecuteMode UI_ABILITY_FOREGROUND.");
+            // The caller context token carried in the param (when the driver parsed one) is
+            // used as the caller token for this start; otherwise it stays null as before.
             ret = StartAbilityWithInsightIntent(
-                want, param->userId_, DEFAULT_INVAL_VALUE, options.specifiedFullTokenId);
+                want, param->userId_, DEFAULT_INVAL_VALUE, options.specifiedFullTokenId, param->context_);
             if (ret != ERR_OK) {
                 eventInfo->errReason = "StartAbilityWithInsightIntent error";
                 SendIntentReport(*eventInfo, ret, param->insightIntentName_);

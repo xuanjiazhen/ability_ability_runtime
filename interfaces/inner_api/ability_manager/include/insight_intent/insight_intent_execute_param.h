@@ -169,6 +169,11 @@ public:
     std::string callerBundleName_;
     std::string callerTokenId_;
     int32_t callerUid_ = 0;
+
+    // Optional caller context, carried as its remote token: parsed from the JS 'context'
+    // parameter by the driver and transferred through IPC. Used as the caller token when a
+    // UIAbility is started in foreground execute mode; null means the caller passed no context.
+    sptr<IRemoteObject> context_;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

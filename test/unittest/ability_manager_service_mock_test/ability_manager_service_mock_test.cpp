@@ -29,6 +29,7 @@
 #undef protected
 #include "ability_manager_errors.h"
 #include "bundle_mgr_helper.h"
+#include "ipc_object_stub.h"
 #include "start_ability_utils.h"
 #include "message_parcel.h"
 
@@ -452,6 +453,31 @@ HWTEST_F(AbilityManagerServiceMockTest, ExecuteIntentCommon_0300, TestSize.Level
     param->executeMode_ = 999;
     ret = abilityMs->ExecuteIntentCommon(nullptr, param, "", options);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: ExecuteIntentCommon_0400
+ * @tc.desc: Test ExecuteIntentCommon UI_ABILITY_FOREGROUND branch with caller context token
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceMockTest, ExecuteIntentCommon_0400, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    auto param = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    param->bundleName_ = "test.bundleName";
+    param->moduleName_ = "test.entry";
+    param->abilityName_ = "ability1";
+    param->insightIntentName_ = "test1";
+    param->insightIntentParam_ = std::make_shared<WantParams>();
+    param->executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
+    param->context_ = sptr<IRemoteObject>(new IPCObjectStub(u"contextStub"));
+
+    AbilityRuntime::ExtractInsightIntentGenericInfo infos;
+    AbilityRuntime::ExecuteIntentCommonOptions options(false, infos, 1);
+    auto ret = abilityMs->ExecuteIntentCommon(nullptr, param, "", options);
+    EXPECT_NE(ret, ERR_OK);
 }
 
 /**
