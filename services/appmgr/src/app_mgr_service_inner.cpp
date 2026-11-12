@@ -13382,7 +13382,8 @@ int32_t AppMgrServiceInner::DebugCreateSnapshot(const std::string &bundleName,
         TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
         return AAFwk::ERR_NOT_DEVELOPER_MODE;
     }
-    if (bundleName.empty() || abilityName.empty()) {
+    // abilityName is optional: an empty name lets RSS make a snapshot of the whole app.
+    if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid parameters");
         return ERR_INVALID_VALUE;
     }
@@ -13427,6 +13428,43 @@ std::shared_ptr<ForkImageInfo> AppMgrServiceInner::FindImageInfoByPid(int32_t pi
     return nullptr;
 }
 
+int32_t AppMgrServiceInner::ResolveDestroyTargetBundle(const std::string &bundleName, int32_t pid,
+    std::string &targetBundle)
+{
+    if (bundleName.empty()) {
+        // -p mode: resolve the target bundle from the image info first.
+        auto imageInfo = FindImageInfoByPid(pid);
+        if (imageInfo == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "snapshot not exist, pid: %{public}d", pid);
+            return static_cast<int32_t>(ImageError::ERR_IMAGE_INFO_NOT_EXIST);
+        }
+        targetBundle = imageInfo->bundleInfo.name;
+        return ERR_OK;
+    }
+    if (pid > 0) {
+        // -b and -p are mutually exclusive; aa side has intercepted, guard here.
+        TAG_LOGE(AAFwkTag::APPMGR, "bundle and pid are mutually exclusive");
+        return ERR_INVALID_VALUE;
+    }
+    // -b mode: local pre-check covering both general and ability-specific images.
+    bool found = false;
+    {
+        std::lock_guard guard(imageInfoLock_);
+        for (const auto &item : imageInfoMap_) {
+            if (item.first.bundleName == bundleName) {
+                found = true;
+                break;
+            }
+        }
+    }
+    if (!found) {
+        TAG_LOGE(AAFwkTag::APPMGR, "snapshot not exist, bundleName:%{public}s", bundleName.c_str());
+        return static_cast<int32_t>(ImageError::ERR_IMAGE_INFO_NOT_EXIST);
+    }
+    targetBundle = bundleName;
+    return ERR_OK;
+}
+
 int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName,
     int32_t pid)
 {
@@ -13437,36 +13475,10 @@ int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, 
         TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
         return AAFwk::ERR_NOT_DEVELOPER_MODE;
     }
-    std::string targetBundle = bundleName;
-    if (targetBundle.empty()) {
-        // -p mode: resolve the target bundle from the image info first.
-        auto imageInfo = FindImageInfoByPid(pid);
-        if (imageInfo == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "snapshot not exist, pid: %{public}d", pid);
-            return static_cast<int32_t>(ImageError::ERR_IMAGE_INFO_NOT_EXIST);
-        }
-        targetBundle = imageInfo->bundleInfo.name;
-    } else {
-        if (pid > 0) {
-            // -b and -p are mutually exclusive; aa side has intercepted, guard here.
-            TAG_LOGE(AAFwkTag::APPMGR, "bundle and pid are mutually exclusive");
-            return ERR_INVALID_VALUE;
-        }
-        // -b mode: local pre-check covering both general and ability-specific images.
-        bool found = false;
-        {
-            std::lock_guard guard(imageInfoLock_);
-            for (const auto &item : imageInfoMap_) {
-                if (item.first.bundleName == bundleName) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        if (!found) {
-            TAG_LOGE(AAFwkTag::APPMGR, "snapshot not exist, bundleName:%{public}s", bundleName.c_str());
-            return static_cast<int32_t>(ImageError::ERR_IMAGE_INFO_NOT_EXIST);
-        }
+    std::string targetBundle;
+    int32_t resolveErr = ResolveDestroyTargetBundle(bundleName, pid, targetBundle);
+    if (resolveErr != ERR_OK) {
+        return resolveErr;
     }
     // Debug gate first: no side effect for non-debug targets.
     if (!CheckIsDebugApp(targetBundle)) {

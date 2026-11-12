@@ -1205,6 +1205,53 @@ ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, s
     return OHOS::ERR_OK;
 }
 
+ErrCode AbilityManagerShellCommand::HandleCreateSnapshotOption(int option, std::string &bundleName,
+    std::string &abilityName, bool &debugReportOnly, std::string &perfCmd)
+{
+    switch (option) {
+        case 'h': {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -h' no arg", cmd_.c_str());
+            break;
+        }
+        case 'b': {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -b' bundle", cmd_.c_str());
+            bundleName = optarg;
+            break;
+        }
+        case 'a': {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -a' ability", cmd_.c_str());
+            abilityName = optarg;
+            break;
+        }
+        case 'd': // 'd' and 'r' both map to the debug-report-only flag, so '-dr' works as written
+        case 'r': {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -dr' debug report only", cmd_.c_str());
+            debugReportOnly = true;
+            break;
+        }
+        case 'p': {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -p' perf cmd", cmd_.c_str());
+            std::string validated = "";
+            if (!CheckPerfCmdString(optarg, PARAM_LENGTH, validated)) {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "invalid perf cmd");
+                resultReceiver_.append(HELP_MSG_CREATE_SNAPSHOT + "\n");
+                return OHOS::ERR_INVALID_VALUE;
+            }
+            perfCmd = validated;
+            break;
+        }
+        case '?': {
+            std::string unknownOption = "";
+            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+            resultReceiver_.append(unknownOptionMsg);
+            break;
+        }
+        default:
+            break;
+    }
+    return OHOS::ERR_OK;
+}
+
 ErrCode AbilityManagerShellCommand::ParseCreateSnapshotOptions(std::string &bundleName,
     std::string &abilityName, bool &debugReportOnly, std::string &perfCmd)
 {
@@ -1227,47 +1274,10 @@ ErrCode AbilityManagerShellCommand::ParseCreateSnapshotOptions(std::string &bund
             }
             break;
         }
-
-        switch (option) {
-            case 'h': {
-                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -h' no arg", cmd_.c_str());
-                break;
-            }
-            case 'b': {
-                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -b' bundle", cmd_.c_str());
-                bundleName = optarg;
-                break;
-            }
-            case 'a': {
-                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -a' ability", cmd_.c_str());
-                abilityName = optarg;
-                break;
-            }
-            case 'd': // 'd' and 'r' both map to the debug-report-only flag, so '-dr' works as written
-            case 'r': {
-                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -dr' debug report only", cmd_.c_str());
-                debugReportOnly = true;
-                break;
-            }
-            case 'p': {
-                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -p' perf cmd", cmd_.c_str());
-                std::string validated = "";
-                if (!CheckPerfCmdString(optarg, PARAM_LENGTH, validated)) {
-                    TAG_LOGE(AAFwkTag::AA_TOOL, "invalid perf cmd");
-                    resultReceiver_.append(HELP_MSG_CREATE_SNAPSHOT + "\n");
-                    return OHOS::ERR_INVALID_VALUE;
-                }
-                perfCmd = validated;
-                break;
-            }
-            case '?': {
-                std::string unknownOption = "";
-                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
-                resultReceiver_.append(unknownOptionMsg);
-                break;
-            }
-            default:
-                break;
+        ErrCode handleResult = HandleCreateSnapshotOption(option, bundleName, abilityName, debugReportOnly,
+            perfCmd);
+        if (handleResult != OHOS::ERR_OK) {
+            return handleResult;
         }
     }
 
@@ -1282,7 +1292,8 @@ ErrCode AbilityManagerShellCommand::RunAsCreateSnapshotCommand()
     std::string perfCmd = "";
     bool debugReportOnly = false;
     ParseCreateSnapshotOptions(bundleName, abilityName, debugReportOnly, perfCmd);
-    if (bundleName.empty() || abilityName.empty()) {
+    // abilityName is optional: an empty name snapshots the whole app instead of one ability.
+    if (bundleName.empty()) {
         resultReceiver_.append(HELP_MSG_CREATE_SNAPSHOT + "\n");
         return OHOS::ERR_INVALID_VALUE;
     }
@@ -1294,8 +1305,11 @@ ErrCode AbilityManagerShellCommand::RunAsCreateSnapshotCommand()
     if (result == OHOS::ERR_OK) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_CREATE_SNAPSHOT_OK.c_str());
         resultReceiver_ = STRING_CREATE_SNAPSHOT_OK + "\n";
-        resultReceiver_ += "bundle: " + bundleName + ", ability: " + abilityName +
-            ", debug report only: " + (debugReportOnly ? std::string("on") : std::string("off")) + "\n";
+        resultReceiver_ += "bundle: " + bundleName;
+        if (!abilityName.empty()) {
+            resultReceiver_ += ", ability: " + abilityName;
+        }
+        resultReceiver_ += ", debug report only: " + (debugReportOnly ? std::string("on") : std::string("off")) + "\n";
     } else {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d",
             STRING_CREATE_SNAPSHOT_NG.c_str(), result);

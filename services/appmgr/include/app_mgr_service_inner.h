@@ -534,6 +534,19 @@ public:
     std::shared_ptr<ForkImageInfo> FindImageInfoByPid(int32_t pid);
 
     /**
+     * Resolve the destroy target bundle for the debug destroy command: -p mode
+     * resolves the bundle from the image info, -b mode checks the local image
+     * map. Split from DebugDestroySnapshot to keep its nbnc under the gate.
+     *
+     * @param bundleName Bundle name from the caller; empty means -p mode.
+     * @param pid Template/image process id, used only in -p mode.
+     * @param targetBundle Output, the resolved bundle to destroy.
+     * @return Returns ERR_OK, ERR_INVALID_VALUE on -b/-p conflict,
+     *         ERR_IMAGE_INFO_NOT_EXIST when the snapshot does not exist.
+     */
+    int32_t ResolveDestroyTargetBundle(const std::string &bundleName, int32_t pid, std::string &targetBundle);
+
+    /**
      * KillApplicationSelf, this allows app to terminate itself.
      *
      * @param clearPageStack, the flag indicates if ClearPageStack lifecycle should be scheduled.

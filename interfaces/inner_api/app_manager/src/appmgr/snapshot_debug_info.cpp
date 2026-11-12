@@ -20,22 +20,34 @@
 namespace OHOS {
 namespace AppExecFwk {
 
-bool SnapshotDebugAppInfo::Marshalling(Parcel &parcel) const
+namespace {
+// Field groups are split only to keep each function's cyclomatic complexity
+// under the gate limit; the write/read order matches the declared field order
+// and must not change, or the IPC wire format breaks.
+bool WriteAppStateFields(const SnapshotDebugAppInfo &info, Parcel &parcel)
 {
-    if (!parcel.WriteString(bundleName) || !parcel.WriteInt32(uid) || !parcel.WriteInt32(userId) ||
-        !parcel.WriteInt32(imagePid) || !parcel.WriteInt32(templatePid) || !parcel.WriteString(state) ||
-        !parcel.WriteInt64(snapshotId) || !parcel.WriteInt32(isEnable) || !parcel.WriteInt32(isDebug) ||
-        !parcel.WriteInt32(autoMakeImage) || !parcel.WriteInt32(defaultEnable) ||
-        !parcel.WriteInt32(maxRecords) || !parcel.WriteInt32(recordTimeMs) ||
-        !parcel.WriteInt32(lowMemWatermark) || !parcel.WriteInt64(delayedSeconds) ||
-        !parcel.WriteInt64(imageExpireSeconds) || !parcel.WriteInt64(imageExpireRemaining) ||
-        !parcel.WriteString(noSnapshotReason)) {
+    return parcel.WriteString(info.bundleName) && parcel.WriteInt32(info.uid) &&
+        parcel.WriteInt32(info.userId) && parcel.WriteInt32(info.imagePid) &&
+        parcel.WriteInt32(info.templatePid) && parcel.WriteString(info.state) &&
+        parcel.WriteInt64(info.snapshotId) && parcel.WriteInt32(info.isEnable) &&
+        parcel.WriteInt32(info.isDebug);
+}
+
+bool WriteImagePolicyFields(const SnapshotDebugAppInfo &info, Parcel &parcel)
+{
+    return parcel.WriteInt32(info.autoMakeImage) && parcel.WriteInt32(info.defaultEnable) &&
+        parcel.WriteInt32(info.maxRecords) && parcel.WriteInt32(info.recordTimeMs) &&
+        parcel.WriteInt32(info.lowMemWatermark) && parcel.WriteInt64(info.delayedSeconds) &&
+        parcel.WriteInt64(info.imageExpireSeconds) && parcel.WriteInt64(info.imageExpireRemaining) &&
+        parcel.WriteString(info.noSnapshotReason);
+}
+
+bool WriteRunningPids(const SnapshotDebugAppInfo &info, Parcel &parcel)
+{
+    if (!parcel.WriteInt32(static_cast<int32_t>(info.runningPids.size()))) {
         return false;
     }
-    if (!parcel.WriteInt32(static_cast<int32_t>(runningPids.size()))) {
-        return false;
-    }
-    for (int32_t pid : runningPids) {
+    for (int32_t pid : info.runningPids) {
         if (!parcel.WriteInt32(pid)) {
             return false;
         }
@@ -43,32 +55,53 @@ bool SnapshotDebugAppInfo::Marshalling(Parcel &parcel) const
     return true;
 }
 
-bool SnapshotDebugAppInfo::ReadFromParcel(Parcel &parcel)
+bool ReadAppStateFields(SnapshotDebugAppInfo &info, Parcel &parcel)
 {
-    if (!parcel.ReadString(bundleName) || !parcel.ReadInt32(uid) || !parcel.ReadInt32(userId) ||
-        !parcel.ReadInt32(imagePid) || !parcel.ReadInt32(templatePid) || !parcel.ReadString(state) ||
-        !parcel.ReadInt64(snapshotId) || !parcel.ReadInt32(isEnable) || !parcel.ReadInt32(isDebug) ||
-        !parcel.ReadInt32(autoMakeImage) || !parcel.ReadInt32(defaultEnable) ||
-        !parcel.ReadInt32(maxRecords) || !parcel.ReadInt32(recordTimeMs) ||
-        !parcel.ReadInt32(lowMemWatermark) || !parcel.ReadInt64(delayedSeconds) ||
-        !parcel.ReadInt64(imageExpireSeconds) || !parcel.ReadInt64(imageExpireRemaining) ||
-        !parcel.ReadString(noSnapshotReason)) {
-        return false;
-    }
+    return parcel.ReadString(info.bundleName) && parcel.ReadInt32(info.uid) &&
+        parcel.ReadInt32(info.userId) && parcel.ReadInt32(info.imagePid) &&
+        parcel.ReadInt32(info.templatePid) && parcel.ReadString(info.state) &&
+        parcel.ReadInt64(info.snapshotId) && parcel.ReadInt32(info.isEnable) &&
+        parcel.ReadInt32(info.isDebug);
+}
+
+bool ReadImagePolicyFields(SnapshotDebugAppInfo &info, Parcel &parcel)
+{
+    return parcel.ReadInt32(info.autoMakeImage) && parcel.ReadInt32(info.defaultEnable) &&
+        parcel.ReadInt32(info.maxRecords) && parcel.ReadInt32(info.recordTimeMs) &&
+        parcel.ReadInt32(info.lowMemWatermark) && parcel.ReadInt64(info.delayedSeconds) &&
+        parcel.ReadInt64(info.imageExpireSeconds) && parcel.ReadInt64(info.imageExpireRemaining) &&
+        parcel.ReadString(info.noSnapshotReason);
+}
+
+bool ReadRunningPids(SnapshotDebugAppInfo &info, Parcel &parcel)
+{
     int32_t size = 0;
     if (!parcel.ReadInt32(size) || size < 0) {
         return false;
     }
-    runningPids.clear();
-    runningPids.reserve(static_cast<size_t>(size));
+    info.runningPids.clear();
+    info.runningPids.reserve(static_cast<size_t>(size));
     for (int32_t i = 0; i < size; ++i) {
         int32_t pid = -1;
         if (!parcel.ReadInt32(pid)) {
             return false;
         }
-        runningPids.push_back(pid);
+        info.runningPids.push_back(pid);
     }
     return true;
+}
+} // namespace
+
+bool SnapshotDebugAppInfo::Marshalling(Parcel &parcel) const
+{
+    return WriteAppStateFields(*this, parcel) && WriteImagePolicyFields(*this, parcel) &&
+        WriteRunningPids(*this, parcel);
+}
+
+bool SnapshotDebugAppInfo::ReadFromParcel(Parcel &parcel)
+{
+    return ReadAppStateFields(*this, parcel) && ReadImagePolicyFields(*this, parcel) &&
+        ReadRunningPids(*this, parcel);
 }
 
 SnapshotDebugAppInfo *SnapshotDebugAppInfo::Unmarshalling(Parcel &parcel)
