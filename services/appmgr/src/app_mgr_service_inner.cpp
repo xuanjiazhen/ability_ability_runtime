@@ -6542,9 +6542,8 @@ static bool IsAmsForegroundDetermined(ApplicationState state)
     }
 }
 
-// A signal-killed or self-exited process consults the kernel kill record, which overwrites
-// killInfo.foreground with the value recorded at kill time. AppMgr's state is preferred and
-// the kernel value is only kept when AppMgr cannot tell whether the process was foreground.
+// The kernel kill record overwrites the reported foreground value, so restore the AppMgr
+// value whenever AppMgr can tell whether the process was foreground.
 static void KeepAmsForegroundIfDetermined(bool amsDetermined, bool amsForeground,
     AppfreezeManager::ProcessKillInfo &killInfo)
 {
@@ -6552,7 +6551,7 @@ static void KeepAmsForegroundIfDetermined(bool amsDetermined, bool amsForeground
         return;
     }
     if (killInfo.foreground != amsForeground) {
-        TAG_LOGW(AAFwkTag::APPMGR,
+        TAG_LOGD(AAFwkTag::APPMGR,
             "ams foreground preferred, pid:%{public}d, ams:%{public}d, kernel:%{public}d", killInfo.pid,
             static_cast<int32_t>(amsForeground), static_cast<int32_t>(killInfo.foreground));
     }
@@ -6571,9 +6570,6 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     auto state = appRecord->GetState();
     bool foreground = state == ApplicationState::APP_STATE_FOREGROUND ||
         state == ApplicationState::APP_STATE_FOCUS;
-    // A signal-killed or self-exited process triggers the kernel kill-record query below.
-    // Foreground/background must still follow AppMgr's recorded state; the kernel record is
-    // only the last resort, see KeepAmsForegroundIfDetermined().
     bool amsForegroundDetermined = IsAmsForegroundDetermined(state);
     AppfreezeManager::ProcessKillInfo killInfo = {};
     killInfo.foreground = foreground;
