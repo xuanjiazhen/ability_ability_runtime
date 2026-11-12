@@ -818,6 +818,12 @@ enum class AbilityManagerInterfaceCode {
 
     // kill collaborator process
     KILL_COLLABORATOR_PROCESS = 6190,
+
+    // cancel a single in-flight insight intent by intentId
+    CANCEL_INSIGHT_INTENT = 6192,
+
+    // cancel all in-flight insight intents sharing a taskId
+    CANCEL_INSIGHT_INTENT_BY_TASK_ID = 6193,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

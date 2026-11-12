@@ -17,6 +17,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_CONTEXT_H
 
+#include "insight_intent_cancellation_signal.h"
 #include "insight_intent_constant.h"
 #include "insight_intent_execution_info.h"
 #include "iremote_object.h"
@@ -30,6 +31,9 @@ namespace AbilityRuntime {
  */
 struct InsightIntentContextExecParam {
     uint64_t intentId = 0;
+    // Cancellation addressing id delivered to the app: the caller's signalId when
+    // a CancellationSignal was passed, otherwise the system-generated intentId.
+    std::string executeId;
     std::string toolCallId;
     AppExecFwk::InsightIntentExecutionInfo executionInfo;
 };
@@ -43,6 +47,7 @@ public:
     InsightIntentContext(const sptr<IRemoteObject>& token, const std::string& bundleName, int32_t winMode,
         const InsightIntentContextExecParam& execParam)
         : token_(token), bundleName_(bundleName), winMode_(winMode), intentId_(execParam.intentId),
+          executeId_(execParam.executeId.empty() ? std::to_string(execParam.intentId) : execParam.executeId),
           toolCallId_(execParam.toolCallId), executionInfo_(execParam.executionInfo) {}
 
     InsightIntentContext(const sptr<IRemoteObject>& token, const std::string& bundleName, int32_t winMode,
@@ -82,6 +87,15 @@ public:
         return intentId_;
     }
 
+    /**
+     * @brief Gets the cancellation addressing id (== caller signalId, or the
+     *        system-generated intentId when no signal was passed).
+     */
+    std::string GetExecuteId() const
+    {
+        return executeId_;
+    }
+
     std::string GetToolCallId() const
     {
         return toolCallId_;
@@ -107,15 +121,44 @@ public:
         return delayReturnMode_;
     }
 
+    /**
+     * @brief Gets the cancellation signal of this context.
+     *
+     * The signal is the observability surface handed to the target app code.
+     * The executor flips it (via InsightIntentExecutor::Cancel) when AMS cancels
+     * this intent, so the app can poll IsCanceled or subscribe to the callback
+     * to stop its long running work early.
+     *
+     * @return The shared cancellation signal; never null.
+     */
+    std::shared_ptr<InsightIntentCancellationSignal> GetCancellationSignal()
+    {
+        return cancellationSignal_;
+    }
+
+    /**
+     * @brief Poll whether this execution has been cancelled.
+     *
+     * Backing store of the polling alternative to setOnCancelListener. Reads the
+     * same flag that the executor flips via InsightIntentExecutor::Cancel.
+     */
+    bool IsExecutionCancelled() const
+    {
+        return cancellationSignal_ != nullptr && cancellationSignal_->IsCanceled();
+    }
+
 private:
     sptr<IRemoteObject> token_ = nullptr;
     std::string bundleName_ = "";
     int32_t winMode_ = 0;
     uint64_t intentId_ = 0;
+    std::string executeId_;
     std::string toolCallId_ = "";
     AppExecFwk::InsightIntentExecutionInfo executionInfo_;
     int32_t executeMode_ = -1;
     InsightIntentReturnMode delayReturnMode_ = InsightIntentReturnMode::CALLBACK;
+    std::shared_ptr<InsightIntentCancellationSignal> cancellationSignal_ =
+        std::make_shared<InsightIntentCancellationSignal>();
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

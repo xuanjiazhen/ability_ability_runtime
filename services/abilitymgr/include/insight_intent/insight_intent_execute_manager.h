@@ -24,6 +24,7 @@
 #include "cpp/mutex.h"
 #include "event_report.h"
 #include "extract_insight_intent_profile.h"
+#include "insight_intent_cancel_listener_interface.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_result.h"
 #include "insight_intent_execution_info.h"
@@ -38,7 +39,8 @@ enum class InsightIntentExecuteState {
     UNKNOWN = 0,
     EXECUTING,
     EXECUTE_DONE,
-    REMOTE_DIED
+    REMOTE_DIED,
+    CANCELED
 };
 
 struct InsightIntentExecuteRecord {
@@ -56,6 +58,25 @@ struct InsightIntentExecuteRecord {
     std::string taskId;
     // Attribution id allocated by the in-process TaskManagerService (0 means not registered).
     int64_t attributionId = 0;
+    // uid of the original caller, used to authorize a later CancelInsightIntent.
+    int32_t callerUid = 0;
+    // Cancellation addressing id carried from the caller's CancellationSignal
+    // (empty means no signal was passed; the system-generated intentId is used then).
+    std::string signalId;
+    // Cancellation listener registered by the target app via NotifyInsightIntentExecute.
+    sptr<IInsightIntentCancelListener> cancelListener = nullptr;
+    sptr<IRemoteObject::DeathRecipient> cancelListenerDeathRecipient = nullptr;
+    // Reason recorded when the intent is cancelled; used to close the cold-start
+    // gap when the listener is attached after the cancellation already happened.
+    InsightIntentCancelReason cancelReason = InsightIntentCancelReason::CALLER_CANCELLED;
+};
+
+// Sticky cancellation mark recorded when a cancel IPC arrives before the execute
+// IPC establishes the session (design 6.2.2 point 5). Bounded + TTL so a stale
+// mark cannot reject an unrelated future execution.
+struct StickyCancelMark {
+    InsightIntentCancelReason reason = InsightIntentCancelReason::CALLER_CANCELLED;
+    int64_t expireTimeMs = 0;
 };
 
 class InsightIntentExecuteConnection : public AbilityConnectionStub {
@@ -78,6 +99,19 @@ public:
     {}
 
     ~InsightIntentExecuteRecipient() override = default;
+
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+
+private:
+    uint64_t intentId_ = 0;
+};
+
+class InsightIntentCancelListenerRecipient : public IRemoteObject::DeathRecipient {
+public:
+    explicit InsightIntentCancelListenerRecipient(uint64_t intentId) : intentId_(intentId)
+    {}
+
+    ~InsightIntentCancelListenerRecipient() override = default;
 
     void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
 
@@ -142,6 +176,12 @@ public:
 
     void SetTargetPid(uint64_t intentId, pid_t pid);
 
+    int32_t CancelIntent(const std::string &signalId, int32_t callerUid);
+
+    int32_t CancelIntentByTaskId(const std::string &taskId, int32_t callerUid);
+
+    int32_t AttachCancelListener(uint64_t intentId, const sptr<IRemoteObject> &listener);
+
     int32_t CheckAndUpdateQueryEntityParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
         std::shared_ptr<OHOS::AppExecFwk::InsightIntentQueryParam> &param, const std::string &callerBundleName);
 
@@ -173,13 +213,36 @@ private:
     mutable ffrt::mutex intentExemptionLock_;
     uint64_t intentIdCount_ = 0;
     std::map<uint64_t, std::shared_ptr<InsightIntentExecuteRecord>> records_;
+    // signalId -> intentId, for O(1) cancellation addressing by caller signal.
+    std::map<std::string, uint64_t> signalIdToIntentId_;
+    // signalId -> sticky cancel mark (design 6.2.2 point 5). Bounded + TTL.
+    std::map<std::string, StickyCancelMark> stickyCanceledSignalIds_;
     std::map<int32_t, int64_t> intentExemptionDeadlineTime_;
 
     std::mutex insightIntentWillExecuteMutex_;
     std::map<pid_t, sptr<IInsightIntentWillExecuteCallback>> insightIntentWillExecuteCallbacks_;
 
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
-        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "");
+        uint64_t &intentId, const ExecuteParam &execParam = ExecuteParam{}, const std::string &taskId = "",
+        const std::string &signalId = "");
+
+    static bool IsPrivilegedCancelAllowed();
+
+    // Records a sticky cancellation mark for the cancel-before-execute race
+    // (design 6.2.2 point 5). Caller must hold mutex_.
+    void RecordStickyCancel(const std::string &signalId, InsightIntentCancelReason reason);
+
+    // Consumes and returns true if a sticky mark exists for signalId. Caller must
+    // hold mutex_ (the entry is erased regardless of TTL).
+    bool ConsumeStickyCancelLocked(const std::string &signalId);
+
+    // Resolves signalId -> record and transitions it to CANCELED under mutex_.
+    // Returns true when the caller's listener/callback must be notified; false
+    // for every idempotent no-op (empty/unknown/stale/distributed/not-owner).
+    bool ResolveAndCancelIntentLocked(const std::string &signalId, int32_t callerUid,
+        sptr<IInsightIntentCancelListener> &listener, sptr<IRemoteObject> &callerToken, uint64_t &key);
+
+    void OnCancelListenerDied(uint64_t intentId);
 
     static int32_t IsValidCall(const Want &want);
 

@@ -48,9 +48,11 @@ private:
             "onExecuteInUIExtensionAbility",
             "onExecuteInServiceExtensionAbility"
         };
+    // The trailing cancellationSignal param is appended by the framework for every
+    // mode (design 6.3): { foreground +1, background +1, ui_extension +1, service +1 }.
     static constexpr std::array<size_t,
         static_cast<size_t>(InsightIntentExecuteMode::Count)> JS_ARGC_FOR_MODE {
-            3, 2, 3, 2 };
+            4, 3, 4, 3 };
 
     explicit JsInsightIntentExecutor(JsRuntime& runtime);
 public:
@@ -141,6 +143,10 @@ private:
     bool ExecuteInsightIntentServiceExtension(
         const std::string& name,
         const AAFwk::WantParams& param);
+
+    // Reconstructs the cancellation signal proxy object handed to the app as the
+    // trailing onExecuteXXX parameter (design 6.3). Never null.
+    napi_value CreateCancellationSignalJs();
     bool HandleSyncResult(napi_env env, napi_value resultJs, std::shared_ptr<InsightIntentContext> context);
     bool HandlePromiseResult(napi_env env, napi_value resultJs, std::shared_ptr<InsightIntentContext> context);
 
