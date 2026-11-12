@@ -188,19 +188,46 @@ HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_Fallback_0100, TestSize.Level1
  * @tc.number: TaskPriorityJudge_ForegroundCount_0100
  * @tc.name: Foreground ability count: multiple abilities of one uid keep the foreground state.
  * @tc.desc: Two abilities foreground, one leaves -> still foreground; both leave -> background.
+ *           Idempotent per token: a duplicated foreground event collapses onto one entry.
  */
 HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_ForegroundCount_0100, TestSize.Level1)
 {
     auto &judge = TaskPriorityJudge::GetInstance();
     judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, true);
+    // duplicated token re-insert is idempotent (AMS double-dispatch collapses)
     judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, true);
     EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
-    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, false);
+    // a second distinct ability joins the foreground
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x2002, true);
     EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    // the second ability leaves -> the first keeps the process foreground
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x2002, false);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    // the last ability leaves -> background
     judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, false);
     EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
-    // defensive: an extra foreground=false must not produce a negative count
+    // defensive: an extra foreground=false must not resurrect or corrupt the state
     judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x1001, false);
+    EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
+}
+
+/**
+ * @tc.number: TaskPriorityJudge_ForegroundDuplicateToken_0100
+ * @tc.name: A duplicated foreground event for the same token collapses onto one entry.
+ * @tc.desc: AMS double-dispatch paths (ChangeAbilityToForegroundIfNeeded +
+ *           PopForegroundingAbilityTokens) deliver the same token twice; a single
+ *           background event must then clear the foreground state instead of leaving
+ *           a stale count behind.
+ */
+HWTEST_F(TaskPriorityJudgeTest, TaskPriorityJudge_ForegroundDuplicateToken_0100, TestSize.Level1)
+{
+    auto &judge = TaskPriorityJudge::GetInstance();
+    // double-dispatch: the same token is reported foreground twice
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x3003, true);
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x3003, true);
+    EXPECT_TRUE(judge.IsForeground(TEST_FG_PID));
+    // one background event must fully release the duplicated entry
+    judge.OnForegroundAbilityChanged(TEST_FG_PID, 0x3003, false);
     EXPECT_FALSE(judge.IsForeground(TEST_FG_PID));
 }
 

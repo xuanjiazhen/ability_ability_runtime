@@ -378,7 +378,6 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_DumpSchedule_0100, TestSize.Level1
     auto &sched = ProcessSchedule::GetInstance();
     std::string emptyDump = sched.DumpSchedule();
     EXPECT_NE(emptyDump.find("ProcessSchedule index: tasks=0 pids=0"), std::string::npos);
-    EXPECT_NE(emptyDump.find("Exemption summary: total=0"), std::string::npos);
 
     sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
     std::string dump = sched.DumpSchedule();

@@ -141,14 +141,20 @@ void TaskPriorityJudge::OnProcessDied(pid_t pid)
 
 void TaskPriorityJudge::OnSystemLoadLevelChanged(int32_t loadLevel)
 {
-    std::lock_guard<std::mutex> lock(judgeMutex_);
-    TAG_LOGD(AAFwkTag::APPMGR, "systemload level changed: %{public}d", loadLevel);
-    if (loadLevel < 0 || loadLevel > FUSION_LEVEL_HIGH_LOAD_MAX) {
-        TAG_LOGW(AAFwkTag::APPMGR, "systemload level out of range: %{public}d", loadLevel);
-        loadLevel_ = -1;
-        return;
+    {
+        std::lock_guard<std::mutex> lock(judgeMutex_);
+        TAG_LOGD(AAFwkTag::APPMGR, "systemload level changed: %{public}d", loadLevel);
+        if (loadLevel < 0 || loadLevel > FUSION_LEVEL_HIGH_LOAD_MAX) {
+            TAG_LOGW(AAFwkTag::APPMGR, "systemload level out of range: %{public}d", loadLevel);
+            loadLevel_ = -1;
+        } else {
+            loadLevel_ = loadLevel;
+        }
     }
-    loadLevel_ = loadLevel;
+    // Notify OUTSIDE the judge lock: the hook re-enters the judge (JudgeLevel) and must
+    // not deadlock. The notify lives inside this entry point so every cache update drives
+    // the re-judgment, matching the provider-callback wiring semantics one-to-one.
+    NotifyLevelChanged(loadLevel);
 }
 
 bool TaskPriorityJudge::IsForeground(pid_t pid) const
@@ -206,8 +212,8 @@ bool TaskPriorityJudge::RegisterSystemLoadListener()
     }
     bool ok = provider != nullptr &&
         provider->RegisterListener([](int32_t level) {
+            // the entry point updates the cache and notifies the hook itself
             TaskPriorityJudge::GetInstance().OnSystemLoadLevelChanged(level);
-            TaskPriorityJudge::GetInstance().NotifyLevelChanged(level);
         });
     std::lock_guard<std::mutex> lock(judgeMutex_);
     loadListenerRegistered_ = ok;
