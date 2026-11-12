@@ -6552,7 +6552,7 @@ static void KeepAmsForegroundIfDetermined(bool amsDetermined, bool amsForeground
     }
     if (killInfo.foreground != amsForeground) {
         TAG_LOGD(AAFwkTag::APPMGR,
-            "ams foreground preferred, pid:%{public}d, ams:%{public}d, kernel:%{public}d", killInfo.pid,
+            "appMgr foreground preferred, pid:%{public}d, appMgr:%{public}d, kernel:%{public}d", killInfo.pid,
             static_cast<int32_t>(amsForeground), static_cast<int32_t>(killInfo.foreground));
     }
     killInfo.foreground = amsForeground;
