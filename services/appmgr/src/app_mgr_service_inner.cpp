@@ -13392,9 +13392,11 @@ int32_t AppMgrServiceInner::DebugCreateSnapshot(const std::string &bundleName,
         return AAFwk::ERR_NOT_DEBUG_APP;
     }
     // Acceptance-level forward: the making itself is triggered by RSS asynchronously.
+    // RSS scopes by the target app's user; GetCallerUserId falls back to the foreground user for the aa caller.
+    int32_t targetUserId = UserController::GetInstance().GetCallerUserId();
     int32_t errcode = -1;
     auto ret = AAFwk::ResSchedUtil::GetInstance().ReportCreateSnapshotCmdToRSS(
-        bundleName, abilityName, debugReportOnly, perfCmd, errcode);
+        bundleName, abilityName, debugReportOnly, perfCmd, targetUserId, errcode);
     if (ret != 0 || errcode < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "forward create cmd to RSS fail, ret: %{public}d errcode: %{public}d",
             ret, errcode);
@@ -13473,8 +13475,10 @@ int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, 
     }
     // Acceptance-level forward: the deletion itself is triggered by RSS asynchronously.
     // RSS destroys by bundleName; a pid-only request has been resolved to targetBundle above.
+    int32_t targetUserId = UserController::GetInstance().GetCallerUserId();
     int32_t errcode = -1;
-    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportDestroySnapshotCmdToRSS(targetBundle, abilityName, errcode);
+    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportDestroySnapshotCmdToRSS(targetBundle, abilityName,
+        targetUserId, errcode);
     if (ret != 0 || errcode < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "forward destroy cmd to RSS fail, ret: %{public}d errcode: %{public}d",
             ret, errcode);
@@ -13498,9 +13502,10 @@ int32_t AppMgrServiceInner::DebugListSnapshot(const std::string &bundleName, con
         return AAFwk::ERR_NOT_DEBUG_APP;
     }
     info = SnapshotDebugInfo();
+    int32_t targetUserId = UserController::GetInstance().GetCallerUserId();
     int32_t errcode = -1;
-    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportListSnapshotCmdToRSS(bundleName, abilityName, info,
-        errcode);
+    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportListSnapshotCmdToRSS(bundleName, abilityName, targetUserId,
+        info, errcode);
     if (ret != 0 || errcode < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "forward list cmd to RSS fail, ret: %{public}d errcode: %{public}d",
             ret, errcode);
