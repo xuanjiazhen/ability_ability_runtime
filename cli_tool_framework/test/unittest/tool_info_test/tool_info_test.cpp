@@ -3319,179 +3319,6 @@ HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_0700, TestSize.Level1)
     GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_0700 end";
 }
 
-// ==================== ParseToJson Schema String Tests ====================
-
-/**
- * @tc.name: ToolInfo_ParseToJson_0800
- * @tc.desc: Test ParseToJson emits invalid schema as string and valid as JSON object
- * @tc.type: FUNC
- */
-HWTEST_F(ToolInfoTest, ToolInfo_ParseToJson_0800, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "ToolInfo_ParseToJson_0800 start";
-
-    ToolInfo tool;
-    tool.name = "ohos-schema_test";
-    tool.inputSchema = "{not valid json}";
-    tool.outputSchema = R"({"type":"object"})";
-    tool.eventSchemas = "{also bad}";
-
-    nlohmann::json json = tool.ParseToJson();
-    EXPECT_EQ(json["inputSchema"], "{not valid json}");
-    EXPECT_TRUE(json["outputSchema"].is_object());
-    EXPECT_EQ(json["eventSchemas"], "{also bad}");
-
-    GTEST_LOG_(INFO) << "ToolInfo_ParseToJson_0800 end";
-}
-
-// ==================== Validate Failure Branch Tests ====================
-
-/**
- * @tc.name: ToolInfo_Validate_2500
- * @tc.desc: Test Validate rejects invalid name, empty version/description, bad path, bad schema
- * @tc.type: FUNC
- */
-HWTEST_F(ToolInfoTest, ToolInfo_Validate_2500, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "ToolInfo_Validate_2500 start";
-
-    auto valid = []() {
-        ToolInfo tool;
-        tool.name = "ohos-valid";
-        tool.version = "1.0";
-        tool.description = "desc";
-        tool.executablePath = "/bin/v";
-        tool.inputSchema = R"({"type":"object"})";
-        tool.outputSchema = R"({"type":"object"})";
-        tool.hasSubCommand = false;
-        return tool;
-    };
-
-    auto badName = valid();
-    badName.name = "no-prefix";
-    EXPECT_FALSE(ToolInfo::Validate(badName));
-
-    auto emptyVersion = valid();
-    emptyVersion.version = "";
-    EXPECT_FALSE(ToolInfo::Validate(emptyVersion));
-
-    auto emptyDesc = valid();
-    emptyDesc.description = "";
-    EXPECT_FALSE(ToolInfo::Validate(emptyDesc));
-
-    auto badPath = valid();
-    badPath.executablePath = "relative";
-    EXPECT_FALSE(ToolInfo::Validate(badPath));
-
-    auto emptyInput = valid();
-    emptyInput.inputSchema = "";
-    EXPECT_FALSE(ToolInfo::Validate(emptyInput));
-
-    auto badInput = valid();
-    badInput.inputSchema = "{invalid}";
-    EXPECT_FALSE(ToolInfo::Validate(badInput));
-
-    auto emptyOutput = valid();
-    emptyOutput.outputSchema = "";
-    EXPECT_FALSE(ToolInfo::Validate(emptyOutput));
-
-    auto badOutput = valid();
-    badOutput.outputSchema = "{invalid}";
-    EXPECT_FALSE(ToolInfo::Validate(badOutput));
-
-    auto badEventSchemas = valid();
-    badEventSchemas.eventSchemas = "{invalid}";
-    EXPECT_FALSE(ToolInfo::Validate(badEventSchemas));
-
-    auto hasSubNoCmds = valid();
-    hasSubNoCmds.hasSubCommand = true;
-    EXPECT_FALSE(ToolInfo::Validate(hasSubNoCmds));
-
-    EXPECT_TRUE(ToolInfo::Validate(valid()));
-
-    GTEST_LOG_(INFO) << "ToolInfo_Validate_2500 end";
-}
-
-// ==================== ToolsRawData Empty Data Tests ====================
-
-/**
- * @tc.name: ToolsRawData_ToToolInfoVec_EmptyData_0100
- * @tc.desc: Test ToolsRawData ToToolInfoVec with null data returns empty list
- * @tc.type: FUNC
- */
-HWTEST_F(ToolInfoTest, ToolsRawData_ToToolInfoVec_EmptyData_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "ToolsRawData_ToToolInfoVec_EmptyData_0100 start";
-
-    ToolsRawData rawData;
-    rawData.data = nullptr;
-    rawData.size = 0;
-
-    std::vector<ToolInfo> tools;
-    int32_t ret = ToolsRawData::ToToolInfoVec(rawData, tools);
-
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(tools.size(), 0u);
-
-    GTEST_LOG_(INFO) << "ToolsRawData_ToToolInfoVec_EmptyData_0100 end";
-}
-
-/**
- * @tc.name: ToolsRawData_ToToolInfoVec_EmptyData_0200
- * @tc.desc: Test ToolsRawData ToToolInfoVec with zero size returns empty list
- * @tc.type: FUNC
- */
-HWTEST_F(ToolInfoTest, ToolsRawData_ToToolInfoVec_EmptyData_0200, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "ToolsRawData_ToToolInfoVec_EmptyData_0200 start";
-
-    std::string dummyData = "dummy";
-    ToolsRawData rawData;
-    rawData.ownedData = dummyData;
-    rawData.data = rawData.ownedData.data();
-    rawData.size = 0;
-
-    std::vector<ToolInfo> tools;
-    int32_t ret = ToolsRawData::ToToolInfoVec(rawData, tools);
-
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(tools.size(), 0u);
-
-    GTEST_LOG_(INFO) << "ToolsRawData_ToToolInfoVec_EmptyData_0200 end";
-}
-
-// ==================== ToolsRawData Round Trip ====================
-
-/**
- * @tc.name: ToolsRawData_RoundTrip_0100
- * @tc.desc: Test valid round trip through FromToolInfoVec and ToToolInfoVec
- * @tc.type: FUNC
- */
-HWTEST_F(ToolInfoTest, ToolsRawData_RoundTrip_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "ToolsRawData_RoundTrip_0100 start";
-
-    ToolInfo tool;
-    tool.name = "ohos-roundtrip";
-    tool.version = "1.0.0";
-    tool.description = "round trip test";
-    tool.executablePath = "/bin/roundtrip";
-    tool.inputSchema = R"({"type":"object"})";
-    tool.outputSchema = R"({"type":"object"})";
-    tool.hasSubCommand = false;
-
-    std::vector<ToolInfo> original = {tool};
-    ToolsRawData rawData;
-    ToolsRawData::FromToolInfoVec(original, rawData);
-
-    std::vector<ToolInfo> parsed;
-    EXPECT_EQ(ToolsRawData::ToToolInfoVec(rawData, parsed), ERR_OK);
-    ASSERT_EQ(parsed.size(), 1u);
-    EXPECT_EQ(parsed[0].name, "ohos-roundtrip");
-
-    GTEST_LOG_(INFO) << "ToolsRawData_RoundTrip_0100 end";
-}
-
 // ==================== ToolInfo Visibility/SupportedDevices Tests (REQ 20260812019200) ====================
 
 /**
@@ -3773,6 +3600,83 @@ HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_SupportedDevices_0300, TestSize.Le
 }
 
 /**
+ * @tc.name: ToolInfo_ParseFromJson_SupportedDevices_0400
+ * @tc.desc: TC-1.14 (R-3) ParseFromJson with an oversized supportedDevices array (exceeds
+ *           MAX_SUPPORTED_DEVICES_COUNT = 100 in tool_info.cpp) falls back to an empty array
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_SupportedDevices_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_SupportedDevices_0400 start";
+
+    auto baseJson = R"({
+        "name": "ohos-oversized_devices",
+        "version": "1.0.0",
+        "description": "Tool with an oversized supportedDevices array",
+        "executablePath": "/bin/oversized_devices",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {}
+    })"_json;
+
+    auto oversizedJson = baseJson;
+    auto devices = nlohmann::json::array();
+    // MAX_SUPPORTED_DEVICES_COUNT is 100 (anonymous namespace in tool_info.cpp, not exported);
+    // 101 valid string elements exceed the bound and must trigger the conservative fallback.
+    for (int i = 0; i < 101; i++) {
+        devices.push_back("default");
+    }
+    oversizedJson["supportedDevices"] = devices;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(oversizedJson, tool);
+
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(tool.supportedDevices.empty());
+
+    GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_SupportedDevices_0400 end";
+}
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_SupportedDevices_0500
+ * @tc.desc: TC-1.15 (R-3 boundary) ParseFromJson with exactly MAX_SUPPORTED_DEVICES_COUNT (100)
+ *           valid string elements is accepted (boundary is inclusive)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_SupportedDevices_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_SupportedDevices_0500 start";
+
+    auto baseJson = R"({
+        "name": "ohos-boundary_devices",
+        "version": "1.0.0",
+        "description": "Tool with a boundary-size supportedDevices array",
+        "executablePath": "/bin/boundary_devices",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {}
+    })"_json;
+
+    auto boundaryJson = baseJson;
+    auto devices = nlohmann::json::array();
+    // Exactly 100 elements equals MAX_SUPPORTED_DEVICES_COUNT and must be accepted.
+    for (int i = 0; i < 100; i++) {
+        devices.push_back("default");
+    }
+    boundaryJson["supportedDevices"] = devices;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(boundaryJson, tool);
+
+    EXPECT_TRUE(result);
+    ASSERT_EQ(tool.supportedDevices.size(), 100u);
+    EXPECT_EQ(tool.supportedDevices[0], "default");
+    EXPECT_EQ(tool.supportedDevices[99], "default");
+
+    GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_SupportedDevices_0500 end";
+}
+
+/**
  * @tc.name: ToolInfo_ParseToJson_Visibility_0100
  * @tc.desc: TC-1.10 (VM-8/AC-3.1) ParseToJson emits visibility and supportedDevices keys with values
  * @tc.type: FUNC
@@ -3960,6 +3864,179 @@ HWTEST_F(ToolInfoTest, ToolInfo_Visibility_RoundTripRawData_0100, TestSize.Level
     EXPECT_TRUE(legacyTools[0].supportedDevices.empty());
 
     GTEST_LOG_(INFO) << "ToolInfo_Visibility_RoundTripRawData_0100 end";
+}
+
+// ==================== ParseToJson Schema String Tests ====================
+
+/**
+ * @tc.name: ToolInfo_ParseToJson_0800
+ * @tc.desc: Test ParseToJson emits invalid schema as string and valid as JSON object
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_ParseToJson_0800, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_ParseToJson_0800 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-schema_test";
+    tool.inputSchema = "{not valid json}";
+    tool.outputSchema = R"({"type":"object"})";
+    tool.eventSchemas = "{also bad}";
+
+    nlohmann::json json = tool.ParseToJson();
+    EXPECT_EQ(json["inputSchema"], "{not valid json}");
+    EXPECT_TRUE(json["outputSchema"].is_object());
+    EXPECT_EQ(json["eventSchemas"], "{also bad}");
+
+    GTEST_LOG_(INFO) << "ToolInfo_ParseToJson_0800 end";
+}
+
+// ==================== Validate Failure Branch Tests ====================
+
+/**
+ * @tc.name: ToolInfo_Validate_2500
+ * @tc.desc: Test Validate rejects invalid name, empty version/description, bad path, bad schema
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_2500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2500 start";
+
+    auto valid = []() {
+        ToolInfo tool;
+        tool.name = "ohos-valid";
+        tool.version = "1.0";
+        tool.description = "desc";
+        tool.executablePath = "/bin/v";
+        tool.inputSchema = R"({"type":"object"})";
+        tool.outputSchema = R"({"type":"object"})";
+        tool.hasSubCommand = false;
+        return tool;
+    };
+
+    auto badName = valid();
+    badName.name = "no-prefix";
+    EXPECT_FALSE(ToolInfo::Validate(badName));
+
+    auto emptyVersion = valid();
+    emptyVersion.version = "";
+    EXPECT_FALSE(ToolInfo::Validate(emptyVersion));
+
+    auto emptyDesc = valid();
+    emptyDesc.description = "";
+    EXPECT_FALSE(ToolInfo::Validate(emptyDesc));
+
+    auto badPath = valid();
+    badPath.executablePath = "relative";
+    EXPECT_FALSE(ToolInfo::Validate(badPath));
+
+    auto emptyInput = valid();
+    emptyInput.inputSchema = "";
+    EXPECT_FALSE(ToolInfo::Validate(emptyInput));
+
+    auto badInput = valid();
+    badInput.inputSchema = "{invalid}";
+    EXPECT_FALSE(ToolInfo::Validate(badInput));
+
+    auto emptyOutput = valid();
+    emptyOutput.outputSchema = "";
+    EXPECT_FALSE(ToolInfo::Validate(emptyOutput));
+
+    auto badOutput = valid();
+    badOutput.outputSchema = "{invalid}";
+    EXPECT_FALSE(ToolInfo::Validate(badOutput));
+
+    auto badEventSchemas = valid();
+    badEventSchemas.eventSchemas = "{invalid}";
+    EXPECT_FALSE(ToolInfo::Validate(badEventSchemas));
+
+    auto hasSubNoCmds = valid();
+    hasSubNoCmds.hasSubCommand = true;
+    EXPECT_FALSE(ToolInfo::Validate(hasSubNoCmds));
+
+    EXPECT_TRUE(ToolInfo::Validate(valid()));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2500 end";
+}
+
+// ==================== ToolsRawData Empty Data Tests ====================
+
+/**
+ * @tc.name: ToolsRawData_ToToolInfoVec_EmptyData_0100
+ * @tc.desc: Test ToolsRawData ToToolInfoVec with null data returns empty list
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolsRawData_ToToolInfoVec_EmptyData_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolsRawData_ToToolInfoVec_EmptyData_0100 start";
+
+    ToolsRawData rawData;
+    rawData.data = nullptr;
+    rawData.size = 0;
+
+    std::vector<ToolInfo> tools;
+    int32_t ret = ToolsRawData::ToToolInfoVec(rawData, tools);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(tools.size(), 0u);
+
+    GTEST_LOG_(INFO) << "ToolsRawData_ToToolInfoVec_EmptyData_0100 end";
+}
+
+/**
+ * @tc.name: ToolsRawData_ToToolInfoVec_EmptyData_0200
+ * @tc.desc: Test ToolsRawData ToToolInfoVec with zero size returns empty list
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolsRawData_ToToolInfoVec_EmptyData_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolsRawData_ToToolInfoVec_EmptyData_0200 start";
+
+    std::string dummyData = "dummy";
+    ToolsRawData rawData;
+    rawData.ownedData = dummyData;
+    rawData.data = rawData.ownedData.data();
+    rawData.size = 0;
+
+    std::vector<ToolInfo> tools;
+    int32_t ret = ToolsRawData::ToToolInfoVec(rawData, tools);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(tools.size(), 0u);
+
+    GTEST_LOG_(INFO) << "ToolsRawData_ToToolInfoVec_EmptyData_0200 end";
+}
+
+// ==================== ToolsRawData Round Trip ====================
+
+/**
+ * @tc.name: ToolsRawData_RoundTrip_0100
+ * @tc.desc: Test valid round trip through FromToolInfoVec and ToToolInfoVec
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolsRawData_RoundTrip_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolsRawData_RoundTrip_0100 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-roundtrip";
+    tool.version = "1.0.0";
+    tool.description = "round trip test";
+    tool.executablePath = "/bin/roundtrip";
+    tool.inputSchema = R"({"type":"object"})";
+    tool.outputSchema = R"({"type":"object"})";
+    tool.hasSubCommand = false;
+
+    std::vector<ToolInfo> original = {tool};
+    ToolsRawData rawData;
+    ToolsRawData::FromToolInfoVec(original, rawData);
+
+    std::vector<ToolInfo> parsed;
+    EXPECT_EQ(ToolsRawData::ToToolInfoVec(rawData, parsed), ERR_OK);
+    ASSERT_EQ(parsed.size(), 1u);
+    EXPECT_EQ(parsed[0].name, "ohos-roundtrip");
+
+    GTEST_LOG_(INFO) << "ToolsRawData_RoundTrip_0100 end";
 }
 
 } // namespace CliTool

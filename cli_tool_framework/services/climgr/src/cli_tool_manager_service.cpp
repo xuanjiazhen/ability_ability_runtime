@@ -784,14 +784,10 @@ int32_t CliToolManagerService::GetAllToolInfos(ToolsRawData &tools)
         return ret;
     }
     if (!isFullPermitted) {
-        std::vector<ToolInfo> publicTools;
-        publicTools.reserve(allTools.size());
-        for (const auto &tool : allTools) {
-            if (tool.visibility == TOOL_VISIBILITY_PUBLIC) {
-                publicTools.push_back(tool);
-            }
-        }
-        allTools = std::move(publicTools);
+        // In-place filter: drop non-public tools without copying into a second vector.
+        allTools.erase(std::remove_if(allTools.begin(), allTools.end(),
+            [](const ToolInfo &tool) { return tool.visibility != TOOL_VISIBILITY_PUBLIC; }),
+            allTools.end());
     }
     ToolsRawData::FromToolInfoVec(allTools, tools);
     return ERR_OK;
@@ -815,6 +811,7 @@ int32_t CliToolManagerService::GetAllToolSummaries(std::vector<ToolSummary> &sum
         return ret;
     }
     summaries.clear();
+    summaries.reserve(allTools.size());
     for (const auto &tool : allTools) {
         if (!isFullPermitted && tool.visibility != TOOL_VISIBILITY_PUBLIC) {
             continue;
