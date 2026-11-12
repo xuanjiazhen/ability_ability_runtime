@@ -16,6 +16,7 @@
 #include "js_insight_intent_driver.h"
 
 #include "ability_business_error.h"
+#include "ability_context.h"
 #include "ability_manager_client.h"
 #include "event_handler.h"
 #include "event_runner.h"
@@ -182,6 +183,36 @@ private:
         return weakContext != nullptr ? weakContext->lock() : nullptr;
     }
 
+    bool ParseContextToken(napi_env env, napi_value object, InsightIntentExecuteParam &param)
+    {
+        if (!IsExistsByPropertyName(env, object, "context")) {
+            return true;
+        }
+        napi_value inputContext = nullptr;
+        napi_status status = napi_get_named_property(env, object, "context", &inputContext);
+        if (status != napi_ok || inputContext == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "get context failed");
+            return false;
+        }
+        napi_valuetype type = napi_undefined;
+        status = napi_typeof(env, inputContext, &type);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::INTENT, "check context type failed");
+            return false;
+        }
+        if (type == napi_undefined || type == napi_null) {
+            TAG_LOGI(AAFwkTag::INTENT, "context is undefined or null, ignored");
+            return true;
+        }
+        auto context = GetAbilityContext(env, inputContext);
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid context");
+            return false;
+        }
+        param.context_ = context->GetToken();
+        return true;
+    }
+
     std::shared_ptr<JsUIExtensionCallback> GetJsUIExtensionCallback(napi_env env)
     {
         std::shared_ptr<JsUIExtensionCallback> callback = std::make_shared<JsUIExtensionCallback>(env);
@@ -268,6 +299,15 @@ private:
         if (!UnwrapExecuteParam(env, info.argv[INDEX_ZERO], param)) {
             TAG_LOGE(AAFwkTag::INTENT, "parse on off type failed");
             ThrowInvalidParamError(env, "Parameter error: Parse param failed, param must be a ExecuteParam.");
+            return CreateJsUndefined(env);
+        }
+
+        // 'context' is an optional parameter: when present, its token is carried in the execute
+        // param so that AMS can use it as the caller token for UIAbility foreground execution.
+        if (!ParseContextToken(env, info.argv[INDEX_ZERO], param)) {
+            TAG_LOGE(AAFwkTag::INTENT, "parse context failed");
+            ThrowInvalidParamError(env,
+                "Parameter error: Parse param failed, context must be a valid Context.");
             return CreateJsUndefined(env);
         }
 

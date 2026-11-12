@@ -24,6 +24,7 @@
 #include "hitrace_meter.h"
 #include "insight_intent_constant.h"
 #include "int_wrapper.h"
+#include "message_parcel.h"
 #include "string_wrapper.h"
 #include "uri.h"
 #include "want_params_wrapper.h"
@@ -182,6 +183,11 @@ bool InsightIntentExecuteParam::ReadFromParcel(Parcel &parcel)
     if (parcel.GetReadableBytes() > 0) {
         callerUid_ = parcel.ReadInt32();
     }
+    // context_ is an optional tail field: legacy parcels without it keep the default null value.
+    // WriteRemoteObject(nullptr) writes nothing, so a flag marks whether the token follows.
+    if (parcel.GetReadableBytes() > 0 && parcel.ReadBool()) {
+        context_ = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
+    }
     return true;
 }
 
@@ -228,6 +234,17 @@ bool InsightIntentExecuteParam::Marshalling(Parcel &parcel) const
     parcel.WriteString16(Str8ToStr16(callerBundleName_));
     parcel.WriteString16(Str8ToStr16(callerTokenId_));
     parcel.WriteInt32(callerUid_);
+    // context_ is optional: the flag keeps the parcel layout compatible with legacy readers,
+    // which stop reading after callerUid_ and simply ignore the trailing bytes.
+    if (!parcel.WriteBool(context_ != nullptr)) {
+        TAG_LOGE(AAFwkTag::INTENT, "write context flag fail");
+        return false;
+    }
+    if (context_ != nullptr &&
+        !(static_cast<MessageParcel*>(&parcel))->WriteRemoteObject(context_)) {
+        TAG_LOGE(AAFwkTag::INTENT, "write context fail");
+        return false;
+    }
     return true;
 }
 

@@ -24,6 +24,8 @@
 #include "insight_intent_execute_param.h"
 #include "array_wrapper.h"
 #include "int_wrapper.h"
+#include "ipc_object_stub.h"
+#include "message_parcel.h"
 #include "string_wrapper.h"
 #include "string_ex.h"
 
@@ -1056,6 +1058,163 @@ HWTEST_F(InsightIntentExecuteParamTest, GetFileEntityUrisAndFlags_1300, TestSize
     EXPECT_EQ(uriGroups[1].size(), 200u);
     EXPECT_EQ(flags[1], TEST_FLAG_WRITE);
     EXPECT_EQ(uriGroups[1][199], "file:///data/b199.txt");
+}
+
+/**
+ * @tc.name: Context_MarshallingUnmarshalling_0100
+ * @tc.desc: verify the optional context token survives a Marshalling/Unmarshalling round trip.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, Context_MarshallingUnmarshalling_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    InsightIntentExecuteParam originalParam;
+    originalParam.bundleName_ = TEST_BUNDLE_NANE;
+    originalParam.moduleName_ = TEST_MODULE_NANE;
+    originalParam.abilityName_ = TEST_ABILITY_NANE;
+    originalParam.insightIntentName_ = TEST_INSIGHT_INTENT_NANE;
+    originalParam.insightIntentParam_ = std::make_shared<WantParams>();
+    originalParam.callerBundleName_ = TEST_CALLER_BUNDLE_NANE;
+    originalParam.callerTokenId_ = "123";
+    originalParam.callerUid_ = 3056;
+    originalParam.context_ = sptr<IRemoteObject>(new IPCObjectStub(u"contextStub"));
+
+    MessageParcel parcel;
+    EXPECT_EQ(originalParam.Marshalling(parcel), true);
+
+    InsightIntentExecuteParam unmarshalledParam;
+    EXPECT_EQ(unmarshalledParam.ReadFromParcel(parcel), true);
+    EXPECT_EQ(unmarshalledParam.bundleName_, originalParam.bundleName_);
+    EXPECT_EQ(unmarshalledParam.callerBundleName_, originalParam.callerBundleName_);
+    EXPECT_EQ(unmarshalledParam.callerTokenId_, originalParam.callerTokenId_);
+    EXPECT_EQ(unmarshalledParam.callerUid_, originalParam.callerUid_);
+    ASSERT_NE(unmarshalledParam.context_, nullptr);
+    EXPECT_EQ(unmarshalledParam.context_.GetRefPtr(), originalParam.context_.GetRefPtr());
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: Context_MarshallingUnmarshalling_0200
+ * @tc.desc: verify the context field stays null across a round trip when no context is set.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, Context_MarshallingUnmarshalling_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    InsightIntentExecuteParam originalParam;
+    originalParam.bundleName_ = TEST_BUNDLE_NANE;
+    originalParam.insightIntentParam_ = std::make_shared<WantParams>();
+    originalParam.toolCallId_ = "tc-001";
+
+    MessageParcel parcel;
+    EXPECT_EQ(originalParam.Marshalling(parcel), true);
+
+    InsightIntentExecuteParam unmarshalledParam;
+    EXPECT_EQ(unmarshalledParam.ReadFromParcel(parcel), true);
+    EXPECT_EQ(unmarshalledParam.toolCallId_, "tc-001");
+    EXPECT_EQ(unmarshalledParam.context_, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: Context_UnmarshallingLegacyParcel_0100
+ * @tc.desc: verify a legacy parcel without the context tail field is parsed successfully
+ *           and context_ keeps the default null value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, Context_UnmarshallingLegacyParcel_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    // write fields in the legacy order, stopping at callerUid_ (no context tail field)
+    Parcel parcel;
+    parcel.WriteString16(Str8ToStr16(TEST_BUNDLE_NANE));
+    parcel.WriteString16(Str8ToStr16(TEST_MODULE_NANE));
+    parcel.WriteString16(Str8ToStr16(TEST_ABILITY_NANE));
+    parcel.WriteString16(Str8ToStr16(TEST_INSIGHT_INTENT_NANE));
+    WantParams insightIntentParam;
+    insightIntentParam.SetParam("testKey", Integer::Box(123));
+    parcel.WriteParcelable(&insightIntentParam);
+    parcel.WriteInt32(0);
+    parcel.WriteUint64(100);
+    parcel.WriteInt32(AppExecFwk::INVALID_DISPLAY_ID);
+    std::vector<std::string> uris;
+    parcel.WriteStringVector(uris);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(-1);
+    parcel.WriteInt8(0);
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    std::vector<std::string> methodParams;
+    parcel.WriteStringVector(methodParams);
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteBool(false);
+    parcel.WriteString16(Str8ToStr16("legacyDeviceId"));
+    parcel.WriteString16(Str8ToStr16("legacyToolCallId"));
+    parcel.WriteString16(Str8ToStr16("legacyTaskId"));
+    parcel.WriteString16(Str8ToStr16(TEST_CALLER_BUNDLE_NANE));
+    parcel.WriteString16(Str8ToStr16("100"));
+    parcel.WriteInt32(3056);
+
+    InsightIntentExecuteParam unmarshalledParam;
+    EXPECT_EQ(unmarshalledParam.ReadFromParcel(parcel), true);
+    EXPECT_EQ(unmarshalledParam.callerBundleName_, TEST_CALLER_BUNDLE_NANE);
+    EXPECT_EQ(unmarshalledParam.callerUid_, 3056);
+    EXPECT_EQ(unmarshalledParam.context_, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: Context_UnmarshallingMissingObject_0100
+ * @tc.desc: verify a parcel whose context flag is set but carries no object keeps the field null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, Context_UnmarshallingMissingObject_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    // simulate a truncated tail: all fixed fields are present, the context flag is set,
+    // but the token bytes are missing
+    MessageParcel parcel;
+    parcel.WriteString16(Str8ToStr16(TEST_BUNDLE_NANE));
+    parcel.WriteString16(Str8ToStr16(TEST_MODULE_NANE));
+    parcel.WriteString16(Str8ToStr16(TEST_ABILITY_NANE));
+    parcel.WriteString16(Str8ToStr16(TEST_INSIGHT_INTENT_NANE));
+    WantParams insightIntentParam;
+    insightIntentParam.SetParam("testKey", Integer::Box(123));
+    parcel.WriteParcelable(&insightIntentParam);
+    parcel.WriteInt32(0);
+    parcel.WriteUint64(100);
+    parcel.WriteInt32(AppExecFwk::INVALID_DISPLAY_ID);
+    std::vector<std::string> uris;
+    parcel.WriteStringVector(uris);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(-1);
+    parcel.WriteInt8(0);
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    std::vector<std::string> methodParams;
+    parcel.WriteStringVector(methodParams);
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteBool(false);
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteInt32(0);
+    parcel.WriteBool(true);
+
+    InsightIntentExecuteParam unmarshalledParam;
+    EXPECT_EQ(unmarshalledParam.ReadFromParcel(parcel), true);
+    EXPECT_EQ(unmarshalledParam.context_, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
 }
 } // namespace AAFwk
 } // namespace OHOS
