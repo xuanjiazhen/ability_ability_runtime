@@ -480,7 +480,7 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground(
     auto* env = runtime_.GetNapiEnv();
     napi_value nameJs = AppExecFwk::WrapStringToJS(env, name);
     napi_value paramJs = AppExecFwk::WrapWantParams(env, param);
-    napi_value argv[argc] = { nameJs, paramJs, windowStageJs->GetNapiValue() };
+    napi_value argv[argc] = { nameJs, paramJs, windowStageJs->GetNapiValue(), CreateCancellationSignalJs() };
     napi_value result = nullptr;
     result = CallJsFunctionWithResultInner(funcName, argc, argv);
     if (result == nullptr) {
@@ -510,7 +510,7 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIAbilityBackground(
     auto* env = runtime_.GetNapiEnv();
     napi_value nameJs = AppExecFwk::WrapStringToJS(env, name);
     napi_value paramJs = AppExecFwk::WrapWantParams(env, param);
-    napi_value argv[argc] = { nameJs, paramJs };
+    napi_value argv[argc] = { nameJs, paramJs, CreateCancellationSignalJs() };
     napi_value result = nullptr;
     result = CallJsFunctionWithResultInner(funcName, argc, argv);
     if (result == nullptr) {
@@ -542,7 +542,8 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
     auto* env = runtime_.GetNapiEnv();
     napi_value nameJs = AppExecFwk::WrapStringToJS(env, name);
     napi_value paramJs = AppExecFwk::WrapWantParams(env, param);
-    napi_value argv[argc] = { nameJs, paramJs, UIExtensionContentSession->GetNapiValue() };
+    napi_value argv[argc] = { nameJs, paramJs, UIExtensionContentSession->GetNapiValue(),
+        CreateCancellationSignalJs() };
     napi_value result = nullptr;
     result = CallJsFunctionWithResultInner(funcName, argc, argv);
     if (result == nullptr) {
@@ -572,7 +573,7 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentServiceExtension(
     auto* env = runtime_.GetNapiEnv();
     napi_value nameJs = AppExecFwk::WrapStringToJS(env, name);
     napi_value paramJs = AppExecFwk::WrapWantParams(env, param);
-    napi_value argv[argc] = { nameJs, paramJs };
+    napi_value argv[argc] = { nameJs, paramJs, CreateCancellationSignalJs() };
     napi_value result = nullptr;
     result = CallJsFunctionWithResultInner(funcName, argc, argv);
     if (result == nullptr) {
@@ -581,5 +582,17 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentServiceExtension(
     }
 
     return HandleResultReturnedFromJsFunc(result);
+}
+
+napi_value JsInsightIntentExecutor::CreateCancellationSignalJs()
+{
+    auto context = GetContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null context, cannot build cancellation signal");
+        napi_value obj = nullptr;
+        napi_create_object(runtime_.GetNapiEnv(), &obj);
+        return obj;
+    }
+    return CreateJsInsightIntentCancellationSignal(runtime_.GetNapiEnv(), context->GetCancellationSignal());
 }
 } // namespace OHOS::AbilityRuntime
