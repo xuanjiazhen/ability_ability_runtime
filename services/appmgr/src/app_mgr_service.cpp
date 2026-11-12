@@ -574,24 +574,26 @@ int32_t AppMgrService::DebugCreateSnapshot(const std::string &bundleName, const 
     return appMgrServiceInner_->DebugCreateSnapshot(bundleName, abilityName, debugReportOnly, perfCmd);
 }
 
-int32_t AppMgrService::DebugDestroySnapshot(const std::string &bundleName, int32_t pid)
+int32_t AppMgrService::DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName,
+    int32_t pid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "DebugDestroySnapshot called");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "DebugDestroySnapshot failed: service not ready");
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->DebugDestroySnapshot(bundleName, pid);
+    return appMgrServiceInner_->DebugDestroySnapshot(bundleName, abilityName, pid);
 }
 
-int32_t AppMgrService::DebugListSnapshot(const std::string &bundleName, SnapshotDebugInfo &info)
+int32_t AppMgrService::DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
+    SnapshotDebugInfo &info)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "DebugListSnapshot called");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot failed: service not ready");
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->DebugListSnapshot(bundleName, info);
+    return appMgrServiceInner_->DebugListSnapshot(bundleName, abilityName, info);
 }
 
 int32_t AppMgrService::NotifyTemplateProcessDeepFrozen(int32_t pid)

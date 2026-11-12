@@ -521,22 +521,26 @@ public:
      *
      * @param bundleName Bundle name of the debug-signed application; takes
      *        precedence over pid when not empty.
+     * @param abilityName The ability name to delete the snapshot of; empty
+     *        means all abilities of the bundle.
      * @param pid Template/image process id of the snapshot; used only when
      *        bundleName is empty.
      * @return Returns ERR_OK on accepted, ERR_NOT_DEBUG_APP on non-debug target,
      *         ERR_IMAGE_INFO_NOT_EXIST when the snapshot does not exist, others on failure.
      */
-    int32_t DebugDestroySnapshot(const std::string &bundleName, int32_t pid);
+    int32_t DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName, int32_t pid);
 
     /**
      * aa debug command: query the debug snapshot information from RSS.
      *
      * @param bundleName Bundle name to filter; empty means no filter. A non-empty
      *        bundle which is not debug-signed returns ERR_NOT_DEBUG_APP.
+     * @param abilityName Ability name to filter; empty means no filter.
      * @param info Output, the snapshot overview mirrored from the RSS reply.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t DebugListSnapshot(const std::string &bundleName, SnapshotDebugInfo &info);
+    int32_t DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
+        SnapshotDebugInfo &info);
 
     /**
      * Find the image info whose template or image process id matches the given

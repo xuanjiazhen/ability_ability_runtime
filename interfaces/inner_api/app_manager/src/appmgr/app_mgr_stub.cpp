@@ -734,8 +734,9 @@ int32_t AppMgrStub::HandleDebugDestroySnapshot(MessageParcel &data, MessageParce
     HITRACE_METER(HITRACE_TAG_APP);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::string bundleName = data.ReadString();
+    std::string abilityName = data.ReadString();
     int32_t pid = data.ReadInt32();
-    auto result = DebugDestroySnapshot(bundleName, pid);
+    auto result = DebugDestroySnapshot(bundleName, abilityName, pid);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write result failed.");
         return ERR_APPEXECFWK_PARCEL_ERROR;
@@ -748,8 +749,9 @@ int32_t AppMgrStub::HandleDebugListSnapshot(MessageParcel &data, MessageParcel &
     HITRACE_METER(HITRACE_TAG_APP);
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::string bundleName = data.ReadString();
+    std::string abilityName = data.ReadString();
     SnapshotDebugInfo info;
-    auto result = DebugListSnapshot(bundleName, info);
+    auto result = DebugListSnapshot(bundleName, abilityName, info);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write result failed.");
         return ERR_APPEXECFWK_PARCEL_ERROR;

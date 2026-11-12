@@ -94,12 +94,13 @@ int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName
     return -1;
 }
 
-int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleName, int32_t pid, int32_t &errcode)
+int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleName,
+    const std::string &abilityName, int32_t &errcode)
 {
     return -1;
 }
 
-int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName,
+int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
     AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode)
 {
     return -1;
