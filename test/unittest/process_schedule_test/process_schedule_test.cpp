@@ -22,7 +22,7 @@
 // Workaround to access private members for testing
 // NOLINTNEXTLINE(g.nam.03-cpp): Redefining C++ keyword 'private' for unit testing
 #define private public
-#include "process_schedule/process_schedule.h"
+#include "task_mgr/process_schedule.h"
 #undef private
 
 #include "task_mgr/common.h"

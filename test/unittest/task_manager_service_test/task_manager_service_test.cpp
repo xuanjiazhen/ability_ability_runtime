@@ -31,7 +31,7 @@
 #define private public
 #include "task_mgr/task_manager_service.h"
 #include "task_mgr/task_priority_judge.h"
-#include "process_schedule/process_schedule.h"
+#include "task_mgr/process_schedule.h"
 #include "app_mgr_service.h"
 #undef private
 

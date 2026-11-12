@@ -46,7 +46,7 @@
 #include "system_ability_definition.h"
 #include "task_mgr/task_manager_service.h"
 #include "task_mgr/task_priority_judge.h"
-#include "process_schedule/process_schedule.h"
+#include "task_mgr/process_schedule.h"
 #include "accesstoken_kit.h"
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
