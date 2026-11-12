@@ -6484,6 +6484,23 @@ struct ProcessKillReportData {
     int32_t killId = 0;
 };
 
+static ProcessKillReportData BuildProcessKillReportData(const std::shared_ptr<AppRunningRecord> &appRecord,
+    ApplicationState state)
+{
+    ProcessKillReportData reportData = {
+        .appRunningUniqueId = std::to_string(appRecord->GetAppRunningUniqueId()),
+        .bundleName = appRecord->GetBundleName(),
+        .innerMsg = appRecord->GetInnerMsg(),
+        .killMsg = appRecord->GetKillMsg(),
+        .uid = appRecord->GetUid(),
+        .rssValue = appRecord->GetRssValue(),
+        .pssValue = appRecord->GetPssValue(),
+        .state = static_cast<int32_t>(state),
+        .killId = appRecord->GetKillId(),
+    };
+    return reportData;
+}
+
 static void ReportProcessKillEvent(std::string versionCode, std::string versionName,
         const ProcessKillReportData& reportData, const AppfreezeManager::ProcessKillInfo& killInfo)
 {
@@ -6598,17 +6615,7 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     SetKilledEventInfo(appRecord, eventInfo);
     killInfo.processName = eventInfo.processName;
     AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HISYSEVENT_BEHAVIOR, eventInfo);
-    ProcessKillReportData reportData = {
-        .appRunningUniqueId = std::to_string(appRecord->GetAppRunningUniqueId()),
-        .bundleName = appRecord->GetBundleName(),
-        .innerMsg = appRecord->GetInnerMsg(),
-        .killMsg = appRecord->GetKillMsg(),
-        .uid = appRecord->GetUid(),
-        .rssValue = appRecord->GetRssValue(),
-        .pssValue = appRecord->GetPssValue(),
-        .state = static_cast<int32_t>(state),
-        .killId = appRecord->GetKillId(),
-    };
+    ProcessKillReportData reportData = BuildProcessKillReportData(appRecord, state);
     if (!res) {
         ffrt::submit([versionCode, versionName, reportData, queryKillInfo, killInfo]() mutable {
             if (!queryKillInfo(killInfo, reportData.killId, reportData.killMsg)) {
