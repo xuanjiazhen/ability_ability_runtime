@@ -15,6 +15,7 @@
 
 #include "tool_info.h"
 
+#include <algorithm>
 #include <nlohmann/json.hpp>
 #include <set>
 #include <sstream>
@@ -28,6 +29,69 @@ namespace CliTool {
 
 namespace {
 constexpr uint32_t MAX_TOOL_INFO_COUNT = 200000;
+// Upper bound for the supportedDevices array. Valid device types form a small closed set
+// (see VALID_DEVICE_TYPES in tool_info.h); the bound only guards against oversized-array
+// memory exhaustion (PR self-check: array size validation) and leaves headroom for
+// duplicates, which are deduplicated during parsing.
+constexpr uint32_t MAX_SUPPORTED_DEVICES_COUNT = 32;
+constexpr const char *TOOL_VISIBILITY_PUBLIC = "public";
+constexpr const char *TOOL_VISIBILITY_PRIVATE = "private";
+
+bool IsValidDeviceType(const std::string &deviceType)
+{
+    for (size_t i = 0; i < VALID_DEVICE_TYPES_COUNT; ++i) {
+        if (deviceType == VALID_DEVICE_TYPES[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Parses the optional supportedDevices field with guard clauses so that no branch exceeds
+// the code style nesting limit. A non-array value, an oversized array, a non-string item or
+// an item outside VALID_DEVICE_TYPES falls back to an empty array (no device restriction,
+// R-3 conservative default); duplicate items are deduplicated by exact string match,
+// keeping the first occurrence order.
+void ParseSupportedDevices(const nlohmann::json &json, ToolInfo &tool)
+{
+    tool.supportedDevices.clear();
+    if (!json.contains("supportedDevices")) {
+        return;
+    }
+    const nlohmann::json &devicesJson = json["supportedDevices"];
+    if (!devicesJson.is_array()) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL,
+            "ParseFromJson: supportedDevices of tool %{public}s is not an array, fallback to empty array",
+            tool.name.c_str());
+        return;
+    }
+    if (devicesJson.size() > MAX_SUPPORTED_DEVICES_COUNT) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL,
+            "ParseFromJson: supportedDevices of tool %{public}s exceeds max count %{public}u, "
+            "fallback to empty array", tool.name.c_str(), MAX_SUPPORTED_DEVICES_COUNT);
+        return;
+    }
+    std::vector<std::string> devices;
+    for (const auto &device : devicesJson) {
+        if (!device.is_string()) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "ParseFromJson: supportedDevices of tool %{public}s contains a non-string item, "
+                "fallback to empty array", tool.name.c_str());
+            return;
+        }
+        std::string deviceType = device.get<std::string>();
+        if (!IsValidDeviceType(deviceType)) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "ParseFromJson: supportedDevices of tool %{public}s contains an invalid device "
+                "type %{public}s, fallback to empty array", tool.name.c_str(), deviceType.c_str());
+            return;
+        }
+        if (std::find(devices.begin(), devices.end(), deviceType) == devices.end()) {
+            devices.push_back(std::move(deviceType));
+        }
+    }
+    tool.supportedDevices = std::move(devices);
+}
 } // namespace
 
 // ToolInfo implementation
@@ -54,7 +118,9 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
            parcel.WriteStringVector(eventTypes) &&
            parcel.WriteBool(hasSubCommand) &&
            parcel.WriteString(subcommandsJson) &&
-           parcel.WriteBool(isLockScreenExecutionAllowed);
+           parcel.WriteBool(isLockScreenExecutionAllowed) &&
+           parcel.WriteString(visibility) &&
+           parcel.WriteStringVector(supportedDevices);
 }
 
 ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
@@ -76,7 +142,9 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         !parcel.ReadStringVector(&tool->eventTypes) ||
         !parcel.ReadBool(tool->hasSubCommand) ||
         !parcel.ReadString(subcommandsJson) ||
-        !parcel.ReadBool(tool->isLockScreenExecutionAllowed)) {
+        !parcel.ReadBool(tool->isLockScreenExecutionAllowed) ||
+        !parcel.ReadString(tool->visibility) ||
+        !parcel.ReadStringVector(&tool->supportedDevices)) {
         delete tool;
         return nullptr;
     }
@@ -325,6 +393,34 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         tool.isLockScreenExecutionAllowed = json["isLockScreenExecutionAllowed"];
     }
 
+    // visibility is optional: only the exact string "public"/"private" is accepted;
+    // missing key, non-string type or unknown value falls back to "private" (R-7 conservative)
+    if (json.contains("visibility")) {
+        const nlohmann::json &visibilityJson = json["visibility"];
+        if (visibilityJson.is_string()) {
+            std::string visibility = visibilityJson.get<std::string>();
+            if (visibility == TOOL_VISIBILITY_PUBLIC || visibility == TOOL_VISIBILITY_PRIVATE) {
+                tool.visibility = visibility;
+            } else {
+                TAG_LOGW(AAFwkTag::CLI_TOOL,
+                    "ParseFromJson: unknown visibility of tool %{public}s, fallback to private", tool.name.c_str());
+                tool.visibility = TOOL_VISIBILITY_PRIVATE;
+            }
+        } else {
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "ParseFromJson: visibility of tool %{public}s is not a string, fallback to private",
+                tool.name.c_str());
+            tool.visibility = TOOL_VISIBILITY_PRIVATE;
+        }
+    } else {
+        tool.visibility = TOOL_VISIBILITY_PRIVATE;
+    }
+
+    // supportedDevices is optional; parsing (value-domain / count-bound / exact-string dedup
+    // validation with conservative fallback per R-3) is extracted into ParseSupportedDevices
+    // to keep the nesting depth of this function within the code style limit.
+    ParseSupportedDevices(json, tool);
+
     return true;
 }
 
@@ -371,6 +467,8 @@ nlohmann::json ToolInfo::ParseToJson() const
         j["subcommands"] = subcommandsJson;
     }
     j["isLockScreenExecutionAllowed"] = isLockScreenExecutionAllowed;
+    j["visibility"] = visibility;
+    j["supportedDevices"] = supportedDevices;
 
     return j;
 }
