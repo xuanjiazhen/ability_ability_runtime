@@ -403,6 +403,7 @@ ohos_shared_library("abilitykit_native") {
     "napi:ace_napi",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
+    "window_manager:window_animation_utils",
     "window_manager:windowstage_kit",
     "libuv:uv",
     "node:node_header_notice",
@@ -1119,6 +1120,7 @@ ohos_shared_library("ui_ability_ani") {
     "runtime_core:ani",
     "runtime_core:ani_helpers",
     "samgr:samgr_proxy",
+    "window_manager:ani_window_animation_utils",
     "window_manager:window_native_kit",
     "window_manager:windowstageani_kit",
   ]
