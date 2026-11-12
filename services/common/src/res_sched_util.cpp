@@ -20,10 +20,12 @@
 #include "ability_info.h"
 #include "ui_extension_wrapper.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
 #include "snapshot_debug_info.h"
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
 #include "res_sched_client.h"
 #include "res_type.h"
+#include "res_value.h"
 #endif
 
 namespace OHOS {
@@ -32,18 +34,8 @@ namespace AAFwk {
 using AssociatedStartType = ResourceSchedule::ResType::AssociatedStartType;
 static constexpr int PERF_NUM = 10202;
 static constexpr int GAME_CLICK_VALUE = 4;
-// RSS contract: resType 525 (RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT) is allocated by the
-// RSS team for the aa debug snapshot commands; keep in sync when res_type.h updates.
-static constexpr uint32_t RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT = 525;
 #endif
 
-// Aligned with the RSS-side CtrlForkAllSnapshotCode, which is passed as the value of
-// ReportSyncEvent and dispatched by the RSS-side HandleSync; keep in sync in joint debug.
-enum class CtrlForkAllSnapshotCode : int64_t {
-    SNAPSHOT_CREATE = 0,
-    SNAPSHOT_DESTROY = 1,
-    SNAPSHOT_LIST = 2,
-};
 ResSchedUtil &ResSchedUtil::GetInstance()
 {
     static ResSchedUtil instance;
@@ -259,14 +251,16 @@ int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     // Payload key names follow the RSS reply schema vocabulary; confirm in joint debug.
     nlohmann::json payload;
-    payload.emplace("name", bundleName);
+    payload.emplace("userId", IPCSkeleton::GetCallingUserID());
+    payload.emplace("bundleName", bundleName);
     payload.emplace("abilityName", abilityName);
-    payload.emplace("debugReportOnly", debugReportOnly);
+    payload.emplace("dr", debugReportOnly);
     payload.emplace("perfCmd", perfCmd);
     nlohmann::json reply;
     int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
-        RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
-        static_cast<int64_t>(CtrlForkAllSnapshotCode::SNAPSHOT_CREATE), payload, reply);
+        ResourceSchedule::ResType::RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
+        static_cast<int64_t>(ResourceSchedule::ResType::CtrlForkAllSnapshotCode::SNAPSHOT_CREATE), payload,
+        reply);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::DEFAULT, "ReportCreateSnapshotCmdToRSS fail, ret: %{public}d", ret);
         return -1;
@@ -279,19 +273,22 @@ int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName
 #endif
 }
 
-int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleName, int32_t pid, int32_t &errcode)
+int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleName,
+    const std::string &abilityName, int32_t &errcode)
 {
-    TAG_LOGI(AAFwkTag::DEFAULT, "ReportDestroySnapshotCmdToRSS bundleName:%{public}s pid:%{public}d",
-        bundleName.c_str(), pid);
+    TAG_LOGI(AAFwkTag::DEFAULT, "ReportDestroySnapshotCmdToRSS bundleName:%{public}s abilityName:%{public}s",
+        bundleName.c_str(), abilityName.c_str());
     errcode = -1;
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     nlohmann::json payload;
-    payload.emplace("name", bundleName);
-    payload.emplace("pid", pid);
+    payload.emplace("userId", IPCSkeleton::GetCallingUserID());
+    payload.emplace("bundleName", bundleName);
+    payload.emplace("abilityName", abilityName);
     nlohmann::json reply;
     int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
-        RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
-        static_cast<int64_t>(CtrlForkAllSnapshotCode::SNAPSHOT_DESTROY), payload, reply);
+        ResourceSchedule::ResType::RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
+        static_cast<int64_t>(ResourceSchedule::ResType::CtrlForkAllSnapshotCode::SNAPSHOT_DESTROY), payload,
+        reply);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::DEFAULT, "ReportDestroySnapshotCmdToRSS fail, ret: %{public}d", ret);
         return -1;
@@ -304,18 +301,22 @@ int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleNam
 #endif
 }
 
-int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName,
+int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
     AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode)
 {
-    TAG_LOGI(AAFwkTag::DEFAULT, "ReportListSnapshotCmdToRSS bundleName:%{public}s", bundleName.c_str());
+    TAG_LOGI(AAFwkTag::DEFAULT, "ReportListSnapshotCmdToRSS bundleName:%{public}s abilityName:%{public}s",
+        bundleName.c_str(), abilityName.c_str());
     errcode = -1;
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     nlohmann::json payload;
-    payload.emplace("name", bundleName);
+    payload.emplace("userId", IPCSkeleton::GetCallingUserID());
+    payload.emplace("bundleName", bundleName);
+    payload.emplace("abilityName", abilityName);
     nlohmann::json reply;
     int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
-        RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
-        static_cast<int64_t>(CtrlForkAllSnapshotCode::SNAPSHOT_LIST), payload, reply);
+        ResourceSchedule::ResType::RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
+        static_cast<int64_t>(ResourceSchedule::ResType::CtrlForkAllSnapshotCode::SNAPSHOT_LIST), payload,
+        reply);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::DEFAULT, "ReportListSnapshotCmdToRSS fail, ret: %{public}d", ret);
         return -1;
@@ -344,6 +345,16 @@ int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName,
         app.snapshotId = appObj.value("snapshotId", static_cast<int64_t>(-1));
         app.isEnable = appObj.value("isEnable", 0);
         app.isDebug = appObj.value("debug", 0);
+
+        app.autoMakeImage = appObj.value("autoMakeImage", 0);
+        app.defaultEnable = appObj.value("defaultEnable", 0);
+        app.maxRecords = appObj.value("maxRecords", 0);
+        app.recordTimeMs = appObj.value("recordTimeMs", 0);
+        app.lowMemWatermark = appObj.value("lowMemWatermark", 0);
+        app.delayedSeconds = appObj.value("delayedSeconds", int64_t(0));
+        app.imageExpireSeconds = appObj.value("imageExpireSeconds", int64_t(0));
+        app.imageExpireRemaining = appObj.value("imageExpireRemaining", int64_t(0));
+
         app.noSnapshotReason = appObj.value("noSnapshotReason", std::string(""));
         if (appObj.contains("runningPids") && appObj["runningPids"].is_array()) {
             for (nlohmann::json &pidObj : appObj["runningPids"]) {

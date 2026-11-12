@@ -194,7 +194,8 @@ int32_t AppMgrProxy::DebugCreateSnapshot(const std::string &bundleName, const st
     return reply.ReadInt32();
 }
 
-int32_t AppMgrProxy::DebugDestroySnapshot(const std::string &bundleName, int32_t pid)
+int32_t AppMgrProxy::DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName,
+    int32_t pid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
@@ -205,13 +206,15 @@ int32_t AppMgrProxy::DebugDestroySnapshot(const std::string &bundleName, int32_t
         return IPC_PROXY_ERR;
     }
     PARCEL_UTIL_WRITE_RET_INT(data, String, bundleName);
+    PARCEL_UTIL_WRITE_RET_INT(data, String, abilityName);
     PARCEL_UTIL_WRITE_RET_INT(data, Int32, pid);
 
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::DEBUG_DESTROY_SNAPSHOT, data, reply, option);
     return reply.ReadInt32();
 }
 
-int32_t AppMgrProxy::DebugListSnapshot(const std::string &bundleName, SnapshotDebugInfo &info)
+int32_t AppMgrProxy::DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
+    SnapshotDebugInfo &info)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
@@ -222,6 +225,7 @@ int32_t AppMgrProxy::DebugListSnapshot(const std::string &bundleName, SnapshotDe
         return IPC_PROXY_ERR;
     }
     PARCEL_UTIL_WRITE_RET_INT(data, String, bundleName);
+    PARCEL_UTIL_WRITE_RET_INT(data, String, abilityName);
 
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::DEBUG_LIST_SNAPSHOT, data, reply, option);
 

@@ -13425,11 +13425,12 @@ std::shared_ptr<ForkImageInfo> AppMgrServiceInner::FindImageInfoByPid(int32_t pi
     return nullptr;
 }
 
-int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, int32_t pid)
+int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName,
+    int32_t pid)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "DebugDestroySnapshot bundleName:%{public}s pid:%{public}d",
-        bundleName.c_str(), pid);
+    TAG_LOGI(AAFwkTag::APPMGR, "DebugDestroySnapshot bundleName:%{public}s abilityName:%{public}s pid:%{public}d",
+        bundleName.c_str(), abilityName.c_str(), pid);
     if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
         TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
         return AAFwk::ERR_NOT_DEVELOPER_MODE;
@@ -13471,8 +13472,9 @@ int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, 
         return AAFwk::ERR_NOT_DEBUG_APP;
     }
     // Acceptance-level forward: the deletion itself is triggered by RSS asynchronously.
+    // RSS destroys by bundleName; a pid-only request has been resolved to targetBundle above.
     int32_t errcode = -1;
-    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportDestroySnapshotCmdToRSS(bundleName, pid, errcode);
+    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportDestroySnapshotCmdToRSS(targetBundle, abilityName, errcode);
     if (ret != 0 || errcode < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "forward destroy cmd to RSS fail, ret: %{public}d errcode: %{public}d",
             ret, errcode);
@@ -13481,10 +13483,12 @@ int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, 
     return errcode;
 }
 
-int32_t AppMgrServiceInner::DebugListSnapshot(const std::string &bundleName, SnapshotDebugInfo &info)
+int32_t AppMgrServiceInner::DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
+    SnapshotDebugInfo &info)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "DebugListSnapshot bundleName:%{public}s", bundleName.c_str());
+    TAG_LOGI(AAFwkTag::APPMGR, "DebugListSnapshot bundleName:%{public}s abilityName:%{public}s",
+        bundleName.c_str(), abilityName.c_str());
     if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
         TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
         return AAFwk::ERR_NOT_DEVELOPER_MODE;
@@ -13495,7 +13499,8 @@ int32_t AppMgrServiceInner::DebugListSnapshot(const std::string &bundleName, Sna
     }
     info = SnapshotDebugInfo();
     int32_t errcode = -1;
-    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportListSnapshotCmdToRSS(bundleName, info, errcode);
+    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportListSnapshotCmdToRSS(bundleName, abilityName, info,
+        errcode);
     if (ret != 0 || errcode < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "forward list cmd to RSS fail, ret: %{public}d errcode: %{public}d",
             ret, errcode);

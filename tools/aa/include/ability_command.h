@@ -168,18 +168,20 @@ const std::string HELP_MSG_CREATE_SNAPSHOT =
     "                                  recording\n";
 
 const std::string HELP_MSG_DESTROY_SNAPSHOT =
-    "Usage: aa destroy-snapshot -b <BUNDLE-NAME> | -p <PID>\n"
+    "Usage: aa destroy-snapshot -b <BUNDLE-NAME> [-a <ABILITY-NAME>] | -p <PID>\n"
     "Mandatory Options (choose one):\n"
     "  -b, --bundle <BUNDLE-NAME>      Bundle name of the debug application\n"
     "  -p, --pid <PID>                 Process id of the snapshot\n\n"
     "Optional:\n"
-    "  -h, --help                      Show this help message\n";
+    "  -h, --help                      Show this help message\n"
+    "  -a, --ability <ABILITY-NAME>    Ability name of the snapshot; empty means all\n";
 
 const std::string HELP_MSG_LIST_SNAPSHOT =
-    "Usage: aa list-snapshot [-b <BUNDLE-NAME>]\n"
+    "Usage: aa list-snapshot [-b <BUNDLE-NAME>] [-a <ABILITY-NAME>]\n"
     "Optional:\n"
     "  -h, --help                      Show this help message\n"
-    "  -b, --bundle <BUNDLE-NAME>      Bundle name to filter; empty means no filter\n";
+    "  -b, --bundle <BUNDLE-NAME>      Bundle name to filter; empty means no filter\n"
+    "  -a, --ability <ABILITY-NAME>    Ability name to filter; empty means no filter\n";
 
 const std::string HELP_MSG_ATTACH_APP_DEBUG =
     "usage: aa attach <options>\n"
@@ -313,8 +315,9 @@ private:
     ErrCode RunAsListSnapshotCommand();
     ErrCode ParseCreateSnapshotOptions(std::string &bundleName, std::string &abilityName,
         bool &debugReportOnly, std::string &perfCmd);
-    ErrCode ParseDestroySnapshotOptions(std::string &bundleName, std::string &pidParse);
-    ErrCode ParseListSnapshotOptions(std::string &bundleName);
+    ErrCode ParseDestroySnapshotOptions(std::string &bundleName, std::string &abilityName,
+        std::string &pidParse);
+    ErrCode ParseListSnapshotOptions(std::string &bundleName, std::string &abilityName);
     ErrCode ParsePreStartOptions(int32_t& mode, std::string& bundleName, int32_t& userId);
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
     bool IsLongStartOption(const std::string &argv);

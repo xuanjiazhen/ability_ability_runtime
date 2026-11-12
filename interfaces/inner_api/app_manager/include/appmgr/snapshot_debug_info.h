@@ -42,6 +42,14 @@ struct SnapshotDebugAppInfo : public Parcelable {
     int64_t snapshotId = -1;              // "snapshotId"
     int32_t isEnable = 0;                 // "isEnable"
     int32_t isDebug = 0;                  // "debug"
+    int32_t autoMakeImage = 0;            // "autoMakeImage"
+    int32_t defaultEnable = 0;            // "defaultEnable"
+    int32_t maxRecords = 0;               // "maxRecords"
+    int32_t recordTimeMs = 0;             // "recordTimeMs"
+    int32_t lowMemWatermark = 0;          // "lowMemWatermark"
+    int64_t delayedSeconds = 0;           // "delayedSeconds"
+    int64_t imageExpireSeconds = 0;       // "imageExpireSeconds"
+    int64_t imageExpireRemaining = 0;     // "imageExpireRemaining"
     std::string noSnapshotReason;         // "noSnapshotReason", empty when a snapshot exists
     std::vector<int32_t> runningPids;     // "runningPids" (RSS-side key name to be confirmed in joint debug)
 

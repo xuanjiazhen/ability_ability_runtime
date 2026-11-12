@@ -25,6 +25,10 @@ bool SnapshotDebugAppInfo::Marshalling(Parcel &parcel) const
     if (!parcel.WriteString(bundleName) || !parcel.WriteInt32(uid) || !parcel.WriteInt32(userId) ||
         !parcel.WriteInt32(imagePid) || !parcel.WriteInt32(templatePid) || !parcel.WriteString(state) ||
         !parcel.WriteInt64(snapshotId) || !parcel.WriteInt32(isEnable) || !parcel.WriteInt32(isDebug) ||
+        !parcel.WriteInt32(autoMakeImage) || !parcel.WriteInt32(defaultEnable) ||
+        !parcel.WriteInt32(maxRecords) || !parcel.WriteInt32(recordTimeMs) ||
+        !parcel.WriteInt32(lowMemWatermark) || !parcel.WriteInt64(delayedSeconds) ||
+        !parcel.WriteInt64(imageExpireSeconds) || !parcel.WriteInt64(imageExpireRemaining) ||
         !parcel.WriteString(noSnapshotReason)) {
         return false;
     }
@@ -44,6 +48,10 @@ bool SnapshotDebugAppInfo::ReadFromParcel(Parcel &parcel)
     if (!parcel.ReadString(bundleName) || !parcel.ReadInt32(uid) || !parcel.ReadInt32(userId) ||
         !parcel.ReadInt32(imagePid) || !parcel.ReadInt32(templatePid) || !parcel.ReadString(state) ||
         !parcel.ReadInt64(snapshotId) || !parcel.ReadInt32(isEnable) || !parcel.ReadInt32(isDebug) ||
+        !parcel.ReadInt32(autoMakeImage) || !parcel.ReadInt32(defaultEnable) ||
+        !parcel.ReadInt32(maxRecords) || !parcel.ReadInt32(recordTimeMs) ||
+        !parcel.ReadInt32(lowMemWatermark) || !parcel.ReadInt64(delayedSeconds) ||
+        !parcel.ReadInt64(imageExpireSeconds) || !parcel.ReadInt64(imageExpireRemaining) ||
         !parcel.ReadString(noSnapshotReason)) {
         return false;
     }

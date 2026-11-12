@@ -1584,6 +1584,8 @@ public:
      *
      * @param bundleName The bundle name of the debug-signed application;
      *        takes precedence over pid when not empty.
+     * @param abilityName The ability name to delete the snapshot of; empty
+     *        means all abilities of the bundle.
      * @param pid The process id of the snapshot; used only when bundleName
      *        is empty.
      * @return ERR_OK on accepted, ERR_IMAGE_INFO_NOT_EXIST when the target
@@ -1591,7 +1593,7 @@ public:
      *         otherwise; ERROR_SERVICE_NOT_READY/ERROR_SERVICE_NOT_CONNECTED
      *         on client failures.
      */
-    int32_t DebugDestroySnapshot(const std::string &bundleName, int32_t pid);
+    int32_t DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName, int32_t pid);
 
     /**
      * Query the debug snapshot information of debug-signed applications
@@ -1599,13 +1601,15 @@ public:
      * report-data channel.
      *
      * @param bundleName The bundle name to filter; empty means no filter.
+     * @param abilityName The ability name to filter; empty means no filter.
      * @param info Output parameter, the snapshot overview mirrored from the
      *        RSS reply.
      * @return ERR_OK on success, server error code otherwise;
      *         ERROR_SERVICE_NOT_READY/ERROR_SERVICE_NOT_CONNECTED on client
      *         failures.
      */
-    int32_t DebugListSnapshot(const std::string &bundleName, SnapshotDebugInfo &info);
+    int32_t DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
+        SnapshotDebugInfo &info);
 
     /**
      * Enable or disable the process-cache feature for the process identified by
