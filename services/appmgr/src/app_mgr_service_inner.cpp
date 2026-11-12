@@ -6545,6 +6545,8 @@ bool AppMgrServiceInner::IsAmsForegroundDetermined(ApplicationState state)
 
 // The kernel kill record overwrites the reported foreground value, so restore the AppMgr value
 // whenever AppMgr can tell whether the process was foreground.
+// kernelForeground is the value of the kernel kill record, it keeps the previously reported value
+// when the kernel read failed.
 // Returns the foreground value that has to be reported.
 bool AppMgrServiceInner::KeepAmsForegroundIfDetermined(bool amsDetermined, bool amsForeground,
     bool kernelForeground, int32_t pid)
@@ -6569,6 +6571,8 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         TAG_LOGE(AAFwkTag::APPMGR, "no appInfo");
         return;
     }
+    // one snapshot for the whole report, the reported process state and the reported foreground
+    // flag must not disagree
     auto state = appRecord->GetState();
     bool foreground = state == ApplicationState::APP_STATE_FOREGROUND ||
         state == ApplicationState::APP_STATE_FOCUS;
