@@ -35,6 +35,7 @@ namespace AAFwk {
 using AssociatedStartType = ResourceSchedule::ResType::AssociatedStartType;
 static constexpr int PERF_NUM = 10202;
 static constexpr int GAME_CLICK_VALUE = 4;
+static constexpr int32_t BASE_USER_RANGE = 200000;
 #endif
 
 ResSchedUtil &ResSchedUtil::GetInstance()
@@ -252,7 +253,7 @@ int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     // Payload key names follow the RSS reply schema vocabulary; confirm in joint debug.
     nlohmann::json payload;
-    payload.emplace("userId", IPCSkeleton::GetCallingUserID());
+    payload.emplace("userId", IPCSkeleton::GetCallingUid() / BASE_USER_RANGE);
     payload.emplace("bundleName", bundleName);
     payload.emplace("abilityName", abilityName);
     payload.emplace("dr", debugReportOnly);
@@ -260,7 +261,7 @@ int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName
     nlohmann::json reply;
     int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
         ResourceSchedule::ResType::RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
-        static_cast<int64_t>(ResourceSchedule::ResType::CtrlForkAllSnapshotCode::SNAPSHOT_CREATE), payload,
+        static_cast<int64_t>(ResourceSchedule::ResType::CtrlForkallSnapshotCode::SNAPSHOT_CREATE), payload,
         reply);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::DEFAULT, "ReportCreateSnapshotCmdToRSS fail, ret: %{public}d", ret);
@@ -282,13 +283,13 @@ int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleNam
     errcode = -1;
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     nlohmann::json payload;
-    payload.emplace("userId", IPCSkeleton::GetCallingUserID());
+    payload.emplace("userId", IPCSkeleton::GetCallingUid() / BASE_USER_RANGE);
     payload.emplace("bundleName", bundleName);
     payload.emplace("abilityName", abilityName);
     nlohmann::json reply;
     int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
         ResourceSchedule::ResType::RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
-        static_cast<int64_t>(ResourceSchedule::ResType::CtrlForkAllSnapshotCode::SNAPSHOT_DESTROY), payload,
+        static_cast<int64_t>(ResourceSchedule::ResType::CtrlForkallSnapshotCode::SNAPSHOT_DESTROY), payload,
         reply);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::DEFAULT, "ReportDestroySnapshotCmdToRSS fail, ret: %{public}d", ret);
@@ -310,13 +311,13 @@ int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName, 
     errcode = -1;
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     nlohmann::json payload;
-    payload.emplace("userId", IPCSkeleton::GetCallingUserID());
+    payload.emplace("userId", IPCSkeleton::GetCallingUid() / BASE_USER_RANGE);
     payload.emplace("bundleName", bundleName);
     payload.emplace("abilityName", abilityName);
     nlohmann::json reply;
     int32_t ret = ResourceSchedule::ResSchedClient::GetInstance().ReportSyncEvent(
         ResourceSchedule::ResType::RES_TYPE_AA_CTRL_FORKALL_SNAPSHOT,
-        static_cast<int64_t>(ResourceSchedule::ResType::CtrlForkAllSnapshotCode::SNAPSHOT_LIST), payload,
+        static_cast<int64_t>(ResourceSchedule::ResType::CtrlForkallSnapshotCode::SNAPSHOT_LIST), payload,
         reply);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::DEFAULT, "ReportListSnapshotCmdToRSS fail, ret: %{public}d", ret);
