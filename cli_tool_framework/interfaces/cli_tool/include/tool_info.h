@@ -34,6 +34,24 @@ namespace CliTool {
 class ToolInfo;
 
 /**
+ * @brief Valid device type values for ToolInfo::supportedDevices.
+ *
+ * Covers the "1 + 8" device categories plus the generic default type: phone (1) with
+ * tablet, PC ("2in1"), smart screen ("tv"), watch ("watch"/"wearable"), car, earphones
+ * ("headset"), speaker and glasses (VR/AR). Authoritative spellings come from the system
+ * enums: DeviceTypes of @ohos.deviceInfo, Bluetooth DeviceType (bluetooth_def.h) and
+ * dsoftbus DeviceType (softbus_common.h). "phone" and "default" are mutually recognized
+ * at bundle install time. "watch" and "wearable" are distinct values: parsing deduplicates
+ * by exact string match and never merges the two spellings. Keep in sync when the system
+ * enums evolve.
+ */
+constexpr const char *VALID_DEVICE_TYPES[] = {
+    "default", "phone", "tablet", "2in1", "tv", "wearable", "watch", "car",
+    "headset", "speaker", "glasses"
+};
+constexpr size_t VALID_DEVICE_TYPES_COUNT = sizeof(VALID_DEVICE_TYPES) / sizeof(VALID_DEVICE_TYPES[0]);
+
+/**
  * @brief Raw data type for IDL serialization (shared memory optimization)
  */
 class ToolsRawData {
@@ -74,6 +92,12 @@ public:
     bool hasSubCommand = false;
     std::map<std::string, SubCommandInfo> subcommands;
     bool isLockScreenExecutionAllowed = false;  // Allow execution when screen is locked
+    // Internal visibility of the tool: only the exact string "public" opens it to
+    // third-party queries; default and fallback value is "private". Not exposed to NAPI.
+    std::string visibility = "private";
+    // Device types on which the tool can run; see VALID_DEVICE_TYPES above for the
+    // value domain. Empty array means no device restriction.
+    std::vector<std::string> supportedDevices;
 
     ToolInfo() = default;
     ~ToolInfo() = default;
