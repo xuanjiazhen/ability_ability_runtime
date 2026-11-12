@@ -588,27 +588,48 @@ void TaskManagerService::NotifyTaskFinished(const std::string &taskId, TaskFinis
         taskId.c_str(), TaskFinishReasonToString(reason));
 }
 
-std::string TaskManagerService::DumpActiveTasks()
+// Shared by the all-tasks and single-task dump paths; the field layout is fixed so
+// scripts can rely on it.
+static std::string FormatTaskRecord(const TaskRecord &record, int64_t now)
+{
+    int64_t remainSeconds = std::max((record.deadlineMillis - now) / MILLIS_PER_SECOND,
+        static_cast<int64_t>(0));
+    std::string result = "      task ID #" + record.taskId + "\n";
+    result += std::string("        priority [") + TaskPriorityToString(record.priority) + "]\n";
+    result += "        creator uid [" + std::to_string(record.creatorUid) + "] pid [" +
+        std::to_string(record.creatorPid) + "] bundle [" + record.creatorBundleName + "]\n";
+    result += "        managed processes [" + AttributionsToString(record.attributions) + "]\n";
+    result += "        remain timeout [" + std::to_string(remainSeconds) + "s]\n";
+    result += "        create time [" + FormatCreateTime(record.createTimeMillis) + "]\n";
+    return result;
+}
+
+std::string TaskManagerService::DumpActiveTasks(const std::string &taskId)
 {
     std::lock_guard<ffrt::mutex> lock(tasksMutex_);
-    std::string result = "TaskManager active tasks: total=" + std::to_string(tasks_.size()) + "\n";
     int64_t now = NowMillis();
-    for (const auto &item : tasks_) {
-        const TaskRecord &record = item.second;
-        int64_t remainSeconds = std::max((record.deadlineMillis - now) / MILLIS_PER_SECOND,
-            static_cast<int64_t>(0));
-        result += "      task ID #" + record.taskId + "\n";
-        result += std::string("        priority [") + TaskPriorityToString(record.priority) + "]\n";
-        result += "        creator uid [" + std::to_string(record.creatorUid) + "] pid [" +
-            std::to_string(record.creatorPid) + "] bundle [" + record.creatorBundleName + "]\n";
-        result += "        managed processes [" + AttributionsToString(record.attributions) + "]\n";
-        result += "        sched level [-]\n";
-        result += "        remain timeout [" + std::to_string(remainSeconds) + "s]\n";
-        result += "        create time [" + FormatCreateTime(record.createTimeMillis) + "]\n";
+    if (!taskId.empty()) {
+        // Grep semantics: the id text matches by containment, so a fragment of a task
+        // id is enough and an exact id still matches only that task.
+        std::string result;
+        size_t matched = 0;
+        for (const auto &item : tasks_) {
+            if (item.second.taskId.find(taskId) == std::string::npos) {
+                continue;
+            }
+            result += FormatTaskRecord(item.second, now);
+            ++matched;
+        }
+        if (matched == 0) {
+            TAG_LOGW(AAFwkTag::APPMGR, "task not found, taskId: %{public}s", taskId.c_str());
+            return "TaskManager task not found, taskId: " + taskId + "\n";
+        }
+        return "TaskManager matched tasks: total=" + std::to_string(matched) + "\n" + result;
     }
-    // SchedLevel and the exemption summary stay placeholder until the resource-schedule
-    // control module lands; the field layout is fixed here so scripts can rely on it.
-    result += "Exemption summary: total=0\n";
+    std::string result = "TaskManager active tasks: total=" + std::to_string(tasks_.size()) + "\n";
+    for (const auto &item : tasks_) {
+        result += FormatTaskRecord(item.second, now);
+    }
     return result;
 }
 
