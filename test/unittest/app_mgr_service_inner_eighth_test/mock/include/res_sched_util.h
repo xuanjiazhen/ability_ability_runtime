@@ -82,11 +82,11 @@ public:
     MOCK_METHOD(void, ReportTemplateProcessReadyToRSS, (int32_t pid, int32_t uid, const std::string &bundleName), ());
     MOCK_METHOD(int32_t, ReportCreateSnapshotCmdToRSS,
         (const std::string &bundleName, const std::string &abilityName,
-        bool debugReportOnly, const std::string &perfCmd, int32_t &errcode), ());
+        bool debugReportOnly, const std::string &perfCmd, int32_t userId, int32_t &errcode), ());
     MOCK_METHOD(int32_t, ReportDestroySnapshotCmdToRSS,
-        (const std::string &bundleName, const std::string &abilityName, int32_t &errcode), ());
+        (const std::string &bundleName, const std::string &abilityName, int32_t userId, int32_t &errcode), ());
     MOCK_METHOD(int32_t, ReportListSnapshotCmdToRSS,
-        (const std::string &bundleName, const std::string &abilityName,
+        (const std::string &bundleName, const std::string &abilityName, int32_t userId,
         AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode), ());
 };
 } // namespace AAFwk

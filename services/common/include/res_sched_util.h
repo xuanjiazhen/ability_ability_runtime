@@ -79,11 +79,11 @@ public:
     void ReportGameClickToRSS(const std::string &bundleName, int32_t pid, int32_t uid);
     void ReportTemplateProcessReadyToRSS(int32_t pid, int32_t uid, const std::string &bundleName);
     int32_t ReportCreateSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
-        bool debugReportOnly, const std::string &perfCmd, int32_t &errcode);
+        bool debugReportOnly, const std::string &perfCmd, int32_t userId, int32_t &errcode);
     int32_t ReportDestroySnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
-        int32_t &errcode);
+        int32_t userId, int32_t &errcode);
     int32_t ReportListSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
-        AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode);
+        int32_t userId, AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode);
 private:
     ResSchedUtil() = default;
     ~ResSchedUtil() = default;

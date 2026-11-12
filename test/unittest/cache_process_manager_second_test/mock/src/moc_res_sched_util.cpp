@@ -89,19 +89,19 @@ std::unordered_set<std::string> ResSchedUtil::GetNWebPreloadSet() const
 }
 
 int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
-    bool debugReportOnly, const std::string &perfCmd, int32_t &errcode)
+    bool debugReportOnly, const std::string &perfCmd, int32_t userId, int32_t &errcode)
 {
     return -1;
 }
 
 int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleName,
-    const std::string &abilityName, int32_t &errcode)
+    const std::string &abilityName, int32_t userId, int32_t &errcode)
 {
     return -1;
 }
 
 int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
-    AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode)
+    int32_t userId, AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode)
 {
     return -1;
 }
