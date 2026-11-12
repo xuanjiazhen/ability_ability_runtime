@@ -798,5 +798,28 @@ HWTEST_F(ScreenUnlockInterceptorTest, DirectBoot_RequestDefaultsAndBuilder, Test
         .DirectBootStartup(false).Build().isDirectBootStartup);
 }
 
+HWTEST_F(ScreenUnlockInterceptorTest, DirectBoot_PrelaunchFlagsAreIndependent, TestSize.Level1)
+{
+    Want want;
+    auto defaults = InterceptorParamBuilder(want, 0, 100).Build();
+    EXPECT_FALSE(defaults.isDirectBootStartup);
+    EXPECT_FALSE(defaults.isPrelaunch);
+    EXPECT_FALSE(defaults.IsPreloadStartAbility());
+    auto directBoot = InterceptorParamBuilder(want, 0, 100).Prelaunch(true)
+        .DirectBootStartup(true).Prelaunch(false).Build();
+    EXPECT_TRUE(directBoot.isDirectBootStartup);
+    EXPECT_FALSE(directBoot.isPrelaunch);
+    EXPECT_FALSE(directBoot.IsPreloadStartAbility());
+    auto prelaunch = InterceptorParamBuilder(want, 0, 100).DirectBootStartup(true)
+        .Prelaunch(true).DirectBootStartup(false).Build();
+    EXPECT_FALSE(prelaunch.isDirectBootStartup);
+    EXPECT_TRUE(prelaunch.isPrelaunch);
+    EXPECT_TRUE(prelaunch.IsPreloadStartAbility());
+    auto both = InterceptorParamBuilder(want, 0, 100).Prelaunch(true).DirectBootStartup(true).Build();
+    EXPECT_TRUE(both.isDirectBootStartup);
+    EXPECT_TRUE(both.isPrelaunch);
+    EXPECT_TRUE(both.IsPreloadStartAbility());
+}
+
 } // namespace AAFwk
 } // namespace OHOS

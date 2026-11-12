@@ -270,12 +270,12 @@ private:
 
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
     void AddSessionRecord(const std::shared_ptr<SessionRecord> &record);
+    int32_t TryAddSessionRecord(const std::shared_ptr<SessionRecord> &record);
     std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
     std::vector<std::shared_ptr<SessionRecord>> GetSessionRecords();
     void RemoveSessionRecord(const std::string &sessionId);
 
     void AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record);
-    void AttachSkillTaskAttribution(const std::shared_ptr<SessionRecord> &record, const std::string &bundleName);
     void PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId, int32_t callerUid);
     // Caller must hold sessionsMutex_. Consumes an ATTACHED attribution into the detach triple
     // (returns true) or relays a PENDING one to the write-back (CONSUMED, nothing to detach now).
