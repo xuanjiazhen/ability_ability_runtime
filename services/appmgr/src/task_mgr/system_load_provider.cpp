@@ -70,7 +70,7 @@ public:
             if (registered_) {
                 return true;
             }
-            client = new (std::nothrow) SystemloadNotifierClientImpl(callback);
+            client = sptr(new (std::nothrow) SystemloadNotifierClientImpl(callback));
             if (client == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "create systemload notifier client failed");
                 return false;

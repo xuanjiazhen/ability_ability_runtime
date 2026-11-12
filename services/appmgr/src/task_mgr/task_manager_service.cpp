@@ -28,18 +28,55 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "in_process_call_wrapper.h"
+#include "ability_state_data.h"
 #include "app_state_observer_manager.h"
+#include "application_state_filter.h"
+#include "application_state_observer_stub.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
-#include "process_schedule/process_schedule.h"
+#include "task_mgr/process_schedule.h"
 #include "task_mgr/task_priority_judge.h"
-#include "task_mgr/task_schedule_observer.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 using namespace OHOS::AAFwk;
 
 namespace {
+/**
+ * Internal in-process observer that funnels ability foreground/background transitions
+ * into the task priority judge. Registered with AppStateObserverManager when the task
+ * manager assembles; the callbacks arrive on the observer handler thread, so the
+ * business lock is taken inside TaskManagerService, not here.
+ */
+class TaskScheduleAbilityObserver : public ApplicationStateObserverStub {
+public:
+    TaskScheduleAbilityObserver() = default;
+    ~TaskScheduleAbilityObserver() override = default;
+
+    void OnAbilityStateChanged(const AbilityStateData &abilityStateData) override
+    {
+        bool foreground =
+            (abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND));
+        bool background =
+            (abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_BACKGROUND));
+        bool terminated =
+            (abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_TERMINATED) ||
+            abilityStateData.abilityState == static_cast<int32_t>(AbilityState::ABILITY_STATE_END));
+        if (!foreground && !background && !terminated) {
+            return;
+        }
+        // use the ability's IRObject token address as the dedup key; a nullptr token
+        // encodes the seeder sentinel. Foreground inserts, the rest erases.
+        uintptr_t token = reinterpret_cast<uintptr_t>(abilityStateData.token.GetRefPtr());
+        bool enteringForeground = foreground;
+        TAG_LOGD(AAFwkTag::APPMGR,
+            "ability state changed, pid: %{public}d state: %{public}d fg: %{public}d",
+            abilityStateData.pid, abilityStateData.abilityState, enteringForeground);
+        TaskManagerService::GetInstance().OnAbilityForegroundChanged(
+            abilityStateData.pid, static_cast<unsigned long>(token), enteringForeground);
+    }
+};
+
 constexpr int64_t MILLIS_PER_SECOND = 1000;
 constexpr int32_t BASE_USER_RANGE = 200000;
 // Sentinel caller identity for the system-initiated finish paths (timeout / creator death):
@@ -325,7 +362,7 @@ void TaskManagerService::RegisterScheduleListeners()
     if (observerRegistered) {
         return;
     }
-    static sptr<TaskScheduleAbilityObserver> abilityObserver = new (std::nothrow) TaskScheduleAbilityObserver();
+    static sptr<TaskScheduleAbilityObserver> abilityObserver = sptr(new (std::nothrow) TaskScheduleAbilityObserver());
     if (abilityObserver == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "create ability observer failed");
         return;
@@ -333,8 +370,19 @@ void TaskManagerService::RegisterScheduleListeners()
     // Register under the service's own identity: this entry runs inside a startTask IPC
     // call, and the observer permission check evaluates the CALLING token; without the
     // identity reset the registration result would depend on whichever app calls first.
+    // The filter narrows the dispatch to the four ability states the judge consumes, so
+    // process/app/page/extension events never reach the observer queue.
+    AppStateFilter abilityStateFilter;
+    abilityStateFilter.callbacks = FilterCallback::ON_ABILITY_STATE_CHANGED;
+    abilityStateFilter.appStateTypes = FilterAppStateType::NONE;
+    abilityStateFilter.processStateTypes = FilterProcessStateType::NONE;
+    abilityStateFilter.abilityStateTypes = static_cast<FilterAbilityStateType>(
+        static_cast<uint32_t>(FilterAbilityStateType::FOREGROUND) |
+        static_cast<uint32_t>(FilterAbilityStateType::BACKGROUND) |
+        static_cast<uint32_t>(FilterAbilityStateType::DESTROY) |
+        static_cast<uint32_t>(FilterAbilityStateType::END));
     int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppStateObserverManager>::GetInstance()
-        ->RegisterApplicationStateObserver(abilityObserver, {}, AppStateFilter()));
+        ->RegisterApplicationStateObserver(abilityObserver, {}, abilityStateFilter));
     if (ret == ERR_OK) {
         observerRegistered = true;
     } else {

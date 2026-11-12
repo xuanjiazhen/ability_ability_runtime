@@ -61,7 +61,7 @@ ohos_unittest("AmsServiceLoadAbilityProcessTest") {
     "${ability_runtime_services_path}/appmgr/src/render_state_observer_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/attribution_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/common.cpp",
-    "${ability_runtime_services_path}/appmgr/src/process_schedule/process_schedule.cpp",
+    "${ability_runtime_services_path}/appmgr/src/task_mgr/process_schedule.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/system_load_provider.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/task_priority_judge.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/task_manager_service.cpp",
