@@ -2581,6 +2581,9 @@ private:
     void RemoveUninstallOrUpgradeUidSet(int32_t uid);
     bool IsUninstallingOrUpgrading(int32_t uid);
     void SendProcessKillEvent(std::shared_ptr<AppRunningRecord> appRecord);
+    static bool IsAmsForegroundDetermined(ApplicationState state);
+    static bool KeepAmsForegroundIfDetermined(bool amsDetermined, bool amsForeground, bool kernelForeground,
+        int32_t pid);
     void HandleForegroundAbilityDied(const std::vector<sptr<IRemoteObject>>& abilityTokens,
         ApplicationState state);
 

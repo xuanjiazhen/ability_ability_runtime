@@ -6526,15 +6526,19 @@ static void ReportProcessKillEvent(std::string versionCode, std::string versionN
         killInfo.killId, killInfo.callingPid, killInfo.callingProcessName.c_str());
 }
 
-// AppMgr's recorded application state is authoritative for the foreground flag;
-// CREATE/READY/PRE_FOREGROUND do not carry a reliable foreground/background meaning.
-static bool IsAmsForegroundDetermined(ApplicationState state)
+// AppMgr's recorded application state is authoritative for the foreground flag.
+// CREATE, READY and PRE_FOREGROUND do not carry a reliable foreground or background meaning.
+// APP_STATE_END and APP_STATE_SET_COLD_START are rejected by AppRunningRecord::SetState(), so they
+// never reach this point. The kernel kill record stays the last resort for all of them.
+bool AppMgrServiceInner::IsAmsForegroundDetermined(ApplicationState state)
 {
     switch (state) {
         case ApplicationState::APP_STATE_FOREGROUND:
         case ApplicationState::APP_STATE_FOCUS:
         case ApplicationState::APP_STATE_BACKGROUND:
         case ApplicationState::APP_STATE_CACHED:
+        // The record already left the foreground and the background lifecycle, so the process is
+        // reported as a background process.
         case ApplicationState::APP_STATE_TERMINATED:
             return true;
         default:
@@ -6542,20 +6546,21 @@ static bool IsAmsForegroundDetermined(ApplicationState state)
     }
 }
 
-// The kernel kill record overwrites the reported foreground value, so restore the AppMgr
-// value whenever AppMgr can tell whether the process was foreground.
-static void KeepAmsForegroundIfDetermined(bool amsDetermined, bool amsForeground,
-    AppfreezeManager::ProcessKillInfo &killInfo)
+// The kernel kill record overwrites the reported foreground value, so restore the AppMgr value
+// whenever AppMgr can tell whether the process was foreground.
+// Returns the foreground value that has to be reported.
+bool AppMgrServiceInner::KeepAmsForegroundIfDetermined(bool amsDetermined, bool amsForeground,
+    bool kernelForeground, int32_t pid)
 {
     if (!amsDetermined) {
-        return;
+        return kernelForeground;
     }
-    if (killInfo.foreground != amsForeground) {
+    if (kernelForeground != amsForeground) {
         TAG_LOGD(AAFwkTag::APPMGR,
-            "appMgr foreground preferred, pid:%{public}d, appMgr:%{public}d, kernel:%{public}d", killInfo.pid,
-            static_cast<int32_t>(amsForeground), static_cast<int32_t>(killInfo.foreground));
+            "appMgr foreground preferred, pid:%{public}d, appMgr:%{public}d, kernel:%{public}d", pid,
+            static_cast<int32_t>(amsForeground), static_cast<int32_t>(kernelForeground));
     }
-    killInfo.foreground = amsForeground;
+    return amsForeground;
 }
 
 void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> appRecord)
@@ -6576,9 +6581,16 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     killInfo.pid = appRecord->GetPid();
     killInfo.callingPid = appRecord->GetKillCallerPid();
     killInfo.callingProcessName = appRecord->GetKillCallerProcessName();
-    bool res = AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(killInfo,
-        appRecord->GetKillId(), appRecord->GetKillMsg());
-    KeepAmsForegroundIfDetermined(amsForegroundDetermined, foreground, killInfo);
+    // The kernel kill record overwrites the reported foreground value, so the AppMgr value is
+    // restored after every kernel read, both here and in the delayed retry below.
+    auto queryKillInfo = [amsForegroundDetermined, foreground](AppfreezeManager::ProcessKillInfo &info,
+        int32_t killId, const std::string &killMsg) {
+        bool res = AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(info, killId, killMsg);
+        info.foreground = KeepAmsForegroundIfDetermined(amsForegroundDetermined, foreground, info.foreground,
+            info.pid);
+        return res;
+    };
+    bool res = queryKillInfo(killInfo, appRecord->GetKillId(), appRecord->GetKillMsg());
     std::string versionCode = std::to_string(appInfo->versionCode);
     std::string versionName = appInfo->versionName;
     AAFwk::EventInfo eventInfo;
@@ -6593,15 +6605,12 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         .uid = appRecord->GetUid(),
         .rssValue = appRecord->GetRssValue(),
         .pssValue = appRecord->GetPssValue(),
-        .state = static_cast<int32_t>(appRecord->GetState()),
+        .state = static_cast<int32_t>(state),
         .killId = appRecord->GetKillId(),
     };
     if (!res) {
-        ffrt::submit([versionCode, versionName, reportData, killInfo,
-            amsForegroundDetermined, foreground]() mutable {
-            AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(killInfo,
-                reportData.killId, reportData.killMsg);
-            KeepAmsForegroundIfDetermined(amsForegroundDetermined, foreground, killInfo);
+        ffrt::submit([versionCode, versionName, reportData, queryKillInfo, killInfo]() mutable {
+            queryKillInfo(killInfo, reportData.killId, reportData.killMsg);
             ReportProcessKillEvent(versionCode, versionName, reportData, killInfo);
         }, ffrt::task_attr().name("reportProcessKill").delay(PROCESS_KILL_DELAY_TIME).
         timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));

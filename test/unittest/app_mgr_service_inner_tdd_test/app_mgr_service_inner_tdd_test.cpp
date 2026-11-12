@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include <chrono>
 #include <gtest/gtest.h>
 #include <thread>
 
@@ -986,10 +985,6 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_009, TestSize.Level1)
 HWTEST_F(AppMgrServiceInnerTest, IsAmsForegroundDetermined_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsAmsForegroundDetermined_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    appMgrServiceInner->Init();
-    ASSERT_NE(appMgrServiceInner, nullptr);
-
     const std::vector<ApplicationState> determinedStates = {
         ApplicationState::APP_STATE_FOREGROUND,
         ApplicationState::APP_STATE_FOCUS,
@@ -997,24 +992,8 @@ HWTEST_F(AppMgrServiceInnerTest, IsAmsForegroundDetermined_001, TestSize.Level1)
         ApplicationState::APP_STATE_CACHED,
         ApplicationState::APP_STATE_TERMINATED,
     };
-    int32_t recordId = 200;
     for (auto state : determinedStates) {
-        std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
-        appInfo->bundleName = "com.test.amsforeground.determined";
-        appInfo->name = "IsAmsForegroundDeterminedApp";
-        auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId++, "IsAmsForegroundDetermined_001");
-        ASSERT_NE(appRecord, nullptr);
-        ASSERT_NE(appRecord->GetPriorityObject(), nullptr);
-        appRecord->SetState(state);
-        // signal-kill death: no managed killId, the kernel kill record is queried as the last resort
-        appRecord->SetKillId(-1);
-        appRecord->SetKillMsg("signal kill");
-        appRecord->GetPriorityObject()->SetPid(getpid());
-
-        appMgrServiceInner->SendProcessKillEvent(appRecord);
-        // the AppMgr state must not be altered by the kill event reporting
-        EXPECT_EQ(appRecord->GetState(), state);
-        EXPECT_EQ(appRecord->GetKillId(), -1);
+        EXPECT_TRUE(AppMgrServiceInner::IsAmsForegroundDetermined(state));
     }
     TAG_LOGI(AAFwkTag::TEST, "IsAmsForegroundDetermined_001 end");
 }
@@ -1022,7 +1001,7 @@ HWTEST_F(AppMgrServiceInnerTest, IsAmsForegroundDetermined_001, TestSize.Level1)
 /**
  * @tc.name: IsAmsForegroundDetermined_002
  * @tc.desc: Verify IsAmsForegroundDetermined treats CREATE/READY/PRE_FOREGROUND/END/SET_COLD_START as
- *           undetermined, so the kernel kill record stays the last resort without touching AppMgr state
+ *           undetermined, so the kernel kill record stays the last resort for them
  * @tc.type: FUNC
  * @tc.Function: IsAmsForegroundDetermined
  * @tc.SubFunction: NA
@@ -1031,10 +1010,6 @@ HWTEST_F(AppMgrServiceInnerTest, IsAmsForegroundDetermined_001, TestSize.Level1)
 HWTEST_F(AppMgrServiceInnerTest, IsAmsForegroundDetermined_002, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsAmsForegroundDetermined_002 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    appMgrServiceInner->Init();
-    ASSERT_NE(appMgrServiceInner, nullptr);
-
     const std::vector<ApplicationState> undeterminedStates = {
         ApplicationState::APP_STATE_CREATE,
         ApplicationState::APP_STATE_READY,
@@ -1042,30 +1017,16 @@ HWTEST_F(AppMgrServiceInnerTest, IsAmsForegroundDetermined_002, TestSize.Level1)
         ApplicationState::APP_STATE_END,
         ApplicationState::APP_STATE_SET_COLD_START,
     };
-    int32_t recordId = 210;
     for (auto state : undeterminedStates) {
-        std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
-        appInfo->bundleName = "com.test.amsforeground.undetermined";
-        appInfo->name = "IsAmsForegroundUndeterminedApp";
-        auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId++, "IsAmsForegroundDetermined_002");
-        ASSERT_NE(appRecord, nullptr);
-        ASSERT_NE(appRecord->GetPriorityObject(), nullptr);
-        appRecord->SetState(state);
-        appRecord->SetKillId(-1);
-        appRecord->SetKillMsg("signal kill");
-        appRecord->GetPriorityObject()->SetPid(getpid());
-
-        appMgrServiceInner->SendProcessKillEvent(appRecord);
-        EXPECT_EQ(appRecord->GetState(), state);
-        EXPECT_EQ(appRecord->GetKillId(), -1);
+        EXPECT_FALSE(AppMgrServiceInner::IsAmsForegroundDetermined(state));
     }
     TAG_LOGI(AAFwkTag::TEST, "IsAmsForegroundDetermined_002 end");
 }
 
 /**
  * @tc.name: KeepAmsForegroundIfDetermined_001
- * @tc.desc: Verify KeepAmsForegroundIfDetermined keeps the AppMgr foreground flag for a signal-killed
- *           FOREGROUND process and covers the delayed ffrt retry when the kernel read fails
+ * @tc.desc: Verify KeepAmsForegroundIfDetermined restores the AppMgr foreground value for the
+ *           determined states and keeps the kernel kill record value for the undetermined ones
  * @tc.type: FUNC
  * @tc.Function: KeepAmsForegroundIfDetermined
  * @tc.SubFunction: NA
@@ -1074,116 +1035,19 @@ HWTEST_F(AppMgrServiceInnerTest, IsAmsForegroundDetermined_002, TestSize.Level1)
 HWTEST_F(AppMgrServiceInnerTest, KeepAmsForegroundIfDetermined_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "KeepAmsForegroundIfDetermined_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    appMgrServiceInner->Init();
-    ASSERT_NE(appMgrServiceInner, nullptr);
-
-    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
-    appInfo->bundleName = "com.test.amsforeground.signal";
-    appInfo->name = "KeepAmsForegroundSignalApp";
-    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 300, "KeepAmsForegroundIfDetermined_001");
-    ASSERT_NE(appRecord, nullptr);
-    ASSERT_NE(appRecord->GetPriorityObject(), nullptr);
-    appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
-    // signal-kill death: no managed killId, and an unknown pid makes the kernel record read fail,
-    // which schedules the delayed ffrt retry that must restore the AppMgr foreground flag again
-    appRecord->SetKillId(-1);
-    appRecord->SetKillMsg("signal kill");
-    appRecord->GetPriorityObject()->SetPid(999999);
-
-    appMgrServiceInner->SendProcessKillEvent(appRecord);
-    // PROCESS_KILL_DELAY_TIME is 600ms, wait for the delayed retry to run
-    std::this_thread::sleep_for(std::chrono::milliseconds(700));
-
-    EXPECT_EQ(appRecord->GetState(), ApplicationState::APP_STATE_FOREGROUND);
-    EXPECT_EQ(appRecord->GetKillId(), -1);
+    // the AppMgr value wins when AppMgr can tell foreground from background
+    EXPECT_TRUE(AppMgrServiceInner::KeepAmsForegroundIfDetermined(true, true, false, getpid()));
+    EXPECT_FALSE(AppMgrServiceInner::KeepAmsForegroundIfDetermined(true, false, true, getpid()));
+    // the kernel kill record stays authoritative when the AppMgr state cannot answer
+    EXPECT_TRUE(AppMgrServiceInner::KeepAmsForegroundIfDetermined(false, false, true, getpid()));
+    EXPECT_FALSE(AppMgrServiceInner::KeepAmsForegroundIfDetermined(false, true, false, getpid()));
     TAG_LOGI(AAFwkTag::TEST, "KeepAmsForegroundIfDetermined_001 end");
 }
 
 /**
- * @tc.name: KeepAmsForegroundIfDetermined_002
- * @tc.desc: Verify KeepAmsForegroundIfDetermined leaves the kernel kill record value untouched when the
- *           AppMgr state cannot answer foreground/background (CREATE/READY/PRE_FOREGROUND)
- * @tc.type: FUNC
- * @tc.Function: KeepAmsForegroundIfDetermined
- * @tc.SubFunction: NA
- * @tc.EnvConditions: NA
- */
-HWTEST_F(AppMgrServiceInnerTest, KeepAmsForegroundIfDetermined_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "KeepAmsForegroundIfDetermined_002 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    appMgrServiceInner->Init();
-    ASSERT_NE(appMgrServiceInner, nullptr);
-
-    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
-    appInfo->bundleName = "com.test.amsforeground.undetermined";
-    appInfo->name = "KeepAmsForegroundUndeterminedApp";
-    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 301, "KeepAmsForegroundIfDetermined_002");
-    ASSERT_NE(appRecord, nullptr);
-    ASSERT_NE(appRecord->GetPriorityObject(), nullptr);
-    // default state of a new record is APP_STATE_CREATE, which is undetermined
-    EXPECT_EQ(appRecord->GetState(), ApplicationState::APP_STATE_CREATE);
-    appRecord->SetKillId(-1);
-    appRecord->SetKillMsg("signal kill");
-    appRecord->GetPriorityObject()->SetPid(getpid());
-
-    appMgrServiceInner->SendProcessKillEvent(appRecord);
-    std::this_thread::sleep_for(std::chrono::milliseconds(700));
-
-    EXPECT_EQ(appRecord->GetState(), ApplicationState::APP_STATE_CREATE);
-    EXPECT_EQ(appRecord->GetKillId(), -1);
-    TAG_LOGI(AAFwkTag::TEST, "KeepAmsForegroundIfDetermined_002 end");
-}
-
-/**
- * @tc.name: KeepAmsForegroundIfDetermined_003
- * @tc.desc: Verify KeepAmsForegroundIfDetermined keeps the AppMgr foreground flag for the positive killId
- *           and INVALID_KILL_ID branches, which never overwrite foreground from the kernel record
- * @tc.type: FUNC
- * @tc.Function: KeepAmsForegroundIfDetermined
- * @tc.SubFunction: NA
- * @tc.EnvConditions: NA
- */
-HWTEST_F(AppMgrServiceInnerTest, KeepAmsForegroundIfDetermined_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "KeepAmsForegroundIfDetermined_003 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    appMgrServiceInner->Init();
-    ASSERT_NE(appMgrServiceInner, nullptr);
-
-    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
-    appInfo->bundleName = "com.test.amsforeground.killid";
-    appInfo->name = "KeepAmsForegroundKillIdApp";
-
-    // managed positive killId: GetProcessKillReason never touches foreground
-    auto foregroundRecord = std::make_shared<AppRunningRecord>(appInfo, 302, "KeepAmsForegroundIfDetermined_003");
-    ASSERT_NE(foregroundRecord, nullptr);
-    ASSERT_NE(foregroundRecord->GetPriorityObject(), nullptr);
-    foregroundRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
-    foregroundRecord->SetKillId(2);
-    foregroundRecord->SetKillMsg("managed kill");
-    foregroundRecord->GetPriorityObject()->SetPid(getpid());
-    appMgrServiceInner->SendProcessKillEvent(foregroundRecord);
-    EXPECT_EQ(foregroundRecord->GetState(), ApplicationState::APP_STATE_FOREGROUND);
-
-    // INVALID_KILL_ID (-2): the reason is filled without a kernel read
-    auto backgroundRecord = std::make_shared<AppRunningRecord>(appInfo, 303, "KeepAmsForegroundIfDetermined_003");
-    ASSERT_NE(backgroundRecord, nullptr);
-    ASSERT_NE(backgroundRecord->GetPriorityObject(), nullptr);
-    backgroundRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
-    backgroundRecord->SetKillId(-2);
-    backgroundRecord->SetKillMsg("invalid kill id");
-    backgroundRecord->GetPriorityObject()->SetPid(getpid());
-    appMgrServiceInner->SendProcessKillEvent(backgroundRecord);
-    EXPECT_EQ(backgroundRecord->GetState(), ApplicationState::APP_STATE_BACKGROUND);
-    TAG_LOGI(AAFwkTag::TEST, "KeepAmsForegroundIfDetermined_003 end");
-}
-
-/**
  * @tc.name: SendProcessKillEvent_010
- * @tc.desc: Verify SendProcessKillEvent keeps the AppMgr foreground flag for a signal-killed FOCUS process
- *           and runs the delayed ffrt retry when the kernel kill record cannot be read
+ * @tc.desc: Verify SendProcessKillEvent reports the kill event of a foreground process without
+ *           changing the AppMgr record, the invalid kill id needs no kernel read at all
  * @tc.type: FUNC
  * @tc.Function: SendProcessKillEvent
  * @tc.SubFunction: NA
@@ -1197,24 +1061,59 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_010, TestSize.Level1)
     ASSERT_NE(appMgrServiceInner, nullptr);
 
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
-    appInfo->bundleName = "com.test.sendprocesskillevent.focus.signal";
-    appInfo->name = "SendProcessKillEventFocusSignalApp";
+    appInfo->bundleName = "com.test.sendprocesskillevent.invalid";
+    appInfo->name = "SendProcessKillEventInvalidApp";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 304, "SendProcessKillEvent_010");
     ASSERT_NE(appRecord, nullptr);
     ASSERT_NE(appRecord->GetPriorityObject(), nullptr);
-    appRecord->SetState(ApplicationState::APP_STATE_FOCUS);
-    // signal exit: no managed killId and an unknown pid, so the kernel read fails and the
-    // delayed ffrt retry must keep the AppMgr foreground value as well
-    appRecord->SetKillId(-1);
-    appRecord->SetKillMsg("signal exit");
-    appRecord->GetPriorityObject()->SetPid(999998);
+    appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
+    // INVALID_KILL_ID fills the reason without a kernel read, so no delayed retry is scheduled
+    appRecord->SetKillId(-2);
+    appRecord->SetKillMsg("invalid kill id");
+    appRecord->GetPriorityObject()->SetPid(getpid());
 
     appMgrServiceInner->SendProcessKillEvent(appRecord);
-    std::this_thread::sleep_for(std::chrono::milliseconds(700));
-
-    EXPECT_EQ(appRecord->GetState(), ApplicationState::APP_STATE_FOCUS);
-    EXPECT_EQ(appRecord->GetKillId(), -1);
+    // the kill event reporting must not change the AppMgr record
+    EXPECT_EQ(appRecord->GetState(), ApplicationState::APP_STATE_FOREGROUND);
+    EXPECT_EQ(appRecord->GetKillId(), -2);
     TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_010 end");
+}
+
+/**
+ * @tc.name: SendProcessKillEvent_011
+ * @tc.desc: Verify SendProcessKillEvent reports the kill event of a foreground process killed by a
+ *           signal, the case where the kernel kill record is queried as the last resort
+ * @tc.type: FUNC
+ * @tc.Function: SendProcessKillEvent
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_011, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_011 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.sendprocesskillevent.signal";
+    appInfo->name = "SendProcessKillEventSignalApp";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 305, "SendProcessKillEvent_011");
+    ASSERT_NE(appRecord, nullptr);
+    ASSERT_NE(appRecord->GetPriorityObject(), nullptr);
+    appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
+    // signal kill: no managed kill id, so the kernel kill record is queried as the last resort
+    appRecord->SetKillId(-1);
+    appRecord->SetKillMsg("signal kill");
+    // an unknown pid makes the kernel record read fail, the delayed retry then restores the AppMgr
+    // foreground value again
+    appRecord->GetPriorityObject()->SetPid(999999);
+
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    // the kill event reporting must not change the AppMgr record
+    EXPECT_EQ(appRecord->GetState(), ApplicationState::APP_STATE_FOREGROUND);
+    EXPECT_EQ(appRecord->GetKillId(), -1);
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_011 end");
 }
 
 /**
