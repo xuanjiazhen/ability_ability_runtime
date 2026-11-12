@@ -434,7 +434,7 @@ HWTEST_F(PreloadManagerServiceTest, LaunchGameCustomized_002, TestSize.Level1)
  * Name: LaunchGameCustomized_003
  * Function: LaunchGameCustomized
  * SubFunction: NA
- * FunctionPoints: PreloadManagerService LaunchGameCustomized bundle mgr helper is null
+ * FunctionPoints: PreloadManagerService LaunchGameCustomized bundle mgr helper is null.
  */
 HWTEST_F(PreloadManagerServiceTest, LaunchGameCustomized_003, TestSize.Level1)
 {
