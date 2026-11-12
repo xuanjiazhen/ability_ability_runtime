@@ -433,6 +433,12 @@ bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::strin
     bool isSystemApp = ret ? bundleInfo.applicationInfo.isSystemApp : false;
     if (!isSystemApp) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "not system app");
+        auto tokenId = bundleInfo.applicationInfo.accessTokenId;
+        if (ret && tokenId != Security::AccessToken::INVALID_TOKENID &&
+            AccessTokenKit::VerifyAccessToken(tokenId, PermissionConstants::PERMISSION_ALLOW_DIRECT_BOOT, false) ==
+            Security::AccessToken::PERMISSION_GRANTED) {
+            return true;
+        }
     }
     return isSystemApp;
 }

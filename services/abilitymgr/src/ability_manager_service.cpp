@@ -889,6 +889,94 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
     return ret;
 }
 
+int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
+    uint64_t specifiedFullTokenId, bool isDirectBootStartup)
+{
+    if (AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
+        return INNER_ERR;
+    }
+    if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DMS_UID) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "specifiedFullTokenId only support for DMS");
+        specifiedFullTokenId = 0;
+    }
+    if (userId == DEFAULT_INVAL_VALUE) {
+        userId = GetValidUserId(userId);
+    }
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    if (!AbilityUtil::IsStartFreeInstall(want)) {
+        CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), userId),
+            RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+    }
+#endif
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
+    bool isDebugApp = want.GetBoolParam(AbilityConfig::DEBUG_APP, false);
+    bool isNativeDebugApp = want.GetBoolParam(AbilityConfig::NATIVE_DEBUG, false);
+    bool hasWindowOptions = (want.HasParameter(Want::PARAM_RESV_WINDOW_LEFT) ||
+        want.HasParameter(Want::PARAM_RESV_WINDOW_TOP) ||
+        want.HasParameter(Want::PARAM_RESV_WINDOW_HEIGHT) ||
+        want.HasParameter(Want::PARAM_RESV_WINDOW_WIDTH));
+    bool isDebugFromLocal = want.GetBoolParam(DEBUG_FROM, false);
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "isDebugApp=%{public}d, hasWindowOptions=%{public}d, isNativeDebugApp=%{public}d, isDebugFromLocal=%{public}d",
+        static_cast<int>(isDebugApp), static_cast<int>(hasWindowOptions), static_cast<int>(isNativeDebugApp),
+        isDebugFromLocal);
+    bool checkDeveloperModeFlag = (isDebugApp || hasWindowOptions || isNativeDebugApp || isDebugFromLocal);
+    if (checkDeveloperModeFlag) {
+        if (isDebugFromLocal &&
+            !AAFwk::PermissionVerification::GetInstance()->VerifyStartLocalDebug(IPCSkeleton::GetCallingTokenID()) &&
+            !IsAllowLocalDebugOtherApps(isDebugFromLocal)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "local debugging, permission denied");
+            return CHECK_PERMISSION_FAILED;
+        } else if (!isDebugFromLocal && !system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer Mode");
+            return ERR_NOT_DEVELOPER_MODE;
+        }
+        int32_t err = ERR_OK;
+        if ((err = StartAbilityUtils::CheckAppProvisionMode(want, userId, nullptr)) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "checkAppProvisionMode returns errcode=%{public}d", err);
+            return err;
+        }
+    }
+    if (!UnlockScreenManager::GetInstance().UnlockScreen()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "need passord to unlock");
+        return ERR_UNLOCK_SCREEN_FAILED_IN_DEVELOPER_MODE;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "coldStart:%{public}d", want.GetBoolParam("coldStart", false));
+    bool startWithAccount = want.GetBoolParam(START_ABILITY_TYPE, false);
+    if (startWithAccount || IsCrossUserCall(userId)) {
+        (const_cast<Want &>(want)).RemoveParam(START_ABILITY_TYPE);
+        CHECK_CALLER_IS_SYSTEM_APP;
+    }
+    if (hasWindowOptions && !AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "window options not supported");
+        return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
+    }
+    InsightIntentExecuteParam::RemoveInsightIntent(const_cast<Want &>(want));
+    SkillExecuteParam::RemoveSkillParam(const_cast<Want &>(want));
+    AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
+    auto eventInfo = BuildEventInfo(want, userId);
+    eventInfo->calleeId = static_cast<int32_t>(CalleeId::START_ABILITY);
+    SendAbilityEvent(EventName::START_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
+#ifdef SUPPORT_SCREEN
+    DmsUtil::GetInstance().UpdateFlagForCollaboration(want);
+#endif
+    StartAbilityWrapParam startAbilityWrapParam = {
+        .want = want,
+        .requestCode = requestCode,
+        .userId = userId,
+        .specifiedFullTokenId = specifiedFullTokenId,
+        .isDirectBootStartup = isDirectBootStartup,
+    };
+    int32_t ret = StartAbilityInner(startAbilityWrapParam);
+    AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityInner", want.GetFlags(), ret);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityError:%{public}d", eventInfo->errCode);
+    }
+    return ret;
+}
+
 int AbilityManagerService::StartAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
     int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
@@ -1837,7 +1925,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
                     {param.isStartAsCaller, isTargetPlugin, param.hostBundleName})
                 .Context<AbilityInterceptorParam::DisposedCtx>({appIndex, nullptr})
                 .BlockAllEscapeCheck(MakeBlockAllEscapeCheck(abilityRequest))
-                .StartAbilityCtx(param.startAbilityCtx).Build();
+                .StartAbilityCtx(param.startAbilityCtx).DirectBootStartup(param.isDirectBootStartup).Build();
             result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
                 interceptorExecuter_->DoProcess(interceptorParam);
             param.startAbilityCtx.SyncFrom(interceptorParam.startAbilityCtx);
@@ -10456,12 +10544,12 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
     if (info.abilityTypeName == AbilityRuntime::EXTENSION_TYPE_APP_SERVICE) {
         result = StartExtensionAbility(
             want, nullptr, userId, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+    } else if (info.isHiddenStart && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
+        result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId);
+    } else if (info.isDirectBoot && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
+        result = StartAbility(want, userId, DEFAULT_INVAL_VALUE, 0, info.isDirectBoot);
     } else {
-        if (info.isHiddenStart && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
-            result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId);
-        } else {
-            result = StartAbility(want, userId);
-        }
+        result = StartAbility(want, userId);
     }
     if ((result != ERR_OK) && (info.retryCount > 0)) {
         info.retryCount--;
