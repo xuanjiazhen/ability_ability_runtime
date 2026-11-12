@@ -801,7 +801,88 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
 int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
     uint64_t specifiedFullTokenId)
 {
-    return StartAbility(want, userId, requestCode, specifiedFullTokenId, false);
+    if (AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
+        return INNER_ERR;
+    }
+    if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DMS_UID) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "specifiedFullTokenId only support for DMS");
+        specifiedFullTokenId = 0;
+    }
+    if (userId == DEFAULT_INVAL_VALUE) {
+        userId = GetValidUserId(userId);
+    }
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    if (!AbilityUtil::IsStartFreeInstall(want)) {
+        CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), userId),
+            RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+    }
+#endif
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
+    bool isDebugApp = want.GetBoolParam(AbilityConfig::DEBUG_APP, false);
+    bool isNativeDebugApp = want.GetBoolParam(AbilityConfig::NATIVE_DEBUG, false);
+    bool hasWindowOptions = (want.HasParameter(Want::PARAM_RESV_WINDOW_LEFT) ||
+        want.HasParameter(Want::PARAM_RESV_WINDOW_TOP) ||
+        want.HasParameter(Want::PARAM_RESV_WINDOW_HEIGHT) ||
+        want.HasParameter(Want::PARAM_RESV_WINDOW_WIDTH));
+    bool isDebugFromLocal = want.GetBoolParam(DEBUG_FROM, false);
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "isDebugApp=%{public}d, hasWindowOptions=%{public}d, isNativeDebugApp=%{public}d, isDebugFromLocal=%{public}d",
+        static_cast<int>(isDebugApp), static_cast<int>(hasWindowOptions), static_cast<int>(isNativeDebugApp),
+        isDebugFromLocal);
+    bool checkDeveloperModeFlag = (isDebugApp || hasWindowOptions || isNativeDebugApp || isDebugFromLocal);
+    if (checkDeveloperModeFlag) {
+        if (isDebugFromLocal &&
+            !AAFwk::PermissionVerification::GetInstance()->VerifyStartLocalDebug(IPCSkeleton::GetCallingTokenID()) &&
+            !IsAllowLocalDebugOtherApps(isDebugFromLocal)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "local debugging, permission denied");
+            return CHECK_PERMISSION_FAILED;
+        } else if (!isDebugFromLocal && !system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer Mode");
+            return ERR_NOT_DEVELOPER_MODE;
+        }
+        int32_t err = ERR_OK;
+        if ((err = StartAbilityUtils::CheckAppProvisionMode(want, userId, nullptr)) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "checkAppProvisionMode returns errcode=%{public}d", err);
+            return err;
+        }
+    }
+    if (!UnlockScreenManager::GetInstance().UnlockScreen()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "need passord to unlock");
+        return ERR_UNLOCK_SCREEN_FAILED_IN_DEVELOPER_MODE;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "coldStart:%{public}d", want.GetBoolParam("coldStart", false));
+    bool startWithAccount = want.GetBoolParam(START_ABILITY_TYPE, false);
+    if (startWithAccount || IsCrossUserCall(userId)) {
+        (const_cast<Want &>(want)).RemoveParam(START_ABILITY_TYPE);
+        CHECK_CALLER_IS_SYSTEM_APP;
+    }
+    if (hasWindowOptions && !AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "window options not supported");
+        return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
+    }
+    InsightIntentExecuteParam::RemoveInsightIntent(const_cast<Want &>(want));
+    SkillExecuteParam::RemoveSkillParam(const_cast<Want &>(want));
+    AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
+    auto eventInfo = BuildEventInfo(want, userId);
+    eventInfo->calleeId = static_cast<int32_t>(CalleeId::START_ABILITY);
+    SendAbilityEvent(EventName::START_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
+#ifdef SUPPORT_SCREEN
+    DmsUtil::GetInstance().UpdateFlagForCollaboration(want);
+#endif
+    StartAbilityWrapParam startAbilityWrapParam = {
+        .want = want,
+        .requestCode = requestCode,
+        .userId = userId,
+        .specifiedFullTokenId = specifiedFullTokenId,
+    };
+    int32_t ret = StartAbilityInner(startAbilityWrapParam);
+    AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityInner", want.GetFlags(), ret);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityError:%{public}d", eventInfo->errCode);
+    }
+    return ret;
 }
 
 int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
@@ -3603,8 +3684,7 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, Ab
         return ERR_WRONG_INTERFACE_CALL;
     }
     const auto &targetBundleName = sessionInfo->want.GetBundleNameRef();
-    int32_t appIndex = sessionInfo->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
-    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName, appIndex)) {
+    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user lock");
         return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
     }
@@ -14865,8 +14945,7 @@ int32_t AbilityManagerService::StartSpecifiedAbilityBySCB(const Want &want, cons
         return ERR_PERMISSION_DENIED;
     }
     const auto &targetBundleName = want.GetBundleNameRef();
-    int32_t appIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
-    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName, appIndex)) {
+    if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user lock");
         return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
     }
