@@ -566,18 +566,13 @@ AppExecFwk::UiAbilityLastCallerInfo AbilityRecord::GetRealLastCallerInfo(int32_t
 
     if (isCallBySCB ||
         (!isCallBySCB && callerUid == -1 && callerBundleName.empty())) {
-        int32_t scbUid = -1;
-        {
-            std::lock_guard<ffrt::mutex> lock(scbUidLock_);
-            scbUid = scbUid_;
-        }
+        int32_t scbUid = scbUid_.load();
         if (scbUid < 0) {
             auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
             scbUid = bundleMgrHelper != nullptr ?
                 IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(
                     AbilityConfig::SCENEBOARD_BUNDLE_NAME, GetOwnerMissionUserId(), 0)) : -1;
-            std::lock_guard<ffrt::mutex> lock(scbUidLock_);
-            scbUid_ = scbUid;
+            scbUid_.store(scbUid);
         }
         if (scbUid >= 0) {
             callerInfo.callerUid = scbUid;
@@ -995,6 +990,101 @@ const AppExecFwk::AbilityInfo &AbilityRecord::GetAbilityInfo() const
 const AppExecFwk::ApplicationInfo &AbilityRecord::GetApplicationInfo() const
 {
     return abilityInfo_.applicationInfo;
+}
+
+void AbilityRecord::ClearPayloadAfterLoad()
+{
+    if (payloadCleared_) {
+        return;
+    }
+    abilityInfo_.skills.clear();
+    abilityInfo_.skillUri.clear();
+    abilityInfo_.metadata.clear();
+    abilityInfo_.deviceTypes.clear();
+    abilityInfo_.deviceCapabilities.clear();
+    abilityInfo_.permissions.clear();
+    abilityInfo_.configChanges.clear();
+    abilityInfo_.supportExtNames.clear();
+    abilityInfo_.supportMimeTypes.clear();
+    abilityInfo_.continueType.clear();
+    abilityInfo_.continueBundleNames.clear();
+
+    abilityInfo_.uri.clear();
+    abilityInfo_.readPermission.clear();
+    abilityInfo_.writePermission.clear();
+    abilityInfo_.label.clear();
+    abilityInfo_.description.clear();
+    abilityInfo_.iconPath.clear();
+    abilityInfo_.targetAbility.clear();
+    abilityInfo_.srcPath.clear();
+    abilityInfo_.srcEntrance.clear();
+    abilityInfo_.package.clear();
+    abilityInfo_.codePath.clear();
+    abilityInfo_.className.clear();
+    abilityInfo_.originalClassName.clear();
+    abilityInfo_.versionName.clear();
+    abilityInfo_.privacyUrl.clear();
+    abilityInfo_.privacyName.clear();
+    abilityInfo_.downloadUrl.clear();
+    abilityInfo_.uriPermissionMode.clear();
+    abilityInfo_.uriPermissionPath.clear();
+    abilityInfo_.libPath.clear();
+    abilityInfo_.theme.clear();
+    abilityInfo_.kind.clear();
+    abilityInfo_.originalBundleName.clear();
+    abilityInfo_.appName.clear();
+    abilityInfo_.startWindow.clear();
+    abilityInfo_.startWindowIcon.clear();
+    abilityInfo_.startWindowBackground.clear();
+    abilityInfo_.preferMultiWindowOrientation.clear();
+    abilityInfo_.srcLanguage.clear();
+    abilityInfo_.arkTSMode.clear();
+    abilityInfo_.startWindowResource = {};
+
+    auto &appInfo = abilityInfo_.applicationInfo;
+    appInfo.moduleInfos.clear();
+    appInfo.moduleSourceDirs.clear();
+    appInfo.permissions.clear();
+    appInfo.targetBundleList.clear();
+    appInfo.appEnvironments.clear();
+    appInfo.assetAccessGroups.clear();
+    appInfo.allowCommonEvent.clear();
+    appInfo.resourcesApply.clear();
+    appInfo.metaData.clear();
+    appInfo.metadata.clear();
+    appInfo.hnpPackages.clear();
+
+    payloadCleared_ = true;
+}
+
+void AbilityRecord::ReplenishPayloadFromBMS()
+{
+    if (!payloadCleared_) {
+        return;
+    }
+    auto bundleManagerHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (!bundleManagerHelper) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleManagerHelper is null");
+        return;
+    }
+    int32_t BASE_USER_RANGE = 200000;
+    int32_t userId = abilityInfo_.uid / BASE_USER_RANGE;
+    if (!IN_PROCESS_CALL(bundleManagerHelper->QueryAbilityInfo(want_,
+        AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, abilityInfo_))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "QueryAbilityInfo failed");
+        return;
+    }
+    payloadCleared_ = false;
+}
+
+void AbilityRecord::ConsumeStartSetting()
+{
+    lifeCycleStateInfo_.setting.reset();
+}
+
+bool AbilityRecord::IsPayloadCleared() const
+{
+    return payloadCleared_;
 }
 
 AbilityState AbilityRecord::GetAbilityState() const
@@ -2916,22 +3006,33 @@ void AbilityRecord::DumpClientInfo(std::vector<std::string> &info, const std::ve
     if (!isClient) {
         return;
     }
-    std::unique_lock<ffrt::mutex> lock(dumpLock_);
+    dumpContext_ = std::make_unique<DumpContext>();
+    std::unique_lock<ffrt::mutex> lock(dumpContext_->dumpLock);
     scheduler_->DumpAbilityInfo(params, info);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "dump begin wait");
-    isDumpTimeout_ = false;
+    dumpContext_->isDumpTimeout = false;
     std::chrono::milliseconds timeout { DUMP_TIMEOUT_MULTIPLE };
-    if (dumpCondition_.wait_for(lock, timeout) == ffrt::cv_status::timeout) {
-        isDumpTimeout_ = true;
+    if (dumpContext_->dumpCondition.wait_for(lock, timeout) == ffrt::cv_status::timeout) {
+        dumpContext_->isDumpTimeout = true;
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "dump wait timeout, dumpContext_ kept for late Done");
+        if (!dumpConfig) {
+            return;
+        }
+        AppExecFwk::Configuration config;
+        if (DelayedSingleton<AppScheduler>::GetInstance()->GetConfiguration(config) == ERR_OK) {
+            info.emplace_back("          configuration: " + config.GetName());
+        }
+        return;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "dump done and begin parse");
-    if (!isDumpTimeout_) {
-        std::lock_guard<ffrt::mutex> infoLock(dumpInfoLock_);
-        for (auto one : dumpInfos_) {
+    if (!dumpContext_->isDumpTimeout) {
+        std::lock_guard<ffrt::mutex> infoLock(dumpContext_->dumpInfoLock);
+        for (auto one : dumpContext_->dumpInfos) {
             info.emplace_back(one);
         }
     }
+    dumpContext_.reset();
 
     if (!dumpConfig) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "not dumpConfig");
@@ -2946,18 +3047,23 @@ void AbilityRecord::DumpClientInfo(std::vector<std::string> &info, const std::ve
 void AbilityRecord::DumpAbilityInfoDone(std::vector<std::string> &infos)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    if (isDumpTimeout_) {
+    if (!dumpContext_) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, dumpContext_ is null", __func__);
+        return;
+    }
+    if (dumpContext_->isDumpTimeout) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, time out", __func__);
+        dumpContext_.reset();
         return;
     }
     {
-        std::lock_guard<ffrt::mutex> infoLock(dumpInfoLock_);
-        dumpInfos_.clear();
+        std::lock_guard<ffrt::mutex> infoLock(dumpContext_->dumpInfoLock);
+        dumpContext_->dumpInfos.clear();
         for (auto info : infos) {
-            dumpInfos_.emplace_back(info);
+            dumpContext_->dumpInfos.emplace_back(info);
         }
     }
-    dumpCondition_.notify_all();
+    dumpContext_->dumpCondition.notify_all();
 }
 
 #ifdef SUPPORT_UPMS

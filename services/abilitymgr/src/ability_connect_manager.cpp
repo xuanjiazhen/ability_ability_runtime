@@ -1642,8 +1642,10 @@ void AbilityConnectManager::HandleLoadAbilityOrStartSpecifiedProcess(
     const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
     TAG_LOGD(AAFwkTag::EXT, "LoadAbility");
+    abilityRecord->ReplenishPayloadFromBMS();
     DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
         loadParam, abilityRecord->GetAbilityInfo(), abilityRecord->GetApplicationInfo(), abilityRecord->GetWant());
+    abilityRecord->ClearPayloadAfterLoad();
 }
 
 void AbilityConnectManager::StartSpecifiedProcess(

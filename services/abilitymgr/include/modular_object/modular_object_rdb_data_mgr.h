@@ -20,6 +20,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <atomic>
 #include <singleton.h>
 
 #include "rdb_errno.h"
@@ -71,6 +72,8 @@ public:
     int32_t InsertOrUpdateData(const std::string &key, const std::string &value);
     int32_t DeleteData(const std::string &key);
     int32_t QueryData(const std::string &key, std::string &value);
+    void ReleaseConnection();
+    void ScheduleRelease();
 
 private:
     int32_t IsDatabaseReady();
@@ -78,10 +81,13 @@ private:
     int32_t InsertWithRetry(std::shared_ptr<NativeRdb::RdbStore> store, int64_t& rowId,
                             const NativeRdb::ValuesBucket& values);
     bool IsRetryErrCode(int32_t errCode);
+    void UpdateLastAccessTime();
 
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
     std::mutex rdbStoreMutex_;
     ModularObjectExtensionRdbConfig config_;
+    std::atomic<int64_t> lastAccessTime_ = 0;
+    std::atomic<bool> releaseScheduled_ = false;
 };
 
 } // namespace AbilityRuntime
