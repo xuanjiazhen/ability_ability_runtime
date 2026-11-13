@@ -213,12 +213,22 @@ int32_t UIAbilityLifecycleManager::SetGamePreLaunchCompleteTime(int64_t complete
     return 0;
 }
 
+int32_t UIAbilityLifecycleManager::ExtendGamePreLaunchTimeout(int32_t pid, int64_t extendTime)
+{
+    return 0;
+}
+
 int32_t UIAbilityLifecycleManager::NotifyCancelGamePreLaunch(const sptr<IRemoteObject> callerToken)
 {
     return 0;
 }
 
 int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken)
+{
+    return 0;
+}
+
+int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunchByPid(int32_t pid)
 {
     return 0;
 }
@@ -243,7 +253,7 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
     return 0;
 }
 
-bool UIAbilityLifecycleManager::IsAbilityStarted(AbilityRequest &abilityRequest,
+bool UIAbilityLifecycleManager::IsAbilityStarted(const AbilityRequest &abilityRequest,
     std::shared_ptr<AbilityRecord> &targetRecord)
 {
     return false;
@@ -301,7 +311,7 @@ void UIAbilityLifecycleManager::CompleteBackground(const std::shared_ptr<Ability
 }
 
 int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
-    int resultCode, const Want *resultWant, int64_t callerRequestCode)
+    int resultCode, const Want &resultWant, int64_t callerRequestCode, bool isBackToCallerApp)
 {
     return ERR_OK;
 }

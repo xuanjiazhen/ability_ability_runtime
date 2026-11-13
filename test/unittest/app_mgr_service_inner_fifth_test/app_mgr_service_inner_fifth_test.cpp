@@ -260,18 +260,19 @@ HWTEST_F(AppMgrServiceInnerTest, GenerateNewProcessName_001, TestSize.Level2)
     abilityInfo.moduleName = "moduleA";
     abilityInfo.name = "AbilityA";
 
+    std::string expected = abilityInfo.bundleName + abilityInfo.bundleName + ":" +
+        abilityInfo.moduleName + ":" + abilityInfo.name + ":" + std::to_string(100);
     std::string name1 = appMgrServiceInner->GenerateNewProcessName(abilityInfo, 100);
     EXPECT_FALSE(name1.empty());
-    EXPECT_NE(name1.find("com.test.bundle"), std::string::npos);
-    EXPECT_NE(name1.find("moduleA"), std::string::npos);
-    EXPECT_NE(name1.find("AbilityA"), std::string::npos);
-    EXPECT_NE(name1.find("100"), std::string::npos);
+    EXPECT_EQ(name1, expected);
 
     std::string name2 = appMgrServiceInner->GenerateNewProcessName(abilityInfo, 100);
     EXPECT_EQ(name1, name2);
 
     std::string name3 = appMgrServiceInner->GenerateNewProcessName(abilityInfo, 200);
     EXPECT_NE(name1, name3);
+    EXPECT_EQ(name3, abilityInfo.bundleName + abilityInfo.bundleName + ":" +
+        abilityInfo.moduleName + ":" + abilityInfo.name + ":" + std::to_string(200));
 }
 
 /**
@@ -291,11 +292,10 @@ HWTEST_F(AppMgrServiceInnerTest, ResolveProcessName_001, TestSize.Level2)
     std::string processName;
     appMgrServiceInner->ResolveProcessName(abilityInfo, appInfo, hapModuleInfo, 0, "",
         static_cast<int32_t>(AAFwk::ProcessMode::NEW_PROCESS_ATTACH_TO_STATUS_BAR_ITEM), 100, processName);
+    std::string expected = abilityInfo->bundleName + abilityInfo->bundleName + ":" +
+        abilityInfo->moduleName + ":" + abilityInfo->name + ":" + std::to_string(100);
     EXPECT_FALSE(processName.empty());
-    EXPECT_NE(processName.find("com.test.bundle"), std::string::npos);
-    EXPECT_NE(processName.find("moduleA"), std::string::npos);
-    EXPECT_NE(processName.find("AbilityB"), std::string::npos);
-    EXPECT_NE(processName.find("100"), std::string::npos);
+    EXPECT_EQ(processName, expected);
 }
 
 /**
@@ -708,10 +708,30 @@ HWTEST_F(AppMgrServiceInnerTest, SetStartMsgStrictMode_001, TestSize.Level2)
     EXPECT_EQ(startMsg.isolatedSELinuxFlag, false);
 
     param.extensionAbilityType = ExtensionAbilityType::INPUTMETHOD;
-    startMsg.isolatedSandboxFlagLegacy = false;
     appMgrServiceInner->SetStartMsgStrictMode(startMsg, param);
     EXPECT_EQ(startMsg.strictMode, param.strictMode);
-    EXPECT_EQ(startMsg.isolatedSandboxFlagLegacy, true);
+    EXPECT_TRUE(startMsg.flags & (1ULL << StartFlags::ISOLATED_SANDBOX));
+}
+
+/**
+ * @tc.name: SetStartMsgStrictMode_002
+ * @tc.desc: SetStartMsgStrictMode with strictMode=false should not set ISOLATED_SANDBOX for INPUTMETHOD.
+ * @tc.type: FUNC
+ * @tc.require: issueI5W4S7
+ */
+HWTEST_F(AppMgrServiceInnerTest, SetStartMsgStrictMode_002, TestSize.Level2)
+{
+    CreateStartMsgParam param;
+    param.strictMode = false;
+    AppSpawnStartMsg startMsg;
+    startMsg.strictMode = false;
+    startMsg.flags = 0;
+
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    param.extensionAbilityType = ExtensionAbilityType::INPUTMETHOD;
+    appMgrServiceInner->SetStartMsgStrictMode(startMsg, param);
+    EXPECT_EQ(startMsg.strictMode, param.strictMode);
+    EXPECT_FALSE(startMsg.flags & (1ULL << StartFlags::ISOLATED_SANDBOX));
 }
 
 /**
@@ -1393,7 +1413,7 @@ HWTEST_F(AppMgrServiceInnerTest, TryToUseImageInfo_NullParams_001, TestSize.Leve
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     auto ret = appMgrServiceInner->TryToUseImageInfo(nullptr, nullptr, nullptr,
-        "callerKey", 0, "process", "instanceKey", "", "", appRecord);
+        "callerKey", 0, "process", "instanceKey", "", "", appRecord, false);
     EXPECT_EQ(ret, ERR_OK);
 }
 
@@ -1412,7 +1432,7 @@ HWTEST_F(AppMgrServiceInnerTest, TryToUseImageInfo_ImageInfoNotFound_001, TestSi
     appInfo->uid = 0;
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     auto ret = appMgrServiceInner->TryToUseImageInfo(abilityInfo, appInfo, nullptr,
-        "callerKey", 0, "process", "instanceKey", "", "", appRecord);
+        "callerKey", 0, "process", "instanceKey", "", "", appRecord, false);
     EXPECT_EQ(ret, ERR_OK);
 }
 
@@ -1441,7 +1461,7 @@ HWTEST_F(AppMgrServiceInnerTest, TryToUseImageInfo_ImageInfoNotMatched_001, Test
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     auto ret = appMgrServiceInner->TryToUseImageInfo(abilityInfo, appInfo,
         sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken()),
-        "callerKey", 0, "differentProcess", "instanceKey", "", "", appRecord);
+        "callerKey", 0, "differentProcess", "instanceKey", "", "", appRecord, false);
     EXPECT_EQ(ret, ERR_OK);
 }
 

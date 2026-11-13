@@ -66,6 +66,7 @@ constexpr const char* DETAIL_YIELD_EXCEEDS_TIMEOUT = "yield_exceeds_timeout";
 constexpr const char* DETAIL_INPUT_SCHEMA_EMPTY = "input_schema_empty";
 constexpr const char* DETAIL_PARAM_NOT_FOUND = "param_not_found";
 constexpr const char* DETAIL_PARAM_TYPE_MISMATCH = "param_type_mismatch";
+constexpr const char* DETAIL_UNSUPPORTED_FORMAT = "unsupported_key_value_format";
 
 /**
  * @brief Report CLI execution failed event (TYPE=FAILED)
@@ -84,14 +85,14 @@ void ReportCliExecuteFailed(const std::string& bundleName, const std::string& cl
  * @param durationMs Timeout duration in milliseconds
  */
 void ReportCliTimeout(const std::string& bundleName, const std::string& cliName,
-    const std::string& durationMs);
+    int64_t durationMs);
 
 /**
  * @brief Report CLI signal event (TYPE=SIGNAL)
  * @param cliName CLI tool name
  * @param signalNum Signal number
  */
-void ReportCliSignal(const std::string& cliName, const std::string& signalNum);
+void ReportCliSignal(const std::string& cliName, int32_t signalNum);
 
 /**
  * @brief Get effective CLI name with placeholder handling

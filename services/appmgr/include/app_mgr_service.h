@@ -27,6 +27,7 @@
 #include "app_mgr_constants.h"
 #include "app_mgr_service_event_handler.h"
 #include "app_mgr_service_inner.h"
+#include "hyper_snap_error_record.h"
 #include "app_mgr_stub.h"
 #include "app_record_id.h"
 #include "app_running_record.h"
@@ -91,6 +92,8 @@ public:
         sptr<IImageErrorHandler> errorHandler = nullptr) override;
 
     virtual int32_t DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler = nullptr) override;
+
+    virtual int32_t GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecord &record) override;
 
     virtual int32_t NotifyTemplateProcessDeepFrozen(int32_t pid) override;
 
@@ -223,6 +226,15 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) override;
+
+    /**
+     * GetSelfChildrenProcesses, call GetSelfChildrenProcesses() through proxy project.
+     * Obtains information about children processes that are running for the calling application.
+     *
+     * @param info, child process info.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual int GetSelfChildrenProcesses(std::vector<ChildProcessInfo> &info) override;
 
     /**
      * IsTerminatingByPid, call IsTerminatingByPid() through proxy project.
@@ -405,6 +417,73 @@ public:
      * @return Returns the dump result.
      */
     int Dump(int fd, const std::vector<std::u16string>& args) override;
+
+    /**
+     * @brief Starts a task with the specified task id and priority.
+     * @param taskId Indicates the attribution key of the task.
+     * @param priority Indicates the task priority.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t StartTask(const std::string &taskId, int32_t priority) override;
+
+    /**
+     * @brief Finishes the task with the specified task id.
+     * @param taskId Indicates the attribution key of the task.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t FinishTask(const std::string &taskId) override;
+
+    /*
+     * @brief Attributes the target Agent process into the task after a successful
+     *        A2A connect. Best-effort: failures are logged and do NOT fail the
+     *        connect result.
+     * @param taskId Indicates the task id claimed in Want.parameters[ohos.aafwk.param.agent.taskId].
+     * @param callerTokenId Indicates the app's token id captured at the convergence.
+     * @param targetPid Indicates the target Agent process pid (resolved post-connect).
+     * @param attributionId Indicates the server-assigned attribution handle for later
+     *        unregister; 0 on failure.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
+        pid_t targetPid, int64_t &attributionId) override;
+
+    /**
+     * @brief Unregisters the A2A attribution previously created by AttributeTaskForA2A.
+     *        Only the Foundation process may call this.
+     * @param taskId Indicates the task id.
+     * @param attributionId Indicates the attribution handle returned by AttributeTaskForA2A.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t UnregisterTaskForA2A(const std::string &taskId, int64_t attributionId) override;
+
+    /**
+     * @brief Attributes a process into the task owned by the caller and hands back
+     *        the server-assigned attribution id used for later unregistration. Only
+     *        the climgr process (aimgr uid) may call this.
+     * @param taskId Indicates the attribution key of the task.
+     * @param pid Indicates the pid of the managed process to attribute.
+     * @param tool Indicates the tool type of the attribution (AttributionTool value).
+     * @param callerUid Indicates the forensic uid of the original task creator; a
+     *        negative value skips the ownership check.
+     * @param attributionId Outputs the server-assigned attribution id (AttributionId)
+     *        on success, or 0 on any failure.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
+        int32_t callerUid, int64_t &attributionId) override;
+
+    /**
+     * @brief Removes the attribution record with the given id from the task owned by
+     *        the caller (idempotent). Only the climgr process (aimgr uid) may call this.
+     * @param taskId Indicates the attribution key of the task.
+     * @param attributionId Indicates the id returned by RegisterManagedProcess
+     *        (AttributionId).
+     * @param callerUid Indicates the forensic uid of the original task creator; a
+     *        negative value skips the ownership check.
+     * @return Returns ERR_OK on success; others on failure.
+     */
+    int32_t UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
+        int32_t callerUid) override;
 
     /**
      * @brief called when the abilityStage's onAcceptWant lifecycle completed.
@@ -755,6 +834,11 @@ public:
      */
     int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer) override;
 
+    int32_t RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer) override;
+    int32_t UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer) override;
+    int32_t RegisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer) override;
+    int32_t UnregisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer) override;
+
 #ifdef SUPPORT_CHILD_PROCESS
     /**
      * Start child process, called by ChildProcessManager.
@@ -800,6 +884,22 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t UnregisterRenderStateObserver(const sptr<IRenderStateObserver> &observer) override;
+
+    /**
+     * @brief register a child process state observer to receive change.
+     * @param observer the child process state observer to receive notify.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RegisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer) override;
+
+    /**
+     * @brief unregister a child process state observer registered before.
+     * @param observer the child process state observer registered before.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UnregisterChildProcessStateObserver(const sptr<IChildProcessStateObserver> &observer) override;
 
     /**
      * @brief update a render process state.
@@ -932,6 +1032,13 @@ public:
 #endif // SUPPORT_CHILD_PROCESS
 
     /**
+     * Get all UIAbility child processes of the calling application.
+     * @param infos Output vector of child process info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetSelfUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos) override;
+
+    /**
      * Register callback to notify native child exit.
      * @param notify, callback to notify
      * @return Returns ERR_OK on success, others on failure.
@@ -1026,6 +1133,16 @@ public:
      */
     virtual int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos) override;
 
+    /**
+     * Notify the state change of a child process.
+     *
+     * @param pid The pid of the child process whose state has changed.
+     * @param state The new state of the child process.
+     * @return ERR_OK on success, server error code otherwise;
+     *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
+     */
+    int32_t NotifyChildProcessState(int32_t pid, int32_t state) override;
+
 private:
     /**
      * Init, Initialize application services.
@@ -1105,6 +1222,7 @@ private:
 
     int Dump(const std::vector<std::u16string>& args, std::string& result);
     int ShowHelp(const std::vector<std::u16string>& args, std::string& result);
+    int DumpTask(const std::vector<std::u16string>& args, std::string& result);
     int DumpIpc(const std::vector<std::u16string>& args, std::string& result);
     int DumpIpcAllStart(std::string& result);
     int DumpIpcAllStop(std::string& result);
@@ -1171,6 +1289,15 @@ private:
      * @return Returns true is final application process, others return false.
      */
     bool IsFinalAppProcess() override;
+
+    /**
+     * Query whether the current process is doing snapshot initialization.
+     *
+     * @return Returns true if the current process is doing snapshot initialization,
+     *         false otherwise (completed, failed, not a template process,
+     *         or service unavailable).
+     */
+    bool IsHyperSnapInitializing() override;
 
     /**
      * Get pids of processes which belong to specific bundle name and support process cache feature.

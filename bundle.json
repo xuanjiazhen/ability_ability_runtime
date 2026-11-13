@@ -100,6 +100,7 @@
             "netmanager_base",
             "node",
             "os_account",
+            "openssl",
             "power_manager",
             "preferences",
             "previewer",
@@ -112,6 +113,7 @@
             "samgr",
             "sandbox_manager",
             "screenlock_mgr",
+            "security_guard",
             "selinux_adapter",
             "storage_service",
             "toolchain",
@@ -121,8 +123,7 @@
             "zlib",
             "hiperf",
             "hiprofiler",
-            "taihe_ffi_gen",
-            "node"
+            "taihe_ffi_gen"
           ]
       },
       "build": {
@@ -706,15 +707,6 @@
           },
           {
             "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/mission_manager/include",
-              "header_files": [
-                "mission_manager_client.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/mission_manager:mission_manager"
-          },
-          {
-            "header": {
               "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/session_handler/include",
               "header_files": []
             },
@@ -768,15 +760,6 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi:cj_ability_ffi"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include",
-              "header_files": [
-                "appmgr/app_state_data.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager:app_state_data"
           },
           {
             "header": {

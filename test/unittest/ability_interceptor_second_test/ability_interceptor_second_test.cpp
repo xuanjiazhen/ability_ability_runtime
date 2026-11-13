@@ -212,7 +212,7 @@ HWTEST_F(AbilityInterceptorSecondTest, DisposedRuleInterceptor_006, TestSize.Lev
 
 /**
  * @tc.name: AbilityInterceptorSecondTest_DisposedRuleInterceptor_007
- * @tc.desc: DisposedRuleInterceptor
+ * @tc.desc: DisposedRuleInterceptor CheckControl with GetAbilityRunningControlRule failed, returns NO_RULE
  * @tc.type: FUNC
  * @tc.require: No
  */
@@ -226,14 +226,14 @@ HWTEST_F(AbilityInterceptorSecondTest, DisposedRuleInterceptor_007, TestSize.Lev
     int32_t userId = 10;
     DisposedRule disposedRule;
     int32_t appIndex = 0;
-    bool result = executer->CheckControl(want, userId, disposedRule, appIndex);
-    EXPECT_EQ(result, false);
+    auto result = executer->CheckControl(want, userId, disposedRule, appIndex);
+    EXPECT_EQ(result, DisposedRuleResult::NO_RULE);
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
 /**
  * @tc.name: AbilityInterceptorSecondTest_DisposedRuleInterceptor_008
- * @tc.desc: DisposedRuleInterceptor
+ * @tc.desc: DisposedRuleInterceptor CheckControl with GetAbilityRunningControlRule failed, returns NO_RULE
  * @tc.type: FUNC
  * @tc.require: No
  */
@@ -252,8 +252,8 @@ HWTEST_F(AbilityInterceptorSecondTest, DisposedRuleInterceptor_008, TestSize.Lev
     std::vector<AppExecFwk::DisposedRule> rules = { disposedRule };
     bool result = executer->FindBlockDisposedRule(want, rules, disposedRule);
     EXPECT_TRUE(result);
-    result = executer->CheckControl(want, userId, disposedRule, appIndex);
-    EXPECT_FALSE(result);
+    auto controlResult = executer->CheckControl(want, userId, disposedRule, appIndex);
+    EXPECT_EQ(controlResult, DisposedRuleResult::NO_RULE);
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
@@ -298,7 +298,7 @@ HWTEST_F(AbilityInterceptorSecondTest, DisposedRuleInterceptor_012, TestSize.Lev
     auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
     abilityInfo->uid = 0;
     ErrCode result = executer->StartNonBlockRule(want, disposedRule, abilityInfo);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 } // namespace AAFwk
 } // namespace OHOS

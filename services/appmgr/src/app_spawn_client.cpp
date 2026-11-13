@@ -50,6 +50,8 @@ constexpr const char* JITPERMISSIONSLIST_NAME_VALUE = "Permissions";
 constexpr const char* JITPERMISSIONSLIST_COUNT = "ohos.encaps.count";
 constexpr const char* JITPERMISSIONSLIST_PERMISSIONS_NAME = "permissions";
 constexpr const char* UNINSTALL_BUNDLE_NAME = "uninstallDebugHapMsg";
+constexpr const char* IPCGROUPINFOLIST_IPCGROUPID = "ipcGroupId";
+constexpr const char* IPCGROUPINFOLIST_GID = "ipcGroupGid";
 }
 AppSpawnClient::AppSpawnClient(bool isNWebSpawn)
 {
@@ -162,6 +164,20 @@ static std::string DumpDataGroupInfoListToJson(const DataGroupInfoList &dataGrou
     return dataGroupInfoListJson.dump();
 }
 
+static std::string DumpIpcGroupInfoListToJson(const IpcGroupInfoList &ipcGroupInfoList)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "ipcGroupInfoList size: %{public}zu", ipcGroupInfoList.size());
+    nlohmann::json ipcGroupInfoListJson;
+    for (auto& ipcGroupInfo : ipcGroupInfoList) {
+        nlohmann::json ipcGroupInfoJson;
+        ipcGroupInfoJson[IPCGROUPINFOLIST_IPCGROUPID] = ipcGroupInfo.ipcGroupId;
+        ipcGroupInfoJson[IPCGROUPINFOLIST_GID] = std::to_string(ipcGroupInfo.gid);
+        ipcGroupInfoListJson.emplace_back(ipcGroupInfoJson);
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "ipcGroupInfoListJson %{public}s", ipcGroupInfoListJson.dump().c_str());
+    return ipcGroupInfoListJson.dump();
+}
+
 static std::string DumpHspListToJson(const HspList &hspList)
 {
     nlohmann::json hspListJson;
@@ -205,11 +221,17 @@ int32_t AppSpawnClient::SetDacInfo(const AppSpawnStartMsg &startMsg, AppSpawnReq
     AppDacInfo appDacInfo = {0};
     appDacInfo.uid = startMsg.uid;
     appDacInfo.gid = startMsg.gid;
-    appDacInfo.gidCount = startMsg.gids.size() + startMsg.dataGroupInfoList.size();
-    if (appDacInfo.gidCount > APP_MAX_GIDS) {
+    if (startMsg.gids.size() > APP_MAX_GIDS ||
+        startMsg.dataGroupInfoList.size() > APP_MAX_GIDS) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid gidCount, exceeds APP_MAX_GIDS");
         return ERR_INVALID_VALUE;
     }
+    size_t totalGidCount = startMsg.gids.size() + startMsg.dataGroupInfoList.size();
+    if (totalGidCount > APP_MAX_GIDS) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid gidCount, exceeds APP_MAX_GIDS");
+        return ERR_INVALID_VALUE;
+    }
+    appDacInfo.gidCount = static_cast<uint32_t>(totalGidCount);
     for (uint32_t i = 0; i < startMsg.gids.size(); i++) {
         appDacInfo.gidTable[i] = startMsg.gids[i];
     }
@@ -254,33 +276,11 @@ int32_t AppSpawnClient::SetStartFlags(const AppSpawnStartMsg &startMsg, AppSpawn
         startFlagTmp = startFlagTmp >> RIGHT_SHIFT_STEP;
         flagIndex++;
     }
-    if (startMsg.atomicServiceFlag) {
-        ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_ATOMIC_SERVICE);
-        if (ret != 0) {
-            TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
-            return ret;
-        }
-    }
     if (startMsg.strictMode) {
         ret = SetStrictMode(startMsg, reqHandle);
         if (ret != ERR_OK) {
             return ret;
         }
-    }
-    if (startMsg.isolatedExtension) {
-        ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_EXTENSION_SANDBOX);
-        if (ret != 0) {
-            TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
-            return ret;
-        }
-    }
-    if (startMsg.isCustomSandboxFlag) {
-        ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_CUSTOM_SANDBOX);
-        if (ret != 0) {
-            TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
-            return ret;
-        }
-        TAG_LOGD(AAFwkTag::APPMGR, "Set APP_FLAGS_CUSTOM_SANDBOX flag success.");
     }
 #ifdef SUPPORT_CHILD_PROCESS
     ret = SetChildProcessTypeStartFlag(reqHandle, startMsg.childProcessType);
@@ -289,22 +289,13 @@ int32_t AppSpawnClient::SetStartFlags(const AppSpawnStartMsg &startMsg, AppSpawn
         return ret;
     }
 #endif // SUPPORT_CHILD_PROCESS
-    ret = SetIsolationModeFlag(startMsg, reqHandle);
-    return ret;
+    return ERR_OK;
 }
 
 int32_t AppSpawnClient::SetStrictMode(const AppSpawnStartMsg &startMsg, const AppSpawnReqMsgHandle &reqHandle)
 {
     int32_t ret = ERR_OK;
     TAG_LOGD(AAFwkTag::APPMGR, "SetStrictMode");
-    if (startMsg.isolatedSandboxFlagLegacy) {
-        TAG_LOGD(AAFwkTag::APPMGR, "SetIsolatedSandBoxLegacy");
-        ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_ISOLATED_SANDBOX);
-        if (ret != 0) {
-            TAG_LOGE(AAFwkTag::APPMGR, "SetIsolatedSandBoxLegacy fail, ret: %{public}d", ret);
-            return ret;
-        }
-    }
     if (startMsg.isolatedNetworkFlag) {
         TAG_LOGD(AAFwkTag::APPMGR, "Set isolatedNetwork");
         ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_ISOLATED_NETWORK);
@@ -363,6 +354,16 @@ int32_t AppSpawnClient::AppspawnSetExtMsg(const AppSpawnStartMsg &startMsg, AppS
         if (ret) {
             TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
             return ret;
+        }
+    }
+
+    if (!startMsg.agentId.empty()) {
+        ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_AGENT_ID, startMsg.agentId.c_str());
+        if (ret) {
+            TAG_LOGE(AAFwkTag::APPMGR, "send agentId fail, ret: %{public}d, agentId:%{private}s",
+                ret, startMsg.agentId.c_str());
+        } else {
+            TAG_LOGI(AAFwkTag::APPMGR, "send agentId: %{private}s", startMsg.agentId.c_str());
         }
     }
 
@@ -511,6 +512,15 @@ int32_t AppSpawnClient::AppspawnSetExtMsgSec(const AppSpawnStartMsg &startMsg, A
         }
         TAG_LOGD(AAFwkTag::APPMGR, "Send appSignType: %{public}s", startMsg.appSignType.c_str());
     }
+
+    if (!startMsg.ipcGroupInfoList.empty()) {
+        ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_IPC_GROUP,
+            DumpIpcGroupInfoListToJson(startMsg.ipcGroupInfoList).c_str());
+        if (ret) {
+            TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
+            return ret;
+        }
+    }
     return ret;
 }
 
@@ -610,8 +620,13 @@ bool AppSpawnClient::VerifyMsg(const AppSpawnStartMsg &startMsg)
             return false;
         }
 
+        if (startMsg.gids.size() > APP_MAX_GIDS ||
+            startMsg.dataGroupInfoList.size() > APP_MAX_GIDS) {
+            TAG_LOGE(AAFwkTag::APPMGR, "many app gids or dataGroupInfoList");
+            return false;
+        }
         if (startMsg.gids.size() + startMsg.dataGroupInfoList.size() > APP_MAX_GIDS) {
-            TAG_LOGE(AAFwkTag::APPMGR, "many app gids");
+            TAG_LOGE(AAFwkTag::APPMGR, "many app gids and dataGroupInfoList");
             return false;
         }
 
@@ -854,23 +869,5 @@ int32_t AppSpawnClient::SetExtMsgFds(const AppSpawnReqMsgHandle &reqHandle,
     return ERR_OK;
 }
 
-int32_t AppSpawnClient::SetIsolationModeFlag(const AppSpawnStartMsg &startMsg, const AppSpawnReqMsgHandle &reqHandle)
-{
-    TAG_LOGD(AAFwkTag::APPMGR, "isolationMode:%{public}d", startMsg.isolationMode);
-    if (!startMsg.isolationMode) {
-        return ERR_OK;
-    }
-    auto ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_ISOLATED_SANDBOX_TYPE);
-    if (ret != 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
-        return ret;
-    }
-    ret = AppSpawnReqMsgSetAppFlag(reqHandle, APP_FLAGS_ISOLATED_NETWORK);
-    if (ret != 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
-        return ret;
-    }
-    return ERR_OK;
-}
 }  // namespace AppExecFwk
 }  // namespace OHOS

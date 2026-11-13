@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -152,11 +152,16 @@ int32_t AppRunningManager::ProcessUpdateApplicationInfoInstalled(
 bool AppRunningManager::ProcessExitByBundleNameAndUid(
     const std::string &bundleName, const int uid, std::list<pid_t> &pids, const KillProcessConfig &config)
 {
-    return AAFwk::MyStatus::GetInstance().processExit_;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.processExitCall_++;
+    status.processExitClearPageStack_ = config.clearPageStack;
+    status.processExitAddKillingCaller_ = config.addKillingCaller;
+    status.processExitReason_ = config.reason;
+    return status.processExit_;
 }
 
 bool AppRunningManager::ProcessExitByBundleNameAndAppIndex(const std::string &bundleName, int32_t appIndex,
-    std::list<pid_t> &pids, bool clearPageStack)
+    std::list<pid_t> &pids, bool clearPageStack, int32_t userId)
 {
     return false;
 }
@@ -285,6 +290,10 @@ int32_t AppRunningManager::NotifyMemoryLevel(int32_t level)
 int32_t AppRunningManager::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel> &procLevelMap, bool isShellCall)
 {
     AAFwk::MyStatus::GetInstance().notifyProcMemoryCall_++;
+    AAFwk::MyStatus::GetInstance().notifyProcMemoryMapSize_ = procLevelMap.size();
+    if (isShellCall) {
+        AAFwk::MyStatus::GetInstance().notifyProcMemoryShellCall_++;
+    }
     return AAFwk::MyStatus::GetInstance().notifyProcMemory_;
 }
 

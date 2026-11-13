@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "extract_insight_intent_profile.h"
@@ -51,6 +52,26 @@ ExtractInsightIntentInfo MakeLinkIntent(const std::string &bundle, const std::st
     link.uri = "example://test";
     link.parameters = R"({"type":"object"})";
     return info;
+}
+
+void SetLinkSchema(ExtractInsightIntentInfo &info, const std::string &schemaJson)
+{
+    auto &link = info.genericInfo.get<InsightIntentLinkInfo>();
+    link.uri = "example://test";
+    link.parameters = schemaJson;
+}
+
+std::string MakeDeepNestedSchema(int depth)
+{
+    std::string schema;
+    for (int i = 0; i < depth; i++) {
+        schema += R"({"nested":)";
+    }
+    schema += "null";
+    for (int i = 0; i < depth; i++) {
+        schema += "}";
+    }
+    return schema;
 }
 }
 
@@ -132,7 +153,102 @@ HWTEST_F(FunctionCallConvertTest, BatchUpdateInsightIntentFunctions_EmptyBundleN
 {
     std::vector<ExtractInsightIntentInfo> intentInfos;
     std::vector<InsightIntentInfo> configInfos;
-    int32_t successCount = -1;
-    EXPECT_FALSE(BatchUpdateInsightIntentFunctions(intentInfos, configInfos, "", 0, successCount));
-    EXPECT_EQ(successCount, 0);
+    EXPECT_FALSE(BatchUpdateInsightIntentFunctions(intentInfos, configInfos, "", 0, 100));
+}
+
+HWTEST_F(FunctionCallConvertTest, UnregisterInsightIntentFunctions_EmptyBundleName_ReturnsFalse, TestSize.Level1)
+{
+    EXPECT_FALSE(UnregisterInsightIntentFunctions("", 100));
+}
+
+HWTEST_F(FunctionCallConvertTest, BatchRegisterInsightIntentFunctions_EmptyFunctions_ReturnsTrue, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> intentInfos;
+    std::vector<InsightIntentInfo> configInfos;
+    std::unordered_map<std::string, uint32_t> bundleVersionMap;
+    EXPECT_TRUE(BatchRegisterInsightIntentFunctions(intentInfos, configInfos, bundleVersionMap, 100));
+}
+
+HWTEST_F(FunctionCallConvertTest, ConvertFromExtractIntentInfo_PropertiesIsString_NoCrash, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> intentInfos;
+    auto info = MakeLinkIntent("com.test.demo", "entry", "OpenLink");
+    SetLinkSchema(info, R"({"type":"object","properties":"oops"})");
+    intentInfos.push_back(info);
+    std::vector<FunctionInfo> functions;
+    EXPECT_TRUE(ConvertFromExtractIntentInfo(intentInfos, functions));
+    ASSERT_EQ(functions.size(), 1u);
+    EXPECT_NE(functions[0].inputSchema.find("ohos.insightIntent.options"), std::string::npos);
+}
+
+HWTEST_F(FunctionCallConvertTest, ConvertFromExtractIntentInfo_PropertiesIsNumber_NoCrash, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> intentInfos;
+    auto info = MakeLinkIntent("com.test.demo", "entry", "OpenLink");
+    SetLinkSchema(info, R"({"type":"object","properties":123})");
+    intentInfos.push_back(info);
+    std::vector<FunctionInfo> functions;
+    EXPECT_TRUE(ConvertFromExtractIntentInfo(intentInfos, functions));
+    ASSERT_EQ(functions.size(), 1u);
+    EXPECT_NE(functions[0].inputSchema.find("ohos.insightIntent.options"), std::string::npos);
+}
+
+HWTEST_F(FunctionCallConvertTest, ConvertFromExtractIntentInfo_PropertiesIsBool_NoCrash, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> intentInfos;
+    auto info = MakeLinkIntent("com.test.demo", "entry", "OpenLink");
+    SetLinkSchema(info, R"({"type":"object","properties":true})");
+    intentInfos.push_back(info);
+    std::vector<FunctionInfo> functions;
+    EXPECT_TRUE(ConvertFromExtractIntentInfo(intentInfos, functions));
+    ASSERT_EQ(functions.size(), 1u);
+    EXPECT_NE(functions[0].inputSchema.find("ohos.insightIntent.options"), std::string::npos);
+}
+
+HWTEST_F(FunctionCallConvertTest, ConvertFromExtractIntentInfo_PropertiesIsArray_NoCrash, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> intentInfos;
+    auto info = MakeLinkIntent("com.test.demo", "entry", "OpenLink");
+    SetLinkSchema(info, R"({"type":"object","properties":["a","b"]})");
+    intentInfos.push_back(info);
+    std::vector<FunctionInfo> functions;
+    EXPECT_TRUE(ConvertFromExtractIntentInfo(intentInfos, functions));
+    ASSERT_EQ(functions.size(), 1u);
+    EXPECT_NE(functions[0].inputSchema.find("ohos.insightIntent.options"), std::string::npos);
+}
+
+HWTEST_F(FunctionCallConvertTest, ConvertFromExtractIntentInfo_InvalidJson_NoCrash, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> intentInfos;
+    auto info = MakeLinkIntent("com.test.demo", "entry", "OpenLink");
+    SetLinkSchema(info, R"({invalid json)");
+    intentInfos.push_back(info);
+    std::vector<FunctionInfo> functions;
+    EXPECT_TRUE(ConvertFromExtractIntentInfo(intentInfos, functions));
+    ASSERT_EQ(functions.size(), 1u);
+    EXPECT_NE(functions[0].inputSchema.find("ohos.insightIntent.options"), std::string::npos);
+}
+
+HWTEST_F(FunctionCallConvertTest, ConvertFromExtractIntentInfo_SchemaNotObject_NoCrash, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> intentInfos;
+    auto info = MakeLinkIntent("com.test.demo", "entry", "OpenLink");
+    SetLinkSchema(info, R"([1,2,3])");
+    intentInfos.push_back(info);
+    std::vector<FunctionInfo> functions;
+    EXPECT_TRUE(ConvertFromExtractIntentInfo(intentInfos, functions));
+    ASSERT_EQ(functions.size(), 1u);
+    EXPECT_NE(functions[0].inputSchema.find("ohos.insightIntent.options"), std::string::npos);
+}
+
+HWTEST_F(FunctionCallConvertTest, ConvertFromExtractIntentInfo_OverDepthLimit_ResetToEmpty, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> intentInfos;
+    auto info = MakeLinkIntent("com.test.demo", "entry", "OpenLink");
+    SetLinkSchema(info, MakeDeepNestedSchema(101));
+    intentInfos.push_back(info);
+    std::vector<FunctionInfo> functions;
+    EXPECT_TRUE(ConvertFromExtractIntentInfo(intentInfos, functions));
+    ASSERT_EQ(functions.size(), 1u);
+    EXPECT_NE(functions[0].inputSchema.find("ohos.insightIntent.options"), std::string::npos);
 }

@@ -31,19 +31,21 @@ public:
         void(const std::shared_ptr<AbilityInfo>& abilityInfo, const std::shared_ptr<ApplicationInfo>& appInfo,
             const std::shared_ptr<AAFwk::Want>& want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam));
     MOCK_METHOD2(TerminateAbility, void(const sptr<IRemoteObject>& token, bool clearMissionFlag));
-    MOCK_METHOD3(UpdateAbilityState, void(const sptr<IRemoteObject>& token, const AbilityState state,
-        bool isFromScreenOffBackground));
+    MOCK_METHOD4(UpdateAbilityState, void(const sptr<IRemoteObject>& token, const AbilityState state,
+        bool isFromScreenOffBackground, const UiAbilityLastCallerInfo& callerInfo));
     MOCK_METHOD0(Reset, void());
     MOCK_METHOD1(KillProcessByAbilityToken, void(const sptr<IRemoteObject>& token));
     MOCK_METHOD3(KillProcessesByUserId, void(int32_t userId, bool isNeedSendAppSpawnMsg,
         sptr<AAFwk::IUserCallback> callback));
     MOCK_METHOD4(KillProcessWithAccount, int(const std::string&, const int, const bool clearPageStack, int32_t));
+    MOCK_METHOD4(KillProcessWithAccountSafely,
+        int32_t(const std::string&, const int, const bool clearPageStack, int32_t));
     MOCK_METHOD1(KillProcessesInBatch, int(const std::vector<int32_t> &pids));
     MOCK_METHOD4(UpdateApplicationInfoInstalled, int(const std::string&, const int uid, const std::string&, bool));
     MOCK_METHOD3(ForceKillApplication, int32_t(const std::string& appName, const int userId, const int appIndex));
     MOCK_METHOD3(KillApplicationWithUserId, int32_t(const std::string& appName, const int userId, const int appIndex));
-    MOCK_METHOD4(KillApplication, int32_t(const std::string& bundleName, const bool clearPageStack, int32_t appIndex,
-        const std::string& reason));
+    MOCK_METHOD5(KillApplication, int32_t(const std::string& bundleName, const bool clearPageStack, int32_t appIndex,
+        const std::string& reason, int32_t userId));
     MOCK_METHOD1(KillProcessesByAccessTokenId, int32_t(const uint32_t accessTokenId));
     MOCK_METHOD3(KillApplicationByUid, int(const std::string&, const int uid, const std::string&));
     MOCK_METHOD0(IsReady, bool());
@@ -61,8 +63,8 @@ public:
     MOCK_METHOD3(GetApplicationInfoByProcessID, int(const int pid, AppExecFwk::ApplicationInfo& application,
         bool& debug));
     MOCK_METHOD3(NotifyAppMgrRecordExitReason, int32_t(int32_t pid, int32_t reason, const std::string &exitMsg));
-    MOCK_METHOD5(NotifyAppMgrRecordExitReasonCompability, int32_t(int32_t pid, int32_t killId,
-        const std::string &killMsg, const std::string &innerMsg, int32_t reason));
+    MOCK_METHOD6(NotifyAppMgrRecordExitReasonCompability, int32_t(int32_t pid, int32_t killId,
+        const std::string &killMsg, const std::string &innerMsg, int32_t reason, int32_t callerPid));
     MOCK_METHOD3(GetBundleNameByPid, int32_t(const int pid, std::string &bundleName, int32_t &uid));
     MOCK_METHOD1(RegisterAppDebugListener, int32_t(const sptr<IAppDebugListener> &listener));
     MOCK_METHOD1(UnregisterAppDebugListener, int32_t(const sptr<IAppDebugListener> &listener));
@@ -79,6 +81,9 @@ public:
     MOCK_METHOD4(KillProcessesByPids, int32_t(const std::vector<int32_t> &pids, const std::string &reason,
         bool subProcess, bool isKillPrecedeStart));
     MOCK_METHOD2(SetGameSAPrelaunch, int32_t(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch));
+    MOCK_METHOD5(AttributeProcessForAbility, int32_t(const std::string &taskId, int32_t callerUid,
+        int32_t callerPid, int32_t targetPid, int64_t &attributionId));
+    MOCK_METHOD2(UnregisterTaskAttribution, int32_t(const std::string &taskId, int64_t attributionId));
 
     MockAmsMgrScheduler() : AmsMgrStub() {};
     virtual ~MockAmsMgrScheduler() {};

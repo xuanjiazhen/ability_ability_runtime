@@ -75,6 +75,18 @@ public:
         return 0;
     }
 
+    virtual int32_t ConnectAgentExtensionAbilityForCli(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, const std::string &callerIdentity)
+    {
+        return 0;
+    }
+
+    virtual int32_t DisconnectAgentExtensionAbilityForCli(
+        const sptr<AAFwk::IAbilityConnection> &connection, const std::string &callerIdentity)
+    {
+        return 0;
+    }
+
     virtual int32_t GetAgentCardTypeForConnect(AAFwk::Want &, int32_t &)
     {
         return 0;
@@ -105,6 +117,12 @@ public:
 
     virtual int32_t VerifyAgentDisconnectRequests(const std::vector<AAFwk::Want> &,
         const sptr<AAFwk::IAbilityConnection> &, std::string &)
+    {
+        return 0;
+    }
+
+    virtual int32_t AttributeTaskForA2AReusedConnectionRecord(const AAFwk::Want &,
+        const sptr<AAFwk::IAbilityConnection> &)
     {
         return 0;
     }

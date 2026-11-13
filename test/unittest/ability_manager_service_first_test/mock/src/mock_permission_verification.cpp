@@ -21,6 +21,21 @@
 namespace OHOS {
 namespace AAFwk {
 
+namespace {
+bool g_isLocalDebugOtherAppsCall = false;
+bool g_isCustomSandboxCall = false;
+}
+
+void SetLocalDebugOtherAppsCall(bool value)
+{
+    g_isLocalDebugOtherAppsCall = value;
+}
+
+void SetCustomSandboxCall(bool value)
+{
+    g_isCustomSandboxCall = value;
+}
+
 bool PermissionVerification::VerifyPermissionByTokenId(const int &tokenId, const std::string &permissionName) const
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s enter", __func__);
@@ -295,6 +310,16 @@ bool PermissionVerification::VerifyStartLocalDebug(int32_t tokenId) const
     return true;
 }
 
+bool PermissionVerification::VerifyLocalDebugOtherApps() const
+{
+    return !!(MyFlag::flag_);
+}
+
+bool PermissionVerification::IsAllowLocalDebugOtherApps(bool isDebugFromLocal) const
+{
+    return !!(MyFlag::flag_);
+}
+
 bool PermissionVerification::VerifyStartSelfUIAbility(int tokenId) const
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s enter", __func__);
@@ -316,6 +341,16 @@ int PermissionVerification::CheckCallModularObjectExtensionPermission(
 bool PermissionVerification::VerifySupportCrossAppEmbedForOaPermission() const
 {
     return true;
+}
+
+bool PermissionVerification::IsLocalDebugOtherAppsCall(const uint32_t specifyTokenId, int32_t targetUserId) const
+{
+    return g_isLocalDebugOtherAppsCall;
+}
+
+bool PermissionVerification::IsCustomSandboxCall(const uint32_t specifyTokenId, int32_t targetUserId) const
+{
+    return g_isCustomSandboxCall;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

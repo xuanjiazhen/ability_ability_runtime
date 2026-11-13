@@ -37,6 +37,7 @@ namespace {
     constexpr const char *RSRC_OBSV_TRSHD_XATTR_RAT = "user.resource_observer_threshold.rss_ark_ts";
     constexpr const char *RSRC_OBSV_TRSHD_XATTR_RNH = "user.resource_observer_threshold.rss_native_heap";
     constexpr const char *RSRC_OBSV_TRSHD_XATTR_KH = "user.resource_observer_threshold.kmp_heap";
+    constexpr const char *RSRC_OBSV_TRSHD_XATTR_ION = "user.resource_observer_threshold.ion";
     enum class InstanceType {
         DEFAULT_TYPE = -1,
         WORKER_THREAD_TYPE = 1,
@@ -320,6 +321,8 @@ bool ApplicationDataManager::WriteSandBoxXattr(RegisterResourceParams params)
     ret = ret && (setxattr(RSRC_OBSV_PATH, RSRC_OBSV_TRSHD_XATTR_RNH, threshold.c_str(), threshold.length(), 0) == 0);
     threshold = std::to_string(params.thresholdKH);
     ret = ret && (setxattr(RSRC_OBSV_PATH, RSRC_OBSV_TRSHD_XATTR_KH, threshold.c_str(), threshold.length(), 0) == 0);
+    threshold = std::to_string(params.thresholdIon);
+    ret = ret && (setxattr(RSRC_OBSV_PATH, RSRC_OBSV_TRSHD_XATTR_ION, threshold.c_str(), threshold.length(), 0) == 0);
     if (!ret) {
         TAG_LOGE(AAFwkTag::APPKIT, "failed write threshold, path: %{public}s, err: %{public}s", RSRC_OBSV_PATH,
                  strerror(errno));
@@ -447,6 +450,15 @@ void ApplicationDataManager::NotifyAppFault(const FaultData &faultData)
         .stack = faultData.errorObject.stack
     };
     NotifyExceptionObject(faultErrorObj);
+}
+
+// Cross-library bridge for uiabilitykit_native (app_recovery.cpp) to check
+// whether the app has registered an error handler via errormanager.
+// Uses C++ linkage so the symbol is exported by libappkit_native.map via
+// the *ApplicationDataManager* wildcard pattern.
+bool ApplicationDataManagerHasOnErrorCallback()
+{
+    return ApplicationDataManager::GetInstance().GetHasOnErrorCallback();
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

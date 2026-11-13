@@ -50,6 +50,7 @@ ohos_shared_library("climgr") {
     "src/permission_query_util.cpp",
     "src/process_manager.cpp",
     "src/session_record.cpp",
+    "src/task_attribution_manager.cpp",
     "src/tool_util.cpp",
     "../common/src/ccm_util.cpp",
     "../common/src/permission_util.cpp",
@@ -87,7 +88,6 @@ ohos_shared_library("climgr") {
     "samgr:samgr_proxy",
   ]
 
-  innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

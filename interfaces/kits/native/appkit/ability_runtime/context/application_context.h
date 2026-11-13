@@ -40,6 +40,8 @@ namespace AbilityRuntime {
 using AppConfigUpdateCallback = std::function<void(const AppExecFwk::Configuration &config)>;
 using AppProcessExitCallback = std::function<void(const AAFwk::ExitReason &exitReason)>;
 using AppGetSpecifiedRuntimeCallback = std::function<const std::unique_ptr<Runtime>&(const std::string &)>;
+using AppFreezeFilterCallback = bool (*)(const int32_t pid, const bool needDecreaseQuota,
+                                std::string &eventConfigKey);
 class ApplicationContext : public Context {
 public:
     ApplicationContext() = default;
@@ -175,6 +177,7 @@ public:
     void SetColorMode(int32_t colorMode);
     void SetLanguage(const std::string &language);
     void SetFont(const std::string &font);
+    void SetFont(const std::string &font, bool enableAnimation);
     bool SetFontSizeScale(double fontSizeScale);
     void SetMcc(const std::string &mcc);
     void SetMnc(const std::string &mnc);
@@ -188,6 +191,7 @@ public:
     Global::Resource::DeviceType GetDeviceType() const override;
     void KillProcessBySelf(const bool clearPageStack = false);
     int32_t GetProcessRunningInformation(AppExecFwk::RunningProcessInfo &info);
+    int32_t GetUIAbilityChildProcessInfos(std::vector<AppExecFwk::ChildProcessInfo> &infos);
     int32_t RestartApp(const AAFwk::Want& want);
     int32_t EnableDelayedProcessExit();
     int32_t DisableDelayedProcessExit();
@@ -206,6 +210,8 @@ public:
     void RegisterAppFontObserver(AppConfigUpdateCallback appFontCallback);
     void RegisterProcessSecurityExit(AppProcessExitCallback appProcessExitCallback);
     void RegisterAppGetSpecifiedRuntime(AppGetSpecifiedRuntimeCallback appGetSpecifiedRuntimeCallback);
+    void RegisterAppFreezeFilterCallback(AppFreezeFilterCallback appFreezeFilterCallback);
+    AppFreezeFilterCallback GetAppFreezeFilterCallback() const;
 
 #ifdef SUPPORT_SCREEN
     /**
@@ -277,6 +283,7 @@ private:
     AppConfigUpdateCallback appFontCallback_ = nullptr;
     AppProcessExitCallback appProcessExitCallback_ = nullptr;
     AppGetSpecifiedRuntimeCallback appGetSpecifiedRuntimeCallback_ = nullptr;
+    AppFreezeFilterCallback appFreezeFilterCallback_ = nullptr;
     std::string appRunningUniqueId_;
     int32_t appIndex_ = 0;
     int32_t appMode_ = 0;

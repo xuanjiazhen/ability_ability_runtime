@@ -112,6 +112,12 @@ bool ModuleRunningRecord::IsLastAbilityRecord(const sptr<IRemoteObject> &token)
     return ((abilities_.size() == 1) && (abilities_.find(token) != abilities_.end()));
 }
 
+int32_t ModuleRunningRecord::GetAbilitySize()
+{
+    std::lock_guard<ffrt::mutex> lock(abilitiesMutex_);
+    return static_cast<int32_t>(abilities_.size());
+}
+
 int32_t ModuleRunningRecord::GetPageAbilitySize()
 {
     int pageAbilitySize = 0;
@@ -126,6 +132,30 @@ int32_t ModuleRunningRecord::GetPageAbilitySize()
     }
 
     return pageAbilitySize;
+}
+
+int32_t ModuleRunningRecord::GetActivePageAbilitySize(const sptr<IRemoteObject> &token)
+{
+    int activeSize = 0;
+    std::lock_guard<ffrt::mutex> lock(abilitiesMutex_);
+    for (auto it : abilities_) {
+        if (it.first == token) {
+            // the queried ability always counts: it may already be marked terminating by
+            // its own close flow before this judgment, and the question being answered is
+            // "is anyone else still alive", not "is anyone alive".
+            activeSize++;
+            continue;
+        }
+        std::shared_ptr<AbilityRunningRecord> abilityRunningRecord = it.second;
+        std::shared_ptr<AbilityInfo> abilityInfo = abilityRunningRecord->GetAbilityInfo();
+        if (abilityInfo && (abilityInfo->type == AbilityType::PAGE ||
+            abilityInfo->extensionAbilityType == ExtensionAbilityType::EMBEDDED_UI) &&
+            !abilityRunningRecord->IsTerminating()) {
+            activeSize++;
+        }
+    }
+
+    return activeSize;
 }
 
 bool ModuleRunningRecord::ExtensionAbilityRecordExists()
@@ -387,7 +417,8 @@ void ModuleRunningRecord::GetHapModuleInfo(HapModuleInfo &info)
     TAG_LOGD(AAFwkTag::APPMGR, "userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d", userId,
         appInfo_->bundleName.c_str(), appIndex_);
     int32_t bundleMgrResult;
-    if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex_) ||
+    if (appIndex_ == 0 || appIndex_ == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX ||
+        AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex_) ||
         AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex_)) {
         bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appInfo_->bundleName,
             BUNDLE_INFO_FLAG_WITH_APP_HAP, appIndex_, bundleInfo, userId));

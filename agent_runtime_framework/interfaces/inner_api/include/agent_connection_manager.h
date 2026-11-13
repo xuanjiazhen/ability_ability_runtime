@@ -124,9 +124,8 @@ public:
      */
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
 
-    // Thread-safe accessor: readers on a different lock than agentMutex_ must take it to avoid a
-    // data race with SetRemoteObject(nullptr) in OnAbilityDisconnectDone.
-    sptr<IRemoteObject> GetRemoteObjectLocked();
+    // Atomic snapshot under agentMutex_: state + remote + resultCode in one critical section.
+    bool SnapshotConnectedState(sptr<IRemoteObject> &remoteObject, int32_t &resultCode);
 
 private:
     std::mutex agentMutex_;
@@ -170,6 +169,16 @@ public:
      */
     ErrCode ConnectAgentExtensionAbility(const AAFwk::Want &want,
         const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
+    /**
+     * @brief Best-effort task-id attribution for a reused agent connection. Looks up the
+     *        existing AgentConnection by (agentId, want) in the inner-API store and forwards
+     *        to AgentManagerClient::AttributeTaskForA2AReusedConnectionRecord (oneway). Called by
+     *        the JS layer when ResolveExistingAgentConnection short-circuits before
+     *        ConnectAbilityInner is reached. The want MUST carry AGENTID_KEY and
+     *        AGENTEXTENSIONHOSTPROXY_KEY for FindConnectionLocked to match.
+     * @param want Indicates the connect want (must have AGENTID_KEY + AGENTEXTENSIONHOSTPROXY_KEY).
+     */
+    void AttributeTaskForA2AReusedConnection(const AAFwk::Want &want);
     ErrCode ReuseLowCodeAgentExtensionAbility(const AAFwk::Want &want,
         const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
     void ReplayLowCodeConnectDoneIfReady(const AAFwk::Want &want,
@@ -203,11 +212,23 @@ public:
     bool DisconnectNonexistentService(const AppExecFwk::ElementName &element,
         const sptr<AgentConnection> &connection);
 
+    /**
+     * @brief Handle agent manager service (subfoundation) death: clear every in-process
+     * AgentConnection so reconnects after restart don't hit stale "duplicated" entries.
+     * Fires OnAbilityDisconnectDone(DIED) on each AgentConnection, which cascades to the
+     * JSAgentConnection registered as a callback on each AgentConnection, thereby also
+     * clearing the JS-layer g_agentConnects registry.
+     */
+    void OnAgentMgrDied();
+
 private:
     /**
-     * @brief Private constructor for singleton.
+     * @brief Private constructor for singleton. Registers a death callback with AgentManagerClient
+     * so that when subfoundation dies, app-side connection registries are cleared (the normal
+     * disconnect-done chain can't reach them — the forwarding AgentServiceConnection lives in the
+     * dead process). Runs exactly once via the thread-safe static in GetInstance().
      */
-    AgentConnectionManager() = default;
+    AgentConnectionManager();
 
     /**
      * @brief Check if two connect receivers are equal.

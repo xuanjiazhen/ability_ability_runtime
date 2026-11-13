@@ -27,6 +27,7 @@
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "native_reference.h"
+#include "path_utils.h"
 #include "string_wrapper.h"
 
 #undef STATE_PATTERN_NAIVE_H
@@ -100,6 +101,14 @@ bool JsInsightIntentFunc::LoadJsCode(const InsightIntentExecutorInfo& info, JsRu
     auto executeParam = info.executeParam;
     if (executeParam == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null executeParam");
+        return false;
+    }
+    if (!IsPathValid(executeParam->moduleName_) || !IsPathValid(executeParam->srcEntrance_)) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid moduleName or srcEntrance");
+        return false;
+    }
+    if (!info.hapPath.empty() && !IsPathValid(info.hapPath)) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid hapPath");
         return false;
     }
 
@@ -188,6 +197,10 @@ std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> JsInsightIntentFunc::Get
     wantParams->SetParam("methodResult", AAFwk::String::Box(resultStr));
     resultCpp->result = wantParams;
     resultCpp->code = InsightIntentInnerErr::INSIGHT_INTENT_ERR_OK;
+    if (!UnwrapInteractionInfoOfExecuteResult(env, resultJs, *resultCpp)) {
+        TAG_LOGE(AAFwkTag::INTENT, "func unwrap interactionInfo fail");
+        return nullptr;
+    }
     return resultCpp;
 }
 

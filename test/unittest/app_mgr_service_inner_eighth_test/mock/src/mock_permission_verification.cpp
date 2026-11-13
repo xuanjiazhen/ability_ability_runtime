@@ -141,5 +141,9 @@ bool PermissionVerification::VerifySuperviseKiaServicePermission() const
 {
     return AAFwk::MyStatus::GetInstance().verifySuperviseKiaServicePermission_;
 }
+bool PermissionVerification::IsLocalDebugOtherAppsCall(const uint32_t specifyTokenId, int32_t targetUserId) const
+{
+    return AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

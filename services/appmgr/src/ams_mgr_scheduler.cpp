@@ -28,6 +28,7 @@
 #include "hilog_tag_wrapper.h"
 #include "param.h"
 #include "perf_profile.h"
+#include "task_mgr/task_manager_service.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
 #include "xcollie/process_kill_reason.h"
@@ -90,9 +91,11 @@ void AmsMgrScheduler::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInf
     PerfProfile::GetInstance().SetAbilityLoadStartTime(GetTickCount());
     TAG_LOGI(AAFwkTag::PROCESSMGR, "Load:%{public}s-%{public}s", abilityInfo->bundleName.c_str(),
         abilityInfo->name.c_str());
+    auto abilityInfoCopy = std::make_shared<AbilityInfo>(*abilityInfo);
+    auto appInfoCopy = std::make_shared<ApplicationInfo>(*appInfo);
     std::function<void()> loadAbilityFunc = [amsMgrServiceInner = amsMgrServiceInner_,
-        abilityInfo, appInfo, want, loadParam]() {
-        amsMgrServiceInner->LoadAbility(abilityInfo, appInfo, want, loadParam);
+        abilityInfoCopy, appInfoCopy, want, loadParam]() {
+        amsMgrServiceInner->LoadAbility(abilityInfoCopy, appInfoCopy, want, loadParam);
     };
 
     // cache other application load ability task before scene board attach
@@ -150,7 +153,7 @@ void AmsMgrScheduler::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPi
 }
 
 void AmsMgrScheduler::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-    bool isFromScreenOffBackground)
+    bool isFromScreenOffBackground, const UiAbilityLastCallerInfo &callerInfo)
 {
     if (!IsReady()) {
         return;
@@ -161,8 +164,8 @@ void AmsMgrScheduler::UpdateAbilityState(const sptr<IRemoteObject> &token, const
         return;
     }
     std::function<void()> updateAbilityStateFunc = [amsMgrServiceInner = amsMgrServiceInner_, token, state,
-        isFromScreenOffBackground] () {
-        amsMgrServiceInner->UpdateAbilityState(token, state, isFromScreenOffBackground);
+        isFromScreenOffBackground, callerInfo] () {
+        amsMgrServiceInner->UpdateAbilityState(token, state, isFromScreenOffBackground, callerInfo);
     };
     amsHandler_->SubmitTask(updateAbilityStateFunc, AAFwk::TaskAttribute{
         .taskName_ = TASK_UPDATE_ABILITY_STATE,
@@ -255,6 +258,34 @@ int32_t AmsMgrScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bo
     return amsMgrServiceInner_->SetGameSAPrelaunch(token, isGameSAPrelaunch);
 }
 
+int32_t AmsMgrScheduler::AttributeProcessForAbility(const std::string &taskId, int32_t callerUid,
+    int32_t callerPid, int32_t targetPid, int64_t &attributionId)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrScheduler is not ready");
+        return ERR_INVALID_VALUE;
+    }
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call, uid: %{public}d", IPCSkeleton::GetCallingUid());
+        return ERR_PERMISSION_DENIED;
+    }
+    return TaskManagerService::GetInstance().AttributeProcessForAbility(
+        taskId, callerUid, callerPid, targetPid, attributionId);
+}
+
+int32_t AmsMgrScheduler::UnregisterTaskAttribution(const std::string &taskId, int64_t attributionId)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrScheduler is not ready");
+        return ERR_INVALID_VALUE;
+    }
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call, uid: %{public}d", IPCSkeleton::GetCallingUid());
+        return ERR_PERMISSION_DENIED;
+    }
+    return TaskManagerService::GetInstance().UnregisterManagedProcess(taskId, attributionId);
+}
+
 void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
     sptr<AAFwk::IUserCallback> callback)
 {
@@ -299,6 +330,25 @@ int32_t AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, c
     return amsMgrServiceInner_->KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart);
 }
 
+bool AmsMgrScheduler::CheckProcessAvailable(int32_t pid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrScheduler is not ready");
+        return true;
+    }
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "CheckProcessAvailable: not foundation call, uid: %{public}d",
+            IPCSkeleton::GetCallingUid());
+        return true;
+    }
+    auto appRecord = amsMgrServiceInner_->GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGD(AAFwkTag::APPMGR, "CheckProcessAvailable: appRecord not found, pid:%{public}d", pid);
+        return true;
+    }
+    return amsMgrServiceInner_->CheckProcessAvailable(appRecord);
+}
+
 void AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
 {
     if (!IsReady()) {
@@ -332,6 +382,20 @@ int32_t AmsMgrScheduler::KillProcessWithAccount(
 #endif
     return amsMgrServiceInner_->KillApplicationByUserId(bundleName, appIndex, accountId, clearPageStack,
         "KillProcessWithAccount");
+}
+
+int32_t AmsMgrScheduler::KillProcessWithAccountSafely(
+    const std::string &bundleName, const int accountId, const bool clearPageStack, int32_t appIndex)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+#ifdef APP_MGR_KILL_REASON_TAG
+    amsMgrServiceInner_->RecordAppWithReasonByUserId(accountId,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_KILL_PROCESS_WITH_ACCOUNT);
+#endif
+    return amsMgrServiceInner_->KillApplicationByUserIdSafely(bundleName, appIndex, accountId, clearPageStack,
+        "KillProcessWithAccountSafely");
 }
 
 int32_t AmsMgrScheduler::KillProcessesInBatch(const std::vector<int32_t> &pids)
@@ -389,7 +453,7 @@ int32_t AmsMgrScheduler::UpdateApplicationInfoInstalled(const std::string &bundl
 }
 
 int32_t AmsMgrScheduler::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
-    const std::string &reason)
+    const std::string &reason, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "bundleName = %{public}s, clearPageStack = %{public}d",
         bundleName.c_str(), clearPageStack);
@@ -397,7 +461,7 @@ int32_t AmsMgrScheduler::KillApplication(const std::string &bundleName, bool cle
         return ERR_INVALID_OPERATION;
     }
 
-    return amsMgrServiceInner_->KillApplication(bundleName, clearPageStack, appIndex, reason);
+    return amsMgrServiceInner_->KillApplication(bundleName, clearPageStack, appIndex, reason, userId);
 }
 
 int32_t AmsMgrScheduler::ForceKillApplication(const std::string &bundleName,
@@ -594,13 +658,15 @@ int32_t AmsMgrScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reaso
 }
 
 int32_t AmsMgrScheduler::NotifyAppMgrRecordExitReasonCompability(
-    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason)
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg,
+    int32_t reason, int32_t callerPid)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    return amsMgrServiceInner_->NotifyAppMgrRecordExitReasonCompability(pid, killId, killMsg, innerMsg, reason);
+    return amsMgrServiceInner_->NotifyAppMgrRecordExitReasonCompability(
+        pid, killId, killMsg, innerMsg, reason, callerPid);
 }
 
 void AmsMgrScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)

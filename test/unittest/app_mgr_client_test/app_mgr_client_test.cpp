@@ -19,6 +19,7 @@
 #define protected public
 #include "app_scheduler.h"
 #include "app_mgr_client.h"
+#include "app_service_manager.h"
 #include "ability_record.h"
 #include "app_mgr_constants.h"
 #include "hilog_tag_wrapper.h"
@@ -327,7 +328,31 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_GetAllChildrenProcesses_001, TestSize.Le
     EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
     TAG_LOGI(AAFwkTag::TEST, "GetAllChildrenProcesses_001 end");
 }
+
+HWTEST_F(AppMgrClientTest, AppMgrClient_GetSelfChildrenProcesses_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetSelfChildrenProcesses_001 start");
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    std::vector<ChildProcessInfo> info;
+    auto result = appMgrClient->GetSelfChildrenProcesses(info);
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+    TAG_LOGI(AAFwkTag::TEST, "GetSelfChildrenProcesses_001 end");
+}
 #endif // SUPPORT_CHILD_PROCESS
+
+HWTEST_F(AppMgrClientTest, AppMgrClient_GetSelfUIAbilityChildProcesses_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetSelfUIAbilityChildProcesses_001 start");
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    std::vector<ChildProcessInfo> info;
+    auto result = appMgrClient->GetSelfUIAbilityChildProcesses(info);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "GetSelfUIAbilityChildProcesses_001 end");
+}
 
 /**
  * @tc.name: AppMgrClient_GetRenderProcessTerminationStatus_001
@@ -848,7 +873,8 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_GetBundleNameByPid_001, TestSize.Level1)
     std::string name = "test";
     int32_t uid = 0;
     auto ret = appMgrClient->GetBundleNameByPid(pid, name, uid);
-    EXPECT_EQ(ret, NO_ERROR);
+    //pid不存在
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
 }
 
 /**
@@ -1195,6 +1221,25 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_IsFinalAppProcess_001, TestSize.Level2)
     auto ret = appMgrClient->IsFinalAppProcess();
     EXPECT_EQ(ret, false);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_IsFinalAppProcess_001 end");
+}
+
+/**
+ * @tc.name: AppMgrClient_IsHyperSnapInitializing_001
+ * @tc.desc: IsHyperSnapInitializing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_IsHyperSnapInitializing_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_IsHyperSnapInitializing_001 start");
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    auto ret = appMgrClient->IsHyperSnapInitializing();
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrClient_IsHyperSnapInitializing_001 end");
 }
 
 /**
@@ -2003,6 +2048,47 @@ HWTEST_F(AppMgrClientTest, CancelDelayedExitTask_002, TestSize.Level2)
 
     int32_t pid = 1234;
     appMgrClient->CancelDelayedExitTask(pid);
+}
+
+/**
+ * @tc.name: GetHyperSnapLastError_0100
+ * @tc.desc: get last hyper snap error without connecting service returns not connected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, GetHyperSnapLastError_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetHyperSnapLastError_0100 start");
+    AAFwk::IsMockSaCall::IsMockSpecificSystemAbilityAccessPermission();
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    ASSERT_NE(appMgrClient, nullptr);
+    appMgrClient->SetServiceManager(nullptr);
+
+    HyperSnapErrorRecord record;
+    record.code = HyperSnapErrorCode::ERR_OK;
+    int32_t result = appMgrClient->GetHyperSnapLastError(
+        static_cast<int32_t>(HyperSnapErrorType::CREATE_SNAPSHOT), record);
+    EXPECT_EQ(result, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
+    EXPECT_EQ(record.code, HyperSnapErrorCode::ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "GetHyperSnapLastError_0100 end");
+}
+
+/**
+ * @tc.name: GetHyperSnapLastError_0200
+ * @tc.desc: client passes errType through without local validation when service is unreachable.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, GetHyperSnapLastError_0200, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetHyperSnapLastError_0200 start");
+    AAFwk::IsMockSaCall::IsMockSpecificSystemAbilityAccessPermission();
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    ASSERT_NE(appMgrClient, nullptr);
+    appMgrClient->SetServiceManager(nullptr);
+
+    HyperSnapErrorRecord record;
+    int32_t result = appMgrClient->GetHyperSnapLastError(99, record);
+    EXPECT_EQ(result, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
+    TAG_LOGI(AAFwkTag::TEST, "GetHyperSnapLastError_0200 end");
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

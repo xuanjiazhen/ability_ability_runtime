@@ -72,6 +72,12 @@ public:
 
     int32_t DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection) override;
 
+    int32_t ConnectAgentExtensionAbilityForCli(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, const std::string &callerIdentity) override;
+
+    int32_t DisconnectAgentExtensionAbilityForCli(const sptr<AAFwk::IAbilityConnection> &connection,
+        const std::string &callerIdentity) override;
+
     int32_t ConnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken, const AAFwk::Want &want,
         const sptr<AAFwk::IAbilityConnection> &connection) override;
 
@@ -88,6 +94,9 @@ public:
     int32_t VerifyAgentDisconnectRequests(const std::vector<AAFwk::Want> &wants,
         const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity) override;
 
+    int32_t AttributeTaskForA2AReusedConnectionRecord(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection) override;
+
 private:
     friend class AgentServiceConnection;
     friend class AgentHostConnection;
@@ -95,6 +104,13 @@ private:
     AgentManagerService();
     void Init();
     void RegisterBundleEventCallback();
+    /**
+     * @brief Triggers the pre-install AgentCard backfill once both BMS and accountmgr are ready.
+     * On first start after migration to subfoundation, also migrates dynamic (API-source) cards
+     * from the old KV store via AMS, and backfills ALL installed apps (not just pre-installed).
+     * Subsequent starts skip migration and run pre-install backfill only.
+     */
+    void TryBackfillPreInstallCards();
     /**
      * @brief Validates caller permission and foreground state before classifying the agent connect request.
      */
@@ -174,11 +190,19 @@ private:
     void HandleAgentHostDisconnectDone(const AgentHostDisconnectDoneRequest &request);
     DISALLOW_COPY_AND_MOVE(AgentManagerService);
 
+    struct BackfillState {
+        bool bmsReady = false;
+        bool accountReady = false;
+        bool triggered = false;
+        std::mutex mutex;
+    };
+
 private:
     static sptr<AgentManagerService> instance_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AgentEventHandler> eventHandler_;
     sptr<AgentBundleEventCallback> bundleEventCallback_;
+    BackfillState backfillState_;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

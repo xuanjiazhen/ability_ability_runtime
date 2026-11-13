@@ -676,6 +676,69 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetTopAbility_003, TestSize.Level1
 
 /*
  * Feature: AbilityManagerService
+ * Name: GetTopAbility_004
+ * Function: GetTopAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetTopAbility
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, GetTopAbility_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest GetTopAbility_004 start");
+    MyStatus::GetInstance().permPermission_ = 1;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = true;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    sptr<IRemoteObject> token = nullptr;
+    int retCode = abilityMs_->GetTopAbility(token, -5);
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest GetTopAbility_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: GetTopAbility_005
+ * Function: GetTopAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetTopAbility
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, GetTopAbility_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest GetTopAbility_005 start");
+    MyStatus::GetInstance().permPermission_ = 1;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = true;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    sptr<IRemoteObject> token = nullptr;
+    int retCode = abilityMs_->GetTopAbility(token, 100);
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest GetTopAbility_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckUIExtensionIsFocused_001
+ * Function: CheckUIExtensionIsFocused
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckUIExtensionIsFocused
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, CheckUIExtensionIsFocused_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionIsFocused_001 start");
+    MyStatus::GetInstance().permPermission_ = 1;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = true;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    bool isFocused = true;
+    auto retCode = abilityMs_->CheckUIExtensionIsFocused(0, isFocused);
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionIsFocused_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Name: TerminateAbilityWithFlag_001
  * Function: TerminateAbilityWithFlag
  * SubFunction: NA
@@ -1207,22 +1270,21 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetFocusAbility_002, TestSize.Leve
 
 /*
  * Feature: AbilityManagerService
- * Name: CheckUIExtensionIsFocused_001
+ * Name: CheckUIExtensionIsFocused_002
  * Function: CheckUIExtensionIsFocused
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService CheckUIExtensionIsFocused
  */
-HWTEST_F(AbilityManagerServiceFourteenthTest, CheckUIExtensionIsFocused_001, TestSize.Level1)
+HWTEST_F(AbilityManagerServiceFourteenthTest, CheckUIExtensionIsFocused_002, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionIsFocused_001 start");
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionIsFocused_002 start");
     MyStatus::GetInstance().permPermission_ = 0;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
-    sptr<IRemoteObject> token = nullptr;
     bool isFocused = false;
     int retCode = abilityMs_->CheckUIExtensionIsFocused(0, isFocused);
     EXPECT_EQ(retCode, CHECK_PERMISSION_FAILED);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionIsFocused_001 end");
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionIsFocused_002 end");
 }
 
 /*
@@ -1327,7 +1389,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, EnterKioskMode_004, TestSize.Level
     ASSERT_NE(abilityManagerService, nullptr);
     auto callerToken = MockToken(AbilityType::PAGE);
     ASSERT_NE(callerToken, nullptr);
-    auto result = abilityManagerService->EnterKioskMode(callerToken);
+    auto result = abilityManagerService->EnterKioskMode(callerToken, 0);
     EXPECT_EQ(result, INVALID_PARAMETERS_ERR);
 }
 
@@ -1402,10 +1464,11 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, ProcessUdmfKey_001, TestSize.Level
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_001 start");
     Want want;
     want.SetParam("ability.want.params.udKey", std::string("udkey"));
+    uint32_t callerTokenId = 1000001;
     uint32_t targetTokenId = 1000001;
     AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::SYSPICKER_FILEPICKER;
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    int32_t result = abilityMs->ProcessUdmfKey(want, targetTokenId, extensionType);
+    int32_t result = abilityMs->ProcessUdmfKey(want, callerTokenId, targetTokenId, extensionType);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_001 end");
 }
@@ -1421,10 +1484,11 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, ProcessUdmfKey_002, TestSize.Level
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_002 start");
     Want want;
     want.SetParam("ability.want.params.udKey", std::string("udkey"));
+    uint32_t callerTokenId = 1000001;
     uint32_t targetTokenId = 1000001;
     AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::EMBEDDED_UI;
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    int32_t result = abilityMs->ProcessUdmfKey(want, targetTokenId, extensionType);
+    int32_t result = abilityMs->ProcessUdmfKey(want, callerTokenId, targetTokenId, extensionType);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_002 end");
 }
@@ -1439,10 +1503,11 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, ProcessUdmfKey_003, TestSize.Level
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_003 start");
     Want want;
+    uint32_t callerTokenId = 1000001;
     uint32_t targetTokenId = 1000001;
     AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::SYSPICKER_FILEPICKER;
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    int32_t result = abilityMs->ProcessUdmfKey(want, targetTokenId, extensionType);
+    int32_t result = abilityMs->ProcessUdmfKey(want, callerTokenId, targetTokenId, extensionType);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_003 end");
 }
@@ -1457,10 +1522,11 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, ProcessUdmfKey_004, TestSize.Level
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_004 start");
     Want want;
+    uint32_t callerTokenId = 1000001;
     uint32_t targetTokenId = 1000001;
     AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::EMBEDDED_UI;
     auto abilityMs = std::make_shared<AbilityManagerService>();
-    int32_t result = abilityMs->ProcessUdmfKey(want, targetTokenId, extensionType);
+    int32_t result = abilityMs->ProcessUdmfKey(want, callerTokenId, targetTokenId, extensionType);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ProcessUdmfKey_004 end");
 }
@@ -1711,6 +1777,67 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, SetGamePreLaunchCompleteTime_001, 
 }
 
 /**
+ * @tc.name: ExtendGamePreLaunchTimeout_001
+ * @tc.desc: Test ExtendGamePreLaunchTimeout with invalid permission (wrong UID).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_001 start");
+    int32_t pid = 100;
+    int64_t extendTime = 60 * 1000 * 1000; // 60s in microseconds
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
+    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_001 end");
+}
+
+/**
+ * @tc.name: ExtendGamePreLaunchTimeout_002
+ * @tc.desc: Test ExtendGamePreLaunchTimeout with invalid extendTime (<=30s).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_002 start");
+    int32_t pid = 100;
+    int64_t extendTime = 30 * 1000 * 1000; // 30s, at the boundary
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
+    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    } else {
+        EXPECT_EQ(result, ERR_INVALID_VALUE);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_002 end");
+}
+
+/**
+ * @tc.name: ExtendGamePreLaunchTimeout_003
+ * @tc.desc: Test ExtendGamePreLaunchTimeout with invalid extendTime (>=4h).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, ExtendGamePreLaunchTimeout_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_003 start");
+    int32_t pid = 100;
+    int64_t extendTime = 4LL * 60 * 60 * 1000 * 1000; // 4h, at the boundary
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto result = abilityMs_->ExtendGamePreLaunchTimeout(pid, extendTime);
+    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    } else {
+        EXPECT_EQ(result, ERR_INVALID_VALUE);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest ExtendGamePreLaunchTimeout_003 end");
+}
+
+/**
  * @tc.name: NotifyCancelGamePreLaunch_001
  * @tc.desc: Test NotifyCancelGamePreLaunch when scene board is not enabled.
  * @tc.type: FUNC
@@ -1748,6 +1875,88 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCompleteGamePreLaunch_001, T
         EXPECT_EQ(result, ERR_INVALID_VALUE);
     }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunch_001 end");
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_001
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid invalid premission (wrong UID).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCompleteGamePreLaunchByPid_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunchByPid_001 start");
+    MyStatus::GetInstance().ipcGetCallingUid_ = 20010001;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = true;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto result = abilityMs_->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunchByPid_001 end");
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_002
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid when scene board is not enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCompleteGamePreLaunchByPid_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunchByPid_002 start");
+    MyStatus::GetInstance().ipcGetCallingUid_ = GAME_SA_UID;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = false;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto result = abilityMs_->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunchByPid_002 end");
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_003
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid when UIAbilityLifecycleManager is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCompleteGamePreLaunchByPid_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunchByPid_003 start");
+    MyStatus::GetInstance().ipcGetCallingUid_ = GAME_SA_UID;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = true;
+    MyStatus::GetInstance().smhGetUIAbilityManagerByUid_ = true;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+    abilityMs_->subManagersHelper_->currentUIAbilityManager_ = nullptr;
+ 
+    auto result = abilityMs_->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunchByPid_003 end");
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_004
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid when UIAbilityLifecycleManager is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCompleteGamePreLaunchByPid_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunchByPid_004 start");
+    MyStatus::GetInstance().ipcGetCallingUid_ = GAME_SA_UID;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = true;
+    MyStatus::GetInstance().smhGetUIAbilityManagerByUid_ = true;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockCurrentUIAbilityManager = std::make_shared<UIAbilityLifecycleManager>(0);
+    EXPECT_NE(mockCurrentUIAbilityManager, nullptr);
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+    abilityMs_->subManagersHelper_->currentUIAbilityManager_ = mockCurrentUIAbilityManager;
+ 
+    auto result = abilityMs_->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunchByPid_004 end");
 }
 
 /**

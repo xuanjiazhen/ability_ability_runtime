@@ -99,14 +99,14 @@ int32_t AgentCardMgr::HandleBundleRemove(const std::string &bundleName, int32_t 
     return ERR_OK;
 }
 
-int32_t AgentCardMgr::HandlePreInstallBackfill(int32_t userId)
+int32_t AgentCardMgr::HandleInstallBackfill(int32_t userId, bool migrationComplete)
 {
     return ERR_OK;
 }
 
-void AgentCardMgr::BackfillPreInstallCards()
+void AgentCardMgr::BackfillCards()
 {
-    // No-op in the service test; the backfill path is covered by agent_card_mgr_test.
+    MyFlag::backfillPreInstallCardsCallCount++;
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS
