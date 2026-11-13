@@ -3660,6 +3660,40 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_002, TestS
     EXPECT_EQ(result, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
 }
 
+HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_GameAppUid, TestSize.Level1)
+{
+    auto service = std::make_shared<AbilityManagerService>();
+    auto &status = MyStatus::GetInstance();
+    const auto originalAppUid = status.ipcGetCallingAppUid_;
+    const auto originalUid = status.ipcGetCallingUid_;
+    status.ipcGetCallingAppUid_ = AbilityRuntime::GlobalConstant::GAME_SA_UID;
+    status.ipcGetCallingUid_ = 20010001;
+    EXPECT_EQ(service->RegisterSAInterceptor(nullptr), ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+
+    status.ipcGetCallingAppUid_ = 20010001;
+    status.ipcGetCallingUid_ = AbilityRuntime::GlobalConstant::GAME_SA_UID;
+    EXPECT_EQ(service->RegisterSAInterceptor(nullptr), CHECK_PERMISSION_FAILED);
+    status.ipcGetCallingAppUid_ = originalAppUid;
+    status.ipcGetCallingUid_ = originalUid;
+}
+
+HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_GameAppUid, TestSize.Level1)
+{
+    auto service = std::make_shared<AbilityManagerService>();
+    auto &status = MyStatus::GetInstance();
+    const auto originalAppUid = status.ipcGetCallingAppUid_;
+    const auto originalUid = status.ipcGetCallingUid_;
+    status.ipcGetCallingAppUid_ = AbilityRuntime::GlobalConstant::GAME_SA_UID;
+    status.ipcGetCallingUid_ = 20010001;
+    EXPECT_EQ(service->UnregisterSAInterceptor(nullptr), ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+
+    status.ipcGetCallingAppUid_ = 20010001;
+    status.ipcGetCallingUid_ = AbilityRuntime::GlobalConstant::GAME_SA_UID;
+    EXPECT_EQ(service->UnregisterSAInterceptor(nullptr), CHECK_PERMISSION_FAILED);
+    status.ipcGetCallingAppUid_ = originalAppUid;
+    status.ipcGetCallingUid_ = originalUid;
+}
+
 /*
  * Feature: ManualStartAutoStartupApps_001
  * Function: ManualStartAutoStartupApps
@@ -5864,7 +5898,11 @@ static_assert(SKILL_TEST_ATTRIBUTION_TOOL_CLI == static_cast<int32_t>(Attributio
 // deterministically in-process; the captured recipient runs the production OnCallerDied.
 class SkillCallerDeathProbe : public IRemoteObject {
 public:
-    SkillCallerDeathProbe() = default;
+    // Explicitly pass a non-null descriptor: never rely on the IRemoteObject constructor default
+    // argument. Some IPC component versions ship that default as nullptr (e.g. older
+    // 'explicit IRemoteObject(const std::u16string &descriptor = nullptr)'), and binding it here
+    // would construct std::u16string from nullptr and crash in char_traits<char16_t>::length.
+    SkillCallerDeathProbe() : IRemoteObject(u"ability.test.SkillCallerDeathProbe") {}
     ~SkillCallerDeathProbe() override = default;
 
     int32_t GetObjectRefCount() override
