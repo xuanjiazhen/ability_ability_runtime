@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1070,6 +1070,21 @@ public:
      */
     int32_t EnableDelayedProcessExit(bool enabled) override;
     void CancelDelayedExitTask(int32_t pid) override;
+    int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor) override;
+    int32_t GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
+        AbilityRuntime::LaunchServiceInformation &information) override;
+    int32_t GetAllLaunchServiceInformations(
+        int32_t userId, std::vector<AbilityRuntime::LaunchServiceInformation> &informations) override;
+    int32_t SetDaemonEnable(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        const std::vector<uint8_t> &token, bool enable,
+        const sptr<AbilityRuntime::ILaunchServiceOperationCallback> &callback) override;
+    int32_t NotifyResidentStartupCompleted() override;
+
+    int32_t RegisterLaunchServiceObserver(const sptr<AbilityRuntime::ILaunchServiceObserver> &observer) override;
+    int32_t UnregisterLaunchServiceObserver(const sptr<AbilityRuntime::ILaunchServiceObserver> &observer) override;
     int32_t StartTask(const std::string &taskId, int32_t priority) override;
     int32_t FinishTask(const std::string &taskId) override;
     int32_t AttributeTaskForA2A(const std::string &taskId, uint32_t callerTokenId,
@@ -1080,6 +1095,8 @@ public:
     int32_t UnregisterManagedProcess(const std::string &taskId, int64_t attributionId,
         int32_t callerUid) override;
 private:
+    int32_t SendDaemonRequest(
+        AppMgrInterfaceCode code, const AAFwk::LaunchServiceDescriptor &descriptor, const char *operation);
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);
     int32_t SendRequest(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply,
