@@ -2593,6 +2593,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartSelfUIAbilityInCurrentProcess_005,
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartSelfUIAbilityInCurrentProcess_005 end");
 }
 
+#ifdef SUPPORT_MODULAR_OBJECT
 /*
  * Feature: AbilityManagerService
  * Function: QuerySelfModularObjectExtensionInfos
@@ -2613,6 +2614,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, QuerySelfModularObjectExtensionInfos_00
     EXPECT_EQ(ret, ERR_BUNDLE_MANAGER_INVALID_UID);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest QuerySelfModularObjectExtensionInfos_001 end");
 }
+#endif // SUPPORT_MODULAR_OBJECT
 
 /*
  * Feature: AbilityManagerService

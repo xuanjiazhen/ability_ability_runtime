@@ -3466,6 +3466,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSelfUIAbilityInCurren
     EXPECT_EQ(res, NO_ERROR);
 }
 
+#ifdef SUPPORT_MODULAR_OBJECT
 /*
  * Feature: AbilityManagerService
  * Function: QuerySelfModularObjectExtensionInfos
@@ -3485,6 +3486,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_QuerySelfModularObjectExte
         mock_->code_);
     EXPECT_EQ(res, NO_ERROR);
 }
+#endif // SUPPORT_MODULAR_OBJECT
 
 /*
  * Feature: AbilityManagerService
