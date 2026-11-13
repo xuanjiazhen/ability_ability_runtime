@@ -507,7 +507,7 @@ bool AbilityAutoStartupService::GetBundleInfo(const std::string &bundleName, int
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null bundleMgrHelper");
         return false;
     }
-    if (appIndex == 0 || appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
+    if (appIndex == 0) {
         auto flags =
             AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES | AppExecFwk::BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO;
         if (!IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfo(
@@ -515,7 +515,8 @@ bool AbilityAutoStartupService::GetBundleInfo(const std::string &bundleName, int
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "get bundleInfo fail");
             return false;
         }
-    } else if (GlobalConstant::IsAppCloneIndex(appIndex) || GlobalConstant::IsSandboxCloneIndex(appIndex)) {
+    } else if (GlobalConstant::IsAppCloneIndex(appIndex) || GlobalConstant::IsSandboxCloneIndex(appIndex) ||
+               appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
         auto bundleFlag = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) +
             static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY) +
             static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) +
