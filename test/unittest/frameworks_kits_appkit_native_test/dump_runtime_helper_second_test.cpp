@@ -859,5 +859,116 @@ HWTEST_F(DumpRuntimeHelperTestSecond, ParseTidFromMapName_0400, TestSize.Level1)
     EXPECT_EQ(DumpRuntimeHelper::ParseTidFromMapName("[anon:stack:-1]"), 0);
     GTEST_LOG_(INFO) << "negative sign correctly returns 0";
 }
+
+/**
+ * @tc.number: IsExpectedFaultType_0100
+ * @tc.name: IsExpectedFaultType
+ * @tc.desc: JS_HEAP_LOGTYPE with matching JS_OOM_TYPE returns true.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsExpectedFaultType_0100, TestSize.Level1)
+{
+    EXPECT_TRUE(DumpRuntimeHelper::IsExpectedFaultType(
+        "user.event_config.js_heap_logtype", 0x04));
+}
+
+/**
+ * @tc.number: IsExpectedFaultType_0200
+ * @tc.name: IsExpectedFaultType
+ * @tc.desc: JSVM_HEAP_LOGTYPE with matching JSVM_OOM_TYPE returns true.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsExpectedFaultType_0200, TestSize.Level1)
+{
+    EXPECT_TRUE(DumpRuntimeHelper::IsExpectedFaultType(
+        "user.event_config.jsvm_heap_log_enable", 0x4000));
+}
+
+/**
+ * @tc.number: IsExpectedFaultType_0300
+ * @tc.name: IsExpectedFaultType
+ * @tc.desc: V8_HEAP_LOGTYPE with matching ARKWEB_V8_OOM_TYPE returns true.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsExpectedFaultType_0300, TestSize.Level1)
+{
+    EXPECT_TRUE(DumpRuntimeHelper::IsExpectedFaultType(
+        "user.event_config.v8_heap_log_enable", 0x8000));
+}
+
+/**
+ * @tc.number: IsExpectedFaultType_0400
+ * @tc.name: IsExpectedFaultType
+ * @tc.desc: JS_HEAP_LOGTYPE with mismatched faultType returns false.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsExpectedFaultType_0400, TestSize.Level1)
+{
+    EXPECT_FALSE(DumpRuntimeHelper::IsExpectedFaultType(
+        "user.event_config.js_heap_logtype", 0x4000));
+}
+
+/**
+ * @tc.number: IsExpectedFaultType_0500
+ * @tc.name: IsExpectedFaultType
+ * @tc.desc: JSVM_HEAP_LOGTYPE with mismatched faultType returns false.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsExpectedFaultType_0500, TestSize.Level1)
+{
+    EXPECT_FALSE(DumpRuntimeHelper::IsExpectedFaultType(
+        "user.event_config.jsvm_heap_log_enable", 0x04));
+}
+
+/**
+ * @tc.number: IsExpectedFaultType_0600
+ * @tc.name: IsExpectedFaultType
+ * @tc.desc: V8_HEAP_LOGTYPE with mismatched faultType returns false.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsExpectedFaultType_0600, TestSize.Level1)
+{
+    EXPECT_FALSE(DumpRuntimeHelper::IsExpectedFaultType(
+        "user.event_config.v8_heap_log_enable", 0x04));
+}
+
+/**
+ * @tc.number: IsExpectedFaultType_0700
+ * @tc.name: IsExpectedFaultType
+ * @tc.desc: Unknown eventConfigKey is rejected (returns false) even if faultType is 0.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsExpectedFaultType_0700, TestSize.Level1)
+{
+    EXPECT_FALSE(DumpRuntimeHelper::IsExpectedFaultType(
+        "user.event_config.unknown_key", 0));
+}
+
+/**
+ * @tc.number: IsExpectedFaultType_0800
+ * @tc.name: IsExpectedFaultType
+ * @tc.desc: Unknown eventConfigKey is rejected even with a valid-looking faultType.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsExpectedFaultType_0800, TestSize.Level1)
+{
+    EXPECT_FALSE(DumpRuntimeHelper::IsExpectedFaultType(
+        "user.event_config.unknown_key", 0x04));
+}
+
+/**
+ * @tc.number: IsExpectedFaultType_0900
+ * @tc.name: IsExpectedFaultType
+ * @tc.desc: Empty eventConfigKey is rejected.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsExpectedFaultType_0900, TestSize.Level1)
+{
+    EXPECT_FALSE(DumpRuntimeHelper::IsExpectedFaultType("", 0));
+}
+
+/**
+ * @tc.number: IsExpectedFaultType_1000
+ * @tc.name: IsExpectedFaultType
+ * @tc.desc: faultType with extra bits no longer matches (exact equality required).
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, IsExpectedFaultType_1000, TestSize.Level1)
+{
+    // Previously (faultType & expectedFault) would pass with extra bits set;
+    // now exact equality is required, so 0x04 | 0x4000 must not match JS_OOM_TYPE.
+    EXPECT_FALSE(DumpRuntimeHelper::IsExpectedFaultType(
+        "user.event_config.js_heap_logtype", 0x4004));
+}
 } // namespace AppExecFwk
 } // namespace OHOS

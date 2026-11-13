@@ -102,7 +102,12 @@ private:
     static void CreateDirDelay(const std::string &path);
     static void WriteRunningId();
     static bool CheckOomdumpSwitch();
-    static bool Check2CQuota();
+    static bool Check2CQuota(const std::string &eventConfigKey);
+    // Validate that faultType matches the expected OOM scenario for the given
+    // eventConfigKey. Unknown eventConfigKey is rejected. Returns true only
+    // when eventConfigKey is one of the known log types and faultType exactly
+    // matches the corresponding fault type constant.
+    static bool IsExpectedFaultType(const std::string &eventConfigKey, uint64_t faultType);
     static bool Check2DQuota(bool needDecreaseQuota);
     static bool CheckRandomTelemetryQuota();
     static bool IsInFilterList();

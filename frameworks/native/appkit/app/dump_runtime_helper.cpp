@@ -84,6 +84,10 @@ static constexpr const char* const EVENT_RAWHEAP = "event_rawheap";
 static constexpr const char* const JSVM_HEAP_LOGTYPE = "user.event_config.jsvm_heap_log_enable";
 static constexpr const char* const V8_HEAP_LOGTYPE = "user.event_config.v8_heap_log_enable";
 static constexpr const char* const HEAP_LOG_ENABLE_VALUE = "1";
+// Fault type constants for OOM scenarios
+static constexpr uint64_t JS_OOM_TYPE = 0x04;          // JS OOM
+static constexpr uint64_t JSVM_OOM_TYPE = 0x4000;      // JSVM OOM
+static constexpr uint64_t ARKWEB_V8_OOM_TYPE = 0x8000; // ArkWeb V8 OOM
 #ifdef __LP64__
 static constexpr const char* const SO_NAME = "liborphanmem.z.so";
 #else
@@ -145,6 +149,7 @@ enum {
     INDEX_APP_QUOTA,
     INDEX_HAS_SENT,
     INDEX_ROM_RSV_SIZE,
+    INDEX_FAULT_TYPE,
     PROPERTY2C_SIZE
 };
 
@@ -239,7 +244,29 @@ bool DumpRuntimeHelper::CheckOomdumpSwitch()
     return switchValue != "disable";
 }
 
-bool DumpRuntimeHelper::Check2CQuota()
+bool DumpRuntimeHelper::IsExpectedFaultType(const std::string &eventConfigKey, uint64_t faultType)
+{
+    uint64_t expectedFault = 0;
+    if (eventConfigKey == JS_HEAP_LOGTYPE) {
+        expectedFault = JS_OOM_TYPE;
+    } else if (eventConfigKey == JSVM_HEAP_LOGTYPE) {
+        expectedFault = JSVM_OOM_TYPE;
+    } else if (eventConfigKey == V8_HEAP_LOGTYPE) {
+        expectedFault = ARKWEB_V8_OOM_TYPE;
+    } else {
+        // Unknown eventConfigKey is rejected to prevent bypassing faultType check.
+        TAG_LOGE(AAFwkTag::APPKIT, "unknown eventConfigKey: %{public}s", eventConfigKey.c_str());
+        return false;
+    }
+    if (faultType != expectedFault) {
+        TAG_LOGE(AAFwkTag::APPKIT, "faultType mismatch, expected: %{public}" PRIu64 ", actual: %{public}" PRIu64,
+            expectedFault, faultType);
+        return false;
+    }
+    return true;
+}
+
+bool DumpRuntimeHelper::Check2CQuota(const std::string &eventConfigKey)
 {
     std::vector<int64_t> quota2C;
     if (!GetQuota(OOM_QUOTA_PATH, PROPERTY2C, quota2C, PROPERTY2C_SIZE)) {
@@ -271,6 +298,14 @@ bool DumpRuntimeHelper::Check2CQuota()
     uint64_t spaceQuota = static_cast<uint64_t>(quota2C[INDEX_ROM_RSV_SIZE]) * KB_PER_MB;
     if (!CheckOOMFreeSpace(spaceQuota)) {
         TAG_LOGE(AAFwkTag::APPKIT, "rom free space is less than spaceQuota: %{public}" PRIu64, spaceQuota);
+        return false;
+    }
+
+    // Validate faultType matches the expected OOM scenario.
+    // Unknown eventConfigKey is rejected to prevent bypassing faultType check
+    // with attacker-controlled config keys.
+    uint64_t faultType = static_cast<uint64_t>(quota2C[INDEX_FAULT_TYPE]);
+    if (!IsExpectedFaultType(eventConfigKey, faultType)) {
         return false;
     }
 
@@ -1522,7 +1557,7 @@ bool DumpRuntimeHelper::CheckDumpQuota(const std::string &configValue, bool need
     }
 
     // Step 4: 2C / 2D / random telemetry
-    if (Check2CQuota()) {
+    if (Check2CQuota((eventConfigKey))) {
         TAG_LOGI(AAFwkTag::APPKIT, "2C quota check passed, will dump.");
         return true;
     }
