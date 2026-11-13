@@ -396,7 +396,7 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<
     if (info.dumpType == MemDumpType::KMP_KOTLIN) {
         DumpKmpKotlinHeap(info);
     }
-    if (info.dumpType == MemDumpType::JSVM) {
+    if (info.dumpType == MemDumpType::JSVM || info.dumpType == MemDumpType::JSVM_RAW_V4) {
         DumpJsvmHeap(info);
     }
     if (info.dumpType == MemDumpType::ARKWEB_JS) {
@@ -552,15 +552,30 @@ void DumpRuntimeHelper::DumpJsvmHeap(const OHOS::AppExecFwk::MemDumpInfo &info)
         TAG_LOGE(AAFwkTag::APPKIT, "jsvm dlopen failed");
         return;
     }
-    using jsvmFunc = int (*)(uint32_t, int);
-    auto jsvmDump = reinterpret_cast<jsvmFunc>(dlsym(jsvmHandle, "jsvm_dump_heapsnapshot"));
-    if (jsvmDump == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "jsvm dlsym failed");
-        dlclose(jsvmHandle);
-        return;
+    int ret = -1;
+    if (info.dumpType == MemDumpType::JSVM_RAW_V4) {
+        using JsvmVersionedFunc = int (*)(uint32_t, int, uint32_t);
+        auto dumpWithVersion =
+            reinterpret_cast<JsvmVersionedFunc>(dlsym(jsvmHandle, "jsvm_dump_heapsnapshot_with_version"));
+        if (dumpWithVersion == nullptr) {
+            // An explicit v4 request must not silently produce v3 on an old library.
+            TAG_LOGE(AAFwkTag::APPKIT, "jsvm rawheap v4 is unsupported by the loaded library");
+            dlclose(jsvmHandle);
+            return;
+        }
+        constexpr uint32_t RAWHEAP_V4 = 4;
+        ret = dumpWithVersion(info.tid, JSVM_RAW, RAWHEAP_V4);
+    } else {
+        using JsvmFunc = int (*)(uint32_t, int);
+        auto jsvmDump = reinterpret_cast<JsvmFunc>(dlsym(jsvmHandle, "jsvm_dump_heapsnapshot"));
+        if (jsvmDump == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "jsvm dlsym failed");
+            dlclose(jsvmHandle);
+            return;
+        }
+        int dumpType = info.needRaw ? JSVM_RAW : JSVM_SNAPSHOT;
+        ret = jsvmDump(info.tid, dumpType);
     }
-    int dumpType = info.needRaw ? JSVM_RAW : JSVM_SNAPSHOT;
-    int ret = jsvmDump(info.tid, dumpType);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "jsvm dump failed");
         dlclose(jsvmHandle);

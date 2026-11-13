@@ -298,5 +298,34 @@ HWTEST_F(CreateDirTest, CreateDir_0200, Function | MediumTest | Level1)
     RemoveTestDir(testDir);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CreateDir_0200 end";
 }
+
+HWTEST_F(DumpRuntimeHelperTest, JsvmRawHeapVersionParcelCompatibility, Function | MediumTest | Level1)
+{
+    size_t legacySize = 0;
+    for (auto type : { MemDumpType::JSVM, MemDumpType::JSVM_RAW_V4 }) {
+        MemDumpInfo info;
+        info.dumpType = type;
+        info.pid = 123;
+        info.tid = 456;
+        info.needRaw = true;
+        Parcel parcel;
+        ASSERT_TRUE(info.Marshalling(parcel));
+        if (type == MemDumpType::JSVM) {
+            legacySize = parcel.GetDataSize();
+        } else {
+            EXPECT_EQ(parcel.GetDataSize(), legacySize);
+        }
+        // The callback marker following MemDumpInfo must not be consumed as a version field.
+        ASSERT_TRUE(parcel.WriteBool(true));
+        std::unique_ptr<MemDumpInfo> decoded(MemDumpInfo::Unmarshalling(parcel));
+        ASSERT_NE(decoded, nullptr);
+        EXPECT_EQ(decoded->dumpType, type);
+        EXPECT_EQ(decoded->tid, 456u);
+        EXPECT_TRUE(decoded->needRaw);
+        bool hasCallback = false;
+        ASSERT_TRUE(parcel.ReadBool(hasCallback));
+        EXPECT_TRUE(hasCallback);
+    }
+}
 }
 }

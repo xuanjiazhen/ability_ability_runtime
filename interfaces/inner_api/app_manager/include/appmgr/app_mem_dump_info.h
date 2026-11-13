@@ -27,6 +27,9 @@ enum class MemDumpType : uint32_t {
     JSVM = 2,
     KMP_KOTLIN = 3,
     ARKWEB_JS = 4,
+    // Explicit rawheap v4 request. Existing JSVM + needRaw remains v3.
+    // This uses the existing serialized discriminator without adding fields.
+    JSVM_RAW_V4 = 5,
 };
 
 struct MemDumpInfo : public Parcelable {
