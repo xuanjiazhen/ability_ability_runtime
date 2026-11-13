@@ -37,14 +37,24 @@ public:
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback);
     static void TriggerCallbackInner(std::unique_ptr<InsightIntentExecutorAsyncCallback> callback, int32_t errCode);
 
+    // Invoked by the reverse IPC cancel listener (on the IPC thread) when AMS
+    // notifies this process that an in-flight intent was cancelled.
+    void OnExecutorCanceled(uint64_t intentId, int32_t reason);
+
 private:
     std::shared_ptr<InsightIntentExecutor> CreateExecutor(
         Runtime& runtime, InsightIntentType type, const InsightIntentExecutorInfo &executeInfo);
     void AddInsightIntentExecutor(uint64_t intentId, const std::shared_ptr<InsightIntentExecutor>& executor);
     void RemoveInsightIntentExecutor(uint64_t intentId);
 
+    // Consume a cancellation that arrived before the executor was registered
+    // (cold start race). Returns true and cancels the executor if such a
+    // cancellation was pending, false otherwise.
+    bool ConsumePendingCancel(uint64_t intentId, const std::shared_ptr<InsightIntentExecutor>& executor);
+
     std::mutex mutex_;
     std::map<uint64_t, std::shared_ptr<InsightIntentExecutor>> insightIntentExecutors_;
+    std::map<uint64_t, int32_t> pendingCancel_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

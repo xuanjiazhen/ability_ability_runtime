@@ -15,6 +15,7 @@
 
 #include "invoke_function_callback_client.h"
 
+#include "ability_manager_errors.h"
 #include "cli_error_code.h"
 #include "hilog_tag_wrapper.h"
 
@@ -42,7 +43,10 @@ void InvokeFunctionCallbackClient::ProcessInsightIntentExecute(int32_t resultCod
     holder.result.success = (executeResult.code == 0);
     holder.result.errorCode = executeResult.code;
     holder.result.data = executeResult.BuildFunctionResult();
-    holder.innerError = (resultCode == 0) ? 0 : ERR_FUNCTION_EXECUTE_FAILED;
+    // A cancelled execution is reported distinctly from a generic execution
+    // failure so the caller sees 35600063 instead of 35600061.
+    holder.innerError = (resultCode == 0) ? 0 :
+        (resultCode == AAFwk::INTENT_CANCELED) ? ERR_FUNCTION_EXECUTE_CANCELED : ERR_FUNCTION_EXECUTE_FAILED;
     if (callback_) {
         callback_(holder);
     }

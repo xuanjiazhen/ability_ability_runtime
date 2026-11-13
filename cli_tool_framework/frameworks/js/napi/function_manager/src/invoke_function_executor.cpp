@@ -23,6 +23,7 @@
 #include "function_info.h"
 #include "function_result_wrap.h"
 #include "hilog_tag_wrapper.h"
+#include "insight_intent_execute_param.h"
 #include "intent_client.h"
 #include "invoke_function_callback_client.h"
 #include "invoke_function_param.h"
@@ -158,6 +159,13 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
     }
     if (!taskId.empty()) {
         execParam.wantParam.SetParam("ohos.task.id", AAFwk::String::Box(taskId));
+    }
+    // Authoritative injection of the cancellation signal id (ADR-8): re-assert
+    // the trusted structured value from invokeOptions so a hook-modified wantParam
+    // cannot forge or strip the cancellation addressing id.
+    if (!param.invokeOptions.cancellationSignal.empty()) {
+        execParam.wantParam.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_SIGNAL_ID,
+            AAFwk::String::Box(param.invokeOptions.cancellationSignal));
     }
     execParam.callback = client;
 

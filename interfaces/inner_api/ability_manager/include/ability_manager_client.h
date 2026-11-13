@@ -2492,6 +2492,9 @@ public:
     ErrCode ExecuteIntent(uint64_t key, sptr<IRemoteObject> callerToken,
         const InsightIntentExecuteParam &param);
 
+    ErrCode ExecuteIntent(uint64_t key, sptr<IRemoteObject> callerToken,
+        const InsightIntentExecuteParam &param, uint64_t &intentId);
+
     /**
      * @brief Execute an intent forwarded from a remote device. DMS only
      * (DMS_UID); want must be a valid insight intent want (contains intent
@@ -3215,7 +3218,11 @@ public:
      * @param intentId The insight intent id.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode NotifyInsightIntentExecute(uint64_t intentId);
+    ErrCode NotifyInsightIntentExecute(uint64_t intentId, const sptr<IRemoteObject> &cancelListener);
+
+    ErrCode CancelInsightIntent(const std::string &signalId);
+
+    ErrCode CancelInsightIntentByTaskId(const std::string &taskId);
 
     ErrCode RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback);
 

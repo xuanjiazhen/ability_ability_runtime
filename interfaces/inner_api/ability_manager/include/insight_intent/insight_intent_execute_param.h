@@ -89,6 +89,8 @@ constexpr char INSIGHT_INTENT_QUERY_TYPE[] = "ohos.insightIntent.queryEntity.que
 constexpr char INSIGHT_INTENT_QUERY_ENTITY_PARAM_PARAM[] = "ohos.insightIntent.queryEntity.param";
 constexpr char INSIGHT_INTENT_PARAM_USER_ID[] = "ohos.insightIntent.param.userId";
 constexpr char INSIGHT_INTENT_TOOL_CALL_ID[] = "ohos.insightIntent.toolCallId";
+constexpr char INSIGHT_INTENT_EXECUTE_SIGNAL_ID[] = "ohos.insightIntent.executeParam.signalId";
+constexpr char INSIGHT_INTENT_EXECUTE_PARAM_CANCELLABLE[] = "ohos.insightIntent.executeParam.cancellable";
 constexpr char INSIGHT_INTENT_TASK_ID[] = "ohos.task.id";
 constexpr size_t INSIGHT_INTENT_TASK_ID_MAX_LEN = 256;
 constexpr char INSIGHT_INTENT_CALLER_BUNDLE_NAME[] = "ohos.insightIntent.executeParam.callerBundleName";
@@ -131,6 +133,13 @@ public:
     int32_t flags_ = 0;
     int32_t userId_ = DEFAULT_INVAL_VALUE;
     uint64_t insightIntentId_ = 0;
+    // Cancellation addressing id carried from the caller's CancellationSignal
+    // (empty means the caller passed no signal and the system generates one).
+    std::string signalId_;
+    // Whether this intent execution is cancellable (resolved from the caller side
+    // + the intent's config/decorator profile by AMS). True means the executor is
+    // handed an InsightIntentExecutionContext to observe cancellation.
+    bool cancellable_ = false;
     std::shared_ptr<WantParams> insightIntentParam_;
     std::string bundleName_;
     std::string moduleName_;
