@@ -332,6 +332,10 @@ enum class AbilityErrorCode {
 
     ERROR_CODE_INTENT_DEVICE_DISCONNECTED = 16000138,
 
+    // The insight intent execution was cancelled, or the passed CancellationSignal
+    // was already cancelled at submission time.
+    ERROR_CODE_INSIGHT_INTENT_CANCELED = 16000139,
+
     ERROR_CODE_SEND_REQUEST_TO_SYSTEM_FAIL = 16000150,
 
     ERROR_CODE_DELAYED_PROCESS_EXIT_NO_UIABILITY = 16000151,

@@ -73,6 +73,7 @@ const std::string INSIGHT_INTENT_ENTITY_CATEGORY = "entityCategory";
 const std::string INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME = "parentClassName";
 const std::string INSIGHT_INTENT_ENTITY_PARAMETERS = "parameters";
 const std::string INSIGHT_INTENT_ARKTS_MODE = "arkTSMode";
+const std::string INSIGHT_INTENT_CANCELLABLE = "cancellable";
 const std::string INSIGHT_INTENT_ENTITY_SUPPORTED_QUERY_PROPERTIES = "supportedQueryProperties";
 
 enum DecoratorType {
@@ -420,6 +421,14 @@ void from_json(const nlohmann::json &jsonObject, ExtractInsightIntentProfileInfo
         insightIntentInfo.arkTSMode,
         false,
         g_extraParseResult);
+    AppExecFwk::GetValueIfFindKey<bool>(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_CANCELLABLE,
+        insightIntentInfo.cancellable,
+        JsonType::BOOLEAN,
+        false,
+        g_extraParseResult,
+        ArrayType::NOT_ARRAY);
 
     if (jsonObject.find(INSIGHT_INTENT_PARAMETERS) != jsonObjectEnd) {
         if (jsonObject.at(INSIGHT_INTENT_PARAMETERS).is_object()) {
@@ -521,7 +530,8 @@ void to_json(nlohmann::json& jsonObject, const ExtractInsightIntentProfileInfo& 
         {INSIGHT_INTENT_FUNCTION_PARAMS, info.functionParams},
         {INSIGHT_INTENT_FORM_NAME, info.formName},
         {INSIGHT_INTENT_ENTITES, info.entities},
-        {INSIGHT_INTENT_ARKTS_MODE, info.arkTSMode}
+        {INSIGHT_INTENT_ARKTS_MODE, info.arkTSMode},
+        {INSIGHT_INTENT_CANCELLABLE, info.cancellable}
     };
 
     if (!SetJsonFieldIfNotEmpty(jsonObject, INSIGHT_INTENT_PARAMETERS, info.parameters, "discarded parameters")) {
@@ -760,6 +770,7 @@ bool ExtractInsightIntentProfile::ProfileInfoFormat(const ExtractInsightIntentPr
     info.keywords.assign(insightIntent.keywords.begin(), insightIntent.keywords.end());
     info.permissions.assign(insightIntent.permissions.begin(), insightIntent.permissions.end());
     info.arkTSMode = insightIntent.arkTSMode;
+    info.cancellable = insightIntent.cancellable;
     info.entities = insightIntent.entities;
     TAG_LOGD(AAFwkTag::INTENT, "entities size: %{public}zu", info.entities.size());
     for (auto iter = info.entities.begin(); iter != info.entities.end(); iter++) {

@@ -137,6 +137,7 @@ bool JsInsightIntentEntry::HandleExecuteIntent(
 
     callback_ = std::move(callback);
     auto name = executeParam->insightIntentName_;
+    cancellable_ = executeParam->cancellable_;
     TAG_LOGD(AAFwkTag::INTENT, "Execute Intent %{public}s", name.c_str());
 
     // Check parameter
@@ -319,7 +320,18 @@ bool JsInsightIntentEntry::ExecuteInsightIntent(
     }
 
     napi_value result = nullptr;
-    result = CallJsFunctionWithResultInner("onExecute", 0, nullptr);
+    constexpr size_t MAX_ARGC = 1;
+    napi_value argv[MAX_ARGC] = { nullptr };
+    size_t argc = 0;
+    if (cancellable_) {
+        auto context = GetContext();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null context");
+            return ExecuteIntentCheckError();
+        }
+        argv[argc++] = CreateJsInsightIntentExecutionContext(env, context->GetCancellationSignal());
+    }
+    result = CallJsFunctionWithResultInner("onExecute", argc, argv);
     if (result == nullptr) {
         // error log has printed
         return ExecuteIntentCheckError();

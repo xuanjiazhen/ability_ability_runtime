@@ -21,7 +21,7 @@ let TAG = 'Intent';
 export default class InsightIntentEntryExecutor {
   constructor() {}
 
-  onExecute() {
+  onExecute(executionContext) {
     hilog.sLogI(domainID, TAG, 'onExecute');
     return {
       'code': 0

@@ -19,6 +19,7 @@
 #include "function_info.h"
 #include "hilog_tag_wrapper.h"
 #include "invoke_function_param.h"
+#include "js_insight_intent_cancellation_signal_utils.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 
@@ -109,6 +110,44 @@ enum class OptionsKind {
     OBJECT,   // an object: parse the optional trace identifiers
     INVALID,  // non-object value or typeof failure: reported via msg
 };
+
+// Unwrap the optional cancellationSignal (a caller-side insightIntentDriver
+// CancellationSignal). Absent/undefined/null means "no signal" (empty out); a
+// present but non-CancellationSignal value is a parameter error.
+inline bool UnwrapCancellationSignal(napi_env env, napi_value options,
+    std::string& out, std::string& msg)
+{
+    bool hasProperty = false;
+    if (napi_has_named_property(env, options, "cancellationSignal", &hasProperty) != napi_ok) {
+        msg = "has cancellationSignal failed";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (!hasProperty) {
+        return true;
+    }
+    napi_value prop = nullptr;
+    if (napi_get_named_property(env, options, "cancellationSignal", &prop) != napi_ok) {
+        msg = "invalid cancellationSignal property";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, prop, &valueType) != napi_ok) {
+        msg = "invalid cancellationSignal property";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (valueType == napi_undefined || valueType == napi_null) {
+        return true;
+    }
+    if (!GetCancellationSignalId(env, prop, out)) {
+        msg = "Parameter error. The type of \"cancellationSignal\" must be CancellationSignal.";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    return true;
+}
 
 // Helper: classify the options parameter. Sets msg and logs on a non-object
 // value or a typeof failure (INVALID).
@@ -275,7 +314,8 @@ bool UnwrapInvokeOptions(napi_env env, napi_value options, InvokeOptions& invoke
     }
     return UnwrapOptionalTraceId(env, options, "toolCallId", invokeOptions.toolCallId, msg) &&
         UnwrapOptionalTraceId(env, options, "dmSessionId", invokeOptions.dmSessionId, msg) &&
-        UnwrapOptionalTraceId(env, options, "taskId", invokeOptions.taskId, msg);
+        UnwrapOptionalTraceId(env, options, "taskId", invokeOptions.taskId, msg) &&
+        UnwrapCancellationSignal(env, options, invokeOptions.cancellationSignal, msg);
 }
 
 } // namespace CliTool

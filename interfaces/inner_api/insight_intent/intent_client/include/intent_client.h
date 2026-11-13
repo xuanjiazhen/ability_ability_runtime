@@ -48,6 +48,15 @@ public:
      */
     int32_t ExecuteIntentByFunctionCall(const ExecuteIntentParam &param);
 
+    /**
+     * @brief Execute intent by function call and return the generated intent id.
+     * @param param The execute intent parameters.
+     * @param intentId The generated insight intent id, valid only when the
+     *        return value is ERR_OK.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ExecuteIntentByFunctionCall(const ExecuteIntentParam &param, uint64_t &intentId);
+
 private:
     IntentClient() = default;
 
@@ -56,7 +65,8 @@ private:
     void ResetRemote(wptr<IRemoteObject> remote);
 
     int32_t SendExecuteRequest(uint64_t key, const sptr<IRemoteObject> &callerToken,
-        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam);
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+        uint64_t &intentId);
 
     class DeathRecipient : public IRemoteObject::DeathRecipient {
     public:

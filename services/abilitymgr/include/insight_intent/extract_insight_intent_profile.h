@@ -182,6 +182,7 @@ struct ExtractInsightIntentInfo {
     std::string result;
     std::string example;
     std::string arkTSMode;
+    bool cancellable = false;
 
     ExtractInsightIntentInfo() = default;
 };
@@ -226,6 +227,7 @@ struct ExtractInsightIntentProfileInfo {
     std::string functionReturnType;
     std::string formName;
     std::string arkTSMode;
+    bool cancellable = false;
 };
 
 struct ExtractInsightIntentProfileInfoVec {
