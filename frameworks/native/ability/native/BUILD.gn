@@ -168,7 +168,7 @@ ohos_shared_library("abilitykit_utils") {
 
   deps = [
     ":configuration_helper",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
   ]
 
   configs = [
@@ -190,10 +190,10 @@ ohos_shared_library("abilitykit_utils") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "json:nlohmann_json_static",
-    "napi:ace_napi",
-    "resource_management:global_resmgr",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
+    "resource_management:global_resmgr",
   ]
 
   public_external_deps = [
@@ -205,9 +205,9 @@ ohos_shared_library("abilitykit_utils") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
-      "window_manager:libwm",
-      "form_fwk:form_render_info",
       "form_fwk:form_common_info",
+      "form_fwk:form_render_info",
+      "window_manager:libwm",
     ]
     public_external_deps += [
       "window_manager:libdm",
@@ -264,6 +264,7 @@ ohos_shared_library("configuration_helper") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "ets_runtime:libark_jsruntime",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -271,11 +272,10 @@ ohos_shared_library("configuration_helper") {
     "ipc:ipc_napi",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
-    "napi:ace_napi",
-    "resource_management:global_resmgr",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
-    "ets_runtime:libark_jsruntime",
+    "resource_management:global_resmgr",
   ]
 
   if (ability_runtime_graphics) {
@@ -288,7 +288,9 @@ ohos_shared_library("configuration_helper") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 ohos_shared_library("abilitykit_native") {
@@ -355,17 +357,17 @@ ohos_shared_library("abilitykit_native") {
     ":extension_blocklist_config",
     ":extensionkit_native",
     ":ui_service_extension_connection",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
-    "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
+    "${ability_runtime_innerkits_path}/dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_innerkits_path}/napi_base_context:napi_base_context",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/napi_base_context",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -400,21 +402,21 @@ ohos_shared_library("abilitykit_native") {
     "ipc:ipc_napi",
     "ipc:rpc",
     "json:nlohmann_json_static",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
+    "window_manager:window_animation_utils",
     "window_manager:windowstage_kit",
-    "libuv:uv",
-    "node:node_header_notice",
   ]
 
   defines = []
 
-  if (defined(hiviewdfx_runtime_api_metrics_enable) && hiviewdfx_runtime_api_metrics_enable) {
+  if (defined(hiviewdfx_runtime_api_metrics_enable) &&
+      hiviewdfx_runtime_api_metrics_enable) {
     defines += [ "HIVIEWDFX_RUNTIME_API_METRICS" ]
-    external_deps += [
-      "api_metrics:histogrammanager",
-    ]
+    external_deps += [ "api_metrics:histogrammanager" ]
   }
 
   if (!(host_os == "linux" && host_cpu == "arm64")) {
@@ -474,14 +476,14 @@ ohos_shared_library("abilitykit_native") {
 
     external_deps += [
       "ability_base:session_info",
+      "form_fwk:form_common_info",
+      "form_fwk:form_render_info",
       "icu:shared_icuuc",
       "image_framework:image",
       "image_framework:image_native",
       "input:libmmi-client",
       "window_manager:libwm",
       "window_manager:libwsutils",
-      "form_fwk:form_render_info",
-      "form_fwk:form_common_info",
     ]
 
     public_external_deps += [ "window_manager:libdm" ]
@@ -514,11 +516,11 @@ ohos_shared_library("ability_observer_ipc") {
   ]
 
   sources = [
+    "${ability_runtime_native_path}/ability/native/distributed_ability_runtime/distributed_client.cpp",
     "${ability_runtime_native_path}/ability/native/free_install_observer_proxy.cpp",
     "${ability_runtime_native_path}/ability/native/free_install_observer_stub.cpp",
     "${ability_runtime_native_path}/ability/native/query_erms_observer_proxy.cpp",
     "${ability_runtime_native_path}/ability/native/query_erms_observer_stub.cpp",
-    "${ability_runtime_native_path}/ability/native/distributed_ability_runtime/distributed_client.cpp",
     "${ability_runtime_native_path}/appkit/app/sys_mgr_client.cpp",
   ]
 
@@ -529,9 +531,9 @@ ohos_shared_library("ability_observer_ipc") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_path}/utils/global/common:runtime_utils",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
   ]
 
   external_deps = [
@@ -540,10 +542,10 @@ ohos_shared_library("ability_observer_ipc") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
-    "napi:ace_napi",
-    "samgr:samgr_proxy",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
+    "samgr:samgr_proxy",
   ]
 
   subsystem_name = "ability"
@@ -580,27 +582,27 @@ ohos_shared_library("cj_abilitykit_native_ffi") {
   deps = [
     ":abilitykit_native",
     ":continuation_ipc",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_path}/frameworks/cj/ffi/context:cj_context_ffi",
   ]
   external_deps = [
     "ace_engine:ace_uicontent",
     "eventhandler:libeventhandler",
+    "form_fwk:form_common_info",
     "form_fwk:form_manager",
     "form_fwk:form_render_info",
-    "form_fwk:form_common_info",
     "ipc:cj_ipc_ffi",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:rpc",
+    "libuv:uv",
     "napi:ace_napi",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
-    "window_manager:libwm",
-    "libuv:uv",
     "node:node_header_notice",
+    "window_manager:libwm",
   ]
 
   if (!(host_os == "linux" && host_cpu == "arm64")) {
@@ -621,7 +623,9 @@ ohos_shared_library("cj_abilitykit_native_ffi") {
   version_script = "libcj_abilitykit_native_ffi.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs = [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 config("extensionkit_public_config") {
@@ -680,10 +684,10 @@ ohos_shared_library("extensionkit_native") {
   deps = [
     ":abilitykit_utils",
     ":configuration_helper",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/utils/global/common:runtime_utils",
@@ -700,8 +704,8 @@ ohos_shared_library("extensionkit_native") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "json:nlohmann_json_static",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -713,12 +717,10 @@ ohos_shared_library("extensionkit_native") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
-      "form_fwk:form_render_info",
       "form_fwk:form_common_info",
+      "form_fwk:form_render_info",
     ]
-    public_external_deps += [
-      "window_manager:libdm",
-    ]
+    public_external_deps += [ "window_manager:libdm" ]
   }
 
   innerapi_tags = [ "platformsdk" ]
@@ -756,9 +758,9 @@ ohos_shared_library("cj_extensionkit_native") {
     ":abilitykit_utils",
     ":configuration_helper",
     ":extensionkit_native",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability:cj_ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -774,10 +776,10 @@ ohos_shared_library("cj_extensionkit_native") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
+    "libuv:uv",
     "napi:ace_napi",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
-    "libuv:uv",
     "node:node_header_notice",
   ]
 
@@ -785,16 +787,16 @@ ohos_shared_library("cj_extensionkit_native") {
 
   if (ability_runtime_graphics) {
     external_deps += [ "ability_base:session_info" ]
-    public_external_deps += [
-      "window_manager:libdm",
-    ]
+    public_external_deps += [ "window_manager:libdm" ]
   }
 
   innerapi_tags = [ "platformsdk" ]
   version_script = "libcj_extensionkit_native.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs = [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 config("insight_intent_executor_public_config") {
@@ -824,14 +826,14 @@ ohos_shared_library("insight_intent_executor") {
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
   deps = [
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
-    "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_path}/utils/global/common:runtime_utils",
+    "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = []
@@ -853,8 +855,8 @@ ohos_shared_library("insight_intent_executor") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -863,6 +865,7 @@ ohos_shared_library("insight_intent_executor") {
 }
 
 ohos_shared_library("insight_intent_executor_ani") {
+  version_script = "libinsight_intent_executor_ani.map"
   branch_protector_ret = "pac_ret"
   branch_protector_frt = "bti"
 
@@ -886,8 +889,8 @@ ohos_shared_library("insight_intent_executor_ani") {
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/ets_insight_intent_page.cpp",
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/ets_insight_intent_query_entity.cpp",
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/ets_insight_intent_utils.cpp",
-    "${ability_runtime_path}/frameworks/native/insight_intent/insight_intent_context/ets_insight_intent_context.cpp",
     "${ability_runtime_native_path}/insight_intent/ets_insight_intent_execution_info.cpp",
+    "${ability_runtime_path}/frameworks/native/insight_intent/insight_intent_context/ets_insight_intent_context.cpp",
   ]
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
@@ -896,14 +899,14 @@ ohos_shared_library("insight_intent_executor_ani") {
 
   deps = [
     ":insight_intent_executor",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_observer:ani_observer",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_observer",
     "${ability_runtime_services_path}/common:app_util",
   ]
 
@@ -925,11 +928,11 @@ ohos_shared_library("insight_intent_executor_ani") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
     "runtime_core:ani",
     "window_manager:libwm",
-    "libuv:uv",
-    "node:node_header_notice",
   ]
 
   subsystem_name = "ability"
@@ -961,10 +964,10 @@ ohos_shared_library("cj_insight_intent_executor") {
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
   deps = [
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
@@ -983,12 +986,12 @@ ohos_shared_library("cj_insight_intent_executor") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
+    "libuv:uv",
     "napi:ace_napi",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
-    "window_manager:libwm",
-    "libuv:uv",
     "node:node_header_notice",
+    "window_manager:libwm",
   ]
   innerapi_tags = [ "platformsdk" ]
   version_script = "libcj_insight_intent_executor.map"
@@ -1068,13 +1071,13 @@ ohos_shared_library("ui_ability_ani") {
     ":ui_service_extension_connection",
     ":ui_service_extension_connection_ani",
     ":uiabilitykit_native",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
@@ -1083,7 +1086,7 @@ ohos_shared_library("ui_ability_ani") {
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common",
     "${ability_runtime_path}/frameworks/ets/ani/caller_complex:caller_complex_ani",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
@@ -1119,6 +1122,7 @@ ohos_shared_library("ui_ability_ani") {
     "runtime_core:ani",
     "runtime_core:ani_helpers",
     "samgr:samgr_proxy",
+    "window_manager:ani_window_animation_utils",
     "window_manager:window_native_kit",
     "window_manager:windowstageani_kit",
   ]
@@ -1141,9 +1145,7 @@ ohos_shared_library("ui_ability_ani") {
       "window_manager:libwsutils",
       "window_manager:windowstage_kit",
     ]
-    public_external_deps += [
-      "window_manager:libdm",
-    ]
+    public_external_deps += [ "window_manager:libdm" ]
   }
 
   subsystem_name = "ability"
@@ -1191,17 +1193,17 @@ ohos_shared_library("uiabilitykit_native") {
     ":continuation_ipc",
     ":extensionkit_native",
     ":ui_extension",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
-    "${ability_runtime_innerkits_path}/page_config_manager:page_config_manager",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/page_config_manager",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
-    "${ability_runtime_native_path}/ability/native/ability_runtime/madvise:ability_madvise",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
+    "${ability_runtime_native_path}/ability/native/ability_runtime/madvise:ability_madvise",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
@@ -1282,15 +1284,13 @@ ohos_shared_library("uiabilitykit_native") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
+      "form_fwk:form_common_info",
+      "form_fwk:form_render_info",
       "icu:shared_icuuc",
       "window_manager:libwsutils",
       "window_manager:windowstage_kit",
-      "form_fwk:form_render_info",
-      "form_fwk:form_common_info",
     ]
-    public_external_deps += [
-      "window_manager:libdm",
-    ]
+    public_external_deps += [ "window_manager:libdm" ]
   }
 
   innerapi_tags = [ "platformsdk" ]
@@ -1322,11 +1322,11 @@ ohos_shared_library("ability_thread") {
     ":abilitykit_utils",
     ":extensionkit_native",
     ":uiabilitykit_native",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/dataobs_manager",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/utils/global/common:runtime_utils",
@@ -1344,8 +1344,8 @@ ohos_shared_library("ability_thread") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -1371,6 +1371,7 @@ ohos_shared_library("ability_thread") {
 }
 
 ohos_shared_library("ets_form_extension") {
+  version_script = "libets_form_extension.map"
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -1407,12 +1408,12 @@ ohos_shared_library("ets_form_extension") {
       ":abilitykit_native",
       ":extensionkit_native",
       ":form_extension",
-      "${ability_runtime_innerkits_path}/runtime:runtime",
-      "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+      "${ability_runtime_innerkits_path}/runtime",
+      "${ability_runtime_napi_path}/inner/napi_common",
       "${ability_runtime_native_path}/ability:ability_context_native",
       "${ability_runtime_native_path}/ability/native:ability_business_error",
       "${ability_runtime_native_path}/appkit:app_context",
-      "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+      "${ability_runtime_path}/frameworks/ets/ani/ani_common",
     ]
 
     external_deps = [
@@ -1426,27 +1427,26 @@ ohos_shared_library("ets_form_extension") {
       "ipc:ipc_core",
       "ipc:ipc_napi",
       "ipc:rpc_taihe",
-      "napi:ace_napi",
-      "runtime_core:ani",
       "libuv:uv",
+      "napi:ace_napi",
       "node:node_header_notice",
+      "runtime_core:ani",
     ]
 
     if (form_fwk_enable) {
       external_deps += [
         "form_fwk:fmskit_native",
         "form_fwk:fmskit_provider_client",
+        "form_fwk:form_common_info",
         "form_fwk:form_manager",
         "form_fwk:form_render_info",
-        "form_fwk:form_common_info",
         "form_fwk:formutil_napi",
       ]
     }
-    if (defined(hiviewdfx_runtime_api_metrics_enable) && hiviewdfx_runtime_api_metrics_enable) {
+    if (defined(hiviewdfx_runtime_api_metrics_enable) &&
+        hiviewdfx_runtime_api_metrics_enable) {
       defines += [ "HIVIEWDFX_RUNTIME_API_METRICS" ]
-      external_deps += [
-        "api_metrics:histogrammanager",
-      ]
+      external_deps += [ "api_metrics:histogrammanager" ]
     }
   }
   subsystem_name = "ability"
@@ -1481,12 +1481,12 @@ ohos_shared_library("form_extension") {
       ":abilitykit_native",
       ":abilitykit_utils",
       ":extensionkit_native",
-      "${ability_runtime_innerkits_path}/runtime:runtime",
-      "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+      "${ability_runtime_innerkits_path}/runtime",
+      "${ability_runtime_napi_path}/inner/napi_common",
       "${ability_runtime_native_path}/ability:ability_context_native",
       "${ability_runtime_native_path}/ability/native:ability_business_error",
       "${ability_runtime_native_path}/appkit:app_context",
-      "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+      "${ability_runtime_path}/frameworks/ets/ani/ani_common",
     ]
 
     external_deps = [
@@ -1499,28 +1499,27 @@ ohos_shared_library("form_extension") {
       "hitrace:hitrace_meter",
       "ipc:ipc_core",
       "ipc:ipc_napi",
-      "napi:ace_napi",
-      "runtime_core:ani",
       "libuv:uv",
+      "napi:ace_napi",
       "node:node_header_notice",
+      "runtime_core:ani",
     ]
 
     if (form_fwk_enable) {
       external_deps += [
         "form_fwk:fmskit_native",
         "form_fwk:fmskit_provider_client",
+        "form_fwk:form_common_info",
         "form_fwk:form_manager",
         "form_fwk:form_render_info",
-        "form_fwk:form_common_info",
         "form_fwk:formutil_napi",
       ]
     }
 
-    if (defined(hiviewdfx_runtime_api_metrics_enable) && hiviewdfx_runtime_api_metrics_enable) {
+    if (defined(hiviewdfx_runtime_api_metrics_enable) &&
+        hiviewdfx_runtime_api_metrics_enable) {
       defines += [ "HIVIEWDFX_RUNTIME_API_METRICS" ]
-      external_deps += [
-        "api_metrics:histogrammanager",
-      ]
+      external_deps += [ "api_metrics:histogrammanager" ]
     }
   }
   subsystem_name = "ability"
@@ -1561,7 +1560,7 @@ ohos_source_set("cj_form_extension_source") {
       ":cj_extensionkit_native",
       ":extensionkit_native",
       ":form_extension",
-      "${ability_runtime_innerkits_path}/runtime:runtime",
+      "${ability_runtime_innerkits_path}/runtime",
       "${ability_runtime_native_path}/ability:ability_context_native",
       "${ability_runtime_native_path}/ability:cj_ability_context_native",
       "${ability_runtime_native_path}/appkit:app_context",
@@ -1578,10 +1577,10 @@ ohos_source_set("cj_form_extension_source") {
       "hitrace:hitrace_meter",
       "ipc:ipc_core",
       "ipc:ipc_napi",
+      "libuv:uv",
       "napi:ace_napi",
       "napi:cj_bind_ffi",
       "napi:cj_bind_native",
-      "libuv:uv",
       "node:node_header_notice",
     ]
 
@@ -1589,9 +1588,9 @@ ohos_source_set("cj_form_extension_source") {
       external_deps += [
         "form_fwk:fmskit_native",
         "form_fwk:fmskit_provider_client",
+        "form_fwk:form_common_info",
         "form_fwk:form_manager",
         "form_fwk:form_render_info",
-        "form_fwk:form_common_info",
         "form_fwk:formutil_napi",
       ]
     }
@@ -1638,7 +1637,7 @@ ohos_shared_library("form_extension_module") {
 
   deps = [
     ":form_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
   ]
 
   external_deps = [
@@ -1648,17 +1647,17 @@ ohos_shared_library("form_extension_module") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "form_fwk:form_common_info",
+    "form_fwk:form_render_info",
     "hilog:libhilog",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
-    "napi:ace_napi",
-    "window_manager:libwm",
-    "form_fwk:form_render_info",
-    "form_fwk:form_common_info",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
+    "window_manager:libwm",
   ]
 
   if (ability_runtime_graphics) {
@@ -1671,7 +1670,9 @@ ohos_shared_library("form_extension_module") {
   relative_install_dir = "extensionability"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 ohos_shared_library("service_extension") {
@@ -1702,11 +1703,11 @@ ohos_shared_library("service_extension") {
     ":abilitykit_native",
     ":abilitykit_utils",
     ":extensionkit_native",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
@@ -1730,18 +1731,17 @@ ohos_shared_library("service_extension") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:rpc_taihe",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "libuv:uv",
-    "node:node_header_notice",
   ]
 
-  if (defined(hiviewdfx_runtime_api_metrics_enable) && hiviewdfx_runtime_api_metrics_enable) {
+  if (defined(hiviewdfx_runtime_api_metrics_enable) &&
+      hiviewdfx_runtime_api_metrics_enable) {
     defines += [ "HIVIEWDFX_RUNTIME_API_METRICS" ]
-    external_deps += [
-      "api_metrics:histogrammanager",
-    ]
+    external_deps += [ "api_metrics:histogrammanager" ]
   }
 
   if (ability_runtime_graphics) {
@@ -1793,14 +1793,14 @@ ohos_shared_library("app_service_extension_ani") {
     ":extensionkit_native",
     ":service_extension",
     ":service_extension_ani",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
   ]
 
@@ -1869,18 +1869,18 @@ ohos_shared_library("service_extension_ani") {
     ":abilitykit_utils",
     ":extensionkit_native",
     ":service_extension",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_observer:ani_observer",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_observer",
     "${ability_runtime_path}/frameworks/ets/ani/caller_complex:caller_complex_ani",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
   ]
@@ -1948,8 +1948,8 @@ ohos_shared_library("ui_service_extension_connection") {
   ]
 
   deps = [
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
   ]
 
@@ -1960,8 +1960,8 @@ ohos_shared_library("ui_service_extension_connection") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -1970,6 +1970,7 @@ ohos_shared_library("ui_service_extension_connection") {
 }
 
 ohos_shared_library("ui_service_extension_connection_ani") {
+  version_script = "libui_service_extension_connection_ani.map"
   sanitize = {
     integer_overflow = true
     ubsan = true
@@ -2001,9 +2002,9 @@ ohos_shared_library("ui_service_extension_connection_ani") {
 
   deps = [
     ":ui_service_extension_connection",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common",
   ]
 
   external_deps = [
@@ -2018,12 +2019,12 @@ ohos_shared_library("ui_service_extension_connection_ani") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:rpc_ani",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
     "runtime_core:ani",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "libuv:uv",
-    "node:node_header_notice",
   ]
 
   subsystem_name = "ability"
@@ -2072,14 +2073,14 @@ ohos_shared_library("ui_service_extension") {
     ":abilitykit_utils",
     ":extensionkit_native",
     ":ui_service_extension_connection",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
-    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
@@ -2104,11 +2105,11 @@ ohos_shared_library("ui_service_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "libuv:uv",
-    "node:node_header_notice",
   ]
 
   public_external_deps = []
@@ -2132,6 +2133,7 @@ ohos_shared_library("ui_service_extension") {
 }
 
 ohos_shared_library("ui_service_extension_ani") {
+  version_script = "libui_service_extension_ani.map"
   sanitize = {
     integer_overflow = true
     ubsan = true
@@ -2176,13 +2178,13 @@ ohos_shared_library("ui_service_extension_ani") {
     ":ui_service_extension",
     ":ui_service_extension_connection",
     ":ui_service_extension_connection_ani",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
-    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
@@ -2190,7 +2192,7 @@ ohos_shared_library("ui_service_extension_ani") {
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
   ]
@@ -2211,8 +2213,8 @@ ohos_shared_library("ui_service_extension_ani") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:rpc_taihe",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -2282,7 +2284,7 @@ ohos_shared_library("ui_service_extension_module") {
   configs = [ ":ability_config" ]
   deps = [
     ":ui_service_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
   ]
 
   external_deps = [
@@ -2297,8 +2299,8 @@ ohos_shared_library("ui_service_extension_module") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -2326,7 +2328,9 @@ ohos_shared_library("ui_service_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 ohos_shared_library("continuation_ipc") {
@@ -2361,8 +2365,8 @@ ohos_shared_library("continuation_ipc") {
 
   deps = [
     ":abilitykit_utils",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
   ]
 
@@ -2413,8 +2417,8 @@ ohos_shared_library("data_ability_helper") {
 
   deps = [
     ":abilitykit_native",
-    "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/dataobs_manager",
+    "${ability_runtime_napi_path}/inner/napi_common",
   ]
 
   external_deps = [
@@ -2424,6 +2428,8 @@ ohos_shared_library("data_ability_helper") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "form_fwk:form_common_info",
+    "form_fwk:form_render_info",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_single",
@@ -2431,8 +2437,6 @@ ohos_shared_library("data_ability_helper") {
     "relational_store:native_dataability",
     "relational_store:rdb_data_ability_adapter",
     "window_manager:libwm",
-    "form_fwk:form_render_info",
-    "form_fwk:form_common_info",
   ]
   if (!(host_os == "linux" && host_cpu == "arm64")) {
     external_deps += [ "relational_store:native_rdb" ]
@@ -2466,7 +2470,7 @@ ohos_shared_library("service_extension_module") {
 
   deps = [
     ":service_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
   ]
 
   external_deps = [
@@ -2481,17 +2485,17 @@ ohos_shared_library("service_extension_module") {
     "ipc:ipc_napi",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "form_fwk:form_common_info",
+      "form_fwk:form_render_info",
       "image_framework:image",
       "window_manager:libwm",
-      "form_fwk:form_render_info",
-      "form_fwk:form_common_info",
     ]
     public_external_deps = [
       "form_fwk:fmskit_provider_client",
@@ -2502,7 +2506,9 @@ ohos_shared_library("service_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 config("ability_business_error_config") {
@@ -2539,7 +2545,9 @@ ohos_shared_library("ability_business_error") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 config("dialog_request_callback_config") {
@@ -2600,9 +2608,9 @@ group("extension_module") {
   deps = [
     ":app_service_extension_module",
     ":embedded_ui_extension_module",
+    ":modular_object_extension_module",
     ":service_extension_module",
     ":ui_extension_module",
-    ":modular_object_extension_module",
   ]
   if (ability_runtime_action_extension) {
     deps += [ ":action_extension_module" ]
@@ -2667,10 +2675,10 @@ ohos_shared_library("ui_extension") {
     ":abilitykit_utils",
     ":extensionkit_native",
     ":ui_service_extension_connection",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
@@ -2695,8 +2703,8 @@ ohos_shared_library("ui_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
     "window_manager:embeddablewindowstage_kit",
     "window_manager:extensionwindow_napi",
@@ -2719,6 +2727,7 @@ ohos_shared_library("ui_extension") {
 }
 
 ohos_shared_library("photo_editor_extension_ani") {
+  version_script = "libphoto_editor_extension_ani.map"
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -2762,17 +2771,17 @@ ohos_shared_library("photo_editor_extension_ani") {
     ":ui_extension",
     ":ui_extension_ani",
     ":ui_service_extension_connection",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common",
   ]
 
   external_deps = [
@@ -2795,8 +2804,8 @@ ohos_shared_library("photo_editor_extension_ani") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
     "window_manager:embeddablewindowstage_kit",
     "window_manager:embeddablewindowstageani_kit",
@@ -2821,6 +2830,7 @@ config("ui_extension_ani_public_config") {
 }
 
 ohos_shared_library("ui_extension_ani") {
+  version_script = "libui_extension_ani.map"
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -2868,17 +2878,17 @@ ohos_shared_library("ui_extension_ani") {
     ":ui_service_extension_ani",
     ":ui_service_extension_connection",
     ":ui_service_extension_connection_ani",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_observer:ani_observer",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_observer",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
   ]
 
@@ -2899,8 +2909,8 @@ ohos_shared_library("ui_extension_ani") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:rpc_taihe",
-    "node:node_header_notice",
     "libuv:uv",
+    "node:node_header_notice",
     "window_manager:embeddablewindowstage_kit",
     "window_manager:embeddablewindowstageani_kit",
     "window_manager:extensionwindow_napi",
@@ -2955,9 +2965,9 @@ ohos_shared_library("cj_ui_extension") {
     ":extensionkit_native",
     ":ui_extension",
     ":ui_service_extension_connection",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability:cj_ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
@@ -3001,7 +3011,9 @@ ohos_shared_library("cj_ui_extension") {
   version_script = "libcj_ui_extension.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs = [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 ohos_shared_library("ui_extension_module") {
@@ -3016,7 +3028,7 @@ ohos_shared_library("ui_extension_module") {
 
   deps = [
     ":ui_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/appkit:appkit_native",
   ]
 
@@ -3031,22 +3043,24 @@ ohos_shared_library("ui_extension_module") {
     "hilog:libhilog",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
     "window_manager:libwm",
   ]
   if (ability_runtime_graphics) {
     external_deps += [
-      "form_fwk:form_render_info",
       "form_fwk:form_common_info",
+      "form_fwk:form_render_info",
     ]
   }
 
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 config("share_extension_config") {
@@ -3084,10 +3098,10 @@ ohos_shared_library("share_extension") {
     ":abilitykit_utils",
     ":extensionkit_native",
     ":ui_extension",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -3101,8 +3115,8 @@ ohos_shared_library("share_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -3141,9 +3155,9 @@ ohos_shared_library("cj_share_extension") {
     ":extensionkit_native",
     ":share_extension",
     ":ui_extension",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability:cj_ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
@@ -3168,7 +3182,9 @@ ohos_shared_library("cj_share_extension") {
   version_script = "libcj_share_extension.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 config("action_extension_config") {
@@ -3206,10 +3222,10 @@ ohos_shared_library("action_extension") {
     ":abilitykit_utils",
     ":extensionkit_native",
     ":ui_extension",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -3223,8 +3239,8 @@ ohos_shared_library("action_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -3263,9 +3279,9 @@ ohos_shared_library("cj_action_extension") {
     ":cj_ui_extension",
     ":extensionkit_native",
     ":ui_extension",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability:cj_ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
@@ -3290,7 +3306,9 @@ ohos_shared_library("cj_action_extension") {
   version_script = "libcj_action_extension.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 ohos_shared_library("share_extension_module") {
@@ -3306,7 +3324,7 @@ ohos_shared_library("share_extension_module") {
 
   deps = [
     ":share_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
   ]
 
   external_deps = [
@@ -3321,23 +3339,25 @@ ohos_shared_library("share_extension_module") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
   if (ability_runtime_graphics) {
     external_deps += [
-      "window_manager:libwm",
-      "form_fwk:form_render_info",
       "form_fwk:form_common_info",
+      "form_fwk:form_render_info",
+      "window_manager:libwm",
     ]
   }
 
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 ohos_shared_library("auto_startup_callback") {
@@ -3357,7 +3377,7 @@ ohos_shared_library("auto_startup_callback") {
     "${ability_runtime_native_path}/ability/native/auto_startup_callback/auto_startup_callback_stub.cpp",
   ]
 
-  deps = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager" ]
+  deps = [ "${ability_runtime_innerkits_path}/ability_manager" ]
 
   configs = [ "${ability_runtime_services_path}/common:common_config" ]
 
@@ -3372,7 +3392,9 @@ ohos_shared_library("auto_startup_callback") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 ohos_shared_library("action_extension_module") {
@@ -3388,7 +3410,7 @@ ohos_shared_library("action_extension_module") {
 
   deps = [
     ":action_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
   ]
 
   external_deps = [
@@ -3403,23 +3425,25 @@ ohos_shared_library("action_extension_module") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
   if (ability_runtime_graphics) {
     external_deps += [
-      "window_manager:libwm",
-      "form_fwk:form_render_info",
       "form_fwk:form_common_info",
+      "form_fwk:form_render_info",
+      "window_manager:libwm",
     ]
   }
 
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 config("embedded_ui_extension_config") {
@@ -3520,10 +3544,10 @@ ohos_shared_library("embedded_ui_extension") {
     ":abilitykit_utils",
     ":extensionkit_native",
     ":ui_extension",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -3538,8 +3562,8 @@ ohos_shared_library("embedded_ui_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -3582,9 +3606,9 @@ ohos_shared_library("cj_embedded_ui_extension") {
     ":embedded_ui_extension",
     ":extensionkit_native",
     ":ui_extension",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability:cj_ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
@@ -3637,7 +3661,7 @@ ohos_shared_library("embedded_ui_extension_module") {
 
   deps = [
     ":embedded_ui_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
   ]
 
   external_deps = [
@@ -3652,8 +3676,8 @@ ohos_shared_library("embedded_ui_extension_module") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -3664,7 +3688,9 @@ ohos_shared_library("embedded_ui_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 config("auto_fill_extension_config") {
@@ -3694,10 +3720,10 @@ ohos_shared_library("auto_fill_extension") {
     ":extensionkit_native",
     ":insight_intent_executor",
     ":ui_extension",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -3717,8 +3743,8 @@ ohos_shared_library("auto_fill_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
   if (ability_runtime_auto_fill) {
@@ -3771,12 +3797,12 @@ ohos_shared_library("auto_fill_extension_ani") {
     ":extensionkit_native",
     ":ui_extension",
     ":ui_extension_ani",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/ability_manager",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common",
   ]
 
   external_deps = [
@@ -3784,6 +3810,7 @@ ohos_shared_library("auto_fill_extension_ani") {
     "ability_base:view_data",
     "ability_base:want",
     "access_token:libtokenid_sdk",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
@@ -3793,7 +3820,6 @@ ohos_shared_library("auto_fill_extension_ani") {
     "window_manager:embeddablewindowstage_kit",
     "window_manager:embeddablewindowstageani_kit",
     "window_manager:extensionwindow_napi",
-    "eventhandler:libeventhandler"
   ]
 
   if (ability_runtime_auto_fill) {
@@ -3836,8 +3862,8 @@ ohos_shared_library("auto_fill_extension_util") {
 
   deps = [
     ":abilitykit_native",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common",
   ]
 
   external_deps = [
@@ -3865,7 +3891,7 @@ ohos_shared_library("auto_fill_extension_module") {
   ]
 
   deps = [
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/appkit:appkit_native",
   ]
 
@@ -3881,8 +3907,8 @@ ohos_shared_library("auto_fill_extension_module") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
     "window_manager:libwm",
   ]
@@ -3891,15 +3917,17 @@ ohos_shared_library("auto_fill_extension_module") {
   }
   if (ability_runtime_graphics) {
     external_deps += [
-      "form_fwk:form_render_info",
       "form_fwk:form_common_info",
+      "form_fwk:form_render_info",
     ]
   }
 
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 config("photo_editor_extension_config") {
@@ -3946,9 +3974,9 @@ ohos_shared_library("photo_editor_extension") {
     ":abilitykit_utils",
     ":extensionkit_native",
     ":ui_extension",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/ability_manager",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -3966,8 +3994,8 @@ ohos_shared_library("photo_editor_extension") {
     "image_framework:image_native",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -4012,8 +4040,8 @@ ohos_shared_library("cj_photo_editor_extension") {
     ":extensionkit_native",
     ":photo_editor_extension",
     ":ui_extension",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/ability_manager",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability:cj_ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
@@ -4045,7 +4073,9 @@ ohos_shared_library("cj_photo_editor_extension") {
   version_script = "libcj_photo_editor_extension.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 ohos_shared_library("photo_editor_extension_module") {
@@ -4068,7 +4098,7 @@ ohos_shared_library("photo_editor_extension_module") {
 
   deps = [
     ":photo_editor_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
   ]
 
   external_deps = [
@@ -4083,8 +4113,8 @@ ohos_shared_library("photo_editor_extension_module") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -4135,11 +4165,11 @@ ohos_shared_library("app_service_extension") {
     ":abilitykit_utils",
     ":extensionkit_native",
     ":service_extension",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_innerkits_path}/runtime",
+    "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -4157,11 +4187,11 @@ ohos_shared_library("app_service_extension") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "libuv:uv",
-    "node:node_header_notice",
   ]
 
   if (ability_runtime_graphics) {
@@ -4204,7 +4234,7 @@ ohos_shared_library("app_service_extension_module") {
 
   deps = [
     ":app_service_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
   ]
 
   external_deps = [
@@ -4218,8 +4248,8 @@ ohos_shared_library("app_service_extension_module") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "json:nlohmann_json_static",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -4230,7 +4260,9 @@ ohos_shared_library("app_service_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [
+    "//foundation/ability/ability_runtime/services/common:size_optimize_config",
+  ]
 }
 
 config("modular_object_extension_config") {
@@ -4262,7 +4294,7 @@ ohos_shared_library("modular_object_extension") {
   branch_protector_ret = "pac_ret"
   branch_protector_frt = "bti"
 
-  configs = [ 
+  configs = [
     ":modular_object_extension_config",
     "${ability_runtime_services_path}/common:optimize_config",
   ]
@@ -4280,10 +4312,10 @@ ohos_shared_library("modular_object_extension") {
     ":abilitykit_native",
     ":abilitykit_utils",
     ":extensionkit_native",
+    "${ability_runtime_innerkits_path}/ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -4300,8 +4332,8 @@ ohos_shared_library("modular_object_extension") {
     "ipc:ipc_capi",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
@@ -4310,7 +4342,7 @@ ohos_shared_library("modular_object_extension") {
   part_name = "ability_runtime"
 }
 
- ohos_shared_library("modular_object_extension_module") {
+ohos_shared_library("modular_object_extension_module") {
   sanitize = {
     integer_overflow = true
     ubsan = true
@@ -4325,14 +4357,14 @@ ohos_shared_library("modular_object_extension") {
 
   sources = [ "${ability_runtime_native_path}/ability/native/modular_object_extension/modular_object_extension_module_loader.cpp" ]
 
-  configs = [ 
+  configs = [
     ":modular_object_extension_config",
     "${ability_runtime_services_path}/common:optimize_config",
   ]
 
   deps = [
     ":modular_object_extension",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/runtime",
   ]
 
   external_deps = [
@@ -4347,8 +4379,8 @@ ohos_shared_library("modular_object_extension") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "json:nlohmann_json_static",
-    "napi:ace_napi",
     "libuv:uv",
+    "napi:ace_napi",
     "node:node_header_notice",
   ]
 
