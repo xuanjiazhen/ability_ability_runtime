@@ -3214,6 +3214,9 @@ void UIAbilityLifecycleManager::OnAbilityDied(UIAbilityRecordPtr abilityRecord)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call OnAbilityDied");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    // Notify the window before acquiring sessionLock_: the notification queries the KVStore
+    // and calls the window manager via IPC, which must not run inside any AMS lock.
+    NotifyStackRecoverFromDied(abilityRecord);
     CancelPrepareTerminate(abilityRecord);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
     if (abilityRecord == nullptr) {
@@ -3256,6 +3259,65 @@ void UIAbilityLifecycleManager::OnAbilityDied(UIAbilityRecordPtr abilityRecord)
     }
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
     DispatchTerminate(abilityRecord);
+}
+
+void UIAbilityLifecycleManager::NotifyStackRecoverFromDied(const UIAbilityRecordPtr &abilityRecord)
+{
+    if (abilityRecord == nullptr) {
+        return;
+    }
+    auto sessionInfo = abilityRecord->GetSessionInfo();
+    if (sessionInfo == nullptr || sessionInfo->persistentId <= 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid sessionInfo, pid:%{public}d", abilityRecord->GetPid());
+        return;
+    }
+    const auto &abilityInfo = abilityRecord->GetAbilityInfo();
+    if (abilityInfo.bundleName.empty()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "bundleName empty, persistentId:%{public}d", sessionInfo->persistentId);
+        return;
+    }
+    std::string abilityName = abilityInfo.name;
+    if (abilityInfo.launchMode == AppExecFwk::LaunchMode::STANDARD) {
+        abilityName += std::to_string(sessionInfo->persistentId);
+    }
+    // Query the exit reason recorded by the kill entry before the kill. Use cleanFlag = false
+    // to avoid consuming the record, which is still needed by SetLastExitReason on next launch.
+    ExitReason exitReason;
+    bool isSetReason = false;
+    AppExecFwk::RunningProcessInfo processInfo;
+    int64_t timeStamp = 0;
+    bool withKillMsg = false;
+    auto ret = DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->GetAppExitReason(
+        abilityInfo.bundleName, abilityInfo.applicationInfo.accessTokenId, abilityName, isSetReason, exitReason,
+        processInfo, timeStamp, withKillMsg, false);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "GetAppExitReason failed, ret:%{public}d", ret);
+        return;
+    }
+    if (!isSetReason || (exitReason.reason != Reason::REASON_RESOURCE_CONTROL &&
+        exitReason.reason != Reason::REASON_PERFORMANCE_CONTROL)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "not control kill death, isSetReason:%{public}d reason:%{public}d",
+            isSetReason, static_cast<int32_t>(exitReason.reason));
+        return;
+    }
+    bool hasRecoverInfo = false;
+    ret = DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->GetAbilityRecoverInfo(
+        abilityInfo.applicationInfo.accessTokenId, abilityInfo.moduleName, abilityName, hasRecoverInfo);
+    if (ret != ERR_OK || !hasRecoverInfo) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "no recover info, ret:%{public}d bundleName:%{public}s",
+            ret, abilityInfo.bundleName.c_str());
+        return;
+    }
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(
+        userId_).GetSceneSessionManagerLiteProxy();
+    if (sceneSessionManager == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "sceneSessionManager is nullptr, persistentId:%{public}d",
+            sessionInfo->persistentId);
+        return;
+    }
+    auto err = sceneSessionManager->NotifyStackRecoverFromAMS(sessionInfo->persistentId, true);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "notify stack recover, persistentId:%{public}d reason:%{public}d err:%{public}d",
+        sessionInfo->persistentId, static_cast<int32_t>(exitReason.reason), static_cast<int32_t>(err));
 }
 
 void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag,
