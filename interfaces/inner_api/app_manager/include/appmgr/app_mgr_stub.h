@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -245,6 +245,15 @@ private:
     int32_t HandleNotifyChildProcessState(MessageParcel &data, MessageParcel &reply);
     int32_t HandleEnableDelayedProcessExit(MessageParcel &data, MessageParcel &reply);
     int32_t HandleCancelDelayedExitTask(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleRegisterDaemon(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUnregisterDaemon(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleStartDaemon(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleStopDaemon(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetLaunchServiceInformation(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetAllLaunchServiceInformations(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetDaemonEnable(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleRegisterLaunchServiceObserver(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUnregisterLaunchServiceObserver(MessageParcel &data, MessageParcel &reply);
     int32_t HandleStartTask(MessageParcel &data, MessageParcel &reply);
     int32_t HandleFinishTask(MessageParcel &data, MessageParcel &reply);
     int32_t HandleAttributeTaskForA2A(MessageParcel &data, MessageParcel &reply);
