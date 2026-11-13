@@ -58,21 +58,9 @@ ohos_shared_library("ability_runtime") {
     "src/ability_business_error_utils.cpp",
     "src/app_memory_optimizer.cpp",
     "src/application_context.cpp",
-    "src/c_modular_object_connection_callback.cpp",
-    "src/c_modular_object_utils.cpp",
     "src/connect_options.cpp",
     "src/context.cpp",
     "src/load_ability_callback_impl.cpp",
-    "src/mo_dispatcher_complex_type_manager.cpp",
-    "src/mo_dispatcher_metadata_manager.cpp",
-    "src/mo_dispatcher_param_codec.cpp",
-    "src/mo_dispatcher_type.cpp",
-    "src/modular_object_ability_connection.cpp",
-    "src/modular_object_connection_manager.cpp",
-    "src/modular_object_dispatcher.cpp",
-    "src/modular_object_extension_ability.cpp",
-    "src/modular_object_extension_context.cpp",
-    "src/modular_object_extension_manager.cpp",
     "src/native_ability_wrapper.cpp",
     "src/start_options.cpp",
     "src/start_options_impl.cpp",
@@ -87,7 +75,6 @@ ohos_shared_library("ability_runtime") {
     "${ability_runtime_innerkits_path}/ability_manager:start_window_option",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/page_config_manager:page_config_manager",
-    "${ability_runtime_native_path}/ability/native:modular_object_extension",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/child_process:child_process",
@@ -126,6 +113,25 @@ ohos_shared_library("ability_runtime") {
   if (ability_runtime_graphics &&
       ability_runtime_start_window_options_with_pixelmap) {
     defines += [ "START_WINDOW_OPTIONS_WITH_PIXELMAP" ]
+  }
+
+  if (ability_runtime_modular_object) {
+    defines += [ "SUPPORT_MODULAR_OBJECT" ]
+    sources += [
+      "src/c_modular_object_connection_callback.cpp",
+      "src/c_modular_object_utils.cpp",
+      "src/mo_dispatcher_complex_type_manager.cpp",
+      "src/mo_dispatcher_metadata_manager.cpp",
+      "src/mo_dispatcher_param_codec.cpp",
+      "src/mo_dispatcher_type.cpp",
+      "src/modular_object_ability_connection.cpp",
+      "src/modular_object_connection_manager.cpp",
+      "src/modular_object_dispatcher.cpp",
+      "src/modular_object_extension_ability.cpp",
+      "src/modular_object_extension_context.cpp",
+      "src/modular_object_extension_manager.cpp",
+    ]
+    deps += [ "${ability_runtime_native_path}/ability/native:modular_object_extension" ]
   }
 
   output_extension = "so"
