@@ -3182,6 +3182,7 @@ HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0300, 
         START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START);
 }
 
+#ifdef SUPPORT_MODULAR_OBJECT
 /**
  * @tc.name: QuerySelfModularObjectExtensionInfos_0100
  * @tc.desc: QuerySelfModularObjectExtensionInfos
@@ -3192,6 +3193,7 @@ HWTEST_F(AbilityManagerClientBranchTest, QuerySelfModularObjectExtensionInfos_01
     std::vector<ModularObjectExtensionInfo> infos;
     EXPECT_EQ(client_->QuerySelfModularObjectExtensionInfos(infos), ERR_OK);
 }
+#endif // SUPPORT_MODULAR_OBJECT
 
 /**
  * @tc.name: StartUIAbilityWithCallback_0100
