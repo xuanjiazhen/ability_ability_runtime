@@ -251,6 +251,19 @@ public:
     void OnAbilityDied(UIAbilityRecordPtr abilityRecord);
 
     /**
+     * @brief Notify the window to use the snapshot when a UIAbility died, if the exit reason
+     *        recorded in the KVStore (written by the kill entry before the kill) shows the
+     *        process was killed by resource/performance control and the KVStore recover info
+     *        of the ability exists. The exit reason is queried without consuming it
+     *        (cleanFlag = false), so the startup consumption of SetLastExitReason keeps working.
+     *        Called on the ability died callback thread before sessionLock_ is acquired,
+     *        because it queries the KVStore and calls the window manager via IPC.
+     *
+     * @param abilityRecord the died ability
+     */
+    void NotifyStackRecoverFromDied(const UIAbilityRecordPtr &abilityRecord);
+
+    /**
      * resolve the call ipc of ability for scheduling oncall.
      *
      * @param abilityRequest target ability request.
