@@ -3138,6 +3138,7 @@ public:
      */
     ErrCode UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE);
 
+#ifdef SUPPORT_MODULAR_OBJECT
     /**
      * @brief Query modular-object extension infos of the calling application
      * itself (by caller uid -> bundleName + appIndex). Product support for
@@ -3146,6 +3147,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode QuerySelfModularObjectExtensionInfos(std::vector<ModularObjectExtensionInfo> &extensionInfos);
+#endif // SUPPORT_MODULAR_OBJECT
 
     /**
      * @brief Get bundles launched before the first unlock of a user (locked

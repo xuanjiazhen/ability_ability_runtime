@@ -109,6 +109,7 @@ void AppLifeCycleDeal::LaunchAbility(const std::shared_ptr<AbilityRunningRecord>
         }
         appThread->ScheduleLaunchAbility(*abilityInfo, ability->GetToken(),
             ability->GetWant(), ability->GetAbilityRecordId(), updateInfo);
+        ability->ClearPayloadAfterLoad();
         if (ability->GetWant() != nullptr) {
             ability->GetWant()->RemoveParam(REUSING_WINDOW);
             ability->GetWant()->RemoveParam(IS_HOOK);

@@ -568,6 +568,26 @@ void AppRunningRecord::AddAbilityStageDone()
     }
 
     AddAbilityStage();
+    ClearAppInfoPayload();
+}
+
+void AppRunningRecord::ClearAppInfoPayload()
+{
+    if (appInfoPayloadCleared_ || !appInfo_) {
+        return;
+    }
+    appInfo_->moduleInfos.clear();
+    appInfo_->moduleSourceDirs.clear();
+    appInfo_->permissions.clear();
+    appInfo_->targetBundleList.clear();
+    appInfo_->appEnvironments.clear();
+    appInfo_->assetAccessGroups.clear();
+    appInfo_->allowCommonEvent.clear();
+    appInfo_->resourcesApply.clear();
+    appInfo_->metaData.clear();
+    appInfo_->metadata.clear();
+    appInfo_->hnpPackages.clear();
+    appInfoPayloadCleared_ = true;
 }
 
 void AppRunningRecord::SetModuleLoaded(const std::string &moduleName) const
@@ -2804,55 +2824,55 @@ bool AppRunningRecord::isNativeStart() const
 
 void AppRunningRecord::SetExitReason(int32_t reason)
 {
-    std::lock_guard<ffrt::mutex> lock(exitReasonLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     exitReason_ = reason;
 }
 
 int32_t AppRunningRecord::GetExitReason() const
 {
-    std::lock_guard<ffrt::mutex> lock(exitReasonLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     return exitReason_;
 }
 
 void AppRunningRecord::SetExitMsg(const std::string &exitMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(exitMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     exitMsg_ = exitMsg;
 }
 
 std::string AppRunningRecord::GetExitMsg() const
 {
-    std::lock_guard<ffrt::mutex> lock(exitMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     return exitMsg_;
 }
 
 void AppRunningRecord::SetKillId(int32_t killId)
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     killId_ = killId;
 }
 
 int32_t AppRunningRecord::GetKillId() const
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     return killId_;
 }
 
 void AppRunningRecord::SetKillMsg(const std::string &killMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     killMsg_ = killMsg;
 }
 
 std::string AppRunningRecord::GetKillMsg() const
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     return killMsg_;
 }
 
 bool AppRunningRecord::SetKillReasonIfAbsent(int32_t killId, const std::string &killMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(killInfoLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     if (killId_ != DEFAULT_KILL_ID) {
         TAG_LOGD(AAFwkTag::APPMGR,
             "SetKillReasonIfAbsent refused, killId already set: %{public}d, incoming: %{public}d",
@@ -2866,32 +2886,32 @@ bool AppRunningRecord::SetKillReasonIfAbsent(int32_t killId, const std::string &
 
 void AppRunningRecord::SetInnerMsg(const std::string &innerMsg)
 {
-    std::lock_guard<ffrt::mutex> lock(innerMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     innerMsg_ = innerMsg;
 }
 
 std::string AppRunningRecord::GetInnerMsg() const
 {
-    std::lock_guard<ffrt::mutex> lock(innerMsgLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     return innerMsg_;
 }
 
 void AppRunningRecord::SetKillCallerInfo(int32_t killCallerPid, const std::string &killCallerProcessName)
 {
-    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     killCallerPid_ = killCallerPid;
     killCallerProcessName_ = killCallerProcessName;
 }
 
 int32_t AppRunningRecord::GetKillCallerPid() const
 {
-    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     return killCallerPid_;
 }
 
 std::string AppRunningRecord::GetKillCallerProcessName() const
 {
-    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
+    std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
     return killCallerProcessName_;
 }
 
@@ -3215,14 +3235,16 @@ void AppRunningRecord::SetDebugFromLocal(bool isDebugFromLocal)
 
 std::optional<bool> AppRunningRecord::IsSupportMultiProcessDeviceFeature() const
 {
-    std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
-    return supportMultiProcessDeviceFeature_;
+    int32_t val = supportMultiProcessDeviceFeature_.load();
+    if (val == 0) {
+        return std::nullopt;
+    }
+    return val == 1;
 }
 
 void AppRunningRecord::SetSupportMultiProcessDeviceFeature(bool support)
 {
-    std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
-    supportMultiProcessDeviceFeature_ = support;
+    supportMultiProcessDeviceFeature_.store(support ? 1 : 2);
 }
 
 void AppRunningRecord::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos)

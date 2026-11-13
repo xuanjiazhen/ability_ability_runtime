@@ -19,6 +19,7 @@
 #include "modular_object_rdb_data_mgr.h"
 #include "modular_object_rdb_storage_mgr.h"
 #include "app_utils.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "scope_guard.h"
 #include "utils/hmsf_utils.h"
@@ -35,6 +36,7 @@ const int32_t VALUE_INDEX = 1;
 constexpr int32_t RETRY_TIMES = 3;
 constexpr int32_t RETRY_INTERVAL_MS = 500; // 500ms
 constexpr int16_t WRITE_TIMEOUT_SEC = 300; // 300s
+constexpr int64_t RELEASE_DELAY_US = 3 * 60 * 1000 * 1000; // 3 minutes
 }
 
 ModularObjectExtensionRdbDataMgr::ModularObjectExtensionRdbDataMgr() = default;
@@ -90,6 +92,7 @@ int32_t ModularObjectExtensionRdbDataMgr::IsDatabaseReady()
 int32_t ModularObjectExtensionRdbDataMgr::InsertOrUpdateData(const std::string& key, const std::string& value)
 {
     std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    UpdateLastAccessTime();
     if (IsDatabaseReady() != NativeRdb::E_OK) {
         return NativeRdb::E_ERROR;
     }
@@ -103,12 +106,14 @@ int32_t ModularObjectExtensionRdbDataMgr::InsertOrUpdateData(const std::string& 
         TAG_LOGE(AAFwkTag::EXT, "InsertOrUpdate data error ret:%{public}d", ret);
         return ret;
     }
+    ScheduleRelease();
     return NativeRdb::E_OK;
 }
 
 int32_t ModularObjectExtensionRdbDataMgr::DeleteData(const std::string& key)
 {
     std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    UpdateLastAccessTime();
     if (IsDatabaseReady() != NativeRdb::E_OK) {
         return NativeRdb::E_ERROR;
     }
@@ -121,12 +126,14 @@ int32_t ModularObjectExtensionRdbDataMgr::DeleteData(const std::string& key)
         TAG_LOGE(AAFwkTag::EXT, "Delete data error ret:%{public}d", ret);
         return ret;
     }
+    ScheduleRelease();
     return NativeRdb::E_OK;
 }
 
 int32_t ModularObjectExtensionRdbDataMgr::QueryData(const std::string &key, std::string &value)
 {
     std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    UpdateLastAccessTime();
     if (IsDatabaseReady() != NativeRdb::E_OK) {
         return NativeRdb::E_ERROR;
     }
@@ -149,7 +156,44 @@ int32_t ModularObjectExtensionRdbDataMgr::QueryData(const std::string &key, std:
         TAG_LOGW(AAFwkTag::EXT, "QueryData failed, ret: %{public}d", ret);
         return ret;
     }
+    ScheduleRelease();
     return NativeRdb::E_OK;
+}
+
+void ModularObjectExtensionRdbDataMgr::UpdateLastAccessTime()
+{
+    lastAccessTime_.store(
+        std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
+void ModularObjectExtensionRdbDataMgr::ReleaseConnection()
+{
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    auto now = std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    if (now - lastAccessTime_.load() < RELEASE_DELAY_US) {
+        releaseScheduled_.store(false);
+        return;
+    }
+    rdbStore_.reset();
+    NativeRdb::RdbHelper::ClearCache();
+    releaseScheduled_.store(false);
+    TAG_LOGI(AAFwkTag::EXT, "modular object rdbStore connection released");
+}
+
+void ModularObjectExtensionRdbDataMgr::ScheduleRelease()
+{
+    if (releaseScheduled_.exchange(true)) {
+        return;
+    }
+    auto ffrtTaskHandle = ffrt::submit_h([this]() {
+        ReleaseConnection();
+    }, {}, {}, ffrt::task_attr().name("ModObjRdbRelease").delay(static_cast<uint64_t>(RELEASE_DELAY_US)));
+    if (ffrtTaskHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "submit rdb release failed, restore flag");
+        releaseScheduled_.store(false);
+    }
 }
 
 int32_t ModularObjectExtensionRdbDataMgr::InsertWithRetry(
