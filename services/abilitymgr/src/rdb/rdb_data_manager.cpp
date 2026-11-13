@@ -15,10 +15,18 @@
 
 #include "rdb_data_manager.h"
 
+#include <chrono>
+
+#include "ability_resident_process_rdb.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+constexpr int64_t RELEASE_DELAY_US = 3 * 60 * 1000 * 1000; // 3 minutes
+}
+
 int32_t RdbDataManager::Init(NativeRdb::RdbOpenCallback &rdbCallback)
 {
     std::lock_guard<std::mutex> lock(rdbMutex_);
@@ -40,10 +48,27 @@ int32_t RdbDataManager::Init(NativeRdb::RdbOpenCallback &rdbCallback)
     return NativeRdb::E_OK;
 }
 
+int32_t RdbDataManager::EnsureConnection()
+{
+    if (rdbStore_ != nullptr) {
+        return NativeRdb::E_OK;
+    }
+    AmsResidentProcessRdbCallBack callback(amsRdbConfig_);
+    return Init(callback);
+}
+
+void RdbDataManager::UpdateLastAccessTime()
+{
+    lastAccessTime_.store(
+        std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
 int32_t RdbDataManager::InsertData(const std::string &tableName, const NativeRdb::ValuesBucket &valuesBucket)
 {
     std::lock_guard<std::mutex> lock(rdbMutex_);
-    if (rdbStore_ == nullptr) {
+    UpdateLastAccessTime();
+    if (EnsureConnection() != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null rdbStore_");
         return NativeRdb::E_ERROR;
     }
@@ -57,6 +82,7 @@ int32_t RdbDataManager::InsertData(const std::string &tableName, const NativeRdb
     if (errCode == NativeRdb::E_OK) {
         dbWriteCounter_.UpdateWriteCount(ABILITY_RDB_PATH);
     }
+    ScheduleRelease();
     return errCode;
 }
 
@@ -64,7 +90,8 @@ int32_t RdbDataManager::UpdateData(
     const NativeRdb::ValuesBucket &valuesBucket, const NativeRdb::AbsRdbPredicates &absRdbPredicates)
 {
     std::lock_guard<std::mutex> lock(rdbMutex_);
-    if (rdbStore_ == nullptr) {
+    UpdateLastAccessTime();
+    if (EnsureConnection() != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null rdbStore_");
         return NativeRdb::E_ERROR;
     }
@@ -78,13 +105,15 @@ int32_t RdbDataManager::UpdateData(
     if (errCode == NativeRdb::E_OK) {
         dbWriteCounter_.UpdateWriteCount(ABILITY_RDB_PATH);
     }
+    ScheduleRelease();
     return errCode;
 }
 
 int32_t RdbDataManager::DeleteData(const NativeRdb::AbsRdbPredicates &absRdbPredicates)
 {
     std::lock_guard<std::mutex> lock(rdbMutex_);
-    if (rdbStore_ == nullptr) {
+    UpdateLastAccessTime();
+    if (EnsureConnection() != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null rdbStore_");
         return NativeRdb::E_ERROR;
     }
@@ -94,14 +123,17 @@ int32_t RdbDataManager::DeleteData(const NativeRdb::AbsRdbPredicates &absRdbPred
         return NativeRdb::E_ERROR;
     }
     int32_t rowId = -1;
-    return rdbStore_->Delete(rowId, absRdbPredicates);
+    int32_t errCode = rdbStore_->Delete(rowId, absRdbPredicates);
+    ScheduleRelease();
+    return errCode;
 }
 
 std::shared_ptr<NativeRdb::AbsSharedResultSet> RdbDataManager::QueryData(
     const NativeRdb::AbsRdbPredicates &absRdbPredicates)
 {
     std::lock_guard<std::mutex> lock(rdbMutex_);
-    if (rdbStore_ == nullptr) {
+    UpdateLastAccessTime();
+    if (EnsureConnection() != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null rdbStore_");
         return nullptr;
     }
@@ -111,6 +143,7 @@ std::shared_ptr<NativeRdb::AbsSharedResultSet> RdbDataManager::QueryData(
         return nullptr;
     }
     auto absSharedResultSet = rdbStore_->Query(absRdbPredicates, std::vector<std::string>());
+    ScheduleRelease();
     if (absSharedResultSet == nullptr || !absSharedResultSet->HasBlock()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "query data fail");
         return nullptr;
@@ -118,8 +151,38 @@ std::shared_ptr<NativeRdb::AbsSharedResultSet> RdbDataManager::QueryData(
     return absSharedResultSet;
 }
 
+void RdbDataManager::ReleaseConnection()
+{
+    std::lock_guard<std::mutex> lock(rdbMutex_);
+    auto now = std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    if (now - lastAccessTime_.load() < RELEASE_DELAY_US) {
+        releaseScheduled_.store(false);
+        return;
+    }
+    rdbStore_.reset();
+    NativeRdb::RdbHelper::ClearCache();
+    releaseScheduled_.store(false);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "rdbStore connection released");
+}
+
+void RdbDataManager::ScheduleRelease()
+{
+    if (releaseScheduled_.exchange(true)) {
+        return;
+    }
+    auto ffrtTaskHandle = ffrt::submit_h([this]() {
+        ReleaseConnection();
+    }, {}, {}, ffrt::task_attr().name("RdbDataRelease").delay(static_cast<uint64_t>(RELEASE_DELAY_US)));
+    if (ffrtTaskHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "submit rdb release failed, restore flag");
+        releaseScheduled_.store(false);
+    }
+}
+
 void RdbDataManager::ClearCache()
 {
+    std::lock_guard<std::mutex> lock(rdbMutex_);
     NativeRdb::RdbHelper::ClearCache();
 }
 } // namespace AbilityRuntime

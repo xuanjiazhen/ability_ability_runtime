@@ -2226,14 +2226,16 @@ public:
      */
     virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE) override;
 
+#ifdef SUPPORT_MODULAR_OBJECT
     /**
- 	 * @brief Queries self modular object extension information.
+  	 * @brief Queries self modular object extension information.
      * @param extensionInfos get the queried extensionInfos.
      *
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t QuerySelfModularObjectExtensionInfos(
         std::vector<ModularObjectExtensionInfo> &extensionInfos) override;
+#endif // SUPPORT_MODULAR_OBJECT
 
     /**
      * @brief Get list of applications launched before the first unlock.

@@ -412,6 +412,8 @@ public:
      */
     void AddAbilityStageDone();
 
+    void ClearAppInfoPayload();
+
     /**
      * update the application info after new module installed.
      *
@@ -1208,7 +1210,7 @@ public:
 
     inline void SetKillReason(std::string killReason)
     {
-        std::lock_guard<ffrt::mutex> lock(killReasonLock_);
+        std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
         if (killReason_ == "") {
             killReason_ = killReason;
         }
@@ -1216,7 +1218,7 @@ public:
 
     inline std::string GetKillReason() const
     {
-        std::lock_guard<ffrt::mutex> lock(killReasonLock_);
+        std::lock_guard<ffrt::mutex> lock(killExitDiagLock_);
         return killReason_;
     }
 
@@ -1450,6 +1452,7 @@ private:
 #endif //SUPPORT_CHILD_PROCESS
 
     std::shared_ptr<ApplicationInfo> appInfo_ = nullptr;  // application's info of this process
+    bool appInfoPayloadCleared_ = false;
     std::shared_ptr<PriorityObject> priorityObject_;
     std::shared_ptr<AppLifeCycleDeal> appLifeCycleDeal_ = nullptr;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
@@ -1466,7 +1469,7 @@ private:
 
     // Structs and Optional Types
     AppSpawnStartMsg startMsg_; // render record
-    std::optional<bool> supportMultiProcessDeviceFeature_ = std::nullopt;
+    std::atomic<int32_t> supportMultiProcessDeviceFeature_ = 0;
 
     // Atomic Variables
     std::atomic<ApplicationState> curState_ = ApplicationState::APP_STATE_CREATE;  // current state of this process
@@ -1597,13 +1600,7 @@ private:
     ffrt::mutex renderPidSetLock_; // render pid set lock
     ffrt::mutex windowIdsLock_;
     ffrt::mutex startupTaskDataLock_;
-    mutable ffrt::mutex killReasonLock_;
-    mutable ffrt::mutex exitReasonLock_;
-    mutable ffrt::mutex exitMsgLock_;
-    mutable ffrt::mutex killInfoLock_; // protects killId_ and killMsg_
-    mutable ffrt::mutex innerMsgLock_;
-    mutable ffrt::mutex killCallerLock_;
-    mutable ffrt::mutex supportMultiProcessDeviceFeatureLock_;
+    mutable ffrt::mutex killExitDiagLock_;
     mutable ffrt::mutex hapModulesLock_;
     mutable std::mutex specifiedMutex_;
     mutable std::shared_mutex processTypeLock_;

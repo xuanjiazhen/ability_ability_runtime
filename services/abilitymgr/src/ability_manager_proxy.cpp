@@ -8524,6 +8524,7 @@ int32_t AbilityManagerProxy::UnRegisterPreloadUIExtensionHostClient(int32_t call
     return result;
 }
 
+#ifdef SUPPORT_MODULAR_OBJECT
 int32_t AbilityManagerProxy::QuerySelfModularObjectExtensionInfos(
     std::vector<ModularObjectExtensionInfo> &extensionInfos)
 {
@@ -8554,6 +8555,7 @@ int32_t AbilityManagerProxy::QuerySelfModularObjectExtensionInfos(
     }
     return NO_ERROR;
 }
+#endif // SUPPORT_MODULAR_OBJECT
 
 int32_t AbilityManagerProxy::GetUserLockedBundleList(int32_t userId,
     std::unordered_set<std::string> &userLockedBundleList)

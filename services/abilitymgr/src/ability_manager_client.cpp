@@ -2827,6 +2827,7 @@ ErrCode AbilityManagerClient::UnRegisterPreloadUIExtensionHostClient(int32_t cal
     return abms->UnRegisterPreloadUIExtensionHostClient(callerPid);
 }
 
+#ifdef SUPPORT_MODULAR_OBJECT
 ErrCode AbilityManagerClient::QuerySelfModularObjectExtensionInfos(
     std::vector<ModularObjectExtensionInfo> &extensionInfos)
 {
@@ -2834,6 +2835,7 @@ ErrCode AbilityManagerClient::QuerySelfModularObjectExtensionInfos(
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->QuerySelfModularObjectExtensionInfos(extensionInfos);
 }
+#endif // SUPPORT_MODULAR_OBJECT
 
 ErrCode AbilityManagerClient::GetUserLockedBundleList(int32_t userId,
     std::unordered_set<std::string> &userLockedBundleList)

@@ -181,5 +181,70 @@ int32_t AbilityRunningRecord::GetUIExtensionBindAbilityId() const
 {
     return uiExtensionBindAbilityId_;
 }
+
+void AbilityRunningRecord::ClearPayloadAfterLoad()
+{
+    if (payloadCleared_ || !info_) {
+        return;
+    }
+    info_->skills.clear();
+    info_->skillUri.clear();
+    info_->metadata.clear();
+    info_->deviceTypes.clear();
+    info_->deviceCapabilities.clear();
+    info_->permissions.clear();
+    info_->configChanges.clear();
+    info_->supportExtNames.clear();
+    info_->supportMimeTypes.clear();
+    info_->continueType.clear();
+    info_->continueBundleNames.clear();
+
+    info_->uri.clear();
+    info_->readPermission.clear();
+    info_->writePermission.clear();
+    info_->label.clear();
+    info_->description.clear();
+    info_->iconPath.clear();
+    info_->targetAbility.clear();
+    info_->srcPath.clear();
+    info_->srcEntrance.clear();
+    info_->package.clear();
+    info_->codePath.clear();
+    info_->className.clear();
+    info_->originalClassName.clear();
+    info_->versionName.clear();
+    info_->privacyUrl.clear();
+    info_->privacyName.clear();
+    info_->downloadUrl.clear();
+    info_->uriPermissionMode.clear();
+    info_->uriPermissionPath.clear();
+    info_->libPath.clear();
+    info_->theme.clear();
+    info_->kind.clear();
+    info_->originalBundleName.clear();
+    info_->appName.clear();
+    info_->startWindow.clear();
+    info_->startWindowIcon.clear();
+    info_->startWindowBackground.clear();
+    info_->preferMultiWindowOrientation.clear();
+    info_->srcLanguage.clear();
+    info_->arkTSMode.clear();
+    info_->startWindowResource = {};
+
+    auto &appInfo = info_->applicationInfo;
+    appInfo.moduleInfos.clear();
+    appInfo.moduleSourceDirs.clear();
+    appInfo.permissions.clear();
+    appInfo.targetBundleList.clear();
+    appInfo.appEnvironments.clear();
+    appInfo.assetAccessGroups.clear();
+    appInfo.allowCommonEvent.clear();
+    appInfo.resourcesApply.clear();
+    appInfo.metaData.clear();
+    appInfo.metadata.clear();
+    appInfo.hnpPackages.clear();
+
+    payloadCleared_ = true;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

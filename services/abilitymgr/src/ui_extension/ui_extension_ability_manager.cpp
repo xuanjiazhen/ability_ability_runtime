@@ -766,8 +766,10 @@ void UIExtensionAbilityManager::HandleLoadAbilityOrStartSpecifiedProcess(
         StartSpecifiedProcess(context, abilityRecord);
     } else {
         TAG_LOGD(AAFwkTag::EXT, "LoadAbility");
+        abilityRecord->ReplenishPayloadFromBMS();
         DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
             loadParam, abilityRecord->GetAbilityInfo(), abilityRecord->GetApplicationInfo(), abilityRecord->GetWant());
+        abilityRecord->ClearPayloadAfterLoad();
     }
 }
 

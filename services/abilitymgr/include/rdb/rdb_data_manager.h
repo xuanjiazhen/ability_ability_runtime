@@ -54,13 +54,19 @@ public:
         const NativeRdb::ValuesBucket &valuesBucket, const NativeRdb::AbsRdbPredicates &absRdbPredicates);
     int32_t DeleteData(const NativeRdb::AbsRdbPredicates &absRdbPredicates);
     std::shared_ptr<NativeRdb::AbsSharedResultSet> QueryData(const NativeRdb::AbsRdbPredicates &absRdbPredicates);
+    void ReleaseConnection();
+    void ScheduleRelease();
     void ClearCache();
 
 private:
+    int32_t EnsureConnection();
+    void UpdateLastAccessTime();
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
     AmsRdbConfig amsRdbConfig_;
     std::mutex rdbMutex_;
     DatabaseWriteCounter dbWriteCounter_;
+    std::atomic<int64_t> lastAccessTime_ = 0;
+    std::atomic<bool> releaseScheduled_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

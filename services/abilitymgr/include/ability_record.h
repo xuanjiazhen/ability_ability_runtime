@@ -185,6 +185,11 @@ public:
      */
     const AppExecFwk::ApplicationInfo &GetApplicationInfo() const;
 
+    void ClearPayloadAfterLoad();
+    void ReplenishPayloadFromBMS();
+    void ConsumeStartSetting();
+    bool IsPayloadCleared() const;
+
     /**
      * set ability's state.
      *
@@ -1005,8 +1010,7 @@ protected:
     pid_t pid_ = 0;
     int32_t missionId_ = -1;
     int32_t ownerMissionUserId_ = -1;
-    int32_t scbUid_ = -1;
-    mutable ffrt::mutex scbUidLock_;
+    std::atomic<int32_t> scbUid_ = -1;
     uint32_t extensionProcessMode_ = 0;       // new version
     int32_t appIndex_ = 0;          // new version
     int32_t restartCount_ = -1;
@@ -1020,11 +1024,19 @@ protected:
     int startId_ = 0;  // service(ability) start id
 
     AppExecFwk::AbilityInfo abilityInfo_ = {};             // the ability info get from BMS
+    bool payloadCleared_ = false;
     // page(ability) can be started by multi-pages(abilities), so need to store this ability's caller
     std::list<std::shared_ptr<CallerRecord>> callerList_ = {};
     std::map<uint64_t, AbilityWindowState> abilityWindowStateMap_;
     PacMap stateDatas_;             // ability saved ability state data
-    std::vector<std::string> dumpInfos_;
+    struct DumpContext {
+        std::vector<std::string> dumpInfos;
+        mutable ffrt::mutex dumpInfoLock;
+        mutable ffrt::mutex dumpLock;
+        mutable ffrt::condition_variable dumpCondition;
+        bool isDumpTimeout = false;
+    };
+    mutable std::unique_ptr<DumpContext> dumpContext_;
     
     sptr<IAbilityScheduler> scheduler_ = {};       // kit scheduler
     sptr<IRemoteObject::DeathRecipient> schedulerDeathRecipient_ = {};  // scheduler binderDied Recipient
@@ -1065,12 +1077,9 @@ protected:
     std::string firstCallerBundleName_ = "";
 
     mutable ffrt::mutex callerListLock_;
-    mutable ffrt::mutex dumpInfoLock_;
-    mutable ffrt::mutex dumpLock_;
     mutable ffrt::mutex resultLock_;
     mutable ffrt::mutex wantLock_;
     mutable ffrt::mutex sessionLock_;
-    mutable ffrt::condition_variable dumpCondition_;
     ffrt::mutex lock_;
     ffrt::mutex connectWantLock_;
     std::mutex collaborateWantLock_;
@@ -1082,7 +1091,6 @@ protected:
     std::list<std::weak_ptr<AbilityRecord>> pluginAbilityList_;
 
     bool isKillForPermissionUpdate_ = false;
-    mutable bool isDumpTimeout_ = false;
     bool isPrepareTerminate_ = false;
     bool hasRecoverInfo_ = false;
 

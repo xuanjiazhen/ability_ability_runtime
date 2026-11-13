@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "insight_intent_rdb_data_mgr.h"
+#include <chrono>
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "scope_guard.h"
 #include "utils/hmsf_utils.h"
@@ -27,6 +29,7 @@ const int32_t INTENT_VALUE_INDEX = 1;
 constexpr int32_t RETRY_TIMES = 3;
 constexpr int32_t RETRY_INTERVAL = 500; // 500ms
 constexpr int16_t WRITE_TIMEOUT = 300; // 300s
+constexpr int64_t RELEASE_DELAY_US = 3 * 60 * 1000 * 1000; // 3 minutes
 } // namespace
 
 InsightIntentRdbDataMgr::InsightIntentRdbDataMgr()
@@ -77,6 +80,7 @@ std::shared_ptr<NativeRdb::RdbStore> InsightIntentRdbDataMgr::GetRdbStore()
 
 bool InsightIntentRdbDataMgr::IsIntentRdbLoaded()
 {
+    UpdateLastAccessTime();
     auto rdbStore = GetRdbStore();
     if (rdbStore == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
@@ -90,6 +94,7 @@ bool InsightIntentRdbDataMgr::IsIntentRdbLoaded()
         return false;
     }
     HmfsUtils::AddDeleteDfx(intentRdbConfig_.dbPath);
+    ScheduleRelease();
     return true;
 }
 
@@ -398,6 +403,42 @@ bool InsightIntentRdbDataMgr::IsRetryErrCode(int32_t errCode)
         return true;
     }
     return false;
+}
+
+void InsightIntentRdbDataMgr::UpdateLastAccessTime()
+{
+    lastAccessTime_.store(
+        std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
+void InsightIntentRdbDataMgr::ReleaseConnection()
+{
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    auto now = std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    if (now - lastAccessTime_.load() < RELEASE_DELAY_US) {
+        releaseScheduled_.store(false);
+        return;
+    }
+    rdbStore_.reset();
+    NativeRdb::RdbHelper::ClearCache();
+    releaseScheduled_.store(false);
+    TAG_LOGI(AAFwkTag::INTENT, "insight intent rdbStore connection released");
+}
+
+void InsightIntentRdbDataMgr::ScheduleRelease()
+{
+    if (releaseScheduled_.exchange(true)) {
+        return;
+    }
+    auto ffrtTaskHandle = ffrt::submit_h([this]() {
+        ReleaseConnection();
+    }, {}, {}, ffrt::task_attr().name("IntentRdbRelease").delay(static_cast<uint64_t>(RELEASE_DELAY_US)));
+    if (ffrtTaskHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "submit rdb release failed, restore flag");
+        releaseScheduled_.store(false);
+    }
 }
 
 IntentRdbOpenCallback::IntentRdbOpenCallback(const IntentRdbConfig &intentRdbConfig)\
