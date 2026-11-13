@@ -478,6 +478,7 @@ bool EtsAutoFillExtension::CreateNewWindow(sptr<AAFwk::SessionInfo> sessionInfo,
     option->SetDensity(sessionInfo->density);
     option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
     option->SetDisplayId(sessionInfo->displayId);
+    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     if (context->isNotAllow != -1) {
         bool isNotAllow = context->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "isNotAllow: %{public}d", isNotAllow);
@@ -524,13 +525,23 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
         uiWindow->UpdateExtensionConfig(sharedWant);
         // Host window migration: re-parent the window via the shared pure C++ helper.
         // Fail-isolated: on failure the session create is reported failed.
+        uint32_t oldParentWindowId = migrationFencing_.currentParentWindowId;
         if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
             TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "host window migration, update parent, persistentId: %{private}d, "
-                "gen: %{public}u", sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+                "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
+                sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
             if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
                 TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "re-parent failed, keep session backgrounded");
                 return false;
             }
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
+                "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
+        } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "migration skipped, persistentId: %{private}d, gen: %{public}u, "
+                "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
+                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
+                migrationFencing_.lastGen, sessionInfo->hostWindowId,
+                migrationFencing_.currentParentWindowId);
         }
         return true;
     }

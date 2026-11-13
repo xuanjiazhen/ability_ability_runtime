@@ -765,6 +765,7 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     option->SetDensity(sessionInfo->density);
     option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
+    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     if (context_->isNotAllow != -1) {
         bool isNotAllow = context_->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
@@ -841,13 +842,17 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
         // Host window migration (marked by originalCallerInfo): same as JsUIExtension.
         // Step 1 re-parents via the shared pure C++ helper; step 2 updates JS-visible
         // proxies only after the real re-parent succeeded (fail-isolated).
+        uint32_t oldParentWindowId = migrationFencing_.currentParentWindowId;
         if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
             TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{private}d, "
-                "gen: %{public}u", sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+                "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
+                sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
             if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
                 TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
                 return false;
             }
+            TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
+                "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
             // Proxy/cache update only after the real re-parent succeeded.
             auto sessionIt = contentSessions_.find(componentId);
             if (sessionIt == contentSessions_.end() || sessionIt->second == nullptr) {
@@ -866,6 +871,12 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
                 return true;
             }
             contentSessionPtr->DoUpdateExtensionParent(sessionInfo);
+        } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "migration skipped, persistentId: %{private}d, gen: %{public}u, "
+                "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
+                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
+                migrationFencing_.lastGen, sessionInfo->hostWindowId,
+                migrationFencing_.currentParentWindowId);
         }
     }
     return true;

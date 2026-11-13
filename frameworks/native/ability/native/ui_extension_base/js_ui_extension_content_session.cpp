@@ -320,10 +320,11 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionHostWindowProxy(napi_env
     }
     napi_value proxyValue = value->GetNapiValue();
     if (proxyValue != nullptr) {
-        // Weak reference (refcount 0): the proxy stays GC-able, so repeated getUIExtension*Proxy
-        // calls do not leak proxy objects; dead refs are skipped during migration traversal.
+        // Weak reference (refcount 0) held on the napi_wrap target (jsExtensionWindow), not on
+        // the module proxy: the proxy stays GC-able and its internal layout is irrelevant —
+        // napi_unwrap on the wrapped object always resolves to the Rosen::JsExtensionWindow.
         napi_ref ref = nullptr;
-        napi_create_reference(env, proxyValue, 0, &ref);
+        napi_create_reference(env, jsExtensionWindow, 0, &ref);
         jsExtensionWindowRefs_.push_back(ref);
     }
     return handleEscape.Escape(proxyValue);
@@ -360,9 +361,9 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionWindowProxy(napi_env env
     }
     napi_value proxyValue = value->GetNapiValue();
     if (proxyValue != nullptr) {
-        // Weak reference (refcount 0): see OnGetUIExtensionHostWindowProxy.
+        // Weak reference (refcount 0) on the wrapped object: see OnGetUIExtensionHostWindowProxy.
         napi_ref ref = nullptr;
-        napi_create_reference(env, proxyValue, 0, &ref);
+        napi_create_reference(env, jsExtensionWindow, 0, &ref);
         jsExtensionWindowRefs_.push_back(ref);
     }
     return handleEscape.Escape(proxyValue);
@@ -1418,34 +1419,53 @@ void JsUIExtensionContentSession::DoUpdateExtensionParent(const sptr<AAFwk::Sess
         TAG_LOGE(AAFwkTag::UI_EXT, "null env_");
         return;
     }
+    sptr<Rosen::WindowOption> option = sptr<Rosen::WindowOption>::MakeSptr();
+    if (option == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null WindowOption");
+        return;
+    }
+    option->SetParentId(sessionInfo->hostWindowId);
+    option->SetRealParentId(sessionInfo->realHostWindowId);
+    option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
+    option->SetDisplayId(sessionInfo->displayId);
+    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
+    // JsExtensionWindow first: refresh every extension window proxy the application holds.
+    size_t updatedProxies = 0;
     for (auto &ref : jsExtensionWindowRefs_) {
-        napi_value proxy = nullptr;
-        napi_get_reference_value(env_, ref, &proxy);
-        if (proxy == nullptr) {
+        napi_value jsExtensionWindow = nullptr;
+        napi_get_reference_value(env_, ref, &jsExtensionWindow);
+        if (jsExtensionWindow == nullptr) {
             continue;
         }
         Rosen::JsExtensionWindow* jsExtWin = nullptr;
-        napi_unwrap(env_, proxy, reinterpret_cast<void**>(&jsExtWin));
+        napi_unwrap(env_, jsExtensionWindow, reinterpret_cast<void**>(&jsExtWin));
         if (jsExtWin == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "unwrap JsExtensionWindow failed");
             continue;
         }
-        sptr<Rosen::WindowOption> option = sptr<Rosen::WindowOption>::MakeSptr();
-        if (option == nullptr) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "null WindowOption");
-            return;
-        }
-        option->SetParentId(sessionInfo->hostWindowId);
-        option->SetRealParentId(sessionInfo->realHostWindowId);
-        option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
-        option->SetDisplayId(sessionInfo->displayId);
-        option->SetCallerPersistentId(sessionInfo->callerPersistentId);
         Rosen::WMError ret = jsExtWin->UpdateExtensionParent(option);
         if (ret != Rosen::WMError::WM_OK) {
             TAG_LOGW(AAFwkTag::UI_EXT, "proxy UpdateExtensionParent failed, ret: %{public}d",
                 static_cast<int32_t>(ret));
+            continue;
+        }
+        ++updatedProxies;
+    }
+    // Then the window C++ path: re-parent the session's own window under the new host.
+    bool windowUpdated = false;
+    if (uiWindow_ != nullptr) {
+        Rosen::WMError ret = uiWindow_->UpdateExtensionParent(option);
+        if (ret != Rosen::WMError::WM_OK) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "window UpdateExtensionParent failed, ret: %{public}d",
+                static_cast<int32_t>(ret));
+        } else {
+            windowUpdated = true;
         }
     }
+    TAG_LOGI(AAFwkTag::UI_EXT, "DoUpdateExtensionParent done, proxies updated: %{public}zu/%{public}zu, "
+        "windowUpdated: %{public}d, hostWindowId: %{public}u, persistentId: %{private}d",
+        updatedProxies, jsExtensionWindowRefs_.size(), windowUpdated ? 1 : 0,
+        sessionInfo->hostWindowId, sessionInfo->persistentId);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

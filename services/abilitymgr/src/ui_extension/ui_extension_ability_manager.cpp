@@ -495,11 +495,18 @@ void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<
     CHECK_POINTER(sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s, persistentId:%{public}d, "
-        "abilityState:%{public}s, pendingState:%{public}d",
+        "abilityState:%{public}s, pendingState:%{public}d, "
+        "sessionInfo: compId: %{public}" PRIu64 ", hostWindowId: %{public}u, realHostWindowId: %{public}d, "
+        "migrationGen: %{public}u, migrationDeclared: %{public}d",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(),
         sessionInfo->persistentId, abilitystateStr.c_str(),
-        static_cast<int32_t>(abilityRecord->GetPendingState()));
+        static_cast<int32_t>(abilityRecord->GetPendingState()),
+        sessionInfo->uiExtensionComponentId,
+        sessionInfo->hostWindowId,
+        sessionInfo->realHostWindowId,
+        sessionInfo->originalCallerInfo.migrationGen,
+        sessionInfo->originalCallerInfo.callerToken != nullptr ? 1 : 0);
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
     if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
         MoveToBackground(abilityRecord);
@@ -722,6 +729,20 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
             abilityRequest.sessionInfo->originalCallerInfo = unconfirmedInfo->originalCallerInfo;
         }
     }
+    if (abilityRequest.sessionInfo != nullptr) {
+        // Gen monotonicity guard: never roll the record's migration gen back on a plain
+        // (non-migration) reuse/preload update — a rolled-back gen makes the next migration
+        // reuse an already-consumed generation, which the provider's monotonic fencing
+        // silently skips. Paired with UIExtensionRecord::Update.
+        auto oldInfo = targetService->GetSessionInfo();
+        if (oldInfo != nullptr && abilityRequest.sessionInfo->originalCallerInfo.migrationGen <
+            oldInfo->originalCallerInfo.migrationGen) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "migration gen rollback on record update, keep gen: %{public}u",
+                oldInfo->originalCallerInfo.migrationGen);
+            abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
+                oldInfo->originalCallerInfo.migrationGen;
+        }
+    }
     targetService->SetSessionInfo(abilityRequest.sessionInfo);
 
     if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
@@ -824,10 +845,17 @@ void UIExtensionAbilityManager::DoForegroundUIExtension(std::shared_ptr<BaseExte
 
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "foreground ability: %{public}s/%{public}s, persistentId: %{public}d, abilityState: %{public}s",
+        "foreground ability: %{public}s/%{public}s, persistentId: %{public}d, abilityState: %{public}s, "
+        "sessionInfo: compId: %{public}" PRIu64 ", hostWindowId: %{public}u, realHostWindowId: %{public}d, "
+        "migrationGen: %{public}u, migrationDeclared: %{public}d",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(),
-        abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str());
+        abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str(),
+        abilityRequest.sessionInfo->uiExtensionComponentId,
+        abilityRequest.sessionInfo->hostWindowId,
+        abilityRequest.sessionInfo->realHostWindowId,
+        abilityRequest.sessionInfo->originalCallerInfo.migrationGen,
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken != nullptr ? 1 : 0);
 
     if (abilityRecord->IsReady() && !abilityRecord->IsAbilityState(AbilityState::INACTIVATING) &&
         !abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING) &&
