@@ -312,7 +312,7 @@ int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t 
         return GET_BUNDLE_MANAGER_SERVICE_FAILED;
     }
     AppExecFwk::BundleInfo bundleInfo;
-    if (appIndex == 0 || appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
+    if (appIndex == 0) {
         auto bundleFlag = AppExecFwk::BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO;
         if (!IN_PROCESS_CALL(bms->GetBundleInfo(bundleName, bundleFlag, bundleInfo, userId))) {
             TAG_LOGW(AAFwkTag::URIPERMMGR, "Failed GetBundleInfo");
@@ -322,6 +322,7 @@ int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t 
         return ERR_OK;
     }
     if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX ||
         AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
         auto bundleFlag = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION);
         if (IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName, bundleFlag, appIndex, bundleInfo, userId)) != ERR_OK) {
