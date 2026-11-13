@@ -188,7 +188,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_CallMethod(
     int32_t* pMethodErrCode)
 {
     if (pModObjDispatcher == nullptr || pInputParams == nullptr || pResult == nullptr
-        || pModObjDispatcher->metadataManager == nullptr || pMethodErrCode == nullptr) {
+        || pModObjDispatcher->metadataManager == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "CallMethod: invalid param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
@@ -196,7 +196,9 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_CallMethod(
         TAG_LOGE(AAFwkTag::EXT, "CallMethod: proxy is nullptr");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    *pMethodErrCode = 0;
+    if (pMethodErrCode != nullptr) {
+        *pMethodErrCode = 0;
+    }
     auto ret = pModObjDispatcher->metadataManager->EnsureLoaded(pModObjDispatcher->proxy);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         TAG_LOGE(AAFwkTag::EXT, "CallMethod: EnsureLoaded failed, ret=%{public}d", ret);

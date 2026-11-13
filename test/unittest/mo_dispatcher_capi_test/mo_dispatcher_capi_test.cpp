@@ -15,11 +15,14 @@
 
 #include <gtest/gtest.h>
 #include <cstring>
+#include <memory>
 #include <vector>
 
+#include "ipc_object_stub.h"
 #include "modular_object_dispatcher.h"
 #include "mo_dispatcher_types.h"
 #include "mo_dispatcher_complex_type_manager.h"
+#include "mo_dispatcher_metadata_manager.h"
 
 using namespace testing::ext;
 
@@ -291,6 +294,25 @@ HWTEST_F(MoDispatcherCapiTest, CallMethod_NullResult_1700, TestSize.Level1)
     auto ret = OH_AbilityRuntime_ModObjDispatcher_CallMethod(
         reinterpret_cast<OH_AbilityRuntime_ModObjDispatcherHandle>(0x1), 1, &input, nullptr, nullptr);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+}
+
+/**
+ * @tc.name: CallMethod_NullMethodErrCode_1750
+ * @tc.desc: Test CallMethod accepts null pMethodErrCode, as documented in the API contract.
+ *           The call must not be rejected at the parameter-check stage; it proceeds to
+ *           metadata loading, which fails with METADATA_INVALID because the dummy stub
+ *           replies with an empty metadata fd.
+ */
+HWTEST_F(MoDispatcherCapiTest, CallMethod_NullMethodErrCode_1750, TestSize.Level1)
+{
+    OH_AbilityRuntime_ModularObjectDispatcher dispatcher = {};
+    dispatcher.metadataManager = std::make_shared<OHOS::AbilityRuntime::ModObjDispatcherMetadataManager>();
+    dispatcher.proxy = new OHOS::IPCObjectStub(u"mo.dispatcher.capi.test.dummy");
+
+    OH_AbilityRuntime_ModObjDispatcher_InputParams input = {};
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+    auto ret = OH_AbilityRuntime_ModObjDispatcher_CallMethod(&dispatcher, 1, &input, &result, nullptr);
+    EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID);
 }
 
 // ===================== TypeDescriptor Null Param Tests =====================

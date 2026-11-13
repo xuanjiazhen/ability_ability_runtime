@@ -118,12 +118,14 @@ typedef enum Ability_NativeChildProcess_ErrCode {
 
     /**
      * @error The callback does not exist; it may not have been registered or has already been unregistered.
+     * @since 20
      */
     NCP_ERR_CALLBACK_NOT_EXIST = 16010009,
 
     /**
      * @error The specified PID does not exist or is not a child process of the current process
      * or is a SELF_FORK mode child process.
+     * @since 22
      */
     NCP_ERR_INVALID_PID = 16010010,
 } Ability_NativeChildProcess_ErrCode;
@@ -173,7 +175,8 @@ Ability_NativeChildProcess_ErrCode OH_Ability_DestroyChildProcessConfigs(Ability
 
 /**
  * @brief Sets the isolation mode for the specified child process configs.
- * The isolationMode only takes effect in {@link OH_Ability_StartNativeChildProcessWithConfigs}.
+ * The isolationMode only takes effect in {@link OH_Ability_StartNativeChildProcessWithConfigs} or
+ * {@link OH_Ability_CreateNativeChildProcessWithConfigs}.
  *
  * @param configs Pointer to the child process configs object. Must not be nullptr.
  * @param isolationMode The isolation mode to set. See {@link NativeChildProcess_IsolationMode} for details.
@@ -394,8 +397,9 @@ typedef struct NativeChildProcess_Args {
  * For details, see {@link NativeChildProcess_Options}.
  * @param pid The started child process id.
  * @return Returns {@link NCP_NO_ERROR} if the call is successful.\n
- * Returns {@link NCP_ERR_INVALID_PARAM} if the dynamic library name or callback function pointer is invalid.\n
+ * Returns {@link NCP_ERR_INVALID_PARAM} if the dynamic library name or entry function pointer is invalid.\n
  * Returns {@link NCP_ERR_NOT_SUPPORTED} if the device does not support the creation of native child processes.\n
+ * Returns {@link NCP_ERR_MULTI_PROCESS_DISABLED} if the multi-process mode is disabled on the device.\n
  * Returns {@link NCP_ERR_ALREADY_IN_CHILD} if it is not allowed to create another child process in the child process.\n
  * Returns {@link NCP_ERR_MAX_CHILD_PROCESSES_REACHED} if the maximum number of native child processes is reached.\n
  * For details, see {@link Ability_NativeChildProcess_ErrCode}.
@@ -430,8 +434,9 @@ Ability_NativeChildProcess_ErrCode OH_Ability_StartNativeChildProcess(
  * For details, see {@link Ability_ChildProcessConfigs}.
  * @param pid The started child process id.
  * @return Returns {@link NCP_NO_ERROR} if the call is successful.
- * Returns {@link NCP_ERR_INVALID_PARAM} if the dynamic library name or callback function pointer is invalid.
+ * Returns {@link NCP_ERR_INVALID_PARAM} if the dynamic library name or entry function pointer is invalid.
  * Returns {@link NCP_ERR_NOT_SUPPORTED} if the device does not support the creation of native child processes.
+ * Returns {@link NCP_ERR_MULTI_PROCESS_DISABLED} if the multi-process mode is disabled on the device.
  * Returns {@link NCP_ERR_ALREADY_IN_CHILD} if it is not allowed to create another child process in the child process.
  * Returns {@link NCP_ERR_MAX_CHILD_PROCESSES_REACHED} if the maximum number of native child processes is reached.
  * For details, see {@link Ability_NativeChildProcess_ErrCode}.
@@ -507,6 +512,12 @@ Ability_NativeChildProcess_ErrCode OH_Ability_UnregisterNativeChildProcessExitCa
  */
 Ability_NativeChildProcess_ErrCode OH_Ability_KillChildProcess(int32_t pid);
 
+/**
+ * @brief Checks whether the caller is allowed to create native child processes on this device.
+ *
+ * @return Returns true if the caller is allowed to create native child processes, false otherwise.
+ * @since 26.0.0
+ */
 bool OH_Ability_IsNativeChildProcessSupported();
 
 /**
