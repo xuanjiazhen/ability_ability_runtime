@@ -67,7 +67,7 @@ public:
      * If pidfd_open fails (the process already exited, ESRCH), the cleanup task
      * is dispatched directly. The type selects which exit handler is dispatched.
      */
-    void AddWatcher(pid_t pid, PidFdType type);
+    bool AddWatcher(pid_t pid, PidFdType type);
 
 private:
     AppPidFdManager();

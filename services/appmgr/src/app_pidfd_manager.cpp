@@ -75,11 +75,11 @@ int32_t AppPidFdManager::OpenPidFd(pid_t pid, unsigned int flags)
     return static_cast<int32_t>(syscall(SYS_pidfd_open, pid, flags));
 }
 
-void AppPidFdManager::AddWatcher(pid_t pid, PidFdType type)
+bool AppPidFdManager::AddWatcher(pid_t pid, PidFdType type)
 {
     if (pid <= 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid pid");
-        return;
+        return false;
     }
     int32_t pidfd = OpenPidFd(pid, PIDFD_NONBLOCK);
     if (pidfd < 0) {
@@ -87,7 +87,7 @@ void AppPidFdManager::AddWatcher(pid_t pid, PidFdType type)
         // Treat it as a death and dispatch the cleanup directly.
         TAG_LOGW(AAFwkTag::APPMGR, "pidfd_open failed, pid:%{public}d, errno:%{public}d", pid, errno);
         DispatchCleanup(pid, type);
-        return;
+        return false;
     }
     fdsan_exchange_owner_tag(pidfd, 0, static_cast<uint32_t>(AAFwkTag::APPMGR));
 
@@ -126,10 +126,11 @@ void AppPidFdManager::AddWatcher(pid_t pid, PidFdType type)
         }
         fdsan_close_with_tag(pidfd, static_cast<uint32_t>(AAFwkTag::APPMGR));
         DispatchCleanup(pid, type);
-        return;
+        return false;
     }
     TAG_LOGI(AAFwkTag::APPMGR, "watch process pid:%{public}d, pidfd:%{public}d, type:%{public}d",
         pid, pidfd, static_cast<int32_t>(type));
+    return true;
 }
 
 void AppPidFdManager::OnChildPidfdEvent(void *data, uint32_t event)
