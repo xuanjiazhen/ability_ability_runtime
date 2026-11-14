@@ -46,7 +46,7 @@ class AppMgrServiceInner;
  * death monitoring; main process may follow.
  */
 
-enum class PidFdType { CHILD, RENDER };
+enum class PidFdType { CHILD, RENDER, SUBSPAWN };
 
 class AppPidFdManager {
 public:
@@ -82,6 +82,7 @@ private:
     // token only carries the pid.
     static void OnChildPidfdEvent(void *data, uint32_t event);
     static void OnRenderPidfdEvent(void *data, uint32_t event);
+    static void OnSubSpawnPidfdEvent(void *data, uint32_t event);
 
     // Handles the pidfd/token lifecycle on the poller thread, then dispatches
     // the record-level cleanup onto the appmgr task queue.

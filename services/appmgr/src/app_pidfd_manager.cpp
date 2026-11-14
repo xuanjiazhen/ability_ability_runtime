@@ -26,6 +26,7 @@
 
 #include "app_mgr_service_inner.h"
 #include "hilog_tag_wrapper.h"
+#include "sub_spawn_manager.h"
 #include "task_handler_wrap.h"
 
 #ifndef PIDFD_NONBLOCK
@@ -113,7 +114,8 @@ void AppPidFdManager::AddWatcher(pid_t pid, PidFdType type)
 
     ffrt_qos_t qos = 0;
     auto cb = (type == PidFdType::RENDER) ? &AppPidFdManager::OnRenderPidfdEvent
-                                          : &AppPidFdManager::OnChildPidfdEvent;
+        : (type == PidFdType::SUBSPAWN) ? &AppPidFdManager::OnSubSpawnPidfdEvent
+        : &AppPidFdManager::OnChildPidfdEvent;
     int32_t ret = ffrt_epoll_ctl(qos, EPOLL_CTL_ADD, pidfd, EPOLLIN, data, cb);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "ffrt_epoll_ctl add failed, pid:%{public}d, ret:%{public}d", pid, ret);
@@ -152,6 +154,17 @@ void AppPidFdManager::OnRenderPidfdEvent(void *data, uint32_t event)
     GetInstance().OnPidfdFired(pid, PidFdType::RENDER);
 }
 
+void AppPidFdManager::OnSubSpawnPidfdEvent(void *data, uint32_t event)
+{
+    if (data == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null pid data");
+        return;
+    }
+    pid_t pid = static_cast<pid_t>(*static_cast<int32_t *>(data));
+    TAG_LOGI(AAFwkTag::APPMGR, "OnSubSpawnPidfdEvent pid:%{public}d, event:%{public}u", pid, event);
+    GetInstance().OnPidfdFired(pid, PidFdType::SUBSPAWN);
+}
+
 void AppPidFdManager::OnPidfdFired(pid_t pid, PidFdType type)
 {
     // fd/token lifecycle is handled here on the poller thread, so it never races
@@ -185,6 +198,8 @@ void AppPidFdManager::DispatchCleanup(pid_t pid, PidFdType type)
     auto task = [inner, pid, type]() {
         if (type == PidFdType::RENDER) {
             inner->OnRenderProcessExited(pid);
+        } else if (type == PidFdType::SUBSPAWN) {
+            SubSpawnManager::GetInstance().OnSubSpawnExited(pid);
         } else {
 #ifdef SUPPORT_CHILD_PROCESS
             inner->OnChildProcessExited(pid);
