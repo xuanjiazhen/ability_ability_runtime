@@ -5004,6 +5004,19 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
 
     abilityRequest.skillCallerTokenId = skillCallerTokenId;
     abilityRequest.userId = validUserId;
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE &&
+        want.GetBoolParam(Want::PARAM_PROMOTE_BACKGROUND_PROCESS_PRIORITY, false)) {
+        bool callerHasPermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
+            PermissionConstants::PERMISSION_PROMOTE_BACKGROUND_PROCESS_PRIORITY);
+        bool calleeHasPermission = callerHasPermission && PermissionVerification::GetInstance()->
+            VerifyPermissionByTokenId(static_cast<int>(abilityRequest.appInfo.accessTokenId),
+                PermissionConstants::PERMISSION_SUPPORT_HIGH_PRIORITY_STARTUP);
+        abilityRequest.promotePriority = calleeHasPermission;
+        TAG_LOGI(AAFwkTag::SERVICE_EXT,
+            "promoteBackgroundProcessPriority caller:%{public}d, callee:%{public}d, targetUid:%{public}d",
+            static_cast<int32_t>(callerHasPermission), static_cast<int32_t>(calleeHasPermission),
+            abilityRequest.appInfo.uid);
+    }
     if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "HandleExecuteSAInterceptor failed");
         if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
@@ -6803,6 +6816,19 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     }
 
     abilityRequest.userId = validUserId;
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE &&
+        want.GetBoolParam(Want::PARAM_PROMOTE_BACKGROUND_PROCESS_PRIORITY, false)) {
+        bool callerHasPermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
+            PermissionConstants::PERMISSION_PROMOTE_BACKGROUND_PROCESS_PRIORITY);
+        bool calleeHasPermission = callerHasPermission && PermissionVerification::GetInstance()->
+            VerifyPermissionByTokenId(static_cast<int>(abilityRequest.appInfo.accessTokenId),
+                PermissionConstants::PERMISSION_SUPPORT_HIGH_PRIORITY_STARTUP);
+        abilityRequest.promotePriority = calleeHasPermission;
+        TAG_LOGI(AAFwkTag::SERVICE_EXT,
+            "connect promoteBackgroundProcessPriority caller:%{public}d, callee:%{public}d, targetUid:%{public}d",
+            static_cast<int32_t>(callerHasPermission), static_cast<int32_t>(calleeHasPermission),
+            abilityRequest.appInfo.uid);
+    }
     if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
         return result;
     }

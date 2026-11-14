@@ -407,5 +407,45 @@ HWTEST_F(ExtensionRecordBaseFirstTest, AbilityRecord_PostUIExtensionAbilityTimeo
     abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::BACKGROUND_TIMEOUT_MSG);
     EXPECT_TRUE(abilityRecord != nullptr);
 }
+
+/*
+ * Feature: BaseExtensionRecord
+ * Function: PromotePriority
+ * SubFunction: PromotePriority
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: promotePriority not set, PromotePriority returns false.
+ */
+HWTEST_F(ExtensionRecordBaseFirstTest, BaseExtensionRecord_PromotePriority_001, TestSize.Level1)
+{
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = GetAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetPid(100);
+    EXPECT_EQ(abilityRecord->uiAbilityProperty_, nullptr);
+    EXPECT_FALSE(abilityRecord->PromotePriority());
+}
+
+/*
+ * Feature: BaseExtensionRecord
+ * Function: PromotePriority
+ * SubFunction: PromotePriority
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: promotePriority set and pid valid, PromotePriority returns true.
+ */
+HWTEST_F(ExtensionRecordBaseFirstTest, BaseExtensionRecord_PromotePriority_002, TestSize.Level1)
+{
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = GetAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->abilityInfo_.bundleName = "com.example.target";
+    abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
+    abilityRecord->SetUid(1000);
+    abilityRecord->SetPid(2000);
+    abilityRecord->uiAbilityProperty_ = std::make_shared<AbilityRecord::UIAbilityProperty>();
+    abilityRecord->uiAbilityProperty_->promotePriority = true;
+    abilityRecord->uiAbilityProperty_->byCallCallerSaUid = 100;
+    abilityRecord->uiAbilityProperty_->byCallCallerSaPid = 200;
+    EXPECT_TRUE(abilityRecord->PromotePriority());
+}
 }  // namespace AAFwk
 }  // namespace OHOS
