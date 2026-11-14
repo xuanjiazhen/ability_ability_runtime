@@ -5961,12 +5961,14 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
         TAG_LOGD(AAFwkTag::APPMGR, "the bundle has no groupInfos.");
     }
     QueryExtensionSandBox(param.moduleName, param.abilityName, bundleInfo, startMsg, dataGroupInfoList, param.want);
+    TAG_LOGI(AAFwkTag::APPMGR, "query ipcGroupInfos begin.");
     IpcGroupInfoList ipcGroupInfoList;
     ret = IN_PROCESS_CALL(bundleMgrHelper->QueryIpcGroupInfos(bundleInfo.name, userId, ipcGroupInfoList));
     if (ret != ERR_OK || ipcGroupInfoList.empty()) {
         TAG_LOGD(AAFwkTag::APPMGR, "the bundle has no ipcGroupInfos.");
     }
     startMsg.ipcGroupInfoList = ipcGroupInfoList;
+    TAG_LOGI(AAFwkTag::APPMGR, "query ipcGroupInfos end.");
     SetStartMsgStrictMode(startMsg, param);
     startMsg.bundleName = bundleInfo.name;
     startMsg.renderParam = RENDER_PARAM;

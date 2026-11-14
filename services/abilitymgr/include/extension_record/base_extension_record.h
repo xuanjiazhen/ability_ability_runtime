@@ -183,6 +183,8 @@ public:
      */
     void RemoveTaskAttribution(int32_t recordId, const std::string &taskId, int64_t attributionId);
 
+    bool PromotePriority() override;
+
 private:
     void DumpUIExtensionRootHostInfo(std::vector<std::string> &info) const;
 

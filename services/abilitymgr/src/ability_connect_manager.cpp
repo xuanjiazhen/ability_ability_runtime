@@ -3765,6 +3765,10 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
                 newAbilityInfo.name);
         }
     }
+    if (targetService != nullptr) {
+        targetService->SetPromotePriority(abilityRequest.promotePriority);
+        (void)targetService->PromotePriority();
+    }
     TAG_LOGD(AAFwkTag::EXT, "service map add, serviceKey: %{public}s", serviceKey.c_str());
 }
 
