@@ -96,6 +96,12 @@ constexpr int32_t QUERY_DB_ERROR = 2;
 constexpr int32_t MAX_QUERY_CMDS_SIZE = 100;
 constexpr int32_t ACTIVE_TIME = 30 * 1000; // 30s
 constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
+// Cooperative-cancel signal whitelist, aligned with the CancelSignal enum in ICliToolData.idl
+// and the JS-side cliManager.CancelSignal (SIGINT = 2, SIGTERM = 15).
+constexpr int32_t CANCEL_SIGNAL_SIGINT = 2;
+constexpr int32_t CANCEL_SIGNAL_SIGTERM = 15;
+// execCmd sessions always report this toolName and never carry a supportsCancel declaration.
+constexpr const char* SHELL_TOOL_NAME = "shell";
 constexpr uint64_t FD_OWNER_TAG = static_cast<uint64_t>(AAFwkTag::CLI_TOOL);
 
 class HookDeathRecipient final : public IRemoteObject::DeathRecipient {
@@ -2172,6 +2178,10 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
     }
     record->sessionId = ToolUtil::GenerateCliSessionId(param.toolName, record);
     record->toolName = param.toolName;
+    // Subcommand is bound to the session 1:1 (fixed in argv before fork); CancelSession
+    // reverse-looks-up the subcommand-level supportsCancel declaration with it. Immutable
+    // once stored; ExecCmd sessions keep it empty (no subcommand).
+    record->subcommand = param.subcommand;
     record->toolCallId = param.options.toolCallId;
     record->dmSessionId = param.options.dmSessionId;
     record->taskId = param.options.taskId;
@@ -2227,6 +2237,84 @@ int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
         return ERR_NOT_KILL;
     }
     record->SetState(SessionState::CANCELLING);
+    return ERR_OK;
+}
+
+bool CliToolManagerService::IsSupportsCancel(const std::shared_ptr<SessionRecord> &record)
+{
+    if (record == nullptr) {
+        return false;
+    }
+    // SKILL sessions run in the skill host process, and execCmd sessions (toolName "shell")
+    // have no ToolInfo declaration: neither supports cooperative cancel.
+    if (record->sessionType == SessionType::SKILL) {
+        return false;
+    }
+    if (record->toolName == SHELL_TOOL_NAME) {
+        return false;
+    }
+    ToolInfo toolInfo;
+    if (CliToolDataManager::GetInstance().GetToolByName(record->toolName, toolInfo) != ERR_OK) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "IsSupportsCancel: tool %{public}s not found", record->toolName.c_str());
+        return false;
+    }
+    // Priority: subcommand-level declaration > tool-level declaration > false. The parsed
+    // SubCommandInfo already carries the inherited value for undeclared subcommands.
+    if (!record->subcommand.empty()) {
+        auto it = toolInfo.subcommands.find(record->subcommand);
+        if (it != toolInfo.subcommands.end()) {
+            return it->second.supportsCancel;
+        }
+    }
+    return toolInfo.supportsCancel;
+}
+
+int32_t CliToolManagerService::CancelSession(const std::string &sessionId, int32_t signal)
+{
+    InterfaceCallCounter counter(interfaceCalledCount_);
+    auto ret = ValidateSessionPermissions();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    auto record = GetSessionRecord(sessionId);
+    if (record == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CancelSession failed: sessionId=%{public}s not found", sessionId.c_str());
+        return ERR_CLI_SESSION_NOT_FOUND;
+    }
+    if (!IsSessionOwner(record, "CancelSession")) {
+        return ERR_PERMISSION_DENIED;
+    }
+    if (record->GetState() != SessionState::RUNNING && record->GetState() != SessionState::SPAWNING) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL,
+            "CancelSession failed: sessionId=%{public}s state=%{public}d is not cancellable",
+            sessionId.c_str(), static_cast<int32_t>(record->GetState()));
+        return ERR_CLI_SESSION_NOT_FOUND;
+    }
+    if (!IsSupportsCancel(record)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL,
+            "CancelSession failed: sessionId=%{public}s tool=%{public}s subcommand=%{public}s does not support cancel",
+            sessionId.c_str(), record->toolName.c_str(), record->subcommand.c_str());
+        return ERR_CLI_NOT_SUPPORT_CANCEL;
+    }
+    if (signal != CANCEL_SIGNAL_SIGINT && signal != CANCEL_SIGNAL_SIGTERM) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CancelSession failed: invalid signal=%{public}d", signal);
+        return ERR_INVALID_PARAM;
+    }
+
+    // Best effort: deliver the signal and return. No session state change, no subscription
+    // cleanup, no CANCELLING (unlike ClearSession); the process exit follows the existing
+    // SIGCHLD reaping flow. Re-check the pid so a concurrently reaped session fails cleanly.
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CancelSession: sessionId=%{public}s, pid=%{public}d, signal=%{public}d",
+        sessionId.c_str(), record->processId, signal);
+    if (record->processId <= 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "CancelSession: process already exited, sessionId=%{public}s",
+            sessionId.c_str());
+        return ERR_CLI_SEND_SIGNAL;
+    }
+    if (!ProcessManager::GetInstance().SendSignal(record->processId, signal)) {
+        return ERR_CLI_SEND_SIGNAL;
+    }
     return ERR_OK;
 }
 

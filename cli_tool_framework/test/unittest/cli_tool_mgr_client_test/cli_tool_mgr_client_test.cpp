@@ -237,6 +237,7 @@ HWTEST_F(CliToolMGRClientTest, NullProxyInterfaces_0100, TestSize.Level1)
         subscriptionId), GET_CLI_TOOL_MGR_SERVICE_FAILED);
     EXPECT_EQ(CliToolMGRClient::GetInstance().UnsubscribeSession("session", "sub"), GET_CLI_TOOL_MGR_SERVICE_FAILED);
     EXPECT_EQ(CliToolMGRClient::GetInstance().ClearSession("session"), GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().CancelSession("session", 2), GET_CLI_TOOL_MGR_SERVICE_FAILED);
     EXPECT_EQ(CliToolMGRClient::GetInstance().QuerySession("session", session), GET_CLI_TOOL_MGR_SERVICE_FAILED);
     EXPECT_EQ(CliToolMGRClient::GetInstance().SendMessage("session", "input", nullptr),
         GET_CLI_TOOL_MGR_SERVICE_FAILED);
@@ -334,6 +335,24 @@ HWTEST_F(CliToolMGRClientTest, SessionInterfaces_0200, TestSize.Level1)
     EXPECT_EQ(CliToolMGRClient::GetInstance().UnsubscribeSession("session", "sub"), ERR_INVALID_VALUE);
     EXPECT_EQ(CliToolMGRClient::GetInstance().ClearSession("session"), ERR_INVALID_VALUE);
     EXPECT_EQ(CliToolMGRClient::GetInstance().QuerySession("session", session), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: CancelSession_0100
+ * @tc.desc: Test CancelSession forwards sessionId and signal to the service proxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, CancelSession_0100, TestSize.Level1)
+{
+    SetMockService();
+    CliToolMgrClientFlag::retCancelSession = ERR_OK;
+    EXPECT_EQ(CliToolMGRClient::GetInstance().CancelSession("cancel_session", 2), ERR_OK);
+    EXPECT_EQ(CliToolMgrClientFlag::lastCancelSessionId, "cancel_session");
+    EXPECT_EQ(CliToolMgrClientFlag::lastCancelSignal, 2);
+
+    CliToolMgrClientFlag::retCancelSession = ERR_INVALID_VALUE;
+    EXPECT_EQ(CliToolMGRClient::GetInstance().CancelSession("cancel_session", 15), ERR_INVALID_VALUE);
+    EXPECT_EQ(CliToolMgrClientFlag::lastCancelSignal, 15);
 }
 
 /**

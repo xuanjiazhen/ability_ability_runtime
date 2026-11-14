@@ -28,3 +28,12 @@ struct CommandPermission
     boolean isLockScreenExecutionAllowed;
     int queryRet;
 };
+
+enum CancelSignal
+{
+    // Member names avoid the libc signal macros (SIGINT/SIGTERM are #define'd in
+    // <signal.h>); the numeric values stay aligned with the Linux signal numbers
+    // exposed as cliManager.CancelSignal.SIGINT/SIGTERM on the JS side.
+    CANCEL_SIGINT = 2,
+    CANCEL_SIGTERM = 15
+};

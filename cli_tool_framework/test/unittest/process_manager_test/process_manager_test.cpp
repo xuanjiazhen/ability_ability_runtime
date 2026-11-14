@@ -472,6 +472,94 @@ HWTEST_F(ProcessManagerTest, Killpg_0200, TestSize.Level1)
     EXPECT_FALSE(manager.Killpg(-1));
 }
 
+/**
+ * @tc.name: ProcessManager_SendSignal_0100
+ * @tc.desc: Test SendSignal rejects non-positive pid without calling kill
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, SendSignal_0100, TestSize.Level1)
+{
+    auto& manager = ProcessManager::GetInstance();
+
+    EXPECT_FALSE(manager.SendSignal(0, SIGINT));
+    EXPECT_FALSE(manager.SendSignal(-1, SIGTERM));
+}
+
+/**
+ * @tc.name: ProcessManager_SendSignal_0200
+ * @tc.desc: Test SendSignal delivers SIGINT to a live child process (group or single fallback)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, SendSignal_0200, TestSize.Level1)
+{
+    auto& manager = ProcessManager::GetInstance();
+
+    pid_t child = fork();
+    ASSERT_GE(child, 0);
+    if (child == 0) {
+        // Child: wait for any signal; default disposition of SIGINT would terminate the
+        // process, so block it briefly with pause() to keep the test deterministic.
+        pause();
+        _exit(0);
+    }
+
+    // Either the process-group delivery or the single-process fallback must hit the child.
+    EXPECT_TRUE(manager.SendSignal(child, SIGINT));
+
+    int32_t status = 0;
+    pid_t waited = waitpid(child, &status, 0);
+    EXPECT_EQ(waited, child);
+    EXPECT_TRUE(WIFSIGNALED(status));
+    EXPECT_EQ(WTERMSIG(status), SIGINT);
+}
+
+/**
+ * @tc.name: ProcessManager_SendSignal_0300
+ * @tc.desc: Test SendSignal delivers SIGTERM to a live child process
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, SendSignal_0300, TestSize.Level1)
+{
+    auto& manager = ProcessManager::GetInstance();
+
+    pid_t child = fork();
+    ASSERT_GE(child, 0);
+    if (child == 0) {
+        pause();
+        _exit(0);
+    }
+
+    EXPECT_TRUE(manager.SendSignal(child, SIGTERM));
+
+    int32_t status = 0;
+    pid_t waited = waitpid(child, &status, 0);
+    EXPECT_EQ(waited, child);
+    EXPECT_TRUE(WIFSIGNALED(status));
+    EXPECT_EQ(WTERMSIG(status), SIGTERM);
+}
+
+/**
+ * @tc.name: ProcessManager_SendSignal_0400
+ * @tc.desc: Test SendSignal fails on both process group and single process for a dead pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, SendSignal_0400, TestSize.Level1)
+{
+    auto& manager = ProcessManager::GetInstance();
+
+    // Reap a short-lived child so the pid is definitely gone; both the group delivery
+    // and the single-process fallback then fail (ESRCH).
+    pid_t child = fork();
+    ASSERT_GE(child, 0);
+    if (child == 0) {
+        _exit(0);
+    }
+    int32_t status = 0;
+    ASSERT_EQ(waitpid(child, &status, 0), child);
+
+    EXPECT_FALSE(manager.SendSignal(child, SIGINT));
+}
+
 // ==================== CreateShellProcess Tests ====================
 
 /**

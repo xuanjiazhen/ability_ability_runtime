@@ -126,6 +126,17 @@ napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary);
 napi_value CreateJsSessionStatus(napi_env env);
 
 /**
+ * @brief Create JavaScript CancelSignal enum object.
+ *
+ * Values align with the Linux signal numbers and the IDL/d.ts declarations:
+ * SIGINT = 2, SIGTERM = 15.
+ *
+ * @param env The N-API environment.
+ * @return Returns the JavaScript object representing CancelSignal enum.
+ */
+napi_value CreateJsCancelSignal(napi_env env);
+
+/**
  * @brief Create JavaScript ExecResult object from native ExecResult.
  *
  * @param env The N-API environment.

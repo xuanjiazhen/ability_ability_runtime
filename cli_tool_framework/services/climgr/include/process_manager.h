@@ -47,6 +47,19 @@ public:
 
     bool Killpg(pid_t pid) const;
 
+    /**
+     * @brief Deliver a cooperative cancel signal to the tool process of a session.
+     *
+     * Targets the process group first (same delivery surface as Killpg); when that fails,
+     * falls back to the single process: after fork() the child is not guaranteed to be a
+     * process-group leader, so both delivery paths must be attempted.
+     *
+     * @param pid Tool process id, must be > 0.
+     * @param sig Signal to deliver (only SIGINT/SIGTERM is passed by callers).
+     * @return bool true when the signal was delivered on either path.
+     */
+    bool SendSignal(pid_t pid, int32_t sig) const;
+
 private:
     ProcessManager() = default;
     ~ProcessManager() = default;
