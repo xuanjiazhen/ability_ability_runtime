@@ -67,4 +67,13 @@ ohos_shared_library("dataobs_manager") {
   ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  sources += [ "src/native_uri_lazy.cpp" ]
+  ldflags = [
+    "-Wl,--wrap=_ZN4OHOS3UriC1EOS0_",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKNSt3__h12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKS0_",
+    "-Wl,--wrap=_ZN4OHOS3UriD1Ev",
+    "-Wl,--wrap=_ZNK4OHOS3Uri8ToStringEv",
+    "-Wl,--wrap=_ZNK4OHOS3UrieqERKS0_",
+  ]
 }

@@ -28,9 +28,6 @@
 #include "context_deal.h"
 #include "data_ability_predicates.h"
 #include "dataobs_mgr_client.h"
-#ifdef WITH_DLP
-#include "dlp_file_kits.h"
-#endif // WITH_DLP
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -855,8 +852,9 @@ void FAAbilityThread::ScheduleCommandAbility(const Want &want, bool restart, int
         if (abilityThread->isExtension_) {
             Want newWant(want);
 #ifdef WITH_DLP
-            bool sandboxFlag = Security::DlpPermission::DlpFileKits::GetSandboxFlag(newWant);
-            newWant.SetParam(DLP_PARAMS_SANDBOX, sandboxFlag);
+            newWant.RemoveParam(DLP_PARAMS_SANDBOX);
+            AbilityManagerClient::GetInstance()->HandleDlpApp(newWant);
+            bool sandboxFlag = newWant.GetBoolParam(DLP_PARAMS_SANDBOX, false);
             if (sandboxFlag) {
                 newWant.CloseAllFd();
             }

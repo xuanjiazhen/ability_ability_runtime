@@ -33,6 +33,9 @@
 #include "ihidden_start_observer.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+class FAAbilityThread;
+}
 namespace AAFwk {
 class Snapshot;
 class ISnapshotHandler;
@@ -3218,6 +3221,8 @@ public:
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);
+
+    friend class OHOS::AbilityRuntime::FAAbilityThread;
 
     class AbilityMgrDeathRecipient : public IRemoteObject::DeathRecipient {
     public:

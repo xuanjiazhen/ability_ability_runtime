@@ -475,8 +475,6 @@ ohos_shared_library("abilitykit_native") {
     external_deps += [
       "ability_base:session_info",
       "icu:shared_icuuc",
-      "image_framework:image",
-      "image_framework:image_native",
       "input:libmmi-client",
       "window_manager:libwm",
       "window_manager:libwsutils",
@@ -491,6 +489,22 @@ ohos_shared_library("abilitykit_native") {
   version_script = "libabilitykit_native.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  sources +=
+      [ "${ability_runtime_native_path}/ability/native/native_uri_lazy.cpp" ]
+  if (!defined(ldflags)) {
+    ldflags = []
+  }
+  ldflags += [
+    "-Wl,--wrap=_ZN4OHOS3Uri15GetPathSegmentsERNSt3__h6vectorINS1_12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEENS6_IS8_EEEE",
+    "-Wl,--wrap=_ZN4OHOS3Uri7GetPathEv",
+    "-Wl,--wrap=_ZN4OHOS3Uri9GetSchemeEv",
+    "-Wl,--wrap=_ZN4OHOS3UriaSEOS0_",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKNSt3__h12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKS0_",
+    "-Wl,--wrap=_ZN4OHOS3UriD1Ev",
+    "-Wl,--wrap=_ZNK4OHOS3Uri8ToStringEv",
+  ]
 }
 
 ohos_shared_library("ability_observer_ipc") {
@@ -1020,6 +1034,9 @@ config("uiability_config") {
 }
 
 ohos_shared_library("ui_ability_ani") {
+  ldflags = [
+    "-Wl,--wrap=_ZN4OHOS5Media16PixelMapTaiheAni17GetNativePixelMapEP9__ani_envP12__ani_object",
+  ]
   version_script = "libui_ability_ani.map"
   branch_protector_ret = "pac_ret"
   branch_protector_frt = "bti"
@@ -1051,6 +1068,7 @@ ohos_shared_library("ui_ability_ani") {
 
   sources = [
     "${ability_runtime_path}/frameworks/ets/ani/ui_ability/src/ets_ability_context.cpp",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_ability/src/pixelmap_taihe_lazy.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_ability/src/ets_ui_ability.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_ability/src/ets_ui_ability_servicehost_stub_impl.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_ability/src/ets_uiservice_ability_connection.cpp",
@@ -1150,6 +1168,17 @@ ohos_shared_library("ui_ability_ani") {
   subsystem_name = "ability"
   innerapi_tags = [ "platformsdk" ]
   part_name = "ability_runtime"
+
+  sources +=
+      [ "${ability_runtime_native_path}/ability/native/native_uri_lazy.cpp" ]
+  if (!defined(ldflags)) {
+    ldflags = []
+  }
+  ldflags += [
+    "-Wl,--wrap=_ZN4OHOS3Uri9GetSchemeEv",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKNSt3__h12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE",
+    "-Wl,--wrap=_ZN4OHOS3UriD1Ev",
+  ]
 }
 
 ohos_shared_library("uiabilitykit_native") {
@@ -1363,12 +1392,23 @@ ohos_shared_library("ability_thread") {
   cflags_cc = []
   if (os_dlp_part_enabled) {
     cflags_cc += [ "-DWITH_DLP" ]
-    external_deps += [ "dlp_permission_service:libdlpparse" ]
   }
 
   innerapi_tags = [ "platformsdk_indirect" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  sources +=
+      [ "${ability_runtime_native_path}/ability/native/native_uri_lazy.cpp" ]
+  if (!defined(ldflags)) {
+    ldflags = []
+  }
+  ldflags += [
+    "-Wl,--wrap=_ZN4OHOS3UriaSEOS0_",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKNSt3__h12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKS0_",
+    "-Wl,--wrap=_ZN4OHOS3UriD1Ev",
+  ]
 }
 
 ohos_shared_library("ets_form_extension") {
@@ -2452,6 +2492,20 @@ ohos_shared_library("data_ability_helper") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  sources +=
+      [ "${ability_runtime_native_path}/ability/native/native_uri_lazy.cpp" ]
+  if (!defined(ldflags)) {
+    ldflags = []
+  }
+  ldflags += [
+    "-Wl,--wrap=_ZN4OHOS3Uri9GetSchemeEv",
+    "-Wl,--wrap=_ZN4OHOS3UriaSEOS0_",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKNSt3__h12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKS0_",
+    "-Wl,--wrap=_ZN4OHOS3UriD1Ev",
+    "-Wl,--wrap=_ZNK4OHOS3Uri8ToStringEv",
+  ]
 }
 
 ohos_shared_library("service_extension_module") {
@@ -2720,6 +2774,17 @@ ohos_shared_library("ui_extension") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  sources +=
+      [ "${ability_runtime_native_path}/ability/native/native_uri_lazy.cpp" ]
+  if (!defined(ldflags)) {
+    ldflags = []
+  }
+  ldflags += [
+    "-Wl,--wrap=_ZN4OHOS3Uri9GetSchemeEv",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKNSt3__h12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE",
+    "-Wl,--wrap=_ZN4OHOS3UriD1Ev",
+  ]
 }
 
 ohos_shared_library("photo_editor_extension_ani") {

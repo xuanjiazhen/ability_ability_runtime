@@ -14,6 +14,8 @@
  */
 
 #include "photo_editor_extension_module_loader.h"
+
+#include <dlfcn.h>
 #include "hilog_tag_wrapper.h"
 #include "photo_editor_extension.h"
 
@@ -25,7 +27,25 @@ PhotoEditorExtensionModuleLoader::~PhotoEditorExtensionModuleLoader() = default;
 Extension *PhotoEditorExtensionModuleLoader::Create(const std::unique_ptr<Runtime> &runtime) const
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
-    return PhotoEditorExtension::Create(runtime);
+    using CreateFunction = decltype(&PhotoEditorExtension::Create);
+    static const CreateFunction create = []() -> CreateFunction {
+        void *handle = dlopen("libphoto_editor_extension.z.so", RTLD_NOW | RTLD_LOCAL);
+        if (handle == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "load photo editor extension failed: %{public}s", dlerror());
+            return nullptr;
+        }
+        constexpr const char *symbol =
+            "_ZN4OHOS14AbilityRuntime20PhotoEditorExtension6CreateERKNSt3__h10unique_ptrINS0_7Runtime"
+            "ENS2_14default_deleteIS4_EEEE";
+        auto function = reinterpret_cast<CreateFunction>(dlsym(handle, symbol));
+        if (function == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "resolve photo editor factory failed: %{public}s", dlerror());
+            dlclose(handle);
+        }
+        // Keep the successful module resident for the lifetime of its extension objects.
+        return function;
+    }();
+    return create == nullptr ? nullptr : create(runtime);
 }
 
 std::map<std::string, std::string> PhotoEditorExtensionModuleLoader::GetParams()

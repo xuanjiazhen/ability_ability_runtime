@@ -172,7 +172,6 @@ ohos_shared_library("appkit_native") {
   }
   deps = [
     ":appkit_delegator",
-    "${ability_runtime_abilitymgr_path}/:abilityms",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
@@ -357,6 +356,21 @@ ohos_shared_library("appkit_native") {
   version_script = "libappkit_native.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  sources +=
+      [ "${ability_runtime_native_path}/ability/native/native_uri_lazy.cpp" ]
+  if (!defined(ldflags)) {
+    ldflags = []
+  }
+  ldflags += [
+    "-Wl,--wrap=_ZN4OHOS3Uri7GetHostEv",
+    "-Wl,--wrap=_ZN4OHOS3Uri7GetPathEv",
+    "-Wl,--wrap=_ZN4OHOS3Uri9GetSchemeEv",
+    "-Wl,--wrap=_ZN4OHOS3UriC1EOS0_",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKNSt3__h12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE",
+    "-Wl,--wrap=_ZN4OHOS3UriD1Ev",
+    "-Wl,--wrap=_ZNK4OHOS3Uri8ToStringEv",
+  ]
 }
 
 ohos_shared_library("ability_stage_ani") {

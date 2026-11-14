@@ -114,4 +114,15 @@ ohos_shared_library("napi_common") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  sources +=
+      [ "${ability_runtime_native_path}/ability/native/native_uri_lazy.cpp" ]
+  if (!defined(ldflags)) {
+    ldflags = []
+  }
+  ldflags += [
+    "-Wl,--wrap=_ZN4OHOS3Uri22SetUriWithOriginStringEv",
+    "-Wl,--wrap=_ZN4OHOS3UriC1ERKNSt3__h12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE",
+    "-Wl,--wrap=_ZN4OHOS3UriD1Ev",
+  ]
 }

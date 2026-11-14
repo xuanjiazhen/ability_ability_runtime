@@ -16,7 +16,7 @@
 #include "ability_manager_client.h"
 
 #ifdef WITH_DLP
-#include "dlp_file_kits.h"
+#include <dlfcn.h>
 #endif // WITH_DLP
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
@@ -1819,7 +1819,16 @@ void AbilityManagerClient::HandleDlpApp(Want &want)
 #ifdef WITH_DLP
     if (!want.GetParams().HasParam(DLP_PARAMS_SANDBOX)) {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "Security::DlpPermission::DlpFileKits::GetSandboxFlag");
-        bool sandboxFlag = Security::DlpPermission::DlpFileKits::GetSandboxFlag(want);
+        bool sandboxFlag = false;
+        if (want.GetUriString().rfind("file://", 0) == 0) {
+            using GetSandboxFlagFunc = bool (*)(void *);
+            static void *handle = dlopen("libdlpparse.z.so", RTLD_NOW);
+            static auto getSandboxFlag = handle == nullptr ? nullptr :
+                reinterpret_cast<GetSandboxFlagFunc>(dlsym(handle, "DlpGetSandboxFlagForWant"));
+            if (getSandboxFlag != nullptr) {
+                sandboxFlag = getSandboxFlag(&want);
+            }
+        }
         want.SetParam(DLP_PARAMS_SANDBOX, sandboxFlag);
     }
 #endif // WITH_DLP

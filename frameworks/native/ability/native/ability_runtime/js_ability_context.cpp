@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
+#include <dlfcn.h>
 #include <mutex>
 #include <regex>
 
@@ -55,12 +56,32 @@
 #include "uri.h"
 #include "want.h"
 
+namespace OHOS {
+namespace Media {
+class PixelMap;
+}
+
+namespace AbilityRuntime {
 #ifdef SUPPORT_GRAPHICS
-#include "pixel_map_napi.h"
+namespace {
+std::shared_ptr<Media::PixelMap> GetPixelMapFromNapi(napi_env env, napi_value value)
+{
+    using GetPixelMapFunc = std::shared_ptr<Media::PixelMap> (*)(napi_env, napi_value);
+#if defined(_ARM64_) || defined(SIMULATOR_64)
+    constexpr const char *imageModulePath = "/system/lib64/module/multimedia/libimage.z.so";
+#else
+    constexpr const char *imageModulePath = "/system/lib/module/multimedia/libimage.z.so";
+#endif
+    // The public image module provides access to its image_napi dependency.
+    static void *imageNapiHandle = dlopen(imageModulePath, RTLD_NOW | RTLD_LOCAL);
+    static auto getPixelMap = imageNapiHandle == nullptr ? nullptr :
+        reinterpret_cast<GetPixelMapFunc>(dlsym(imageNapiHandle,
+            "_ZN4OHOS5Media12PixelMapNapi11GetPixelMapEP10napi_env__P12napi_value__"));
+    return getPixelMap == nullptr ? nullptr : getPixelMap(env, value);
+}
+} // namespace
 #endif
 
-namespace OHOS {
-namespace AbilityRuntime {
 constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
@@ -3079,7 +3100,7 @@ napi_value JsAbilityContext::OnSetMissionIcon(napi_env env, NapiCallbackInfo& in
         return CreateJsUndefined(env);
     }
 
-    auto icon = OHOS::Media::PixelMapNapi::GetPixelMap(env, info.argv[INDEX_ZERO]);
+    auto icon = GetPixelMapFromNapi(env, info.argv[INDEX_ZERO]);
     if (!icon) {
         TAG_LOGE(AAFwkTag::CONTEXT, "parse icon failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
@@ -3130,7 +3151,7 @@ napi_value JsAbilityContext::OnSetAbilityInstanceInfo(napi_env env, NapiCallback
         ThrowInvalidParamError(env, "Invalid label.");
         return CreateJsUndefined(env);
     }
-    auto icon = OHOS::Media::PixelMapNapi::GetPixelMap(env, info.argv[INDEX_ONE]);
+    auto icon = GetPixelMapFromNapi(env, info.argv[INDEX_ONE]);
     if (icon == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "parse icon failed");
         ThrowInvalidParamError(env, "Parse icon failed.");
@@ -3713,7 +3734,7 @@ napi_value JsAbilityContext::OnSetMissionWindowIcon(napi_env env, NapiCallbackIn
         return CreateJsUndefined(env);
     }
 
-    auto windowIcon = OHOS::Media::PixelMapNapi::GetPixelMap(env, info.argv[INDEX_ZERO]);
+    auto windowIcon = GetPixelMapFromNapi(env, info.argv[INDEX_ZERO]);
     if (!windowIcon) {
         TAG_LOGE(AAFwkTag::CONTEXT, "parse windowIcon failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);

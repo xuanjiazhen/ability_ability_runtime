@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 
+#include <cstdio>
+#include <cstdlib>
+#include <dlfcn.h>
+
 #include "app_service_extension_module_loader.h"
 #include "app_service_extension.h"
 
@@ -22,7 +26,23 @@ AppServiceExtensionModuleLoader::~AppServiceExtensionModuleLoader() = default;
 
 Extension *AppServiceExtensionModuleLoader::Create(const std::unique_ptr<Runtime>& runtime) const
 {
-    return AppServiceExtension::Create(runtime);
+    using Function = decltype(&AppServiceExtension::Create);
+    static Function entry = [] {
+        void *handle = dlopen("libapp_service_extension.z.so", RTLD_NOW | RTLD_LOCAL);
+        if (handle == nullptr) {
+            std::fprintf(stderr, "Extension provider load failed: %s\n", dlerror());
+            std::abort();
+        }
+        auto function = reinterpret_cast<Function>(dlsym(handle,
+            "_ZN4OHOS14AbilityRuntime19AppServiceExtension6CreateERKNSt3__h10unique_ptrINS0_7RuntimeENS"
+            "2_14default_deleteIS4_EEEE"));
+        if (function == nullptr) {
+            std::fprintf(stderr, "Extension factory lookup failed: %s\n", dlerror());
+            std::abort();
+        }
+        return function;
+    }();
+    return entry(runtime);
 }
 
 std::map<std::string, std::string> AppServiceExtensionModuleLoader::GetParams()

@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 
+#include <cstdio>
+#include <cstdlib>
+#include <dlfcn.h>
+
 #include "service_extension_module_loader.h"
 #include "service_extension.h"
 
@@ -22,7 +26,23 @@ ServiceExtensionModuleLoader::~ServiceExtensionModuleLoader() = default;
 
 Extension *ServiceExtensionModuleLoader::Create(const std::unique_ptr<Runtime>& runtime) const
 {
-    return ServiceExtension::Create(runtime);
+    using Function = decltype(&ServiceExtension::Create);
+    static Function entry = [] {
+        void *handle = dlopen("libservice_extension.z.so", RTLD_NOW | RTLD_LOCAL);
+        if (handle == nullptr) {
+            std::fprintf(stderr, "Extension provider load failed: %s\n", dlerror());
+            std::abort();
+        }
+        auto function = reinterpret_cast<Function>(dlsym(handle,
+            "_ZN4OHOS14AbilityRuntime16ServiceExtension6CreateERKNSt3__h10unique_ptrINS0_7RuntimeENS2_1"
+            "4default_deleteIS4_EEEE"));
+        if (function == nullptr) {
+            std::fprintf(stderr, "Extension factory lookup failed: %s\n", dlerror());
+            std::abort();
+        }
+        return function;
+    }();
+    return entry(runtime);
 }
 
 std::map<std::string, std::string> ServiceExtensionModuleLoader::GetParams()
