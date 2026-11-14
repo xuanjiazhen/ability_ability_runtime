@@ -1168,6 +1168,57 @@ HWTEST_F(AbilityManagerServiceSixthTest, ConnectLocalAbility_003, TestSize.Level
 
 /*
  * Feature: AbilityManagerService
+ * Function: ConnectLocalAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService ConnectLocalAbility.
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, ConnectLocalAbility_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ConnectLocalAbility_004 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyFlag::flag_ = 1;
+
+    Want want;
+    want.SetElementName("device", "testBundleName", "testAbilityName", "entry");
+    want.SetParam("ohos.param.promoteBackgroundProcessPriority", true);
+
+    AppExecFwk::ApplicationInfo applicationInfo;
+    applicationInfo.uid = 10000;
+    applicationInfo.name = "app";
+    applicationInfo.bundleName = "testBundleName";
+    applicationInfo.accessTokenId = 12345;
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.applicationInfo = applicationInfo;
+    abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
+    abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
+    abilityInfo.name = "testAbilityName";
+    abilityInfo.bundleName = "testBundleName";
+    abilityInfo.moduleName = "entry";
+    abilityInfo.isStageBasedModel = false;
+    auto mockBundleMgr = sptr<MockBundleManagerProxy>::MakeSptr(nullptr);
+    bundleMgrHelper_->bundleMgr_ = mockBundleMgr;
+    EXPECT_CALL(*mockBundleMgr, QueryAbilityInfo(testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<3>(abilityInfo), Return(true)));
+
+    auto impl = sptr<InsightIntentExecuteConnection>::MakeSptr();
+    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
+    abilityRecord->Init(AbilityRequest());
+    auto token = abilityRecord->token_;
+    sptr<SessionInfo> sessionInfo = nullptr;
+    sptr<UIExtensionAbilityConnectInfo> connectInfo = nullptr;
+
+    auto ret = abilityMs->ConnectLocalAbility(want, 0, impl, token, ExtensionAbilityType::SERVICE,
+        sessionInfo, false, connectInfo);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    Mock::VerifyAndClear(mockBundleMgr);
+    bundleMgrHelper_->bundleMgr_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "ConnectLocalAbility_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: GenerateDataAbilityRequestByUri
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService GenerateDataAbilityRequestByUri
@@ -2853,6 +2904,46 @@ HWTEST_F(AbilityManagerServiceSixthTest, SetRemoteIntentTimeout_001, TestSize.Le
     abilityMs->RemoveIntentTimeout(insightIntentId);
     EXPECT_EQ(abilityMs->remoteTaskHandles_.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest SetRemoteIntentTimeout_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartExtensionAbilityInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartExtensionAbilityInner.
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, StartExtensionAbilityInner_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartExtensionAbilityInner_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyFlag::flag_ = 1;
+
+    Want want;
+    want.SetElementName("device", "testBundleName", "testAbilityName", "entry");
+    want.SetParam("ohos.param.promoteBackgroundProcessPriority", true);
+
+    AppExecFwk::ExtensionAbilityInfo extensionInfo;
+    extensionInfo.type = AppExecFwk::ExtensionAbilityType::SERVICE;
+    extensionInfo.bundleName = "testBundleName";
+    extensionInfo.name = "testAbilityName";
+    extensionInfo.moduleName = "entry";
+    extensionInfo.applicationInfo.name = "app";
+    extensionInfo.applicationInfo.bundleName = "testBundleName";
+    extensionInfo.applicationInfo.uid = 10000;
+    extensionInfo.applicationInfo.accessTokenId = 12345;
+    auto mockBundleMgr = sptr<MockBundleManagerProxy>::MakeSptr(nullptr);
+    bundleMgrHelper_->bundleMgr_ = mockBundleMgr;
+    EXPECT_CALL(*mockBundleMgr, QueryExtensionAbilityInfoOptimal(testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<3>(extensionInfo), Return(ERR_OK)));
+
+    auto ret = abilityMs->StartExtensionAbilityInner(want, nullptr, 0, ExtensionAbilityType::SERVICE,
+        false, false, false);
+    EXPECT_EQ(ret, 1);
+
+    Mock::VerifyAndClear(mockBundleMgr);
+    bundleMgrHelper_->bundleMgr_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "StartExtensionAbilityInner_002 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
