@@ -14,9 +14,9 @@
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
+if (ability_runtime_modular_object) {
 module_output_path = "ability_runtime/ability_runtime/capi_ability_runtime"
 
-if (ability_runtime_modular_object) {
 ohos_unittest("modular_object_extension_manager_connect_test") {
   module_out_path = module_output_path
 
