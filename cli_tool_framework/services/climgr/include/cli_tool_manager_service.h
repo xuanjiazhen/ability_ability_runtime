@@ -95,6 +95,17 @@ public:
         const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId) override;
 
     int32_t ClearSession(const std::string &sessionId) override;
+
+    /**
+     * @brief Send a cooperative cancel signal (SIGINT/SIGTERM) to the tool process of a
+     *        running session. Best effort: resolves after the signal is delivered, without
+     *        changing the session state or subscriptions (unlike ClearSession's SIGKILL).
+     * @param sessionId The session id of target command process.
+     * @param signal Cancel signal value, only SIGINT(2)/SIGTERM(15) is accepted.
+     * @return int32_t ERR_OK on success, error code otherwise.
+     */
+    int32_t CancelSession(const std::string &sessionId, int32_t signal) override;
+
     int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
     int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
@@ -296,6 +307,17 @@ private:
         const std::vector<int64_t> &attributionIds, const std::vector<int32_t> &uids);
 
     bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
+
+    /**
+     * @brief Reverse-look-up the supportsCancel declaration for a session.
+     *
+     * Priority: subcommand-level declaration > tool-level declaration > false. execCmd
+     * sessions (toolName "shell") and SKILL sessions never support cooperative cancel.
+     *
+     * @param record The session record holding toolName/subcommand.
+     * @return bool true when the session's tool/subcommand declares cooperative cancel.
+     */
+    bool IsSupportsCancel(const std::shared_ptr<SessionRecord> &record);
 
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecOptions &options);
     void UnregisterSessionWithMonitors(const std::string &sessionId);

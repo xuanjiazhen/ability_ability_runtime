@@ -328,5 +328,27 @@ bool ProcessManager::Killpg(pid_t pid) const
     return true;
 }
 
+bool ProcessManager::SendSignal(pid_t pid, int32_t sig) const
+{
+    if (pid <= 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "SendSignal skipped: invalid pid=%{public}d", pid);
+        return false;
+    }
+    // Deliver to the process group first (same target surface as Killpg).
+    int32_t killRet = kill(0 - pid, sig);
+    if (killRet == 0) {
+        return true;
+    }
+    // Fallback to the single process: the forked child is not guaranteed to be a group leader,
+    // so the group delivery above may fail with ESRCH while the process itself is alive.
+    TAG_LOGW(AAFwkTag::CLI_TOOL, "kill process group result:%{public}d, fallback to single process", killRet);
+    killRet = kill(pid, sig);
+    if (killRet != 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "kill process result:%{public}d", killRet);
+        return false;
+    }
+    return true;
+}
+
 } // namespace CliTool
 } // namespace OHOS

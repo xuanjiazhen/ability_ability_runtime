@@ -1942,5 +1942,108 @@ HWTEST_F(SubCommandInfoTest, SubCommandInfo_Validate_1800, TestSize.Level1)
     GTEST_LOG_(INFO) << "SubCommandInfo_Validate_1800 end";
 }
 
+// ==================== supportsCancel Tests ====================
+
+/**
+ * @tc.name: SubCommandInfo_SupportsCancel_0100
+ * @tc.desc: supportsCancel is optional: undeclared keeps the default false
+ * @tc.type: FUNC
+ */
+HWTEST_F(SubCommandInfoTest, SubCommandInfo_SupportsCancel_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SubCommandInfo_SupportsCancel_0100 start";
+
+    nlohmann::json json = R"({
+        "description": "Subcommand without cancel declaration",
+        "requirePermissions": [],
+        "inputSchema": {"type": "object"},
+        "outputSchema": {"type": "string"}
+    })"_json;
+
+    SubCommandInfo subCmd;
+    ASSERT_TRUE(SubCommandInfo::ParseFromJson(json, subCmd));
+    EXPECT_FALSE(subCmd.supportsCancel);
+
+    GTEST_LOG_(INFO) << "SubCommandInfo_SupportsCancel_0100 end";
+}
+
+/**
+ * @tc.name: SubCommandInfo_SupportsCancel_0200
+ * @tc.desc: supportsCancel is parsed and serialized back when declared
+ * @tc.type: FUNC
+ */
+HWTEST_F(SubCommandInfoTest, SubCommandInfo_SupportsCancel_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SubCommandInfo_SupportsCancel_0200 start";
+
+    nlohmann::json json = R"({
+        "description": "Subcommand with cancel declaration",
+        "requirePermissions": [],
+        "inputSchema": {"type": "object"},
+        "outputSchema": {"type": "string"},
+        "supportsCancel": true
+    })"_json;
+
+    SubCommandInfo subCmd;
+    ASSERT_TRUE(SubCommandInfo::ParseFromJson(json, subCmd));
+    EXPECT_TRUE(subCmd.supportsCancel);
+
+    nlohmann::json out = subCmd.ParseToJson();
+    ASSERT_TRUE(out.contains("supportsCancel"));
+    EXPECT_TRUE(out["supportsCancel"].get<bool>());
+
+    GTEST_LOG_(INFO) << "SubCommandInfo_SupportsCancel_0200 end";
+}
+
+/**
+ * @tc.name: SubCommandInfo_SupportsCancel_0300
+ * @tc.desc: non-boolean supportsCancel is rejected by the type check
+ * @tc.type: FUNC
+ */
+HWTEST_F(SubCommandInfoTest, SubCommandInfo_SupportsCancel_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SubCommandInfo_SupportsCancel_0300 start";
+
+    nlohmann::json json = R"({
+        "description": "Subcommand with bad cancel declaration",
+        "requirePermissions": [],
+        "inputSchema": {"type": "object"},
+        "outputSchema": {"type": "string"},
+        "supportsCancel": "true"
+    })"_json;
+
+    SubCommandInfo subCmd;
+    EXPECT_FALSE(SubCommandInfo::ParseFromJson(json, subCmd));
+
+    GTEST_LOG_(INFO) << "SubCommandInfo_SupportsCancel_0300 end";
+}
+
+/**
+ * @tc.name: SubCommandInfo_SupportsCancel_0400
+ * @tc.desc: Parcel round trip keeps the supportsCancel field
+ * @tc.type: FUNC
+ */
+HWTEST_F(SubCommandInfoTest, SubCommandInfo_SupportsCancel_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SubCommandInfo_SupportsCancel_0400 start";
+
+    SubCommandInfo subCmd;
+    subCmd.description = "cancel sub";
+    subCmd.inputSchema = R"({"type":"object"})";
+    subCmd.outputSchema = R"({"type":"object"})";
+    subCmd.supportsCancel = true;
+
+    Parcel parcel;
+    ASSERT_TRUE(subCmd.Marshalling(parcel));
+    parcel.RewindRead(0);
+
+    SubCommandInfo* result = SubCommandInfo::Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    EXPECT_TRUE(result->supportsCancel);
+    delete result;
+
+    GTEST_LOG_(INFO) << "SubCommandInfo_SupportsCancel_0400 end";
+}
+
 } // namespace CliTool
 } // namespace OHOS

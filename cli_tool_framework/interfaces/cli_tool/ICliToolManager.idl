@@ -41,6 +41,7 @@ interface ICliToolManager {
     void SubscribeSession([in] String sessionId, [in] String subscriptionId, [in] ICliToolManagerScheduler scheduler);
     void UnsubscribeSession([in] String sessionId, [in] String subscriptionId);
     void ClearSession([in] String sessionId);
+    void CancelSession([in] String sessionId, [in] int signal);
     void QuerySession([in] String sessionId, [out] CliSessionInfo session);
     void SendMessage([in] String sessionId, [in] String inputText, [in] String eventId,
         [in] ICliToolManagerScheduler scheduler);

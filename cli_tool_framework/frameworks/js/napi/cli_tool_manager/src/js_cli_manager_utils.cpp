@@ -731,6 +731,10 @@ napi_value CreateJsSubCommandInfo(napi_env env, const SubCommandInfo &subcmd)
     napi_value jsEventSchemas = ParseJsonStringToJsObject(env, subcmd.eventSchemas);
     napi_set_named_property(env, jsObj, "eventSchemas", jsEventSchemas);
 
+    // Set supportsCancel (subcommand-level declaration, inherited from tool level when undeclared)
+    napi_value jsSupportsCancel = AppExecFwk::WrapBoolToJS(env, subcmd.supportsCancel);
+    napi_set_named_property(env, jsObj, "supportsCancel", jsSupportsCancel);
+
     return jsObj;
 }
 
@@ -859,6 +863,10 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool)
     napi_value jsIsLockScreenExecutionAllowed = AppExecFwk::WrapBoolToJS(env, tool.isLockScreenExecutionAllowed);
     napi_set_named_property(env, jsObj, "isLockScreenExecutionAllowed", jsIsLockScreenExecutionAllowed);
 
+    // Set supportsCancel (tool-level declaration, default false when undeclared)
+    napi_value jsSupportsCancel = AppExecFwk::WrapBoolToJS(env, tool.supportsCancel);
+    napi_set_named_property(env, jsObj, "supportsCancel", jsSupportsCancel);
+
     return jsObj;
 }
 
@@ -915,6 +923,39 @@ napi_value CreateJsSessionStatus(napi_env env)
     setStatus = napi_set_named_property(env, objValue, "FAILED", failedVal);
     if (setStatus != napi_ok) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property FAILED failed");
+        return nullptr;
+    }
+
+    return objValue;
+}
+
+napi_value CreateJsCancelSignal(napi_env env)
+{
+    // Values align with the Linux signal numbers, the IDL enum and the d.ts declaration.
+    constexpr int32_t CANCEL_SIGNAL_SIGINT = 2;
+    constexpr int32_t CANCEL_SIGNAL_SIGTERM = 15;
+
+    napi_value objValue = nullptr;
+    napi_status createStatus = napi_create_object(env, &objValue);
+    if (createStatus != napi_ok || objValue == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_create_object failed, %{public}d", createStatus);
+        return nullptr;
+    }
+
+    napi_value sigintVal = CreateJsValue(env, CANCEL_SIGNAL_SIGINT);
+    napi_value sigtermVal = CreateJsValue(env, CANCEL_SIGNAL_SIGTERM);
+    if (sigintVal == nullptr || sigtermVal == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CreateJsValue failed");
+        return nullptr;
+    }
+    napi_status setStatus = napi_set_named_property(env, objValue, "SIGINT", sigintVal);
+    if (setStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property SIGINT failed");
+        return nullptr;
+    }
+    setStatus = napi_set_named_property(env, objValue, "SIGTERM", sigtermVal);
+    if (setStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property SIGTERM failed");
         return nullptr;
     }
 

@@ -1,0 +1,77 @@
+{
+    "name": "ohos-timer",
+    "version": "1.0.0",
+    "description": "Sample timer tool demonstrating cooperative cancel (subcommand-level supportsCancel declaration)",
+    "executablePath": "/system/bin/cli_tool/ohos-timer",
+    "requirePermissions": [],
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "duration": {
+                "type": "integer",
+                "description": "Timer duration in seconds",
+                "minimum": 1,
+                "maximum": 3600,
+                "default": 5
+            }
+        }
+    },
+    "outputSchema": {
+        "type": "object",
+        "properties": {
+            "elapsed": {
+                "type": "integer",
+                "description": "Elapsed seconds before exit"
+            },
+            "cancelled": {
+                "type": "boolean",
+                "description": "Whether the run was cancelled by a signal"
+            }
+        }
+    },
+    "hasSubCommand": true,
+    "subcommands": {
+        "run": {
+            "description": "Run the timer for the given duration; supports cooperative cancel",
+            "requirePermissions": [],
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "duration": {
+                        "type": "integer",
+                        "description": "Timer duration in seconds",
+                        "minimum": 1,
+                        "maximum": 3600,
+                        "default": 5
+                    }
+                }
+            },
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "elapsed": {
+                        "type": "integer",
+                        "description": "Elapsed seconds before exit"
+                    },
+                    "cancelled": {
+                        "type": "boolean",
+                        "description": "Whether the run was cancelled by a signal"
+                    }
+                }
+            },
+            "supportsCancel": true
+        },
+        "version": {
+            "description": "Print the tool version; cooperative cancel is intentionally not declared",
+            "requirePermissions": [],
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            },
+            "outputSchema": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    }
+}

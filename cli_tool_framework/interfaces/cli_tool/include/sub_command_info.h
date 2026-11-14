@@ -36,6 +36,7 @@ public:
     std::string outputSchema;   // JSON string
     std::vector<std::string> eventTypes;
     std::string eventSchemas;   // JSON string
+    bool supportsCancel = false;  // Subcommand-level cooperative-cancel declaration (overrides tool level)
 
     SubCommandInfo() = default;
     ~SubCommandInfo() = default;

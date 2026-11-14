@@ -17,7 +17,9 @@ public:
     static int32_t getToolByNameResult;
     static bool toolHasSubCommand;
     static bool toolIsLockScreenExecEnabled;
+    static bool toolSupportsCancel;
     static std::string subCommandName;
+    static bool subCommandSupportsCancel;
     static std::vector<std::string> toolPermissions;
     static std::vector<std::string> subCommandPermissions;
 

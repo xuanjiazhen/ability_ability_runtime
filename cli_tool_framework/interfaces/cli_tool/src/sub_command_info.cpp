@@ -46,6 +46,10 @@ bool SubCommandInfo::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write eventSchemas");
         return false;
     }
+    if (!parcel.WriteBool(supportsCancel)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write supportsCancel");
+        return false;
+    }
     return true;
 }
 
@@ -84,6 +88,11 @@ SubCommandInfo *SubCommandInfo::Unmarshalling(Parcel &parcel)
     }
     if (!parcel.ReadString(subCmd->eventSchemas)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read eventSchemas");
+        delete subCmd;
+        return nullptr;
+    }
+    if (!parcel.ReadBool(subCmd->supportsCancel)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read supportsCancel");
         delete subCmd;
         return nullptr;
     }
@@ -162,6 +171,15 @@ bool SubCommandInfo::ParseFromJson(const nlohmann::json &json, SubCommandInfo &s
         subCmd.eventSchemas = json["eventSchemas"].dump();
     }
 
+    // supportsCancel is optional; undeclared keeps the default false (tool level may inherit later)
+    if (json.contains("supportsCancel")) {
+        if (!json["supportsCancel"].is_boolean()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: supportsCancel is not a boolean");
+            return false;
+        }
+        subCmd.supportsCancel = json["supportsCancel"];
+    }
+
     return true;
 }
 
@@ -196,6 +214,7 @@ nlohmann::json SubCommandInfo::ParseToJson() const
             json["eventSchemas"] = eventSchemas;
         }
     }
+    json["supportsCancel"] = supportsCancel;
 
     return json;
 }

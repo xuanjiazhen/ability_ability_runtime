@@ -3492,5 +3492,205 @@ HWTEST_F(ToolInfoTest, ToolsRawData_RoundTrip_0100, TestSize.Level1)
     GTEST_LOG_(INFO) << "ToolsRawData_RoundTrip_0100 end";
 }
 
+// ==================== supportsCancel Tests ====================
+
+namespace {
+const char* JSON_WITH_SUBCOMMANDS = R"({
+    "name": "ohos-cancel_tool",
+    "version": "1.0.0",
+    "description": "Tool for cancel declaration tests",
+    "executablePath": "/bin/cancel_tool",
+    "requirePermissions": [],
+    "inputSchema": {},
+    "outputSchema": {},
+    "hasSubCommand": true,
+    "subcommands": {
+        "run": {
+            "description": "Run",
+            "requirePermissions": [],
+            "inputSchema": {},
+            "outputSchema": {}
+        },
+        "version": {
+            "description": "Print version",
+            "requirePermissions": [],
+            "inputSchema": {},
+            "outputSchema": {}
+        }
+    }
+})";
+} // namespace
+
+/**
+ * @tc.name: ToolInfo_SupportsCancel_0100
+ * @tc.desc: subcommand-level declaration only: run true, version undeclared -> effective false (AC-2.1)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_SupportsCancel_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0100 start";
+
+    nlohmann::json json = nlohmann::json::parse(JSON_WITH_SUBCOMMANDS, nullptr, false);
+    ASSERT_FALSE(json.is_discarded());
+    json["subcommands"]["run"]["supportsCancel"] = true;
+
+    ToolInfo tool;
+    ASSERT_TRUE(ToolInfo::ParseFromJson(json, tool));
+    EXPECT_TRUE(tool.subcommands["run"].supportsCancel);
+    EXPECT_FALSE(tool.subcommands["version"].supportsCancel);
+    EXPECT_FALSE(tool.supportsCancel);
+
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0100 end";
+}
+
+/**
+ * @tc.name: ToolInfo_SupportsCancel_0200
+ * @tc.desc: tool-level declaration only: undeclared subcommands inherit true (R-2 fallback)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_SupportsCancel_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0200 start";
+
+    nlohmann::json json = nlohmann::json::parse(JSON_WITH_SUBCOMMANDS, nullptr, false);
+    ASSERT_FALSE(json.is_discarded());
+    json["supportsCancel"] = true;
+
+    ToolInfo tool;
+    ASSERT_TRUE(ToolInfo::ParseFromJson(json, tool));
+    EXPECT_TRUE(tool.supportsCancel);
+    EXPECT_TRUE(tool.subcommands["run"].supportsCancel);
+    EXPECT_TRUE(tool.subcommands["version"].supportsCancel);
+
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0200 end";
+}
+
+/**
+ * @tc.name: ToolInfo_SupportsCancel_0300
+ * @tc.desc: both levels declared and conflicting: subcommand false overrides tool true (AC-2.2)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_SupportsCancel_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0300 start";
+
+    nlohmann::json json = nlohmann::json::parse(JSON_WITH_SUBCOMMANDS, nullptr, false);
+    ASSERT_FALSE(json.is_discarded());
+    json["supportsCancel"] = true;
+    json["subcommands"]["run"]["supportsCancel"] = false;
+
+    ToolInfo tool;
+    ASSERT_TRUE(ToolInfo::ParseFromJson(json, tool));
+    EXPECT_TRUE(tool.supportsCancel);
+    EXPECT_FALSE(tool.subcommands["run"].supportsCancel);
+    // version undeclared: still inherits the tool-level true
+    EXPECT_TRUE(tool.subcommands["version"].supportsCancel);
+
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0300 end";
+}
+
+/**
+ * @tc.name: ToolInfo_SupportsCancel_0400
+ * @tc.desc: no declaration anywhere: everything defaults to false, legacy configs load (AC-1.2, R-3)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_SupportsCancel_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0400 start";
+
+    nlohmann::json json = nlohmann::json::parse(JSON_WITH_SUBCOMMANDS, nullptr, false);
+    ASSERT_FALSE(json.is_discarded());
+
+    ToolInfo tool;
+    ASSERT_TRUE(ToolInfo::ParseFromJson(json, tool));
+    EXPECT_FALSE(tool.supportsCancel);
+    EXPECT_FALSE(tool.subcommands["run"].supportsCancel);
+    EXPECT_FALSE(tool.subcommands["version"].supportsCancel);
+
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0400 end";
+}
+
+/**
+ * @tc.name: ToolInfo_SupportsCancel_0500
+ * @tc.desc: non-boolean declaration is rejected (type check)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_SupportsCancel_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0500 start";
+
+    nlohmann::json json = nlohmann::json::parse(JSON_WITH_SUBCOMMANDS, nullptr, false);
+    ASSERT_FALSE(json.is_discarded());
+    json["supportsCancel"] = "yes";
+
+    ToolInfo tool;
+    EXPECT_FALSE(ToolInfo::ParseFromJson(json, tool));
+
+    json["supportsCancel"] = true;
+    json["subcommands"]["run"]["supportsCancel"] = 1;
+    EXPECT_FALSE(ToolInfo::ParseFromJson(json, tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0500 end";
+}
+
+/**
+ * @tc.name: ToolInfo_SupportsCancel_0600
+ * @tc.desc: ParseToJson carries supportsCancel so the rawdata path is covered (R-4)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_SupportsCancel_0600, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0600 start";
+
+    nlohmann::json json = nlohmann::json::parse(JSON_WITH_SUBCOMMANDS, nullptr, false);
+    ASSERT_FALSE(json.is_discarded());
+    json["supportsCancel"] = true;
+
+    ToolInfo tool;
+    ASSERT_TRUE(ToolInfo::ParseFromJson(json, tool));
+
+    nlohmann::json out = tool.ParseToJson();
+    ASSERT_TRUE(out.contains("supportsCancel"));
+    EXPECT_TRUE(out["supportsCancel"].get<bool>());
+    ASSERT_TRUE(out.contains("subcommands"));
+    ASSERT_TRUE(out["subcommands"].contains("run"));
+    ASSERT_TRUE(out["subcommands"]["run"].contains("supportsCancel"));
+    EXPECT_TRUE(out["subcommands"]["run"]["supportsCancel"].get<bool>());
+
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0600 end";
+}
+
+/**
+ * @tc.name: ToolInfo_SupportsCancel_0700
+ * @tc.desc: Parcel round trip keeps the supportsCancel field (VM-4)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_SupportsCancel_0700, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0700 start";
+
+    nlohmann::json json = nlohmann::json::parse(JSON_WITH_SUBCOMMANDS, nullptr, false);
+    ASSERT_FALSE(json.is_discarded());
+    json["supportsCancel"] = true;
+    json["subcommands"]["run"]["supportsCancel"] = false;
+
+    ToolInfo original;
+    ASSERT_TRUE(ToolInfo::ParseFromJson(json, original));
+    original.subcommands["version"].supportsCancel = true;
+
+    Parcel parcel;
+    ASSERT_TRUE(original.Marshalling(parcel));
+    parcel.RewindRead(0);
+
+    ToolInfo* result = ToolInfo::Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    EXPECT_TRUE(result->supportsCancel);
+    EXPECT_FALSE(result->subcommands["run"].supportsCancel);
+    EXPECT_TRUE(result->subcommands["version"].supportsCancel);
+    delete result;
+
+    GTEST_LOG_(INFO) << "ToolInfo_SupportsCancel_0700 end";
+}
+
 } // namespace CliTool
 } // namespace OHOS

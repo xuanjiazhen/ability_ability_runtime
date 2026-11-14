@@ -135,6 +135,16 @@ enum {
      * Result (35700023): Hook not registered. Nothing to unregister.
      */
     ERR_HOOK_NOT_REGISTERED = 35700023,
+
+    /*
+     * Result (35700024): Tool or subcommand does not declare supportsCancel.
+     */
+    ERR_CLI_NOT_SUPPORT_CANCEL = 35700024,
+
+    /*
+     * Result (35700025): Fail to send cancel signal to tool process.
+     */
+    ERR_CLI_SEND_SIGNAL = 35700025,
 };
 
 } // namespace CliTool

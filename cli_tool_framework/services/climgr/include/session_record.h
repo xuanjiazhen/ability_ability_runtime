@@ -67,6 +67,9 @@ public:
     std::string callerBundleName = "";
     std::string sessionId = "";
     std::string toolName = "";
+    // Subcommand bound to this session (empty when none). Immutable after CreateSessionRecord;
+    // CancelSession reverse-looks-up the subcommand-level supportsCancel declaration with it.
+    std::string subcommand = "";
     std::string eventId = "";
     std::string toolCallId = "";
     std::string dmSessionId = "";

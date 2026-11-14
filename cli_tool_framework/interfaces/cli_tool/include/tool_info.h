@@ -74,6 +74,7 @@ public:
     bool hasSubCommand = false;
     std::map<std::string, SubCommandInfo> subcommands;
     bool isLockScreenExecutionAllowed = false;  // Allow execution when screen is locked
+    bool supportsCancel = false;  // Tool-level cooperative-cancel declaration; subcommands inherit it when undeclared
 
     ToolInfo() = default;
     ~ToolInfo() = default;

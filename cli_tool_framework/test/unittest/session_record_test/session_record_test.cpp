@@ -119,6 +119,23 @@ HWTEST_F(SessionRecordTest, SessionRecord_TaskAttribution_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SessionRecord_Subcommand_0100
+ * @tc.desc: the subcommand member rides the session record — defaults to empty
+ *           (INV-1: CreateSessionRecord stores it once, CancelSession reads it back).
+ * @tc.type: FUNC
+ */
+HWTEST_F(SessionRecordTest, SessionRecord_Subcommand_0100, TestSize.Level1)
+{
+    SessionRecord record;
+    EXPECT_TRUE(record.subcommand.empty());
+
+    record.toolName = "ohos-demo";
+    record.subcommand = "run";
+    EXPECT_EQ(record.toolName, "ohos-demo");
+    EXPECT_EQ(record.subcommand, "run");
+}
+
+/**
  * @tc.name: SessionRecord_BuildSessionInfo_0100
  * @tc.desc: Test running, completed, failed and timeout session info branches
  * @tc.type: FUNC

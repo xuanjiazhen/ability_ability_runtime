@@ -49,6 +49,10 @@ constexpr int32_t INDEX_FOUR = 4;
 constexpr int32_t SKILL_ARG_ORDINAL_WIDTH = 3;
 constexpr size_t DOUBLE_DASH_PREFIX_LEN = 2;
 constexpr const char *SKILL_TOOL_NAME = "ohos-arkTSScript";
+// Cooperative-cancel signal whitelist, aligned with the CancelSignal enum in
+// ICliToolData.idl and cliManager.CancelSignal (SIGINT = 2, SIGTERM = 15).
+constexpr int32_t CANCEL_SIGNAL_SIGINT = 2;
+constexpr int32_t CANCEL_SIGNAL_SIGTERM = 15;
 
 bool IsReservedSkillKey(const std::string &key)
 {
@@ -214,6 +218,11 @@ napi_value JSCliManager::SubscribeSession(napi_env env, napi_callback_info info)
 napi_value JSCliManager::ClearSession(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnClearSession);
+}
+
+napi_value JSCliManager::CancelSession(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnCancelSession);
 }
 
 napi_value JSCliManager::QuerySession(napi_env env, napi_callback_info info)
@@ -411,6 +420,63 @@ napi_value JSCliManager::OnClearSession(napi_env env, size_t argc, napi_value *a
 
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JSCliManager::OnClearSession", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return handleEscape.Escape(result);
+}
+
+napi_value JSCliManager::OnCancelSession(napi_env env, size_t argc, napi_value *argv)
+{
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string sessionId;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], sessionId) || sessionId.empty()) {
+        ThrowInvalidParamError(env, "sessionId is required");
+        return CreateJsUndefined(env);
+    }
+
+    // signal is optional and defaults to SIGINT; only enum member values (2/15) are accepted,
+    // any other value (e.g. 9/0/-1) is rejected with 401 before any IPC is made.
+    int32_t signal = CANCEL_SIGNAL_SIGINT;
+    if (argc >= INDEX_TWO && argv[INDEX_ONE] != nullptr) {
+        napi_valuetype signalType = napi_undefined;
+        if (napi_typeof(env, argv[INDEX_ONE], &signalType) != napi_ok ||
+            (signalType != napi_number && signalType != napi_undefined && signalType != napi_null)) {
+            ThrowInvalidParamError(env, "signal is invalid");
+            return CreateJsUndefined(env);
+        }
+        if (signalType == napi_number) {
+            int32_t signalValue = 0;
+            if (napi_get_value_int32(env, argv[INDEX_ONE], &signalValue) != napi_ok ||
+                (signalValue != CANCEL_SIGNAL_SIGINT && signalValue != CANCEL_SIGNAL_SIGTERM)) {
+                ThrowInvalidParamError(env, "signal is invalid");
+                return CreateJsUndefined(env);
+            }
+            signal = signalValue;
+        }
+        // napi_undefined/napi_null: argument explicitly absent, keep the SIGINT default.
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, sessionId, signal]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().CancelSession(sessionId, signal);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task,
+        int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JSCliManager::OnCancelSession", env,
         CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
     return handleEscape.Escape(result);
 }
@@ -810,6 +876,7 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "execCmd", moduleName, JSCliManager::ExecCmd);
     BindNativeFunction(env, exportObj, "subscribeSession", moduleName, JSCliManager::SubscribeSession);
     BindNativeFunction(env, exportObj, "clearSession", moduleName, JSCliManager::ClearSession);
+    BindNativeFunction(env, exportObj, "cancelSession", moduleName, JSCliManager::CancelSession);
     BindNativeFunction(env, exportObj, "querySession", moduleName, JSCliManager::QuerySession);
     BindNativeFunction(env, exportObj, "sendMessage", moduleName, JSCliManager::SendMessage);
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
@@ -825,6 +892,15 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     }
     if (napi_set_named_property(env, exportObj, "SessionStatus", sessionStatus) != napi_ok) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property SessionStatus failed");
+    }
+
+    napi_value cancelSignal = CreateJsCancelSignal(env);
+    if (cancelSignal == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CreateJsCancelSignal failed");
+        return CreateJsUndefined(env);
+    }
+    if (napi_set_named_property(env, exportObj, "CancelSignal", cancelSignal) != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property CancelSignal failed");
     }
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");

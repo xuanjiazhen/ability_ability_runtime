@@ -28,3 +28,9 @@ struct CommandPermission
     boolean isLockScreenExecutionAllowed;
     int queryRet;
 };
+
+enum CancelSignal
+{
+    SIGINT = 2,
+    SIGTERM = 15
+};

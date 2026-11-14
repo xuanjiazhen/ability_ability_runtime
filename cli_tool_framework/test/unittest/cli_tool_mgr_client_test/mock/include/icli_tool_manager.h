@@ -70,6 +70,8 @@ public:
         const sptr<ICliToolManagerScheduler> &scheduler) = 0;
     virtual int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) = 0;
     virtual int32_t ClearSession(const std::string &sessionId) = 0;
+    // Keep in sync with the regenerated interface: signal rides the serialized int param.
+    virtual int32_t CancelSession(const std::string &sessionId, int32_t signal) = 0;
     virtual int32_t QuerySession(const std::string &sessionId, CliSessionInfo &session) = 0;
     virtual int32_t SendMessage(const std::string &sessionId, const std::string &inputText,
         const std::string &eventId, const sptr<ICliToolManagerScheduler> &scheduler) = 0;

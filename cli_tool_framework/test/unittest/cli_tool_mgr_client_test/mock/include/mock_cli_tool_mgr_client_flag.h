@@ -41,6 +41,9 @@ public:
     static int32_t retSubscribeSession;
     static int32_t retUnsubscribeSession;
     static int32_t retClearSession;
+    static int32_t retCancelSession;
+    static int32_t lastCancelSignal;
+    static std::string lastCancelSessionId;
     static int32_t retQuerySession;
     static int32_t retSendMessage;
     static int32_t retBatchQueryPermission;
