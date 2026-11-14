@@ -1830,5 +1830,9 @@ int AbilityRecord::GetAppRecoveryFlag() const
 {
     return appRecoveryFlag_;
 }
+void AbilityRecord::ClearPayloadAfterLoad() {}
+void AbilityRecord::ReplenishPayloadFromBMS() {}
+void AbilityRecord::ConsumeStartSetting() {}
+bool AbilityRecord::IsPayloadCleared() const { return false; }
 }  // namespace AAFwk
 }  // namespace OHOS
