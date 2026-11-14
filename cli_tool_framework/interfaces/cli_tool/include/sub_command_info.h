@@ -36,6 +36,7 @@ public:
     std::string outputSchema;   // JSON string
     std::vector<std::string> eventTypes;
     std::string eventSchemas;   // JSON string
+    bool isLongRunning = false; // Effective long-running value (subcommand declaration > tool declaration > false)
 
     SubCommandInfo() = default;
     ~SubCommandInfo() = default;

@@ -1,0 +1,25 @@
+{
+    "name": "ohos-example",
+    "version": "1.0.0",
+    "description": "Example CLI tool with a tool-level long-running declaration",
+    "executablePath": "/system/bin/cli_tool/executable/ohos-example",
+    "requirePermissions": [],
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "message": {
+                "type": "string",
+                "description": "Message to echo back"
+            }
+        }
+    },
+    "outputSchema": {
+        "type": "object",
+        "properties": {
+            "result": {
+                "type": "string"
+            }
+        }
+    },
+    "isLongRunning": true
+}

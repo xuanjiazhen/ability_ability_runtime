@@ -933,6 +933,64 @@ HWTEST_F(CliToolManagerServiceTest, GetToolInfoByName_Permission_0100, TestSize.
 }
 
 /**
+ * @tc.name: CliToolManagerService_GetToolInfoByName_IsLongRunning_0100
+ * @tc.desc: Test GetToolInfoByName carries isLongRunning tool-level value and subcommand effective value
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetToolInfoByName_IsLongRunning_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetToolInfoByName_IsLongRunning_0100 start");
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolHasSubCommand = true;
+    CliToolDataManagerMock::toolIsLongRunning = true;
+    CliToolDataManagerMock::subCommandIsLongRunning = false;
+    CliToolDataManagerMock::subCommandName = "version";
+
+    ToolInfo tool;
+    int32_t result = service_->GetToolInfoByName("ohos-long_mock_tool", tool);
+
+    if (result == ERR_OK) {
+        EXPECT_TRUE(tool.isLongRunning);
+        ASSERT_TRUE(tool.subcommands.count("version") > 0);
+        EXPECT_FALSE(tool.subcommands["version"].isLongRunning);
+    } else {
+        // Query gated by system app / permission in this environment
+        EXPECT_TRUE(result == ERR_NOT_SYSTEM_APP || result == ERR_PERMISSION_DENIED || result == ERR_NO_INIT);
+    }
+
+    CliToolDataManagerMock::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetToolInfoByName_IsLongRunning_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetToolInfoByName_IsLongRunning_0200
+ * @tc.desc: Test GetToolInfoByName defaults isLongRunning to false when not declared
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetToolInfoByName_IsLongRunning_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetToolInfoByName_IsLongRunning_0200 start");
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+
+    ToolInfo tool;
+    int32_t result = service_->GetToolInfoByName("ohos-short_mock_tool", tool);
+
+    if (result == ERR_OK) {
+        EXPECT_FALSE(tool.isLongRunning);
+        EXPECT_FALSE(tool.hasSubCommand);
+    } else {
+        EXPECT_TRUE(result == ERR_NOT_SYSTEM_APP || result == ERR_PERMISSION_DENIED || result == ERR_NO_INIT);
+    }
+
+    CliToolDataManagerMock::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetToolInfoByName_IsLongRunning_0200 end");
+}
+
+/**
  * @tc.name: CliToolManagerService_QueryPermission_Required_0100
  * @tc.desc: Test that query methods require ohos.permission.QUERY_CLI_TOOL permission
  * @tc.type: FUNC

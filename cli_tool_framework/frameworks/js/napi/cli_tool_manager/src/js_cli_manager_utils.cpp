@@ -731,6 +731,10 @@ napi_value CreateJsSubCommandInfo(napi_env env, const SubCommandInfo &subcmd)
     napi_value jsEventSchemas = ParseJsonStringToJsObject(env, subcmd.eventSchemas);
     napi_set_named_property(env, jsObj, "eventSchemas", jsEventSchemas);
 
+    // Set isLongRunning (effective value resolved at config load time)
+    napi_value jsIsLongRunning = AppExecFwk::WrapBoolToJS(env, subcmd.isLongRunning);
+    napi_set_named_property(env, jsObj, "isLongRunning", jsIsLongRunning);
+
     return jsObj;
 }
 
@@ -858,6 +862,10 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool)
     // Set isLockScreenExecutionAllowed
     napi_value jsIsLockScreenExecutionAllowed = AppExecFwk::WrapBoolToJS(env, tool.isLockScreenExecutionAllowed);
     napi_set_named_property(env, jsObj, "isLockScreenExecutionAllowed", jsIsLockScreenExecutionAllowed);
+
+    // Set isLongRunning (tool-level declaration value)
+    napi_value jsIsLongRunning = AppExecFwk::WrapBoolToJS(env, tool.isLongRunning);
+    napi_set_named_property(env, jsObj, "isLongRunning", jsIsLongRunning);
 
     // Set supportedDevices (device type identifiers; empty array means no device restriction).
     // visibility is an internal storage field and is deliberately NOT exposed here.

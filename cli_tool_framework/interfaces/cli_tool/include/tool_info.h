@@ -74,6 +74,7 @@ public:
     bool hasSubCommand = false;
     std::map<std::string, SubCommandInfo> subcommands;
     bool isLockScreenExecutionAllowed = false;  // Allow execution when screen is locked
+    bool isLongRunning = false;                 // Tool-level long-running declaration (subcommand falls back to it)
     // Internal visibility of the tool: only the exact string "public" opens it to
     // third-party queries; default and fallback value is "private". Not exposed to NAPI.
     std::string visibility = "private";
