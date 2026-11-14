@@ -141,6 +141,7 @@
 #include "ability_state.h"
 #include "exit_reason.h"
 #endif
+#include "task_mgr/task_manager_service.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -563,6 +564,10 @@ void AppMgrServiceInner::Init()
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
     AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(weak_from_this());
     AppPidFdManager::GetInstance().Init(weak_from_this(), taskHandler_);
+    AppExecFwk::TaskManagerService::GetInstance().SetTaskFinishedCallback(
+        [this](const std::string &taskId, int32_t userId) {
+            OnTaskFinished(taskId, userId);
+        });
 #ifdef ABILITY_CLOUD_PUSH_ENABLE
     ffrt::submit([]() {
         AAFwk::AbilityCloudPushManager::GetInstance().InitParam();
@@ -5566,6 +5571,16 @@ void AppMgrServiceInner::OnAbilityStateChanged(
     for (const auto &item : appStateCallbacks_) {
         if (item.callback != nullptr) {
             item.callback->OnAbilityRequestDone(ability->GetToken(), state);
+        }
+    }
+}
+
+void AppMgrServiceInner::OnTaskFinished(const std::string &taskId, int32_t userId)
+{
+    std::lock_guard lock(appStateCallbacksLock_);
+    for (const auto &item : appStateCallbacks_) {
+        if (item.callback != nullptr) {
+            item.callback->OnTaskFinished(taskId, userId);
         }
     }
 }

@@ -66,6 +66,8 @@ int AppStateCallbackHost::OnRemoteRequest(
             return HandleOnCacheExitInfo(data, reply);
         case static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_RECORD_APP_EXIT_SIGNAL_REASON):
             return HandleRecordAppExitSignalReason(data, reply);
+        case static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_TASK_FINISHED):
+            return HandleOnTaskFinished(data, reply);
     }
 
     TAG_LOGD(AAFwkTag::APPMGR, "AppStateCallbackHost::OnRemoteRequest end");
@@ -316,6 +318,14 @@ int32_t AppStateCallbackHost::HandleRecordAppExitSignalReason(MessageParcel &dat
     }
     std::string bundleName = data.ReadString();
     RecordAppExitSignalReason(pid, uid, signal, bundleName);
+    return NO_ERROR;
+}
+
+int32_t AppStateCallbackHost::HandleOnTaskFinished(MessageParcel &data, MessageParcel &reply)
+{
+    std::string taskId = data.ReadString();
+    int32_t userId = data.ReadInt32();
+    OnTaskFinished(taskId, userId);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

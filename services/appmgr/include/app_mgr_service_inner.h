@@ -910,6 +910,16 @@ public:
     void OnAbilityStateChanged(const std::shared_ptr<AbilityRunningRecord> &ability, const AbilityState state);
 
     /**
+     * OnTaskFinished, Fan out task finished notifications to registered state callbacks.
+     *
+     * @param taskId, the attribution key of the task.
+     * @param userId, the user id of the finished task's creator.
+     *
+     * @return
+     */
+    void OnTaskFinished(const std::string &taskId, int32_t userId);
+
+    /**
      * OnRemoteDied, Equipment death notification.
      *
      * @param remote, Death client.

@@ -121,6 +121,14 @@ public:
      */
     virtual void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) {}
 
+    /**
+     * @brief Notify abilityms a managed task has finished, so stale task
+     *        attribution entries cached on the ability side can be removed.
+     * @param taskId Attribution key of the finished task.
+     * @param userId User id of the finished task's creator.
+     */
+    virtual void OnTaskFinished(const std::string &taskId, int32_t userId) {}
+
     enum class Message {
         TRANSACT_ON_APP_STATE_CHANGED = 0,
         TRANSACT_ON_ABILITY_REQUEST_DONE,
@@ -133,6 +141,7 @@ public:
         TRANSACT_ON_CACHE_EXIT_INFO,
         TRANSACT_ON_RECORD_APP_EXIT_SIGNAL_REASON,
         TRANSACT_ON_NOTIFY_TERMINATE_ABILITY,
+        TRANSACT_ON_TASK_FINISHED,
     };
 };
 }  // namespace AppExecFwk

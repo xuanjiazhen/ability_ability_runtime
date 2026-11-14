@@ -351,6 +351,13 @@ void AppScheduler::RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t s
     callback->RecordAppExitSignalReason(pid, uid, signal, bundleName);
 }
 
+void AppScheduler::OnTaskFinished(const std::string &taskId, int32_t userId)
+{
+    auto callback = callback_.lock();
+    CHECK_POINTER(callback);
+    callback->OnTaskFinished(taskId, userId);
+}
+
 int AppScheduler::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
     const std::string &reason, int32_t userId)
 {
