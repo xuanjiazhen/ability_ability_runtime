@@ -141,7 +141,10 @@ public:
         const std::string &callerBundleName = "",
         const std::string &targetBundleName = "");
 
-    static int32_t CheckGetInsightIntenInfoPermission();
+    static int32_t CheckGetInsightIntenInfoPermission(
+        const std::string &targetBundleName = "");
+
+    static std::string GetCallerBundleNameByUid();
 
     void OnInsightAppDied(const std::string &bundleName, pid_t pid = 0);
 
