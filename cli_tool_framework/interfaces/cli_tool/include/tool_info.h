@@ -74,6 +74,7 @@ public:
     bool hasSubCommand = false;
     std::map<std::string, SubCommandInfo> subcommands;
     bool isLockScreenExecutionAllowed = false;  // Allow execution when screen is locked
+    bool isLongRunning = false;                 // Tool-level long-running declaration (subcommand falls back to it)
 
     ToolInfo() = default;
     ~ToolInfo() = default;

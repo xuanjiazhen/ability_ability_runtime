@@ -1,0 +1,108 @@
+{
+    "name": "ohos-timer",
+    "version": "1.0.0",
+    "description": "Timer tool that waits for a specified duration and reports timer status",
+    "executablePath": "/system/bin/cli_tool/executable/ohos-timer",
+    "requirePermissions": [],
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "duration": {
+                "type": "integer",
+                "description": "Duration to wait, in seconds",
+                "minimum": 1
+            }
+        },
+        "required": [
+            "duration"
+        ]
+    },
+    "outputSchema": {
+        "type": "object",
+        "properties": {
+            "remaining": {
+                "type": "integer",
+                "description": "Remaining seconds of the timer"
+            }
+        }
+    },
+    "eventTypes": [
+        "timer"
+    ],
+    "eventSchemas": {
+        "timer": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "const": "timer"
+                },
+                "remaining": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "hasSubCommand": true,
+    "isLongRunning": true,
+    "subcommands": {
+        "wait": {
+            "description": "Wait for the given duration, reporting progress via timer events",
+            "requirePermissions": [],
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "duration": {
+                        "type": "integer",
+                        "description": "Duration to wait, in seconds",
+                        "minimum": 1
+                    }
+                },
+                "required": [
+                    "duration"
+                ]
+            },
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "completed": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "isLongRunning": true
+        },
+        "status": {
+            "description": "Query the status of the running timer until it completes",
+            "requirePermissions": [],
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            },
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "remaining": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "version": {
+            "description": "Print the tool version (short-running)",
+            "requirePermissions": [],
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            },
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "version": {
+                        "type": "string"
+                    }
+                }
+            },
+            "isLongRunning": false
+        }
+    }
+}

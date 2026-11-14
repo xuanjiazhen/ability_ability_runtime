@@ -54,7 +54,8 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
            parcel.WriteStringVector(eventTypes) &&
            parcel.WriteBool(hasSubCommand) &&
            parcel.WriteString(subcommandsJson) &&
-           parcel.WriteBool(isLockScreenExecutionAllowed);
+           parcel.WriteBool(isLockScreenExecutionAllowed) &&
+           parcel.WriteBool(isLongRunning);
 }
 
 ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
@@ -76,7 +77,8 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         !parcel.ReadStringVector(&tool->eventTypes) ||
         !parcel.ReadBool(tool->hasSubCommand) ||
         !parcel.ReadString(subcommandsJson) ||
-        !parcel.ReadBool(tool->isLockScreenExecutionAllowed)) {
+        !parcel.ReadBool(tool->isLockScreenExecutionAllowed) ||
+        !parcel.ReadBool(tool->isLongRunning)) {
         delete tool;
         return nullptr;
     }
@@ -324,6 +326,25 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         }
         tool.isLockScreenExecutionAllowed = json["isLockScreenExecutionAllowed"];
     }
+    if (json.contains("isLongRunning")) {
+        if (!json["isLongRunning"].is_boolean()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: isLongRunning is not a boolean");
+            return false;
+        }
+        tool.isLongRunning = json["isLongRunning"];
+    }
+    // Backfill: a subcommand that does not declare isLongRunning inherits the tool-level
+    // declaration, so SubCommandInfo.isLongRunning always holds the effective value.
+    if (tool.hasSubCommand) {
+        const nlohmann::json &subcommandsJson = json["subcommands"];
+        for (auto &subCmdPair : tool.subcommands) {
+            if (subcommandsJson.contains(subCmdPair.first) &&
+                subcommandsJson[subCmdPair.first].contains("isLongRunning")) {
+                continue;
+            }
+            subCmdPair.second.isLongRunning = tool.isLongRunning;
+        }
+    }
 
     return true;
 }
@@ -371,6 +392,7 @@ nlohmann::json ToolInfo::ParseToJson() const
         j["subcommands"] = subcommandsJson;
     }
     j["isLockScreenExecutionAllowed"] = isLockScreenExecutionAllowed;
+    j["isLongRunning"] = isLongRunning;
 
     return j;
 }

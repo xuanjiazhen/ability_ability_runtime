@@ -1435,5 +1435,134 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_EnsureToolsLoaded_004, TestS
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_EnsureToolsLoaded_004 end");
 }
 
+// ==================== isLongRunning declaration loading tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_LoadToolsWithIsLongRunning_001
+ * @tc.desc: Test loading a config with isLongRunning keeps tool-level and effective subcommand values
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_LoadToolsWithIsLongRunning_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsWithIsLongRunning_001 start");
+
+    const std::string longRunningJson = R"({
+        "name": "ohos-long_tool",
+        "version": "1.0.0",
+        "description": "Long running tool",
+        "executablePath": "/bin/long_tool",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {},
+        "hasSubCommand": true,
+        "isLongRunning": true,
+        "subcommands": {
+            "run": {
+                "description": "Run the tool",
+                "requirePermissions": [],
+                "inputSchema": {},
+                "outputSchema": {},
+                "isLongRunning": true
+            },
+            "version": {
+                "description": "Print version",
+                "requirePermissions": [],
+                "inputSchema": {},
+                "outputSchema": {},
+                "isLongRunning": false
+            },
+            "status": {
+                "description": "Query status",
+                "requirePermissions": [],
+                "inputSchema": {},
+                "outputSchema": {}
+            }
+        }
+    })";
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    std::vector<ToolInfo> tools;
+    int32_t ret = dataManager.JsonArrayToTools("[" + longRunningJson + "]", tools);
+
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_EQ(tools.size(), 1u);
+    EXPECT_TRUE(tools[0].isLongRunning);
+    ASSERT_TRUE(tools[0].subcommands.count("run") > 0);
+    EXPECT_TRUE(tools[0].subcommands["run"].isLongRunning);
+    ASSERT_TRUE(tools[0].subcommands.count("version") > 0);
+    EXPECT_FALSE(tools[0].subcommands["version"].isLongRunning);
+    ASSERT_TRUE(tools[0].subcommands.count("status") > 0);
+    EXPECT_TRUE(tools[0].subcommands["status"].isLongRunning);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsWithIsLongRunning_001 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_LoadToolsWithIsLongRunning_002
+ * @tc.desc: Test loading a legacy config without isLongRunning still succeeds and defaults to false
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_LoadToolsWithIsLongRunning_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsWithIsLongRunning_002 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    std::vector<ToolInfo> tools;
+    int32_t ret = dataManager.JsonArrayToTools("[" + BuildToolJson("ohos-legacy_tool") + "]", tools);
+
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_EQ(tools.size(), 1u);
+    EXPECT_FALSE(tools[0].isLongRunning);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsWithIsLongRunning_002 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_LoadToolsWithIsLongRunning_003
+ * @tc.desc: Test serialization round trip through ParseToJson/JsonArrayToTools keeps isLongRunning
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_LoadToolsWithIsLongRunning_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsWithIsLongRunning_003 start");
+
+    const std::string longRunningJson = R"({
+        "name": "ohos-roundtrip_long_tool",
+        "version": "1.0.0",
+        "description": "Round trip long running tool",
+        "executablePath": "/bin/roundtrip_long_tool",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {},
+        "hasSubCommand": true,
+        "isLongRunning": true,
+        "subcommands": {
+            "run": {
+                "description": "Run the tool",
+                "requirePermissions": [],
+                "inputSchema": {},
+                "outputSchema": {},
+                "isLongRunning": false
+            }
+        }
+    })";
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    std::vector<ToolInfo> tools;
+    ASSERT_EQ(dataManager.JsonArrayToTools("[" + longRunningJson + "]", tools), ERR_OK);
+    ASSERT_EQ(tools.size(), 1u);
+
+    // Round trip through the KVStore serialization path (ParseToJson dump)
+    nlohmann::json arrayJson = nlohmann::json::array({tools[0].ParseToJson()});
+    std::vector<ToolInfo> reparsed;
+    ASSERT_EQ(dataManager.JsonArrayToTools(arrayJson.dump(), reparsed), ERR_OK);
+    ASSERT_EQ(reparsed.size(), 1u);
+    EXPECT_TRUE(reparsed[0].isLongRunning);
+    ASSERT_TRUE(reparsed[0].subcommands.count("run") > 0);
+    EXPECT_FALSE(reparsed[0].subcommands["run"].isLongRunning);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsWithIsLongRunning_003 end");
+}
+
 } // namespace CliTool
 } // namespace OHOS
