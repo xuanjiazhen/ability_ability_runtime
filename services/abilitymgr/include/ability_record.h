@@ -872,7 +872,7 @@ public:
 
     bool GetPromotePriority();
 
-    bool PromotePriority();
+    virtual bool PromotePriority();
 
     std::string GetFirstCallerBundleName()
     {
