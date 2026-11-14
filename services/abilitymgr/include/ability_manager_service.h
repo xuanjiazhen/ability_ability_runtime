@@ -3255,15 +3255,15 @@ private:
     std::vector<std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
 
     /**
-     * @brief Callback invoked by TaskManagerService when a task is finished
-     *        (via FinishTask, timeout, or creator process death). Iterates all
-     *        AbilityConnectManager instances and cleans stale A2A task
-     *        attribution entries matching the finished taskId from
-     *        BaseExtensionRecord::taskAttributions_.
+     * @brief Callback invoked (via IAppStateCallback::OnTaskFinished IPC) when
+     *        a task is finished in appmgr (via FinishTask, timeout, or creator
+     *        process death). Iterates all AbilityConnectManager instances and
+     *        cleans stale A2A task attribution entries matching the finished
+     *        taskId from BaseExtensionRecord::taskAttributions_.
      * @param taskId Indicates the finished task id.
      * @param userId Indicates the user id of the finished task's creator.
      */
-    void OnTaskFinished(const std::string &taskId, int32_t userId);
+    void OnTaskFinished(const std::string &taskId, int32_t userId) override;
 
     int32_t GetServiceMapByUserId(AbilityConnectManager::ServiceMapType &serviceMap, int32_t userId);
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(

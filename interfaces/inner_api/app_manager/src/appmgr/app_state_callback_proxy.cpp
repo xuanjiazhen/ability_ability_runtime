@@ -356,6 +356,34 @@ void AppStateCallbackProxy::RecordAppExitSignalReason(int32_t pid, int32_t uid, 
     }
 }
 
+void AppStateCallbackProxy::OnTaskFinished(const std::string &taskId, int32_t userId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
+        return;
+    }
+
+    if (!data.WriteString(taskId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write taskId failed");
+        return;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write userId failed.");
+        return;
+    }
+
+    auto ret = SendTransactCmd(
+        static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_TASK_FINISHED),
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+    }
+}
+
 int32_t AppStateCallbackProxy::SendTransactCmd(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {

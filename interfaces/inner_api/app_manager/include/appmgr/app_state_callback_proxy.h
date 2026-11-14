@@ -111,6 +111,14 @@ public:
      */
     virtual void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) override;
 
+    /**
+     * @brief Notify abilityms a managed task has finished, so stale task
+     *        attribution entries cached on the ability side can be removed.
+     * @param taskId Attribution key of the finished task.
+     * @param userId User id of the finished task's creator.
+     */
+    virtual void OnTaskFinished(const std::string &taskId, int32_t userId) override;
+
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     static inline BrokerDelegator<AppStateCallbackProxy> delegator_;

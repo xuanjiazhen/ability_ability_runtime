@@ -129,6 +129,7 @@ private:
     int32_t HandleOnCacheExitInfo(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyAppPreCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRecordAppExitSignalReason(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleOnTaskFinished(MessageParcel &data, MessageParcel &reply);
 
     DISALLOW_COPY_AND_MOVE(AppStateCallbackHost);
 };

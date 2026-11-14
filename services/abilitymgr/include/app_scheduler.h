@@ -163,7 +163,13 @@ public:
      * @param signal Signal number that caused the process to exit.
      * @param bundleName Bundle name of the exited application.
      */
-    virtual void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) {}
+    /**
+     * @brief Notify abilityms a managed task has finished, so stale task
+     *        attribution entries cached on the ability side can be removed.
+     * @param taskId Attribution key of the finished task.
+     * @param userId User id of the finished task's creator.
+     */
+    virtual void OnTaskFinished(const std::string &taskId, int32_t userId) {}
 };
 
 class StartSpecifiedAbilityResponse : public AppExecFwk::StartSpecifiedAbilityResponseStub {
@@ -879,6 +885,14 @@ protected:
      * @param bundleName Bundle name of the exited application.
      */
     virtual void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) override;
+
+    /**
+     * @brief Notify abilityms a managed task has finished, so stale task
+     *        attribution entries cached on the ability side can be removed.
+     * @param taskId Attribution key of the finished task.
+     * @param userId User id of the finished task's creator.
+     */
+    virtual void OnTaskFinished(const std::string &taskId, int32_t userId) override;
 
 private:
     bool isInit_  {false};
