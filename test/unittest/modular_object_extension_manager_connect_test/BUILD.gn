@@ -16,6 +16,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 module_output_path = "ability_runtime/ability_runtime/capi_ability_runtime"
 
+if (ability_runtime_modular_object) {
 ohos_unittest("modular_object_extension_manager_connect_test") {
   module_out_path = module_output_path
 
@@ -51,8 +52,12 @@ ohos_unittest("modular_object_extension_manager_connect_test") {
     "napi:ace_napi",
   ]
 }
+}
 
 group("unittest") {
   testonly = true
-  deps = [ ":modular_object_extension_manager_connect_test" ]
+  deps = []
+  if (ability_runtime_modular_object) {
+    deps += [ ":modular_object_extension_manager_connect_test" ]
+  }
 }
