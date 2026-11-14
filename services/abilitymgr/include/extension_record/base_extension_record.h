@@ -194,6 +194,8 @@ public:
      */
     size_t CleanTaskAttributionsByTaskId(const std::string &taskId);
 
+    bool PromotePriority() override;
+
 private:
     void DumpUIExtensionRootHostInfo(std::vector<std::string> &info) const;
 
