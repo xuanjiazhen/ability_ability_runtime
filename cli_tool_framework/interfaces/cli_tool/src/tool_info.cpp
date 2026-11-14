@@ -147,6 +147,7 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
            parcel.WriteBool(hasSubCommand) &&
            parcel.WriteString(subcommandsJson) &&
            parcel.WriteBool(isLockScreenExecutionAllowed) &&
+           parcel.WriteBool(supportsCancel) &&
            parcel.WriteString(visibility) &&
            parcel.WriteStringVector(supportedDevices);
 }
@@ -171,6 +172,7 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         !parcel.ReadBool(tool->hasSubCommand) ||
         !parcel.ReadString(subcommandsJson) ||
         !parcel.ReadBool(tool->isLockScreenExecutionAllowed) ||
+        !parcel.ReadBool(tool->supportsCancel) ||
         !parcel.ReadString(tool->visibility) ||
         !parcel.ReadStringVector(&tool->supportedDevices)) {
         delete tool;
@@ -398,12 +400,25 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         }
         tool.hasSubCommand = json["hasSubCommand"];
     }
+    if (json.contains("supportsCancel")) {
+        if (!json["supportsCancel"].is_boolean()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: supportsCancel is not a boolean");
+            return false;
+        }
+        tool.supportsCancel = json["supportsCancel"];
+    }
     if (tool.hasSubCommand) {
         if (!json.contains("subcommands") || !json["subcommands"].is_object() || json["subcommands"].empty()) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: subcommands is required when hasSubCommand is true");
             return false;
         }
+        // Subcommands that declare supportsCancel themselves; the rest inherit the tool-level
+        // declaration (priority: subcommand-level > tool-level > default false).
+        std::set<std::string> subCommandsDeclaredCancel;
         for (auto it = json["subcommands"].begin(); it != json["subcommands"].end(); ++it) {
+            if (it.value().contains("supportsCancel")) {
+                subCommandsDeclaredCancel.insert(it.key());
+            }
             SubCommandInfo subCmd;
             if (!SubCommandInfo::ParseFromJson(it.value(), subCmd)) {
                 TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: subcommand %{public}s parse failed",
@@ -411,6 +426,13 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
                 return false;
             }
             tool.subcommands[it.key()] = std::move(subCmd);
+        }
+        if (tool.supportsCancel) {
+            for (auto &pair : tool.subcommands) {
+                if (subCommandsDeclaredCancel.find(pair.first) == subCommandsDeclaredCancel.end()) {
+                    pair.second.supportsCancel = true;
+                }
+            }
         }
     }
     if (json.contains("isLockScreenExecutionAllowed")) {
@@ -477,6 +499,7 @@ nlohmann::json ToolInfo::ParseToJson() const
         j["subcommands"] = subcommandsJson;
     }
     j["isLockScreenExecutionAllowed"] = isLockScreenExecutionAllowed;
+    j["supportsCancel"] = supportsCancel;
     j["visibility"] = visibility;
     j["supportedDevices"] = supportedDevices;
 

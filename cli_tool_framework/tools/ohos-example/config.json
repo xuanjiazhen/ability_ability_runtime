@@ -1,0 +1,16 @@
+{
+    "name": "ohos-example",
+    "version": "1.0.0",
+    "description": "Sample tool demonstrating tool-level supportsCancel declaration",
+    "executablePath": "/system/bin/cli_tool/ohos-example",
+    "requirePermissions": [],
+    "inputSchema": {
+        "type": "object",
+        "properties": {}
+    },
+    "outputSchema": {
+        "type": "object",
+        "properties": {}
+    },
+    "supportsCancel": true
+}

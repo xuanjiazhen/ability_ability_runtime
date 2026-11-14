@@ -1,0 +1,48 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+# Sample CLI tool demonstrating the cooperative cancel capability:
+# - config.json declares subcommand-level supportsCancel (run: true, version: undeclared);
+# - main.cpp handles SIGINT/SIGTERM via sigaction, flushes partial results and exits
+#   with the recommended 128 + signal code.
+# Build on demand (not wired into the product image):
+#   ./build.sh --build-target cli_tool_samples
+ohos_executable("ohos-timer") {
+  sources = [ "src/main.cpp" ]
+
+  cflags_cc = [ "-fvisibility=hidden" ]
+
+  install_enable = false
+  relative_install_dir = "cli_tool"
+
+  part_name = "ability_runtime"
+  subsystem_name = "ability"
+}
+
+ohos_prebuilt_etc("ohos-timer_config") {
+  source = "config.json"
+  relative_install_dir = "cli_tool/configs"
+
+  part_name = "ability_runtime"
+  subsystem_name = "ability"
+}
+
+group("cli_tool_samples") {
+  deps = [
+    ":ohos-timer",
+    ":ohos-timer_config",
+    "../ohos-example:ohos-example_config",
+  ]
+}

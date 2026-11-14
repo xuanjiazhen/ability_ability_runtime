@@ -78,6 +78,15 @@ public:
     static napi_value ClearSession(napi_env env, napi_callback_info info);
 
     /**
+     * @brief Native method for cancel session by session id (cooperative signal).
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value CancelSession(napi_env env, napi_callback_info info);
+
+    /**
      * @brief Native method for query session by session id.
      *
      * @param env The N-API environment.
@@ -166,6 +175,16 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnClearSession(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for cancel session by session id (cooperative signal).
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnCancelSession(napi_env env, size_t argc, napi_value *argv);
 
     /**
      * @brief Implementation for query session by session id.

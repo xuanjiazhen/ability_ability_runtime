@@ -1889,6 +1889,303 @@ HWTEST_F(CliToolManagerServiceTest, ClearSession_0400, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CliToolManagerService_CancelSession_0100
+ * @tc.desc: Test CancelSession with missing or non-running session (AC-4.2)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0100 start");
+
+    int32_t result = service_->CancelSession("nonexistent_session", 2); // 2 = SIGINT
+    EXPECT_TRUE(result == ERR_CLI_SESSION_NOT_FOUND || IsPermissionGateResult(result));
+    if (IsPermissionGateResult(result)) {
+        TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0100 skipped session gate checks");
+        return;
+    }
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_completed_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->SetState(SessionState::COMPLETED);
+    service_->AddSessionRecord(record);
+    EXPECT_EQ(service_->CancelSession("cancel_completed_session", 2), ERR_CLI_SESSION_NOT_FOUND);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0200
+ * @tc.desc: Test CancelSession rejects a tool that does not declare supportsCancel (AC-4.1)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0200 start");
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = false;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_undeclared_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "ohos-undeclared";
+    record->subcommand = "";
+    record->processId = 999999;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    int32_t result = service_->CancelSession(record->sessionId, 2);
+    EXPECT_TRUE(result == ERR_CLI_NOT_SUPPORT_CANCEL || IsPermissionGateResult(result));
+    if (result == ERR_CLI_NOT_SUPPORT_CANCEL) {
+        // INV-3: rejection has no side effects — state unchanged, record still present.
+        EXPECT_EQ(record->GetState(), SessionState::RUNNING);
+        EXPECT_NE(service_->GetSessionRecord(record->sessionId), nullptr);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0300
+ * @tc.desc: Test CancelSession rejects SKILL and shell (execCmd) sessions (AC-4.1)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0300 start");
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = true;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_skill_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->sessionType = SessionType::SKILL;
+    record->toolName = "ohos-skill-tool";
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    int32_t result = service_->CancelSession(record->sessionId, 2);
+    EXPECT_TRUE(result == ERR_CLI_NOT_SUPPORT_CANCEL || IsPermissionGateResult(result));
+
+    auto shellRecord = std::make_shared<SessionRecord>();
+    shellRecord->sessionId = "cancel_shell_session";
+    shellRecord->callerPid = IPCSkeleton::GetCallingPid();
+    shellRecord->sessionType = SessionType::CLI_CMD;
+    shellRecord->toolName = "shell";
+    shellRecord->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(shellRecord);
+    result = service_->CancelSession(shellRecord->sessionId, 2);
+    EXPECT_TRUE(result == ERR_CLI_NOT_SUPPORT_CANCEL || IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0400
+ * @tc.desc: Test CancelSession rejects signals outside the SIGINT/SIGTERM whitelist (AC-4.3)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0400 start");
+
+    // Live child: proves the invalid-signal rejection happens before any kill(2).
+    pid_t child = fork();
+    ASSERT_GE(child, 0);
+    if (child == 0) {
+        pause();
+        _exit(0);
+    }
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = true;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_bad_signal_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "ohos-declared";
+    record->subcommand = "";
+    record->processId = child;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    for (int32_t badSignal : {9, 0, -1}) { // 9 = SIGKILL must be refused at the entry
+        int32_t result = service_->CancelSession(record->sessionId, badSignal);
+        EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
+    }
+    EXPECT_EQ(record->GetState(), SessionState::RUNNING);
+
+    // Cleanup: the child never received anything; kill it through the normal path.
+    EXPECT_EQ(kill(child, SIGKILL), 0);
+    int32_t status = 0;
+    EXPECT_EQ(waitpid(child, &status, 0), child);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0400 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0500
+ * @tc.desc: Test CancelSession resolves on successful delivery without touching the session
+ *           (AC-3.1/AC-3.2, R-12, VM-12)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0500 start");
+
+    pid_t child = fork();
+    ASSERT_GE(child, 0);
+    if (child == 0) {
+        pause();
+        _exit(0);
+    }
+
+    // Subcommand-level declaration only (tool-level false): subcommand wins (R-2).
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = false;
+    CliToolDataManagerMock::toolHasSubCommand = true;
+    CliToolDataManagerMock::subCommandName = "run";
+    CliToolDataManagerMock::subCommandSupportsCancel = true;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_ok_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "ohos-declared";
+    record->subcommand = "run";
+    record->processId = child;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    int32_t result = service_->CancelSession(record->sessionId, 15); // 15 = SIGTERM
+    EXPECT_TRUE(result == ERR_OK || IsPermissionGateResult(result));
+    if (result == ERR_OK) {
+        // INV-4/VM-12: best effort — state unchanged, record kept, subscriptions untouched.
+        EXPECT_EQ(record->GetState(), SessionState::RUNNING);
+        EXPECT_NE(service_->GetSessionRecord(record->sessionId), nullptr);
+    }
+
+    int32_t status = 0;
+    EXPECT_EQ(waitpid(child, &status, 0), child);
+    if (result == ERR_OK) {
+        EXPECT_TRUE(WIFSIGNALED(status));
+        EXPECT_EQ(WTERMSIG(status), SIGTERM);
+    } else {
+        EXPECT_EQ(kill(child, SIGKILL), 0);
+        waitpid(child, &status, 0);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0500 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0600
+ * @tc.desc: Test CancelSession returns ERR_CLI_SEND_SIGNAL when both delivery paths fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0600 start");
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = true;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_dead_pid_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "ohos-declared";
+    record->subcommand = "";
+    record->processId = 999999; // definitely gone
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    int32_t result = service_->CancelSession(record->sessionId, 2);
+    EXPECT_TRUE(result == ERR_CLI_SEND_SIGNAL || IsPermissionGateResult(result));
+    if (result == ERR_CLI_SEND_SIGNAL) {
+        EXPECT_EQ(record->GetState(), SessionState::RUNNING);
+        EXPECT_NE(service_->GetSessionRecord(record->sessionId), nullptr);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0600 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0700
+ * @tc.desc: Test CancelSession subcommand lookup misses the map and falls back to tool level (R-2)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0700 start");
+
+    pid_t child = fork();
+    ASSERT_GE(child, 0);
+    if (child == 0) {
+        pause();
+        _exit(0);
+    }
+
+    // Tool-level declaration only: an unknown subcommand falls back to the tool value.
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = true;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_fallback_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "ohos-declared";
+    record->subcommand = "unknown_sub";
+    record->processId = child;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    int32_t result = service_->CancelSession(record->sessionId, 2);
+    EXPECT_TRUE(result == ERR_OK || IsPermissionGateResult(result));
+
+    int32_t status = 0;
+    EXPECT_EQ(waitpid(child, &status, 0), child);
+    if (result != ERR_OK) {
+        EXPECT_EQ(kill(child, SIGKILL), 0);
+        waitpid(child, &status, 0);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0700 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CreateSessionRecord_0200
+ * @tc.desc: Test CreateSessionRecord persists the subcommand for reverse lookup (INV-1)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CreateSessionRecord_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CreateSessionRecord_0200 start");
+
+    ExecToolParam param;
+    param.toolName = "ohos-record_tool";
+    param.subcommand = "run";
+    param.challenge = "test_challenge";
+
+    auto record = service_->CreateSessionRecord(param, "event_record");
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(record->toolName, param.toolName);
+    EXPECT_EQ(record->subcommand, param.subcommand);
+
+    ExecToolParam noSubParam;
+    noSubParam.toolName = "ohos-record_tool";
+    noSubParam.subcommand = "";
+    auto noSubRecord = service_->CreateSessionRecord(noSubParam, "event_record");
+    ASSERT_NE(noSubRecord, nullptr);
+    EXPECT_TRUE(noSubRecord->subcommand.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CreateSessionRecord_0200 end");
+}
+
+/**
  * @tc.name: CliToolManagerService_QuerySession_0100
  * @tc.desc: Test QuerySession with missing session returns error
  * @tc.type: FUNC
@@ -4675,6 +4972,7 @@ public:
         const sptr<ICliToolManagerScheduler> &) override { return ERR_OK; }
     ErrCode UnsubscribeSession(const std::string &, const std::string &) override { return ERR_OK; }
     ErrCode ClearSession(const std::string &) override { return ERR_OK; }
+    ErrCode CancelSession(const std::string &, int32_t) override { return ERR_OK; }
     ErrCode QuerySession(const std::string &, CliSessionInfo &) override { return ERR_OK; }
     ErrCode SendMessage(const std::string &, const std::string &, const std::string &,
         const sptr<ICliToolManagerScheduler> &) override { return ERR_OK; }
