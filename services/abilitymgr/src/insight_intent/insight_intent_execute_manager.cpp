@@ -22,8 +22,9 @@
 #include <unordered_map>
 
 #include "ability_config.h"
-#include "ability_util.h"
 #include "ability_manager_errors.h"
+#include "ability_util.h"
+#include "app_mgr_client.h"
 #include "distributed_ability_runtime/distributed_client.h"
 #include "extract_insight_intent_profile.h"
 #include "ffrt.h"
@@ -52,7 +53,6 @@ constexpr const char *KEY_INTERACTION_INFO = "interactionInfo";
 constexpr int32_t OPERATION_DURATION = 10000;
 constexpr int32_t DYING_CALLBACK_DELAY_MS = 100;
 constexpr int64_t MICROSECONDS_PER_MILLISECOND = 1000;
-
 ParamType StringToParamType(const std::string &typeStr)
 {
     static const std::unordered_map<std::string, ParamType> typeMapping = {
@@ -826,7 +826,7 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
         TAG_LOGE(AAFwkTag::INTENT, "system-api cannot use");
         return ERR_NOT_SYSTEM_APP;
     }
-
+ 
     bool isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(
         EXECUTE_INSIGHT_INTENT_PERMISSION, specifiedFullTokenId);
     if (!isCallingPerm) {
@@ -838,46 +838,17 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
     return ERR_OK;
 }
 
-std::string InsightIntentExecuteManager::GetCallerBundleNameByUid()
+int32_t InsightIntentExecuteManager::CheckGetInsightIntenInfoPermission()
 {
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
-    auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
-    std::string bundleName;
-    if (bundleMgr != nullptr) {
-        IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, bundleName));
-    }
-    return bundleName;
-}
-
-int32_t InsightIntentExecuteManager::CheckGetInsightIntenInfoPermission(
-    const std::string &targetBundleName)
-{
-    if (PermissionVerification::GetInstance()->IsShellCall()) {
-        TAG_LOGD(AAFwkTag::INTENT, "shell caller, skip permission check");
-        return ERR_OK;
-    }
-
-    bool isSystemAppCall =
-        PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
-    if (isSystemAppCall && !targetBundleName.empty()) {
-        auto callerBundle = GetCallerBundleNameByUid();
-        if (!callerBundle.empty() && callerBundle == targetBundleName) {
-            TAG_LOGI(AAFwkTag::INTENT, "caller query own intent info, skip permission check");
-            return ERR_OK;
-        }
-    }
-
+    bool isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
     if (!isSystemAppCall) {
         TAG_LOGE(AAFwkTag::INTENT, "system-api cannot use");
         return ERR_NOT_SYSTEM_APP;
     }
 
-    bool isCallingPerm =
-        PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission();
+    bool isCallingPerm = PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission();
     if (!isCallingPerm) {
-        TAG_LOGE(AAFwkTag::INTENT,
-            "permission %{public}s verification failed",
-            PERMISSION_GET_BUNDLE_INFO_PRIVILEGED);
+        TAG_LOGE(AAFwkTag::INTENT, "permission %{public}s verification failed", PERMISSION_GET_BUNDLE_INFO_PRIVILEGED);
         return ERR_PERMISSION_DENIED;
     }
     return ERR_OK;
