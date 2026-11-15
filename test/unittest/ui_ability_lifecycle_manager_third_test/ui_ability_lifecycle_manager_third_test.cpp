@@ -15,8 +15,12 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <thread>
+
 #include "ability_manager_errors.h"
 #include "ability_util.h"
+#include "ipc_skeleton.h"
 #define private public
 #define protected public
 #include "ability_record.h"
@@ -2335,6 +2339,206 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, NotifyStartupExceptionBySCB_Prelaun
     usleep(100000);
     EXPECT_EQ(PrelaunchTimeoutConnection::disconnectDoneCount, 1);
     EXPECT_EQ(mgr->tmpAbilityMap_.size(), 0);
+}
+
+namespace {
+// Local session capturing the SessionInfo passed by ChangeAbilityVisibility so tests can verify
+// that a private clone (instead of the shared sessionInfo owned by the record) is sent to SCB.
+class VisibilityTestSession : public Rosen::Session {
+public:
+    explicit VisibilityTestSession(const Rosen::SessionInfo &info) : Rosen::Session(info) {}
+    ~VisibilityTestSession() override = default;
+
+    Rosen::WSError ChangeSessionVisibilityWithStatusBar(const sptr<AAFwk::SessionInfo> abilitySessionInfo,
+        bool visible) override
+    {
+        lastSessionInfo_ = abilitySessionInfo;
+        lastVisible_ = visible;
+        return Rosen::WSError::WS_OK;
+    }
+
+    sptr<AAFwk::SessionInfo> lastSessionInfo_ = nullptr;
+    bool lastVisible_ = false;
+};
+} // namespace
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ChangeAbilityVisibility_0100
+ * @tc.desc: ChangeAbilityVisibility sends a private sessionInfo snapshot to the session and
+ *           keeps the shared sessionInfo owned by the record untouched
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ChangeAbilityVisibility_001, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(mgr, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
+    abilityRequest.appInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    auto sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    auto testSession = sptr<VisibilityTestSession>::MakeSptr(Rosen::SessionInfo());
+    ASSERT_NE(testSession, nullptr);
+    sessionInfo->sessionToken = testSession->AsObject();
+    sessionInfo->want.SetParam("visibilityTestKey", 100);
+    auto processOptions = std::make_shared<ProcessOptions>();
+    processOptions->processMode = ProcessMode::NO_ATTACHMENT;
+    sessionInfo->processOptions = processOptions;
+    abilityRecord->sessionInfo_ = sessionInfo;
+
+    int32_t sessionId = 1;
+    mgr->sessionAbilityMap_.emplace(sessionId, abilityRecord);
+    auto token = abilityRecord->GetToken()->AsObject();
+    ASSERT_NE(token, nullptr);
+
+    EXPECT_EQ(mgr->ChangeAbilityVisibility(token, true), ERR_OK);
+    // The session must receive a private clone, not the shared sessionInfo of the record.
+    ASSERT_NE(testSession->lastSessionInfo_, nullptr);
+    EXPECT_NE(testSession->lastSessionInfo_.GetRefPtr(), sessionInfo.GetRefPtr());
+    EXPECT_TRUE(testSession->lastVisible_);
+    EXPECT_EQ(testSession->lastSessionInfo_->want.GetIntParam("visibilityTestKey", -1), 100);
+    // processOptions is deep-copied by the clone: distinct pointee, equal values.
+    ASSERT_NE(testSession->lastSessionInfo_->processOptions, nullptr);
+    EXPECT_NE(testSession->lastSessionInfo_->processOptions.get(), processOptions.get());
+    EXPECT_EQ(testSession->lastSessionInfo_->processOptions->processMode, ProcessMode::NO_ATTACHMENT);
+    EXPECT_EQ(testSession->lastSessionInfo_->processOptions->selfPid, -1);
+    // In-place mutation of the original options must not leak into the already-taken clone.
+    processOptions->selfPid = 4321;
+    EXPECT_EQ(testSession->lastSessionInfo_->processOptions->selfPid, -1);
+    // The shared sessionInfo must stay untouched.
+    EXPECT_EQ(sessionInfo->want.GetIntParam("visibilityTestKey", -1), 100);
+    EXPECT_NE(sessionInfo->processOptions, nullptr);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ChangeAbilityVisibility_0200
+ * @tc.desc: ChangeAbilityVisibility rejects the call when the caller process has not been
+ *           attached to the status bar with attachment-required processOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ChangeAbilityVisibility_002, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(mgr, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
+    abilityRequest.appInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    auto sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    auto processOptions = std::make_shared<ProcessOptions>();
+    processOptions->processMode = ProcessMode::NEW_PROCESS_ATTACH_TO_PARENT;
+    sessionInfo->processOptions = processOptions;
+    abilityRecord->sessionInfo_ = sessionInfo;
+
+    int32_t sessionId = 1;
+    mgr->sessionAbilityMap_.emplace(sessionId, abilityRecord);
+    auto token = abilityRecord->GetToken()->AsObject();
+    ASSERT_NE(token, nullptr);
+
+    EXPECT_EQ(mgr->ChangeAbilityVisibility(token, true), ERR_START_OPTIONS_CHECK_FAILED);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ChangeAbilityVisibility_0300
+ * @tc.desc: ChangeAbilityVisibility rejects the call from a different application
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ChangeAbilityVisibility_003, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(mgr, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
+    abilityRequest.appInfo.accessTokenId = IPCSkeleton::GetCallingTokenID() + 1;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr();
+
+    int32_t sessionId = 1;
+    mgr->sessionAbilityMap_.emplace(sessionId, abilityRecord);
+    auto token = abilityRecord->GetToken()->AsObject();
+    ASSERT_NE(token, nullptr);
+
+    EXPECT_EQ(mgr->ChangeAbilityVisibility(token, true), ERR_NATIVE_NOT_SELF_APPLICATION);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ChangeAbilityVisibility_0400
+ * @tc.desc: ChangeAbilityVisibility with an unknown token returns ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ChangeAbilityVisibility_004, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(mgr, nullptr);
+
+    auto token = sptr<MockIRemoteObject>::MakeSptr();
+    ASSERT_NE(token, nullptr);
+    EXPECT_EQ(mgr->ChangeAbilityVisibility(token, true), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_ChangeAbilityVisibility_0500
+ * @tc.desc: ChangeAbilityVisibility runs concurrently with in-lock sessionInfo writers without
+ *           crash or deadlock; run with ASAN/TSAN to catch want corruption regressions
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, ChangeAbilityVisibility_Stress_001, TestSize.Level3)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(mgr, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
+    abilityRequest.appInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    auto sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    sessionInfo->sessionToken = sptr<Rosen::Session>::MakeSptr(Rosen::SessionInfo())->AsObject();
+    ASSERT_NE(sessionInfo->sessionToken, nullptr);
+    auto processOptions = std::make_shared<ProcessOptions>();
+    processOptions->processMode = ProcessMode::NO_ATTACHMENT;
+    sessionInfo->processOptions = processOptions;
+    abilityRecord->sessionInfo_ = sessionInfo;
+
+    int32_t sessionId = 1;
+    mgr->sessionAbilityMap_.emplace(sessionId, abilityRecord);
+    auto token = abilityRecord->GetToken()->AsObject();
+    ASSERT_NE(token, nullptr);
+
+    const int32_t loopCount = 200;
+    std::atomic<bool> writerRunning = true;
+    // Emulates in-lock writers (e.g. StartUIAbility, MoveMissionToFront) mutating the shared
+    // want while ChangeAbilityVisibility copies its snapshot under the same sessionLock_.
+    std::thread writerThread([&mgr, &abilityRecord, &writerRunning]() {
+        int32_t value = 0;
+        while (writerRunning.load()) {
+            std::lock_guard<ffrt::mutex> guard(mgr->sessionLock_);
+            auto sharedInfo = abilityRecord->GetSessionInfo();
+            if (sharedInfo != nullptr) {
+                sharedInfo->want.SetParam("stressKey", ++value);
+                sharedInfo->want.RemoveParam("stressKey2");
+                sharedInfo->want.SetParam("stressKey2", value);
+            }
+        }
+    });
+    for (int32_t i = 0; i < loopCount; ++i) {
+        EXPECT_EQ(mgr->ChangeAbilityVisibility(token, i % 2 == 0), ERR_OK);
+    }
+    writerRunning.store(false);
+    writerThread.join();
 }
 }  // namespace AAFwk
 }  // namespace OHOS
