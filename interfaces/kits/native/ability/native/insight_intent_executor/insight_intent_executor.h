@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_EXECUTOR_H
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_EXECUTOR_H
 
+#include <atomic>
 #include <memory>
 #include <napi/native_api.h>
 #include <string>
@@ -73,6 +74,26 @@ public:
         bool& isAsync) { return false; };
 
     /**
+     * @brief Cancel the in-flight execution.
+     *
+     * The default implementation only marks the executor as cancelled by setting
+     * an atomic flag; subclasses (e.g. asynchronous function executors) may
+     * override it to stop long running work. The cancellation is driven from the
+     * IPC thread via the cancel listener, while the executor itself keeps running
+     * on its own thread, so the flag is the only shared state mutating here.
+     *
+     * @param reason The cancellation reason, see InsightIntentCancelReason.
+     */
+    virtual void Cancel(int32_t reason);
+
+    /**
+     * @brief Check whether this executor has been cancelled.
+     *
+     * @return true if cancelled, false otherwise.
+     */
+    bool IsCanceled() const;
+
+    /**
      * @brief Get current insight intent context.
      *
      * @return std::shared_ptr<InsightIntentContext>
@@ -80,6 +101,7 @@ public:
     std::shared_ptr<InsightIntentContext> GetContext();
 
 private:
+    std::atomic<bool> canceled_ { false };
     std::shared_ptr<InsightIntentContext> context_ = nullptr;
 };
 } // namespace AbilityRuntime

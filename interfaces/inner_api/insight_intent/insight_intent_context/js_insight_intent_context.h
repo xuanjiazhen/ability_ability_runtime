@@ -51,6 +51,8 @@ public:
 
     static napi_value GetInsightIntentExecutionInfo(napi_env env, napi_callback_info info);
 
+    static napi_value IsExecutionCancelled(napi_env env, napi_callback_info info);
+
     std::shared_ptr<InsightIntentContext> GetContext()
     {
         return context_.lock();
@@ -61,6 +63,7 @@ private:
     napi_value OnSetReturnModeForUiAbilityForeground(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetReturnModeForUiExtensionAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetInsightIntentExecutionInfo(napi_env env, NapiCallbackInfo& info);
+    napi_value OnIsExecutionCancelled(napi_env env, NapiCallbackInfo& info);
 
     std::weak_ptr<InsightIntentContext> context_;
 };
@@ -74,6 +77,32 @@ private:
  * @return result of StartAbility.
  */
 napi_value CreateJsInsightIntentContext(napi_env env, const std::shared_ptr<InsightIntentContext>& context);
+
+/**
+ * Creates a js CancellationSignal proxy object wrapping the given native signal.
+ * This is the signal the executor reconstructs in the target app process and
+ * hands to the app as the signal member of the InsightIntentExecutionContext
+ * trailing onExecuteXXX parameter.
+ *
+ * @param env, the napi environment.
+ * @param signal, the native cancellation signal.
+ *
+ * @return a js CancellationSignal proxy object; an empty object if signal is null.
+ */
+napi_value CreateJsInsightIntentCancellationSignal(napi_env env,
+    const std::shared_ptr<InsightIntentCancellationSignal>& signal);
+
+/**
+ * Creates the js InsightIntentExecutionContext object handed to the app as the
+ * trailing onExecuteXXX parameter. It wraps the cancellation signal: { signal }.
+ *
+ * @param env, the napi environment.
+ * @param signal, the native cancellation signal.
+ *
+ * @return a js execution context object; an empty object if signal is null.
+ */
+napi_value CreateJsInsightIntentExecutionContext(napi_env env,
+    const std::shared_ptr<InsightIntentCancellationSignal>& signal);
 
 /**
  * Function of check startAbiliryParam parammeters.

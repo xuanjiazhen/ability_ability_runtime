@@ -15,12 +15,47 @@
 
 #include "insight_intent_executor_mgr.h"
 
+#include <cinttypes>
+
 #include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "hilog_tag_wrapper.h"
+#include "insight_intent/insight_intent_cancel_listener_stub.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+// Reverse IPC listener that AMS calls back into (from the system server process)
+// to notify this app process that an in-flight insight intent was cancelled. It
+// forwards the notification to the singleton InsightIntentExecutorMgr keyed by
+// intentId. The executor may not be registered yet (cold start); the mgr buffers
+// the cancellation until the executor exists.
+class InsightIntentExecutorCancelListener : public AAFwk::InsightIntentCancelListenerStub {
+public:
+    InsightIntentExecutorCancelListener(uint64_t intentId, const std::weak_ptr<InsightIntentExecutorMgr>& mgr)
+        : intentId_(intentId), mgr_(mgr)
+    {}
+
+    ~InsightIntentExecutorCancelListener() override = default;
+
+    void OnCanceled(int32_t reason) override
+    {
+        TAG_LOGI(AAFwkTag::INTENT, "executor cancel listener OnCanceled, intentId: %{public}" PRIu64
+            ", reason: %{public}d", intentId_, reason);
+        auto mgr = mgr_.lock();
+        if (mgr == nullptr) {
+            TAG_LOGW(AAFwkTag::INTENT, "executor mgr already destroyed, drop cancel");
+            return;
+        }
+        mgr->OnExecutorCanceled(intentId_, reason);
+    }
+
+private:
+    uint64_t intentId_ = 0;
+    std::weak_ptr<InsightIntentExecutorMgr> mgr_;
+};
+} // namespace
+
 InsightIntentExecutorMgr::InsightIntentExecutorMgr()
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
@@ -58,15 +93,27 @@ bool InsightIntentExecutorMgr::ExecuteInsightIntent(Runtime& runtime, const Insi
         };
     callback->Push(asyncCallback);
 
-    // Notify AMS that this intent execution has started (AMS records the process pid).
+    // Notify AMS that this intent execution has started, attaching a reverse IPC
+    // listener so AMS can request cancellation. The listener only holds a weak
+    // reference to this singleton to avoid a reference cycle.
+    sptr<InsightIntentExecutorCancelListener> cancelListener =
+        sptr<InsightIntentExecutorCancelListener>::MakeSptr(executeParam->insightIntentId_, weak_from_this());
     AAFwk::AbilityManagerClient::GetInstance()->NotifyInsightIntentExecute(
-        executeParam->insightIntentId_);
+        executeParam->insightIntentId_, cancelListener);
 
     // Create insight intent executor
     InsightIntentType type = static_cast<InsightIntentType>(executeParam->decoratorType_);
     auto intentExecutor = CreateExecutor(runtime, type, executeInfo);
     if (intentExecutor == nullptr) {
         TriggerCallbackInner(std::move(callback), static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+        return false;
+    }
+
+    // The cancellation may have arrived before the executor was inserted into the
+    // map (the listener is attached above, but the executor is only registered
+    // inside CreateExecutor). Stop here without executing if so.
+    if (ConsumePendingCancel(executeParam->insightIntentId_, intentExecutor)) {
+        TriggerCallbackInner(std::move(callback), static_cast<int32_t>(AAFwk::INTENT_CANCELED));
         return false;
     }
 
@@ -118,6 +165,49 @@ void InsightIntentExecutorMgr::RemoveInsightIntentExecutor(uint64_t intentId)
     TAG_LOGD(AAFwkTag::INTENT, "called");
     std::lock_guard<std::mutex> lock(mutex_);
     insightIntentExecutors_.erase(intentId);
+    pendingCancel_.erase(intentId);
+}
+
+void InsightIntentExecutorMgr::OnExecutorCanceled(uint64_t intentId, int32_t reason)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "OnExecutorCanceled, intentId: %{public}" PRIu64 ", reason: %{public}d",
+        intentId, reason);
+    std::shared_ptr<InsightIntentExecutor> executor = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto it = insightIntentExecutors_.find(intentId);
+        if (it == insightIntentExecutors_.end()) {
+            // Executor not registered yet; buffer the cancellation and let
+            // ExecuteInsightIntent consume it after CreateExecutor returns.
+            pendingCancel_[intentId] = reason;
+            return;
+        }
+        executor = it->second;
+    }
+    // Do not call Cancel while holding the lock: Cancel may settle the callback,
+    // whose async handler calls back into RemoveInsightIntentExecutor.
+    if (executor != nullptr) {
+        executor->Cancel(reason);
+    }
+}
+
+bool InsightIntentExecutorMgr::ConsumePendingCancel(uint64_t intentId,
+    const std::shared_ptr<InsightIntentExecutor>& executor)
+{
+    int32_t reason = 0;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto it = pendingCancel_.find(intentId);
+        if (it == pendingCancel_.end()) {
+            return false;
+        }
+        reason = it->second;
+        pendingCancel_.erase(it);
+    }
+    if (executor != nullptr) {
+        executor->Cancel(reason);
+    }
+    return true;
 }
 
 void InsightIntentExecutorMgr::TriggerCallbackInner(

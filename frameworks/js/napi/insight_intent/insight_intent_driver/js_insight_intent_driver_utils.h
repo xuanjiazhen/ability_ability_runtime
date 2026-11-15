@@ -16,8 +16,13 @@
 #ifndef OHOS_ABILITY_RUNTIME_JS_INSIGHT_INTENT_DRIVER_UTILS_H
 #define OHOS_ABILITY_RUNTIME_JS_INSIGHT_INTENT_DRIVER_UTILS_H
 
+#include <atomic>
+#include <memory>
+#include <string>
+
 #include "insight_intent_execute_result.h"
 #include "insight_intent_info_for_query.h"
+#include "js_insight_intent_cancellation_signal_utils.h"
 #include "native_engine/native_engine.h"
 #include "nlohmann/json.hpp"
 

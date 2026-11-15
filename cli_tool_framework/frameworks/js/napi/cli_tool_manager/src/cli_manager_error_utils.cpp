@@ -41,6 +41,7 @@ static const std::map<CliManagerErrorCode, std::string> ERROR_MSG_MAP = {
     {CliManagerErrorCode::ERROR_FUNCTION_NOT_EXIST, "The function does not exist."},
     {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_FAILED, "The function execute failed."},
     {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_TIMEOUT, "The function execute timeout."},
+    {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_CANCELED, "The function execute was canceled."},
 };
 
 static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP = {
@@ -56,6 +57,7 @@ static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP
     {ERR_FUNCTION_NOT_EXIST, CliManagerErrorCode::ERROR_FUNCTION_NOT_EXIST},
     {ERR_FUNCTION_EXECUTE_FAILED, CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_FAILED},
     {ERR_FUNCTION_EXECUTE_TIMEOUT, CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_TIMEOUT},
+    {ERR_FUNCTION_EXECUTE_CANCELED, CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_CANCELED},
     {ERR_NOT_DEVELOPER_MODE, CliManagerErrorCode::ERROR_NOT_DEVELOPER_MODE},
     {ERR_HOOK_ALREADY_REGISTERED, CliManagerErrorCode::ERROR_HOOK_ALREADY_REGISTERED},
     {ERR_HOOK_NOT_REGISTERED, CliManagerErrorCode::ERROR_HOOK_NOT_REGISTERED},
