@@ -48,6 +48,10 @@ private:
             "onExecuteInUIExtensionAbility",
             "onExecuteInServiceExtensionAbility"
         };
+    // Base argument counts per mode, excluding the trailing execution context
+    // (design 6.3): { foreground, background, ui_extension, service }. The
+    // framework appends the InsightIntentExecutionContext argument only when the
+    // intent is cancellable.
     static constexpr std::array<size_t,
         static_cast<size_t>(InsightIntentExecuteMode::Count)> JS_ARGC_FOR_MODE {
             3, 2, 3, 2 };
@@ -141,6 +145,10 @@ private:
     bool ExecuteInsightIntentServiceExtension(
         const std::string& name,
         const AAFwk::WantParams& param);
+
+    // Reconstructs the InsightIntentExecutionContext object handed to the app as
+    // the trailing onExecuteXXX parameter (design 6.3). Never null.
+    napi_value CreateExecutionContextJs();
     bool HandleSyncResult(napi_env env, napi_value resultJs, std::shared_ptr<InsightIntentContext> context);
     bool HandlePromiseResult(napi_env env, napi_value resultJs, std::shared_ptr<InsightIntentContext> context);
 
@@ -150,6 +158,9 @@ private:
     std::unique_ptr<NativeReference> contextObj_ = nullptr;
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback_;
     bool isAsync_ = false;
+    // Resolved per-execution: true only when the intent is cancellable, so the
+    // trailing InsightIntentExecutionContext argument is appended to onExecuteXXX.
+    bool cancellable_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -64,6 +64,8 @@ struct InsightIntentInfo {
     std::string displayDescription;
     std::string bundleName;
     std::string moduleName;
+    // Whether the intent supports cancellation, declared in the config profile.
+    bool cancellable = false;
 };
 
 class InsightIntentProfile {

@@ -69,6 +69,7 @@ const std::string INSIGHT_INTENT_MODULE_NAME = "moduleName";
 const std::string INSIGHT_INTENT_INPUT_PARAMS = "inputParams";
 const std::string INSIGHT_INTENT_OUTPUT_PARAMS = "outputParams";
 const std::string INSIGHT_INTENT_ENTITES = "entities";
+const std::string INSIGHT_INTENT_CANCELLABLE = "cancellable";
 
 const std::map<std::string, ExecuteMode> executeModeMap = {
     {"foreground", ExecuteMode::UI_ABILITY_FOREGROUND},
@@ -109,6 +110,7 @@ struct InsightIntentProfileInfo {
     std::string moduleName;
     std::vector<std::string> keywords;
     std::vector<std::string> permissions;
+    bool cancellable = false;
     UIAbilityProfileInfo uiAbilityProfileInfo;
     UIExtensionProfileInfo uiExtensionProfileInfo;
     ServiceExtensionProfileInfo serviceExtensionProfileInfo;
@@ -305,6 +307,14 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
         insightIntentInfo.moduleName,
         false,
         g_parseResult);
+    AppExecFwk::GetValueIfFindKey<bool>(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_CANCELLABLE,
+        insightIntentInfo.cancellable,
+        JsonType::BOOLEAN,
+        false,
+        g_parseResult,
+        ArrayType::NOT_ARRAY);
     AppExecFwk::GetValueIfFindKey<std::vector<std::string>>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_KEYWORDS,
@@ -399,6 +409,7 @@ bool TransformToInsightIntentInfo(const InsightIntentProfileInfo &insightIntent,
     info.displayName = insightIntent.displayName;
     info.bundleName = insightIntent.bundleName;
     info.moduleName = insightIntent.moduleName;
+    info.cancellable = insightIntent.cancellable;
     info.displayDescription = insightIntent.displayDescription;
     info.icon = insightIntent.icon;
     info.keywords.assign(insightIntent.keywords.begin(), insightIntent.keywords.end());
@@ -530,6 +541,7 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentInfo& info)
         {INSIGHT_INTENT_ICON, info.icon},
         {INSIGHT_INTENT_KEYWORDS, info.keywords},
         {INSIGHT_INTENT_PERMISSIONS, info.permissions},
+        {INSIGHT_INTENT_CANCELLABLE, info.cancellable},
         {INSIGHT_INTENT_UI_ABILITY, info.uiAbilityIntentInfo},
         {INSIGHT_INTENT_UI_EXTENSION, info.uiExtensionIntentInfo},
         {INSIGHT_INTENT_SERVICE_EXTENSION, info.serviceExtensionIntentInfo},

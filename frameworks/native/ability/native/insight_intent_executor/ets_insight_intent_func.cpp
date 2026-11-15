@@ -21,6 +21,7 @@
 #include "ability_transaction_callback_info.h"
 #include "ani_common_execute_result.h"
 #include "ani_common_want.h"
+#include "ets_insight_intent_context.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_delay_result_callback_mgr.h"
 #include "insight_intent_execute_result.h"
@@ -429,6 +430,21 @@ bool EtsInsightIntentFunc::ExecuteInsightIntent(ani_env *env,
     std::vector<ani_value> args;
     if (!BuildMethodArgs(env, executeParam, args)) {
         return ExecuteIntentCheckError();
+    }
+
+    if (executeParam->cancellable_) {
+        auto context = GetContext();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null context");
+            return ExecuteIntentCheckError();
+        }
+        ani_ref executionContext = CreateEtsInsightIntentExecutionContext(env, context->GetCancellationSignal());
+        if (executionContext == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "create execution context failed");
+            return ExecuteIntentCheckError();
+        }
+        ani_value executionContextArg { .r = executionContext };
+        args.emplace_back(executionContextArg);
     }
 
     ani_static_method method = nullptr;

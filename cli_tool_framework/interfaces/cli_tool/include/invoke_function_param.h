@@ -25,6 +25,10 @@ struct InvokeOptions {
     std::string toolCallId;
     std::string dmSessionId;
     std::string taskId;
+    // Cancellation addressing id extracted from the caller-side
+    // insightIntentDriver.CancellationSignal (cross-module); empty means no
+    // signal was provided.
+    std::string cancellationSignal;
 };
 
 struct InvokeFunctionParam : public Parcelable {

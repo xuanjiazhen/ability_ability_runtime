@@ -522,6 +522,10 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentInfoForQuery &insi
         false,
         g_parseResult,
         ArrayType::STRING);
+    auto cancellableIt = jsonObject.find(INSIGHT_INTENT_CANCELLABLE);
+    if (cancellableIt != jsonObjectEnd && cancellableIt->is_boolean()) {
+        insightIntentInfo.cancellable = cancellableIt->get<bool>();
+    }
     AppExecFwk::GetValueIfFindKey<std::vector<EntityInfoForQuery>>(jsonObject,
         jsonObjectEnd,
         INSIGHT_INTENT_ENTITY_INFO,
@@ -663,6 +667,7 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentInfoForQuery &info)
         {INSIGHT_INTENT_RESULT, info.result},
         {INSIGHT_INTENT_KEYWORDS, info.keywords},
         {INSIGHT_INTENT_PERMISSIONS, info.permissions},
+        {INSIGHT_INTENT_CANCELLABLE, info.cancellable},
         {INSIGHT_INTENT_LINK_INFO, info.linkInfo},
         {INSIGHT_INTENT_PAGE_INFO, info.pageInfo},
         {INSIGHT_INTENT_ENTRY_INFO, info.entryInfo},

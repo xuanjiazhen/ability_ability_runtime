@@ -17,6 +17,7 @@ import window from '@ohos.window';
 import insightIntent from '@ohos.app.ability.insightIntent';
 import { IntentResultWrapper } from './utils/AbilityUtils';
 import InsightIntentContext from '@ohos.app.ability.InsightIntentContext';
+import { InsightIntentExecutionContext } from '@ohos.app.ability.InsightIntentExecutor';
 import type UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 import { RecordData } from '@ohos.base';
 
@@ -44,6 +45,11 @@ export default class InsightIntentEntryExecutor<T> {
   }
 
   onExecute(): Promise<insightIntent.IntentResult<T>> {
+    let ret: insightIntent.IntentResult<T> = { code: 0 };
+    return Promise.resolve(ret);
+  }
+
+  onExecute(executionContext: InsightIntentExecutionContext): Promise<insightIntent.IntentResult<T>> {
     let ret: insightIntent.IntentResult<T> = { code: 0 };
     return Promise.resolve(ret);
   }

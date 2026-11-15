@@ -184,6 +184,7 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentInfo(
     for (auto &permission : intentInfo.permissions) {
         queryInfo.permissions.emplace_back(permission);
     }
+    queryInfo.cancellable = intentInfo.cancellable;
 
     if (getEntity) {
         for (auto &entityInfo : intentInfo.entities) {
@@ -222,6 +223,7 @@ uint32_t InsightIntentUtils::ConvertConfigInsightIntentInfo(
     for (auto &permission : intentInfo.permissions) {
         queryInfo.permissions.emplace_back(permission);
     }
+    queryInfo.cancellable = intentInfo.cancellable;
     for (auto &inputParams : intentInfo.inputParams) {
         queryInfo.inputParams.emplace_back(inputParams);
     }
@@ -246,6 +248,7 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentEntityInfo(
     ExtractInsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo)
 {
     ConvertExtractInsightIntentGenericInfo(intentInfo.genericInfo, queryInfo);
+    queryInfo.cancellable = intentInfo.cancellable;
 
     for (auto &entityInfo : intentInfo.entities) {
         EntityInfoForQuery insightInfo;

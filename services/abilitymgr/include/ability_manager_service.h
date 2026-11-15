@@ -2295,6 +2295,9 @@ public:
     int32_t ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const InsightIntentExecuteParam &param) override;
 
+    int32_t ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const InsightIntentExecuteParam &param, uint64_t &intentId) override;
+
     /**
      * @brief Query entity.
      * @param key The key of intent executing client.
@@ -2324,6 +2327,10 @@ public:
     int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
 
+    int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+        uint64_t &intentId) override;
+
     /**
      * @brief Execute UIAbility foreground intent with specified token id.
      * @param want The info of the target ability and custom parameters.
@@ -2340,7 +2347,8 @@ public:
     int32_t PrepareAndGenerateForegroundIntent(
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &infos,
-        AbilityRuntime::ExtractInsightIntentInfo &extractInfo, const std::string &callerBundlename,
+        AbilityRuntime::ExtractInsightIntentInfo &extractInfo,
+        const AbilityRuntime::InsightIntentInfo &configInfo, const std::string &callerBundlename,
         uint64_t key, const sptr<IRemoteObject> &hostClient, bool ignoreAbilityName,
         uint64_t specifiedFullTokenId, Want &localWant);
     void RemoveIntentTimeout(uint64_t insightIntentId);
@@ -2380,7 +2388,11 @@ public:
     int32_t NotifySkillFunctionInvoked(const sptr<IRemoteObject> &token,
         const std::string &requestCode) override;
 
-    int32_t NotifyInsightIntentExecute(uint64_t intentId) override;
+    int32_t NotifyInsightIntentExecute(uint64_t intentId, const sptr<IRemoteObject> &cancelListener) override;
+
+    int32_t CancelInsightIntent(const std::string &signalId) override;
+
+    int32_t CancelInsightIntentByTaskId(const std::string &taskId) override;
 
     int32_t GetDynamicAgentCardsForMigration(std::string &jsonStr) override;
 

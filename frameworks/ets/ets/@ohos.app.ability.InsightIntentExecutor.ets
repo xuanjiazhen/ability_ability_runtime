@@ -19,6 +19,8 @@ import InsightIntentContext from '@ohos.app.ability.InsightIntentContext';
 import type UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
 import { RecordData } from '@ohos.base';
 
+export type CancelListenerCallback = (reason: insightIntent.CancelReason) => void;
+
 export default class InsightIntentExecutor {
   context: InsightIntentContext = {};
   public nativeExecutor: long = 0;
@@ -30,8 +32,13 @@ export default class InsightIntentExecutor {
   public native nativeOnExecuteResult(data: insightIntent.ExecuteResult): void;
 
   public callOnExecuteInUIAbilityForegroundMode(name: string, param: Record<string, RecordData>,
-    pageLoader: window.WindowStage): insightIntent.ExecuteResult {
-    let p = this.onExecuteInUIAbilityForegroundMode(name, param, pageLoader);
+    pageLoader: window.WindowStage, executionContext?: InsightIntentExecutionContext): insightIntent.ExecuteResult {
+    let p: insightIntent.ExecuteResult | Promise<insightIntent.ExecuteResult>;
+    if (executionContext === undefined) {
+      p = this.onExecuteInUIAbilityForegroundMode(name, param, pageLoader);
+    } else {
+      p = this.onExecuteInUIAbilityForegroundMode(name, param, pageLoader, executionContext);
+    }
     if (p instanceof insightIntent.ExecuteResult) {
       this.isOnExecuteInUIAbilityForegroundModeAsync = false;
       return p;
@@ -45,9 +52,15 @@ export default class InsightIntentExecutor {
     }
   }
 
-  public callOnExecuteInUIAbilityBackgroundMode(name: string, param: Record<string, RecordData>):
+  public callOnExecuteInUIAbilityBackgroundMode(name: string, param: Record<string, RecordData>,
+    executionContext?: InsightIntentExecutionContext):
     insightIntent.ExecuteResult {
-    let p = this.onExecuteInUIAbilityBackgroundMode(name, param);
+    let p: insightIntent.ExecuteResult | Promise<insightIntent.ExecuteResult>;
+    if (executionContext === undefined) {
+      p = this.onExecuteInUIAbilityBackgroundMode(name, param);
+    } else {
+      p = this.onExecuteInUIAbilityBackgroundMode(name, param, executionContext);
+    }
     if (p instanceof insightIntent.ExecuteResult) {
       this.isOnExecuteInUIAbilityBackgroundModeAsync = false;
       return p;
@@ -62,8 +75,14 @@ export default class InsightIntentExecutor {
   }
 
   public callOnExecuteInUIExtensionAbility(name: string, param: Record<string, RecordData>,
-    pageLoader: UIExtensionContentSession): insightIntent.ExecuteResult {
-    let p = this.onExecuteInUIExtensionAbility(name, param, pageLoader);
+    pageLoader: UIExtensionContentSession, executionContext?: InsightIntentExecutionContext):
+    insightIntent.ExecuteResult {
+    let p: insightIntent.ExecuteResult | Promise<insightIntent.ExecuteResult>;
+    if (executionContext === undefined) {
+      p = this.onExecuteInUIExtensionAbility(name, param, pageLoader);
+    } else {
+      p = this.onExecuteInUIExtensionAbility(name, param, pageLoader, executionContext);
+    }
     if (p instanceof insightIntent.ExecuteResult) {
       this.isOnExecuteInUIExtensionAbilityAsync = false;
       return p;
@@ -77,9 +96,15 @@ export default class InsightIntentExecutor {
     }
   }
 
-  public callOnExecuteInServiceExtensionAbility(name: string, param: Record<string, RecordData>):
+  public callOnExecuteInServiceExtensionAbility(name: string, param: Record<string, RecordData>,
+    executionContext?: InsightIntentExecutionContext):
     insightIntent.ExecuteResult {
-    let p = this.onExecuteInServiceExtensionAbility(name, param);
+    let p: insightIntent.ExecuteResult | Promise<insightIntent.ExecuteResult>;
+    if (executionContext === undefined) {
+      p = this.onExecuteInServiceExtensionAbility(name, param);
+    } else {
+      p = this.onExecuteInServiceExtensionAbility(name, param, executionContext);
+    }
     if (p instanceof insightIntent.ExecuteResult) {
       this.isOnExecuteInServiceExtensionAbilityAsync = false;
       return p;
@@ -99,7 +124,21 @@ export default class InsightIntentExecutor {
     return ret;
   }
 
+  onExecuteInUIAbilityForegroundMode(name: string, param: Record<string, RecordData>, pageLoader: window.WindowStage,
+    executionContext: InsightIntentExecutionContext):
+    insightIntent.ExecuteResult | Promise<insightIntent.ExecuteResult> {
+    let ret: insightIntent.ExecuteResult = {code: 0};
+    return ret;
+  }
+
   onExecuteInUIAbilityBackgroundMode(name: string, param: Record<string, RecordData>):
+    insightIntent.ExecuteResult | Promise<insightIntent.ExecuteResult> {
+    let ret: insightIntent.ExecuteResult = {code: 0};
+    return ret;
+  }
+
+  onExecuteInUIAbilityBackgroundMode(name: string, param: Record<string, RecordData>,
+    executionContext: InsightIntentExecutionContext):
     insightIntent.ExecuteResult | Promise<insightIntent.ExecuteResult> {
     let ret: insightIntent.ExecuteResult = {code: 0};
     return ret;
@@ -111,9 +150,33 @@ export default class InsightIntentExecutor {
     return ret;
   }
 
+  onExecuteInUIExtensionAbility(name: string, param: Record<string, RecordData>, pageLoader: UIExtensionContentSession,
+    executionContext: InsightIntentExecutionContext):
+    insightIntent.ExecuteResult | Promise<insightIntent.ExecuteResult> {
+    let ret: insightIntent.ExecuteResult = {code: 0};
+    return ret;
+  }
+
   onExecuteInServiceExtensionAbility(name: string, param: Record<string, RecordData>):
     insightIntent.ExecuteResult | Promise<insightIntent.ExecuteResult> {
     let ret: insightIntent.ExecuteResult = {code: 0};
     return ret;
   }
+
+  onExecuteInServiceExtensionAbility(name: string, param: Record<string, RecordData>,
+    executionContext: InsightIntentExecutionContext):
+    insightIntent.ExecuteResult | Promise<insightIntent.ExecuteResult> {
+    let ret: insightIntent.ExecuteResult = {code: 0};
+    return ret;
+  }
+}
+
+export class InsightIntentCancellationSignal {
+  nativeSignal: long = 0;
+  public native isCancelled(): boolean;
+  public native setOnCancelListener(listener: CancelListenerCallback): void;
+}
+
+export class InsightIntentExecutionContext {
+  readonly cancellationSignal: InsightIntentCancellationSignal = new InsightIntentCancellationSignal();
 }
