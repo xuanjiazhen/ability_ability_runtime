@@ -198,12 +198,16 @@ int FreeInstallManager::RemoteFreeInstall(const Want &want, int32_t userId, int 
     DistributedClient dmsClient;
     auto result = dmsClient.StartRemoteFreeInstall(info.want, callerUid, info.requestCode, accessToken, callback);
     if (result != ERR_NONE) {
+        RemoveFreeInstallInfo(info.want.GetBundleNameRef(), info.want.GetAbilityNameRef(),
+            info.want.GetStringParam(Want::PARAM_RESV_START_TIME));
         return result;
     }
     auto remoteFuture = info.promise->get_future();
     std::future_status remoteStatus = remoteFuture.wait_for(std::chrono::milliseconds(
         DELAY_REMOTE_FREE_INSTALL_TIMEOUT));
     if (remoteStatus == std::future_status::timeout) {
+        RemoveFreeInstallInfo(info.want.GetBundleNameRef(), info.want.GetAbilityNameRef(),
+            info.want.GetStringParam(Want::PARAM_RESV_START_TIME));
         return FREE_INSTALL_TIMEOUT;
     }
     return remoteFuture.get();

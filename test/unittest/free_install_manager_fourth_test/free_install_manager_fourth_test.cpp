@@ -13,8 +13,12 @@
  * limitations under the License.
  */
 
+#include <atomic>
+
 #include <gtest/gtest.h>
 
+#include "ability_manager_errors.h"
+#include "ability_manager_interface.h"
 #include "bundle_mgr_helper.h"
 #include "distributed_client.h"
 #include "free_install_manager.h"
@@ -27,12 +31,22 @@
 using namespace testing::ext;
 using namespace OHOS::AAFwk;
 
+namespace {
+// Result returned by the mocked DistributedClient::StartRemoteFreeInstall.
+std::atomic<int32_t> g_remoteFreeInstallResult { OHOS::ERR_OK };
+
+void SetRemoteFreeInstallResult(int32_t result)
+{
+    g_remoteFreeInstallResult.store(result);
+}
+}  // namespace
+
 namespace OHOS {
 namespace AAFwk {
 int32_t DistributedClient::StartRemoteFreeInstall(const Want &, int32_t, int32_t, uint32_t,
     const sptr<IRemoteObject> &)
 {
-    return ERR_OK;
+    return g_remoteFreeInstallResult.load();
 }
 
 TaskHandle TaskHandlerWrap::SubmitTask(const std::function<void()> &task, const std::string &)
@@ -290,6 +304,27 @@ HWTEST_F(FreeInstallManagerFourthTest, FreeInstall_ConnectFreeInstall_006, TestS
     EXPECT_EQ(agentRes, ERR_OK);
     EXPECT_EQ(mockScope.GetBundleMgr()->GetQueryAbilityInfoWithCallbackCount(), 1);
     EXPECT_TRUE(freeInstallManager_->freeInstallList_.empty());
+}
+
+/**
+ * @tc.number: FreeInstall_RemoteFreeInstall_001
+ * @tc.name: RemoteFreeInstall
+ * @tc.desc: Test RemoteFreeInstall removes the pending info from freeInstallList_ when remote install fails.
+ */
+HWTEST_F(FreeInstallManagerFourthTest, FreeInstall_RemoteFreeInstall_001, TestSize.Level1)
+{
+    SetRemoteFreeInstallResult(ERR_INVALID_VALUE);
+
+    Want want;
+    ElementName element("", REMOTE_BUNDLE_NAME, "MainAbility");
+    want.SetElement(element);
+    want.SetParam(FROM_REMOTE_KEY, true);
+
+    int result = freeInstallManager_->RemoteFreeInstall(want, TEST_USER_ID, 0, nullptr);
+
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_TRUE(freeInstallManager_->freeInstallList_.empty());
+    SetRemoteFreeInstallResult(ERR_OK);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
