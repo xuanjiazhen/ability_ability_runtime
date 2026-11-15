@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <random>
 
 #include "ability_state.h"
 #include "insight_intent_execute_result.h"
@@ -28,6 +29,32 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+std::string GenerateSignalId()
+{
+    static thread_local std::mt19937_64 generator { std::random_device{}() };
+    static constexpr char HEX_DIGITS[] = "0123456789abcdef";
+    uint8_t bytes[16];
+    for (size_t i = 0; i < sizeof(bytes); i += sizeof(uint64_t)) {
+        uint64_t word = generator();
+        for (size_t j = 0; j < sizeof(uint64_t); ++j) {
+            bytes[i + j] = static_cast<uint8_t>(word >> (8 * j));
+        }
+    }
+    // RFC 4122 version 4 and variant bits.
+    bytes[6] = static_cast<uint8_t>((bytes[6] & 0x0F) | 0x40);
+    bytes[8] = static_cast<uint8_t>((bytes[8] & 0x3F) | 0x80);
+    std::string uuid;
+    uuid.reserve(36);
+    for (size_t i = 0; i < sizeof(bytes); ++i) {
+        if (i == 4 || i == 6 || i == 8 || i == 10) {
+            uuid += '-';
+        }
+        uuid += HEX_DIGITS[bytes[i] >> 4];
+        uuid += HEX_DIGITS[bytes[i] & 0x0F];
+    }
+    return uuid;
+}
+
 static void SetInteractionUIJsProperties(napi_env env, napi_value uiObj,
     const std::shared_ptr<AppExecFwk::InteractionUI> &ui)
 {
@@ -368,6 +395,7 @@ napi_value CreateInsightIntentInfoForQuery(napi_env env, const InsightIntentInfo
     napi_set_named_property(env, objValue, "result", CreateInsightIntentInfoResult(env, info.result));
     napi_set_named_property(env, objValue, "keywords", CreateNativeArray(env, info.keywords));
     napi_set_named_property(env, objValue, "permissions", CreateNativeArray(env, info.permissions));
+    napi_set_named_property(env, objValue, "cancellable", CreateJsValue(env, info.cancellable));
     if (!info.develoType.empty()) {
         napi_set_named_property(env, objValue, "developType", CreateJsValue(env, info.develoType));
     }

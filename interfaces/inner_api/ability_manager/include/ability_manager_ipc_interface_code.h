@@ -825,6 +825,12 @@ enum class AbilityManagerInterfaceCode {
     // get ui extension root host info by ability record id
     GET_UI_EXTENSION_HOST_INFO_BY_ID = 6192,
 
+    // cancel a single in-flight insight intent by intentId
+    CANCEL_INSIGHT_INTENT = 6193,
+
+    // cancel all in-flight insight intents sharing a taskId
+    CANCEL_INSIGHT_INTENT_BY_TASK_ID = 6194,
+
     // force stop process with kill id for cli tool
     FORCE_STOP_PROCESS = 6195,
 };

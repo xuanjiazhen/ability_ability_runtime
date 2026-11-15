@@ -21,28 +21,28 @@ let TAG = 'JSENV';
 class InsightIntentExecutor {
   constructor() {}
 
-  onExecuteInUIAbilityForegroundMode(name, param, pageLoader) {
+  onExecuteInUIAbilityForegroundMode(name, param, pageLoader, cancellationSignal) {
     hilog.sLogI(domainID, TAG, `onExecuteInUIAbilityForegroundMode ${name}`);
     return {
       'code': 0
     };
   }
 
-  onExecuteInUIAbilityBackgroundMode(name, param) {
+  onExecuteInUIAbilityBackgroundMode(name, param, cancellationSignal) {
     hilog.sLogI(domainID, TAG, `onExecuteInUIAbilityForegroundMode ${name}`);
     return {
       'code': 0
     };
   }
 
-  onExecuteInUIExtensionAbility(name, param, pageLoader) {
+  onExecuteInUIExtensionAbility(name, param, pageLoader, cancellationSignal) {
     hilog.sLogI(domainID, TAG, `onExecuteInUIExtensionAbility ${name}`);
     return {
       'code': 0
     };
   }
 
-  onExecuteInServiceExtensionAbility(name, param) {
+  onExecuteInServiceExtensionAbility(name, param, cancellationSignal) {
     hilog.sLogI(domainID, TAG, `onExecuteInServiceExtensionAbility ${name}`);
     return {
       'code': 0
