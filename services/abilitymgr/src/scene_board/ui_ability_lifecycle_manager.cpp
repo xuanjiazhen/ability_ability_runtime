@@ -4574,17 +4574,27 @@ int UIAbilityLifecycleManager::ChangeAbilityVisibility(sptr<IRemoteObject> token
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     UIAbilityRecordPtr abilityRecord;
+    // The sessionInfo owned by abilityRecord is shared: other threads mutate it (e.g. want in
+    // StartUIAbility) under sessionLock_. Clone it under sessionLock_ and touch only the private
+    // clone afterwards, otherwise marshalling want in ChangeSessionVisibilityWithStatusBar
+    // races with in-lock writers and corrupts the want params. Do not hold sessionLock_ for the
+    // rest of the flow: the delegate/session IPC calls below are synchronous and SCB may re-enter
+    // AbilityManagerService while handling them (historical deadlock, fixed by shrinking the
+    // lock scope).
+    sptr<SessionInfo> sessionInfo;
     {
         std::lock_guard<ffrt::mutex> guard(sessionLock_);
         abilityRecord = GetAbilityRecordByTokenLocked(token);
+        CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+        auto originSessionInfo = abilityRecord->GetSessionInfo();
+        CHECK_POINTER_AND_RETURN(originSessionInfo, ERR_INVALID_VALUE);
+        sessionInfo = originSessionInfo->Clone();
+        CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
     }
-    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (IPCSkeleton::GetCallingTokenID() != abilityRecord->GetApplicationInfo().accessTokenId) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not self");
         return ERR_NATIVE_NOT_SELF_APPLICATION;
     }
-    auto sessionInfo = abilityRecord->GetSessionInfo();
-    CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
 
     do {
         if (HiddenStartObserverManager::GetInstance().IsHiddenStart(abilityRecord->GetPid())) {
@@ -4618,13 +4628,11 @@ int UIAbilityLifecycleManager::ChangeAbilityVisibility(sptr<IRemoteObject> token
         }
     } while (false);
 
-    auto callerSessionInfo = abilityRecord->GetSessionInfo();
-    CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
-    CHECK_POINTER_AND_RETURN(callerSessionInfo->sessionToken, ERR_INVALID_VALUE);
-    auto callerSession = iface_cast<Rosen::ISession>(callerSessionInfo->sessionToken);
+    CHECK_POINTER_AND_RETURN(sessionInfo->sessionToken, ERR_INVALID_VALUE);
+    auto callerSession = iface_cast<Rosen::ISession>(sessionInfo->sessionToken);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "callerSession ChangeSessionVisibilityWithStatusBar, isShow:%{public}d", isShow);
     CHECK_POINTER_AND_RETURN(callerSession, ERR_INVALID_VALUE);
-    return static_cast<int>(callerSession->ChangeSessionVisibilityWithStatusBar(callerSessionInfo, isShow));
+    return static_cast<int>(callerSession->ChangeSessionVisibilityWithStatusBar(sessionInfo, isShow));
 }
 
 int UIAbilityLifecycleManager::ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> sessionInfo, bool isShow)
