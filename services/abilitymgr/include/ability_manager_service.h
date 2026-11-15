@@ -2427,6 +2427,14 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     /**
+     * @brief Get root host info of a UIExtension by ability record id.
+     * @param abilityRecordId The record id of the UIExtension.
+     * @param hostInfo Output host info.
+     * @return int32_t Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo) override;
+
+    /**
      * @brief Get ui extension session info
      *
      * @param token The ability token.
@@ -3265,6 +3273,17 @@ private:
     int32_t HandleExtensionAbility(sptr<IAbilityConnection> connect,
         std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)>);
     std::vector<std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
+
+    /**
+     * @brief Callback invoked by TaskManagerService when a task is finished
+     *        (via FinishTask, timeout, or creator process death). Iterates all
+     *        AbilityConnectManager instances and cleans stale A2A task
+     *        attribution entries matching the finished taskId from
+     *        BaseExtensionRecord::taskAttributions_.
+     * @param taskId Indicates the finished task id.
+     * @param userId Indicates the user id of the finished task's creator.
+     */
+    void OnTaskFinished(const std::string &taskId, int32_t userId);
 
     int32_t GetServiceMapByUserId(AbilityConnectManager::ServiceMapType &serviceMap, int32_t userId);
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(
