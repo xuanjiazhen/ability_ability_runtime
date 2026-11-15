@@ -23,6 +23,7 @@
 #include "cli_tool_mgr_client.h"
 #include "function_info.h"
 #include "hilog_tag_wrapper.h"
+#include "insight_intent_execute_param.h"
 #include "invoke_function_executor.h"
 #include "js_error_utils.h"
 #include "js_function_hook.h"
@@ -170,6 +171,7 @@ bool ParseInvokeFunctionParam(napi_env env, size_t argc, napi_value *argv, Invok
     out.args.Remove("ohos.insightIntent.toolCallId");
     out.args.Remove("ohos.insightIntent.dmSessionId");
     out.args.Remove("ohos.task.id");
+    out.args.Remove(AppExecFwk::INSIGHT_INTENT_EXECUTE_SIGNAL_ID);
     if (argc >= INDEX_FOUR) {
         if (!ValidateOptions(env, argv[INDEX_THREE])) {
             ThrowInvalidParamError(env, "option invalid");
@@ -198,6 +200,10 @@ void InjectTransportTraceIds(InvokeFunctionParam &param)
     }
     if (!param.invokeOptions.taskId.empty()) {
         param.args.SetParam("ohos.task.id", AAFwk::String::Box(param.invokeOptions.taskId));
+    }
+    if (!param.invokeOptions.cancellationSignal.empty()) {
+        param.args.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_SIGNAL_ID,
+            AAFwk::String::Box(param.invokeOptions.cancellationSignal));
     }
 }
 } // namespace

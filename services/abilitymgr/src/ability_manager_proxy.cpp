@@ -5869,7 +5869,15 @@ int32_t AbilityManagerProxy::DetachAppDebug(const std::string &bundleName, bool 
 int32_t AbilityManagerProxy::ExecuteIntent(uint64_t key,  const sptr<IRemoteObject> &callerToken,
     const InsightIntentExecuteParam &param)
 {
+    uint64_t intentId = 0;
+    return ExecuteIntent(key, callerToken, param, intentId);
+}
+
+int32_t AbilityManagerProxy::ExecuteIntent(uint64_t key,  const sptr<IRemoteObject> &callerToken,
+    const InsightIntentExecuteParam &param, uint64_t &intentId)
+{
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    intentId = 0;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -5900,7 +5908,13 @@ int32_t AbilityManagerProxy::ExecuteIntent(uint64_t key,  const sptr<IRemoteObje
         return error;
     }
 
-    return reply.ReadInt32();
+    int32_t result = reply.ReadInt32();
+    if (!reply.ReadUint64(intentId)) {
+        // Backward compatible with an old service reply that carries only the
+        // int32 result; keep intentId 0 in that case.
+        intentId = 0;
+    }
+    return result;
 }
 
 int32_t AbilityManagerProxy::ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
@@ -5943,7 +5957,15 @@ int32_t AbilityManagerProxy::ExecuteIntentForDistributed(const Want &want, const
 int32_t AbilityManagerProxy::ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
 {
+    uint64_t intentId = 0;
+    return ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, wantParam, intentId);
+}
+
+int32_t AbilityManagerProxy::ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
+    const std::string &bundleName, const std::string &intentName, const WantParams &wantParam, uint64_t &intentId)
+{
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    intentId = 0;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -5977,7 +5999,13 @@ int32_t AbilityManagerProxy::ExecuteIntentByFunctionCall(uint64_t key, const spt
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
         return error;
     }
-    return reply.ReadInt32();
+    int32_t result = reply.ReadInt32();
+    if (!reply.ReadUint64(intentId)) {
+        // Backward compatible with an old service reply that carries only the
+        // int32 result; keep intentId 0 in that case.
+        intentId = 0;
+    }
+    return result;
 }
 
 int32_t AbilityManagerProxy::ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,
@@ -8783,7 +8811,7 @@ int32_t AbilityManagerProxy::NotifySkillFunctionInvoked(const sptr<IRemoteObject
     return reply.ReadInt32();
 }
 
-int32_t AbilityManagerProxy::NotifyInsightIntentExecute(uint64_t intentId)
+int32_t AbilityManagerProxy::NotifyInsightIntentExecute(uint64_t intentId, const sptr<IRemoteObject> &cancelListener)
 {
     TAG_LOGD(AAFwkTag::INTENT, "notify insight intent execute proxy, intentId:%{public}" PRIu64, intentId);
     MessageParcel data;
@@ -8795,9 +8823,57 @@ int32_t AbilityManagerProxy::NotifyInsightIntentExecute(uint64_t intentId)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentId fail");
         return INNER_ERR;
     }
+    if (!data.WriteRemoteObject(cancelListener)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write cancelListener fail");
+        return INNER_ERR;
+    }
     MessageParcel reply;
     MessageOption option;
     auto ret = SendRequest(AbilityManagerInterfaceCode::NOTIFY_INSIGHT_INTENT_EXECUTE, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::CancelInsightIntent(const std::string &signalId)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "cancel insight intent proxy, signalId:%{public}s", signalId.c_str());
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteString(signalId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write signalId fail");
+        return INNER_ERR;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::CANCEL_INSIGHT_INTENT, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::CancelInsightIntentByTaskId(const std::string &taskId)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "cancel insight intent by taskId proxy, taskId:%{public}s", taskId.c_str());
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteString(taskId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write taskId fail");
+        return INNER_ERR;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::CANCEL_INSIGHT_INTENT_BY_TASK_ID, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
         return ret;

@@ -993,6 +993,22 @@ enum {
      */
     ERR_INVALID_APP_PRELOAD_PHASE = 2097388,
 
+    /**
+     * Result (2097389) for cancelling an intent that has already finished.
+     */
+    INTENT_ALREADY_EXECUTED = 2097389,
+
+    /**
+     * Result (2097390) for cancelling an intent on a path that does not support
+     * cancellation (e.g. service_match route or distributed intent).
+     */
+    INTENT_CANCEL_NOT_SUPPORT = 2097390,
+
+    /**
+     * Result (2097391) for an intent execution that was cancelled.
+     */
+    INTENT_CANCELED = 2097391,
+
     ERR_DO_CLOSURE_CALLBACK_FAILED = 2097397,
 
     ERR_DMS_START_REMOTE_FAILED = 2097398,

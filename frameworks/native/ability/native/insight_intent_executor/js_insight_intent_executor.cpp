@@ -142,6 +142,7 @@ bool JsInsightIntentExecutor::HandleExecuteIntent(
     InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(executeParam->executeMode_);
     auto name = executeParam->insightIntentName_;
     auto param = executeParam->insightIntentParam_;
+    cancellable_ = executeParam->cancellable_;
     TAG_LOGI(AAFwkTag::INTENT, "call executor, intentName: %{public}s, mode: %{public}d", name.c_str(), mode);
     switch (mode) {
         case InsightIntentExecuteMode::UIABILITY_FOREGROUND:
@@ -475,12 +476,17 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground(
 
     constexpr auto intentMode = static_cast<size_t>(InsightIntentExecuteMode::UIABILITY_FOREGROUND);
     constexpr auto funcName = JsInsightIntentExecutor::JS_FUNC_NAME_FOR_MODE[intentMode];
-    constexpr auto argc = JsInsightIntentExecutor::JS_ARGC_FOR_MODE[intentMode];
+    constexpr auto baseArgc = JsInsightIntentExecutor::JS_ARGC_FOR_MODE[intentMode];
 
     auto* env = runtime_.GetNapiEnv();
     napi_value nameJs = AppExecFwk::WrapStringToJS(env, name);
     napi_value paramJs = AppExecFwk::WrapWantParams(env, param);
-    napi_value argv[argc] = { nameJs, paramJs, windowStageJs->GetNapiValue() };
+    constexpr size_t MAX_ARGC = baseArgc + 1;
+    napi_value argv[MAX_ARGC] = { nameJs, paramJs, windowStageJs->GetNapiValue(), nullptr };
+    size_t argc = baseArgc;
+    if (cancellable_) {
+        argv[argc++] = CreateExecutionContextJs();
+    }
     napi_value result = nullptr;
     result = CallJsFunctionWithResultInner(funcName, argc, argv);
     if (result == nullptr) {
@@ -505,12 +511,17 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIAbilityBackground(
 
     constexpr auto intentMode = static_cast<size_t>(InsightIntentExecuteMode::UIABILITY_BACKGROUND);
     constexpr auto funcName = JsInsightIntentExecutor::JS_FUNC_NAME_FOR_MODE[intentMode];
-    constexpr auto argc = JsInsightIntentExecutor::JS_ARGC_FOR_MODE[intentMode];
+    constexpr auto baseArgc = JsInsightIntentExecutor::JS_ARGC_FOR_MODE[intentMode];
 
     auto* env = runtime_.GetNapiEnv();
     napi_value nameJs = AppExecFwk::WrapStringToJS(env, name);
     napi_value paramJs = AppExecFwk::WrapWantParams(env, param);
-    napi_value argv[argc] = { nameJs, paramJs };
+    constexpr size_t MAX_ARGC = baseArgc + 1;
+    napi_value argv[MAX_ARGC] = { nameJs, paramJs, nullptr };
+    size_t argc = baseArgc;
+    if (cancellable_) {
+        argv[argc++] = CreateExecutionContextJs();
+    }
     napi_value result = nullptr;
     result = CallJsFunctionWithResultInner(funcName, argc, argv);
     if (result == nullptr) {
@@ -537,12 +548,17 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
 
     constexpr auto intentMode = static_cast<size_t>(InsightIntentExecuteMode::UIEXTENSION_ABILITY);
     constexpr auto funcName = JsInsightIntentExecutor::JS_FUNC_NAME_FOR_MODE[intentMode];
-    constexpr auto argc = JsInsightIntentExecutor::JS_ARGC_FOR_MODE[intentMode];
+    constexpr auto baseArgc = JsInsightIntentExecutor::JS_ARGC_FOR_MODE[intentMode];
 
     auto* env = runtime_.GetNapiEnv();
     napi_value nameJs = AppExecFwk::WrapStringToJS(env, name);
     napi_value paramJs = AppExecFwk::WrapWantParams(env, param);
-    napi_value argv[argc] = { nameJs, paramJs, UIExtensionContentSession->GetNapiValue() };
+    constexpr size_t MAX_ARGC = baseArgc + 1;
+    napi_value argv[MAX_ARGC] = { nameJs, paramJs, UIExtensionContentSession->GetNapiValue(), nullptr };
+    size_t argc = baseArgc;
+    if (cancellable_) {
+        argv[argc++] = CreateExecutionContextJs();
+    }
     napi_value result = nullptr;
     result = CallJsFunctionWithResultInner(funcName, argc, argv);
     if (result == nullptr) {
@@ -567,12 +583,17 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentServiceExtension(
 
     constexpr auto intentMode = static_cast<size_t>(InsightIntentExecuteMode::SERVICE_EXTENSION_ABILITY);
     constexpr auto funcName = JsInsightIntentExecutor::JS_FUNC_NAME_FOR_MODE[intentMode];
-    constexpr auto argc = JsInsightIntentExecutor::JS_ARGC_FOR_MODE[intentMode];
+    constexpr auto baseArgc = JsInsightIntentExecutor::JS_ARGC_FOR_MODE[intentMode];
 
     auto* env = runtime_.GetNapiEnv();
     napi_value nameJs = AppExecFwk::WrapStringToJS(env, name);
     napi_value paramJs = AppExecFwk::WrapWantParams(env, param);
-    napi_value argv[argc] = { nameJs, paramJs };
+    constexpr size_t MAX_ARGC = baseArgc + 1;
+    napi_value argv[MAX_ARGC] = { nameJs, paramJs, nullptr };
+    size_t argc = baseArgc;
+    if (cancellable_) {
+        argv[argc++] = CreateExecutionContextJs();
+    }
     napi_value result = nullptr;
     result = CallJsFunctionWithResultInner(funcName, argc, argv);
     if (result == nullptr) {
@@ -581,5 +602,17 @@ bool JsInsightIntentExecutor::ExecuteInsightIntentServiceExtension(
     }
 
     return HandleResultReturnedFromJsFunc(result);
+}
+
+napi_value JsInsightIntentExecutor::CreateExecutionContextJs()
+{
+    auto context = GetContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null context, cannot build execution context");
+        napi_value obj = nullptr;
+        napi_create_object(runtime_.GetNapiEnv(), &obj);
+        return obj;
+    }
+    return CreateJsInsightIntentExecutionContext(runtime_.GetNapiEnv(), context->GetCancellationSignal());
 }
 } // namespace OHOS::AbilityRuntime
