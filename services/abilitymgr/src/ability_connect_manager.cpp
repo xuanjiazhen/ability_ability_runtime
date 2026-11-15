@@ -23,6 +23,7 @@
 #include "ability_resident_process_rdb.h"
 #include "app_mgr_client.h"
 #include "ability_util.h"
+#include "skill/skill_execute_manager.h"
 #include "utils/agent_ability_util.h"
 #include "agent_card.h"
 #include "agent_extension_connection_constants.h"
@@ -200,6 +201,11 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     } else if (targetService->IsAbilityState(AbilityState::ACTIVE)) {
         // It may have been started through connect
         targetService->SetWant(abilityRequest.want);
+        // Early attribution anchor (warm service extension): register before CommandAbility
+        // carries the skill Want to the app; queued-start replays converge here too.
+        // Non-skill Wants self-filter inside.
+        DelayedSingleton<SkillExecuteManager>::GetInstance()->TryRegisterAttributionFromWant(
+            abilityRequest.want, targetService->GetPid(), targetService->GetInfoBundleName());
         CommandAbility(targetService);
     } else {
         TAG_LOGI(AAFwkTag::EXT, "TargetService not active, state: %{public}d",

@@ -18,6 +18,7 @@
 #include "ability_cache_manager.h"
 #include "ability_util.h"
 #include "hilog_tag_wrapper.h"
+#include "skill/skill_execute_manager.h"
 #include "hitrace_meter.h"
 #include "multi_instance_utils.h"
 #include "ui_extension_utils.h"
@@ -60,6 +61,11 @@ int CommonExtensionManager::AttachAbilityThreadInner(const sptr<IAbilitySchedule
     abilityRecord->RemoveLoadTimeoutTask();
     AbilityRuntime::FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
     abilityRecord->SetScheduler(scheduler);
+    // Early attribution anchor (cold service extension): SetScheduler just latched the
+    // attaching pid, and the skill Want has not left AMS yet — the command reaches the
+    // app only after attach. Non-skill Wants self-filter inside.
+    DelayedSingleton<SkillExecuteManager>::GetInstance()->TryRegisterAttributionFromWant(
+        abilityRecord->GetWant(), abilityRecord->GetPid(), abilityRecord->GetInfoBundleName());
     TAG_LOGD(AAFwkTag::EXT, "Inactivate");
     abilityRecord->Inactivate();
     return ERR_OK;
