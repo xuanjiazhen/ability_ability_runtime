@@ -135,6 +135,11 @@ enum {
      * Result (35700023): Hook not registered. Nothing to unregister.
      */
     ERR_HOOK_NOT_REGISTERED = 35700023,
+
+    /*
+     * Result (35700024): Function execute canceled.
+     */
+    ERR_FUNCTION_EXECUTE_CANCELED = 35700024,
 };
 
 } // namespace CliTool

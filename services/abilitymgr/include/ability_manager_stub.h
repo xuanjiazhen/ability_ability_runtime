@@ -471,6 +471,8 @@ private:
     int32_t ExecuteSkillDoneWithTokenInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifySkillFunctionInvokedInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyInsightIntentExecuteInner(MessageParcel &data, MessageParcel &reply);
+    int32_t CancelInsightIntentInner(MessageParcel &data, MessageParcel &reply);
+    int32_t CancelInsightIntentByTaskIdInner(MessageParcel &data, MessageParcel &reply);
     int32_t RegisterWillInsightIntentExecuteCallbackInner(MessageParcel &data, MessageParcel &reply);
     int32_t UnregisterWillInsightIntentExecuteCallbackInner(MessageParcel &data, MessageParcel &reply);
     int32_t QuerySkillTypeInner(MessageParcel &data, MessageParcel &reply);

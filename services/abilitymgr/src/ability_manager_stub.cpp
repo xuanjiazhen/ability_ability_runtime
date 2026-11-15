@@ -1110,6 +1110,12 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::NOTIFY_INSIGHT_INTENT_EXECUTE) {
         return NotifyInsightIntentExecuteInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::CANCEL_INSIGHT_INTENT) {
+        return CancelInsightIntentInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::CANCEL_INSIGHT_INTENT_BY_TASK_ID) {
+        return CancelInsightIntentByTaskIdInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_WILL_INSIGHT_INTENT_EXECUTE_CALLBACK) {
         return RegisterWillInsightIntentExecuteCallbackInner(data, reply);
     }
@@ -4678,9 +4684,14 @@ int32_t AbilityManagerStub::ExecuteIntentInner(MessageParcel &data, MessageParce
         TAG_LOGE(AAFwkTag::ABILITYMGR, "param null");
         return ERR_INVALID_VALUE;
     }
-    auto result = ExecuteIntent(key, callerToken, *param);
+    uint64_t intentId = 0;
+    auto result = ExecuteIntent(key, callerToken, *param, intentId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteUint64(intentId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentId fail");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
@@ -4755,9 +4766,14 @@ int32_t AbilityManagerStub::ExecuteIntentByFunctionCallInner(MessageParcel &data
         TAG_LOGE(AAFwkTag::ABILITYMGR, "wantParam null");
         return ERR_INVALID_VALUE;
     }
-    auto result = ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, *wantParam);
+    uint64_t intentId = 0;
+    auto result = ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, *wantParam, intentId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteUint64(intentId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write intentId fail");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
@@ -6394,7 +6410,26 @@ int32_t AbilityManagerStub::NotifyInsightIntentExecuteInner(MessageParcel &data,
 {
     TAG_LOGD(AAFwkTag::INTENT, "notify insight intent execute stub");
     uint64_t intentId = data.ReadUint64();
-    int32_t ret = NotifyInsightIntentExecute(intentId);
+    sptr<IRemoteObject> cancelListener = data.ReadRemoteObject();
+    int32_t ret = NotifyInsightIntentExecute(intentId, cancelListener);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::CancelInsightIntentInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "cancel insight intent stub");
+    std::string signalId = data.ReadString();
+    int32_t ret = CancelInsightIntent(signalId);
+    reply.WriteInt32(ret);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::CancelInsightIntentByTaskIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "cancel insight intent by taskId stub");
+    std::string taskId = data.ReadString();
+    int32_t ret = CancelInsightIntentByTaskId(taskId);
     reply.WriteInt32(ret);
     return NO_ERROR;
 }

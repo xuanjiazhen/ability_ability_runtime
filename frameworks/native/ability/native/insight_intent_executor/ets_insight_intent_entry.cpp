@@ -167,6 +167,7 @@ bool EtsInsightIntentEntry::HandleExecuteIntent(std::shared_ptr<InsightIntentExe
     }
 
     callback_ = std::move(callback);
+    cancellable_ = executeParam->cancellable_;
     auto mode = static_cast<InsightIntentExecuteMode>(executeParam->executeMode_);
     if (!PrepareExecuteEnvironment(env, mode, pageLoader)) {
         return ExecuteIntentCheckError();
@@ -299,7 +300,22 @@ bool EtsInsightIntentEntry::ExecuteInsightIntent(ani_env *env, bool &isAsync)
         return ExecuteIntentCheckError();
     }
 
-    ani_ref result = EtsInsightIntentUtils::CallObjectMethod(runtime_, etsObj_, true, "onExecute", nullptr);
+    ani_ref executionContext = nullptr;
+    if (cancellable_) {
+        auto context = GetContext();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null context");
+            return ExecuteIntentCheckError();
+        }
+        executionContext = CreateEtsInsightIntentExecutionContext(env, context->GetCancellationSignal());
+        if (executionContext == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "create execution context failed");
+            return ExecuteIntentCheckError();
+        }
+    }
+    ani_ref result = cancellable_ ?
+        EtsInsightIntentUtils::CallObjectMethod(runtime_, etsObj_, true, "onExecute", nullptr, executionContext) :
+        EtsInsightIntentUtils::CallObjectMethod(runtime_, etsObj_, true, "onExecute", nullptr);
     if (result == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "onExecute failed");
         return ExecuteIntentCheckError();

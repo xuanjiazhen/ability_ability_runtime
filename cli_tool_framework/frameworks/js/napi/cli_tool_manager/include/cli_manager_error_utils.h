@@ -42,6 +42,7 @@ enum class CliManagerErrorCode {
     ERROR_FUNCTION_NOT_EXIST = 35600060,
     ERROR_FUNCTION_EXECUTE_FAILED = 35600061,
     ERROR_FUNCTION_EXECUTE_TIMEOUT = 35600062,
+    ERROR_FUNCTION_EXECUTE_CANCELED = 35600063,
 };
 
 napi_value CreateCliManagerError(napi_env env, int32_t errCode, const std::string& errMsg = "");

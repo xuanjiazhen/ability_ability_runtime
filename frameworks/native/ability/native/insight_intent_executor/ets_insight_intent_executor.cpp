@@ -153,6 +153,7 @@ bool EtsInsightIntentExecutor::HandleExecuteIntent(
     InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(executeParam->executeMode_);
     auto name = executeParam->insightIntentName_;
     auto param = executeParam->insightIntentParam_;
+    cancellable_ = executeParam->cancellable_;
     TAG_LOGI(AAFwkTag::INTENT, "call executor, intentName: %{public}s, mode: %{public}d", name.c_str(), mode);
     switch (mode) {
         case InsightIntentExecuteMode::UIABILITY_FOREGROUND:
@@ -352,8 +353,24 @@ bool EtsInsightIntentExecutor::ExecuteInsightIntentUIAbilityForeground(
     
     ani_string aniName = AppExecFwk::GetAniString(env, name);
     ani_ref aniWantParams = OHOS::AppExecFwk::WrapWantParams(env, param);
-    ani_ref result = CallObjectMethod(true, "callOnExecuteInUIAbilityForegroundMode", nullptr, aniName,
-        aniWantParams, windowStage);
+    ani_ref executionContext = nullptr;
+    if (cancellable_) {
+        auto context = GetContext();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null context");
+            return false;
+        }
+        executionContext = CreateEtsInsightIntentExecutionContext(env, context->GetCancellationSignal());
+        if (executionContext == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "create execution context failed");
+            return false;
+        }
+    }
+    ani_ref result = cancellable_ ?
+        CallObjectMethod(true, "callOnExecuteInUIAbilityForegroundMode", nullptr, aniName,
+            aniWantParams, windowStage, executionContext) :
+        CallObjectMethod(true, "callOnExecuteInUIAbilityForegroundMode", nullptr, aniName,
+            aniWantParams, windowStage);
     if (result == nullptr) {
         return false;
     }
@@ -390,8 +407,24 @@ bool EtsInsightIntentExecutor::ExecuteInsightIntentUIAbilityBackground(
     
     ani_string aniName = AppExecFwk::GetAniString(env, name);
     ani_ref aniWantParams = OHOS::AppExecFwk::WrapWantParams(env, param);
-    ani_ref result = CallObjectMethod(true, "callOnExecuteInUIAbilityBackgroundMode", nullptr, aniName,
-        aniWantParams);
+    ani_ref executionContext = nullptr;
+    if (cancellable_) {
+        auto context = GetContext();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null context");
+            return false;
+        }
+        executionContext = CreateEtsInsightIntentExecutionContext(env, context->GetCancellationSignal());
+        if (executionContext == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "create execution context failed");
+            return false;
+        }
+    }
+    ani_ref result = cancellable_ ?
+        CallObjectMethod(true, "callOnExecuteInUIAbilityBackgroundMode", nullptr, aniName,
+            aniWantParams, executionContext) :
+        CallObjectMethod(true, "callOnExecuteInUIAbilityBackgroundMode", nullptr, aniName,
+            aniWantParams);
     if (result == nullptr) {
         return false;
     }
@@ -429,8 +462,24 @@ bool EtsInsightIntentExecutor::ExecuteInsightIntentUIExtension(
     
     ani_string aniName = AppExecFwk::GetAniString(env, name);
     ani_ref aniWantParams = OHOS::AppExecFwk::WrapWantParams(env, param);
-    ani_ref result = CallObjectMethod(true, "callOnExecuteInUIExtensionAbility", nullptr, aniName,
-        aniWantParams, UIExtensionContentSession);
+    ani_ref executionContext = nullptr;
+    if (cancellable_) {
+        auto context = GetContext();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null context");
+            return false;
+        }
+        executionContext = CreateEtsInsightIntentExecutionContext(env, context->GetCancellationSignal());
+        if (executionContext == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "create execution context failed");
+            return false;
+        }
+    }
+    ani_ref result = cancellable_ ?
+        CallObjectMethod(true, "callOnExecuteInUIExtensionAbility", nullptr, aniName,
+            aniWantParams, UIExtensionContentSession, executionContext) :
+        CallObjectMethod(true, "callOnExecuteInUIExtensionAbility", nullptr, aniName,
+            aniWantParams, UIExtensionContentSession);
     if (result == nullptr) {
         return false;
     }
@@ -467,8 +516,24 @@ bool EtsInsightIntentExecutor::ExecuteInsightIntentServiceExtension(
     
     ani_string aniName = AppExecFwk::GetAniString(env, name);
     ani_ref aniWantParams = OHOS::AppExecFwk::WrapWantParams(env, param);
-    ani_ref result = CallObjectMethod(true, "callOnExecuteInServiceExtensionAbility", nullptr, aniName,
-        aniWantParams);
+    ani_ref executionContext = nullptr;
+    if (cancellable_) {
+        auto context = GetContext();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null context");
+            return false;
+        }
+        executionContext = CreateEtsInsightIntentExecutionContext(env, context->GetCancellationSignal());
+        if (executionContext == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "create execution context failed");
+            return false;
+        }
+    }
+    ani_ref result = cancellable_ ?
+        CallObjectMethod(true, "callOnExecuteInServiceExtensionAbility", nullptr, aniName,
+            aniWantParams, executionContext) :
+        CallObjectMethod(true, "callOnExecuteInServiceExtensionAbility", nullptr, aniName,
+            aniWantParams);
     if (result == nullptr) {
         return false;
     }

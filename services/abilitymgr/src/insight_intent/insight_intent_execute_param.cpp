@@ -182,6 +182,14 @@ bool InsightIntentExecuteParam::ReadFromParcel(Parcel &parcel)
     if (parcel.GetReadableBytes() > 0) {
         callerUid_ = parcel.ReadInt32();
     }
+    // signalId_ is an optional tail field: legacy parcels without it keep the default empty value.
+    if (parcel.GetReadableBytes() > 0) {
+        signalId_ = Str16ToStr8(parcel.ReadString16());
+    }
+    // cancellable_ is an optional tail field: legacy parcels without it keep the default false value.
+    if (parcel.GetReadableBytes() > 0) {
+        cancellable_ = parcel.ReadBool();
+    }
     return true;
 }
 
@@ -228,6 +236,8 @@ bool InsightIntentExecuteParam::Marshalling(Parcel &parcel) const
     parcel.WriteString16(Str8ToStr16(callerBundleName_));
     parcel.WriteString16(Str8ToStr16(callerTokenId_));
     parcel.WriteInt32(callerUid_);
+    parcel.WriteString16(Str8ToStr16(signalId_));
+    parcel.WriteBool(cancellable_);
     return true;
 }
 
@@ -369,6 +379,8 @@ bool InsightIntentExecuteParam::GenerateFromWant(const AAFwk::Want &want,
     executeParam.callerBundleName_ = wantParams.GetStringParam(INSIGHT_INTENT_CALLER_BUNDLE_NAME);
     executeParam.callerTokenId_ = wantParams.GetStringParam(INSIGHT_INTENT_CALLER_TOKEN_ID);
     executeParam.callerUid_ = wantParams.GetIntParam(INSIGHT_INTENT_CALLER_UID, 0);
+    executeParam.signalId_ = wantParams.GetStringParam(INSIGHT_INTENT_EXECUTE_SIGNAL_ID);
+    executeParam.cancellable_ = want.GetBoolParam(INSIGHT_INTENT_EXECUTE_PARAM_CANCELLABLE, false);
 
     auto insightIntentParam = wantParams.GetWantParams(INSIGHT_INTENT_EXECUTE_PARAM_PARAM);
     UpdateInsightIntentCallerInfo(wantParams, insightIntentParam);
@@ -406,6 +418,12 @@ bool InsightIntentExecuteParam::RemoveInsightIntent(AAFwk::Want &want)
     }
     if (want.HasParameter(INSIGHT_INTENT_CALLER_UID)) {
         want.RemoveParam(INSIGHT_INTENT_CALLER_UID);
+    }
+    if (want.HasParameter(INSIGHT_INTENT_EXECUTE_SIGNAL_ID)) {
+        want.RemoveParam(INSIGHT_INTENT_EXECUTE_SIGNAL_ID);
+    }
+    if (want.HasParameter(INSIGHT_INTENT_EXECUTE_PARAM_CANCELLABLE)) {
+        want.RemoveParam(INSIGHT_INTENT_EXECUTE_PARAM_CANCELLABLE);
     }
     if (want.HasParameter(INSIGHT_INTENT_EXECUTE_PARAM_NAME)) {
         want.RemoveParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME);

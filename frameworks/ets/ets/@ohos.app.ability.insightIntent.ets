@@ -26,6 +26,13 @@ namespace insightIntent {
     SERVICE_EXTENSION_ABILITY = 3,
   }
 
+  export enum CancelReason {
+    USER_CANCELLED = 0,
+    SYSTEM = 1
+  }
+
+  export type CancelListenerCallback = (reason: CancelReason) => void;
+
   export interface InteractionUI {
     interactionUIType: string;
   }

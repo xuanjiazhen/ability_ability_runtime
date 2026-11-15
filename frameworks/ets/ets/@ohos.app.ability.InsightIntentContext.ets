@@ -52,6 +52,7 @@ export default class InsightIntentContext {
   public native setReturnModeForUIAbilityForeground(returnMode: insightIntent.ReturnMode): void;
   public native setReturnModeForUIExtensionAbility(returnMode: insightIntent.ReturnMode): void;
   public native nativeGetInsightIntentExecutionInfo(): insightIntent.InsightIntentExecutionInfo;
+  public native isExecutionCancelled(): boolean;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     this.nativeStartAbilitySyncCheck();

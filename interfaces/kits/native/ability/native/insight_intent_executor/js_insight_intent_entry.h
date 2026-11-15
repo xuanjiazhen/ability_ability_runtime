@@ -104,6 +104,9 @@ private:
     std::unique_ptr<NativeReference> contextObj_ = nullptr;
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback_;
     bool isAsync_ = false;
+    // Resolved per-execution: true only when the intent is cancellable, so the
+    // trailing InsightIntentExecutionContext argument is passed to onExecute.
+    bool cancellable_ = false;
     std::unique_ptr<AbilityBase::FileMapper> safeData_ = nullptr;
 };
 } // namespace AbilityRuntime

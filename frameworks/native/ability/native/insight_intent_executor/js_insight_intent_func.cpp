@@ -20,6 +20,7 @@
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_constant.h"
 #include "insight_intent_execute_result.h"
+#include "js_insight_intent_context.h"
 #include "js_insight_intent_utils.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
@@ -90,9 +91,23 @@ bool JsInsightIntentFunc::HandleExecuteIntent(
     }
 
     callback_ = std::move(callback);
+    if (IsCanceled()) {
+        TAG_LOGI(AAFwkTag::INTENT, "canceled before execution");
+        ReplyFailedInner();
+        return false;
+    }
     bool successful = ExecuteInsightIntent(executeParam);
     isAsync = isAsync_;
     return successful;
+}
+
+void JsInsightIntentFunc::Cancel(int32_t reason)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "JsInsightIntentFunc::Cancel, reason: %{public}d", reason);
+    // Only flip the atomic flag here. This method runs on the IPC thread while
+    // execution proceeds on the JS/worker thread; state_ and callback_ are only
+    // touched by the execution thread at its IsCanceled checkpoints.
+    InsightIntentExecutor::Cancel(reason);
 }
 
 bool JsInsightIntentFunc::LoadJsCode(const InsightIntentExecutorInfo& info, JsRuntime& runtime)
@@ -141,6 +156,10 @@ void JsInsightIntentFunc::ReplySucceededInner(std::shared_ptr<AppExecFwk::Insigh
 bool JsInsightIntentFunc::HandleResultReturnedFromJsFunc(napi_value resultJs)
 {
     TAG_LOGD(AAFwkTag::INTENT, "handle result returned");
+    if (IsCanceled()) {
+        TAG_LOGI(AAFwkTag::INTENT, "canceled, drop result");
+        return ExecuteIntentCheckError();
+    }
     HandleScope handleScope(runtime_);
     auto* env = runtime_.GetNapiEnv();
     if (resultJs == nullptr) {
@@ -273,6 +292,17 @@ bool JsInsightIntentFunc::ExecuteInsightIntent(std::shared_ptr<InsightIntentExec
     if (!ret) {
         TAG_LOGE(AAFwkTag::INTENT, "parse params failed");
         return ExecuteIntentCheckError();
+    }
+
+    if (executeParam->cancellable_) {
+        auto context = GetContext();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null context");
+            return ExecuteIntentCheckError();
+        }
+        argv.resize(argc + 1);
+        argv[argc] = CreateJsInsightIntentExecutionContext(env, context->GetCancellationSignal());
+        ++argc;
     }
 
     napi_value constructor = runtime_.GetExportObjectFromOhmUrl(srcEntrance, className);
