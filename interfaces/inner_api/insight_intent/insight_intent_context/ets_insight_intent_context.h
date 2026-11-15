@@ -47,6 +47,7 @@ public:
     static void SetReturnModeForUIAbilityForeground(ani_env *env, ani_object aniObj, ani_enum_item aniMode);
     static void SetReturnModeForUIExtensionAbility(ani_env *env, ani_object aniObj, ani_enum_item aniMode);
     static ani_object GetInsightIntentExecutionInfo(ani_env *env, ani_object aniObj);
+    static ani_boolean IsExecutionCancelled(ani_env *env, ani_object aniObj);
     static EtsInsightIntentContext *GetContext(ani_env *env, ani_object aniObj);
 
     std::shared_ptr<InsightIntentContext> GetNativeContext()
@@ -61,6 +62,33 @@ private:
 
 std::unique_ptr<AppExecFwk::ETSNativeReference> CreateEtsInsightIntentContext(ani_env *env,
     EtsInsightIntentContext *context);
+
+/**
+ * Creates an ETS CancellationSignal proxy object wrapping the given native signal.
+ * This is the signal the executor reconstructs in the target app process and hands
+ * to the app as the cancellationSignal member of the InsightIntentExecutionContext
+ * trailing onExecuteXXX parameter.
+ *
+ * @param env, the ani environment.
+ * @param signal, the native cancellation signal.
+ *
+ * @return an ETS CancellationSignal proxy object; nullptr if signal is null.
+ */
+ani_ref CreateEtsInsightIntentCancellationSignal(ani_env *env,
+    const std::shared_ptr<InsightIntentCancellationSignal>& signal);
+
+/**
+ * Creates the ETS InsightIntentExecutionContext object handed to the app as the
+ * trailing onExecuteXXX parameter. It wraps the cancellation signal:
+ * { cancellationSignal }.
+ *
+ * @param env, the ani environment.
+ * @param signal, the native cancellation signal.
+ *
+ * @return an ETS execution context object; nullptr if signal is null.
+ */
+ani_ref CreateEtsInsightIntentExecutionContext(ani_env *env,
+    const std::shared_ptr<InsightIntentCancellationSignal>& signal);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_ETS_INSIGHT_INTENT_CONTEXT_H

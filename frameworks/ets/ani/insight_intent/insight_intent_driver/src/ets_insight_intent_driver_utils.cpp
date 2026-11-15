@@ -718,6 +718,7 @@ void SetInsightIntentInfo(ani_env *env, ani_object objValue, const InsightIntent
     ani_object permissionArray = nullptr;
     AppExecFwk::WrapArrayString(env, permissionArray, info.permissions);
     env->Object_SetPropertyByName_Ref(objValue, "permissions", permissionArray);
+    env->Object_SetPropertyByName_Ref(objValue, "cancellable", AppExecFwk::CreateBoolean(env, info.cancellable));
     if (!info.develoType.empty()) {
         env->Object_SetPropertyByName_Ref(objValue, "developType", AppExecFwk::GetAniString(env, info.develoType));
     }

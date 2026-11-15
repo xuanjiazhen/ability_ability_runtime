@@ -114,6 +114,7 @@ private:
     std::shared_ptr<EtsInsightIntentContext> contextCpp_ = nullptr;
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback_;
     bool isAsync_ = false;
+    bool cancellable_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

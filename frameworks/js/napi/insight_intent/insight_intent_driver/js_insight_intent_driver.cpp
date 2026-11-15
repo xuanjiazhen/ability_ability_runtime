@@ -39,7 +39,9 @@
 #endif
 
 #include <atomic>
+#include <cstdint>
 #include <mutex>
+#include <random>
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -82,12 +84,85 @@ Distribute GetDistributeFunc()
     }
     return g_distributeFunc;
 }
+
+void JsCancellationSignalFinalizer(napi_env env, void *data, void *hint)
+{
+    if (data != nullptr) {
+        delete static_cast<JsCancellationSignalData *>(data);
+    }
+}
+
+napi_value JsCancellationSignalConstructor(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+    auto data = new (std::nothrow) JsCancellationSignalData();
+    if (data == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "new JsCancellationSignalData failed");
+        return thisVar;
+    }
+    data->signalId = GenerateSignalId();
+    data->canceled = std::make_shared<std::atomic<bool>>(false);
+    data->bound = std::make_shared<std::atomic<bool>>(false);
+    napi_wrap(env, thisVar, data, JsCancellationSignalFinalizer, nullptr, nullptr);
+    return thisVar;
+}
+
+napi_value JsCancellationSignalCancel(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+    JsCancellationSignalData *data = nullptr;
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&data));
+    if (data != nullptr) {
+        // Flip the local flag first so isCancelled() is true before the IPC round
+        // trip; cancel() is void and idempotent (no error even if the execution
+        // already finished or the signal is not bound).
+        if (data->canceled != nullptr) {
+            data->canceled->store(true, std::memory_order_release);
+        }
+        AbilityManagerClient::GetInstance()->CancelInsightIntent(data->signalId);
+    }
+    return CreateJsUndefined(env);
+}
+
+napi_value JsCancellationSignalIsCancelled(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+    JsCancellationSignalData *data = nullptr;
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&data));
+    bool isCancelled = data != nullptr && data->canceled != nullptr &&
+        data->canceled->load(std::memory_order_acquire);
+    napi_value result = nullptr;
+    napi_get_boolean(env, isCancelled, &result);
+    return result;
+}
+
+napi_value JsCancellationSignalInit(napi_env env, napi_value exportObj)
+{
+    napi_property_descriptor properties[] = {
+        DECLARE_NAPI_FUNCTION("cancel", JsCancellationSignalCancel),
+        DECLARE_NAPI_FUNCTION("isCancelled", JsCancellationSignalIsCancelled),
+    };
+    napi_value constructor = nullptr;
+    napi_define_class(env, "CancellationSignal", NAPI_AUTO_LENGTH, JsCancellationSignalConstructor, nullptr,
+        sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+    if (constructor == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "define js class CancellationSignal failed");
+        return nullptr;
+    }
+    napi_set_named_property(env, exportObj, "CancellationSignal", constructor);
+    return constructor;
+}
 }
 class JsInsightIntentExecuteCallbackClient : public InsightIntentExecuteCallbackInterface,
     public std::enable_shared_from_this<JsInsightIntentExecuteCallbackClient> {
 public:
-    JsInsightIntentExecuteCallbackClient(napi_env env, napi_deferred nativeDeferred, napi_ref callbackRef)
-        : env_(env), nativeDeferred_(nativeDeferred), callbackRef_(callbackRef) {}
+    JsInsightIntentExecuteCallbackClient(napi_env env, napi_deferred nativeDeferred, napi_ref callbackRef,
+        std::shared_ptr<std::atomic<bool>> canceled = nullptr,
+        std::shared_ptr<std::atomic<bool>> bound = nullptr)
+        : env_(env), nativeDeferred_(nativeDeferred), callbackRef_(callbackRef), canceled_(canceled), bound_(bound) {}
 
     virtual ~JsInsightIntentExecuteCallbackClient() = default;
 
@@ -95,6 +170,14 @@ public:
         AppExecFwk::InsightIntentExecuteResult executeResult) override
     {
         TAG_LOGI(AAFwkTag::INTENT, "complete");
+        if (resultCode == AAFwk::INTENT_CANCELED && canceled_ != nullptr) {
+            canceled_->store(true, std::memory_order_release);
+        }
+        // The execution session ends here; unbind the signal so it can be reused
+        // for a new execute() call.
+        if (bound_ != nullptr) {
+            bound_->store(false, std::memory_order_release);
+        }
         NapiAsyncTask::CompleteCallback complete = [resultCode = resultCode, executeResult = executeResult]
             (napi_env env, NapiAsyncTask &task, int32_t status) {
             HandleScope handleScope(env);
@@ -118,6 +201,8 @@ private:
     napi_env env_;
     napi_deferred nativeDeferred_ = nullptr;
     napi_ref callbackRef_ = nullptr;
+    std::shared_ptr<std::atomic<bool>> canceled_ = nullptr;
+    std::shared_ptr<std::atomic<bool>> bound_ = nullptr;
 };
 
 class JsInsightIntentDriver {
@@ -254,6 +339,89 @@ private:
         }
         return false;
     }
+
+    // execute() supports four overloads:
+    //   execute(param)                     -> Promise
+    //   execute(param, callback)           -> void
+    //   execute(param, options)            -> Promise (options may carry cancellationSignal)
+    //   execute(param, options, callback)  -> void
+    // The optional arguments are disambiguated by position and type: a trailing
+    // function is the success/error callback, an object second argument is the
+    // ExecutionOptions.
+    JsCancellationSignalData *GetSignalData(napi_env env, NapiCallbackInfo &info)
+    {
+        napi_value options = nullptr;
+        if (info.argc >= 3) {
+            options = info.argv[INDEX_ONE];
+        } else if (info.argc == 2) {
+            napi_valuetype type = napi_undefined;
+            napi_typeof(env, info.argv[INDEX_ONE], &type);
+            if (type == napi_object) {
+                options = info.argv[INDEX_ONE];
+            }
+        }
+        if (options == nullptr) {
+            return nullptr;
+        }
+        napi_value signalValue = nullptr;
+        napi_get_named_property(env, options, "cancellationSignal", &signalValue);
+        if (signalValue == nullptr) {
+            return nullptr;
+        }
+        JsCancellationSignalData *signalData = nullptr;
+        napi_unwrap(env, signalValue, reinterpret_cast<void **>(&signalData));
+        return signalData;
+    }
+
+    std::unique_ptr<NapiAsyncTask> CreateAsyncTask(napi_env env, NapiCallbackInfo &info, napi_value &result,
+        napi_ref &callbackRef, napi_deferred &nativeDeferred)
+    {
+        napi_value callback = nullptr;
+        if (info.argc >= 3) {
+            callback = info.argv[INDEX_TWO];
+        } else if (info.argc == 2) {
+            napi_valuetype type = napi_undefined;
+            napi_typeof(env, info.argv[INDEX_ONE], &type);
+            if (type == napi_function) {
+                callback = info.argv[INDEX_ONE];
+            }
+        }
+        if (callback != nullptr) {
+            napi_get_undefined(env, &result);
+            napi_create_reference(env, callback, 1, &callbackRef);
+            return std::make_unique<NapiAsyncTask>(callbackRef, nullptr, nullptr);
+        }
+        napi_create_promise(env, &nativeDeferred, &result);
+        return std::make_unique<NapiAsyncTask>(nativeDeferred, nullptr, nullptr);
+    }
+
+    bool PrepareCancellationSignal(napi_env env, JsCancellationSignalData *signalData,
+        InsightIntentExecuteParam &param, std::unique_ptr<NapiAsyncTask> &asyncTask,
+        std::shared_ptr<std::atomic<bool>> &canceled, std::shared_ptr<std::atomic<bool>> &bound)
+    {
+        if (signalData == nullptr) {
+            return true;
+        }
+        canceled = signalData->canceled;
+        bound = signalData->bound;
+        // Fail fast: an already-cancelled signal is rejected at submission time
+        // without dispatching (BusinessError 16000139).
+        if (canceled != nullptr && canceled->load(std::memory_order_acquire)) {
+            asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(AAFwk::INTENT_CANCELED)));
+            return false;
+        }
+        // A signal can be bound to at most one in-flight execution at a time.
+        if (bound != nullptr && bound->load(std::memory_order_acquire)) {
+            asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+            return false;
+        }
+        param.signalId_ = signalData->signalId;
+        if (bound != nullptr) {
+            bound->store(true, std::memory_order_release);
+        }
+        return true;
+    }
+
     napi_value OnExecute(napi_env env, NapiCallbackInfo& info)
     {
         HandleEscape handleEscape(env);
@@ -271,28 +439,23 @@ private:
             return CreateJsUndefined(env);
         }
 
-        napi_value lastParam = (info.argc == 1) ? nullptr : info.argv[INDEX_ONE];
-        napi_valuetype type = napi_undefined;
-        napi_typeof(env, lastParam, &type);
-
         napi_value result = nullptr;
         napi_deferred nativeDeferred = nullptr;
         napi_ref callbackRef = nullptr;
-        std::unique_ptr<NapiAsyncTask> asyncTask = nullptr;
-        if (lastParam == nullptr || type != napi_function) {
-            napi_create_promise(env, &nativeDeferred, &result);
-            asyncTask = std::make_unique<NapiAsyncTask>(nativeDeferred, nullptr, nullptr);
-        } else {
-            napi_get_undefined(env, &result);
-            napi_create_reference(env, lastParam, 1, &callbackRef);
-            asyncTask = std::make_unique<NapiAsyncTask>(callbackRef, nullptr, nullptr);
-        }
-
+        std::unique_ptr<NapiAsyncTask> asyncTask = CreateAsyncTask(env, info, result, callbackRef, nativeDeferred);
         if (asyncTask == nullptr) {
             TAG_LOGE(AAFwkTag::INTENT, "null asyncTask");
             return CreateJsUndefined(env);
         }
-        auto client = std::make_shared<JsInsightIntentExecuteCallbackClient>(env, nativeDeferred, callbackRef);
+
+        std::shared_ptr<std::atomic<bool>> canceled = nullptr, bound = nullptr;
+        JsCancellationSignalData *signalData = GetSignalData(env, info);
+        if (!PrepareCancellationSignal(env, signalData, param, asyncTask, canceled, bound)) {
+            return handleEscape.Escape(result);
+        }
+
+        auto client = std::make_shared<JsInsightIntentExecuteCallbackClient>(env, nativeDeferred,
+            callbackRef, canceled, bound);
         uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(client);
         if (IsServiceMatch(param) && NeedStartByContext(param)) {
             return HandleServiceMatch(env, info, param);
@@ -302,6 +465,9 @@ private:
         if (err != 0) {
             asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
+            if (bound != nullptr) {
+                bound->store(false, std::memory_order_release);
+            }
         }
         return handleEscape.Escape(result);
     }
@@ -662,6 +828,7 @@ napi_value JsInsightIntentDriverInit(napi_env env, napi_value exportObj)
 
     const char *moduleName = "JsInsightIntentDriver";
     BindNativeFunction(env, exportObj, "execute", moduleName, JsInsightIntentDriver::Execute);
+    JsCancellationSignalInit(env, exportObj);
     BindNativeFunction(env, exportObj,
         "getAllInsightIntentInfo", moduleName, JsInsightIntentDriver::GetAllInsightIntentInfo);
     BindNativeFunction(env, exportObj,
