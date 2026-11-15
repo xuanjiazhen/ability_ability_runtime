@@ -1,6 +1,4 @@
 /*
- * Copyright (c) 2026 Shandong University.
- *
  * Author: Keyang Li <2024865311@qq.com>
  * Affiliation: Shandong University
  * Mentor: Hongjun Dai <dahogn@sdu.edu.cn>
