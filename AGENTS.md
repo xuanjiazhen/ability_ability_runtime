@@ -244,3 +244,147 @@
 - **静态语言实现默认排除**（`frameworks/ets/ani/`、`frameworks/ets/ets/`、`frameworks/cj/ffi/`、`ets_*.cpp`、`cj_*.cpp`），除非用户明确要求包含。
 - **证据要求**：每条发现可追溯到 `file:line` + 触发路径，不收无证据的代码气味项。
 - **检视阶段不改源码**：只产出报告与建议；修复由用户确认后另起任务，并回到本 AGENTS.md 的 Constraints/Verification 章节执行。
+
+## 6. AI 开发操作规范（必须遵守）
+
+以下规则来源于实际开发中踩过的坑，每次改动必须严格遵守。
+
+### 6.1 提交前必须检查分支和状态
+
+**每次 commit/amend/push 之前，必须执行以下命令并确认结果：**
+
+```bash
+git branch --show-current    # 确认当前分支是目标分支
+git status --short           # 确认改动文件列表符合预期
+git log --oneline -3         # 确认最近提交是自己的改动
+```
+
+**原因**：曾在 `feature/subspawn-support` 分支上误执行了 `git commit --amend`，把无关分支的提交消息覆盖了，导致改动丢失。多分支并行开发时，AI 可能停留在上一次操作遗留的分支上。
+
+**修复步骤**：如果发现 commit 到了错误分支，立即执行 `git reset --hard HEAD~1` 恢复，然后切回正确分支重新操作。
+
+### 6.2 新增/修改函数必须检查 BUILD.gn 链接
+
+**每次新增函数或新增文件后，必须检查以下三个维度：**
+
+| 检查项 | 怎么查 | 影响范围 |
+|---|---|---|
+| 源文件是否在 sources 列表 | `grep "文件名" <target>/BUILD.gn` 或 `grep "文件名" <target>/*.gni` | 新增 .cpp 文件必须加入对应 target 的 sources |
+| include 路径是否在 include_dirs | `grep "头文件目录" <target>/BUILD.gn` | 新增 .h 文件所在目录必须在消费者 target 的 include_dirs |
+| 外部依赖是否在 external_deps | `grep "库名" <target>/BUILD.gn` | 使用新库时必须加入 external_deps，且确认是无条件还是有条件（`if (xxx_enable)`） |
+
+**Mock 文件同步检查**：如果修改了被 mock 的类（如 `AppScheduler`），必须检查所有使用该 mock 的测试 target 的 mock .cpp 文件是否也实现了新方法。
+
+**查找受影响的 mock**：
+```bash
+# 找出编译该源文件的所有测试 target
+grep -rn "源文件名" test/*/BUILD.gn
+# 找出使用 mock 版本的 target
+grep -rn "mock_源文件名" test/*/BUILD.gn
+```
+
+**原因**：曾在 `AppScheduler` 上新增了 `CheckProcessAvailable` 方法，但 7 个测试 target 使用的 mock `AppScheduler` 没有该方法，导致链接失败。修复了 2 个 mock 文件，另外 5 个不需要改（因为它们不编译 `ability_connect_manager.cpp`）。
+
+### 6.3 日志级别规范
+
+| 级别 | 何时用 | 例子 |
+|---|---|---|
+| `TAG_LOGE` | 错误场景：IPC 失败、超时、null 检查失败、鉴权失败 | `QueryProcessStateWithCallback failed` |
+| `TAG_LOGW` | 原有代码就是 W 级别的（不改） | `SetProcessPrepareExit appRecord null` |
+| `TAG_LOGI` | 原有代码就是 I 级别的（不改） | `ui_ability_lifecycle_manager` 的 SetProcessPrepareExit |
+| `TAG_LOGD` | 我们新增的正常流程日志 | `QueryProcessStateWithCallback begin/sent` |
+
+**原则**：新增日志根据语义选级别；原有日志保持原级别不改。不要把自己新增的 W/I 级别日志改成 D。
+
+### 6.4 sptr 对象创建规范
+
+**使用 `MakeSptr` 而非 `new`**，并必须判空：
+
+```cpp
+// 正确
+sptr<MyClass> callback = sptr<MyClass>::MakeSptr();
+if (callback == nullptr) {
+    TAG_LOGE(...);
+    return;  // 或 return 默认值
+}
+
+// 错误：new 可能失败导致空指针崩溃
+sptr<MyClass> callback = new MyClass();
+```
+
+### 6.5 IPC 新增方法全链路检查清单
+
+在 `IAmsMgr`（或类似 IPC 接口）新增方法时，必须同时修改以下所有层，缺一层就会链接失败或编译报错：
+
+| 层 | 文件 | 检查内容 |
+|---|---|---|
+| 接口定义 | `ams_mgr_interface.h` | 方法声明 + IPC code 枚举值 |
+| Proxy | `ams_mgr_proxy.h/.cpp` | 方法 override + IPC 发送实现 |
+| Stub | `ams_mgr_stub.h/.cpp` | dispatch case + handler 实现 |
+| Scheduler | `ams_mgr_scheduler.h/.cpp` | 方法 override + 鉴权 + 委托给 inner |
+| Client | `app_mgr_client.h/.cpp` | 方法声明 + 获取 proxy 调用 |
+| AMS Scheduler | `app_scheduler.h/.cpp` | passthrough 方法 |
+| 调用方 | 业务代码 | 通过 `DelayedSingleton<AppScheduler>::GetInstance()->方法名()` |
+
+### 6.6 锁持有期间调 IPC 的注意事项
+
+在持有锁（如 `serialMutex_`）期间调用同步 IPC（如 `CheckProcessAvailable` 内部的 `WaitForResult`），会阻塞其他需要该锁的线程。修改前必须：
+
+1. 确认该锁保护了哪些函数（`grep "锁名" <文件>.cpp`）
+2. 评估阻塞时长对其他调用方的影响
+3. 如果阻塞时间长（如 condition_variable 等待 100ms），考虑将 IPC 调用移出锁外（但需评估竞态风险）
+
+### 6.7 跨进程调用链验证
+
+修改涉及跨进程调用时，用以下命令验证每一层的签名和调用关系：
+
+```bash
+# 检查方法在所有层的签名是否一致
+grep -rn "方法名" services/ interfaces/ --include="*.h" --include="*.cpp" | grep -v test
+
+# 检查 IPC code 枚举值在 proxy 和 stub 中是否一致
+grep -rn "IPC_CODE" interfaces/ --include="*.cpp"
+
+# 确认调用链上下游类型匹配（IPC 传基本类型，inner 接收复杂类型时需要转换）
+grep -n "方法签名" <每一层的文件>
+```
+
+### 6.8 测试用例同步更新
+
+每次修改函数行为后，必须同步更新测试用例：
+
+| 改动类型 | 测试更新 |
+|---|---|
+| 新增函数 | 新增对应用例（正常路径 + 边界条件 + 异常路径） |
+| 删除函数内部逻辑 | 检查已有用例的 EXPECT 是否仍然通过 |
+| 修改返回值语义 | 更新用例的期望值 |
+| 新增类 | 新增类的生命周期测试（构造、回调、超时等） |
+
+**测试 BUILD.gn 也需要检查**：测试目录的 BUILD.gn 可能需要加 `include_dirs` 和 `external_deps`。
+
+### 6.9 修改 include / 基类前必须验证依赖存在
+
+**改 `#include` 或继承基类之前，必须先确认被引用的头文件/类在当前工作空间的依赖仓中存在：**
+
+```bash
+# 确认头文件存在
+find <依赖仓路径> -name "要引用的头文件名"
+# 确认类存在
+grep -rn "class 类名" <依赖仓路径> --include="*.h"
+```
+
+**原因**：曾根据 memmgr 团队的口头改动说明，将基类从 `MemoryObserverStub` 改为 `ProcessStateCallbackStub`，但该类在当前工作空间的 memmgr 仓中不存在（对方的改动尚未合入），导致编译报错"file not found"。
+
+**核心原则**：口头/文档描述 ≠ 代码现状。修改任何跨仓依赖（include、基类、接口签名）之前，必须在当前工作空间中实际验证依赖存在，不能仅凭对方的描述就改代码。
+
+### 6.10 依赖仓变更合入时机确认
+
+当依赖仓（如 memmgr）的团队告知"有新接口/有重构"时，必须确认：
+
+| 确认项 | 方法 |
+|---|---|
+| 新接口是否已在当前工作空间合入 | `ls` / `find` 查看依赖仓的实际文件 |
+| 新接口的签名是否与描述一致 | `grep -rn "方法名" <依赖仓>` |
+| 依赖仓的分支是否与描述一致 | `git -C <依赖仓> branch --show-current` + `git log --oneline -3` |
+
+**如果依赖仓的实际代码与描述不符**：以实际代码为准，不以描述为准。改完后同步告知对方存在差异。
