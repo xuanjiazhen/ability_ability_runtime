@@ -212,6 +212,8 @@ public:
     virtual void OnStartSpecifiedFailed(int32_t requestId, int32_t userId) override;
 };
 
+class TaskStateCallbackImpl;
+
 /**
  * @class AppScheduler
  * AppScheduler , access app manager service.
@@ -886,6 +888,7 @@ private:
     std::weak_ptr<AppStateCallback> callback_;
     std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient_;
     sptr<StartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
+    sptr<TaskStateCallbackImpl> taskStateCallback_;
     std::mutex lock_;
 };
 }  // namespace AAFwk

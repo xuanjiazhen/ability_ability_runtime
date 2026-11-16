@@ -211,6 +211,7 @@ abilityms_files = [
 
   #modular_object utils
   "src/modular_object_utils.cpp",
+  "src/task_state_callback_impl.cpp",
 ]
 
 if (ability_runtime_graphics) {
