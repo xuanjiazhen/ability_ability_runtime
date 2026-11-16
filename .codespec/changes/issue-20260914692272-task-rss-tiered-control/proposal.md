@@ -1,11 +1,11 @@
 ---
-phase_status: awaiting_approval
+phase_status: approved
 approval:
-  status: pending
-  approver: ""
-  evidence: ""
-  approved_at: ""
-  baseline_digest: "7435e2d755abde65ee1aec871dbd61d1997b9fca6c0de5279cb98180aa5dd6bd"
+  status: approved
+  approver: "yangzk"
+  evidence: "用户评审后回复『批准』（2026-11-16 会话记录，回应 Define 审批请求）"
+  approved_at: "2026-11-16"
+  baseline_digest: "b1d3d0af69c557e01716d169ac9f64864517030c9efe13025d127f0e4f49d7e3"
 target_release:
   id: OpenHarmony-7.1-Release
   status: proposed
@@ -13,7 +13,7 @@ target_release:
 
 # 需求文档：任务进程 RSS 分级调度决策与代理调用（含防抖合并）
 
-> 主文档只保存需求输入和候选需求基线。本需求复杂度为“标准”，逐项澄清结论已合并入需求基线；当前状态为 AwaitingApproval，不代表 Define 已获批准。
+> 主文档只保存需求输入和已确认基线。本需求复杂度为“标准”，逐项澄清结论已合并入需求基线；当前状态为 Approved。
 
 ## 需求输入
 
@@ -28,7 +28,7 @@ target_release:
 | 目标发行版本 | OpenHarmony-7.1-Release |
 | 候选 Profile | none（ability_ability_runtime 未命中现有 arkweb/arkui/arkgraphic/arkdata profile） |
 | 优先级 | P1 |
-| Define 阶段状态 | AwaitingApproval |
+| Define 阶段状态 | Approved |
 
 ### 原始描述
 
@@ -45,7 +45,7 @@ target_release:
 
 | 证据类型 | 链接/路径 | 说明 |
 |----------|-----------|------|
-| 当前需求前置分析 | `20260914692272/proposal.md`、`spec.md`、`design.md`、`execution-plan.md` | 提供初始范围；本候选基线按需求方补充移除真实调控效果、动态策略、资源配额和性能功耗验收 |
+| 当前需求前置分析 | `20260914692272/proposal.md`、`spec.md`、`design.md`、`execution-plan.md` | 提供初始范围；本基线按需求方补充移除真实调控效果、动态策略、资源配额和性能功耗验收 |
 | 已合入依赖需求 | `20260914692273/`；本仓提交 `3541c8ee81`，合并提交 `d44973f6a9` | 任务优先级判定、多任务归属、effectiveLevel 重算及 ADR-9 初步防抖分析已合入当前基线 |
 | 当前源码 | `services/appmgr/src/task_mgr/process_schedule.cpp:41-65,76-101,173-188` | 当前仅有归属重算及 `pid + oldLevel/newLevel` 空实现日志，尚无完整事件载荷、ResourceControlProxy 和合并窗口 |
 | 当前源码 | `services/appmgr/include/task_mgr/task_record.h:41-53`、`attribution_record.h:31-49` | 任务记录已有创建者 pid/uid；归因记录支持 INSIGHT/CLI/A2A/ABILITY 多工具类型 |
@@ -60,13 +60,13 @@ target_release:
 | 基线版本 | v1.0 |
 | 基线日期 | 2026-11-16 |
 | Owner | yangzk |
-| 确认人 | 待 yangzk 明确批准 Define |
-| 确认依据 | 2026-11-16 需求方逐项补充与澄清会话记录；Define 批准证据待评审后记录 |
+| 确认人 | yangzk |
+| 确认依据 | 用户评审后回复『批准』（2026-11-16 会话记录，回应 Define 审批请求） |
 | 复杂度 | 标准 |
 | Profile | none |
 | 目标发行版本 | OpenHarmony-7.1-Release（proposed） |
 | 版本状态 | proposed |
-| 基线结论 | 条件通过（候选基线，需求澄清已完成；待 Define 明确批准后转为通过） |
+| 基线结论 | 通过 |
 
 ### 问题、目标与成功指标
 
@@ -205,7 +205,7 @@ N/A：无 Public/System API 新增、修改或废弃，无 d.ts/Kit/公开错误
 | 依赖需求设计 | ADR-9 注册/死亡/升档立即、降档与主动注销合并 1 秒、到期按最新状态重算 | 继承其时序原则；按本需求澄清固定窗口，动作以进程最终状态为准 | 高 | `20260914692273/design.md:133,334-359` |
 | 仓内 Agent 指南 | appmgr 高风险边界、知识库使用、测试与提交流程 | 仅修改允许模块；代码阶段须同步测试并按规定构建验证 | 高 | `AGENTS.md`、`CLAUDE.md` |
 | 领域知识库 | TaskManager 模块、TaskRecord/AttributionRecord、任务结束/归因/死亡规格及既有容量限制 | 复用生命周期与归因事实；不取消既有前端 10 个活动任务、1000 条归因限制；新增调度代理与防抖属于规格空白 | 中（相关 capability/scenario review_status=pending） | `abilitykit_sdd/specifications/ability/1_modules/task_flow.md:17-55`；`2_capabilities/task_flow_mechanism.md:38-82`；`3_scenarios/task_flow/` |
-| 需求方澄清 | 空实现验收、固定策略/窗口、完整共管上下文、工具变化不发事件、动作优先级、N/A 维度、文档与分支范围 | 作为本候选基线的直接需求输入；澄清不视为 Define 批准 | 高 | 2026-11-16 本会话逐项问答记录 |
+| 需求方澄清 | 空实现验收、固定策略/窗口、完整共管上下文、工具变化不发事件、动作优先级、N/A 维度、文档与分支范围 | 作为本基线的直接需求输入；澄清不视为 Define 批准 | 高 | 2026-11-16 本会话逐项问答记录 |
 
 ### 变更控制与下游条件
 
@@ -223,6 +223,6 @@ N/A：无 Public/System API 新增、修改或废弃，无 d.ts/Kit/公开错误
 - [x] 范围内外、影响范围、API 变化和不涉及项已逐项澄清
 - [x] `proposal.target_release` 已确认（OpenHarmony-7.1-Release，proposed）
 - [x] `manifest.profile` 已确认为 none
-- [x] Agent Scope Guard 已形成候选基线，未复制 Plan/Task 的实现文件清单
-- [ ] 基线结论为“通过”，且确认人和确认依据完整（等待 yangzk 明确批准 Define）
+- [x] Agent Scope Guard 已基线化，未复制 Plan/Task 的实现文件清单
+- [x] 基线结论为“通过”，且确认人和确认依据完整（yangzk，2026-11-16 Define 批准）
 - [x] 条件附录未触发：标准复杂度，逐项澄清已关闭，无跨 SIG/多仓协调或未决争议
