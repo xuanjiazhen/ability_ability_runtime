@@ -106,7 +106,7 @@
 
 | 决策 ID | 问题 | 推荐方案 | 探索过的替代方案 | 取舍理由 | 影响 |
 |---------|------|----------|-----------------|------|------|
-| ADR-1 | 多态调度如何落地 | AttributionRecord 改为多态基类（virtual 析构 + virtual Schedule/Unschedule），派生 Insight/Cli/A2a/Ability 四类；ProcessSchedule 经工厂 `CreateAttributionRecord(tool)` 创建并持有派生对象，统一基类指针多态分发，不 switch 类型；task_mgr 值语义基类存储保持不变 | A：task_mgr attributions 全量改 shared_ptr 多态存储（高风险区值→指针大改，dump/注册/拷贝语义全动，放弃）；B：ProcessSchedule 内 switch(tool) 分发（违背"ProcessSchedule 不做区分"约束，放弃） | 满足需求方多态约束且对 20260914692273 已交付代码零侵入；基类加虚函数不影响值语义存储与 dump | attribution_record.h/.cpp、process_schedule |
+| ADR-1 | 多态调度如何落地 | AttributionRecord 改为多态基类，派生 Insight/Cli/A2a/Ability 四类；**具体调度策略写死在各派生 record 里**：各派生 record 的 Schedule/Unschedule/NotifyTaskEnd 硬编码各自调度管控方案，经 ResourceControlProxy 按 (taskId, pid) 对实施管控；ProcessSchedule 仅做归属索引/effectiveLevel 合并/事件通知（不做调度策略编排，不调 proxy）；被移除 record 暂存 endedRecords_，任务级降级亦由 record 承载；task_mgr 值语义基类存储保持不变 | A：task_mgr attributions 全量改 shared_ptr 多态存储（高风险区值→指针大改，放弃）；B：ProcessSchedule 统一编排调度策略/调 proxy（需求方 2026-11-16 明确"不用 process_schedule 做调度策略，写死在派生 record 里"，放弃）；C：ProcessSchedule 内 switch(tool) 分发（违背"不做区分"约束，放弃） | 满足需求方多态与"调度管控下沉 record"约束；ProcessSchedule 回归归属索引+事件通知的纯粹职责；统一术语"调度管控" | attribution_record.h/.cpp、process_schedule、resource_control_proxy |
 | ADR-2 | RSS 对接方式 | ResourceControlProxy 代理层语义接口（ApplyControl/RevokeControl/QueryControlState/NotifyTaskEnd）+ 一期 Stub（内存登记+日志+告警+探测开关默认关，不持久化），Impl 占位编译期二选一 | 直连 ressched_client（RSS 设计未定、团队主导，耦合难替换，放弃） | 代理隔离使 RSS 明确后替换零波及上层；Stub 先行不阻塞交付 | resource_control_proxy 新增 |
 | ADR-3 | 映射表管理 | 系统参数外置 `persist.sys.appms.taskmanager.sched_mapping`（JSON：priority→{freeze,schedGroup,qos,speed}），ScheduleMapping 加载/校验；未加载/非法 fail-safe 不施加+告警 | 编译期固化映射（评审要求可配加载、调整不改架构，放弃） | 映射表评审未定稿不阻塞骨架开发；参数化用例 | schedule_mapping 新增 |
 | ADR-4 | 生效保障 | 施加后生效校验环：经 ResourceControlProxy::QueryControlState 查询调度/冻结状态，未生效记录任务告警日志；一期 Stub 下查询亦为日志桩 | 尽力而为不校验（锁屏核心场景失效不可观测，放弃） | 管控失效需可观测，满足 AC-5.1 | process_schedule + 代理层 |
@@ -153,10 +153,11 @@
 > 以下为进程内 C++ 接口（services/appmgr 内部），不跨进程、不暴露 SDK；经 ResourceControlProxy 与 RSS 的跨进程交互复用 ressched_client 既有 IPC。
 
 ```cpp
-// resource_control_proxy.h —— RSS 唯一出口（进程内语义接口）
+// resource_control_proxy.h —— RSS 唯一出口（进程内语义接口，被派生 record 使用实施调度管控）
 enum class ControlAction : int32_t { APPLY = 0, REVOKE = 1 };
 
 struct ControlRequest {
+    std::string taskId;          // 任务标识（管控按 taskId+pid 一对）
     int32_t callerPid = -1;      // 任务创建者 pid
     int32_t callerUid = -1;      // 任务创建者 uid
     int32_t managedPid = -1;     // 纳管进程 pid
@@ -174,12 +175,12 @@ struct TaskEndInfo {
 class ResourceControlProxy {
 public:
     static ResourceControlProxy &GetInstance();
-    // 施加管控（含生效校验：施加后经 QueryControlState 复核，未生效告警）
+    // 施加 (taskId,pid) 对管控（含生效校验：施加后经 QueryControlState 复核，未生效告警）
     int32_t ApplyControl(const ControlRequest &req);
-    // 撤销管控（进程级降级）
-    int32_t RevokeControl(pid_t managedPid);
-    // 生效校验查询（返回当前档位；Stub 期返回登记值+日志）
-    int32_t QueryControlState(pid_t managedPid, int32_t &level);
+    // 撤销 (taskId,pid) 对管控（进程级降级）
+    int32_t RevokeControl(const std::string &taskId, pid_t managedPid);
+    // 生效校验查询（按对返回档位；Stub 期返回登记值+日志）
+    int32_t QueryControlState(const std::string &taskId, pid_t managedPid, int32_t &level);
     // 任务级降级：通知 RSS 清理任务级策略
     void NotifyTaskEnd(const TaskEndInfo &info);
 };
@@ -187,19 +188,21 @@ public:
 ```
 
 ```cpp
-// attribution_record.h —— 多态调度（一期空实现+关键路径日志）
+// attribution_record.h —— 多态调度管控（具体调度策略写死派生 record，一期空实现+关键路径日志）
 struct AttributionRecord {
     pid_t pid = -1;
     AttributionTool tool = AttributionTool::UNKNOWN;
     int64_t attributedTimeMillis = 0;
     virtual ~AttributionRecord() = default;
-    virtual void Schedule(int32_t level);    // 基类默认空实现+日志
-    virtual void Unschedule();               // 基类默认空实现+日志
+    virtual void Schedule(const std::string &taskId, int32_t level);    // 基类默认空实现+日志（内联）
+    virtual void Unschedule(const std::string &taskId);                 // 基类默认空实现+日志（内联）
+    virtual void NotifyTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids);  // 基类默认空实现+日志（内联）
 };
-struct InsightAttributionRecord : AttributionRecord { void Schedule(int32_t) override; void Unschedule() override; };
-struct CliAttributionRecord : AttributionRecord { void Schedule(int32_t) override; void Unschedule() override; };
-struct A2aAttributionRecord : AttributionRecord { void Schedule(int32_t) override; void Unschedule() override; };
-struct AbilityAttributionRecord : AttributionRecord { void Schedule(int32_t) override; void Unschedule() override; };
+// 派生类写死各自调度管控：Schedule/Unschedule/NotifyTaskEnd 调 proxy 按 (taskId,pid) 对实施管控
+struct InsightAttributionRecord : AttributionRecord { 三方法 override（调 proxy）; };
+struct CliAttributionRecord : AttributionRecord { 三方法 override（调 proxy）; };
+struct A2aAttributionRecord : AttributionRecord { 三方法 override（调 proxy）; };
+struct AbilityAttributionRecord : AttributionRecord { 三方法 override（调 proxy）; };
 // 工厂：按 tool 创建派生对象，UNKNOWN 返回基类
 std::shared_ptr<AttributionRecord> CreateAttributionRecord(AttributionTool tool);
 ```
