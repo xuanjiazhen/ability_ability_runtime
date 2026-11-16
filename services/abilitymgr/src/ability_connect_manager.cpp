@@ -1160,14 +1160,14 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
         if (recordSessionInfo != nullptr &&
             recordSessionInfo->originalCallerInfo.callerToken != nullptr &&
             sessionInfo->originalCallerInfo.migrationGen ==
-                recordSessionInfo->originalCallerInfo.migrationGen) {
+            recordSessionInfo->originalCallerInfo.migrationGen) {
             recordSessionInfo->originalCallerInfo.callerToken = nullptr;
             TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{public}d, gen: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
         } else if (recordSessionInfo != nullptr &&
                    recordSessionInfo->originalCallerInfo.callerToken != nullptr &&
                    sessionInfo->originalCallerInfo.migrationGen <
-                       recordSessionInfo->originalCallerInfo.migrationGen) {
+                   recordSessionInfo->originalCallerInfo.migrationGen) {
             TAG_LOGW(AAFwkTag::UI_EXT,
                 "stale migration completion ignored, persistentId: %{public}d, done gen: %{public}u, "
                 "record gen: %{public}u",
