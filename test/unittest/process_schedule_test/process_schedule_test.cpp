@@ -28,7 +28,6 @@
 
 #include "task_mgr/attribution_record.h"
 #include "task_mgr/common.h"
-#include "task_mgr/schedule_mapping.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -56,7 +55,6 @@ void ResetSchedule()
     proxy.failRevokeForTest_ = false;
     proxy.failNotifyForTest_ = false;
     proxy.revokeCallsForTest_.store(0);
-    ScheduleMapping::GetInstance().Reset();
 }
 }  // namespace
 
@@ -496,50 +494,6 @@ HWTEST_F(ProcessScheduleTest, ProxyStubAction_0100, TestSize.Level1)
     EXPECT_NE(proxy.ApplyControl(badReq), 0);
 }
 
-/**
- * @tc.number: MappingLoad_0100
- * @tc.name: a valid mapping JSON loads tiers and answers GetPolicy (ADR-3 / R-1).
- * @tc.desc: the three tiers parse with their freeze/schedGroup/qos/speed fields; unknown
- *           levels are rejected.
- */
-HWTEST_F(ProcessScheduleTest, MappingLoad_0100, TestSize.Level1)
-{
-    auto &mapping = ScheduleMapping::GetInstance();
-    std::string validJson = R"({"100":{"freeze":true,"schedGroup":0,"qos":0,"speed":0},
-        "200":{"freeze":false,"schedGroup":1,"qos":1,"speed":1},
-        "300":{"freeze":false,"schedGroup":2,"qos":2,"speed":2}})";
-    EXPECT_TRUE(mapping.LoadFromString(validJson));
-    EXPECT_TRUE(mapping.IsReady());
-    SchedulePolicy policy;
-    ASSERT_TRUE(mapping.GetPolicy(TASK_PRIORITY_HIGH, policy));
-    EXPECT_EQ(policy.schedGroup, 2);
-    EXPECT_EQ(policy.qos, 2);
-    EXPECT_EQ(policy.speed, 2);
-    EXPECT_FALSE(policy.freeze);
-    ASSERT_TRUE(mapping.GetPolicy(TASK_PRIORITY_LOW, policy));
-    EXPECT_TRUE(policy.freeze);
-    EXPECT_EQ(policy.schedGroup, 0);
-    EXPECT_FALSE(mapping.GetPolicy(999, policy));
-}
-
-/**
- * @tc.number: MappingFailSafe_0100
- * @tc.name: illegal or empty mapping stays not-ready (fail-safe, R-6 / INV-5).
- * @tc.desc: malformed JSON, an empty object and a JSON without any valid tier all leave the
- *           mapping not-ready and GetPolicy returns false.
- */
-HWTEST_F(ProcessScheduleTest, MappingFailSafe_0100, TestSize.Level1)
-{
-    auto &mapping = ScheduleMapping::GetInstance();
-    EXPECT_FALSE(mapping.LoadFromString("{invalid json"));
-    EXPECT_FALSE(mapping.IsReady());
-    EXPECT_FALSE(mapping.LoadFromString("{}"));
-    EXPECT_FALSE(mapping.IsReady());
-    EXPECT_FALSE(mapping.LoadFromString("{\"999\":{\"freeze\":true}}"));
-    EXPECT_FALSE(mapping.IsReady());
-    SchedulePolicy policy;
-    EXPECT_FALSE(mapping.GetPolicy(TASK_PRIORITY_HIGH, policy));
-}
 
 /**
  * @tc.number: DispatchPolymorphic_0100
@@ -549,8 +503,6 @@ HWTEST_F(ProcessScheduleTest, MappingFailSafe_0100, TestSize.Level1)
  */
 HWTEST_F(ProcessScheduleTest, DispatchPolymorphic_0100, TestSize.Level1)
 {
-    auto &mapping = ScheduleMapping::GetInstance();
-    mapping.LoadFromString(R"({"100":{"freeze":true},"200":{"freeze":false},"300":{"freeze":false}})");
     auto &sched = ProcessSchedule::GetInstance();
     auto &proxy = ResourceControlProxy::GetInstance();
     sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
@@ -568,22 +520,26 @@ HWTEST_F(ProcessScheduleTest, DispatchPolymorphic_0100, TestSize.Level1)
 
 /**
  * @tc.number: NoTaskIdBaseline_0100
- * @tc.name: an unready mapping blocks the apply channel but not the merge index (INV-5/6).
- * @tc.desc: without a loaded mapping, the attribution still merges into the index, yet no
- *           control is registered at the proxy (fail-safe), matching the no-taskId baseline.
+ * @tc.name: no taskId yields no control event; a managed pid gets the hard-coded control (INV-6).
+ * @tc.desc: without any attribution the proxy holds no registration (no taskId, no-op); once an
+ *           attribution is added, the derived record applies its hard-coded schedule control.
  */
 HWTEST_F(ProcessScheduleTest, NoTaskIdBaseline_0100, TestSize.Level1)
 {
     auto &sched = ProcessSchedule::GetInstance();
     auto &proxy = ResourceControlProxy::GetInstance();
+    int32_t level = 0;
+    // no taskId (no attribution): no control event, no registration at the proxy
+    EXPECT_NE(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
+    // managed pid: the derived record applies the hard-coded schedule control
     sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
+    EXPECT_EQ(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
+    EXPECT_EQ(level, TASK_PRIORITY_HIGH);
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].level, TASK_PRIORITY_HIGH);
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].attrObjects.count(TEST_TASK_HIGH), 1);
     }
-    int32_t level = 0;
-    EXPECT_NE(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
 }
 
 /**
@@ -595,8 +551,6 @@ HWTEST_F(ProcessScheduleTest, NoTaskIdBaseline_0100, TestSize.Level1)
  */
 HWTEST_F(ProcessScheduleTest, ControlApplyVerify_0100, TestSize.Level1)
 {
-    auto &mapping = ScheduleMapping::GetInstance();
-    mapping.LoadFromString(R"({"300":{"freeze":false}})");
     auto &sched = ProcessSchedule::GetInstance();
     auto &proxy = ResourceControlProxy::GetInstance();
     sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
@@ -618,8 +572,6 @@ HWTEST_F(ProcessScheduleTest, ControlApplyVerify_0100, TestSize.Level1)
  */
 HWTEST_F(ProcessScheduleTest, DegradeRetry_0100, TestSize.Level1)
 {
-    auto &mapping = ScheduleMapping::GetInstance();
-    mapping.LoadFromString(R"({"300":{"freeze":false}})");
     auto &sched = ProcessSchedule::GetInstance();
     auto &proxy = ResourceControlProxy::GetInstance();
     sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
@@ -644,8 +596,6 @@ HWTEST_F(ProcessScheduleTest, DegradeRetry_0100, TestSize.Level1)
  */
 HWTEST_F(ProcessScheduleTest, TaskEndDegrade_0100, TestSize.Level1)
 {
-    auto &mapping = ScheduleMapping::GetInstance();
-    mapping.LoadFromString(R"({"300":{"freeze":false}})");
     auto &sched = ProcessSchedule::GetInstance();
     auto &proxy = ResourceControlProxy::GetInstance();
     sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
@@ -667,8 +617,6 @@ HWTEST_F(ProcessScheduleTest, TaskEndDegrade_0100, TestSize.Level1)
  */
 HWTEST_F(ProcessScheduleTest, DispatchConcurrent_0100, TestSize.Level3)
 {
-    auto &mapping = ScheduleMapping::GetInstance();
-    mapping.LoadFromString(R"({"200":{"freeze":false}})");
     auto &sched = ProcessSchedule::GetInstance();
     auto &proxy = ResourceControlProxy::GetInstance();
     std::vector<std::thread> threads;
@@ -700,8 +648,6 @@ HWTEST_F(ProcessScheduleTest, DispatchConcurrent_0100, TestSize.Level3)
  */
 HWTEST_F(ProcessScheduleTest, UnscheduleRemovedTask_0100, TestSize.Level1)
 {
-    auto &mapping = ScheduleMapping::GetInstance();
-    mapping.LoadFromString(R"({"100":{"freeze":true},"300":{"freeze":false}})");
     auto &sched = ProcessSchedule::GetInstance();
     auto &proxy = ResourceControlProxy::GetInstance();
     sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);

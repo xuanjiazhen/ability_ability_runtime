@@ -48,7 +48,7 @@
 | `services/appmgr/src/task_mgr/task_manager_service.cpp:233-296` `FinishTaskInner` | 任务结束统一入口：锁内收集 managedPids→tasks_.erase→遍历调 OnAttributionRemoved（:273）；锁外调 `NotifyTaskFinished(taskId, userId, reason)`（:294）；三类触发 FINISHED_BY_CALLER(:185)/TIMEOUT(:299)/CREATOR_DIED(:418) | OH-ARCH-LAYERING | 双通道降级挂载点：进程级撤销复用 OnAttributionRemoved；任务级 NotifyTaskEnd 挂在锁外（NotifyTaskFinished 同源，三类结束全覆盖） | 源码，高 |
 | `services/appmgr/src/task_mgr/task_manager_service.cpp:405-444` `FinishTasksByCreatorInner`/`OnProcessDied` | 创建者死亡经 FinishTasksByCreatorInner 触发 FinishTaskInner；进程死亡经 ProcessSchedule::OnProcessDied(:444) 清理索引 | OH-ARCH-LAYERING | 死亡清理复用既有挂点，本需求不新增死亡钩子 | 源码，高 |
 | `services/appmgr/include/task_mgr/common.h:26-47` 常量 | 档位 TASK_PRIORITY_LOW/MEDIUM/HIGH=100/200/300；TASK_TIMEOUT_PARAM=persist.sys.appms.taskmanager.task_timeout；TASK_MAX_ATTRIBUTIONS_PER_TASK=1000 | OH-ARCH-ERROR-LOG | 档位数值口径沿用；系统参数命名沿用 persist.sys.appms.taskmanager.* 前缀；管控数量上限属前端纳管，不在本需求 | 源码，高 |
-| `services/appmgr/src/task_mgr/task_manager_service.cpp:514-522` `GetTimeoutSeconds` | 系统参数读取封装 GetIntParameter + 默认值兜底 + 非法值回退 | OH-ARCH-ERROR-LOG | 映射表加载沿用同一参数读取与兜底风格 | 源码，高 |
+| `services/appmgr/src/task_mgr/task_manager_service.cpp:514-522` `GetTimeoutSeconds` | 系统参数读取封装 GetIntParameter + 默认值兜底 + 非法值回退 | OH-ARCH-ERROR-LOG | 无（调度管控策略写死代码里，不再动态读参数） | 源码，高 |
 | `services/appmgr/BUILD.gn:173` | external_deps 已含 `"resource_schedule_service:ressched_client"` | OH-ARCH-COMPONENT-BUILD | RSS 交互通道依赖现成，代理层 Impl 期可直接使用，无需新增依赖 | 构建配置，高 |
 
 **基线规则：** 设计结论与代码事实冲突时，先确认目标版本和分支；未验证内容标记待验证，不进入 Approved 设计约束；execution-plan 文件范围必须可追溯到本表。
@@ -61,7 +61,6 @@
 | 系统服务（调度域） | services/appmgr/src/task_mgr/process_schedule.{h,cpp} | 归属重算→管控事件→锁外多态分发 Schedule/Unschedule、生效校验、双通道降级编排 | 修改 |
 | 系统服务（调度多态） | services/appmgr/include/task_mgr/attribution_record.h + src/task_mgr/attribution_record.cpp | AttributionRecord 多态基类 + 4 派生类 + 工厂（一期空实现+日志） | 修改/新增 |
 | 系统服务（代理层） | services/appmgr/include/task_mgr/resource_control_proxy.h + src/task_mgr/resource_control_proxy.cpp（新增） | RSS 唯一出口：ApplyControl/RevokeControl/QueryControlState/NotifyTaskEnd 语义接口 + Stub 骨架 | 新增 |
-| 系统服务（映射） | services/appmgr/src/task_mgr/schedule_mapping.{h,cpp}（新增） | 映射表系统参数加载/校验/fail-safe | 新增 |
 | 外部依赖（resourceschedule） | ressched_client（ResSchedClient） | RSS 冻结/调度分组/Qos/speed 接口 | 只读消费（Impl 期） |
 | 测试 | test/unittest/process_schedule_test/ | 多态分发/映射/降级/生效校验用例 | 新增/修改 |
 
@@ -78,14 +77,13 @@
 | OH-ARCH-SUBSYSTEM | 涉及跨子系统（ability→resourceschedule） | 对 RSS 的调用一律经 ResourceControlProxy 唯一出口；不得绕过代理层直连 ressched_client | 依赖检查/代码评审 |
 | OH-ARCH-IPC-SAF | 涉及跨进程（AppMS→RSS） | 复用 ressched_client 既有 IPC；不新增 IAppMgr 事务码、不改既有 IPC 序列化；内部接口为进程内 C++ 接口 | 集成测试 |
 | OH-ARCH-API-LEVEL | 无对外 API 变更 | 无 Public/System API 变更；内部接口为进程内 C++，不暴露 d.ts | API 评审 N/A |
-| OH-ARCH-COMPONENT-BUILD | 新增源文件 | appmgr BUILD.gn 内新增 resource_control_proxy/schedule_mapping 源文件；ressched_client 依赖已具备（:173）；不新增部件 | 构建验证 |
-| OH-ARCH-ERROR-LOG | 错误码/日志 | 无新增对外错误码；管控/降级/生效校验/映射 fail-safe 关键路径日志遵循 20260914692442 统一 TAG 规范 | 单测/hilog |
+| OH-ARCH-COMPONENT-BUILD | 新增源文件 | appmgr BUILD.gn 内新增 resource_control_proxy 源文件；ressched_client 依赖已具备（:173）；不新增部件 | 构建验证 |
+| OH-ARCH-ERROR-LOG | 错误码/日志 | 无新增对外错误码；管控/降级/生效校验关键路径日志遵循 20260914692442 统一 TAG 规范 | 单测/hilog |
 
 ### 既有模式复用
 
 | 模式 | 参考代码（文件:行/符号） | 适用架构规则 | 必须复用的约定 | 本设计的复用方式 | 偏差及理由 | 关联 Task |
 |------|-------------------------|--------------|----------------|------------------|------------|-----------|
-| 系统参数读取+兜底 | `task_manager_service.cpp:514-522` `GetTimeoutSeconds` | OH-ARCH-ERROR-LOG | parameter 读取封装 + 非法值回默认 | 映射表加载沿用同一风格（JSON 解析+校验+fail-safe） | 无 | TASK-2 |
 | 记录表+互斥锁并发 | `process_schedule.cpp:47` `scheduleMutex_`/`std::lock_guard` | OH-ARCH-LAYERING | 锁保护索引更新；锁内不调用外部 | 锁内重算+事件入队、锁外分发（对现有锁内打日志的强化） | 现网锁内仅打日志，本设计将下发移出锁外 | TASK-3 |
 | 单例+事件入口 | `process_schedule.cpp:26` `GetInstance` | OH-ARCH-LAYERING | 单例事件入口风格 | ResourceControlProxy 同风格单例 | 无 | TASK-1 |
 | 任务级通知通道 | `task_manager_service.cpp:294` `NotifyTaskFinished` | OH-ARCH-LAYERING | 锁外发送任务级通知 | NotifyTaskEnd 挂在同一锁外区域 | 无 | TASK-3 |
@@ -108,7 +106,7 @@
 |---------|------|----------|-----------------|------|------|
 | ADR-1 | 多态调度如何落地 | AttributionRecord 改为多态基类，派生 Insight/Cli/A2a/Ability 四类；**具体调度策略写死在各派生 record 里**：各派生 record 的 Schedule/Unschedule/NotifyTaskEnd 硬编码各自调度管控方案，经 ResourceControlProxy 按 (taskId, pid) 对实施管控；ProcessSchedule 仅做归属索引/effectiveLevel 合并/事件通知（不做调度策略编排，不调 proxy）；被移除 record 暂存 endedRecords_，任务级降级亦由 record 承载；task_mgr 值语义基类存储保持不变 | A：task_mgr attributions 全量改 shared_ptr 多态存储（高风险区值→指针大改，放弃）；B：ProcessSchedule 统一编排调度策略/调 proxy（需求方 2026-11-16 明确"不用 process_schedule 做调度策略，写死在派生 record 里"，放弃）；C：ProcessSchedule 内 switch(tool) 分发（违背"不做区分"约束，放弃） | 满足需求方多态与"调度管控下沉 record"约束；ProcessSchedule 回归归属索引+事件通知的纯粹职责；统一术语"调度管控" | attribution_record.h/.cpp、process_schedule、resource_control_proxy |
 | ADR-2 | RSS 对接方式 | ResourceControlProxy 代理层语义接口（ApplyControl/RevokeControl/QueryControlState/NotifyTaskEnd）+ 一期 Stub（内存登记+日志+告警+探测开关默认关，不持久化），Impl 占位编译期二选一 | 直连 ressched_client（RSS 设计未定、团队主导，耦合难替换，放弃） | 代理隔离使 RSS 明确后替换零波及上层；Stub 先行不阻塞交付 | resource_control_proxy 新增 |
-| ADR-3 | 映射表管理 | 系统参数外置 `persist.sys.appms.taskmanager.sched_mapping`（JSON：priority→{freeze,schedGroup,qos,speed}），ScheduleMapping 加载/校验；未加载/非法 fail-safe 不施加+告警 | 编译期固化映射（评审要求可配加载、调整不改架构，放弃） | 映射表评审未定稿不阻塞骨架开发；参数化用例 | schedule_mapping 新增 |
+| ADR-3 | 调度管控策略管理 | 调度管控策略直接硬编码在代码里：各派生 record 的 Schedule/Unschedule 内写死 level→freeze/schedGroup/qos/speed 策略组合（ControlRequest.policy），不引入 ScheduleMapping 动态读策略；占位取值随性能功耗评审定稿在代码内调整（不改接口与架构） | 系统参数外置映射表 + ScheduleMapping 动态加载（需求方 2026-11-16 明确"ScheduleMapping 也不要了，不用动态读策略，调度管控直接写在代码里"，放弃） | 调度管控与 record 内聚、无配置依赖、无映射 fail-safe 分支；一期空实现+日志 | attribution_record.cpp、resource_control_proxy |
 | ADR-4 | 生效保障 | 施加后生效校验环：经 ResourceControlProxy::QueryControlState 查询调度/冻结状态，未生效记录任务告警日志；一期 Stub 下查询亦为日志桩 | 尽力而为不校验（锁屏核心场景失效不可观测，放弃） | 管控失效需可观测，满足 AC-5.1 | process_schedule + 代理层 |
 | ADR-5 | 结束降级 | 双通道：进程级撤销/按剩余任务最高优先级重算（复用 OnAttributionRemoved）+ 任务级 NotifyTaskEnd（挂 FinishTaskInner 锁外，三类结束全覆盖）；两通道串行，失败重试 ≤3 次后告警 | 仅进程级（RSS 侧按任务建立的策略残留，放弃） | 防任务级策略残留，满足 AC-5.2 | process_schedule + task_manager_service 挂点 |
 | ADR-6 | 线程模型 | 锁内（scheduleMutex_）仅做归属重算+管控事件入队；锁外统一出队分发 Schedule/Unschedule、生效校验、NotifyTaskEnd | 锁内直接调用 Schedule/RSS（跨锁顺序+长时间持锁，违背"锁内不下发"约束，放弃） | 满足 spec 架构约束"锁内不下发"；消除与 tasksMutex_ 的锁顺序风险 | process_schedule 重构事件分发 |
@@ -122,7 +120,6 @@
 |--------|------|--------|----------|
 | 多态骨架 | AttributionRecord 基类 + 4 派生类 + 工厂；Schedule/Unschedule 空实现+日志 | 真实 RSS 调度 | 编译 + 多态分发单测 |
 | 代理层骨架 | ResourceControlProxy 语义接口 + Stub（登记+日志+探测开关默认关） | 真实 RSS 调用 | 编译 + Stub 动作断言 |
-| 映射骨架 | ScheduleMapping 加载/校验/fail-safe | 定稿映射值 | 参数化单测 |
 
 ### 骨架 Spec 拆分
 
@@ -135,7 +132,7 @@
 | Task ID | 目标 | 受影响文件 | 依赖 |
 |---------|------|------------|------|
 | TASK-1 | ResourceControlProxy 代理层骨架 + 多态派生类（一期空实现+日志） | resource_control_proxy.{h,cpp}（新）、attribution_record.{h,cpp}、BUILD.gn、test/unittest/process_schedule_test/ | design/spec Approved |
-| TASK-2 | 映射表加载 + 档位施加/撤销（process_schedule 事件→多态分发） | schedule_mapping.{h,cpp}（新）、process_schedule.{h,cpp}、BUILD.gn、test/unittest/process_schedule_test/ | TASK-1 |
+| TASK-2 | 调度管控策略写死 + 档位施加/撤销（process_schedule 事件→多态分发） | process_schedule.{h,cpp}、attribution_record.{h,cpp}、BUILD.gn、test/unittest/process_schedule_test/ | TASK-1 |
 | TASK-3 | 双通道降级 + 生效校验环 + 锁外分发 | process_schedule.{h,cpp}、task_manager_service.cpp（FinishTaskInner 锁外挂点）、resource_control_proxy、test/unittest/process_schedule_test/ | TASK-2 |
 
 ## API 签名、Kit 与权限
@@ -213,7 +210,7 @@ std::shared_ptr<AttributionRecord> CreateAttributionRecord(AttributionTool tool)
 
 ```
 文件路径: services/appmgr/BUILD.gn
-变更说明: 源文件列表新增 src/task_mgr/resource_control_proxy.cpp、src/task_mgr/schedule_mapping.cpp；attribution_record.cpp 扩展多态实现
+变更说明: 源文件列表新增 src/task_mgr/resource_control_proxy.cpp；attribution_record.cpp 扩展多态实现
 变更说明: ressched_client 依赖已具备（:173），无需新增 external_deps
 
 文件路径: test/unittest/process_schedule_test/BUILD.gn
@@ -241,7 +238,6 @@ graph TD
     ND -->|NotifyTaskEnd| RCP
     RCP --> STUB2[一期 Stub 登记+日志+告警]
     RCP -.RSS 明确后.-> IMPL[Impl 真实对接 ressched_client]
-    MAP[ScheduleMapping<br/>映射表系统参数] --> PS
 ```
 
 ### 类图
@@ -291,7 +287,6 @@ classDiagram
 | `CreateAttributionRecord` | New | 工厂 | 按 tool 创建派生对象 | ADR-1 | TASK-1 |
 | `ProcessSchedule` | `process_schedule.h:43`（修改） | 组合/分发 | 重算 + 锁外多态分发 + 生效校验 + 降级编排 | ADR-4/5/6 | TASK-2/3 |
 | `ResourceControlProxy` | New | 单例代理 | RSS 唯一出口语义接口 + Stub | ADR-2 | TASK-1 |
-| `ScheduleMapping` | New | 配置加载 | 映射表加载/校验/fail-safe | ADR-3 | TASK-2 |
 
 ### 时序设计
 
@@ -328,7 +323,6 @@ sequenceDiagram
 | STATE-1 | 归属索引/档位缓存（effectiveLevel） | process_schedule | taskToPids_/pidEntries_（scheduleMutex_ 保护） | 纳管事件创建条目 | 只读：dump/管控分发 | 进程死亡/任务结束移除重算 | 互斥锁 | `process_schedule.cpp:47` + OH-ARCH-LAYERING |
 | STATE-2 | 多态调度对象 | process_schedule | attributionObjects_（key=taskId+pid，scheduleMutex_ 保护） | 纳管事件工厂创建 | 锁外分发只读使用 | 移除/死亡时随索引清理 | 锁内创建/清理，锁外只读调用 | ADR-1/6 |
 | STATE-3 | 管控登记（代理层） | ResourceControlProxy | 内存登记表（{taskId,pid,action,level,timestamp,result}） | ApplyControl 时登记 | 生效校验/重启重放只读 | 任务结束/进程死亡清理 | 代理层内部锁 | ADR-2 |
-| STATE-4 | 映射表缓存 | ScheduleMapping | 当前映射（priority→策略组合） | 系统参数加载成功时初始化 | process_schedule 只读 | 参数变更重载；非法保持上次有效值或 fail-safe | 加载单线程，读加锁 | ADR-3 |
 
 #### 不变量追溯
 
@@ -338,7 +332,6 @@ sequenceDiagram
 | INV-2 | STATE-1/2 | 管控事件分发在 scheduleMutex_ 锁外执行；锁内仅重算+入队 | AC-5.1、AC-5.2 | TASK-3 | 并发单测 + 锁顺序评审（锁内无 Schedule/RSS 调用） | 重构分发路径 |
 | INV-3 | STATE-3 | 施加后必经生效校验；未生效必产生任务告警日志 | AC-5.1 | TASK-3 | 未生效注入用例断言告警日志输出 | 补生效校验环 |
 | INV-4 | STATE-1/3 | 任务结束（三类触发）必触发进程级撤销 + 任务级 NotifyTaskEnd；全部结束进程完全恢复 | AC-5.2 | TASK-3 | 三类结束×续管矩阵单测；失败注入重试≤3告警断言 | 补降级通道 |
-| INV-5 | STATE-4 | 映射表未加载/非法时不施加任何管控（fail-safe） | AC-5.1 | TASK-2 | 非法映射注入用例断言无施加+告警 | 保守降级 |
 | INV-6 | STATE-1 | 无 taskId 进程无任何新增管控动作 | AC-5.3 | TASK-2 | 无纳管进程回归断言无管控事件 | 移除误分发 |
 
 ### 线程与并发模型
@@ -364,13 +357,12 @@ sequenceDiagram
 |-----------------|--------|----------------|-----------------|----------|----------|----------|------------|
 | 多态调度对象 / STATE-2 | 工厂（纳管事件） | process_schedule | 锁外分发只读 | 移除/死亡 | process_schedule 锁内清理 | 死亡通知链兜底 | INV-2 |
 | 管控登记 / STATE-3 | ResourceControlProxy（ApplyControl） | ResourceControlProxy | 生效校验/重放只读 | 任务结束/死亡 | 代理层清理 | 服务重启随进程退出 | INV-3/4 |
-| 映射表 / STATE-4 | ScheduleMapping（参数加载） | ScheduleMapping | process_schedule 只读 | 参数变更重载 | 加载器替换 | 非法保持上次有效值/fail-safe | INV-5 |
 
 ### 测试性设计
 
 | 测试层级 | 测试目标 | Mock 策略 | 验证方式 |
 |----------|----------|-----------|----------|
-| 单元测试 | 多态工厂按 tool 产出派生类、分发不 switch；映射表加载/非法 fail-safe；生效校验告警；双通道降级矩阵；重试≤3 | ResourceControlProxy Stub 断言动作序列；映射表参数化注入；生效校验失败注入 | `run -t UT -tp ability_runtime` |
+| 单元测试 | 多态工厂按 tool 产出派生类、分发不 switch；写死策略断言（level→策略组合硬编码）；生效校验告警；双通道降级矩阵；重试≤3 | ResourceControlProxy Stub 断言动作序列；生效校验失败注入 | `run -t UT -tp ability_runtime` |
 | 集成测试 | 纳管/结束/重判全链路事件流；三类结束降级；dump 复核归属与生效状态 | 真实任务链路 + Stub 代理层；既有 dump 调试钩子 | 集成用例 + hidumper + hilog |
 | XTS | N/A（无 Public/System API 变更） | N/A | N/A |
 
@@ -378,7 +370,7 @@ sequenceDiagram
 
 | 项 | 类型 | 影响 | 处理方式 | Owner |
 |----|------|------|----------|-------|
-| 映射表评审延迟 | 外部 | 高（AC-5.1 参数化输入） | 外置映射+参数化用例，骨架先行不阻塞；fail-safe 兜底 | yangzk |
+| 调度管控策略取值评审延迟 | 外部 | 中（策略取值占位，评审定稿后在代码内调整，不改接口与架构） | 策略写死代码里、占位先行，评审定稿后在代码内调整取值 | yangzk |
 | RSS 设计变化致代理层返工 | 架构 | 中 | 语义接口抽象+Stub 先行；不兼容时回设计评审 | yangzk |
 | 开源 master 无 RSS 消费插件 | 测试 | 高（端到端假成功） | Stub 动作日志为 master 基线；端到端验证前置产品环境 | yangzk |
 | AttributionRecord 加虚函数对值语义的影响 | 架构 | 低 | 基类仍值语义可拷贝；task_mgr 存基类值无切片；派生对象仅 process_schedule 持有 | yangzk |

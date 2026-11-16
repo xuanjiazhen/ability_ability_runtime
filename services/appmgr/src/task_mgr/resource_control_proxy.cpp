@@ -47,9 +47,11 @@ int32_t ResourceControlProxy::ApplyControl(const ControlRequest &req)
     }
     // Phase-1 Stub: registry + key-path logging, no real RSS delivery.
     TAG_LOGI(AAFwkTag::APPMGR,
-        "rss schedule control apply(stub) taskId: %{public}s pid: %{public}d type: %{public}s level: %{public}s",
+        "rss schedule control apply(stub) taskId: %{public}s pid: %{public}d type: %{public}s level: %{public}s "
+        "policy[freeze:%{public}d group:%{public}d qos:%{public}d speed:%{public}d]",
         req.taskId.c_str(), req.managedPid, AttributionToolToString(req.managedType),
-        TaskPriorityToString(req.level));
+        TaskPriorityToString(req.level), req.policy.freeze, req.policy.schedGroup,
+        req.policy.qos, req.policy.speed);
     if (probeEnabled_) {
         TAG_LOGD(AAFwkTag::APPMGR, "rss schedule control probe apply pid: %{public}d", req.managedPid);
     }

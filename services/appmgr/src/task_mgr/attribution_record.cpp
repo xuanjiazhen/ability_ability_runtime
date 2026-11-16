@@ -18,7 +18,6 @@
 #include "hilog_tag_wrapper.h"
 #include "task_mgr/common.h"
 #include "task_mgr/resource_control_proxy.h"
-#include "task_mgr/schedule_mapping.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -27,23 +26,39 @@ namespace {
 // Shared schedule-control helpers used by the derived records (their hard-coded schemes
 // deliver control through the proxy per (taskId, pid) pair).
 
-// Applies schedule control: mapping fail-safe, proxy apply, then the effectiveness check.
+// Schedule-control policy hard-coded in code (no dynamic mapping-table loading; values are
+// placeholders to be finalized by the perf/power review board without interface changes).
+SchedulePolicy MakeSchedulePolicy(int32_t level)
+{
+    SchedulePolicy policy;
+    switch (level) {
+        case TASK_PRIORITY_HIGH:
+            policy = {false, 2, 2, 2};  // high tier: lock-screen/background executable
+            break;
+        case TASK_PRIORITY_MEDIUM:
+            policy = {false, 1, 1, 1};  // medium tier
+            break;
+        case TASK_PRIORITY_LOW:
+            policy = {true, 0, 0, 0};   // low tier: low-power freeze group
+            break;
+        default:
+            policy = {false, 1, 1, 1};
+            break;
+    }
+    return policy;
+}
+
+// Applies schedule control with the hard-coded policy, then the effectiveness check.
 void ApplyScheduleControl(AttributionRecord *record, const std::string &taskId, int32_t level)
 {
     auto &proxy = ResourceControlProxy::GetInstance();
-    auto &mapping = ScheduleMapping::GetInstance();
-    if (!mapping.IsReady()) {
-        TAG_LOGW(AAFwkTag::APPMGR,
-            "schedule control apply skipped by mapping fail-safe, taskId: %{public}s pid: %{public}d",
-            taskId.c_str(), record->pid);
-        return;
-    }
     ControlRequest req;
     req.taskId = taskId;
     req.managedPid = record->pid;
     req.managedType = record->tool;
     req.level = level;
     req.action = ControlAction::APPLY;
+    req.policy = MakeSchedulePolicy(level);
     proxy.ApplyControl(req);
     // effectiveness check: query after applying, alert on an ineffective delivery (INV-3)
     int32_t verify = 0;

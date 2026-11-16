@@ -55,7 +55,6 @@ ohos_unittest("AmsRecentAppListTest") {
     "${ability_runtime_services_path}/appmgr/src/task_mgr/common.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/process_schedule.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/resource_control_proxy.cpp",
-    "${ability_runtime_services_path}/appmgr/src/task_mgr/schedule_mapping.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/system_load_provider.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/task_priority_judge.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/task_manager_service.cpp",

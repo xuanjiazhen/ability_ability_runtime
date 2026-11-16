@@ -86,7 +86,6 @@ ohos_shared_library("libappms") {
     "src/task_mgr/common.cpp",
     "src/task_mgr/process_schedule.cpp",
     "src/task_mgr/resource_control_proxy.cpp",
-    "src/task_mgr/schedule_mapping.cpp",
     "src/task_mgr/system_load_provider.cpp",
     "src/task_mgr/task_manager_service.cpp",
     "src/task_mgr/task_priority_judge.cpp",

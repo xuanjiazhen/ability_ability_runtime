@@ -33,6 +33,15 @@ enum class ControlAction : int32_t {
     REVOKE = 1,
 };
 
+// One schedule-control policy tier: the freeze/schedGroup/qos/speed combination of a level.
+// Hard-coded in each derived record (no dynamic mapping-table loading).
+struct SchedulePolicy {
+    bool freeze = false;
+    int32_t schedGroup = 0;
+    int32_t qos = 0;
+    int32_t speed = 0;
+};
+
 // Per (task, managed process) control payload, mirroring the cross-requirement event
 // contract of 20260914692273. Control is applied/revoked per (taskId, managedPid) pair;
 // level is the merged effective level (max over tasks).
@@ -45,6 +54,7 @@ struct ControlRequest {
     AttributionTool managedType = AttributionTool::UNKNOWN;  // INSIGHT/CLI/A2A/ABILITY
     int32_t level = 0;           // 100(LOW)/200(MEDIUM)/300(HIGH)
     ControlAction action = ControlAction::APPLY;
+    SchedulePolicy policy;       // schedule-control policy, hard-coded by the derived record
 };
 
 // Task-level degrade payload: notify the resource-schedule service to clean task-level policy.
