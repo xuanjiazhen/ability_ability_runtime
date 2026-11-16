@@ -24,6 +24,11 @@
       *RateLimiter*;
       *RecordCostTimeUtil*;
       *ResSchedUtil*;
+      *SnapshotDebug*;
+      VTT?for?OHOS::AppExecFwk::SnapshotDebugInfo*;
+      vtable?for?OHOS::AppExecFwk::SnapshotDebugInfo*;
+      VTT?for?OHOS::AppExecFwk::SnapshotDebugAppInfo*;
+      vtable?for?OHOS::AppExecFwk::SnapshotDebugAppInfo*;
     };
   local:
     *;
