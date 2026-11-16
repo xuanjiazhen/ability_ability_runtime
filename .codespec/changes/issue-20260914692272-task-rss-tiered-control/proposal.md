@@ -5,7 +5,7 @@ approval:
   approver: ""
   evidence: ""
   approved_at: ""
-  baseline_digest: "e6edc4de8525f50c74722071b9248bf50299763ace7df344f67f4f529939aa23"
+  baseline_digest: "7435e2d755abde65ee1aec871dbd61d1997b9fca6c0de5279cb98180aa5dd6bd"
 target_release:
   id: OpenHarmony-7.1-Release
   status: proposed
@@ -155,8 +155,8 @@ target_release:
 | 维度 | 允许范围/限制 | 越界触发条件 | 处理规则 |
 |------|---------------|--------------|----------|
 | 允许检索仓库 | openharmony/ability_ability_runtime（本仓）；abilitykit_public/abilitykit_sdd（同级只读知识库） | 需要访问未列仓库，包括真实 RSS 实现仓或 SDK 仓 | 停止探索，补充影响分析并重新确认基线 |
-| 允许模块/目录 | 本仓 `services/appmgr/`、`interfaces/inner_api/`（仅任务进程调度内部通道）、`test/unittest/`、`test/integration/`、`20260914692272/`；`20260914692273/` 仅作只读依赖证据；本仓 AGENTS.md/CLAUDE.md | 需要扩大模块/目录，或需修改依赖需求文档 | 更新范围与影响范围，经 Owner 确认后继续 |
-| 禁止访问/修改 | 凭据与私有配置；无关工作区改动和构建生成物；Public/System API 与 d.ts；既有 PermissionVerification 权限规则；20260914692273 文档；真实 RSS 策略配置；性能功耗验收资产 | 命中禁止项 | 标记 Blocked，不读取、不修改，回报 Owner |
+| 允许模块/目录 | 本仓 `services/appmgr/`、`interfaces/inner_api/`（仅任务进程调度内部通道）、`test/unittest/`、`test/integration/`；`20260914692272/` 与 `20260914692273/` 仅作只读前置分析/依赖证据；`.codespec/changes/issue-20260914692272-task-rss-tiered-control/`（本 change 交付件）；本仓 AGENTS.md/CLAUDE.md | 需要扩大模块/目录，或需修改两个原需求目录 | 更新范围与影响范围，经 Owner 确认后继续 |
+| 禁止访问/修改 | 禁止访问凭据与私有配置；禁止修改无关工作区改动和构建生成物、Public/System API 与 d.ts、既有 PermissionVerification 权限规则、`20260914692272/` 与 `20260914692273/` 内任何文件、真实 RSS 策略配置及性能功耗验收资产 | 命中禁止项 | 标记 Blocked，不读取、不修改，回报 Owner |
 | 外部网络/私有知识源 | 仅允许需求方已授权的 `https://gitcode.com/abilitykit_public/abilitykit_sdd.git` 知识库；其余外部网络/私有知识源 N/A | 需要新增权限或未授权来源 | 请求人工授权；未授权前不得使用 |
 
 ### 影响范围

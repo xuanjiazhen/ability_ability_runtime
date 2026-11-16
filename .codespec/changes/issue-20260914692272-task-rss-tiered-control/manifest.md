@@ -1,5 +1,5 @@
 ---
-id: 20260914692272
+id: issue-20260914692272-task-rss-tiered-control
 type: feature
 title: "任务进程 RSS 分级调度决策与代理调用（含防抖合并）"
 spec_schema: ohos-sdd/v1
