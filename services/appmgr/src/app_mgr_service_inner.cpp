@@ -340,6 +340,9 @@ constexpr const char* KEY_IS_WATERMARK_ENABLED = "com.ohos.param.isWatermarkEnab
 constexpr const char* KILL_SUB_PROCESS_REASON_PREFIX = "Kill SubProcess Reason:";
 constexpr const char* MAKE_IMAGE_TIMEOUT_EVENT = "MakeImageTimeout";
 constexpr const char* NEED_DESTROY_TEMPLATE = "ohos.ability.runtime.needDestroyTemplate";
+// aa debug create-snapshot options, set by RSS when it triggers MakeImage back.
+constexpr const char* DEBUG_SNAPSHOT_REPORT_ONLY = "ohos.ability.runtime.dr";
+constexpr const char* DEBUG_SNAPSHOT_PERF_CMD = "ohos.ability.runtime.perfCmd";
 
 constexpr const char* PROC_SELF_TASK_PATH = "/proc/self/task/";
 constexpr const char* DLP_INDEX = "ohos.dlp.params.index";
@@ -752,6 +755,16 @@ int32_t AppMgrServiceInner::PreloadApplication(const AAFwk::Want &want, int32_t 
         request.needDestroyTemplate = want.GetBoolParam(NEED_DESTROY_TEMPLATE, false);
         const_cast<Want&>(want).RemoveParam(NEED_DESTROY_TEMPLATE);
         TAG_LOGI(AAFwkTag::APPMGR, "needDestroyTemplate: %{public}d", request.needDestroyTemplate);
+    }
+    if (want.HasParameter(DEBUG_SNAPSHOT_REPORT_ONLY)) {
+        request.debugReportOnly = want.GetBoolParam(DEBUG_SNAPSHOT_REPORT_ONLY, false);
+        const_cast<Want&>(want).RemoveParam(DEBUG_SNAPSHOT_REPORT_ONLY);
+        TAG_LOGI(AAFwkTag::APPMGR, "debugReportOnly: %{public}d", request.debugReportOnly);
+    }
+    if (want.HasParameter(DEBUG_SNAPSHOT_PERF_CMD)) {
+        request.perfCmd = want.GetStringParam(DEBUG_SNAPSHOT_PERF_CMD);
+        const_cast<Want&>(want).RemoveParam(DEBUG_SNAPSHOT_PERF_CMD);
+        TAG_LOGI(AAFwkTag::APPMGR, "perfCmd for debug snapshot");
     }
     int32_t ret {0};
     if (abilityName.empty()) {
@@ -1778,7 +1791,8 @@ void AppMgrServiceInner::SnapshotErrorReport(int32_t uid, const std::string &bun
     AAFwk::EventReport::SendSnapshotEvent(AAFwk::EventName::SNAPSHOT_REPORT, snapshotInfo);
 }
 
-void AppMgrServiceInner::MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord, std::string imageName)
+void AppMgrServiceInner::MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord,
+    std::string imageName, bool debugReportOnly)
 {
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "MarkTemplateProcess null appRecord");
@@ -1801,9 +1815,12 @@ void AppMgrServiceInner::MarkTemplateProcess(const std::shared_ptr<AppRunningRec
     mark.name[length] = '\0';
     /* In developer mode, set a specific flag for debug app */
     std::shared_ptr<ApplicationInfo> applicationInfo = appRecord->GetApplicationInfo();
-    bool isDebugApp = applicationInfo != nullptr && applicationInfo->debug &&
-            (applicationInfo->appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG);
-    if (system::GetBoolParameter(DEVELOPER_MODE_STATE, false) && isDebugApp) {
+    bool isDebugSigned = applicationInfo != nullptr &&
+        (applicationInfo->appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG);
+    // -dr (aa debug create-snapshot) skips the application build/install debug property:
+    // the debug signature plus developer mode are enough to set the debug-app flag.
+    if (isDebugSigned && system::GetBoolParameter(DEVELOPER_MODE_STATE, false) &&
+        (debugReportOnly || applicationInfo->debug)) {
         mark.type |= CHECKPOINT_DEBUG_APP_TYPE_FLAG;
     }
     int ret = ioctl(fd, CHECKPOINT_MONITOR_IOCTL_MARK_TEMPLATE, &mark);
@@ -1991,7 +2008,7 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
             hapModuleInfo, want, appExistFlag, true, request.preloadMode);
         if (request.needMakeImage && appRecord->GetPid() > 0) {
             SetTemplatePid(appRecord);
-            MarkTemplateProcess(appRecord, request.imageName);
+            MarkTemplateProcess(appRecord, request.imageName, request.debugReportOnly);
         }
         appRecord->SetNeedLimitPrio(false);
         if (request.preloadMode == AppExecFwk::PreloadMode::PRELOAD_MODULE) {
@@ -13376,6 +13393,160 @@ int32_t AppMgrServiceInner::GetHyperSnapLastError(HyperSnapErrorType errType, Hy
     }
 
     return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::DebugCreateSnapshot(const std::string &bundleName,
+    const std::string &abilityName, bool debugReportOnly, const std::string &perfCmd)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::APPMGR, "DebugCreateSnapshot bundleName:%{public}s abilityName:%{public}s "
+        "debugReportOnly:%{public}d", bundleName.c_str(), abilityName.c_str(), debugReportOnly);
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
+        return AAFwk::ERR_NOT_DEVELOPER_MODE;
+    }
+    // abilityName is optional: an empty name lets RSS make a snapshot of the whole app.
+    if (bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid parameters");
+        return ERR_INVALID_VALUE;
+    }
+    // Debug gate first: no side effect for non-debug targets (aa debug commands only).
+    if (!CheckIsDebugApp(bundleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not debug app, bundleName:%{public}s", bundleName.c_str());
+        return AAFwk::ERR_NOT_DEBUG_APP;
+    }
+    // Acceptance-level forward: the making itself is triggered by RSS asynchronously.
+    // RSS scopes by the target app's user; GetCallerUserId falls back to the foreground user for the aa caller.
+    int32_t targetUserId = UserController::GetInstance().GetCallerUserId();
+    int32_t errcode = -1;
+    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportCreateSnapshotCmdToRSS(
+        bundleName, abilityName, debugReportOnly, perfCmd, targetUserId, errcode);
+    if (ret != 0 || errcode < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "forward create cmd to RSS fail, ret: %{public}d errcode: %{public}d",
+            ret, errcode);
+        return static_cast<int32_t>(ImageError::ERR_INNER);
+    }
+    return errcode;
+}
+
+std::shared_ptr<ForkImageInfo> AppMgrServiceInner::FindImageInfoByPid(int32_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "FindImageInfoByPid pid: %{public}d", pid);
+    if (pid <= 0) {
+        return nullptr;
+    }
+    std::lock_guard guard(imageInfoLock_);
+    for (const auto &item : imageInfoMap_) {
+        const auto &imageInfo = item.second;
+        if (imageInfo == nullptr) {
+            continue;
+        }
+        if (imageInfo->templatePid == pid || imageInfo->imagePid == pid) {
+            TAG_LOGI(AAFwkTag::APPMGR, "image info found by pid, bundleName:%{public}s",
+                imageInfo->bundleInfo.name.c_str());
+            return imageInfo;
+        }
+    }
+    TAG_LOGE(AAFwkTag::APPMGR, "image info not found by pid: %{public}d", pid);
+    return nullptr;
+}
+
+int32_t AppMgrServiceInner::ResolveDestroyTargetBundle(const std::string &bundleName, int32_t pid,
+    std::string &targetBundle)
+{
+    if (bundleName.empty()) {
+        // -p mode: resolve the target bundle from the image info first.
+        auto imageInfo = FindImageInfoByPid(pid);
+        if (imageInfo == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "snapshot not exist, pid: %{public}d", pid);
+            return static_cast<int32_t>(ImageError::ERR_IMAGE_INFO_NOT_EXIST);
+        }
+        targetBundle = imageInfo->bundleInfo.name;
+        return ERR_OK;
+    }
+    if (pid > 0) {
+        // -b and -p are mutually exclusive; aa side has intercepted, guard here.
+        TAG_LOGE(AAFwkTag::APPMGR, "bundle and pid are mutually exclusive");
+        return ERR_INVALID_VALUE;
+    }
+    // -b mode: local pre-check covering both general and ability-specific images.
+    bool found = false;
+    {
+        std::lock_guard guard(imageInfoLock_);
+        for (const auto &item : imageInfoMap_) {
+            if (item.first.bundleName == bundleName) {
+                found = true;
+                break;
+            }
+        }
+    }
+    if (!found) {
+        TAG_LOGE(AAFwkTag::APPMGR, "snapshot not exist, bundleName:%{public}s", bundleName.c_str());
+        return static_cast<int32_t>(ImageError::ERR_IMAGE_INFO_NOT_EXIST);
+    }
+    targetBundle = bundleName;
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName,
+    int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::APPMGR, "DebugDestroySnapshot bundleName:%{public}s abilityName:%{public}s pid:%{public}d",
+        bundleName.c_str(), abilityName.c_str(), pid);
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
+        return AAFwk::ERR_NOT_DEVELOPER_MODE;
+    }
+    std::string targetBundle;
+    int32_t resolveErr = ResolveDestroyTargetBundle(bundleName, pid, targetBundle);
+    if (resolveErr != ERR_OK) {
+        return resolveErr;
+    }
+    // Debug gate first: no side effect for non-debug targets.
+    if (!CheckIsDebugApp(targetBundle)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not debug app, bundleName:%{public}s", targetBundle.c_str());
+        return AAFwk::ERR_NOT_DEBUG_APP;
+    }
+    // Acceptance-level forward: the deletion itself is triggered by RSS asynchronously.
+    // RSS destroys by bundleName; a pid-only request has been resolved to targetBundle above.
+    int32_t targetUserId = UserController::GetInstance().GetCallerUserId();
+    int32_t errcode = -1;
+    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportDestroySnapshotCmdToRSS(targetBundle, abilityName,
+        targetUserId, errcode);
+    if (ret != 0 || errcode < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "forward destroy cmd to RSS fail, ret: %{public}d errcode: %{public}d",
+            ret, errcode);
+        return static_cast<int32_t>(ImageError::ERR_INNER);
+    }
+    return errcode;
+}
+
+int32_t AppMgrServiceInner::DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
+    SnapshotDebugInfo &info)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::APPMGR, "DebugListSnapshot bundleName:%{public}s abilityName:%{public}s",
+        bundleName.c_str(), abilityName.c_str());
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
+        return AAFwk::ERR_NOT_DEVELOPER_MODE;
+    }
+    if (!bundleName.empty() && !CheckIsDebugApp(bundleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not debug app, bundleName:%{public}s", bundleName.c_str());
+        return AAFwk::ERR_NOT_DEBUG_APP;
+    }
+    info = SnapshotDebugInfo();
+    int32_t targetUserId = UserController::GetInstance().GetCallerUserId();
+    int32_t errcode = -1;
+    auto ret = AAFwk::ResSchedUtil::GetInstance().ReportListSnapshotCmdToRSS(bundleName, abilityName, targetUserId,
+        info, errcode);
+    if (ret != 0 || errcode < 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "forward list cmd to RSS fail, ret: %{public}d errcode: %{public}d",
+            ret, errcode);
+        return static_cast<int32_t>(ImageError::ERR_INNER);
+    }
+    return errcode;
 }
 
 void AppMgrServiceInner::ClearHyperSnapError(int32_t uid, HyperSnapErrorType errType)

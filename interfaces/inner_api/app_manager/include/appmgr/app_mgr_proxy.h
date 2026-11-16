@@ -69,6 +69,15 @@ public:
 
     virtual int32_t GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecord &record) override;
 
+    virtual int32_t DebugCreateSnapshot(const std::string &bundleName, const std::string &abilityName,
+        bool debugReportOnly, const std::string &perfCmd) override;
+
+    virtual int32_t DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName,
+        int32_t pid) override;
+
+    virtual int32_t DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
+        SnapshotDebugInfo &info) override;
+
     virtual int32_t NotifyTemplateProcessDeepFrozen(int32_t pid) override;
 
     virtual int32_t PreTemplateProcessDeepFrozen(int32_t pid) override;
