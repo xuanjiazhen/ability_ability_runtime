@@ -119,8 +119,7 @@ ohos_shared_library("app_manager") {
     "src/appmgr/application_state_observer_proxy.cpp",
     "src/appmgr/application_state_observer_stub.cpp",
     "src/appmgr/background_app_info.cpp",
-    "src/appmgr/child_process_info.cpp",
-    "src/appmgr/child_process_state_data.cpp",
+    "src/appmgr/child_process_info.cpp",    "src/appmgr/child_process_state_data.cpp",
     "src/appmgr/child_process_state_observer_proxy.cpp",
     "src/appmgr/child_process_state_observer_stub.cpp",
     "src/appmgr/child_scheduler_proxy.cpp",
@@ -171,6 +170,8 @@ ohos_shared_library("app_manager") {
     "src/appmgr/start_specified_ability_response_proxy.cpp",
     "src/appmgr/start_specified_ability_response_stub.cpp",
     "src/appmgr/system_memory_attr.cpp",
+    "src/appmgr/task_state_callback_host.cpp",
+    "src/appmgr/task_state_callback_proxy.cpp",
   ]
 
   public_configs = [

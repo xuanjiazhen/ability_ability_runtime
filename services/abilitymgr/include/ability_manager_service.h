@@ -3271,7 +3271,7 @@ private:
      * @param taskId Indicates the finished task id.
      * @param userId Indicates the user id of the finished task's creator.
      */
-    void OnTaskFinished(const std::string &taskId, int32_t userId);
+    void OnTaskFinished(const std::string &taskId, int32_t userId) override;
 
     int32_t GetServiceMapByUserId(AbilityConnectManager::ServiceMapType &serviceMap, int32_t userId);
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(
