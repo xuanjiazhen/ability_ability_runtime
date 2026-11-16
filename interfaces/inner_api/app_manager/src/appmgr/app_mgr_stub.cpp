@@ -53,7 +53,7 @@ AppMgrStub::~AppMgrStub() {}
 
 int AppMgrStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "AppMgrStub::OnReceived, code = %{public}u, flags= %{public}d.", code,
+    TAG_LOGD(AAFwkTag::APPMGR, "Recv,code:%{public}u,flag:%{public}d.", code,
         option.GetFlags());
     std::u16string descriptor = AppMgrStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
