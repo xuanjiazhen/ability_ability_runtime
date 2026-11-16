@@ -57,9 +57,9 @@
 
 | AC | 来源 | Task | 计划代码范围 | 实际 Code Ref | Commit | Review Evidence | 验证状态 |
 |----|------|------|--------------|-----------------|--------|-----------------|----------|
-| AC-5.1 | spec.md US-1 | TASK-2、TASK-3 | schedule_mapping + process_schedule 施加 + 生效校验 | 待回填 | 待回填 | 待回填 | Pending |
-| AC-5.2 | spec.md US-1 | TASK-3 | process_schedule 双通道降级 + task_manager_service 挂点 | 待回填 | 待回填 | 待回填 | Pending |
-| AC-5.3 | spec.md US-1 | TASK-2 | process_schedule 无 taskId 零影响 | 待回填 | 待回填 | 待回填 | Pending |
+| AC-5.1 | spec.md US-1 | TASK-2、TASK-3 | schedule_mapping + process_schedule 施加 + 生效校验 | services/appmgr/src/task_mgr/schedule_mapping.cpp、process_schedule.cpp、resource_control_proxy.cpp | fa3695de07 | evidence/reviews/verification.md | 编译Pass（用例执行待设备环境） |
+| AC-5.2 | spec.md US-1 | TASK-3 | process_schedule 双通道降级 + task_manager_service 挂点 | services/appmgr/src/task_mgr/process_schedule.cpp、task_manager_service.cpp、resource_control_proxy.cpp | fa3695de07 | evidence/reviews/verification.md | 编译Pass（用例执行待设备环境） |
+| AC-5.3 | spec.md US-1 | TASK-2 | process_schedule 无 taskId 零影响 | services/appmgr/src/task_mgr/process_schedule.cpp | fa3695de07 | evidence/reviews/verification.md | 编译Pass（用例执行待设备环境） |
 
 ## 首批实现边界
 
@@ -95,9 +95,9 @@
 
 | Task ID | 目标 | 文件范围 | AC 映射 | 前置依赖 | 完成判据 | 验证命令 | 状态 |
 |---------|------|----------|---------|----------|----------|----------|------|
-| TASK-1 | ResourceControlProxy 代理层骨架 + 多态派生类（一期空实现+日志） | resource_control_proxy.{h,cpp}（新）、attribution_record.{h,cpp}、BUILD.gn、test/unittest/process_schedule_test/ | 骨架（TASK-2/3 依赖） | design/spec Approved | 多态工厂/派生类与 Stub 编译通过、动作断言单测全绿 | `./build.sh --product-name rk3568 --build-target libappms` + `run -t UT -tp ability_runtime` | Pending |
-| TASK-2 | 映射表加载 + 档位施加/撤销（事件→多态分发） | schedule_mapping.{h,cpp}（新）、process_schedule.{h,cpp}、BUILD.gn、test/unittest/process_schedule_test/ | AC-5.1、AC-5.3 | TASK-1 | 映射加载/fail-safe、事件→多态分发用例全绿；无 taskId 零影响断言 | `./build.sh --product-name rk3568 --build-target libappms` + `run -t UT -tp ability_runtime` | Pending |
-| TASK-3 | 双通道降级 + 生效校验环 + 锁外分发 | process_schedule.{h,cpp}、task_manager_service.cpp、resource_control_proxy、test/unittest/process_schedule_test/ | AC-5.1、AC-5.2 | TASK-2 | 双通道降级矩阵、生效校验告警、锁外分发并发用例全绿 | `./build.sh --product-name rk3568 --build-target libappms` + `run -t UT -tp ability_runtime` | Pending |
+| TASK-1 | ResourceControlProxy 代理层骨架 + 多态派生类（一期空实现+日志） | resource_control_proxy.{h,cpp}（新）、attribution_record.{h,cpp}、BUILD.gn、test/unittest/process_schedule_test/ | 骨架（TASK-2/3 依赖） | design/spec Approved | 多态工厂/派生类与 Stub 编译通过、动作断言单测全绿 | `./build.sh --product-name rk3568 --build-target libappms` + `run -t UT -tp ability_runtime` | Done |
+| TASK-2 | 映射表加载 + 档位施加/撤销（事件→多态分发） | schedule_mapping.{h,cpp}（新）、process_schedule.{h,cpp}、BUILD.gn、test/unittest/process_schedule_test/ | AC-5.1、AC-5.3 | TASK-1 | 映射加载/fail-safe、事件→多态分发用例全绿；无 taskId 零影响断言 | `./build.sh --product-name rk3568 --build-target libappms` + `run -t UT -tp ability_runtime` | Done |
+| TASK-3 | 双通道降级 + 生效校验环 + 锁外分发 | process_schedule.{h,cpp}、task_manager_service.cpp、resource_control_proxy、test/unittest/process_schedule_test/ | AC-5.1、AC-5.2 | TASK-2 | 双通道降级矩阵、生效校验告警、锁外分发并发用例全绿 | `./build.sh --product-name rk3568 --build-target libappms` + `run -t UT -tp ability_runtime` | Done |
 
 ## Task 详情
 
@@ -473,14 +473,16 @@
 
 | Task ID | 计划文件/符号 | 实际文件/符号 | 操作 | Commit | Spec Compliance | Code Quality | Verification | 偏差 |
 |---------|---------------|---------------|------|--------|-----------------|--------------|--------------|------|
-| TASK-1 | resource_control_proxy.{h,cpp}、attribution_record.{h,cpp}、BUILD.gn | 待回填 | Add/Modify | 待回填 | 待回填 | 待回填 | 待回填 | 无 |
-| TASK-2 | schedule_mapping.{h,cpp}、process_schedule.{h,cpp}、BUILD.gn | 待回填 | Add/Modify | 待回填 | 待回填 | 待回填 | 待回填 | 无 |
-| TASK-3 | process_schedule.{h,cpp}、task_manager_service.cpp、resource_control_proxy.cpp | 待回填 | Modify | 待回填 | 待回填 | 待回填 | 待回填 | 无 |
+| TASK-1 | resource_control_proxy.{h,cpp}、attribution_record.{h,cpp}、BUILD.gn | resource_control_proxy.{h,cpp}、attribution_record.{h,cpp}、services/appmgr/BUILD.gn、test/unittest/process_schedule_test/ | Add/Modify | fa3695de07 | evidence/reviews/spec-compliance.md | evidence/reviews/code-quality.md | evidence/reviews/verification.md | 基类虚函数改头文件内联（libabilityms vtable 链接修复，见实现偏差） |
+| TASK-2 | schedule_mapping.{h,cpp}、process_schedule.{h,cpp}、BUILD.gn | schedule_mapping.{h,cpp}、process_schedule.{h,cpp}、services/appmgr/BUILD.gn、13 个关联测试 target BUILD.gn | Add/Modify | fa3695de07 | evidence/reviews/spec-compliance.md | evidence/reviews/code-quality.md | evidence/reviews/verification.md | 13 个关联测试 target 源文件连带补齐（编译门禁必然连带） |
+| TASK-3 | process_schedule.{h,cpp}、task_manager_service.cpp、resource_control_proxy.cpp | process_schedule.{h,cpp}、task_manager_service.cpp、resource_control_proxy.cpp、test/unittest/process_schedule_test/ | Modify | fa3695de07 | evidence/reviews/spec-compliance.md | evidence/reviews/code-quality.md | evidence/reviews/verification.md | 无 |
 
 ## 实现偏差和开放问题
 
 | Task ID | 类型 | 问题/偏差 | 处理状态 | 回退能力/Owner |
 |---------|------|-----------|----------|----------------|
+| TASK-1 | dependency | libabilityms 链接报 `undefined symbol: vtable for AttributionRecord`：基类加虚函数后产生 vtable，libabilityms 构造基类但未链接 attribution_record.o | Resolved（基类虚函数改头文件内联，仅用 hilog、不依赖任何 .cpp 符号，vtable 在使用处 weak 生成；libabilityms/task_manager_service_test 链接验证通过） | ohos-design / yangzk |
+| TASK-2 | dependency | process_schedule.cpp 被 13 个测试 target 直接编译，新模块 ResourceControlProxy/ScheduleMapping 符号缺失致链接失败 | Resolved（13 个关联测试 target BUILD.gn 同步补齐两个新源文件，init/json 依赖已具备；ability_runtime_test 全量编译通过） | ohos-plan / yangzk |
 | TASK-2 | dependency | 映射表具体取值待性能功耗领域评审定稿 | Open（外置映射+参数化用例，不阻塞骨架开发） | ohos-design / yangzk |
 | TASK-1/3 | dependency | RSS 真实接口语义待 RSS 团队确认（Impl 期替换 Stub） | Open（一期 Stub 交付，不阻塞） | ohos-design / yangzk |
-| 全部 | dependency | 单测/集成用例需设备执行（run -t UT）；本环境无设备时以编译验证+主机侧单测为准，执行证据待设备环境补充 | Open（环境限制，非实现缺陷） | ohos-plan / yangzk |
+| 全部 | dependency | 单测/集成用例需设备执行（run -t UT）；本环境无设备/host，`./build.sh --product-name rk3568 --build-target ability_runtime_test` 全量单测编译通过，执行证据待设备环境补充 | Open（环境限制，非实现缺陷） | ohos-plan / yangzk |
