@@ -35,6 +35,7 @@
 #include "running_process_info.h"
 #include "singleton.h"
 #include "system_memory_attr.h"
+#include "task_state_callback_impl.h"
 #include "want.h"
 
 namespace OHOS {
@@ -886,6 +887,7 @@ private:
     std::weak_ptr<AppStateCallback> callback_;
     std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient_;
     sptr<StartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
+    sptr<TaskStateCallbackImpl> taskStateCallback_;
     std::mutex lock_;
 };
 }  // namespace AAFwk
