@@ -31,6 +31,11 @@ ResourceControlProxy &ResourceControlProxy::GetInstance()
     return instance;
 }
 
+std::string ResourceControlProxy::MakeKey(const std::string &taskId, pid_t managedPid)
+{
+    return taskId + "#" + std::to_string(managedPid);
+}
+
 int32_t ResourceControlProxy::ApplyControl(const ControlRequest &req)
 {
     if (req.managedPid <= 0) {
@@ -38,20 +43,20 @@ int32_t ResourceControlProxy::ApplyControl(const ControlRequest &req)
     }
     {
         std::lock_guard<std::mutex> lock(registryMutex_);
-        controlRegistry_[req.managedPid] = req;
+        controlRegistry_[MakeKey(req.taskId, req.managedPid)] = req;
     }
     // Phase-1 Stub: registry + key-path logging, no real RSS delivery.
     TAG_LOGI(AAFwkTag::APPMGR,
-        "rss control apply(stub) pid: %{public}d type: %{public}s level: %{public}s action: %{public}d",
-        req.managedPid, AttributionToolToString(req.managedType), TaskPriorityToString(req.level),
-        static_cast<int32_t>(req.action));
+        "rss schedule control apply(stub) taskId: %{public}s pid: %{public}d type: %{public}s level: %{public}s",
+        req.taskId.c_str(), req.managedPid, AttributionToolToString(req.managedType),
+        TaskPriorityToString(req.level));
     if (probeEnabled_) {
-        TAG_LOGD(AAFwkTag::APPMGR, "rss control probe apply pid: %{public}d", req.managedPid);
+        TAG_LOGD(AAFwkTag::APPMGR, "rss schedule control probe apply pid: %{public}d", req.managedPid);
     }
     return PROXY_OK;
 }
 
-int32_t ResourceControlProxy::RevokeControl(pid_t managedPid)
+int32_t ResourceControlProxy::RevokeControl(const std::string &taskId, pid_t managedPid)
 {
     revokeCallsForTest_.fetch_add(1);
     if (managedPid <= 0) {
@@ -62,19 +67,20 @@ int32_t ResourceControlProxy::RevokeControl(pid_t managedPid)
     }
     {
         std::lock_guard<std::mutex> lock(registryMutex_);
-        controlRegistry_.erase(managedPid);
+        controlRegistry_.erase(MakeKey(taskId, managedPid));
     }
-    TAG_LOGI(AAFwkTag::APPMGR, "rss control revoke(stub) pid: %{public}d", managedPid);
+    TAG_LOGI(AAFwkTag::APPMGR, "rss schedule control revoke(stub) taskId: %{public}s pid: %{public}d",
+        taskId.c_str(), managedPid);
     return PROXY_OK;
 }
 
-int32_t ResourceControlProxy::QueryControlState(pid_t managedPid, int32_t &level)
+int32_t ResourceControlProxy::QueryControlState(const std::string &taskId, pid_t managedPid, int32_t &level)
 {
     if (failQueryForTest_) {
         return PROXY_ERR;  // fault injection: simulate an ineffective control for verify tests
     }
     std::lock_guard<std::mutex> lock(registryMutex_);
-    auto it = controlRegistry_.find(managedPid);
+    auto it = controlRegistry_.find(MakeKey(taskId, managedPid));
     if (it == controlRegistry_.end()) {
         return PROXY_ERR;
     }
@@ -94,20 +100,20 @@ void ResourceControlProxy::NotifyTaskEnd(const TaskEndInfo &info)
             break;
         }
         attempt++;
-        TAG_LOGW(AAFwkTag::APPMGR, "rss notify task end retry, taskId: %{public}s attempt: %{public}d",
+        TAG_LOGW(AAFwkTag::APPMGR, "rss schedule control task end retry, taskId: %{public}s attempt: %{public}d",
             info.taskId.c_str(), attempt);
     }
     if (!delivered) {
         TAG_LOGW(AAFwkTag::APPMGR,
-            "rss notify task end failed after %{public}d retries, task alert, taskId: %{public}s",
+            "rss schedule control task end failed after %{public}d retries, task alert, taskId: %{public}s",
             MAX_RETRY, info.taskId.c_str());
     }
     // Phase-1 Stub: task-level cleanup notification with key-path logging.
-    TAG_LOGI(AAFwkTag::APPMGR, "rss notify task end(stub) taskId: %{public}s pids: %{public}zu",
+    TAG_LOGI(AAFwkTag::APPMGR, "rss schedule control task end(stub) taskId: %{public}s pids: %{public}zu",
         info.taskId.c_str(), info.pids.size());
     std::lock_guard<std::mutex> lock(registryMutex_);
     for (pid_t pid : info.pids) {
-        controlRegistry_.erase(pid);
+        controlRegistry_.erase(MakeKey(info.taskId, pid));
     }
 }
 

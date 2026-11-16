@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <sys/types.h>
+#include <vector>
 
 #include "hilog_tag_wrapper.h"
 
@@ -43,11 +44,13 @@ enum class AttributionTool : int32_t {
 // tool as the handle for later operations (e.g. unregister). 0 is the invalid sentinel.
 using AttributionId = int64_t;
 
-// Polymorphic scheduling base: the task manager keeps the value-semantic record for its
+// Polymorphic schedule-control base: the task manager keeps the value-semantic record for its
 // registry/dump, while the process schedule creates a per-tool derived object through
-// CreateAttributionRecord() and dispatches Schedule/Unschedule via the base pointer without
-// switching on the tool type (ADR-1). Phase-1 scheduling is an empty implementation with
-// key-path logging; the real resource-schedule control is wired in later per tool.
+// CreateAttributionRecord() and dispatches schedule control via the base pointer without
+// switching on the tool type (ADR-1). Each derived record hard-codes its own schedule-control
+// scheme and delivers it through the ResourceControlProxy per (taskId, pid) pair (the process
+// schedule itself only maintains the ownership index and forwards events). Phase-1 schedule
+// control is an empty implementation with key-path logging; the real control is wired in later.
 struct AttributionRecord {
     // Pid of the attributed target process, not the caller's.
     pid_t pid = -1;
@@ -58,46 +61,56 @@ struct AttributionRecord {
 
     virtual ~AttributionRecord() = default;
 
-    // Applies the schedule control for this attribution at the merged effective level.
+    // Schedule control (apply) for the (taskId, pid) pair, delivered via the proxy.
     // Base implementation is the UNKNOWN-tool no-op with logging. The base virtuals are
     // defined inline so the vtable is emitted wherever the value-semantic record is used
     // (other targets construct the base record without linking attribution_record.cpp).
-    virtual void Schedule(int32_t level)
+    virtual void Schedule(const std::string &taskId, int32_t level)
     {
         TAG_LOGI(AAFwkTag::APPMGR,
-            "attribution schedule(stub) tool: %{public}d pid: %{public}d level: %{public}d",
-            static_cast<int32_t>(tool), pid, level);
+            "schedule control(stub) tool: %{public}d taskId: %{public}s pid: %{public}d level: %{public}d",
+            static_cast<int32_t>(tool), taskId.c_str(), pid, level);
     }
-    // Revokes the schedule control for this attribution. Base implementation is a no-op
-    // with logging.
-    virtual void Unschedule()
+    // Schedule control (revoke) for the (taskId, pid) pair. Base no-op with logging.
+    virtual void Unschedule(const std::string &taskId)
     {
         TAG_LOGI(AAFwkTag::APPMGR,
-            "attribution unschedule(stub) tool: %{public}d pid: %{public}d",
-            static_cast<int32_t>(tool), pid);
+            "schedule control revoke(stub) tool: %{public}d taskId: %{public}s pid: %{public}d",
+            static_cast<int32_t>(tool), taskId.c_str(), pid);
+    }
+    // Schedule control (task-level degrade) for the task. Base no-op with logging.
+    virtual void NotifyTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids)
+    {
+        TAG_LOGI(AAFwkTag::APPMGR,
+            "schedule control task end(stub) tool: %{public}d taskId: %{public}s pids: %{public}zu",
+            static_cast<int32_t>(tool), taskId.c_str(), pids.size());
     }
 };
 
-// Derived per-tool scheduling records. Each tool carries its own scheduling scheme;
-// phase-1 overrides only emit key-path logs.
+// Derived per-tool schedule-control records. Each tool hard-codes its own schedule-control
+// scheme and delivers it through the ResourceControlProxy; phase-1 overrides only emit logs.
 struct InsightAttributionRecord : public AttributionRecord {
-    void Schedule(int32_t level) override;
-    void Unschedule() override;
+    void Schedule(const std::string &taskId, int32_t level) override;
+    void Unschedule(const std::string &taskId) override;
+    void NotifyTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids) override;
 };
 
 struct CliAttributionRecord : public AttributionRecord {
-    void Schedule(int32_t level) override;
-    void Unschedule() override;
+    void Schedule(const std::string &taskId, int32_t level) override;
+    void Unschedule(const std::string &taskId) override;
+    void NotifyTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids) override;
 };
 
 struct A2aAttributionRecord : public AttributionRecord {
-    void Schedule(int32_t level) override;
-    void Unschedule() override;
+    void Schedule(const std::string &taskId, int32_t level) override;
+    void Unschedule(const std::string &taskId) override;
+    void NotifyTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids) override;
 };
 
 struct AbilityAttributionRecord : public AttributionRecord {
-    void Schedule(int32_t level) override;
-    void Unschedule() override;
+    void Schedule(const std::string &taskId, int32_t level) override;
+    void Unschedule(const std::string &taskId) override;
+    void NotifyTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids) override;
 };
 
 // Factory: creates the derived scheduling record for the tool; UNKNOWN yields the base record.

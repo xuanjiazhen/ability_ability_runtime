@@ -103,14 +103,15 @@ private:
 
     // A control event queued under the lock and dispatched outside it.
     struct ControlEvent {
-        // APPLY: Schedule every record at the merged level + ApplyControl(pid);
+        // APPLY: Schedule every record at the merged level;
         // UNSCHEDULE: Unschedule only the removed task's record (pid keeps other tasks);
-        // REVOKE_PID: the pid has no task left, Unschedule every record + RevokeControl(pid).
+        // REVOKE_PID: the pid has no task left, Unschedule every record.
         enum class Type { APPLY, UNSCHEDULE, REVOKE_PID };
         pid_t pid = -1;
         int32_t level = 0;                       // merged effective level to apply
         Type type = Type::APPLY;
-        std::vector<std::shared_ptr<AttributionRecord>> records;
+        // (taskId, record) pairs to deliver schedule control to, dispatched via the base pointer.
+        std::vector<std::pair<std::string, std::shared_ptr<AttributionRecord>>> records;
     };
 
     static int32_t MergeLevel(const PidEntry &entry);
@@ -121,13 +122,16 @@ private:
     void CollectEventLocked(pid_t pid, int32_t newLevel, ControlEvent::Type type,
         std::vector<ControlEvent> &events);
 
-    // Dispatches the queued events outside the lock: per-tool Schedule/Unschedule, proxy
-    // apply/revoke, and the mapping fail-safe guard.
+    // Forwards the queued events to the derived records outside the lock (Schedule/Unschedule);
+    // the records themselves deliver their schedule control through the proxy.
     void DispatchEvents(const std::vector<ControlEvent> &events);
 
     mutable std::mutex scheduleMutex_;
     std::map<std::string, std::set<pid_t>> taskToPids_;
     std::map<pid_t, PidEntry> pidEntries_;
+    // Records removed from the ownership index but not yet task-level degraded; kept so the
+    // task-end event can be forwarded to them (they deliver the task-level degrade via proxy).
+    std::map<std::string, std::vector<std::shared_ptr<AttributionRecord>>> endedRecords_;
 };
 
 }  // namespace AppExecFwk

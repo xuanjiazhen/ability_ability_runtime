@@ -19,8 +19,6 @@
 
 #include "hilog_tag_wrapper.h"
 #include "task_mgr/common.h"
-#include "task_mgr/resource_control_proxy.h"
-#include "task_mgr/schedule_mapping.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -136,6 +134,10 @@ void ProcessSchedule::OnProcessDied(pid_t pid)
             taskIds.push_back(item.first);
         }
         CollectEventLocked(pid, entryIt->second.level, ControlEvent::Type::REVOKE_PID, events);
+        // keep the died process's records for the task-level degrade on task end
+        for (const auto &obj : entryIt->second.attrObjects) {
+            endedRecords_[obj.first].push_back(obj.second);
+        }
         for (const auto &taskId : taskIds) {
             auto ttIt = taskToPids_.find(taskId);
             if (ttIt != taskToPids_.end()) {
@@ -154,11 +156,19 @@ void ProcessSchedule::OnProcessDied(pid_t pid)
 
 void ProcessSchedule::OnTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids)
 {
-    // Task-level degrade channel: forward the cleanup notification to the proxy (ADR-5).
-    TaskEndInfo info;
-    info.taskId = taskId;
-    info.pids = pids;
-    ResourceControlProxy::GetInstance().NotifyTaskEnd(info);
+    std::vector<std::shared_ptr<AttributionRecord>> records;
+    {
+        std::lock_guard<std::mutex> lock(scheduleMutex_);
+        auto it = endedRecords_.find(taskId);
+        if (it != endedRecords_.end()) {
+            records = std::move(it->second);
+            endedRecords_.erase(it);
+        }
+    }
+    // task-level degrade is delivered by the derived records themselves via the proxy (ADR-5)
+    for (const auto &record : records) {
+        record->NotifyTaskEnd(taskId, pids);
+    }
 }
 
 void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t pid,
@@ -185,8 +195,11 @@ void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t p
     int32_t newLevel = MergeLevel(entryIt->second);
     if (entryIt->second.taskRefs.empty()) {
         // no task left on this pid: unschedule every derived object (including the removed
-        // task's, still attached) and revoke the pid-level control
+        // task's, still attached); keep the records for the task-level degrade on task end
         CollectEventLocked(pid, oldLevel, ControlEvent::Type::REVOKE_PID, events);
+        for (const auto &obj : entryIt->second.attrObjects) {
+            endedRecords_[obj.first].push_back(obj.second);
+        }
         pidEntries_.erase(entryIt);
     } else {
         // other tasks keep the pid controlled: unschedule only the removed task's object
@@ -195,8 +208,10 @@ void ProcessSchedule::RemoveAttributionLocked(const std::string &taskId, pid_t p
             ControlEvent unscheduleEvent;
             unscheduleEvent.pid = pid;
             unscheduleEvent.type = ControlEvent::Type::UNSCHEDULE;
-            unscheduleEvent.records.push_back(objIt->second);
+            unscheduleEvent.records.emplace_back(taskId, objIt->second);
             events.push_back(unscheduleEvent);
+            // keep the removed record for the task-level degrade on task end
+            endedRecords_[taskId].push_back(objIt->second);
             entryIt->second.attrObjects.erase(objIt);
         }
         if (newLevel != oldLevel) {
@@ -226,7 +241,7 @@ void ProcessSchedule::CollectEventLocked(pid_t pid, int32_t newLevel, ControlEve
     event.level = newLevel;
     event.type = type;
     for (const auto &obj : it->second.attrObjects) {
-        event.records.push_back(obj.second);
+        event.records.emplace_back(obj.first, obj.second);
     }
     if (event.records.empty()) {
         // a pid with no attribution object produces no control event (INV-6: no taskId, no-op)
@@ -237,60 +252,18 @@ void ProcessSchedule::CollectEventLocked(pid_t pid, int32_t newLevel, ControlEve
 
 void ProcessSchedule::DispatchEvents(const std::vector<ControlEvent> &events)
 {
-    constexpr int32_t MAX_REVOKE_RETRY = 3;
-    auto &proxy = ResourceControlProxy::GetInstance();
-    auto &mapping = ScheduleMapping::GetInstance();
+    // The process schedule only forwards events: each derived record delivers its own
+    // schedule control through the proxy (Schedule/Unschedule per (taskId, pid) pair).
     for (const auto &event : events) {
-        if (event.type == ControlEvent::Type::UNSCHEDULE) {
-            // only the removed task's object is unscheduled; the pid keeps its other tasks
-            for (const auto &record : event.records) {
-                record->Unschedule();
+        if (event.type == ControlEvent::Type::APPLY) {
+            for (const auto &item : event.records) {
+                item.second->Schedule(item.first, event.level);
             }
             continue;
         }
-        if (event.type == ControlEvent::Type::REVOKE_PID) {
-            for (const auto &record : event.records) {
-                record->Unschedule();
-            }
-            // process-level revoke with a bounded retry (<=3) before alerting (INV-4)
-            int32_t ret = proxy.RevokeControl(event.pid);
-            int32_t retry = 0;
-            while (ret != 0 && retry < MAX_REVOKE_RETRY) {
-                retry++;
-                ret = proxy.RevokeControl(event.pid);
-            }
-            if (ret != 0) {
-                TAG_LOGW(AAFwkTag::APPMGR,
-                    "sched revoke failed after %{public}d retries, task alert, pid: %{public}d",
-                    MAX_REVOKE_RETRY, event.pid);
-            }
-            continue;
-        }
-        // APPLY: mapping fail-safe — an unloaded/illegal mapping means no control is applied (R-6)
-        if (!mapping.IsReady()) {
-            TAG_LOGW(AAFwkTag::APPMGR,
-                "sched apply skipped by mapping fail-safe, pid: %{public}d level: %{public}d",
-                event.pid, event.level);
-            continue;
-        }
-        // polymorphic dispatch: every derived object schedules at the merged effective level
-        for (const auto &record : event.records) {
-            record->Schedule(event.level);
-        }
-        ControlRequest req;
-        req.managedPid = event.pid;
-        req.level = event.level;
-        req.action = ControlAction::APPLY;
-        if (!event.records.empty()) {
-            req.managedType = event.records.front()->tool;
-        }
-        proxy.ApplyControl(req);
-        // effectiveness check: query after applying, alert on an ineffective delivery (INV-3)
-        int32_t verifyLevel = 0;
-        if (proxy.QueryControlState(event.pid, verifyLevel) != 0 || verifyLevel != event.level) {
-            TAG_LOGW(AAFwkTag::APPMGR,
-                "sched control ineffective alert, pid: %{public}d expect: %{public}d actual: %{public}d",
-                event.pid, event.level, verifyLevel);
+        // UNSCHEDULE / REVOKE_PID: Unschedule the (taskId, pid) pairs via the derived records
+        for (const auto &item : event.records) {
+            item.second->Unschedule(item.first);
         }
     }
 }

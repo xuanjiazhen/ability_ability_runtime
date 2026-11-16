@@ -34,8 +34,10 @@ enum class ControlAction : int32_t {
 };
 
 // Per (task, managed process) control payload, mirroring the cross-requirement event
-// contract of 20260914692273. Level is the merged effective level (max over tasks).
+// contract of 20260914692273. Control is applied/revoked per (taskId, managedPid) pair;
+// level is the merged effective level (max over tasks).
 struct ControlRequest {
+    std::string taskId;          // task id of this (taskId, managedPid) control pair
     int32_t callerPid = -1;      // task creator pid
     int32_t callerUid = -1;      // task creator uid
     int32_t managedPid = -1;     // managed process pid
@@ -52,23 +54,24 @@ struct TaskEndInfo {
 };
 
 /**
- * @brief Sole exit to the resource-schedule service (ADR-2). Phase-1 is a Stub that keeps an
- *        in-memory control registry and emits key-path logs/alerts with the probe switch off
- *        by default and no persistence; the real RSS Impl replaces the Stub once the RSS
- *        design is finalized, with zero impact on callers.
+ * @brief Sole exit to the resource-schedule service (ADR-2). Used by the per-tool derived
+ *        AttributionRecord objects to deliver their schedule control. Phase-1 is a Stub that
+ *        keeps an in-memory control registry keyed by (taskId, managedPid) and emits key-path
+ *        logs/alerts with the probe switch off by default and no persistence; the real RSS
+ *        Impl replaces the Stub once the RSS design is finalized, with zero impact on callers.
  */
 class ResourceControlProxy {
 public:
     static ResourceControlProxy &GetInstance();
 
-    // Applies the control and verifies it took effect via QueryControlState; an ineffective
-    // delivery records a task alert log. Returns 0 on success, non-zero otherwise.
+    // Applies the control of a (taskId, managedPid) pair and verifies it took effect via
+    // QueryControlState; an ineffective delivery records a task alert log. 0 on success.
     int32_t ApplyControl(const ControlRequest &req);
-    // Revokes the control of a managed process (process-level degrade).
-    int32_t RevokeControl(pid_t managedPid);
-    // Effectiveness query: fills the registered level of the pid. Returns 0 when registered,
-    // non-zero when the pid has no control entry.
-    int32_t QueryControlState(pid_t managedPid, int32_t &level);
+    // Revokes the control of a (taskId, managedPid) pair (process-level degrade).
+    int32_t RevokeControl(const std::string &taskId, pid_t managedPid);
+    // Effectiveness query: fills the registered level of the (taskId, managedPid) pair.
+    // Returns 0 when registered, non-zero when the pair has no control entry.
+    int32_t QueryControlState(const std::string &taskId, pid_t managedPid, int32_t &level);
     // Task-level degrade: notifies the resource-schedule service to clean task-level policy.
     void NotifyTaskEnd(const TaskEndInfo &info);
 
@@ -78,9 +81,12 @@ private:
     ResourceControlProxy(const ResourceControlProxy &) = delete;
     ResourceControlProxy &operator=(const ResourceControlProxy &) = delete;
 
+    // Registry key of a (taskId, managedPid) control pair.
+    static std::string MakeKey(const std::string &taskId, pid_t managedPid);
+
     mutable std::mutex registryMutex_;
-    // In-memory control registry keyed by managed pid (no persistence).
-    std::map<int32_t, ControlRequest> controlRegistry_;
+    // In-memory control registry keyed by (taskId, managedPid) (no persistence).
+    std::map<std::string, ControlRequest> controlRegistry_;
     // Probe switch (phase-1 default off): when on, emits extra probe logs.
     bool probeEnabled_ = false;
 

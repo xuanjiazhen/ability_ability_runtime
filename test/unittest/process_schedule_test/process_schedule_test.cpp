@@ -458,8 +458,8 @@ HWTEST_F(ProcessScheduleTest, AttributionPolymorphic_0100, TestSize.Level1)
     // polymorphic dispatch via the base pointer (phase-1 empty impl + logging, must not crash)
     std::shared_ptr<AttributionRecord> base = cli;
     base->pid = TEST_PID_A;
-    base->Schedule(TASK_PRIORITY_HIGH);
-    base->Unschedule();
+    base->Schedule(TEST_TASK_HIGH, TASK_PRIORITY_HIGH);
+    base->Unschedule(TEST_TASK_HIGH);
 }
 
 /**
@@ -472,23 +472,24 @@ HWTEST_F(ProcessScheduleTest, ProxyStubAction_0100, TestSize.Level1)
 {
     auto &proxy = ResourceControlProxy::GetInstance();
     ControlRequest req;
+    req.taskId = TEST_TASK_HIGH;
     req.managedPid = TEST_PID_A;
     req.managedType = AttributionTool::CLI;
     req.level = TASK_PRIORITY_HIGH;
     req.action = ControlAction::APPLY;
     EXPECT_EQ(proxy.ApplyControl(req), 0);
     int32_t level = 0;
-    EXPECT_EQ(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_EQ(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
     EXPECT_EQ(level, TASK_PRIORITY_HIGH);
-    EXPECT_EQ(proxy.RevokeControl(TEST_PID_A), 0);
-    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_EQ(proxy.RevokeControl(TEST_TASK_HIGH, TEST_PID_A), 0);
+    EXPECT_NE(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
     // task-level cleanup via NotifyTaskEnd
     EXPECT_EQ(proxy.ApplyControl(req), 0);
     TaskEndInfo info;
     info.taskId = TEST_TASK_HIGH;
     info.pids = {TEST_PID_A};
     proxy.NotifyTaskEnd(info);
-    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_NE(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
     // invalid pid rejected
     ControlRequest badReq;
     badReq.managedPid = 0;
@@ -559,10 +560,10 @@ HWTEST_F(ProcessScheduleTest, DispatchPolymorphic_0100, TestSize.Level1)
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].attrObjects[TEST_TASK_HIGH]->tool, AttributionTool::CLI);
     }
     int32_t level = 0;
-    EXPECT_EQ(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_EQ(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
     EXPECT_EQ(level, TASK_PRIORITY_HIGH);
     sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
-    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_NE(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
 }
 
 /**
@@ -582,7 +583,7 @@ HWTEST_F(ProcessScheduleTest, NoTaskIdBaseline_0100, TestSize.Level1)
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].attrObjects.count(TEST_TASK_HIGH), 1);
     }
     int32_t level = 0;
-    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_NE(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
 }
 
 /**
@@ -601,11 +602,11 @@ HWTEST_F(ProcessScheduleTest, ControlApplyVerify_0100, TestSize.Level1)
     sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
     int32_t level = 0;
     // effectiveness confirmed: the applied level is queryable
-    EXPECT_EQ(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_EQ(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
     EXPECT_EQ(level, TASK_PRIORITY_HIGH);
     // inject an ineffective delivery: the query now fails
     proxy.failQueryForTest_ = true;
-    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_NE(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
     proxy.failQueryForTest_ = false;
 }
 
@@ -654,8 +655,8 @@ HWTEST_F(ProcessScheduleTest, TaskEndDegrade_0100, TestSize.Level1)
     // task-level channel: the task ends and its level policy is cleaned
     sched.OnTaskEnd(TEST_TASK_HIGH, {TEST_PID_A, TEST_PID_B});
     int32_t level = 0;
-    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
-    EXPECT_NE(proxy.QueryControlState(TEST_PID_B, level), 0);
+    EXPECT_NE(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_A, level), 0);
+    EXPECT_NE(proxy.QueryControlState(TEST_TASK_HIGH, TEST_PID_B, level), 0);
 }
 
 /**
@@ -688,7 +689,7 @@ HWTEST_F(ProcessScheduleTest, DispatchConcurrent_0100, TestSize.Level3)
         EXPECT_TRUE(sched.pidEntries_.empty());
     }
     int32_t level = 0;
-    EXPECT_NE(proxy.QueryControlState(TEST_PID_C, level), 0);
+    EXPECT_NE(proxy.QueryControlState("sched_dispatch_0", TEST_PID_C, level), 0);
 }
 
 /**
@@ -715,7 +716,7 @@ HWTEST_F(ProcessScheduleTest, UnscheduleRemovedTask_0100, TestSize.Level1)
     }
     // the pid degrades to the remaining LOW task at the proxy
     int32_t level = 0;
-    EXPECT_EQ(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_EQ(proxy.QueryControlState(TEST_TASK_LOW, TEST_PID_A, level), 0);
     EXPECT_EQ(level, TASK_PRIORITY_LOW);
 }
 }  // namespace AppExecFwk

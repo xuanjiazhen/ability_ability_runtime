@@ -17,52 +17,133 @@
 
 #include "hilog_tag_wrapper.h"
 #include "task_mgr/common.h"
+#include "task_mgr/resource_control_proxy.h"
+#include "task_mgr/schedule_mapping.h"
 
 namespace OHOS {
 namespace AppExecFwk {
+namespace {
 
-void InsightAttributionRecord::Schedule(int32_t level)
+// Shared schedule-control helpers used by the derived records (their hard-coded schemes
+// deliver control through the proxy per (taskId, pid) pair).
+
+// Applies schedule control: mapping fail-safe, proxy apply, then the effectiveness check.
+void ApplyScheduleControl(AttributionRecord *record, const std::string &taskId, int32_t level)
 {
-    TAG_LOGI(AAFwkTag::APPMGR,
-        "insight schedule(stub) pid: %{public}d level: %{public}s", pid, TaskPriorityToString(level));
+    auto &proxy = ResourceControlProxy::GetInstance();
+    auto &mapping = ScheduleMapping::GetInstance();
+    if (!mapping.IsReady()) {
+        TAG_LOGW(AAFwkTag::APPMGR,
+            "schedule control apply skipped by mapping fail-safe, taskId: %{public}s pid: %{public}d",
+            taskId.c_str(), record->pid);
+        return;
+    }
+    ControlRequest req;
+    req.taskId = taskId;
+    req.managedPid = record->pid;
+    req.managedType = record->tool;
+    req.level = level;
+    req.action = ControlAction::APPLY;
+    proxy.ApplyControl(req);
+    // effectiveness check: query after applying, alert on an ineffective delivery (INV-3)
+    int32_t verify = 0;
+    if (proxy.QueryControlState(taskId, record->pid, verify) != 0 || verify != level) {
+        TAG_LOGW(AAFwkTag::APPMGR,
+            "schedule control ineffective alert, taskId: %{public}s pid: %{public}d expect: %{public}d actual: %{public}d",
+            taskId.c_str(), record->pid, level, verify);
+    }
 }
 
-void InsightAttributionRecord::Unschedule()
+// Revokes schedule control of the (taskId, pid) pair with a bounded retry before alerting.
+void RevokeScheduleControl(AttributionRecord *record, const std::string &taskId)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "insight unschedule(stub) pid: %{public}d", pid);
+    constexpr int32_t MAX_RETRY = 3;
+    auto &proxy = ResourceControlProxy::GetInstance();
+    int32_t ret = proxy.RevokeControl(taskId, record->pid);
+    int32_t retry = 0;
+    while (ret != 0 && retry < MAX_RETRY) {
+        retry++;
+        ret = proxy.RevokeControl(taskId, record->pid);
+    }
+    if (ret != 0) {
+        TAG_LOGW(AAFwkTag::APPMGR,
+            "schedule control revoke failed after %{public}d retries, task alert, taskId: %{public}s pid: %{public}d",
+            MAX_RETRY, taskId.c_str(), record->pid);
+    }
 }
 
-void CliAttributionRecord::Schedule(int32_t level)
+void NotifyTaskEndControl(const std::string &taskId, const std::vector<pid_t> &pids)
 {
-    TAG_LOGI(AAFwkTag::APPMGR,
-        "cli schedule(stub) pid: %{public}d level: %{public}s", pid, TaskPriorityToString(level));
+    TaskEndInfo info;
+    info.taskId = taskId;
+    info.pids = pids;
+    ResourceControlProxy::GetInstance().NotifyTaskEnd(info);
 }
 
-void CliAttributionRecord::Unschedule()
+}  // namespace
+
+void InsightAttributionRecord::Schedule(const std::string &taskId, int32_t level)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "cli unschedule(stub) pid: %{public}d", pid);
+    // INSIGHT schedule control (hard-coded scheme) delivered through the proxy.
+    ApplyScheduleControl(this, taskId, level);
 }
 
-void A2aAttributionRecord::Schedule(int32_t level)
+void InsightAttributionRecord::Unschedule(const std::string &taskId)
 {
-    TAG_LOGI(AAFwkTag::APPMGR,
-        "a2a schedule(stub) pid: %{public}d level: %{public}s", pid, TaskPriorityToString(level));
+    RevokeScheduleControl(this, taskId);
 }
 
-void A2aAttributionRecord::Unschedule()
+void InsightAttributionRecord::NotifyTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "a2a unschedule(stub) pid: %{public}d", pid);
+    NotifyTaskEndControl(taskId, pids);
 }
 
-void AbilityAttributionRecord::Schedule(int32_t level)
+void CliAttributionRecord::Schedule(const std::string &taskId, int32_t level)
 {
-    TAG_LOGI(AAFwkTag::APPMGR,
-        "ability schedule(stub) pid: %{public}d level: %{public}s", pid, TaskPriorityToString(level));
+    // CLI schedule control (hard-coded scheme) delivered through the proxy.
+    ApplyScheduleControl(this, taskId, level);
 }
 
-void AbilityAttributionRecord::Unschedule()
+void CliAttributionRecord::Unschedule(const std::string &taskId)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "ability unschedule(stub) pid: %{public}d", pid);
+    RevokeScheduleControl(this, taskId);
+}
+
+void CliAttributionRecord::NotifyTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids)
+{
+    NotifyTaskEndControl(taskId, pids);
+}
+
+void A2aAttributionRecord::Schedule(const std::string &taskId, int32_t level)
+{
+    // A2A schedule control (hard-coded scheme) delivered through the proxy.
+    ApplyScheduleControl(this, taskId, level);
+}
+
+void A2aAttributionRecord::Unschedule(const std::string &taskId)
+{
+    RevokeScheduleControl(this, taskId);
+}
+
+void A2aAttributionRecord::NotifyTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids)
+{
+    NotifyTaskEndControl(taskId, pids);
+}
+
+void AbilityAttributionRecord::Schedule(const std::string &taskId, int32_t level)
+{
+    // UIAbility schedule control (hard-coded scheme) delivered through the proxy.
+    ApplyScheduleControl(this, taskId, level);
+}
+
+void AbilityAttributionRecord::Unschedule(const std::string &taskId)
+{
+    RevokeScheduleControl(this, taskId);
+}
+
+void AbilityAttributionRecord::NotifyTaskEnd(const std::string &taskId, const std::vector<pid_t> &pids)
+{
+    NotifyTaskEndControl(taskId, pids);
 }
 
 std::shared_ptr<AttributionRecord> CreateAttributionRecord(AttributionTool tool)
