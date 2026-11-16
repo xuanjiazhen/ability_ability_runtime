@@ -509,11 +509,11 @@ void TaskManagerService::SetPidValidator(std::function<bool(pid_t)> validator)
     TAG_LOGI(AAFwkTag::APPMGR, "pid validator %{public}s", validator ? "wired" : "unwired");
 }
 
-void TaskManagerService::SetTaskFinishedCallback(TaskFinishedCallback callback)
+void TaskManagerService::SetTaskStateCallback(const sptr<ITaskStateCallback> &callback)
 {
     std::lock_guard<ffrt::mutex> lock(tasksMutex_);
-    taskFinishedCallback_ = std::move(callback);
-    TAG_LOGI(AAFwkTag::APPMGR, "task finished callback %{public}s", taskFinishedCallback_ ? "wired" : "unwired");
+    taskStateCallback_ = callback;
+    TAG_LOGI(AAFwkTag::APPMGR, "task state callback %{public}s", taskStateCallback_ ? "wired" : "unwired");
 }
 
 bool TaskManagerService::IsLiveManagedProcess(pid_t pid)
@@ -778,8 +778,13 @@ void TaskManagerService::NotifyTaskFinished(const std::string &taskId, int32_t u
 {
     TAG_LOGD(AAFwkTag::APPMGR, "task end notified, taskId: %{public}s, userId: %{public}d, reason: %{public}s",
         taskId.c_str(), userId, TaskFinishReasonToString(reason));
-    if (taskFinishedCallback_) {
-        taskFinishedCallback_(taskId, userId);
+    sptr<ITaskStateCallback> callback;
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        callback = taskStateCallback_;
+    }
+    if (callback) {
+        callback->OnTaskFinished(taskId, userId);
     }
 }
 
