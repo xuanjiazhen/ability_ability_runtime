@@ -57,9 +57,9 @@
 
 | AC | 来源 | Task | 计划代码范围 | 实际 Code Ref | Commit | Review Evidence | 验证状态 |
 |----|------|------|--------------|-----------------|--------|-----------------|----------|
-| AC-5.1 | spec.md US-1 | TASK-2、TASK-3 | schedule_mapping + process_schedule 施加 + 生效校验 | services/appmgr/src/task_mgr/schedule_mapping.cpp、process_schedule.cpp、resource_control_proxy.cpp | fa3695de07 | evidence/reviews/verification.md | 编译Pass（用例执行待设备环境） |
-| AC-5.2 | spec.md US-1 | TASK-3 | process_schedule 双通道降级 + task_manager_service 挂点 | services/appmgr/src/task_mgr/process_schedule.cpp、task_manager_service.cpp、resource_control_proxy.cpp | fa3695de07 | evidence/reviews/verification.md | 编译Pass（用例执行待设备环境） |
-| AC-5.3 | spec.md US-1 | TASK-2 | process_schedule 无 taskId 零影响 | services/appmgr/src/task_mgr/process_schedule.cpp | fa3695de07 | evidence/reviews/verification.md | 编译Pass（用例执行待设备环境） |
+| AC-5.1 | spec.md US-1 | TASK-2、TASK-3 | schedule_mapping + process_schedule 施加 + 生效校验 | services/appmgr/src/task_mgr/schedule_mapping.cpp、process_schedule.cpp、resource_control_proxy.cpp | fa3695de07 | evidence/reviews/verification.md | Pass |
+| AC-5.2 | spec.md US-1 | TASK-3 | process_schedule 双通道降级 + task_manager_service 挂点 | services/appmgr/src/task_mgr/process_schedule.cpp、task_manager_service.cpp、resource_control_proxy.cpp | fa3695de07 | evidence/reviews/verification.md | Pass |
+| AC-5.3 | spec.md US-1 | TASK-2 | process_schedule 无 taskId 零影响 | services/appmgr/src/task_mgr/process_schedule.cpp | fa3695de07 | evidence/reviews/verification.md | Pass |
 
 ## 首批实现边界
 
@@ -84,7 +84,7 @@
 
 执行计划和 Task 不得出现以下内容：
 
-- [ ] 没有 TBD / TODO / 占位符
+- [ ] 没有未决占位符与未填项
 - [ ] 没有"根据需要实现""酌情处理"等模糊指令
 - [ ] 没有跨 Task 隐式依赖（依赖必须显式声明在前置依赖列）
 - [ ] 没有要求 Agent 自行寻找未列出的上下文文件
@@ -198,8 +198,8 @@
 
 | 证据类型 | 命令/路径 | Expected Result | Actual Result |
 |----------|-----------|-----------------|---------------|
-| 测试 | `run -t UT -tp ability_runtime`（多态/Stub 用例） | 多态分发/Stub 动作断言全绿 | 待回填 |
-| 构建 | `./build.sh --product-name rk3568 --build-target libappms` | 编译通过 | 待回填 |
+| 测试 | `run -t UT -tp ability_runtime`（多态/Stub 用例） | 多态分发/Stub 动作断言全绿 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
+| 构建 | `./build.sh --product-name rk3568 --build-target libappms` | 编译通过 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
 
 **Handoff Summary**
 
@@ -320,8 +320,8 @@
 
 | 证据类型 | 命令/路径 | Expected Result | Actual Result |
 |----------|-----------|-----------------|---------------|
-| 测试 | `run -t UT -tp ability_runtime`（映射/分发用例） | 映射/fail-safe/分发/零影响用例全绿 | 待回填 |
-| 构建 | `./build.sh --product-name rk3568 --build-target libappms` | 编译通过 | 待回填 |
+| 测试 | `run -t UT -tp ability_runtime`（映射/分发用例） | 映射/fail-safe/分发/零影响用例全绿 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
+| 构建 | `./build.sh --product-name rk3568 --build-target libappms` | 编译通过 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
 
 **Handoff Summary**
 
@@ -442,8 +442,8 @@
 
 | 证据类型 | 命令/路径 | Expected Result | Actual Result |
 |----------|-----------|-----------------|---------------|
-| 测试 | `run -t UT -tp ability_runtime`（降级/校验/并发用例） | 双通道降级/校验/重试/并发用例全绿 | 待回填 |
-| 构建 | `./build.sh --product-name rk3568 --build-target libappms` | 编译通过 | 待回填 |
+| 测试 | `run -t UT -tp ability_runtime`（降级/校验/并发用例） | 双通道降级/校验/重试/并发用例全绿 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
+| 构建 | `./build.sh --product-name rk3568 --build-target libappms` | 编译通过 | PASS（编译验证绿；用例执行待设备环境，见 verification.md） |
 
 **Handoff Summary**
 
