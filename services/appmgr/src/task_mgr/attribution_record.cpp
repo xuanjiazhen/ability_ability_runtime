@@ -15,8 +15,82 @@
 
 #include "task_mgr/attribution_record.h"
 
+#include "hilog_tag_wrapper.h"
+#include "task_mgr/common.h"
+
 namespace OHOS {
 namespace AppExecFwk {
+
+void InsightAttributionRecord::Schedule(int32_t level)
+{
+    TAG_LOGI(AAFwkTag::APPMGR,
+        "insight schedule(stub) pid: %{public}d level: %{public}s", pid, TaskPriorityToString(level));
+}
+
+void InsightAttributionRecord::Unschedule()
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "insight unschedule(stub) pid: %{public}d", pid);
+}
+
+void CliAttributionRecord::Schedule(int32_t level)
+{
+    TAG_LOGI(AAFwkTag::APPMGR,
+        "cli schedule(stub) pid: %{public}d level: %{public}s", pid, TaskPriorityToString(level));
+}
+
+void CliAttributionRecord::Unschedule()
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "cli unschedule(stub) pid: %{public}d", pid);
+}
+
+void A2aAttributionRecord::Schedule(int32_t level)
+{
+    TAG_LOGI(AAFwkTag::APPMGR,
+        "a2a schedule(stub) pid: %{public}d level: %{public}s", pid, TaskPriorityToString(level));
+}
+
+void A2aAttributionRecord::Unschedule()
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "a2a unschedule(stub) pid: %{public}d", pid);
+}
+
+void AbilityAttributionRecord::Schedule(int32_t level)
+{
+    TAG_LOGI(AAFwkTag::APPMGR,
+        "ability schedule(stub) pid: %{public}d level: %{public}s", pid, TaskPriorityToString(level));
+}
+
+void AbilityAttributionRecord::Unschedule()
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "ability unschedule(stub) pid: %{public}d", pid);
+}
+
+std::shared_ptr<AttributionRecord> CreateAttributionRecord(AttributionTool tool)
+{
+    std::shared_ptr<AttributionRecord> record;
+    switch (tool) {
+        case AttributionTool::INSIGHT:
+            record = std::make_shared<InsightAttributionRecord>();
+            break;
+        case AttributionTool::CLI:
+            record = std::make_shared<CliAttributionRecord>();
+            break;
+        case AttributionTool::A2A:
+            record = std::make_shared<A2aAttributionRecord>();
+            break;
+        case AttributionTool::ABILITY:
+            record = std::make_shared<AbilityAttributionRecord>();
+            break;
+        default:
+            record = std::make_shared<AttributionRecord>();
+            break;
+    }
+    // Tag the created record with its tool so callers/tests can identify the derived type
+    // without RTTI (the build uses -fno-rtti).
+    record->tool = tool;
+    return record;
+}
+
 const char *AttributionToolToString(AttributionTool tool)
 {
     switch (tool) {

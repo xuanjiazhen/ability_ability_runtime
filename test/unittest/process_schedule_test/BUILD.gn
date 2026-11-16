@@ -30,6 +30,8 @@ ohos_unittest("process_schedule_test") {
     "${ability_runtime_services_path}/appmgr/src/task_mgr/attribution_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/common.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/process_schedule.cpp",
+    "${ability_runtime_services_path}/appmgr/src/task_mgr/resource_control_proxy.cpp",
+    "${ability_runtime_services_path}/appmgr/src/task_mgr/schedule_mapping.cpp",
     "process_schedule_test.cpp",
   ]
 
@@ -42,7 +44,9 @@ ohos_unittest("process_schedule_test") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_core",
+    "json:nlohmann_json_static",
   ]
 
   defines = []

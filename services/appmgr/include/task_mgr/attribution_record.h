@@ -17,8 +17,11 @@
 #define OHOS_APP_EXECFWK_TASK_MGR_ATTRIBUTION_RECORD_H
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <sys/types.h>
+
+#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -40,6 +43,11 @@ enum class AttributionTool : int32_t {
 // tool as the handle for later operations (e.g. unregister). 0 is the invalid sentinel.
 using AttributionId = int64_t;
 
+// Polymorphic scheduling base: the task manager keeps the value-semantic record for its
+// registry/dump, while the process schedule creates a per-tool derived object through
+// CreateAttributionRecord() and dispatches Schedule/Unschedule via the base pointer without
+// switching on the tool type (ADR-1). Phase-1 scheduling is an empty implementation with
+// key-path logging; the real resource-schedule control is wired in later per tool.
 struct AttributionRecord {
     // Pid of the attributed target process, not the caller's.
     pid_t pid = -1;
@@ -47,7 +55,53 @@ struct AttributionRecord {
     AttributionTool tool = AttributionTool::UNKNOWN;
     // Registration time, assigned by the task manager.
     int64_t attributedTimeMillis = 0;
+
+    virtual ~AttributionRecord() = default;
+
+    // Applies the schedule control for this attribution at the merged effective level.
+    // Base implementation is the UNKNOWN-tool no-op with logging. The base virtuals are
+    // defined inline so the vtable is emitted wherever the value-semantic record is used
+    // (other targets construct the base record without linking attribution_record.cpp).
+    virtual void Schedule(int32_t level)
+    {
+        TAG_LOGI(AAFwkTag::APPMGR,
+            "attribution schedule(stub) tool: %{public}d pid: %{public}d level: %{public}d",
+            static_cast<int32_t>(tool), pid, level);
+    }
+    // Revokes the schedule control for this attribution. Base implementation is a no-op
+    // with logging.
+    virtual void Unschedule()
+    {
+        TAG_LOGI(AAFwkTag::APPMGR,
+            "attribution unschedule(stub) tool: %{public}d pid: %{public}d",
+            static_cast<int32_t>(tool), pid);
+    }
 };
+
+// Derived per-tool scheduling records. Each tool carries its own scheduling scheme;
+// phase-1 overrides only emit key-path logs.
+struct InsightAttributionRecord : public AttributionRecord {
+    void Schedule(int32_t level) override;
+    void Unschedule() override;
+};
+
+struct CliAttributionRecord : public AttributionRecord {
+    void Schedule(int32_t level) override;
+    void Unschedule() override;
+};
+
+struct A2aAttributionRecord : public AttributionRecord {
+    void Schedule(int32_t level) override;
+    void Unschedule() override;
+};
+
+struct AbilityAttributionRecord : public AttributionRecord {
+    void Schedule(int32_t level) override;
+    void Unschedule() override;
+};
+
+// Factory: creates the derived scheduling record for the tool; UNKNOWN yields the base record.
+std::shared_ptr<AttributionRecord> CreateAttributionRecord(AttributionTool tool);
 
 const char *AttributionToolToString(AttributionTool tool);
 // Inverse of AttributionToolToString (dump command texts); returns UNKNOWN on no match.

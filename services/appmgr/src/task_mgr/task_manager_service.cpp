@@ -289,6 +289,9 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
     } else {
         ReleaseTimeoutContext(std::move(timerCtx));
     }
+    // dual-channel degrade (ADR-5): the process-level revoke already ran under the lock via
+    // OnAttributionRemoved; deliver the task-level cleanup notification outside the lock.
+    ProcessSchedule::GetInstance().OnTaskEnd(taskId, managedPids);
     NotifyTaskFinished(taskId, taskUserId, reason);
     return ERR_OK;
 }

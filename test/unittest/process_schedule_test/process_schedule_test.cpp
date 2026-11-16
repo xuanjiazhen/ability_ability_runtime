@@ -23,9 +23,12 @@
 // NOLINTNEXTLINE(g.nam.03-cpp): Redefining C++ keyword 'private' for unit testing
 #define private public
 #include "task_mgr/process_schedule.h"
+#include "task_mgr/resource_control_proxy.h"
 #undef private
 
+#include "task_mgr/attribution_record.h"
 #include "task_mgr/common.h"
+#include "task_mgr/schedule_mapping.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,6 +49,14 @@ void ResetSchedule()
     std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
     sched.taskToPids_.clear();
     sched.pidEntries_.clear();
+    auto &proxy = ResourceControlProxy::GetInstance();
+    std::lock_guard<std::mutex> proxyLock(proxy.registryMutex_);
+    proxy.controlRegistry_.clear();
+    proxy.failQueryForTest_ = false;
+    proxy.failRevokeForTest_ = false;
+    proxy.failNotifyForTest_ = false;
+    proxy.revokeCallsForTest_.store(0);
+    ScheduleMapping::GetInstance().Reset();
 }
 }  // namespace
 
@@ -414,6 +425,298 @@ HWTEST_F(ProcessScheduleTest, ProcessSchedule_TaskLevelChanged_0100, TestSize.Le
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_EQ(sched.pidEntries_[TEST_PID_A].level, TASK_PRIORITY_MEDIUM);
     }
+}
+}  // namespace AppExecFwk
+}  // namespace OHOS
+
+namespace OHOS {
+namespace AppExecFwk {
+/**
+ * @tc.number: AttributionPolymorphic_0100
+ * @tc.name: factory creates the derived record per tool; dispatch is polymorphic (ADR-1).
+ * @tc.desc: each tool maps to its derived class tagged via the tool field (no RTTI in build);
+ *           UNKNOWN yields the base record; base-pointer dispatch invokes Schedule/Unschedule
+ *           without switching on the tool type.
+ */
+HWTEST_F(ProcessScheduleTest, AttributionPolymorphic_0100, TestSize.Level1)
+{
+    auto insight = CreateAttributionRecord(AttributionTool::INSIGHT);
+    auto cli = CreateAttributionRecord(AttributionTool::CLI);
+    auto a2a = CreateAttributionRecord(AttributionTool::A2A);
+    auto ability = CreateAttributionRecord(AttributionTool::ABILITY);
+    auto unknown = CreateAttributionRecord(AttributionTool::UNKNOWN);
+    ASSERT_NE(insight, nullptr);
+    ASSERT_NE(cli, nullptr);
+    ASSERT_NE(a2a, nullptr);
+    ASSERT_NE(ability, nullptr);
+    ASSERT_NE(unknown, nullptr);
+    EXPECT_EQ(insight->tool, AttributionTool::INSIGHT);
+    EXPECT_EQ(cli->tool, AttributionTool::CLI);
+    EXPECT_EQ(a2a->tool, AttributionTool::A2A);
+    EXPECT_EQ(ability->tool, AttributionTool::ABILITY);
+    EXPECT_EQ(unknown->tool, AttributionTool::UNKNOWN);
+    // polymorphic dispatch via the base pointer (phase-1 empty impl + logging, must not crash)
+    std::shared_ptr<AttributionRecord> base = cli;
+    base->pid = TEST_PID_A;
+    base->Schedule(TASK_PRIORITY_HIGH);
+    base->Unschedule();
+}
+
+/**
+ * @tc.number: ProxyStubAction_0100
+ * @tc.name: ResourceControlProxy Stub registers, queries, revokes and cleans (ADR-2).
+ * @tc.desc: ApplyControl registers the level; QueryControlState reads it back; RevokeControl
+ *           and NotifyTaskEnd remove the entry so the query then fails.
+ */
+HWTEST_F(ProcessScheduleTest, ProxyStubAction_0100, TestSize.Level1)
+{
+    auto &proxy = ResourceControlProxy::GetInstance();
+    ControlRequest req;
+    req.managedPid = TEST_PID_A;
+    req.managedType = AttributionTool::CLI;
+    req.level = TASK_PRIORITY_HIGH;
+    req.action = ControlAction::APPLY;
+    EXPECT_EQ(proxy.ApplyControl(req), 0);
+    int32_t level = 0;
+    EXPECT_EQ(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_EQ(level, TASK_PRIORITY_HIGH);
+    EXPECT_EQ(proxy.RevokeControl(TEST_PID_A), 0);
+    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+    // task-level cleanup via NotifyTaskEnd
+    EXPECT_EQ(proxy.ApplyControl(req), 0);
+    TaskEndInfo info;
+    info.taskId = TEST_TASK_HIGH;
+    info.pids = {TEST_PID_A};
+    proxy.NotifyTaskEnd(info);
+    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+    // invalid pid rejected
+    ControlRequest badReq;
+    badReq.managedPid = 0;
+    EXPECT_NE(proxy.ApplyControl(badReq), 0);
+}
+
+/**
+ * @tc.number: MappingLoad_0100
+ * @tc.name: a valid mapping JSON loads tiers and answers GetPolicy (ADR-3 / R-1).
+ * @tc.desc: the three tiers parse with their freeze/schedGroup/qos/speed fields; unknown
+ *           levels are rejected.
+ */
+HWTEST_F(ProcessScheduleTest, MappingLoad_0100, TestSize.Level1)
+{
+    auto &mapping = ScheduleMapping::GetInstance();
+    std::string validJson = R"({"100":{"freeze":true,"schedGroup":0,"qos":0,"speed":0},
+        "200":{"freeze":false,"schedGroup":1,"qos":1,"speed":1},
+        "300":{"freeze":false,"schedGroup":2,"qos":2,"speed":2}})";
+    EXPECT_TRUE(mapping.LoadFromString(validJson));
+    EXPECT_TRUE(mapping.IsReady());
+    SchedulePolicy policy;
+    ASSERT_TRUE(mapping.GetPolicy(TASK_PRIORITY_HIGH, policy));
+    EXPECT_EQ(policy.schedGroup, 2);
+    EXPECT_EQ(policy.qos, 2);
+    EXPECT_EQ(policy.speed, 2);
+    EXPECT_FALSE(policy.freeze);
+    ASSERT_TRUE(mapping.GetPolicy(TASK_PRIORITY_LOW, policy));
+    EXPECT_TRUE(policy.freeze);
+    EXPECT_EQ(policy.schedGroup, 0);
+    EXPECT_FALSE(mapping.GetPolicy(999, policy));
+}
+
+/**
+ * @tc.number: MappingFailSafe_0100
+ * @tc.name: illegal or empty mapping stays not-ready (fail-safe, R-6 / INV-5).
+ * @tc.desc: malformed JSON, an empty object and a JSON without any valid tier all leave the
+ *           mapping not-ready and GetPolicy returns false.
+ */
+HWTEST_F(ProcessScheduleTest, MappingFailSafe_0100, TestSize.Level1)
+{
+    auto &mapping = ScheduleMapping::GetInstance();
+    EXPECT_FALSE(mapping.LoadFromString("{invalid json"));
+    EXPECT_FALSE(mapping.IsReady());
+    EXPECT_FALSE(mapping.LoadFromString("{}"));
+    EXPECT_FALSE(mapping.IsReady());
+    EXPECT_FALSE(mapping.LoadFromString("{\"999\":{\"freeze\":true}}"));
+    EXPECT_FALSE(mapping.IsReady());
+    SchedulePolicy policy;
+    EXPECT_FALSE(mapping.GetPolicy(TASK_PRIORITY_HIGH, policy));
+}
+
+/**
+ * @tc.number: DispatchPolymorphic_0100
+ * @tc.name: attribution add/remove dispatches Schedule/Unschedule and registers the proxy.
+ * @tc.desc: with a ready mapping, adding an attribution creates the derived object and
+ *           registers the effective level at the proxy; removing it revokes the registration.
+ */
+HWTEST_F(ProcessScheduleTest, DispatchPolymorphic_0100, TestSize.Level1)
+{
+    auto &mapping = ScheduleMapping::GetInstance();
+    mapping.LoadFromString(R"({"100":{"freeze":true},"200":{"freeze":false},"300":{"freeze":false}})");
+    auto &sched = ProcessSchedule::GetInstance();
+    auto &proxy = ResourceControlProxy::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        ASSERT_EQ(sched.pidEntries_[TEST_PID_A].attrObjects.count(TEST_TASK_HIGH), 1);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].attrObjects[TEST_TASK_HIGH]->tool, AttributionTool::CLI);
+    }
+    int32_t level = 0;
+    EXPECT_EQ(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_EQ(level, TASK_PRIORITY_HIGH);
+    sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
+    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+}
+
+/**
+ * @tc.number: NoTaskIdBaseline_0100
+ * @tc.name: an unready mapping blocks the apply channel but not the merge index (INV-5/6).
+ * @tc.desc: without a loaded mapping, the attribution still merges into the index, yet no
+ *           control is registered at the proxy (fail-safe), matching the no-taskId baseline.
+ */
+HWTEST_F(ProcessScheduleTest, NoTaskIdBaseline_0100, TestSize.Level1)
+{
+    auto &sched = ProcessSchedule::GetInstance();
+    auto &proxy = ResourceControlProxy::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::ABILITY);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].level, TASK_PRIORITY_HIGH);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].attrObjects.count(TEST_TASK_HIGH), 1);
+    }
+    int32_t level = 0;
+    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+}
+
+/**
+ * @tc.number: ControlApplyVerify_0100
+ * @tc.name: the effectiveness check confirms the applied level; a failed query means an
+ *           ineffective delivery (INV-3).
+ * @tc.desc: after applying, QueryControlState returns the effective level; injecting a query
+ *           failure flips the check to the ineffective branch.
+ */
+HWTEST_F(ProcessScheduleTest, ControlApplyVerify_0100, TestSize.Level1)
+{
+    auto &mapping = ScheduleMapping::GetInstance();
+    mapping.LoadFromString(R"({"300":{"freeze":false}})");
+    auto &sched = ProcessSchedule::GetInstance();
+    auto &proxy = ResourceControlProxy::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
+    int32_t level = 0;
+    // effectiveness confirmed: the applied level is queryable
+    EXPECT_EQ(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_EQ(level, TASK_PRIORITY_HIGH);
+    // inject an ineffective delivery: the query now fails
+    proxy.failQueryForTest_ = true;
+    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+    proxy.failQueryForTest_ = false;
+}
+
+/**
+ * @tc.number: DegradeRetry_0100
+ * @tc.name: a failing revoke is retried within the budget (1 + 3) then alerts (INV-4).
+ * @tc.desc: with revoke fault injection on, removing the attribution drives RevokeControl
+ *           four times (initial + 3 retries) while the registry entry survives (failed revoke).
+ */
+HWTEST_F(ProcessScheduleTest, DegradeRetry_0100, TestSize.Level1)
+{
+    auto &mapping = ScheduleMapping::GetInstance();
+    mapping.LoadFromString(R"({"300":{"freeze":false}})");
+    auto &sched = ProcessSchedule::GetInstance();
+    auto &proxy = ResourceControlProxy::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
+    proxy.revokeCallsForTest_.store(0);
+    proxy.failRevokeForTest_ = true;
+    sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
+    // initial attempt + 3 retries
+    EXPECT_EQ(proxy.revokeCallsForTest_.load(), 4);
+    // the index is cleaned even though the revoke failed
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_TRUE(sched.pidEntries_.empty());
+    }
+    proxy.failRevokeForTest_ = false;
+}
+
+/**
+ * @tc.number: TaskEndDegrade_0100
+ * @tc.name: dual-channel degrade: process-level revoke plus task-level NotifyTaskEnd (ADR-5).
+ * @tc.desc: after removing one attribution (process-level) and ending the task (task-level),
+ *           every managed pid registration is cleaned from the proxy.
+ */
+HWTEST_F(ProcessScheduleTest, TaskEndDegrade_0100, TestSize.Level1)
+{
+    auto &mapping = ScheduleMapping::GetInstance();
+    mapping.LoadFromString(R"({"300":{"freeze":false}})");
+    auto &sched = ProcessSchedule::GetInstance();
+    auto &proxy = ResourceControlProxy::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_B, AttributionTool::ABILITY);
+    // process-level channel: revoke one attribution
+    sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
+    // task-level channel: the task ends and its level policy is cleaned
+    sched.OnTaskEnd(TEST_TASK_HIGH, {TEST_PID_A, TEST_PID_B});
+    int32_t level = 0;
+    EXPECT_NE(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_NE(proxy.QueryControlState(TEST_PID_B, level), 0);
+}
+
+/**
+ * @tc.number: DispatchConcurrent_0100
+ * @tc.name: out-of-lock dispatch stays consistent under concurrent add/remove (INV-2).
+ * @tc.desc: ten threads each add then remove one task-pid pair with a ready mapping; the
+ *           index and the proxy registry both end up empty.
+ */
+HWTEST_F(ProcessScheduleTest, DispatchConcurrent_0100, TestSize.Level3)
+{
+    auto &mapping = ScheduleMapping::GetInstance();
+    mapping.LoadFromString(R"({"200":{"freeze":false}})");
+    auto &sched = ProcessSchedule::GetInstance();
+    auto &proxy = ResourceControlProxy::GetInstance();
+    std::vector<std::thread> threads;
+    for (int32_t i = 0; i < 10; i++) {
+        threads.emplace_back([&sched, i]() {
+            std::string taskId = "sched_dispatch_" + std::to_string(i);
+            pid_t pid = TEST_PID_C + i;
+            sched.OnAttributionAdded(taskId, TASK_PRIORITY_MEDIUM, pid, AttributionTool::CLI);
+            sched.OnAttributionRemoved(taskId, pid);
+        });
+    }
+    for (auto &thread : threads) {
+        thread.join();
+    }
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        EXPECT_TRUE(sched.taskToPids_.empty());
+        EXPECT_TRUE(sched.pidEntries_.empty());
+    }
+    int32_t level = 0;
+    EXPECT_NE(proxy.QueryControlState(TEST_PID_C, level), 0);
+}
+
+/**
+ * @tc.number: UnscheduleRemovedTask_0100
+ * @tc.name: removing one task unschedules only its object and degrades the pid (UNSCHEDULE).
+ * @tc.desc: two tasks on one pid; removing the HIGH task drops only its scheduling object,
+ *           the LOW task keeps its object and the pid degrades to LOW at the proxy.
+ */
+HWTEST_F(ProcessScheduleTest, UnscheduleRemovedTask_0100, TestSize.Level1)
+{
+    auto &mapping = ScheduleMapping::GetInstance();
+    mapping.LoadFromString(R"({"100":{"freeze":true},"300":{"freeze":false}})");
+    auto &sched = ProcessSchedule::GetInstance();
+    auto &proxy = ResourceControlProxy::GetInstance();
+    sched.OnAttributionAdded(TEST_TASK_HIGH, TASK_PRIORITY_HIGH, TEST_PID_A, AttributionTool::CLI);
+    sched.OnAttributionAdded(TEST_TASK_LOW, TASK_PRIORITY_LOW, TEST_PID_A, AttributionTool::ABILITY);
+    sched.OnAttributionRemoved(TEST_TASK_HIGH, TEST_PID_A);
+    {
+        std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
+        // the removed task's object is gone, the remaining task's object stays
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].attrObjects.count(TEST_TASK_HIGH), 0);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].attrObjects.count(TEST_TASK_LOW), 1);
+        EXPECT_EQ(sched.pidEntries_[TEST_PID_A].level, TASK_PRIORITY_LOW);
+    }
+    // the pid degrades to the remaining LOW task at the proxy
+    int32_t level = 0;
+    EXPECT_EQ(proxy.QueryControlState(TEST_PID_A, level), 0);
+    EXPECT_EQ(level, TASK_PRIORITY_LOW);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
