@@ -20,6 +20,7 @@
 #include "app_utils.h"
 #include "hitrace_meter.h"
 #include "param.h"
+#include "task_state_callback_impl.h"
 #include "utils/state_utils.h"
 
 namespace OHOS {
@@ -61,6 +62,13 @@ bool AppScheduler::Init(const std::weak_ptr<AppStateCallback> &callback)
         return false;
     }
     appMgrClient_->RegisterStartSpecifiedAbilityResponse(startSpecifiedAbilityResponse_);
+
+    taskStateCallback_ = sptr<TaskStateCallbackImpl>(new TaskStateCallbackImpl(callback));
+    if (taskStateCallback_ != nullptr) {
+        appMgrClient_->RegisterTaskStateCallback(taskStateCallback_);
+    } else {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null taskStateCallback");
+    }
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "success to ConnectAppMgrService");
     isInit_ = true;

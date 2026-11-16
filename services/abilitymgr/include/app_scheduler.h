@@ -164,6 +164,13 @@ public:
      * @param bundleName Bundle name of the exited application.
      */
     virtual void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) {}
+
+    /**
+     * @brief Notify that a task has finished (by caller, timeout, or creator death).
+     * @param taskId Indicates the attribution key of the finished task.
+     * @param userId Indicates the user id of the finished task's creator.
+     */
+    virtual void OnTaskFinished(const std::string &taskId, int32_t userId) {}
 };
 
 class StartSpecifiedAbilityResponse : public AppExecFwk::StartSpecifiedAbilityResponseStub {
@@ -211,6 +218,8 @@ public:
      */
     virtual void OnStartSpecifiedFailed(int32_t requestId, int32_t userId) override;
 };
+
+class TaskStateCallbackImpl;
 
 /**
  * @class AppScheduler
@@ -886,6 +895,7 @@ private:
     std::weak_ptr<AppStateCallback> callback_;
     std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient_;
     sptr<StartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
+    sptr<TaskStateCallbackImpl> taskStateCallback_;
     std::mutex lock_;
 };
 }  // namespace AAFwk
