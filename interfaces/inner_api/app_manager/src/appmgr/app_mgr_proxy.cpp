@@ -174,6 +174,78 @@ int32_t AppMgrProxy::GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecord
     return ERR_OK;
 }
 
+int32_t AppMgrProxy::DebugCreateSnapshot(const std::string &bundleName, const std::string &abilityName,
+    bool debugReportOnly, const std::string &perfCmd)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugCreateSnapshot Write interface token failed.");
+        return IPC_PROXY_ERR;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, String, bundleName);
+    PARCEL_UTIL_WRITE_RET_INT(data, String, abilityName);
+    PARCEL_UTIL_WRITE_RET_INT(data, Bool, debugReportOnly);
+    PARCEL_UTIL_WRITE_RET_INT(data, String, perfCmd);
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::DEBUG_CREATE_SNAPSHOT, data, reply, option);
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName,
+    int32_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugDestroySnapshot Write interface token failed.");
+        return IPC_PROXY_ERR;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, String, bundleName);
+    PARCEL_UTIL_WRITE_RET_INT(data, String, abilityName);
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, pid);
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::DEBUG_DESTROY_SNAPSHOT, data, reply, option);
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
+    SnapshotDebugInfo &info)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot Write interface token failed.");
+        return IPC_PROXY_ERR;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, String, bundleName);
+    PARCEL_UTIL_WRITE_RET_INT(data, String, abilityName);
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::DEBUG_LIST_SNAPSHOT, data, reply, option);
+
+    int32_t result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot failed with result: %{public}d", result);
+        return result;
+    }
+
+    std::unique_ptr<SnapshotDebugInfo> infoReply(reply.ReadParcelable<SnapshotDebugInfo>());
+    if (infoReply == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot ReadParcelable failed.");
+        return IPC_PROXY_ERR;
+    }
+    info = *infoReply;
+
+    TAG_LOGD(AAFwkTag::APPMGR, "DebugListSnapshot success, appList size: %{public}zu", info.appList.size());
+    return ERR_OK;
+}
+
 int32_t AppMgrProxy::NotifyTemplateProcessDeepFrozen(int32_t pid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");

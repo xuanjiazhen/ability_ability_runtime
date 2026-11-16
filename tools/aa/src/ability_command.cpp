@@ -28,7 +28,9 @@
 #include "ability_tool_convert_util.h"
 #include "app_mgr_client.h"
 #include "event_report.h"
+#include "snapshot_debug_info.h"
 #include "hilog_tag_wrapper.h"
+#include "image_error_handler_interface.h"
 #include "iservice_registry.h"
 #include "mission_snapshot.h"
 #include "bool_wrapper.h"
@@ -258,6 +260,33 @@ constexpr struct option LONG_OPTIONS_PRESTART[] = {
     {"userId", required_argument, nullptr, 'u' },
     {nullptr, 0, nullptr, 0 },
 };
+
+const std::string SHORT_OPTIONS_CREATE_SNAPSHOT = "hb:a:drp:";
+constexpr struct option LONG_OPTIONS_CREATE_SNAPSHOT[] = {
+    {"help", no_argument, nullptr, 'h'},
+    {"bundle", required_argument, nullptr, 'b'},
+    {"ability", required_argument, nullptr, 'a'},
+    {"dr", no_argument, nullptr, 'd'},
+    {"perf", required_argument, nullptr, 'p'},
+    {nullptr, 0, nullptr, 0},
+};
+
+const std::string SHORT_OPTIONS_DESTROY_SNAPSHOT = "hb:p:a:";
+constexpr struct option LONG_OPTIONS_DESTROY_SNAPSHOT[] = {
+    {"help", no_argument, nullptr, 'h'},
+    {"bundle", required_argument, nullptr, 'b'},
+    {"pid", required_argument, nullptr, 'p'},
+    {"ability", required_argument, nullptr, 'a'},
+    {nullptr, 0, nullptr, 0},
+};
+
+const std::string SHORT_OPTIONS_LIST_SNAPSHOT = "hb:a:";
+constexpr struct option LONG_OPTIONS_LIST_SNAPSHOT[] = {
+    {"help", no_argument, nullptr, 'h'},
+    {"bundle", required_argument, nullptr, 'b'},
+    {"ability", required_argument, nullptr, 'a'},
+    {nullptr, 0, nullptr, 0},
+};
 }  // namespace
 
 AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) : ShellCommand(argc, argv, TOOL_NAME)
@@ -286,6 +315,9 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
         {"pre-start", [this]() { return this->RunAsPreStartCommand(); }},
+        {"create-snapshot", [this]() { return this->RunAsCreateSnapshotCommand(); }},
+        {"destroy-snapshot", [this]() { return this->RunAsDestroySnapshotCommand(); }},
+        {"list-snapshot", [this]() { return this->RunAsListSnapshotCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -406,6 +438,14 @@ ErrCode AbilityManagerShellCommand::CreateMessageMap()
         "Cannot debug applications using a release certificate.",
         "The developer forgot to configure the target application as a Debug application",
         {ERR_NOT_DEBUG_APP_SOLUTION_ONE});
+    // Snapshot debug errors (ImageError values, small-int range has no collision in this map);
+    // plain-string style for now, upgrade to GetAaToolErrorInfo once IDs are officially allocated.
+    messageMap_[static_cast<int32_t>(AppExecFwk::IImageErrorHandler::ImageError::ERR_IMAGE_INFO_EXIST)] =
+        "error: the image info already exists, destroy it first or wait for the making to finish.";
+    messageMap_[static_cast<int32_t>(AppExecFwk::IImageErrorHandler::ImageError::ERR_IMAGE_INFO_NOT_EXIST)] =
+        "error: the snapshot of the specified application does not exist.";
+    messageMap_[static_cast<int32_t>(AppExecFwk::IImageErrorHandler::ImageError::ERR_INNER)] =
+        "error: snapshot debug inner error.";
     messageMap_[ERR_APP_CLONE_INDEX_INVALID] = GetAaToolErrorInfo("10103102",
         "The passed appCloneIndex is invalid.",
         "If the appCloneIndex carried in the parameters of the aa tool is an invalid value, return that error code",
@@ -1163,6 +1203,325 @@ ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, s
     }
 
     return OHOS::ERR_OK;
+}
+
+ErrCode AbilityManagerShellCommand::HandleCreateSnapshotOption(int option, std::string &bundleName,
+    std::string &abilityName, bool &debugReportOnly, std::string &perfCmd)
+{
+    switch (option) {
+        case 'h': {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -h' no arg", cmd_.c_str());
+            break;
+        }
+        case 'b': {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -b' bundle", cmd_.c_str());
+            bundleName = optarg;
+            break;
+        }
+        case 'a': {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -a' ability", cmd_.c_str());
+            abilityName = optarg;
+            break;
+        }
+        case 'd': // 'd' and 'r' both map to the debug-report-only flag, so '-dr' works as written
+        case 'r': {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -dr' debug report only", cmd_.c_str());
+            debugReportOnly = true;
+            break;
+        }
+        case 'p': {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -p' perf cmd", cmd_.c_str());
+            std::string validated = "";
+            if (!CheckPerfCmdString(optarg, PARAM_LENGTH, validated)) {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "invalid perf cmd");
+                resultReceiver_.append(HELP_MSG_CREATE_SNAPSHOT + "\n");
+                return OHOS::ERR_INVALID_VALUE;
+            }
+            perfCmd = validated;
+            break;
+        }
+        case '?': {
+            std::string unknownOption = "";
+            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+            resultReceiver_.append(unknownOptionMsg);
+            break;
+        }
+        default:
+            break;
+    }
+    return OHOS::ERR_OK;
+}
+
+ErrCode AbilityManagerShellCommand::ParseCreateSnapshotOptions(std::string &bundleName,
+    std::string &abilityName, bool &debugReportOnly, std::string &perfCmd)
+{
+    int option = -1;
+    int counter = 0;
+    while (true) {
+        counter++;
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_CREATE_SNAPSHOT.c_str(),
+            LONG_OPTIONS_CREATE_SNAPSHOT, nullptr);
+        TAG_LOGD(AAFwkTag::AA_TOOL, "getopt_long option: %{public}d, optopt: %{public}d, optind: %{public}d",
+            option, optopt, optind);
+
+        if (optind < 0 || optind > argc_) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        // aa command without option
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+            }
+            break;
+        }
+        ErrCode handleResult = HandleCreateSnapshotOption(option, bundleName, abilityName, debugReportOnly,
+            perfCmd);
+        if (handleResult != OHOS::ERR_OK) {
+            return handleResult;
+        }
+    }
+
+    return OHOS::ERR_OK;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsCreateSnapshotCommand()
+{
+    TAG_LOGD(AAFwkTag::AA_TOOL, "create-snapshot");
+    std::string bundleName = "";
+    std::string abilityName = "";
+    std::string perfCmd = "";
+    bool debugReportOnly = false;
+    ParseCreateSnapshotOptions(bundleName, abilityName, debugReportOnly, perfCmd);
+    // abilityName is optional: an empty name snapshots the whole app instead of one ability.
+    if (bundleName.empty()) {
+        resultReceiver_.append(HELP_MSG_CREATE_SNAPSHOT + "\n");
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "bundle:%{public}s ability:%{public}s dr:%{public}d",
+        bundleName.c_str(), abilityName.c_str(), debugReportOnly);
+    auto result = DelayedSingleton<AppMgrClient>::GetInstance()->DebugCreateSnapshot(bundleName,
+        abilityName, debugReportOnly, perfCmd);
+    if (result == OHOS::ERR_OK) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_CREATE_SNAPSHOT_OK.c_str());
+        resultReceiver_ = STRING_CREATE_SNAPSHOT_OK + "\n";
+        resultReceiver_ += "bundle: " + bundleName;
+        if (!abilityName.empty()) {
+            resultReceiver_ += ", ability: " + abilityName;
+        }
+        resultReceiver_ += ", debug report only: " + (debugReportOnly ? std::string("on") : std::string("off")) + "\n";
+    } else {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d",
+            STRING_CREATE_SNAPSHOT_NG.c_str(), result);
+        resultReceiver_ = STRING_CREATE_SNAPSHOT_NG + "\n";
+        resultReceiver_.append(GetMessageFromCode(result));
+    }
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::ParseDestroySnapshotOptions(std::string &bundleName,
+    std::string &abilityName, std::string &pidParse)
+{
+    int option = -1;
+    int counter = 0;
+    while (true) {
+        counter++;
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_DESTROY_SNAPSHOT.c_str(),
+            LONG_OPTIONS_DESTROY_SNAPSHOT, nullptr);
+        TAG_LOGD(AAFwkTag::AA_TOOL, "getopt_long option: %{public}d, optopt: %{public}d, optind: %{public}d",
+            option, optopt, optind);
+
+        if (optind < 0 || optind > argc_) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        // aa command without option
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+            }
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -h' no arg", cmd_.c_str());
+                break;
+            }
+            case 'b': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -b' bundle", cmd_.c_str());
+                bundleName = optarg;
+                break;
+            }
+            case 'p': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -p' pid", cmd_.c_str());
+                pidParse = optarg;
+                break;
+            }
+            case 'a': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -a' ability", cmd_.c_str());
+                abilityName = optarg;
+                break;
+            }
+            case '?': {
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                resultReceiver_.append(unknownOptionMsg);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    return OHOS::ERR_OK;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsDestroySnapshotCommand()
+{
+    TAG_LOGD(AAFwkTag::AA_TOOL, "destroy-snapshot");
+    std::string bundleName = "";
+    std::string abilityName = "";
+    std::string pidParse = "";
+    ParseDestroySnapshotOptions(bundleName, abilityName, pidParse);
+    // -b and -p are mutually exclusive; at least one of them is required.
+    if (bundleName.empty() && pidParse.empty()) {
+        resultReceiver_.append("error: either -b <BUNDLE-NAME> or -p <PID> is required.\n");
+        resultReceiver_.append(HELP_MSG_DESTROY_SNAPSHOT + "\n");
+        return OHOS::ERR_INVALID_VALUE;
+    }
+    if (!bundleName.empty() && !pidParse.empty()) {
+        resultReceiver_.append("error: -b and -p are mutually exclusive, specify only one.\n");
+        resultReceiver_.append(HELP_MSG_DESTROY_SNAPSHOT + "\n");
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    int32_t pid = -1;
+    if (!pidParse.empty()) {
+        pid = static_cast<int32_t>(ConvertPid(pidParse));
+        if (pid <= 0) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "pid value error, the specified pid is invalid.");
+            resultReceiver_.append(HELP_MSG_DESTROY_SNAPSHOT + "\n");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+    }
+
+    auto result = DelayedSingleton<AppMgrClient>::GetInstance()->DebugDestroySnapshot(bundleName, abilityName,
+        pid);
+    if (result == OHOS::ERR_OK) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_DESTROY_SNAPSHOT_OK.c_str());
+        resultReceiver_ = STRING_DESTROY_SNAPSHOT_OK + "\n";
+    } else {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d",
+            STRING_DESTROY_SNAPSHOT_NG.c_str(), result);
+        resultReceiver_ = STRING_DESTROY_SNAPSHOT_NG + "\n";
+        resultReceiver_.append(GetMessageFromCode(result));
+    }
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::ParseListSnapshotOptions(std::string &bundleName, std::string &abilityName)
+{
+    int option = -1;
+    int counter = 0;
+    while (true) {
+        counter++;
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_LIST_SNAPSHOT.c_str(),
+            LONG_OPTIONS_LIST_SNAPSHOT, nullptr);
+        TAG_LOGD(AAFwkTag::AA_TOOL, "getopt_long option: %{public}d, optopt: %{public}d, optind: %{public}d",
+            option, optopt, optind);
+
+        if (optind < 0 || optind > argc_) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        // aa command without option
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+            }
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -h' no arg", cmd_.c_str());
+                break;
+            }
+            case 'b': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -b' bundle", cmd_.c_str());
+                bundleName = optarg;
+                break;
+            }
+            case 'a': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -a' ability", cmd_.c_str());
+                abilityName = optarg;
+                break;
+            }
+            case '?': {
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                resultReceiver_.append(unknownOptionMsg);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    return OHOS::ERR_OK;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsListSnapshotCommand()
+{
+    TAG_LOGD(AAFwkTag::AA_TOOL, "list-snapshot");
+    std::string bundleName = "";
+    std::string abilityName = "";
+    ParseListSnapshotOptions(bundleName, abilityName);
+
+    SnapshotDebugInfo info;
+    auto result = DelayedSingleton<AppMgrClient>::GetInstance()->DebugListSnapshot(bundleName, abilityName, info);
+    if (result == OHOS::ERR_OK) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_LIST_SNAPSHOT_OK.c_str());
+        resultReceiver_ = STRING_LIST_SNAPSHOT_OK + "\n";
+        resultReceiver_ += "snapshot switch: " + std::to_string(info.switchState) +
+            ", current creating: " + std::to_string(info.currentCreating) +
+            ", max creating: " + std::to_string(info.maxCreating) + "\n";
+        resultReceiver_ += "debug application count: " + std::to_string(info.appList.size()) + "\n";
+        for (const auto &app : info.appList) {
+            resultReceiver_ += "  bundle: " + app.bundleName +
+                " uid: " + std::to_string(app.uid) +
+                " userId: " + std::to_string(app.userId) + "\n";
+            resultReceiver_ += "  state: " + app.state +
+                " snapshotId: " + std::to_string(app.snapshotId) +
+                " imagePid: " + std::to_string(app.imagePid) +
+                " templatePid: " + std::to_string(app.templatePid) +
+                " isEnable: " + std::to_string(app.isEnable) +
+                " debug: " + std::to_string(app.isDebug) + "\n";
+            resultReceiver_ += "  autoMakeImage: " + std::to_string(app.autoMakeImage) +
+                " defaultEnable: " + std::to_string(app.defaultEnable) +
+                " maxRecords: " + std::to_string(app.maxRecords) +
+                " recordTimeMs: " + std::to_string(app.recordTimeMs) + "\n";
+            resultReceiver_ += "  lowMemWatermark: " + std::to_string(app.lowMemWatermark) +
+                " delayedSeconds: " + std::to_string(app.delayedSeconds) +
+                " imageExpireSeconds: " + std::to_string(app.imageExpireSeconds) +
+                " imageExpireRemaining: " + std::to_string(app.imageExpireRemaining) + "\n";
+            resultReceiver_ += "  noSnapshotReason: " +
+                (app.noSnapshotReason.empty() ? std::string("(none)") : app.noSnapshotReason) + "\n";
+            std::string pids;
+            for (int32_t pid : app.runningPids) {
+                pids += std::to_string(pid) + " ";
+            }
+            resultReceiver_ += "  runningPids: " + (pids.empty() ? std::string("(none)") : pids) + "\n";
+        }
+    } else {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d",
+            STRING_LIST_SNAPSHOT_NG.c_str(), result);
+        resultReceiver_ = STRING_LIST_SNAPSHOT_NG + "\n";
+        resultReceiver_.append(GetMessageFromCode(result));
+    }
+
+    return result;
 }
 
 ErrCode AbilityManagerShellCommand::RunAsPreStartCommand()
