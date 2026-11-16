@@ -1,11 +1,11 @@
 ---
-phase_status: awaiting_approval
+phase_status: approved
 approval:
-  status: pending
-  approver: ""
-  evidence: ""
-  approved_at: ""
-  baseline_digest: ""
+  status: approved
+  approver: "yangzk"
+  evidence: "用户评审明确回复『完成后批准，继续生成spec』（2026-11-16 会话记录）；评审意见已合入：不承载性能功耗指标、移除管控数量限制、内部接口不在proposal/spec体现"
+  approved_at: "2026-11-16"
+  baseline_digest: "38f5df26c2e2e1e4ce8ac97196d675dcda4ce21eb2829e580ecc637b57ceab2a"
 target_release:
   id: OpenHarmony-7.1-Release
   status: proposed
@@ -28,7 +28,7 @@ target_release:
 | 目标发行版本 | OpenHarmony-7.1-Release |
 | 候选 Profile | none（本仓 ability_ability_runtime 无匹配 profile） |
 | 优先级 | P1 |
-| Define 阶段状态 | AwaitingApproval |
+| Define 阶段状态 | Approved |
 
 ### 原始描述
 
@@ -61,13 +61,13 @@ target_release:
 | 基线版本 | v1.0 |
 | 基线日期 | 2026-11-16 |
 | Owner | yangzk |
-| 确认人 | yangzk（待评审批准） |
-| 确认依据 | 待需求方评审（本次提交候选基线，评审批准后回填 approval 记录） |
+| 确认人 | yangzk |
+| 确认依据 | 用户评审明确回复『完成后批准，继续生成spec』（2026-11-16 会话记录） |
 | 复杂度 | 标准 |
 | Profile | none |
 | 目标发行版本 | OpenHarmony-7.1-Release（proposed） |
 | 版本状态 | proposed |
-| 基线结论 | 待批准（候选基线已固定，等待需求方评审） |
+| 基线结论 | 通过 |
 
 ### 问题、目标与成功指标
 
@@ -123,7 +123,7 @@ target_release:
 | 维度 | 允许范围/限制 | 越界触发条件 | 处理规则 |
 |------|---------------|--------------|----------|
 | 允许检索仓库 | openharmony/ability_ability_runtime（本仓）；resource_schedule_service（仅只读勘察 RSS 冻结/调度分组/Qos/speed 接口语义） | 需要访问未列仓库 | 停止探索，补充影响分析并重新确认基线 |
-| 允许模块/目录 | services/appmgr/（含 task_mgr、process_schedule）；interfaces/inner_api/；test/unittest/、test/integration/；本仓 AGENTS.md/CLAUDE.md | 需要扩大模块/目录 | 更新范围与影响范围，经 Owner 确认后继续 |
+| 允许模块/目录 | services/appmgr/（含 task_mgr、process_schedule）；test/unittest/、test/integration/；本仓 AGENTS.md/CLAUDE.md | 需要扩大模块/目录 | 更新范围与影响范围，经 Owner 确认后继续 |
 | 禁止访问/修改 | 凭据与私有配置；与本需求无关的工作区改动；services/abilitymgr 与 services/appmgr 的 PermissionVerification 权限规则；IAppMgr 既有 IPC 接口与序列化格式；hisysevent.yaml 已发布事件；生成物（IDL/NAPI 生成代码）不得手工合入 | 命中禁止项 | 标记 Blocked，不读取、不修改，回报 Owner |
 | 外部网络/私有知识源 | N/A：仅使用本地源码与本仓 Agent 指南；不访问未授权外部知识源 | 需要新增权限或未授权来源 | 请求人工授权；未授权前不得使用 |
 
@@ -133,16 +133,11 @@ target_release:
 |--------|------|-----------|----------|----------|-------|
 | ability | ability_ability_runtime | services/appmgr/src/task_mgr/（process_schedule 扩展 + resource_control_proxy 新增） | process_schedule 已承载归属双向索引/max 合并/降级重算（20260914692273） | 修改：扩展管控施加/撤销（多态调度派生类）、生效校验、双通道降级、上限检查；新增资源管控代理层 | yangzk |
 | ability | ability_ability_runtime | services/appmgr/include/task_mgr/attribution_record.h | AttributionRecord 结构体（pid/tool/attributedTimeMillis） | 修改：派生各工具调度派生类（头文件内扩展，不改既有结构体字段语义） | yangzk |
-| ability | ability_ability_runtime | interfaces/inner_api/app_manager/task_manager/（新增） | 无（新增） | 新增：任务结束通知内部接口（任务级清理通道） | yangzk |
 | resourceschedule | resource_schedule_service | ressched（接口层） | RSS 冻结/调度分组/Qos/speed 接口 | 不改代码；经资源管控代理层对接（RSS 具体设计由 RSS 团队主导） | RSS 团队 |
 
 ### API 变更项清单
 
-> 本需求无 Public/System API 变更（复用 RSS 现有接口经资源管控代理层对接）；新增 1 个内部接口如下。
-
-| API 名称 | 变更类型 | 开放范围 | 概要说明 |
-|----------|----------|----------|----------|
-| NotifyTaskEnd | 新增 | InnerAPI | 任务结束时通知资源调度服务清理任务级策略（任务标识与进程清单随通知携带，签名定义见 design.md） |
+> N/A：本需求无 Public/System API 变更（复用 RSS 现有接口经资源管控代理层对接）；任务结束通知等内部接口不在 proposal/spec 体现，由 design.md 具体设计。
 
 ### 不涉及项确认
 
@@ -151,8 +146,8 @@ target_release:
 | 性能 | 否 | 本需求不承载性能功耗指标：后台锁屏可执行真机场景、避让/功耗基线对比等端到端验收由后续专门需求承载，本需求仅验证调度是否生效 | N/A |
 | 安全与权限 | 否 | 不新增鉴权点与管控数量限制：任务创建鉴权沿用 20260914692191，管控资源数量限制由前端纳管通道（20260914692192/193/194）承载；本需求仅消费任务存活期事实，经内部代理层对纳管进程下发管控，无新增安全面 | N/A |
 | 兼容性 | 是 | 无 taskId 的启动/进程调度行为与现网完全一致（全量回归零劣化） | spec.md |
-| API/SDK | 否 | 复用 RSS 现有接口经代理层对接，不新增对外 API（仅新增 NotifyTaskEnd 内部接口） | N/A |
-| IPC/跨进程 | 是 | 经资源管控代理层与 RSS 交互；新增任务结束通知内部接口（任务级清理通道） | design.md |
+| API/SDK | 否 | 复用 RSS 现有接口经代理层对接，不新增对外 API；内部接口由 design.md 设计 | N/A |
+| IPC/跨进程 | 是 | 经资源管控代理层与 RSS 跨进程交互 | design.md |
 | 构建与部件 | 是 | appmgr 新增源文件（ressched_client 依赖已具备，BUILD.gn:173），不新增部件 | design.md |
 | 国际化/无障碍 | 否 | 管控链路无 UI 文案 | N/A |
 | 数据迁移 | 否 | 管控登记为内存态不持久化，无存量数据 | N/A |
@@ -193,7 +188,7 @@ target_release:
 - [x] `proposal.target_release` 已确认（OpenHarmony-7.1-Release）
 - [x] `manifest.profile` 已确认或明确 none
 - [x] Agent Scope Guard 已基线化，未复制 Plan/Task 的实现文件清单
-- [ ] 基线结论为"通过"，且确认人和确认依据完整（待需求方评审批准）
+- [x] 基线结论为"通过"，且确认人和确认依据完整
 - [ ] 条件附录触发时，待澄清项和争议决策已关闭（未触发，N/A）
 
 ## 附录：澄清与决策记录（条件启用）
