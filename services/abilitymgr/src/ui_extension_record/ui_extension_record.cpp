@@ -37,6 +37,27 @@ void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord_");
         return;
     }
+    // At-least-once re-delivery, paired with StartAbilityLocked: an unconfirmed declaration
+    // rides any reuse request; cleared on confirmation (completion receipt).
+    if (abilityRequest.sessionInfo != nullptr &&
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken == nullptr) {
+        auto unconfirmedInfo = abilityRecord_->GetSessionInfo();
+        if (unconfirmedInfo != nullptr && unconfirmedInfo->originalCallerInfo.callerToken != nullptr) {
+            abilityRequest.sessionInfo->originalCallerInfo = unconfirmedInfo->originalCallerInfo;
+        }
+    }
+    if (abilityRequest.sessionInfo != nullptr) {
+        // Gen monotonicity guard: never roll the record's migration gen back on a plain
+        // reuse/preload update. Paired with UIExtensionAbilityManager::StartAbilityLocked.
+        auto oldInfo = abilityRecord_->GetSessionInfo();
+        if (oldInfo != nullptr && abilityRequest.sessionInfo->originalCallerInfo.migrationGen <
+            oldInfo->originalCallerInfo.migrationGen) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "migration gen rollback on record update, keep gen: %{public}u",
+                oldInfo->originalCallerInfo.migrationGen);
+            abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
+                oldInfo->originalCallerInfo.migrationGen;
+        }
+    }
     abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
 }
 

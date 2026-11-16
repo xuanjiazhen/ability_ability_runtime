@@ -495,11 +495,18 @@ void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<
     CHECK_POINTER(sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s, persistentId:%{public}d, "
-        "abilityState:%{public}s, pendingState:%{public}d",
+        "abilityState:%{public}s, pendingState:%{public}d, "
+        "sessionInfo: compId: %{public}" PRIu64 ", hostWindowId: %{public}u, realHostWindowId: %{public}d, "
+        "migrationGen: %{public}u, migrationDeclared: %{public}d",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(),
         sessionInfo->persistentId, abilitystateStr.c_str(),
-        static_cast<int32_t>(abilityRecord->GetPendingState()));
+        static_cast<int32_t>(abilityRecord->GetPendingState()),
+        sessionInfo->uiExtensionComponentId,
+        sessionInfo->hostWindowId,
+        sessionInfo->realHostWindowId,
+        sessionInfo->originalCallerInfo.migrationGen,
+        sessionInfo->originalCallerInfo.callerToken != nullptr ? 1 : 0);
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
     if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
         MoveToBackground(abilityRecord);
@@ -708,6 +715,27 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
     targetService->DoBackgroundAbilityWindowDelayed(false);
+    // At-least-once re-delivery: while a migration is unconfirmed, later foreground requests
+    // carry the declaration again; cleared on confirmation (ScheduleCommandAbilityWindowDone).
+    if (abilityRequest.sessionInfo != nullptr &&
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken == nullptr) {
+        auto unconfirmedInfo = targetService->GetSessionInfo();
+        if (unconfirmedInfo != nullptr && unconfirmedInfo->originalCallerInfo.callerToken != nullptr) {
+            abilityRequest.sessionInfo->originalCallerInfo = unconfirmedInfo->originalCallerInfo;
+        }
+    }
+    if (abilityRequest.sessionInfo != nullptr) {
+        // Gen monotonicity guard: never roll the record's migration gen back on a plain
+        // reuse/preload update. Paired with UIExtensionRecord::Update.
+        auto oldInfo = targetService->GetSessionInfo();
+        if (oldInfo != nullptr && abilityRequest.sessionInfo->originalCallerInfo.migrationGen <
+            oldInfo->originalCallerInfo.migrationGen) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "migration gen rollback on record update, keep gen: %{public}u",
+                oldInfo->originalCallerInfo.migrationGen);
+            abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
+                oldInfo->originalCallerInfo.migrationGen;
+        }
+    }
     targetService->SetSessionInfo(abilityRequest.sessionInfo);
 
     if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
@@ -810,10 +838,17 @@ void UIExtensionAbilityManager::DoForegroundUIExtension(std::shared_ptr<BaseExte
 
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "foreground ability: %{public}s/%{public}s, persistentId: %{public}d, abilityState: %{public}s",
+        "foreground ability: %{public}s/%{public}s, persistentId: %{public}d, abilityState: %{public}s, "
+        "sessionInfo: compId: %{public}" PRIu64 ", hostWindowId: %{public}u, realHostWindowId: %{public}d, "
+        "migrationGen: %{public}u, migrationDeclared: %{public}d",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(),
-        abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str());
+        abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str(),
+        abilityRequest.sessionInfo->uiExtensionComponentId,
+        abilityRequest.sessionInfo->hostWindowId,
+        abilityRequest.sessionInfo->realHostWindowId,
+        abilityRequest.sessionInfo->originalCallerInfo.migrationGen,
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken != nullptr ? 1 : 0);
 
     if (abilityRecord->IsReady() && !abilityRecord->IsAbilityState(AbilityState::INACTIVATING) &&
         !abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING) &&
@@ -915,7 +950,20 @@ void UIExtensionAbilityManager::CompleteStartServiceReq(const std::string &servi
         TAG_LOGI(AAFwkTag::UI_EXT, "complete UI extension foreground requests: %{public}zu, uri: %{public}s",
             requestQueue->requests.size(), serviceUri.c_str());
         for (const auto &request : requestQueue->requests) {
-            auto ret = StartAbilityLocked(request.abilityRequest);
+            auto abilityRequest = request.abilityRequest;
+            // Source the replay from the record (the consistency anchor): a queued snapshot
+            // may predate a migration and replaying it would poison the re-parent.
+            auto targetService = GetServiceRecordByAbilityRequest(abilityRequest);
+            if (targetService != nullptr && targetService->GetSessionInfo() != nullptr &&
+                abilityRequest.sessionInfo != nullptr) {
+                auto recordInfo = targetService->GetSessionInfo();
+                // Copy before stripping: the record's sessionInfo is shared — nulling the
+                // declaration on it directly would erase the unconfirmed-migration marker.
+                auto replayInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*recordInfo);
+                replayInfo->originalCallerInfo.callerToken = nullptr;
+                abilityRequest.sessionInfo = replayInfo;
+            }
+            auto ret = StartAbilityLocked(abilityRequest);
             if (ret != ERR_OK) {
                 TAG_LOGW(AAFwkTag::UI_EXT, "StartAbilityLocked failed: %{public}d, uri: %{public}s",
                     ret, serviceUri.c_str());

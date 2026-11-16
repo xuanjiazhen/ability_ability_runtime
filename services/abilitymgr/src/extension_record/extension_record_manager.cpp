@@ -211,10 +211,69 @@ int32_t ExtensionRecordManager::GetActiveUIExtensionListByUid(
     return ERR_OK;
 }
 
+bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityRequest &abilityRequest,
+    const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
+    bool &isLoaded, int32_t &ret)
+{
+    bool hasTerminatingMatch = false;
+    auto migrationRecord = GetAbilityRecordByPersistentId(abilityRequest.sessionInfo, hostBundleName,
+        hasTerminatingMatch);
+    if (migrationRecord == nullptr) {
+        if (hasTerminatingMatch) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "migration update: record terminating, persistentId: %{public}d, rejected",
+                abilityRequest.sessionInfo->persistentId);
+            ret = ERR_INVALID_VALUE;
+            return true;
+        }
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration update: record not found, persistentId: %{public}d, fallback",
+            abilityRequest.sessionInfo->persistentId);
+        return false;
+    }
+    auto recordSessionInfo = migrationRecord->GetSessionInfo();
+    // Credential gate: the declared previous host token must equal the recorded one (binder-level).
+    bool declarationMatched = recordSessionInfo != nullptr &&
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken;
+    if (!declarationMatched) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration declaration mismatch, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    // Window gate: a migration always changes hostWindowId; an unchanged one has no legal path.
+    if (recordSessionInfo->hostWindowId == abilityRequest.sessionInfo->hostWindowId) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    // Stamp the migration generation for provider-side monotonic filtering and
+    // generation-matched confirmation.
+    abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
+        recordSessionInfo->originalCallerInfo.migrationGen + 1;
+    abilityRecord = migrationRecord;
+    isLoaded = true;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d",
+        abilityRequest.sessionInfo->persistentId);
+    ret = ERR_OK;
+    return true;
+}
+
 int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
     const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded)
 {
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
+    // Migration branch: validate the declaration (gates) and stamp the gen. Only wire-fresh
+    // declarations enter here; replayed ones are stripped (see CompleteStartServiceReq).
+    if (IsMigrationUpdateRequest(abilityRequest.sessionInfo)) {
+        int32_t migrationRet = ERR_OK;
+        if (GetMigrationUpdateRecord(abilityRequest, hostBundleName, abilityRecord, isLoaded, migrationRet)) {
+            return migrationRet;
+        }
+    }
     abilityRecord = GetAbilityRecordBySessionInfo(abilityRequest.sessionInfo);
     if (abilityRecord != nullptr) {
         isLoaded = true;
@@ -291,6 +350,58 @@ std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRe
         }
     }
     return nullptr;
+}
+
+std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRecordByPersistentId(
+    const sptr<AAFwk::SessionInfo> &sessionInfo, const std::string &hostBundleName,
+    bool &hasTerminatingMatch)
+{
+    CHECK_POINTER_AND_RETURN(sessionInfo, nullptr);
+    hasTerminatingMatch = false;
+    if (sessionInfo->persistentId == 0) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "persistentId invalid.");
+        return nullptr;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto& it : extensionRecords_) {
+        if (it.second == nullptr) {
+            continue;
+        }
+        std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord = it.second->abilityRecord_;
+        if (abilityRecord == nullptr) {
+            continue;
+        }
+        sptr<AAFwk::SessionInfo> recordSessionInfo = abilityRecord->GetSessionInfo();
+        if (recordSessionInfo == nullptr) {
+            continue;
+        }
+        if (recordSessionInfo->persistentId != sessionInfo->persistentId) {
+            continue;
+        }
+        // Keep scanning past a terminating match (never shadows a live one); report it for reject.
+        if (abilityRecord->IsTerminating()) {
+            hasTerminatingMatch = true;
+            continue;
+        }
+        // Cross-bundle host migration in one process is legal; security is enforced by the
+        // callerToken reconciliation in the migration branch.
+        if (it.second->hostBundleName_ != hostBundleName) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "cross-bundle host migration, persistentId: %{public}d, from: %{public}s, to: %{public}s",
+                sessionInfo->persistentId, it.second->hostBundleName_.c_str(), hostBundleName.c_str());
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "found record, persistentId: %{public}d", sessionInfo->persistentId);
+        return abilityRecord;
+    }
+    return nullptr;
+}
+
+bool ExtensionRecordManager::IsMigrationUpdateRequest(const sptr<AAFwk::SessionInfo> &sessionInfo) const
+{
+    return sessionInfo != nullptr &&
+        sessionInfo->originalCallerInfo.callerToken != nullptr &&
+        sessionInfo->originalCallerInfo.persistentId != 0;
 }
 
 bool ExtensionRecordManager::IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,

@@ -47,6 +47,7 @@
 #include "napi/native_api.h"
 #include "tokenid_kit.h"
 #include "ui_extension_window_command.h"
+#include "ui_extension_migration_utils.h"
 #include "want_params_wrapper.h"
 
 #ifdef WINDOWS_PLATFORM
@@ -635,6 +636,29 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // Host window migration: re-parent via the shared helper (fail-isolated).
+        uint32_t oldParentWindowId = migrationFencing_.currentParentWindowId;
+        if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{private}d, "
+                "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
+                sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
+            if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
+                return false;
+            }
+            TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
+                "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
+            // Sync the content session's cached session info to the new hostWindowId.
+            if (etsUiExtContentSession_ != nullptr) {
+                etsUiExtContentSession_->UpdateSessionInfo(sessionInfo);
+            }
+        } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "migration skipped, persistentId: %{private}d, gen: %{public}u, "
+                "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
+                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
+                migrationFencing_.lastGen, sessionInfo->hostWindowId,
+                migrationFencing_.currentParentWindowId);
+        }
     }
     return true;
 }
@@ -661,6 +685,7 @@ sptr<Rosen::Window> EtsUIExtension::CreateUIWindow(const std::shared_ptr<UIExten
     option->SetDensity(sessionInfo->density);
     option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
     option->SetDisplayId(sessionInfo->displayId);
+    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     if (context->isNotAllow != -1) {
         bool isNotAllow = context->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);

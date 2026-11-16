@@ -1151,6 +1151,31 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
         HandleCommandDestroy(sessionInfo);
     }
 
+    // Migration confirmation: clear the record's declaration so later ordinary foreground
+    // requests stop re-delivering it; a failed re-parent keeps it for the next retry.
+    // Gen fencing: only the CURRENT generation's completion may clear the marker.
+    if (winCmd == WIN_CMD_FOREGROUND && abilityCmd == AAFwk::ABILITY_CMD_FOREGROUND &&
+        sessionInfo->originalCallerInfo.callerToken != nullptr) {
+        auto recordSessionInfo = abilityRecord->GetSessionInfo();
+        if (recordSessionInfo != nullptr &&
+            recordSessionInfo->originalCallerInfo.callerToken != nullptr &&
+            sessionInfo->originalCallerInfo.migrationGen ==
+                recordSessionInfo->originalCallerInfo.migrationGen) {
+            recordSessionInfo->originalCallerInfo.callerToken = nullptr;
+            TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{public}d, gen: %{public}u",
+                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+        } else if (recordSessionInfo != nullptr &&
+                   recordSessionInfo->originalCallerInfo.callerToken != nullptr &&
+                   sessionInfo->originalCallerInfo.migrationGen <
+                       recordSessionInfo->originalCallerInfo.migrationGen) {
+            TAG_LOGW(AAFwkTag::UI_EXT,
+                "stale migration completion ignored, persistentId: %{public}d, done gen: %{public}u, "
+                "record gen: %{public}u",
+                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
+                recordSessionInfo->originalCallerInfo.migrationGen);
+        }
+    }
+
     abilityRecord->SetAbilityWindowState(sessionInfo, winCmd, true);
 
     CompleteStartServiceReq(element);

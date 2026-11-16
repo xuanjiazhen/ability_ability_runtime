@@ -34,6 +34,7 @@
 #include "ui_extension_window_command.h"
 #include "want.h"
 #include "window.h"
+#include "ui_extension_migration_utils.h"
 #ifdef SUPPORT_GRAPHICS
 #include "display_manager.h"
 #include "window_manager.h"
@@ -204,6 +205,7 @@ protected:
     std::shared_ptr<AppExecFwk::ETSNativeReference> etsObj_;
     std::shared_ptr<UIExtensionContext> context_;
     std::map<uint64_t, sptr<Rosen::Window>> uiWindowMap_;
+    MigrationFencingState migrationFencing_;
     std::set<uint64_t> foregroundWindows_;
     std::map<uint64_t, ani_ref> contentSessions_;
     std::shared_ptr<EtsAbilityResultListeners> abilityResultListeners_ = nullptr;

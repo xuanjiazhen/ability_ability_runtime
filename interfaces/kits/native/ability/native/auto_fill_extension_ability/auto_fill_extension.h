@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_AUTO_FILL_EXTENSION_H
 
 #include "extension_base.h"
+#include "ui_extension_migration_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -60,6 +61,7 @@ public:
      * @return The auto fill extension instance.
      */
     static AutoFillExtension *Create(const std::unique_ptr<Runtime> &runtime);
+    MigrationFencingState migrationFencing_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
