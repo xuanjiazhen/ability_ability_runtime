@@ -1296,15 +1296,16 @@ public:
     };
 
     /**
-     * Start Ability for prelaunch
+     * Start Ability for prelaunch.
      *
      * @param want, Special want for service type's ability.
      * @param frameNum, Special frameNum for remove start window num.
+     * @param userId, Target user id for the prelaunch.
      * @param connect, Optional IAbilityConnection callback for receiving caller object after prelaunch.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
-        const sptr<IAbilityConnection> &connect)
+        int32_t userId, const sptr<IAbilityConnection> &connect)
     {
         return 0;
     };
@@ -2233,6 +2234,17 @@ public:
     }
 
     /**
+     * @brief Get root host info of a UIExtension by ability record id.
+     * @param abilityRecordId The record id of the UIExtension.
+     * @param hostInfo Output host info.
+     * @return int32_t Returns 0 on success, others on failure.
+     */
+    virtual int32_t GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo)
+    {
+        return 0;
+    }
+
+    /**
      * @brief Get ui extension session info
      *
      * @param token The ability token.
@@ -2960,7 +2972,7 @@ public:
     }
 
     /**
-     * @brief Set app recovery galg.
+     * @brief Set app recovery flag.
      * @param token Caller ability token.
      * @param flag App recovery flag.
      * @return Returns ERR_OK on success, others on failure.

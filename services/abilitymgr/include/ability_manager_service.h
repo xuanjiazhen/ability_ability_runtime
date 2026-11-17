@@ -1424,10 +1424,12 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param frameNum, Special frameNum for remove start window num.
+     * @param userId, Target user id for the prelaunch, DEFAULT_INVAL_VALUE for the caller-derived user.
+     * @param connect, Optional IAbilityConnection callback for receiving caller object after prelaunch.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
-        const sptr<IAbilityConnection> &connect) override;
+        int32_t userId, const sptr<IAbilityConnection> &connect) override;
 
     int GeneratePrelaunchAbilityRequest(const Want &want, const sptr<IAbilityConnection> &connect,
         int32_t oriValidUserId, AbilityRequest &abilityRequest, int32_t &appIndex);
@@ -2333,11 +2335,11 @@ public:
 
     int32_t NotifyInsightIntentExecute(uint64_t intentId) override;
 
+    int32_t GetDynamicAgentCardsForMigration(std::string &jsonStr) override;
+
     int32_t RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback) override;
 
     int32_t UnregisterWillInsightIntentExecuteCallback() override;
-
-    int32_t GetDynamicAgentCardsForMigration(std::string &jsonStr) override;
 
     int32_t AttributeTaskForA2AReusedConnectionRecord(const Want &want,
         sptr<IAbilityConnection> connect) override;
@@ -2413,6 +2415,14 @@ public:
      */
     int32_t GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token, UIExtensionHostInfo &hostInfo,
         int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * @brief Get root host info of a UIExtension by ability record id.
+     * @param abilityRecordId The record id of the UIExtension.
+     * @param hostInfo Output host info.
+     * @return int32_t Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo) override;
 
     /**
      * @brief Get ui extension session info
@@ -3254,6 +3264,17 @@ private:
         std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)>);
     std::vector<std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
 
+    /**
+     * @brief Callback invoked by TaskManagerService when a task is finished
+     *        (via FinishTask, timeout, or creator process death). Iterates all
+     *        AbilityConnectManager instances and cleans stale A2A task
+     *        attribution entries matching the finished taskId from
+     *        BaseExtensionRecord::taskAttributions_.
+     * @param taskId Indicates the finished task id.
+     * @param userId Indicates the user id of the finished task's creator.
+     */
+    void OnTaskFinished(const std::string &taskId, int32_t userId);
+
     int32_t GetServiceMapByUserId(AbilityConnectManager::ServiceMapType &serviceMap, int32_t userId);
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(
         int32_t userId, const AppExecFwk::ExtensionAbilityType type);
@@ -3901,10 +3922,10 @@ private:
     ffrt::mutex shouldBlockAllAppStartMutex_;
     mutable ffrt::mutex timeoutMapLock_;
     std::mutex whiteListMutex_;
-    ffrt::mutex delayedStartPidsLock_;
-    std::unordered_set<int32_t> delayedStartPids_;
     std::mutex floodAttackMutex_;
     std::unordered_map<int32_t, std::deque<int64_t>> floodAttackStatistics_;
+    ffrt::mutex delayedStartPidsLock_;
+    std::unordered_set<int32_t> delayedStartPids_;
 
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;

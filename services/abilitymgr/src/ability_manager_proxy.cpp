@@ -4213,10 +4213,10 @@ int AbilityManagerProxy::StartAbilityByCallWithErrMsg(const Want &want, const sp
 }
 
 int AbilityManagerProxy::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
-    const sptr<IAbilityConnection> &connect)
+    int32_t userId, const sptr<IAbilityConnection> &connect)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerProxy::StartAbilityForPrelaunch begin, hasConnect:%{public}d.",
-        connect != nullptr ? 1 : 0);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerProxy::StartAbilityForPrelaunch begin, "
+        "hasConnect:%{public}d, userId:%{public}d.", connect != nullptr ? 1 : 0, userId);
     int error;
     MessageParcel data;
     MessageParcel reply;
@@ -4232,6 +4232,10 @@ int AbilityManagerProxy::StartAbilityForPrelaunch(const Want &want, const int32_
     }
     if (!data.WriteInt32(frameNum)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "frameNum write fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
         return ERR_INVALID_VALUE;
     }
     bool hasConnect = (connect != nullptr);
@@ -6405,6 +6409,47 @@ int32_t AbilityManagerProxy::GetUIExtensionRootHostInfo(const sptr<IRemoteObject
     }
     hostInfo = *info;
     return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write object fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteInt32(abilityRecordId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write abilityRecordId fail");
+        return INNER_ERR;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto error = SendRequest(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+
+    std::unique_ptr<UIExtensionHostInfo> info(reply.ReadParcelable<UIExtensionHostInfo>());
+    if (info == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read host info fail");
+        return INNER_ERR;
+    }
+    hostInfo = *info;
+    int32_t result = reply.ReadInt32();
+
+    int32_t persistentId = 0;
+    if (!reply.ReadInt32(persistentId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "read persistentId failed, use default value");
+        persistentId = 0;
+    }
+    std::string moduleName = reply.ReadString();
+    hostInfo.persistentId_ = persistentId;
+    hostInfo.moduleName = moduleName;
+    hostInfo.elementName_.SetModuleName(moduleName);
+    return result;
 }
 
 int32_t AbilityManagerProxy::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,

@@ -84,9 +84,12 @@ void SanitizeTraceIds(OptionsT &options)
 constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
 constexpr const char* PERMISSION_EXEC_PUBLIC_CLI_TOOL = "ohos.permission.EXEC_PUBLIC_CLI_TOOL";
 constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
+constexpr const char* PERMISSION_QUERY_PUBLIC_CLI_TOOL = "ohos.permission.QUERY_PUBLIC_CLI_TOOL";
 constexpr const char* PERMISSION_REGISTER_CLI_TOOL = "ohos.permission.REGISTER_CLI_TOOL";
 constexpr const char* PERMISSION_ACCESS_FUNCTION = "ohos.permission.ACCESS_FUNCTION";
 constexpr const char* PERMISSION_REGISTER_AGENT_HOOK = "ohos.permission.REGISTER_AGENT_HOOK";
+// Only the exact string "public" opens a tool to QUERY_PUBLIC_CLI_TOOL callers (REQ 20260812019200).
+constexpr const char* TOOL_VISIBILITY_PUBLIC = "public";
 
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr int32_t COEFFICIENT = 1000;
@@ -251,8 +254,9 @@ void CliToolManagerService::FinalizeBackgroundSession(const std::shared_ptr<Sess
         EventDispatcher::GetInstance().DispatchExecToolReplyEvent(
             record->callerPid, record->callerUid, record->eventId, ERR_OK, session);
     }
-    if (ioMonitor_) {
-        ioMonitor_->UnregisterSession(sessionId);
+    auto ioMonitor = GetIOMonitor();
+    if (ioMonitor) {
+        ioMonitor->UnregisterSession(sessionId);
     }
 
     const int32_t status = record->GetTerminalStatus();
@@ -437,9 +441,16 @@ void CliToolManagerService::OnStop()
         WaitPid(pid, status, SIGCHLD);
     }
 
-    if (ioMonitor_ != nullptr) {
-        ioMonitor_->Stop();
-        ioMonitor_ = nullptr;
+    // Swap the monitor out under ioMonitorMutex_ so concurrent in-flight readers never race with the
+    // OnStop clear (plain shared_ptr concurrent read/write is UB). Readers that snapshotted before the
+    // swap keep the object alive via the refcount; Stop() runs outside the lock as before.
+    std::shared_ptr<IOMonitor> ioMonitor;
+    {
+        std::lock_guard<ffrt::mutex> guard(ioMonitorMutex_);
+        ioMonitor = std::move(ioMonitor_);
+    }
+    if (ioMonitor != nullptr) {
+        ioMonitor->Stop();
     }
 }
 
@@ -691,6 +702,12 @@ bool CliToolManagerService::IsSessionOwner(const std::shared_ptr<SessionRecord> 
     return true;
 }
 
+std::shared_ptr<IOMonitor> CliToolManagerService::GetIOMonitor()
+{
+    std::lock_guard<ffrt::mutex> guard(ioMonitorMutex_);
+    return ioMonitor_;
+}
+
 void CliToolManagerService::DelayUnloadTask()
 {
     auto task = []() {
@@ -736,14 +753,15 @@ void CliToolManagerService::DelayUnloadTask()
 bool CliToolManagerService::RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record,
     const ExecOptions &options)
 {
-    if (ioMonitor_ == nullptr || !ioMonitor_->RegisterSession(
+    auto ioMonitor = GetIOMonitor();
+    if (ioMonitor == nullptr || !ioMonitor->RegisterSession(
         record->sessionId, record->stdoutPipe[0], record->stderrPipe[0], record->stdinPipe[1])) {
         // RegisterSession takes ownership only on success. On failure, close the pipe ends held by this service side.
         fdsan_close_with_tag(record->stdoutPipe[0], FD_OWNER_TAG);
         fdsan_close_with_tag(record->stderrPipe[0], FD_OWNER_TAG);
         fdsan_close_with_tag(record->stdinPipe[1], FD_OWNER_TAG);
         TAG_LOGE(AAFwkTag::CLI_TOOL, "ioMonitor registration failed: sessionId=%{public}s, pid=%{public}d",
-            record->sessionId.c_str(), record->processId);
+            record->sessionId.c_str(), record->processId.load());
         return false;
     }
 
@@ -758,8 +776,9 @@ bool CliToolManagerService::RegisterSessionWithMonitors(const std::shared_ptr<Se
 
 void CliToolManagerService::UnregisterSessionWithMonitors(const std::string &sessionId)
 {
-    if (ioMonitor_) {
-        ioMonitor_->UnregisterSession(sessionId);
+    auto ioMonitor = GetIOMonitor();
+    if (ioMonitor) {
+        ioMonitor->UnregisterSession(sessionId);
     }
 }
 
@@ -767,54 +786,83 @@ int32_t CliToolManagerService::GetAllToolInfos(ToolsRawData &tools)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolInfos called");
     InterfaceCallCounter counter(interfaceCalledCount_);
-    if (!PermissionUtil::IsSystemApp()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolInfos: Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
+    bool isFullPermitted = PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL);
+    if (!isFullPermitted && !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_PUBLIC_CLI_TOOL)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolInfos: Permission denied");
         return ERR_PERMISSION_DENIED;
     }
 
-    return CliToolDataManager::GetInstance().GetAllToolsRawData(tools);
+    std::vector<ToolInfo> allTools;
+    int32_t ret = CliToolDataManager::GetInstance().GetAllTools(allTools);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolInfos: Failed to get tools, ret=%{public}d", ret);
+        return ret;
+    }
+    if (!isFullPermitted) {
+        // In-place filter: drop non-public tools without copying into a second vector.
+        allTools.erase(std::remove_if(allTools.begin(), allTools.end(),
+            [](const ToolInfo &tool) { return tool.visibility != TOOL_VISIBILITY_PUBLIC; }),
+            allTools.end());
+    }
+    ToolsRawData::FromToolInfoVec(allTools, tools);
+    return ERR_OK;
 }
 
 int32_t CliToolManagerService::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummaries called");
     InterfaceCallCounter counter(interfaceCalledCount_);
-    if (!PermissionUtil::IsSystemApp()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
+    bool isFullPermitted = PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL);
+    if (!isFullPermitted && !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_PUBLIC_CLI_TOOL)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: Permission denied");
         return ERR_PERMISSION_DENIED;
     }
 
-    return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
+    std::vector<ToolInfo> allTools;
+    int32_t ret = CliToolDataManager::GetInstance().GetAllTools(allTools);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: Failed to get tools, ret=%{public}d", ret);
+        return ret;
+    }
+    summaries.clear();
+    summaries.reserve(allTools.size());
+    for (const auto &tool : allTools) {
+        if (!isFullPermitted && tool.visibility != TOOL_VISIBILITY_PUBLIC) {
+            continue;
+        }
+        ToolSummary summary;
+        summary.name = tool.name;
+        summary.version = tool.version;
+        summary.description = tool.description;
+        summaries.push_back(std::move(summary));
+    }
+    return ERR_OK;
 }
 
 int32_t CliToolManagerService::GetToolInfoByName(const std::string &name, ToolInfo &tool)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetToolInfoByName called, name='%{public}s'", name.c_str());
     InterfaceCallCounter counter(interfaceCalledCount_);
-    if (!PermissionUtil::IsSystemApp()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
+    bool isFullPermitted = PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL);
+    if (!isFullPermitted && !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_PUBLIC_CLI_TOOL)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: Permission denied");
         return ERR_PERMISSION_DENIED;
     }
 
-    return CliToolDataManager::GetInstance().GetToolByName(name, tool);
+    int32_t ret = CliToolDataManager::GetInstance().GetToolByName(name, tool);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: Failed to get tool, ret=%{public}d", ret);
+        return ret;
+    }
+    if (!isFullPermitted && tool.visibility != TOOL_VISIBILITY_PUBLIC) {
+        // Do not log the tool name: a private tool must stay indistinguishable from an absent one.
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: Tool not exist");
+        return ERR_TOOL_NOT_EXIST;
+    }
+    return ERR_OK;
 }
 
 int32_t CliToolManagerService::ValidateFoundationCaller(const char *apiName)
@@ -2205,7 +2253,7 @@ int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
         return ERR_CLI_SESSION_NOT_FOUND;
     }
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ClearSession: sessionId=%{public}s, pid=%{public}d",
-        sessionId.c_str(), record->processId);
+        sessionId.c_str(), record->processId.load());
 
     if (record->sessionType == SessionType::SKILL) {
         // Skill sessions don't have a child process, mark as cancelling and clean up
@@ -2336,7 +2384,8 @@ int32_t CliToolManagerService::SendMessage(const std::string &sessionId,
         return ERR_PERMISSION_DENIED;
     }
 
-    if (ioMonitor_ == nullptr) {
+    auto ioMonitor = GetIOMonitor();
+    if (ioMonitor == nullptr) {
         return ERR_CLI_SEND_MESSAGE;
     }
 
@@ -2359,7 +2408,7 @@ int32_t CliToolManagerService::SendMessage(const std::string &sessionId,
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
         return ERR_NO_INIT;
     }
-    ioMonitor_->SendMessage(sessionId, inputText, eventId);
+    ioMonitor->SendMessage(sessionId, inputText, eventId);
     return ERR_OK;
 }
 

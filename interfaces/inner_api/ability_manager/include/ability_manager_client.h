@@ -1620,14 +1620,16 @@ public:
      *
      * @param want The want of the ability to prelaunch (explicit element required).
      * @param frameNum Frame number used to remove the start window; 0 means not specified.
+     * @param userId Target user id for the prelaunch.
      * @param connect Optional IAbilityConnection callback; when non-null, OnAbilityConnectDone
      *        is called after prelaunch completes to return the caller object.
      * @return ERR_OK on success; RESOLVE_CALL_NO_PERMISSIONS for non-RSS callers;
-     *         ERR_INVALID_VALUE for implicit want / SCB disabled; RESOLVE_CALL_ABILITY_TYPE_ERR /
-     *         RESOLVE_CALL_ABILITY_VERSION_ERR for unsupported targets; interceptor errors.
+     *         ERR_INVALID_VALUE for implicit want / SCB disabled; CHECK_PERMISSION_FAILED for
+     *         DLP-index wants or a failed cross-user account check;
+     *         RESOLVE_CALL_ABILITY_TYPE_ERR / RESOLVE_CALL_ABILITY_VERSION_ERR for unsupported targets;
      */
     ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum = 0,
-        const sptr<IAbilityConnection> &connect = nullptr);
+        int32_t userId = DEFAULT_INVAL_VALUE, const sptr<IAbilityConnection> &connect = nullptr);
 
     /**
      * Start a sandbox-clone instance of an application (CLI-tool driven sandbox scenario).
@@ -2589,6 +2591,14 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
+     * @brief Get root host info of a UIExtension by ability record id. SA only.
+     * @param abilityRecordId The record id of the UIExtension (AbilityRecord::recordId_).
+     * @param hostInfo Output root host info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo);
+
+    /**
      * @brief Get session info of a UIExtension. SA or SCB only.
      * @param token The ability token.
      * @param uiExtensionSessionInfo Output session info.
@@ -3217,11 +3227,11 @@ public:
      */
     ErrCode NotifyInsightIntentExecute(uint64_t intentId);
 
+    ErrCode GetDynamicAgentCardsForMigration(std::string &jsonStr);
+
     ErrCode RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback);
 
     ErrCode UnregisterWillInsightIntentExecuteCallback();
-
-    ErrCode GetDynamicAgentCardsForMigration(std::string &jsonStr);
 
     /**
      * @brief Best-effort attribution of the task id onto an existing ConnectionRecord

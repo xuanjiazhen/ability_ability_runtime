@@ -21,8 +21,6 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "insight_intent_callback_interface.h"
-#include "insight_intent_host_client.h"
 #include "iservice_registry.h"
 #ifdef SUPPORT_SCREEN
 #include "scene_board_judgement.h"
@@ -1311,14 +1309,14 @@ ErrCode AbilityManagerClient::StartAbilityByCallWithErrMsg(const Want &want, spt
 }
 
 ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
-    const sptr<IAbilityConnection> &connect)
+    int32_t userId, const sptr<IAbilityConnection> &connect)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s/%{public}s, hasConnect:%{public}d",
-        want.GetBundle().c_str(),
-        want.GetElement().GetAbilityName().c_str(), connect != nullptr ? 1 : 0);
-    return abms->StartAbilityForPrelaunch(want, frameNum, connect);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s/%{public}s, hasConnect:%{public}d, "
+        "userId:%{public}d", want.GetBundle().c_str(),
+        want.GetElement().GetAbilityName().c_str(), connect != nullptr ? 1 : 0, userId);
+    return abms->StartAbilityForPrelaunch(want, frameNum, userId, connect);
 }
 
 ErrCode AbilityManagerClient::StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params)
@@ -1576,7 +1574,7 @@ ErrCode AbilityManagerClient::SetMissionContinueState(sptr<IRemoteObject> token,
     const AAFwk::ContinueState &state, sptr<IRemoteObject> sessionToken, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "called state: %{public}d", state);
+        "SetMissionContinueState called. state: %{public}d", state);
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken) {
         auto sceneSessionManager = SessionManagerLite::GetInstance(userId).GetSceneSessionManagerLiteProxy();
@@ -1924,7 +1922,7 @@ ErrCode AbilityManagerClient::RecordProcessExitReason(const int32_t pid, const E
 
 ErrCode AbilityManagerClient::RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "[EXIT_REASON_TAG] pid:%{public}d, reason:%{public}d, exitMsg: %{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[EXIT_REASON_TAG] pid:%{public}d, reason:%{public}d, exitMsg: %{public}s",
         pid, exitReason.reason, exitReason.exitMsg.c_str());
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
@@ -2288,6 +2286,14 @@ ErrCode AbilityManagerClient::GetUIExtensionRootHostInfo(const sptr<IRemoteObjec
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->GetUIExtensionRootHostInfo(token, hostInfo, userId);
+}
+
+ErrCode AbilityManagerClient::GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Get ui extension host info by id: %{public}d.", abilityRecordId);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetUIExtensionRootHostInfoById(abilityRecordId, hostInfo);
 }
 
 ErrCode AbilityManagerClient::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
@@ -2893,6 +2899,13 @@ ErrCode AbilityManagerClient::NotifyInsightIntentExecute(uint64_t intentId)
     return abms->NotifyInsightIntentExecute(intentId);
 }
 
+ErrCode AbilityManagerClient::GetDynamicAgentCardsForMigration(std::string &jsonStr)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetDynamicAgentCardsForMigration(jsonStr);
+}
+
 ErrCode AbilityManagerClient::RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
@@ -2907,13 +2920,6 @@ ErrCode AbilityManagerClient::UnregisterWillInsightIntentExecuteCallback()
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->UnregisterWillInsightIntentExecuteCallback();
-}
-
-ErrCode AbilityManagerClient::GetDynamicAgentCardsForMigration(std::string &jsonStr)
-{
-    auto abms = GetAbilityManager();
-    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->GetDynamicAgentCardsForMigration(jsonStr);
 }
 
 ErrCode AbilityManagerClient::AttributeTaskForA2AReusedConnectionRecord(const Want &want,

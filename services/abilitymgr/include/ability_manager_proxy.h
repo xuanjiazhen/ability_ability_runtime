@@ -953,10 +953,12 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param frameNum, Special frameNum for remove start window num.
+     * @param userId, Target user id, DEFAULT_INVAL_VALUE for the caller-derived user.
+     * @param connect, Optional IAbilityConnection callback for receiving caller object after prelaunch.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
-        const sptr<IAbilityConnection> &connect) override;
+        int32_t userId, const sptr<IAbilityConnection> &connect) override;
 
     /**
      * Start Ability, connect session with common ability.
@@ -1687,6 +1689,14 @@ public:
      */
     int32_t GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token, UIExtensionHostInfo &hostInfo,
         int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * @brief Get root host info of a UIExtension by ability record id.
+     * @param abilityRecordId The record id of the UIExtension.
+     * @param hostInfo Output host info.
+     * @return int32_t Returns 0 on success, others on failure.
+     */
+    int32_t GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo) override;
 
     /**
      * @brief Get ui extension session info
