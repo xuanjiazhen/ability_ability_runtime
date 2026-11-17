@@ -30,6 +30,7 @@
 #include "hitrace/hitracechain.h"
 #endif
 #include "appfreeze_util.h"
+#include "task_handler_wrap.h"
 #include "xcollie/process_kill_reason.h"
 
 using namespace testing;
@@ -1566,6 +1567,158 @@ HWTEST_F(AppfreezeManagerTest, Req2LifecycleCaptureAlwaysCreatesFreshStackFiles,
     }
     appfreezeManager->DeleteStack(app.pid);
 }
+
+// Dialog admission regression tests.
+namespace {
+std::shared_ptr<AppFreezeInfo> AdmitDialogTestEvent(const std::shared_ptr<AppfreezeManager>& manager,
+    const std::string& eventName, const std::string& marker, uint64_t detectTime)
+{
+    auto info = std::make_shared<AppFreezeInfo>();
+    info->pid = 987654;
+    info->generationId = "987654:200031";
+    info->feedbackMarker_ = marker;
+    AppfreezeObservation observation {eventName, 1, 0, 0, detectTime};
+    manager->InitAppfreezeObservation(info, observation);
+    AppfreezeManager::FreezeTask cancel;
+    std::lock_guard<std::mutex> lock(manager->appfreezeEventMutex_);
+    const auto now = manager->GetFreezeCurrentTime();
+    if (!manager->GetAppfreezeApplicationLocked(info) ||
+        !manager->PrepareAppfreezeAdmissionLocked(info, now, cancel)) {
+        return nullptr;
+    }
+    manager->EnqueueAppfreezeEventLocked(info, now);
+    return info;
+}
+}
+
+HWTEST_F(AppfreezeManagerTest, InputNotificationAfterMainFatal, TestSize.Level1)
+{
+    auto fatal = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::THREAD_BLOCK_6S, "", 100);
+    ASSERT_NE(fatal, nullptr);
+    auto input = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::APP_INPUT_BLOCK, "input-1", 101);
+#ifdef APP_NO_RESPONSE_DIALOG
+    ASSERT_NE(input, nullptr);
+    EXPECT_EQ(fatal->pending_.size(), 1u);
+    EXPECT_EQ(appfreezeManager->recentFreezes_.size(), 1u);
+    EXPECT_EQ(AdmitDialogTestEvent(appfreezeManager, AppFreezeType::APP_INPUT_BLOCK, "input-2", 102), nullptr);
+#else
+    EXPECT_EQ(input, nullptr);
+#endif
+    EXPECT_EQ(AdmitDialogTestEvent(appfreezeManager, AppFreezeType::THREAD_BLOCK_6S, "", 103), nullptr);
+}
+
+HWTEST_F(AppfreezeManagerTest, InputNotificationAfterCompletedMainFatal, TestSize.Level1)
+{
+    auto fatal = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::THREAD_BLOCK_6S, "", 200);
+    ASSERT_NE(fatal, nullptr);
+    appfreezeManager->FinishAppfreezeEvent(fatal);
+    auto input = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::APP_INPUT_BLOCK, "input-3", 201);
+#ifdef APP_NO_RESPONSE_DIALOG
+    ASSERT_NE(input, nullptr);
+    EXPECT_EQ(appfreezeManager->recentFreezes_.size(), 2u);
+#else
+    EXPECT_EQ(input, nullptr);
+#endif
+}
+
+#ifdef APP_NO_RESPONSE_DIALOG
+HWTEST_F(AppfreezeManagerTest, InputDispositionDoesNotRepeatFatalCapture, TestSize.Level1)
+{
+    auto fatal = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::THREAD_BLOCK_6S, "", 300);
+    ASSERT_NE(fatal, nullptr);
+    auto input = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::APP_INPUT_BLOCK, "input-4", 301);
+    ASSERT_NE(input, nullptr);
+    input->faultData = std::make_shared<FaultData>();
+    input->faultData->faultType = FaultDataType::APP_FREEZE;
+    input->faultData->errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+    input->running_ = true;
+    AppfreezeManager::AppInfo app;
+    app.pid = input->pid;
+    app.uid = 200031;
+    int dispositions = 0;
+    EXPECT_TRUE(appfreezeManager->ProcessAppfreezeEvent(input, app, [&dispositions] { ++dispositions; }));
+    EXPECT_TRUE(appfreezeManager->ProcessAppfreezeEvent(input, app, [&dispositions] { ++dispositions; }));
+    EXPECT_EQ(dispositions, 1);
+    EXPECT_EQ(input->reportClaim->load(), 0u);
+    EXPECT_EQ(appfreezeManager->recentFreezes_.size(), 1u);
+}
+
+HWTEST_F(AppfreezeManagerTest, WithdrawingInputDoesNotReopenFatalAdmission, TestSize.Level1)
+{
+    auto fatal = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::THREAD_BLOCK_6S, "", 400);
+    ASSERT_NE(fatal, nullptr);
+    auto input = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::APP_INPUT_BLOCK, "input-5", 401);
+    ASSERT_NE(input, nullptr);
+    appfreezeManager->CancelAppfreezeEvent(input, true);
+    EXPECT_TRUE(fatal->fatalAdmitted_);
+    EXPECT_EQ(AdmitDialogTestEvent(appfreezeManager, AppFreezeType::THREAD_BLOCK_6S, "", 402), nullptr);
+    EXPECT_NE(AdmitDialogTestEvent(appfreezeManager, AppFreezeType::APP_INPUT_BLOCK, "input-retry", 401), nullptr);
+}
+
+HWTEST_F(AppfreezeManagerTest, InputNotificationPreservesLegacyThrottle, TestSize.Level1)
+{
+    auto fatal = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::THREAD_BLOCK_6S, "", 450);
+    ASSERT_NE(fatal, nullptr);
+    auto input = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::APP_INPUT_BLOCK, "input-throttle", 451);
+    ASSERT_NE(input, nullptr);
+    input->faultData = std::make_shared<FaultData>();
+    input->faultData->faultType = FaultDataType::APP_FREEZE;
+    input->faultData->errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+    input->feedbackClaimed_ = true;
+    AppfreezeManager::AppInfo app;
+    app.pid = input->pid;
+    app.uid = 200031;
+    app.bundleName = "dialog.throttle.regression";
+    const std::string key = "987654_200031_dialog.throttle.regression:1:main";
+    appfreezeManager->appInputBlockFreezeInfo_[key] = appfreezeManager->GetFreezeCurrentTime();
+    int dispositions = 0;
+    EXPECT_EQ(appfreezeManager->SubmitAppfreezeEvent(input, app,
+        [&dispositions](const auto&) { ++dispositions; }, AAFwk::TaskHandlerWrap::GetFfrtHandler()),
+        AppfreezeSubmitResult::DUPLICATE);
+    EXPECT_TRUE(input->IsCancelled());
+    EXPECT_TRUE(fatal->pending_.empty());
+    EXPECT_EQ(dispositions, 0);
+}
+
+HWTEST_F(AppfreezeManagerTest, QueuedInputDispositionUsesRefreshedFocus, TestSize.Level1)
+{
+    for (bool focus : {false, true}) {
+        appfreezeManager->CloseAppfreezeEvents();
+        auto fatal = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::THREAD_BLOCK_6S, "", focus ? 501 : 500);
+        ASSERT_NE(fatal, nullptr);
+        auto input = AdmitDialogTestEvent(appfreezeManager, AppFreezeType::APP_INPUT_BLOCK, "input-6", 502);
+        ASSERT_NE(input, nullptr);
+        input->faultData = std::make_shared<FaultData>();
+        input->faultData->faultType = FaultDataType::APP_FREEZE;
+        input->faultData->errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+        input->feedbackClaimed_ = true;
+        AppfreezeManager::AppInfo app;
+        app.pid = input->pid;
+        app.uid = 200031;
+        app.instanceId = 1;
+        app.bundleName = "dialog.focus.regression";
+        app.focusFlag = !focus;
+        app.refresh = [focus](auto& current, bool) {
+            current.focusFlag = focus;
+            return true;
+        };
+        int dispositions = 0;
+        app.handleFault = [focus, &dispositions](const auto&, const auto& current, bool) {
+            EXPECT_EQ(current.focusFlag, focus);
+            ++dispositions;
+        };
+        auto handler = AAFwk::TaskHandlerWrap::GetFfrtHandler();
+        EXPECT_EQ(appfreezeManager->SubmitAppfreezeCapture(app, input, handler, false),
+            AppfreezeSubmitResult::QUEUED);
+        EXPECT_EQ(dispositions, 0); // Queue timing remains unchanged by this fix.
+        ASSERT_TRUE(static_cast<bool>(input->task_));
+        input->running_ = true;
+        input->task_(input);
+        EXPECT_EQ(dispositions, 1);
+        appfreezeManager->appInputBlockFreezeInfo_.clear();
+    }
+}
+#endif
 
 }  // namespace AppExecFwk
 }  // namespace OHOS

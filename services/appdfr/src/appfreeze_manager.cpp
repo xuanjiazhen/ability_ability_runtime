@@ -235,8 +235,8 @@ AppfreezeSubmitResult AppfreezeManager::SubmitAppfreezeCapture(AppInfo appInfo, 
             return;
         }
         const auto& faultData = *req->faultData;
-        if (!manager->ProcessAppfreezeEvent(req, appInfo, [&] {
-            appInfo.handleFault(faultData, appInfo, saTimeout);
+        if (!manager->ProcessAppfreezeEvent(req, current, [&current, &faultData, saTimeout] {
+            current.handleFault(faultData, current, saTimeout);
         })) {
             return;
         }
@@ -371,6 +371,12 @@ void AppfreezeManager::ObserveAppfreezeLocked(const FreezeInfo& info, int64_t no
     if (!app) {
         return;
     }
+    if (!info->captureRequired_) {
+        if (!info->notificationId.empty()) {
+            app->notifications_[info->notificationId] = now;
+        }
+        return;
+    }
     int64_t firstSeen = now;
     auto half = app->halfFlows_.find(info->flowId);
     if (!info->half && half != app->halfFlows_.end()) {
@@ -460,7 +466,12 @@ bool AppfreezeManager::PrepareAppfreezeCallbackLocked(const FreezeInfo& info, in
     if (!app) {
         return false;
     }
-#ifndef APP_NO_RESPONSE_DIALOG
+#ifdef APP_NO_RESPONSE_DIALOG
+    // Input notifications retain their own legacy filter and dialog handling after a 6s report.
+    if (info->eventName == AppFreezeType::APP_INPUT_BLOCK && !info->feedbackMarker_.empty()) {
+        return true;
+    }
+#else
     // A new application-side 3s report starts the next main-thread fault cycle.
     // AppfreezeInner remains authoritative when an IPC races recovery or reporting.
     if (info->eventName == AppFreezeType::THREAD_BLOCK_3S && info->feedbackMarker_.empty()) {
@@ -490,7 +501,20 @@ bool AppfreezeManager::PrepareAppfreezeAdmissionLocked(const FreezeInfo& info, i
     }
     const auto& current = entry->second;
     if (!info->half && current->fatalAdmitted_) {
+#ifdef APP_NO_RESPONSE_DIALOG
+        if (info->eventName != AppFreezeType::APP_INPUT_BLOCK || info->feedbackMarker_.empty()) {
+            return false;
+        }
+        const auto isInput = [](const FreezeInfo& old) {
+            return !old->IsCancelled() && old->eventName == AppFreezeType::APP_INPUT_BLOCK;
+        };
+        if (isInput(current) || std::any_of(current->pending_.begin(), current->pending_.end(), isInput)) {
+            return false;
+        }
+        info->captureRequired_ = false;
+#else
         return false;
+#endif
     }
     const auto same = [&info](const FreezeInfo& old) {
         return !old->IsCancelled() && old->eventName == info->eventName &&
@@ -682,6 +706,9 @@ bool AppfreezeManager::ProcessAppfreezeEvent(const FreezeInfo& info, const AppIn
     }
     if (startDisposition) {
         disposition();
+    }
+    if (!info->captureRequired_) {
+        return true;
     }
     const auto& faultData = *info->faultData;
     TAG_LOGI(AAFwkTag::APPDFR, "Appfreeze RUNNING request:%{public}" PRIu64 " pid:%{public}d",
@@ -920,7 +947,7 @@ void AppfreezeManager::WithdrawAppfreezeEventLocked(const FreezeInfo& info, cons
             }
         }
     }
-    if (!info->half) {
+    if (!info->half && info->captureRequired_) {
         app->groups_.at(AppFreezeInfo::EventGroup(info->eventName))->fatalAdmitted_ = false;
     }
 }

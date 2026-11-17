@@ -107,6 +107,7 @@ private:
     bool running_ = false;
     bool completed_ = false;
     bool fallback_ = false;
+    bool captureRequired_ = true; // An input notification may only need disposition after a fatal was admitted.
     bool dispositionStarted_ = false; // Original fatal handling starts once, when capture runs.
     bool watchdogArmed_ = false;
     int64_t deadline_ = 0;
