@@ -265,8 +265,9 @@ std::string ToolUtil::GenerateCliSessionId(const std::string &name, std::shared_
 }
 
 bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &, Security::AccessToken::AccessTokenID,
-    std::string &sandboxConfig, std::string &bundleName)
+    const std::string &sessionId, std::string &sandboxConfig, std::string &bundleName)
 {
+    (void)sessionId;
     sandboxConfig = "{}";
     bundleName = "bundle.mock";
     return true;
