@@ -55,6 +55,7 @@
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
 #include "utils/agent_caller_identity_util.h"
+#include "base_extension_record.h"
 #include "user_controller/user_controller.h"
 
 namespace OHOS {
@@ -1434,6 +1435,10 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
     if (winCmd == WIN_CMD_DESTROY) {
         HandleCommandDestroy(sessionInfo);
     }
+
+    // Host-window-migration confirmation is UIExtension-only bookkeeping: it lives in the
+    // UIExtensionAbilityManager::ScheduleCommandAbilityWindowDone override (the marker
+    // authority is the UIExtensionRecord), not in this base implementation.
 
     abilityRecord->SetAbilityWindowState(sessionInfo, winCmd, true);
 

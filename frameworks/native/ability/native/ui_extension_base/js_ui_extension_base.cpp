@@ -51,6 +51,7 @@
 #include "want_params_wrapper.h"
 #include "application_configuration_manager.h"
 #include "ohos_application.h"
+#include "ui_extension_migration_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -764,6 +765,7 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     option->SetDensity(sessionInfo->density);
     option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
+    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     if (context_->isNotAllow != -1) {
         bool isNotAllow = context_->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
@@ -824,6 +826,11 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             return false;
         }
         RegisterBrandColorChangeListener(uiWindow);
+        // Fresh window: re-seed the migration fence from the real parent (per-window
+        // state; bounds cross-session gen pollution, keeps the no-op check meaningful).
+        migrationFencing_ = MigrationFencingState {};
+        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
+        migrationFencing_.lastCallerToken = sessionInfo->callerToken;
         uiWindowMap_[componentId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context_->GetWindow() == nullptr) {
@@ -837,6 +844,61 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // Host window migration: re-parent via the shared helper, then refresh proxies
+        // (fail-isolated). Same as JsUIExtension.
+        uint32_t oldParentWindowId = migrationFencing_.currentParentWindowId;
+        if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{private}d, "
+                "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
+                sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
+            if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
+                // Keep the marker for retry: strip the declaration from this receipt path so
+                // ScheduleCommandAbilityWindowDone does not confirm this failed migration.
+                sessionInfo->originalCallerInfo.callerToken = nullptr;
+                return false;
+            }
+            CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
+                sessionInfo->hostWindowId);
+            TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
+                "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
+            // Host-caller (ability) change notification: fires once per identity change —
+            // same-ability dual-window migrations do not fire; a notified identity never
+            // notifies again (latched in MigrationFencingState, seeded at window creation).
+            if (HasHostCallerChanged(sessionInfo, migrationFencing_)) {
+                HandleScope handleScope(jsRuntime_);
+                napi_env env = jsRuntime_.GetNapiEnv();
+                napi_value napiWant = (env != nullptr) ? OHOS::AppExecFwk::WrapWant(env, want) : nullptr;
+                if (napiWant != nullptr) {
+                    napi_value argv[] = { napiWant };
+                    CallObjectMethod("onCallerChanged", argv, ARGC_ONE);
+                }
+            }
+            // Proxy/cache update only after the real re-parent succeeded.
+            auto sessionIt = contentSessions_.find(componentId);
+            if (sessionIt == contentSessions_.end() || sessionIt->second == nullptr) {
+                TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, content session not found, "
+                    "compId: %{public}" PRIu64, componentId);
+                return true;
+            }
+            HandleScope handleScope(jsRuntime_);
+            napi_env env = jsRuntime_.GetNapiEnv();
+            napi_value contentSession = sessionIt->second->GetNapiValue();
+            void* nativeObject = nullptr;
+            napi_unwrap(env, contentSession, &nativeObject);
+            auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
+            if (contentSessionPtr == nullptr) {
+                TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, unwrap failed");
+                return true;
+            }
+            contentSessionPtr->DoUpdateExtensionParent(sessionInfo);
+        } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "migration skipped, persistentId: %{private}d, gen: %{public}u, "
+                "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
+                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
+                migrationFencing_.lastGen, sessionInfo->hostWindowId,
+                migrationFencing_.currentParentWindowId);
+        }
     }
     return true;
 }

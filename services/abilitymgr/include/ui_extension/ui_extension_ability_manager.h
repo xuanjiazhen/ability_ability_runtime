@@ -156,6 +156,9 @@ public:
 
 protected:
     int32_t StartAbilityLocked(const AbilityRequest &abilityRequest) override;
+
+    int ScheduleCommandAbilityWindowDone(const sptr<IRemoteObject> &token,
+        const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd, AbilityCommand abilityCmd) override;
     void HandleLoadAbilityOrStartSpecifiedProcess(
         const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
     int RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token) override;
