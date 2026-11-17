@@ -93,6 +93,34 @@ ohos_unittest("hybrid_js_module_reader_test") {
   ]
 }
 
+ohos_unittest("jit_permission_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "${ability_runtime_native_path}/runtime",
+    "${ability_runtime_native_path}/runtime/utils/include",
+  ]
+
+  sources = [ "jit_permission_test.cpp" ]
+  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+  deps = [
+    "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+  ]
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "ets_runtime:libark_jsruntime",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "libuv:uv",
+    "napi:ace_napi",
+  ]
+}
+
 ohos_unittest("js_runtime_test") {
   module_out_path = module_output_path
   sanitize = {
@@ -371,6 +399,7 @@ group("unittest") {
     ":hybrid_js_module_reader_test",
     ":js_runtime_first_test",
     ":js_runtime_test",
+    ":jit_permission_test",
     ":js_worker_test",
     ":ohos_js_environment_test",
     ":runtime_test",
