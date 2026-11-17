@@ -15,8 +15,15 @@
 
 #include "js_runtime_common.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <string>
+#include <vector>
+
+#include "accesstoken_kit.h"
 #include "connect_server_manager.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
 #include "js_environment.h"
 
 namespace OHOS {
@@ -111,6 +118,33 @@ napi_status JsRuntimeCommon::StopDebugMode(NativeEngine* nativeEngine)
     auto vm = const_cast<EcmaVM*>(arkNativeEngine->GetEcmaVm());
     panda::JSNApi::StopDebugger(vm);
     return napi_status::napi_ok;
+}
+
+bool JsRuntimeCommon::IsJitAllowed(bool requested)
+{
+    static const std::vector<std::string> arktsJitPermList = {
+        "ohos.permission.kernel.ALLOW_EXECUTABLE_FORT_MEMORY",
+        "ohos.permission.kernel.ALLOW_EXECUTABLE_FORT_MEMORY_FOR_ARKTS"
+    };
+    Security::AccessToken::AccessTokenID tokenId = IPCSkeleton::GetSelfTokenID();
+    int permissionState = Security::AccessToken::PERMISSION_DENIED;
+    if (tokenId != Security::AccessToken::INVALID_TOKENID) {
+        std::vector<int32_t> permStateList;
+        int ret = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+            tokenId, arktsJitPermList, permStateList, true);
+        if (ret == 0 && !arktsJitPermList.empty() &&
+            permStateList.size() == arktsJitPermList.size() &&
+            std::all_of(permStateList.begin(), permStateList.end(), [](int32_t state) {
+                return state == Security::AccessToken::PERMISSION_GRANTED;
+            })) {
+            permissionState = Security::AccessToken::PERMISSION_GRANTED;
+        }
+    }
+    bool jitEnabled = requested && permissionState == Security::AccessToken::PERMISSION_GRANTED;
+    TAG_LOGI(AAFwkTag::JSRUNTIME,
+        "JIT ACL check: token=%{public}u, state=%{public}d, requested=%{public}d, enabled=%{public}d",
+        tokenId, permissionState, requested, jitEnabled);
+    return jitEnabled;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
