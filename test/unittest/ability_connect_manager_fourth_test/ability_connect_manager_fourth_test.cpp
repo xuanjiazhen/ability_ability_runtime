@@ -125,6 +125,7 @@ sptr<SessionInfo> AbilityConnectManagerFourthTest::MockSessionInfo(int32_t persi
     sptr<SessionInfo> sessionInfo = new (std::nothrow) SessionInfo();
     if (!sessionInfo) {
         TAG_LOGE(AAFwkTag::TEST, "sessionInfo is nullptr");
+        TAG_LOGE(AAFwkTag::TEST, "sessionInfo");
         return nullptr;
     }
     sessionInfo->persistentId = persistentId;
