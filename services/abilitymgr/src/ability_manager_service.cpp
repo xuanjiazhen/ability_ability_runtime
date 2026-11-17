@@ -275,6 +275,7 @@ constexpr const char* WANT_PARAMS_HOST_WINDOW_ID_KEY = "ohos.extra.param.key.hos
 
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr int32_t SUBFOUNDATION_UID = 6061;
+constexpr int32_t SOFTBUS_SERVICE_UID = 4700;
 
 constexpr const char* FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
 constexpr const char* FOUNDATION_PROCESS_NAME = "foundation";
@@ -2788,7 +2789,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         } else {
             abilityRequest.want.RemoveParam(Want::PARAM_RESV_WINDOW_FOCUSED);
         }
-        if (startOptions.GetDisplayID() == 0) {
+        if (startOptions.GetDisplayID() == 0 && IPCSkeleton::GetCallingUid() != SOFTBUS_SERVICE_UID) {
             abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID,
                 DisplayUtil::GetDefaultDisplayId());
         } else {
