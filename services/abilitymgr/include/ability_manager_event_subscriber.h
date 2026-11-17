@@ -82,6 +82,21 @@ private:
     std::function<void(int32_t)> screenUnlockCallback_;
     std::function<void(int32_t)> userScreenUnlockCallback_;
 };
+
+class AbilityPackageDataClearedEventSubscriber : public EventFwk::CommonEventSubscriber {
+public:
+    explicit AbilityPackageDataClearedEventSubscriber(
+        const EventFwk::CommonEventSubscribeInfo &subscribeInfo,
+        const std::function<void(const std::string &bundleName, uint32_t tokenId, int32_t userId)>
+            &dataClearedCallback);
+
+    ~AbilityPackageDataClearedEventSubscriber() override = default;
+
+    void OnReceiveEvent(const EventFwk::CommonEventData &data) override;
+
+private:
+    std::function<void(const std::string &bundleName, uint32_t tokenId, int32_t userId)> dataClearedCallback_;
+};
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_ABILITY_MANAGER_EVENT_SUBSCRIBER_H
