@@ -67,10 +67,7 @@ std::string MakeTaskId(const std::string &tag)
 // attributions; the singleton is shared process-wide.
 void ResetScheduleState()
 {
-    auto &sched = ProcessSchedule::GetInstance();
-    std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
-    sched.taskToPids_.clear();
-    sched.pidEntries_.clear();
+    ProcessSchedule::GetInstance().ResetForTest();
 }
 
 // Clears the judge inputs so a task started in a service test gets the deterministic
@@ -711,10 +708,11 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeOnForeground_0100, Te
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionRecord attribution;
     attribution.pid = TEST_MANAGED_PID;
-    attribution.tool = AttributionTool::ABILITY;
+    attribution.tool = AttributionTool::VIRTUAL_SCREEN_ABILITY;
     AttributionId attributionId = 0;
     EXPECT_EQ(service.RegisterManagedProcess(taskId, attribution, attributionId), ERR_OK);
     auto &sched = ProcessSchedule::GetInstance();
+    sched.WaitForIdle();
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         ASSERT_EQ(sched.pidEntries_.count(TEST_MANAGED_PID), 1);
@@ -723,6 +721,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeOnForeground_0100, Te
 
     // ability enters the foreground -> re-judge -> HIGH
     service.OnAbilityForegroundChanged(TEST_CREATOR_PID, 0x9002, true);
+    sched.WaitForIdle();
     {
         std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
         EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_HIGH);
@@ -735,6 +734,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeOnForeground_0100, Te
 
     // ability leaves the foreground -> re-judge back to MEDIUM
     service.OnAbilityForegroundChanged(TEST_CREATOR_PID, 0x9002, false);
+    sched.WaitForIdle();
     {
         std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
         EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_MEDIUM);
@@ -794,12 +794,14 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_OnProcessDied_KeepsTask_0100
     AttributionId attributionId = 0;
     EXPECT_EQ(service.RegisterManagedProcess(taskId, attribution, attributionId), ERR_OK);
     auto &sched = ProcessSchedule::GetInstance();
+    sched.WaitForIdle();
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         ASSERT_EQ(sched.pidEntries_.count(TEST_MANAGED_PID), 1);
     }
 
     service.OnProcessDied(TEST_MANAGED_PID, TEST_OTHER_UID);
+    sched.WaitForIdle();
     // the task survives: it stays in the dump without the dead pid in the attribution set
     std::string dump = service.DumpActiveTasks();
     EXPECT_NE(dump.find("task ID #" + taskId), std::string::npos);
@@ -830,7 +832,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeOnLoadLevel_0100, Tes
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionRecord attribution;
     attribution.pid = TEST_MANAGED_PID;
-    attribution.tool = AttributionTool::ABILITY;
+    attribution.tool = AttributionTool::VIRTUAL_SCREEN_ABILITY;
     AttributionId attributionId = 0;
     EXPECT_EQ(service.RegisterManagedProcess(taskId, attribution, attributionId), ERR_OK);
 
@@ -845,6 +847,7 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_RejudgeOnLoadLevel_0100, Tes
         EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_MEDIUM);
     }
     judge.OnSystemLoadLevelChanged(5);
+    ProcessSchedule::GetInstance().WaitForIdle();
     {
         std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
         EXPECT_EQ(service.tasks_[taskId].priority, TASK_PRIORITY_LOW);
@@ -891,17 +894,20 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_DoubleAttributionRefCount_01
     ASSERT_NE(firstId, secondId);
 
     auto &sched = ProcessSchedule::GetInstance();
+    sched.WaitForIdle();
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
-        EXPECT_EQ(sched.pidEntries_[TEST_MANAGED_PID].taskRefs[taskId], 2);
+        EXPECT_EQ(sched.pidEntries_[TEST_MANAGED_PID].taskRefs[taskId], 1);
     }
     EXPECT_EQ(service.UnregisterManagedProcess(taskId, firstId), ERR_OK);
+    sched.WaitForIdle();
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         ASSERT_EQ(sched.pidEntries_.count(TEST_MANAGED_PID), 1);
         EXPECT_EQ(sched.pidEntries_[TEST_MANAGED_PID].taskRefs[taskId], 1);
     }
     EXPECT_EQ(service.UnregisterManagedProcess(taskId, secondId), ERR_OK);
+    sched.WaitForIdle();
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_TRUE(sched.pidEntries_.empty());
@@ -981,13 +987,14 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_CreatorDeathCleanup_0100, Te
     EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     AttributionRecord attribution;
     attribution.pid = TEST_MANAGED_PID;
-    attribution.tool = AttributionTool::INSIGHT;
+    attribution.tool = AttributionTool::CLI;
     AttributionId attributionId = 0;
     EXPECT_EQ(service.RegisterManagedProcess(taskId, attribution, attributionId), ERR_OK);
 
     service.OnProcessDied(TEST_CREATOR_PID, TEST_CREATOR_UID);
     EXPECT_EQ(service.DumpActiveTasks().find("task ID #" + taskId), std::string::npos);
     auto &sched = ProcessSchedule::GetInstance();
+    sched.WaitForIdle();
     {
         std::lock_guard<std::mutex> lock(sched.scheduleMutex_);
         EXPECT_TRUE(sched.pidEntries_.empty());
@@ -1774,6 +1781,75 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_UnregisterManagedProcessForC
         AAFwk::ERR_ATTRIBUTION_NOT_FOUND);
 
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
+}
+/**
+ * @tc.number: TaskManagerService_DyingPidRejectsRegistration_0100
+ * @tc.name: death cleanup rejects interleaved registration until queue cleanup completes
+ * @tc.desc: a dying pid uses the existing invalid-pid result and leaves no attribution record.
+ */
+HWTEST_F(TaskManagerServiceTest, TaskManagerService_DyingPidRejectsRegistration_0100, TestSize.Level1)
+{
+    ResetJudgeState();
+    ResetScheduleState();
+    auto &service = TaskManagerService::GetInstance();
+    std::string taskId = MakeTaskId("dying_register_0100");
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        service.dyingPids_.insert(TEST_MANAGED_PID);
+    }
+    AttributionRecord attribution;
+    attribution.pid = TEST_MANAGED_PID;
+    attribution.tool = AttributionTool::CLI;
+    AttributionId attributionId = 0;
+    EXPECT_EQ(service.RegisterManagedProcess(taskId, attribution, attributionId), AAFwk::ERR_INVALID_PID);
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        EXPECT_TRUE(service.tasks_[taskId].attributions.empty());
+        service.dyingPids_.erase(TEST_MANAGED_PID);
+    }
+    EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
+}
+
+/**
+ * @tc.number: TaskManagerService_ManagedUidCacheAndRetry_0100
+ * @tc.name: managed uid is cached at registration and refreshed on retry
+ * @tc.desc: resolver failure stores -1, and a later successful resolver updates the same record.
+ */
+HWTEST_F(TaskManagerServiceTest, TaskManagerService_ManagedUidCacheAndRetry_0100, TestSize.Level1)
+{
+    ResetJudgeState();
+    ResetScheduleState();
+    auto &service = TaskManagerService::GetInstance();
+    service.SetManagedProcessUidResolver([](pid_t) { return TEST_TARGET_UID; });
+    std::string taskId = MakeTaskId("uid_cache_0100");
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
+    AttributionRecord attribution;
+    attribution.pid = TEST_MANAGED_PID;
+    attribution.tool = AttributionTool::VIRTUAL_SCREEN_ABILITY;
+    AttributionId attributionId = 0;
+    EXPECT_EQ(service.RegisterManagedProcess(taskId, attribution, attributionId), ERR_OK);
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        EXPECT_EQ(service.tasks_[taskId].attributions[attributionId].uid, TEST_TARGET_UID);
+    }
+    service.SetManagedProcessUidResolver([](pid_t) { return -1; });
+    AttributionRecord failed = attribution;
+    EXPECT_EQ(service.RegisterManagedProcess(taskId, failed, attributionId), ERR_OK);
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        EXPECT_EQ(service.tasks_[taskId].attributions[attributionId].uid, -1);
+    }
+    service.SetManagedProcessUidResolver([](pid_t) { return TEST_TARGET_UID; });
+    service.RefreshMissingManagedUids(ScheduleTrigger::ATTRIBUTION_ADDED);
+    {
+        std::lock_guard<ffrt::mutex> lock(service.tasksMutex_);
+        EXPECT_EQ(service.tasks_[taskId].attributions[attributionId].uid, TEST_TARGET_UID);
+    }
+    EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
+    service.SetManagedProcessUidResolver(nullptr);
+    ResetJudgeState();
+    ResetScheduleState();
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

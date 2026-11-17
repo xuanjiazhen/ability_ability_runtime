@@ -34,6 +34,7 @@ enum class AttributionTool : int32_t {
     CLI = 2,
     A2A = 3,
     ABILITY = 4,
+    VIRTUAL_SCREEN_ABILITY = 5,
 };
 
 // Server-assigned monotonic id of a managed attribution; handed out to the registering
@@ -43,6 +44,9 @@ using AttributionId = int64_t;
 struct AttributionRecord {
     // Pid of the attributed target process, not the caller's.
     pid_t pid = -1;
+    // Uid of the attributed target process, resolved at registration time and cached for
+    // later scheduling decisions. -1 means resolution failed or was not attempted.
+    int32_t uid = -1;
     // Channel that created this attribution.
     AttributionTool tool = AttributionTool::UNKNOWN;
     // Registration time, assigned by the task manager.

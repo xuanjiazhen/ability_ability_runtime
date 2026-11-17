@@ -17,90 +17,147 @@
 #define OHOS_APP_EXECFWK_TASK_MGR_PROCESS_SCHEDULE_H
 
 #include <cstdint>
+#include <functional>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
 
+#include "task_handler_wrap.h"
 #include "task_mgr/attribution_record.h"
 
 namespace OHOS {
 namespace AppExecFwk {
+enum class ScheduleAction : int32_t {
+    START = 0,
+    END = 1,
+};
 
-/**
- * @brief Owns the process-side scheduling attribution: the bidirectional task<->pid index
- *        and the effective control level per pid (max over its attributing tasks, with
- *        per taskId+pid reference counting so duplicate registrations collapse).
- *        All state is protected by scheduleMutex_, a self-contained leaf lock: the
- *        methods never call back into task_mgr or into the resource-schedule proxy while
- *        holding it.
- *
- *        The apply/revoke delivery to the resource-schedule control is a placeholder that
- *        emits the ordered events with key-path logging; the resource-schedule control
- *        module consumes the same events when wired in.
- */
+enum class ScheduleTrigger : int32_t {
+    ATTRIBUTION_ADDED = 0,
+    ATTRIBUTION_REMOVED = 1,
+    TASK_FINISHED = 2,
+    TASK_TIMEOUT = 3,
+    CREATOR_DIED = 4,
+    MANAGED_PROCESS_DIED = 5,
+    FOREGROUND_CHANGED = 6,
+    SYSTEM_LOAD_CHANGED = 7,
+};
+
+struct ScheduleAttributionInfo {
+    std::string taskId;
+    int32_t taskLevel = 0;
+    pid_t creatorPid = -1;
+    int32_t creatorUid = -1;
+    AttributionRecord attribution;
+};
+
+struct TaskScheduleContext {
+    std::string taskId;
+    pid_t creatorPid = -1;
+    int32_t creatorUid = -1;
+    int32_t taskLevel = 0;
+    std::set<AttributionTool> tools;
+};
+
+struct ProcessScheduleEvent {
+    uint64_t epoch = 0;
+    ScheduleAction action = ScheduleAction::START;
+    ScheduleTrigger trigger = ScheduleTrigger::ATTRIBUTION_ADDED;
+    bool debounceExpired = false;
+    bool uidRecovered = false;
+    pid_t managedPid = -1;
+    int32_t managedUid = -1;
+    int32_t previousEffectiveLevel = 0;
+    int32_t effectiveLevel = 0;
+    AttributionTool previousPrimaryTool = AttributionTool::UNKNOWN;
+    AttributionTool currentPrimaryTool = AttributionTool::UNKNOWN;
+    std::vector<TaskScheduleContext> previousTasks;
+    std::vector<TaskScheduleContext> currentTasks;
+};
+
+using EventProvider = std::function<std::optional<ProcessScheduleEvent>(
+    const ProcessScheduleEvent &windowStart, ScheduleTrigger latestTrigger)>;
+
 class ProcessSchedule {
 public:
     static ProcessSchedule &GetInstance();
 
-    /**
-     * @brief Event from task_mgr: an attribution was added to the task.
-     */
-    void OnAttributionAdded(const std::string &taskId, int32_t taskLevel,
-        pid_t pid, AttributionTool tool);
+    // Only CLI and VIRTUAL_SCREEN_ABILITY participate in scheduling decisions.
+    static bool IsControlledTool(AttributionTool tool);
 
-    /**
-     * @brief Event from task_mgr: an attribution was removed from the task.
-     */
-    void OnAttributionRemoved(const std::string &taskId, pid_t pid);
+    // All entry methods only submit immutable values to the single schedule queue.
+    void OnAttributionAdded(const ScheduleAttributionInfo &info);
+    void OnAttributionRemoved(const ScheduleAttributionInfo &info, ScheduleTrigger trigger);
+    void OnTaskLevelChanged(const std::string &taskId, int32_t newLevel, ScheduleTrigger trigger);
+    void OnManagedUidResolved(const ScheduleAttributionInfo &info, ScheduleTrigger trigger);
+    void OnProcessDied(pid_t pid, int32_t uid);
 
-    /**
-     * @brief Event from task_mgr: the task level was re-judged; every pid of the task is
-     *        re-merged incrementally.
-     */
-    void OnTaskLevelChanged(const std::string &taskId, int32_t newLevel);
+    // Called by ResourceControlProxy on the same queue when a debounce window expires.
+    std::optional<ProcessScheduleEvent> BuildLatestEvent(
+        const ProcessScheduleEvent &windowStart, ScheduleTrigger latestTrigger);
 
-    /**
-     * @brief Event from the process death chain: removes every attribution of the pid,
-     *        releases its control references and recomputes the remaining pids of the
-     *        touched tasks (task records themselves are untouched, so the task survives).
-     */
-    void OnProcessDied(pid_t pid);
-
-    /**
-     * @brief Renders the --task psched dump sections: the bidirectional index and the
-     *        effective levels. The scheduling-control bookkeeping is internal state and is
-     *        not part of the dump surface.
-     * @return Returns the dump text.
-     */
     std::string DumpSchedule() const;
 
+    // Test-only queue barrier and state reset. Production code must not use either to infer timing.
+    void WaitForIdle();
+    void ResetForTest();
+
+    struct Snapshot {
+        pid_t managedPid = -1;
+        int32_t managedUid = -1;
+        int32_t effectiveLevel = 0;
+        AttributionTool primaryTool = AttributionTool::UNKNOWN;
+        std::vector<TaskScheduleContext> tasks;
+    };
+
 private:
-    ProcessSchedule() = default;
+    struct TaskState {
+        int32_t level = 0;
+        pid_t creatorPid = -1;
+        int32_t creatorUid = -1;
+        std::map<AttributionTool, int32_t> toolRefs;
+    };
+
+    struct PidEntry {
+        int32_t level = 0;
+        int32_t uid = -1;
+        std::map<std::string, int32_t> taskLevels;
+        std::map<std::string, int32_t> taskRefs;
+        std::map<std::string, TaskState> taskStates;
+    };
+
+    ProcessSchedule();
     ~ProcessSchedule() = default;
     ProcessSchedule(const ProcessSchedule &) = delete;
     ProcessSchedule &operator=(const ProcessSchedule &) = delete;
 
-    struct PidEntry {
-        int32_t level = 0;                       // effective level = max over taskLevels
-        std::map<std::string, int32_t> taskLevels;
-        // Mirror of the task-side attribution records per (taskId, pid): the task manager
-        // allows several attribution records for one pid, so the schedule index keeps the
-        // same cardinality and only merges/applies on the 0->1 and 1->0 transitions (F-01).
-        std::map<std::string, int32_t> taskRefs;
-    };
-
     static int32_t MergeLevel(const PidEntry &entry);
+    static AttributionTool MergePrimaryTool(const PidEntry &entry);
+    static Snapshot BuildSnapshot(pid_t pid, const PidEntry &entry);
+    static bool HasValidIdentity(const ScheduleAttributionInfo &info);
+    static bool HasValidIdentity(const ProcessScheduleEvent &event);
+    static bool IsImmediateStart(const ProcessScheduleEvent &event);
 
-    // The following helpers assume scheduleMutex_ is held.
-    void RemoveAttributionLocked(const std::string &taskId, pid_t pid);
-    void ApplyControlLocked(pid_t pid, int32_t newLevel, int32_t oldLevel);
-    void RevokeControlLocked(pid_t pid, int32_t oldLevel);
+    void HandleAttributionAdded(const ScheduleAttributionInfo &info);
+    void HandleAttributionRemoved(const ScheduleAttributionInfo &info, ScheduleTrigger trigger);
+    void HandleTaskLevelChanged(const std::string &taskId, int32_t newLevel, ScheduleTrigger trigger);
+    void HandleManagedUidResolved(const ScheduleAttributionInfo &info, ScheduleTrigger trigger);
+    void HandleProcessDied(pid_t pid, int32_t uid);
+    void RemoveAttributionLocked(const ScheduleAttributionInfo &info, ScheduleTrigger trigger);
+    void ApplyControl(const ProcessScheduleEvent &event);
+    void RestoreControl(const ProcessScheduleEvent &event);
+    void LogContext(const ProcessScheduleEvent &event) const;
+    uint64_t NextEpoch();
 
     mutable std::mutex scheduleMutex_;
     std::map<std::string, std::set<pid_t>> taskToPids_;
     std::map<pid_t, PidEntry> pidEntries_;
+    std::shared_ptr<AAFwk::TaskHandlerWrap> scheduleQueue_;
+    uint64_t nextEpoch_ = 0;
 };
 
 }  // namespace AppExecFwk

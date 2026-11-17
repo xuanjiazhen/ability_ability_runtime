@@ -30,7 +30,9 @@ ohos_unittest("process_schedule_test") {
     "${ability_runtime_services_path}/appmgr/src/task_mgr/attribution_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/common.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/process_schedule.cpp",
+    "${ability_runtime_services_path}/appmgr/src/task_mgr/resource_control_proxy.cpp",
     "process_schedule_test.cpp",
+    "resource_control_proxy_test.cpp",
   ]
 
   configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]

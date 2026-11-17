@@ -20,6 +20,8 @@
 #include <cinttypes>
 #include <chrono>
 #include <ctime>
+#include <fstream>
+#include <sstream>
 #include <vector>
 
 #include "ability_manager_errors.h"
@@ -42,6 +44,43 @@ namespace AppExecFwk {
 using namespace OHOS::AAFwk;
 
 namespace {
+int32_t GetUidByPidDefault(pid_t pid)
+{
+    if (pid <= 0) {
+        return -1;
+    }
+    std::ifstream statusFile("/proc/" + std::to_string(pid) + "/status");
+    if (!statusFile.is_open()) {
+        return -1;
+    }
+    std::string line;
+    while (std::getline(statusFile, line)) {
+        if (line.compare(0, 4, "Uid:") != 0) {
+            continue;
+        }
+        std::istringstream uidStream(line.substr(4));
+        int32_t uid = -1;
+        if (uidStream >> uid) {
+            return uid;
+        }
+        break;
+    }
+    return -1;
+}
+
+ScheduleTrigger ToScheduleTrigger(TaskFinishReason reason)
+{
+    switch (reason) {
+        case TaskFinishReason::FINISHED_BY_TIMEOUT:
+            return ScheduleTrigger::TASK_TIMEOUT;
+        case TaskFinishReason::FINISHED_BY_CREATOR_DIED:
+            return ScheduleTrigger::CREATOR_DIED;
+        case TaskFinishReason::FINISHED_BY_CALLER:
+        default:
+            return ScheduleTrigger::TASK_FINISHED;
+    }
+}
+
 /**
  * Internal in-process observer that funnels ability foreground/background transitions
  * into the task priority judge. Registered with AppStateObserverManager when the task
@@ -235,7 +274,8 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
 {
     int32_t taskUserId = -1;
     std::unique_ptr<TimeoutContext> timerCtx;
-    std::vector<pid_t> managedPids;
+    RefreshMissingManagedUids(ToScheduleTrigger(reason));
+    std::vector<ScheduleAttributionInfo> removedInfos;
     {
         std::lock_guard<ffrt::mutex> lock(tasksMutex_);
         auto it = tasks_.find(taskId);
@@ -257,7 +297,13 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
         int64_t aliveMillis = NowMillis() - it->second.createTimeMillis;
         taskUserId = it->second.userId;
         for (const auto &attr : it->second.attributions) {
-            managedPids.push_back(attr.second.pid);
+            ScheduleAttributionInfo info;
+            info.taskId = taskId;
+            info.taskLevel = it->second.priority;
+            info.creatorPid = it->second.creatorPid;
+            info.creatorUid = it->second.creatorUid;
+            info.attribution = attr.second;
+            removedInfos.emplace_back(std::move(info));
         }
         // cache the creator pid BEFORE erasing: the iterator is invalidated by erase,
         // and the untrack check below still needs the identity
@@ -269,8 +315,8 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
         // Release every schedule attribution of the ended task under the same mutex, so the
         // index cannot observe a finished task: remaining tasks of each pid
         // keep it at their merged level; a pid with no task left naturally restores.
-        for (pid_t pid : managedPids) {
-            ProcessSchedule::GetInstance().OnAttributionRemoved(taskId, pid);
+        for (const auto &info : removedInfos) {
+            ProcessSchedule::GetInstance().OnAttributionRemoved(info, ToScheduleTrigger(reason));
         }
         // stop foreground tracking when no live task belongs to the creator any more
         bool creatorHasTask = false;
@@ -302,11 +348,22 @@ void TaskManagerService::OnTaskTimeout(const std::string &taskId, int64_t expect
 
 void TaskManagerService::OnProcessDied(pid_t pid, int32_t uid)
 {
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        if (!dyingPids_.insert(pid).second) {
+            return;
+        }
+        // Submit death before creator/task cleanup so a self-managed process produces one
+        // immediate final END. dyingPids_ blocks interleaved registration until the second
+        // cleanup submission has preserved queue order.
+        ProcessSchedule::GetInstance().OnProcessDied(pid, uid);
+    }
     FinishTasksByCreatorInner(pid, uid);
-    // RemoveManagedProcessFromAllTasksInner also cleans the schedule index of the dead pid
-    // under the task mutex; the task records themselves survive and only lose the
-    // attribution, so the task is not finished.
-    RemoveManagedProcessFromAllTasksInner(pid);
+    RemoveManagedProcessFromAllTasksInner(pid, uid);
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        dyingPids_.erase(pid);
+    }
     // clear the dead process's foreground set so its count cannot leak into future tasks
     TaskPriorityJudge::GetInstance().OnProcessDied(pid);
 }
@@ -314,16 +371,17 @@ void TaskManagerService::OnProcessDied(pid_t pid, int32_t uid)
 void TaskManagerService::OnAbilityForegroundChanged(pid_t pid, uintptr_t token, bool foreground)
 {
     TaskPriorityJudge::GetInstance().OnForegroundAbilityChanged(pid, token, foreground);
-    RejudgeTasks(pid);
+    RejudgeTasks(pid, ScheduleTrigger::FOREGROUND_CHANGED);
 }
 
 void TaskManagerService::OnSystemLoadLevelChanged(int32_t /* loadLevel: judge cache already updated by the hook */)
 {
-    RejudgeTasks(SYSTEM_INITIATED_UID);
+    RejudgeTasks(SYSTEM_INITIATED_UID, ScheduleTrigger::SYSTEM_LOAD_CHANGED);
 }
 
-void TaskManagerService::RejudgeTasks(pid_t pid)
+void TaskManagerService::RejudgeTasks(pid_t pid, ScheduleTrigger trigger)
 {
+    RefreshMissingManagedUids(trigger);
     std::lock_guard<ffrt::mutex> lock(tasksMutex_);
     for (auto &item : tasks_) {
         TaskRecord &record = item.second;
@@ -338,7 +396,7 @@ void TaskManagerService::RejudgeTasks(pid_t pid)
             record.taskId.c_str(), record.priority, newLevel);
         record.priority = newLevel;
         // same-mutex delivery keeps the schedule index consistent with the records
-        ProcessSchedule::GetInstance().OnTaskLevelChanged(record.taskId, newLevel);
+        ProcessSchedule::GetInstance().OnTaskLevelChanged(record.taskId, newLevel, trigger);
     }
 }
 
@@ -424,7 +482,7 @@ void TaskManagerService::FinishTasksByCreatorInner(pid_t pid, int32_t uid)
         "tasks finished: %{public}zu", uid, pid, finishedCount);
 }
 
-void TaskManagerService::RemoveManagedProcessFromAllTasksInner(pid_t pid)
+void TaskManagerService::RemoveManagedProcessFromAllTasksInner(pid_t pid, int32_t uid)
 {
     std::lock_guard<ffrt::mutex> lock(tasksMutex_);
     for (auto &item : tasks_) {
@@ -439,9 +497,7 @@ void TaskManagerService::RemoveManagedProcessFromAllTasksInner(pid_t pid)
             }
         }
     }
-    // Clean the dead pid's schedule entries under the same mutex: no late add can resurrect
-    // them afterwards, and no concurrent finish can miss them.
-    ProcessSchedule::GetInstance().OnProcessDied(pid);
+    ProcessSchedule::GetInstance().OnProcessDied(pid, uid);
 }
 
 int32_t TaskManagerService::RegisterManagedProcess(const std::string &taskId,
@@ -453,7 +509,7 @@ int32_t TaskManagerService::RegisterManagedProcess(const std::string &taskId,
     if (attribution.pid <= 0 ||
         taskId.size() < TASK_ID_MIN_LEN || taskId.size() > TASK_ID_MAX_LEN ||
         toolType < static_cast<int32_t>(AttributionTool::INSIGHT) ||
-        toolType > static_cast<int32_t>(AttributionTool::ABILITY)) {
+        toolType > static_cast<int32_t>(AttributionTool::VIRTUAL_SCREEN_ABILITY)) {
         TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, pid: %{public}d, "
             "toolType: %{public}d", taskId.size(), attribution.pid, toolType);
         return INVALID_PARAMETERS_ERR;
@@ -480,7 +536,7 @@ int32_t TaskManagerService::RegisterManagedProcessForCaller(const std::string &t
     // carry their anchor (uid 0 is never a legitimate app uid).
     if (attribution.pid <= 0 || callerUid <= 0 || !IsTaskIdValidForAttribution(taskId) ||
         toolType < static_cast<int32_t>(AttributionTool::INSIGHT) ||
-        toolType > static_cast<int32_t>(AttributionTool::ABILITY)) {
+        toolType > static_cast<int32_t>(AttributionTool::VIRTUAL_SCREEN_ABILITY)) {
         TAG_LOGW(AAFwkTag::APPMGR, "invalid param, taskId size: %{public}zu, pid: %{public}d, "
             "toolType: %{public}d", taskId.size(), attribution.pid, toolType);
         return INVALID_PARAMETERS_ERR;
@@ -507,6 +563,68 @@ void TaskManagerService::SetPidValidator(std::function<bool(pid_t)> validator)
     std::lock_guard<ffrt::mutex> lock(tasksMutex_);
     pidValidator_ = validator;
     TAG_LOGI(AAFwkTag::APPMGR, "pid validator %{public}s", validator ? "wired" : "unwired");
+}
+
+void TaskManagerService::SetManagedProcessUidResolver(std::function<int32_t(pid_t)> resolver)
+{
+    std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+    managedProcessUidResolver_ = resolver;
+    TAG_LOGI(AAFwkTag::APPMGR, "managed uid resolver %{public}s", resolver ? "wired" : "unwired");
+}
+
+int32_t TaskManagerService::ResolveManagedUid(pid_t pid)
+{
+    std::function<int32_t(pid_t)> resolver;
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        resolver = managedProcessUidResolver_;
+    }
+    int32_t uid = resolver ? resolver(pid) : GetUidByPidDefault(pid);
+    return uid > 0 ? uid : -1;
+}
+
+void TaskManagerService::RefreshMissingManagedUids(ScheduleTrigger trigger)
+{
+    struct MissingAttribution {
+        std::string taskId;
+        AttributionId id = 0;
+        AttributionRecord record;
+    };
+    std::vector<MissingAttribution> missing;
+    {
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        for (const auto &task : tasks_) {
+            for (const auto &attribution : task.second.attributions) {
+                if (attribution.second.uid > 0) {
+                    continue;
+                }
+                missing.emplace_back(MissingAttribution{task.first, attribution.first, attribution.second});
+            }
+        }
+    }
+    for (const auto &item : missing) {
+        int32_t uid = ResolveManagedUid(item.record.pid);
+        if (uid <= 0) {
+            continue;
+        }
+        std::lock_guard<ffrt::mutex> lock(tasksMutex_);
+        auto taskIt = tasks_.find(item.taskId);
+        if (taskIt == tasks_.end()) {
+            continue;
+        }
+        auto attrIt = taskIt->second.attributions.find(item.id);
+        if (attrIt == taskIt->second.attributions.end() || attrIt->second.uid > 0) {
+            continue;
+        }
+        attrIt->second.uid = uid;
+        ScheduleAttributionInfo info;
+        info.taskId = item.taskId;
+        info.taskLevel = taskIt->second.priority;
+        info.creatorPid = taskIt->second.creatorPid;
+        info.creatorUid = taskIt->second.creatorUid;
+        info.attribution = attrIt->second;
+        ProcessSchedule::GetInstance().OnManagedUidResolved(info, trigger);
+    }
 }
 
 void TaskManagerService::SetTaskFinishedCallback(TaskFinishedCallback callback)
@@ -627,12 +745,18 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
 {
     std::unique_ptr<TimeoutContext> replacedCtx;
     int32_t taskLevel = 0;
+    int32_t managedUid = ResolveManagedUid(attribution.pid);
     {
         std::lock_guard<ffrt::mutex> lock(tasksMutex_);
         auto it = tasks_.find(taskId);
         if (it == tasks_.end()) {
             TAG_LOGW(AAFwkTag::APPMGR, "task not found, taskId: %{public}s", taskId.c_str());
             return ERR_TASK_NOT_FOUND;
+        }
+        if (dyingPids_.count(attribution.pid) > 0) {
+            TAG_LOGW(AAFwkTag::APPMGR, "pid is in death cleanup, registration rejected, pid: %{public}d",
+                attribution.pid);
+            return AAFwk::ERR_INVALID_PID;
         }
         if (it->second.attributions.size() >= TASK_MAX_ATTRIBUTIONS_PER_TASK) {
             TAG_LOGW(AAFwkTag::APPMGR, "too many attributions, taskId: %{public}s, count: %{public}zu",
@@ -641,6 +765,7 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
         }
         AttributionId newId = attributionRecordId_++;
         AttributionRecord stored = attribution;
+        stored.uid = managedUid;
         stored.attributedTimeMillis = NowMillis();
         it->second.attributions[newId] = stored;
         taskLevel = it->second.priority;
@@ -649,11 +774,16 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
             "attributionId: %{public}" PRId64 ", pid: %{public}d, tool: %{public}s",
             taskId.c_str(), newId, stored.pid, AttributionToolToString(stored.tool));
         replacedCtx = RestartTimeoutWindow(taskId, it->second);
-        // Feed the schedule index under the same mutex as the record change: the delivery
-        // is atomic w.r.t. concurrent finish/death/rejudge, so no orphan entries can
-        // survive their task (lock order tasksMutex_ -> scheduleMutex_, scheduleMutex_ is
-        // a leaf lock that never calls back).
-        ProcessSchedule::GetInstance().OnAttributionAdded(taskId, taskLevel, stored.pid, stored.tool);
+        // Feed the schedule queue in the same critical section as the record change. The
+        // submission is non-blocking, and business order is therefore preserved without
+        // acquiring scheduleMutex_ or running schedule callbacks under tasksMutex_.
+        ScheduleAttributionInfo scheduleInfo;
+        scheduleInfo.taskId = taskId;
+        scheduleInfo.taskLevel = taskLevel;
+        scheduleInfo.creatorPid = it->second.creatorPid;
+        scheduleInfo.creatorUid = it->second.creatorUid;
+        scheduleInfo.attribution = stored;
+        ProcessSchedule::GetInstance().OnAttributionAdded(scheduleInfo);
     }
     ReleaseTimeoutContext(std::move(replacedCtx));
     return ERR_OK;
@@ -662,7 +792,8 @@ int32_t TaskManagerService::RegisterManagedProcessInner(const std::string &taskI
 int32_t TaskManagerService::UnregisterManagedProcessInner(const std::string &taskId,
     AttributionId attributionId)
 {
-    pid_t removedPid = -1;
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    RefreshMissingManagedUids(ScheduleTrigger::ATTRIBUTION_REMOVED);
     {
         std::lock_guard<ffrt::mutex> lock(tasksMutex_);
         auto it = tasks_.find(taskId);
@@ -676,12 +807,17 @@ int32_t TaskManagerService::UnregisterManagedProcessInner(const std::string &tas
                 "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
             return ERR_ATTRIBUTION_NOT_FOUND;
         }
-        removedPid = attrIt->second.pid;
+        ScheduleAttributionInfo scheduleInfo;
+        scheduleInfo.taskId = taskId;
+        scheduleInfo.taskLevel = it->second.priority;
+        scheduleInfo.creatorPid = it->second.creatorPid;
+        scheduleInfo.creatorUid = it->second.creatorUid;
+        scheduleInfo.attribution = attrIt->second;
         it->second.attributions.erase(attrIt);
         TAG_LOGI(AAFwkTag::APPMGR, "attribution unregistered, taskId: %{public}s, "
             "attributionId: %{public}" PRId64, taskId.c_str(), attributionId);
         // same-mutex delivery, see RegisterManagedProcessInner
-        ProcessSchedule::GetInstance().OnAttributionRemoved(taskId, removedPid);
+        ProcessSchedule::GetInstance().OnAttributionRemoved(scheduleInfo, ScheduleTrigger::ATTRIBUTION_REMOVED);
     }
     return ERR_OK;
 }

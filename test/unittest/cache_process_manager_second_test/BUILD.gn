@@ -79,6 +79,7 @@ ohos_unittest("cache_process_manager_second_test") {
     "${ability_runtime_services_path}/appmgr/src/task_mgr/attribution_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/common.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/process_schedule.cpp",
+    "${ability_runtime_services_path}/appmgr/src/task_mgr/resource_control_proxy.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/system_load_provider.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/task_priority_judge.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/task_manager_service.cpp",

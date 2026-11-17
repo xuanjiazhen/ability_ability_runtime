@@ -1,0 +1,232 @@
+{
+  "schema_version": "2.0",
+  "review_mode": "diff",
+  "scope": "task-rss-tiered-control",
+  "base_sha": "fdacaa726e1ef3b0a01b59d13822a512446a6e0f",
+  "head_sha": "WORKTREE",
+  "dirty": true,
+  "knowledge": {
+    "status": "available",
+    "revision": "b3910d099d653e97070519a0529af31b336e7bc21774a33bacbf65902a72564c",
+    "references": [
+      ".codespec/changes/issue-20260914692272-task-rss-tiered-control/spec.md#AC-5.1-AC-5.10",
+      ".codespec/changes/issue-20260914692272-task-rss-tiered-control/design.md#INV-1-INV-8",
+      "abilitykit_sdd/standards/"
+    ]
+  },
+  "concerns": [
+    {
+      "id": "C01",
+      "summary": "Controlled-tool filtering, merge/primary selection and balanced attribution references",
+      "changed_locations": [
+        "services/appmgr/src/task_mgr/process_schedule.cpp:66-119",
+        "services/appmgr/src/task_mgr/process_schedule.cpp:223-267",
+        "test/unittest/process_schedule_test/process_schedule_test.cpp:337-374"
+      ],
+      "discover": "done",
+      "challenge": "done",
+      "coverage_critical": false,
+      "limitations": ["Runtime assertions not executed on ARM"],
+      "related_findings": []
+    },
+    {
+      "id": "C02",
+      "summary": "Immediate/debounced events, latest previous context, epoch cancellation and final END",
+      "changed_locations": [
+        "services/appmgr/src/task_mgr/resource_control_proxy.cpp:95-218",
+        "services/appmgr/src/task_mgr/process_schedule.cpp:406-439",
+        "test/unittest/process_schedule_test/process_schedule_test.cpp:827-924"
+      ],
+      "discover": "done",
+      "challenge": "done",
+      "coverage_critical": false,
+      "limitations": ["Timer behavior verified by source and built tests, not by device execution"],
+      "related_findings": []
+    },
+    {
+      "id": "C03",
+      "summary": "Managed uid cache, retry, invalid suppression and pending invalidation",
+      "changed_locations": [
+        "services/appmgr/src/task_mgr/task_manager_service.cpp:47-69",
+        "services/appmgr/src/task_mgr/task_manager_service.cpp:575-627",
+        "services/appmgr/src/task_mgr/process_schedule.cpp:309-328",
+        "services/appmgr/src/task_mgr/process_schedule.cpp:378-439",
+        "test/unittest/process_schedule_test/process_schedule_test.cpp:1001-1134"
+      ],
+      "discover": "done",
+      "challenge": "done",
+      "coverage_critical": false,
+      "limitations": ["Default /proc parser exercised by build and source review only"],
+      "related_findings": []
+    },
+    {
+      "id": "C04",
+      "summary": "Creator/managed process death ordering and interleaved registration exclusion",
+      "changed_locations": [
+        "services/appmgr/src/task_mgr/task_manager_service.cpp:349-368",
+        "services/appmgr/src/task_mgr/task_manager_service.cpp:476-500",
+        "services/appmgr/src/task_mgr/task_manager_service.cpp:743-774",
+        "test/unittest/task_manager_service_test/task_manager_service_test.cpp:1790-1811"
+      ],
+      "discover": "done",
+      "challenge": "done",
+      "coverage_critical": false,
+      "limitations": ["No dynamically injected D1/ADD/D2 interleaving; guard verified by source and regression test"],
+      "related_findings": []
+    },
+    {
+      "id": "C05",
+      "summary": "Test event recording, queue-synchronized getters/reset and real debounce waits",
+      "changed_locations": [
+        "services/appmgr/src/task_mgr/resource_control_proxy.cpp:72-91",
+        "services/appmgr/src/task_mgr/resource_control_proxy.cpp:236-258",
+        "services/appmgr/src/task_mgr/resource_control_proxy.cpp:266-365",
+        "test/unittest/process_schedule_test/process_schedule_test.cpp:85-128"
+      ],
+      "discover": "done",
+      "challenge": "done",
+      "coverage_critical": false,
+      "limitations": ["Fresh Red and runtime Green evidence unavailable"],
+      "related_findings": []
+    },
+    {
+      "id": "C06",
+      "summary": "Internal enum/structure compatibility, build boundaries and production memory growth",
+      "changed_locations": [
+        "services/appmgr/include/task_mgr/attribution_record.h:31-58",
+        "services/appmgr/src/task_mgr/attribution_record.cpp:20-58",
+        "services/appmgr/src/task_mgr/resource_control_proxy.cpp:236-258",
+        "services/appmgr/BUILD.gn",
+        "test/unittest/*/BUILD.gn（13 个直接聚合目标）",
+        "test/moduletest/common/ams/BUILD.gn"
+      ],
+      "discover": "done",
+      "challenge": "done",
+      "coverage_critical": false,
+      "limitations": ["Implementation commit intentionally not created"],
+      "related_findings": []
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "H-C01-01",
+      "concern_ids": ["C01"],
+      "invariant": "Every valid removal decrements both tool and task references; only zero total references erases a task",
+      "outcome": "refuted",
+      "feasibility": "refuted",
+      "test_mode": "source_reasoning",
+      "test_result": "not_run"
+    },
+    {
+      "id": "H-C02-01",
+      "concern_ids": ["C02"],
+      "invariant": "Pending rearm keeps latest previous context and stale epochs cannot emit",
+      "outcome": "refuted",
+      "feasibility": "refuted",
+      "test_mode": "source_reasoning",
+      "test_result": "not_run"
+    },
+    {
+      "id": "H-C02-02",
+      "concern_ids": ["C02", "C03"],
+      "invariant": "Invalid uid cannot emit or preserve an obsolete pending lifecycle",
+      "outcome": "refuted",
+      "feasibility": "refuted",
+      "test_mode": "source_reasoning",
+      "test_result": "not_run"
+    },
+    {
+      "id": "H-C04-01",
+      "concern_ids": ["C04"],
+      "invariant": "Registration cannot interleave between first and second death submissions",
+      "outcome": "refuted",
+      "feasibility": "refuted",
+      "test_mode": "source_reasoning",
+      "test_result": "not_run"
+    },
+    {
+      "id": "H-C05-01",
+      "concern_ids": ["C05"],
+      "invariant": "Test reads/writes and Reset are serialized with timer queue access",
+      "outcome": "refuted",
+      "feasibility": "refuted",
+      "test_mode": "source_reasoning",
+      "test_result": "not_run"
+    },
+    {
+      "id": "H-C06-01",
+      "concern_ids": ["C06"],
+      "invariant": "Test instrumentation and last-notified state cannot grow without bound in production",
+      "outcome": "refuted",
+      "feasibility": "refuted",
+      "test_mode": "source_reasoning",
+      "test_result": "not_run"
+    }
+  ],
+  "candidate_verdicts": [
+    {
+      "candidate_id": "K-001",
+      "verdict": "refuted",
+      "concern_ids": ["C01"],
+      "evidence": ["process_schedule.cpp:239-267"],
+      "reason": "Intermediate duplicate-tool leak is no longer reachable; both counters decrease on each valid removal",
+      "finding_id": null
+    },
+    {
+      "candidate_id": "K-002",
+      "verdict": "refuted",
+      "concern_ids": ["C02", "C03"],
+      "evidence": ["process_schedule.cpp:378-403 and resource_control_proxy.cpp:204-258"],
+      "reason": "Invalid uid cancels pending and is rejected again at provider/exit",
+      "finding_id": null
+    },
+    {
+      "candidate_id": "K-003",
+      "verdict": "refuted",
+      "concern_ids": ["C04"],
+      "evidence": ["task_manager_service.cpp:349-368 and 743-774"],
+      "reason": "dyingPids_ blocks ADD until D2 is queued; normal later re-attribution remains allowed",
+      "finding_id": null
+    },
+    {
+      "candidate_id": "K-004",
+      "verdict": "refuted",
+      "concern_ids": ["C05"],
+      "evidence": ["resource_control_proxy.cpp:72-91 and 266-365"],
+      "reason": "Test methods synchronously execute on eventQueue_; debounce TaskHandle is obtained on the same queue",
+      "finding_id": null
+    },
+    {
+      "candidate_id": "K-005",
+      "verdict": "refuted",
+      "concern_ids": ["C02"],
+      "evidence": ["resource_control_proxy.cpp:146-175 and process_schedule.cpp:429-439"],
+      "reason": "Latest candidate is retained on rearm so final previous context is current, not stale",
+      "finding_id": null
+    },
+    {
+      "candidate_id": "K-006",
+      "verdict": "refuted",
+      "concern_ids": ["C06"],
+      "evidence": ["resource_control_proxy.cpp:236-258"],
+      "reason": "Counters/history are recording-gated and END erases last-notified entries",
+      "finding_id": null
+    }
+  ],
+  "capability_coverage": {
+    "required": ["behavior", "security", "api"],
+    "executed": ["behavior", "security", "api"],
+    "evidence": {
+      "behavior": "C01-C05 source paths, regression test entry points and two independent read-only reviews",
+      "security": "C03-C06 identity, RAII, lifetime, bounds and log review; no new IPC or privileged operation",
+      "api": "C06 enum append-only and in-memory structure review; no Public SDK/Parcel change"
+    }
+  },
+  "independent_verifier": true,
+  "limitations": [
+    "ARM runtime tests not run: no qemu and hdc E002110",
+    "Fresh pre-implementation Red not available and is not claimed",
+    "No implementation commit was created; review is against dirty worktree"
+  ],
+  "report_findings": []
+}

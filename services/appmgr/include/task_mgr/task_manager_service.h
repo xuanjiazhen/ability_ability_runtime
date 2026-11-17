@@ -19,6 +19,7 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <set>
 #include <string>
 #include <unordered_map>
 
@@ -28,6 +29,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+enum class ScheduleTrigger : int32_t;
     
 class TaskManagerService {
 public:
@@ -173,6 +175,12 @@ public:
      * @param validator Indicates the pid liveness checker, or null to unwire.
      */
     void SetPidValidator(std::function<bool(pid_t)> validator);
+
+    /**
+     * @brief Sets the resolver used to cache a managed process uid at registration and on retry.
+     *        The production default reads /proc/<pid>/status; tests inject a deterministic resolver.
+     */
+    void SetManagedProcessUidResolver(std::function<int32_t(pid_t)> resolver);
 
     /**
      * @brief Removes the attribution record from the task owned by the caller
@@ -328,8 +336,9 @@ private:
      * @brief Removes a dead process from the managed set of every surviving task; locks
      *        tasksMutex_ internally.
      * @param pid Indicates the pid of the dead managed process.
+     * @param uid Indicates the uid of the dead managed process, used by the final cleanup barrier.
      */
-    void RemoveManagedProcessFromAllTasksInner(pid_t pid);
+    void RemoveManagedProcessFromAllTasksInner(pid_t pid, int32_t uid);
 
     /**
      * @brief Attributes an entity into the task and restarts its inactivity timeout
@@ -430,17 +439,31 @@ private:
 
     /**
      * @brief Re-judges the priority of running tasks and propagates level changes to
-     *        process_schedule; updates the records under tasksMutex_ and calls
-     *        process_schedule only after the mutex is released (lock order).
+     *        process_schedule; updates each record and performs its non-blocking queue
+     *        submission in the same tasksMutex_ critical section to preserve business order.
      * @param pid Indicates the creator process whose tasks are re-judged; a non-positive
      *        value re-judges every task (load changes affect all callers).
      */
-    void RejudgeTasks(pid_t pid);
+    void RejudgeTasks(pid_t pid, ScheduleTrigger trigger);
+
+    /**
+     * @brief Resolves and caches the uid of a managed pid directly from /proc/<pid>/status.
+     */
+    int32_t ResolveManagedUid(pid_t pid);
+
+    /**
+     * @brief Retries missing managed uids with a collect -> unlock -> resolve -> relock/write
+     *        sequence. Resolved records are submitted to process_schedule only after being
+     *        updated under tasksMutex_ so finish/death ordering is preserved.
+     */
+    void RefreshMissingManagedUids(ScheduleTrigger trigger);
 
     static std::atomic<AttributionId> attributionRecordId_;
     ffrt::mutex tasksMutex_;
     std::unordered_map<std::string, TaskRecord> tasks_;
+    std::set<pid_t> dyingPids_;
     std::function<bool(pid_t)> pidValidator_;
+    std::function<int32_t(pid_t)> managedProcessUidResolver_;
     TaskFinishedCallback taskFinishedCallback_;
 };
 }  // namespace AppExecFwk

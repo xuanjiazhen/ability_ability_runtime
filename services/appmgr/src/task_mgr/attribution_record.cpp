@@ -28,6 +28,8 @@ const char *AttributionToolToString(AttributionTool tool)
             return "a2a";
         case AttributionTool::ABILITY:
             return "ability";
+        case AttributionTool::VIRTUAL_SCREEN_ABILITY:
+            return "virtual_screen_ability";
         default:
             return "unknown";
     }
@@ -46,6 +48,9 @@ AttributionTool AttributionToolFromString(const std::string &text)
     }
     if (text == "ability") {
         return AttributionTool::ABILITY;
+    }
+    if (text == "virtual_screen_ability") {
+        return AttributionTool::VIRTUAL_SCREEN_ABILITY;
     }
     return AttributionTool::UNKNOWN;
 }
