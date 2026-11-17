@@ -230,18 +230,19 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
             return true;
         }
         // Reject visibly instead of falling back to the normal path: a silent fallback could
-        // create a NEW instance (component restart, content state lost) while SCB believes
-        // the migration succeeded (StartUIExtensionAbility returned ERR_OK). SCB decides how
-        // to recover (retry, or destroy + create explicitly) on the visible error.
+        // create a NEW instance (component restart, content state lost) while the host
+        // session wrapper believes the migration succeeded (StartUIExtensionAbility
+        // returned ERR_OK). The host decides how to recover (retry, or destroy + create
+        // explicitly) on the visible error.
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "migration update: record not found, persistentId: %{private}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    // Field reconciliation: SCB fills originalCallerInfo.persistentId and the top-level
-    // persistentId from the same session; a mismatch means the declaration was forged or
-    // garbled.
+    // Field reconciliation: the host session wrapper fills originalCallerInfo.persistentId
+    // and the top-level persistentId from the same session; a mismatch means the
+    // declaration was forged or garbled.
     if (abilityRequest.sessionInfo->originalCallerInfo.persistentId !=
         abilityRequest.sessionInfo->persistentId) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
