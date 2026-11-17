@@ -684,6 +684,11 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
     int32_t processAttachResult = DoProcessAttachment(abilityRecord);
 
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    // Re-check under sessionLock_ to close the TOCTOU window of IsContainsAbility.
+    if (!IsContainsAbilityInner(token)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Not in running list");
+        return ERR_INVALID_VALUE;
+    }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "lifecycle name: %{public}s", abilityRecord->GetAbilityInfo().name.c_str());
     // Report the stashed cold-start attribution now that the pid is set.
     ReportPendingTaskAttribution(abilityRecord);
