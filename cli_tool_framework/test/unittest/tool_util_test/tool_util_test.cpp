@@ -2109,7 +2109,8 @@ HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_0100, TestSize.Level1)
     uint32_t tokenId = 0;
 
     // Test environment token is not a HAP token, so GetBundleInfoByTokenId should fail
-    bool result = ToolUtil::GenerateCmdSandboxConfig(param, tokenId, sandboxConfig, bundleName);
+    bool result = ToolUtil::GenerateCmdSandboxConfig(param, tokenId, "shell_test_session", {},
+        sandboxConfig, bundleName);
     EXPECT_FALSE(result);
     EXPECT_TRUE(sandboxConfig.empty());
     EXPECT_TRUE(bundleName.empty());
@@ -2137,7 +2138,8 @@ HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_0200, TestSize.Level1)
     uint32_t tokenId = 0;
 
     // Still returns false because token is not HAP
-    bool result = ToolUtil::GenerateCmdSandboxConfig(param, tokenId, sandboxConfig, bundleName);
+    bool result = ToolUtil::GenerateCmdSandboxConfig(param, tokenId, "shell_test_session", {},
+        sandboxConfig, bundleName);
     EXPECT_FALSE(result);
 
     GTEST_LOG_(INFO) << "ToolUtil_GenerateCmdSandboxConfig_0200 end";
@@ -2163,7 +2165,8 @@ HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_0300, TestSize.Level1)
 
     // In test env, non-HAP token causes early return false
     // This test documents the expected behavior
-    bool result = ToolUtil::GenerateCmdSandboxConfig(param, 0, sandboxConfig, bundleName);
+    bool result = ToolUtil::GenerateCmdSandboxConfig(param, 0, "shell_test_session", {},
+        sandboxConfig, bundleName);
     EXPECT_FALSE(result);
 
     GTEST_LOG_(INFO) << "ToolUtil_GenerateCmdSandboxConfig_0300 end";
@@ -2187,7 +2190,8 @@ HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_0400, TestSize.Level1)
     std::string sandboxConfig;
     std::string bundleName;
 
-    bool result = ToolUtil::GenerateCmdSandboxConfig(param, 0, sandboxConfig, bundleName);
+    bool result = ToolUtil::GenerateCmdSandboxConfig(param, 0, "shell_test_session", {},
+        sandboxConfig, bundleName);
     EXPECT_FALSE(result);
 
     GTEST_LOG_(INFO) << "ToolUtil_GenerateCmdSandboxConfig_0400 end";
@@ -2231,7 +2235,8 @@ HWTEST_F(ToolUtilTest, GenerateSandboxConfig_InjectsCallerIdentityEnv_0100, Test
     std::string sandboxConfig;
     std::string outBundleName;
     AccessToken::AccessTokenID tokenId = 12345;
-    EXPECT_TRUE(ToolUtil::GenerateSandboxConfig(param, tokenId, sandboxConfig, outBundleName));
+    EXPECT_TRUE(ToolUtil::GenerateSandboxConfig(param, tokenId, "cli_test_session_0100", {},
+        sandboxConfig, outBundleName));
 
     auto cfg = json::parse(sandboxConfig, nullptr, false);
     ASSERT_FALSE(cfg.is_discarded());
@@ -2271,7 +2276,8 @@ HWTEST_F(ToolUtilTest, GenerateSandboxConfig_NotHapToken_ReturnsFalse_0200, Test
     std::string sandboxConfig;
     std::string outBundleName;
     AccessToken::AccessTokenID tokenId = 1;
-    EXPECT_FALSE(ToolUtil::GenerateSandboxConfig(param, tokenId, sandboxConfig, outBundleName));
+    EXPECT_FALSE(ToolUtil::GenerateSandboxConfig(param, tokenId, "cli_test_session", {},
+        sandboxConfig, outBundleName));
     EXPECT_TRUE(sandboxConfig.empty());
     EXPECT_TRUE(outBundleName.empty());
 }
@@ -2292,7 +2298,8 @@ HWTEST_F(ToolUtilTest, GenerateSandboxConfig_GetHapTokenInfoFails_ReturnsFalse_0
     std::string sandboxConfig;
     std::string outBundleName;
     AccessToken::AccessTokenID tokenId = 2;
-    EXPECT_FALSE(ToolUtil::GenerateSandboxConfig(param, tokenId, sandboxConfig, outBundleName));
+    EXPECT_FALSE(ToolUtil::GenerateSandboxConfig(param, tokenId, "cli_test_session", {},
+        sandboxConfig, outBundleName));
     EXPECT_TRUE(sandboxConfig.empty());
 }
 
@@ -2317,7 +2324,8 @@ HWTEST_F(ToolUtilTest, GenerateSandboxConfig_GetBundleInfoFails_ReturnsFalse_040
     std::string sandboxConfig;
     std::string outBundleName;
     AccessToken::AccessTokenID tokenId = 3;
-    EXPECT_FALSE(ToolUtil::GenerateSandboxConfig(param, tokenId, sandboxConfig, outBundleName));
+    EXPECT_FALSE(ToolUtil::GenerateSandboxConfig(param, tokenId, "cli_test_session", {},
+        sandboxConfig, outBundleName));
     EXPECT_TRUE(sandboxConfig.empty());
 }
 
@@ -2342,9 +2350,206 @@ HWTEST_F(ToolUtilTest, GenerateSandboxConfig_SetCallingIdentityFails_ReturnsFals
     std::string sandboxConfig;
     std::string outBundleName;
     AccessToken::AccessTokenID tokenId = 12345;
-    EXPECT_FALSE(ToolUtil::GenerateSandboxConfig(param, tokenId, sandboxConfig, outBundleName));
+    EXPECT_FALSE(ToolUtil::GenerateSandboxConfig(param, tokenId, "cli_test_session", {},
+        sandboxConfig, outBundleName));
     EXPECT_TRUE(sandboxConfig.empty());
     IPCSkeleton::setCallingIdentityRet = true;
+}
+
+// ---- sandboxConfig session fields (BR-6 / BR-7 / E-1, feature 20260806903809) ----
+// sessionId + aliveSessionIds are written by GenerateSandboxConfig/GenerateCmdSandboxConfig
+// from caller-supplied values: the id is generated before the config is assembled (service-side
+// time order), so these tests assert the exact value flows into the JSON unchanged.
+namespace {
+void SetupHapSuccessMocks()
+{
+    CliToolTest::AccessTokenKitMock::getTokenTypeFlagIsHap = true;
+    CliToolTest::AccessTokenKitMock::getHapTokenInfoRet = 0;
+    CliToolTest::AccessTokenKitMock::hapBundleName = "com.test.agent";
+    CliToolTest::AccessTokenKitMock::hapInstIndex = 0;
+    CliToolTest::AccessTokenKitMock::hapUserID = 100;
+    AppExecFwk::BundleMgrHelper::getBundleInfoResult = 0;  // ERR_OK
+    AppExecFwk::BundleMgrHelper::gid = 2000;
+    AppExecFwk::BundleMgrHelper::appId = "app-id-xxx";
+    AppExecFwk::BundleMgrHelper::bundleName = "com.test.agent";
+    IPCSkeleton::callingIdentity = "caller-id-str";
+    IPCSkeleton::callingUid = 12345;
+    IPCSkeleton::callingPid = 1000;
+    IPCSkeleton::callingTokenId = 999;
+    IPCSkeleton::callingFullTokenId = 88888;
+}
+} // namespace
+
+/**
+ * @tc.name: ToolUtil_GenerateSandboxConfig_ContainsSessionId_0600
+ * @tc.desc: GenerateSandboxConfig embeds the caller-supplied sessionId verbatim and emits an
+ *           empty aliveSessionIds array when no other session is alive (E-1).
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, GenerateSandboxConfig_ContainsSessionId_0600, TestSize.Level1)
+{
+    using json = nlohmann::json;
+    SetupHapSuccessMocks();
+
+    ExecToolParam param;
+    param.toolName = "ohos-agent";
+    param.subcommand = "connect";
+    param.options.policy = "default";
+
+    const std::string sessionId = "cli_1700000000_42";
+    std::string sandboxConfig;
+    std::string outBundleName;
+    EXPECT_TRUE(ToolUtil::GenerateSandboxConfig(param, 12345, sessionId, {},
+        sandboxConfig, outBundleName));
+
+    auto cfg = json::parse(sandboxConfig, nullptr, false);
+    ASSERT_FALSE(cfg.is_discarded());
+    // BR-7 (param plumbing): the exact caller-supplied id, not a regenerated one.
+    EXPECT_EQ(cfg["sessionId"].get<std::string>(), sessionId);
+    // BR-6 / E-1: empty aliveSessionIds array when no other session is alive.
+    ASSERT_TRUE(cfg.contains("aliveSessionIds"));
+    ASSERT_TRUE(cfg["aliveSessionIds"].is_array());
+    EXPECT_TRUE(cfg["aliveSessionIds"].empty());
+    // BR-4: pre-existing fields keep their values alongside the new fields.
+    EXPECT_EQ(cfg["cliName"].get<std::string>(), "ohos-agent");
+    EXPECT_EQ(cfg["bundleName"].get<std::string>(), "com.test.agent");
+    EXPECT_EQ(cfg["type"].get<std::string>(), "cli");
+}
+
+/**
+ * @tc.name: ToolUtil_GenerateSandboxConfig_ContainsAliveSessionIds_0700
+ * @tc.desc: GenerateSandboxConfig embeds every supplied alive session id (array length and
+ *           element values) next to the current sessionId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, GenerateSandboxConfig_ContainsAliveSessionIds_0700, TestSize.Level1)
+{
+    using json = nlohmann::json;
+    SetupHapSuccessMocks();
+
+    ExecToolParam param;
+    param.toolName = "ohos-agent";
+    param.options.policy = "default";
+
+    const std::string sessionId = "cli_1700000001_7";
+    std::vector<std::string> aliveSessionIds = {"cli_1699999999_1", "shell_1699999998_2",
+        "cli_1699999997_3"};
+    std::string sandboxConfig;
+    std::string outBundleName;
+    EXPECT_TRUE(ToolUtil::GenerateSandboxConfig(param, 12345, sessionId, aliveSessionIds,
+        sandboxConfig, outBundleName));
+
+    auto cfg = json::parse(sandboxConfig, nullptr, false);
+    ASSERT_FALSE(cfg.is_discarded());
+    EXPECT_EQ(cfg["sessionId"].get<std::string>(), sessionId);
+    ASSERT_TRUE(cfg["aliveSessionIds"].is_array());
+    EXPECT_EQ(cfg["aliveSessionIds"].size(), aliveSessionIds.size());
+    EXPECT_EQ(cfg["aliveSessionIds"][0].get<std::string>(), "cli_1699999999_1");
+    EXPECT_EQ(cfg["aliveSessionIds"][1].get<std::string>(), "shell_1699999998_2");
+    EXPECT_EQ(cfg["aliveSessionIds"][2].get<std::string>(), "cli_1699999997_3");
+}
+
+/**
+ * @tc.name: ToolUtil_GenerateCmdSandboxConfig_ContainsSessionId_0500
+ * @tc.desc: GenerateCmdSandboxConfig (shell path) embeds the caller-supplied sessionId and
+ *           aliveSessionIds fields (BR-6 shell-path coverage).
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_ContainsSessionId_0500, TestSize.Level1)
+{
+    using json = nlohmann::json;
+    SetupHapSuccessMocks();
+
+    ExecCmdParam param;
+    param.cmd = "echo hello";
+    param.execCmdOptions.policy = "allow";
+    param.execCmdOptions.workDir = "/data/local/tmp";
+    param.execCmdOptions.env = "PATH=/bin";
+
+    const std::string sessionId = "shell_1700000002_9";
+    std::vector<std::string> aliveSessionIds = {"cli_1699999999_1", "shell_1699999998_2"};
+    std::string sandboxConfig;
+    std::string bundleName;
+    EXPECT_TRUE(ToolUtil::GenerateCmdSandboxConfig(param, 12345, sessionId, aliveSessionIds,
+        sandboxConfig, bundleName));
+
+    auto cfg = json::parse(sandboxConfig, nullptr, false);
+    ASSERT_FALSE(cfg.is_discarded());
+    EXPECT_EQ(cfg["sessionId"].get<std::string>(), sessionId);
+    ASSERT_TRUE(cfg["aliveSessionIds"].is_array());
+    EXPECT_EQ(cfg["aliveSessionIds"].size(), aliveSessionIds.size());
+    EXPECT_EQ(cfg["aliveSessionIds"][0].get<std::string>(), "cli_1699999999_1");
+    EXPECT_EQ(cfg["aliveSessionIds"][1].get<std::string>(), "shell_1699999998_2");
+    // BR-4: shell-path existing fields unchanged.
+    EXPECT_EQ(cfg["type"].get<std::string>(), "shell");
+    EXPECT_EQ(cfg["policy"].get<std::string>(), "allow");
+    EXPECT_EQ(cfg["workdir"].get<std::string>(), "/data/local/tmp");
+    EXPECT_EQ(cfg["bundleName"].get<std::string>(), "com.test.agent");
+    EXPECT_EQ(cfg["gid"].get<int32_t>(), 2000);
+    EXPECT_EQ(bundleName, "com.test.agent");
+}
+
+/**
+ * @tc.name: ToolUtil_GenerateCmdSandboxConfig_ContainsEmptyAliveSessionIds_0600
+ * @tc.desc: GenerateCmdSandboxConfig emits an empty aliveSessionIds array for the first session
+ *           (E-1 shell-path coverage).
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_ContainsEmptyAliveSessionIds_0600, TestSize.Level1)
+{
+    using json = nlohmann::json;
+    SetupHapSuccessMocks();
+
+    ExecCmdParam param;
+    param.cmd = "pwd";
+    param.execCmdOptions.policy = "allow";
+    param.execCmdOptions.workDir = "";
+
+    const std::string sessionId = "shell_1700000003_1";
+    std::string sandboxConfig;
+    std::string bundleName;
+    EXPECT_TRUE(ToolUtil::GenerateCmdSandboxConfig(param, 12345, sessionId, {},
+        sandboxConfig, bundleName));
+
+    auto cfg = json::parse(sandboxConfig, nullptr, false);
+    ASSERT_FALSE(cfg.is_discarded());
+    EXPECT_EQ(cfg["sessionId"].get<std::string>(), sessionId);
+    ASSERT_TRUE(cfg.contains("aliveSessionIds"));
+    ASSERT_TRUE(cfg["aliveSessionIds"].is_array());
+    EXPECT_TRUE(cfg["aliveSessionIds"].empty());
+    // Empty workDir keeps the workdir field absent (pre-existing behavior intact).
+    EXPECT_FALSE(cfg.contains("workdir"));
+}
+
+/**
+ * @tc.name: ToolUtil_GenerateCliSessionId_NoSideEffect_0700
+ * @tc.desc: GenerateCliSessionId only builds the id string and stamps record->startTime; calling
+ *           it early (before sandbox config generation) leaves no other record/global residue
+ *           (BR-5: safe to hoist the call in ExecTool/ExecCmd).
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, GenerateCliSessionId_NoSideEffect_0700, TestSize.Level1)
+{
+    auto record = std::make_shared<SessionRecord>();
+    record->callerPid = 100;
+    record->callerUid = 200;
+    record->callerBundleName = "com.test.agent";
+    record->toolName = "ohos-agent";
+
+    const std::string firstId = ToolUtil::GenerateCliSessionId("cli", record);
+    EXPECT_FALSE(firstId.empty());
+    EXPECT_GT(record->startTime, 0);
+    // Only startTime is written: caller identity and tool name survive untouched.
+    EXPECT_EQ(record->callerPid, 100);
+    EXPECT_EQ(record->callerUid, 200);
+    EXPECT_EQ(record->callerBundleName, "com.test.agent");
+    EXPECT_EQ(record->toolName, "ohos-agent");
+
+    const std::string secondId = ToolUtil::GenerateCliSessionId("cli", record);
+    // Repeated generation stays consistent (unique ids, startTime non-decreasing) and touches
+    // nothing else, so an early call followed by a failure path leaves no residual state.
+    EXPECT_NE(firstId, secondId);
+    EXPECT_GE(record->startTime, 0);
 }
 
 } // namespace CliTool

@@ -714,13 +714,15 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareTool_0100, TestSize.Level1
     std::string sandboxConfig;
     std::string bundleName;
     std::string detail;
+    std::vector<std::string> aliveSessionIds;
 
     EXPECT_EQ(service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
-        toolInfo, sandboxConfig, bundleName, detail), ERR_TOOL_NOT_EXIST);
+        "prepare_session_1_1", aliveSessionIds, toolInfo, sandboxConfig, bundleName, detail),
+        ERR_TOOL_NOT_EXIST);
 
     CliToolDataManagerMock::getToolByNameResult = ERR_OK;
     int32_t result = service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
-        toolInfo, sandboxConfig, bundleName, detail);
+        "prepare_session_1_1", aliveSessionIds, toolInfo, sandboxConfig, bundleName, detail);
     EXPECT_TRUE(result == ERR_OK || result == ERR_NOT_HAP);
     if (result == ERR_OK) {
         EXPECT_EQ(toolInfo.name, param.toolName);
@@ -2583,7 +2585,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0100, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "shell_prepare_session_1", {}, sandboxConfig, bundleName);
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0100 end");
@@ -2605,7 +2607,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0200, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "shell_prepare_session_1", {}, sandboxConfig, bundleName);
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0200 end");
@@ -2628,7 +2630,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0300, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "shell_prepare_session_1", {}, sandboxConfig, bundleName);
     EXPECT_TRUE(result == ERR_OK || result == ERR_NOT_HAP);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0300 end");
@@ -2652,10 +2654,146 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0400, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "shell_prepare_session_1", {}, sandboxConfig, bundleName);
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0400 end");
+}
+
+// ==================== Session Info Passing Tests (feature 20260806903809) ====================
+// BR-6/BR-7 field content is asserted in tool_util_test (full HAP/BundleMgr mocks). These cases
+// cover the service-side contracts: aliveSessionIds snapshot extraction, record reuse (same id
+// for the record and the config, never regenerated), and no residual record when the sandbox
+// config generation fails after the record was created early (E-3).
+
+/**
+ * @tc.name: CliToolManagerService_GetAliveSessionIds_0100
+ * @tc.desc: GetAliveSessionIds snapshots every registered session id under the session-table
+ *           lock (BR-2: full cross-app list, no caller filtering; E-2: lock-guarded traversal).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetAliveSessionIds_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetAliveSessionIds_0100 start");
+
+    EXPECT_TRUE(service_->GetAliveSessionIds().empty());
+
+    const std::vector<std::string> expectedIds = {"cli_1700000001_1", "shell_1700000002_2",
+        "cli_1700000003_3"};
+    for (const auto &sessionId : expectedIds) {
+        auto record = std::make_shared<SessionRecord>();
+        record->sessionId = sessionId;
+        service_->AddSessionRecord(record);
+    }
+
+    auto aliveIds = service_->GetAliveSessionIds();
+    ASSERT_EQ(aliveIds.size(), expectedIds.size());
+    for (const auto &sessionId : expectedIds) {
+        EXPECT_NE(std::find(aliveIds.begin(), aliveIds.end(), sessionId), aliveIds.end());
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetAliveSessionIds_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_SessionRecordDiscardedOnPrepareFailure_0100
+ * @tc.desc: ExecTool now creates the session record before the sandbox config; when the config
+ *           generation fails (ERR_NOT_HAP), the early record is discarded and leaves no
+ *           residual entry in sessionRecords_ (E-3).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_SessionRecordDiscardedOnPrepareFailure_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "CliToolManagerService_ExecTool_SessionRecordDiscardedOnPrepareFailure_0100 start");
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+
+    ExecToolParam param;
+    param.toolName = "ohos-session_field_tool";
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecTool(param, "event_session_field_tool", scheduler);
+
+    EXPECT_TRUE(result == ERR_NOT_HAP || IsPermissionGateResult(result));
+    // E-3: the early-created record must not be registered when preparation fails.
+    EXPECT_TRUE(service_->sessionRecords_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST,
+        "CliToolManagerService_ExecTool_SessionRecordDiscardedOnPrepareFailure_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_SessionRecordDiscardedOnConfigFailure_0100
+ * @tc.desc: ExecCmd shell path also creates its record before the sandbox config; on
+ *           ERR_NOT_HAP the record is discarded with no residual entry (E-3, BR-5).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_SessionRecordDiscardedOnConfigFailure_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST,
+        "CliToolManagerService_ExecCmd_SessionRecordDiscardedOnConfigFailure_0100 start");
+
+    auto &ccmUtil = CcmUtil::GetInstance();
+    ccmUtil.isSupportExecCmd_.isLoaded = true;
+    ccmUtil.isSupportExecCmd_.value = true;
+
+    ExecCmdParam param;
+    param.cmd = "echo hello";
+    param.execCmdOptions.isShellCommand = true;
+    param.execCmdOptions.timeout = 30;
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_session_field_shell", scheduler, "sub_shell");
+
+    EXPECT_TRUE(result == ERR_NOT_HAP || IsPermissionGateResult(result));
+    // E-3: the early-created shell record must not be registered when the config fails.
+    EXPECT_TRUE(service_->sessionRecords_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST,
+        "CliToolManagerService_ExecCmd_SessionRecordDiscardedOnConfigFailure_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_SetupCmdSession_ReusesCallerRecord_0100
+ * @tc.desc: SetupCmdSession reuses the record created before the sandbox config instead of
+ *           generating a new session id (BR-7: the config and the record share one id).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, SetupCmdSession_ReusesCallerRecord_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_SetupCmdSession_ReusesCallerRecord_0100 start");
+
+    // Fill the session table to its limit so TryAddSessionRecord fails before any process
+    // creation is attempted; the record-reuse contract is observable without forking.
+    auto cliQuantity = CcmUtil::GetInstance().GetCliConcurrencyLimit();
+    for (int32_t i = 0; i < cliQuantity; ++i) {
+        auto record = std::make_shared<SessionRecord>();
+        record->sessionId = "reuse_limit_session_" + std::to_string(i);
+        service_->AddSessionRecord(record);
+    }
+
+    ExecToolParam toolParam;
+    toolParam.toolName = "ohos-reuse_tool";
+    ToolInfo toolInfo;
+    toolInfo.name = "ohos-reuse_tool";
+
+    CmdSessionContext context;
+    context.eventId = "event_reuse_record";
+    context.callerBundleName = "com.test.reuse";
+
+    const std::string presetSessionId = "cli_reuse_1700000000_42";
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = presetSessionId;
+    record->toolName = "ohos-reuse_tool";
+    record->sessionType = SessionType::CLI_CMD;
+
+    EXPECT_EQ(service_->SetupCmdSession(toolParam, toolInfo, "sandbox-config", "ohos-reuse_tool",
+        context, record), ERR_SESSION_LIMIT_EXCEEDED);
+    // BR-7: the caller's record is reused verbatim; the session id is never regenerated.
+    EXPECT_EQ(record->sessionId, presetSessionId);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_SetupCmdSession_ReusesCallerRecord_0100 end");
 }
 
 // ==================== ExecCmd Tests ====================

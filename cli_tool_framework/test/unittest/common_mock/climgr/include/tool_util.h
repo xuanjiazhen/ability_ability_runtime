@@ -9,6 +9,7 @@
 #include <access_token.h>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "cli_session_info.h"
 #include "want_params.h"
@@ -31,8 +32,10 @@ public:
     static int32_t ValidateExecOptionsProperties(const ExecOptions &options, std::string& detail);
     static std::string GenerateCliSessionId(const std::string &name, std::shared_ptr<SessionRecord> record);
     static bool GenerateSandboxConfig(const ExecToolParam &param, Security::AccessToken::AccessTokenID tokenId,
+        const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
         std::string &sandboxConfig, std::string &bundleName);
     static bool GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::AccessTokenID tokenId,
+        const std::string &sessionId, const std::vector<std::string> &aliveSessionIds,
         std::string &sandboxConfig, std::string &bundleName);
     static void TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantParams &args, std::string &cmdLine);
     static bool IsSkillTool(const std::string &toolName);
