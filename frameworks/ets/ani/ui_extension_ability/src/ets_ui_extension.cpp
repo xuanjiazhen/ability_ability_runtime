@@ -627,6 +627,7 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
         // state; bounds cross-session gen pollution, keeps the no-op check meaningful).
         migrationFencing_ = MigrationFencingState {};
         migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
+        migrationFencing_.lastCallerToken = sessionInfo->callerToken;
         uiWindowMap_[compId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context && context->GetWindow() == nullptr) {
@@ -657,6 +658,16 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
                 sessionInfo->hostWindowId);
             TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
                 "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
+            // Host-caller (ability) change notification: fires once per identity change —
+            // same-ability dual-window migrations do not fire; a notified identity never
+            // notifies again (latched in MigrationFencingState, seeded at window creation).
+            if (HasHostCallerChanged(sessionInfo, migrationFencing_)) {
+                auto env = etsRuntime_.GetAniEnv();
+                ani_ref wantObj = (env != nullptr) ? OHOS::AppExecFwk::WrapWant(env, want) : nullptr;
+                if (wantObj != nullptr) {
+                    CallObjectMethod(false, "onCallerChanged", nullptr, wantObj);
+                }
+            }
             // Sync the content session's cached session info to the new hostWindowId.
             if (etsUiExtContentSession_ != nullptr) {
                 etsUiExtContentSession_->UpdateSessionInfo(sessionInfo);

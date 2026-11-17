@@ -24,10 +24,12 @@ namespace OHOS {
 namespace AbilityRuntime {
 
 // Per-instance state for migration gen fencing: the latest executed migration
-// generation and the current parent window id.
+// generation and the current parent window id. lastCallerToken is the host-caller
+// (ability) identity latch for the onCallerChanged notification.
 struct MigrationFencingState {
     uint32_t lastGen = 0;
     uint32_t currentParentWindowId = 0;
+    sptr<IRemoteObject> lastCallerToken = nullptr;
 };
 
 // Re-parent a window to the new host during a UIExtension host window migration.
@@ -57,6 +59,16 @@ void CommitMigrationState(
     MigrationFencingState &state,
     uint32_t gen,
     uint32_t hostWindowId);
+
+// Host-caller (ability) identity latch for the onCallerChanged notification:
+// returns true only when the session's callerToken differs from the last
+// known/notified identity, and consumes the change into the latch (a notified
+// identity never notifies again). Call on re-parent success only, right after
+// CommitMigrationState; seed the latch at window creation instead so the
+// initial session identity never triggers a notification.
+bool HasHostCallerChanged(
+    const sptr<AAFwk::SessionInfo> &sessionInfo,
+    MigrationFencingState &state);
 
 } // namespace AbilityRuntime
 } // namespace OHOS

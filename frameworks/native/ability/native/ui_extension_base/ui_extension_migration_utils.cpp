@@ -72,5 +72,17 @@ void CommitMigrationState(MigrationFencingState &state, uint32_t gen, uint32_t h
     state.currentParentWindowId = hostWindowId;
 }
 
+bool HasHostCallerChanged(const sptr<AAFwk::SessionInfo> &sessionInfo, MigrationFencingState &state)
+{
+    if (sessionInfo == nullptr) {
+        return false;
+    }
+    if (state.lastCallerToken == sessionInfo->callerToken) {
+        return false;  // same host ability (or both null): identity already known/notified
+    }
+    state.lastCallerToken = sessionInfo->callerToken;
+    return true;
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS
