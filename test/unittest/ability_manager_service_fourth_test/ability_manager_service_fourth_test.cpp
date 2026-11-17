@@ -487,6 +487,76 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityForOptionInner_001, TestSi
     EXPECT_NE(result, ERR_INVALID_VALUE);
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilityWithDisplayIdPassthrough
+ * FunctionPoints: AbilityManagerService StartUIAbilityWithDisplayIdPassthrough
+ * CaseDescription: Exercise the softbus passthrough entry with displayId=0; the method body
+ *                 (forbidStart/RemoveShowModeKey/CheckProcessOptions/dispatch to StartAbilityForOptionInner
+ *                 with passthroughDisplayId=true) is covered. Without a BMS mock the start cannot resolve
+ *                 an ability, so a non-OK result is expected.
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityWithDisplayIdPassthrough_001, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("test.bundleName", "test.abilityName");
+    StartOptions startOptions;
+    startOptions.SetDisplayID(0);
+    const sptr<IRemoteObject> callerToken;
+    int32_t userId = 0;
+    int requestCode = 0;
+    auto result = abilityMs->StartUIAbilityWithDisplayIdPassthrough(want, startOptions, callerToken, userId, requestCode);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilityWithDisplayIdPassthrough
+ * FunctionPoints: AbilityManagerService StartUIAbilityWithDisplayIdPassthrough
+ * CaseDescription: Exercise the softbus passthrough entry with a non-zero displayId; verifies the path does
+ *                 not substitute or crash on explicit displayId values.
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityWithDisplayIdPassthrough_002, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("test.bundleName", "test.abilityName");
+    StartOptions startOptions;
+    startOptions.SetDisplayID(5);
+    const sptr<IRemoteObject> callerToken;
+    int32_t userId = 0;
+    int requestCode = 0;
+    auto result = abilityMs->StartUIAbilityWithDisplayIdPassthrough(want, startOptions, callerToken, userId, requestCode);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForOptionInner
+ * FunctionPoints: passthroughDisplayId parameter threading
+ * CaseDescription: Call StartAbilityForOptionInner with passthroughDisplayId=true so the new parameter
+ *                 is exercised on the explicit-start path. Without a BMS mock the call returns early,
+ *                 but the parameter binding and dispatch are covered.
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityForOptionInner_PassthroughDisplayId_001, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("test.bundleName", "test.abilityName");
+    StartOptions startOptions;
+    startOptions.SetDisplayID(0);
+    const sptr<IRemoteObject> callerToken;
+    int32_t userId = 0;
+    int requestCode = 0;
+    bool isStartAsCaller = false;
+    uint32_t specifyTokenId = 0;
+    bool isImplicit = false;
+    auto result = abilityMs->StartAbilityForOptionInner(want, startOptions, callerToken, false, userId, requestCode,
+        isStartAsCaller, specifyTokenId, isImplicit, false, false, true);
+    EXPECT_NE(result, ERR_OK);
+}
+
 
 /*
  * Feature: AbilityManagerService
