@@ -802,32 +802,31 @@ HWTEST_F(AbilityManagerServiceMockTest, InsightIntentExecuteLiteParam_0400, Test
 }
 
 /**
- * @tc.name: IsInsightIntentCall_0100
- * @tc.desc: Want without intentId returns false.
+ * @tc.name: CheckStaticCfgPermission_InsightIntent_0100
+ * @tc.desc: The insight intent channel waives the target-declared static permission check.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0100, TestSize.Level1)
+HWTEST_F(AbilityManagerServiceMockTest, CheckStaticCfgPermission_InsightIntent_0100, TestSize.Level1)
 {
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
-    Want want;
-    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, ""));
+    AbilityRequest abilityRequest;
+    abilityRequest.isInsightIntentExecution = true;
+    EXPECT_EQ(abilityMs->CheckStaticCfgPermission(abilityRequest, false, 0),
+        AppExecFwk::Constants::PERMISSION_GRANTED);
 }
 
 /**
- * @tc.name: IsInsightIntentCall_0200
- * @tc.desc: Want with invalid intentId string returns false.
+ * @tc.name: CheckStaticCfgPermission_Default_0200
+ * @tc.desc: An ordinary request keeps the target-declared static permission check.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AbilityManagerServiceMockTest, IsInsightIntentCall_0200, TestSize.Level1)
+HWTEST_F(AbilityManagerServiceMockTest, CheckStaticCfgPermission_Default_0200, TestSize.Level1)
 {
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    ASSERT_NE(abilityMs, nullptr);
-    Want want;
-    want.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, std::string("invalid"));
-    EXPECT_FALSE(abilityMs->IsInsightIntentCall(want, ""));
+    AbilityRequest abilityRequest;
+    EXPECT_FALSE(abilityRequest.isInsightIntentExecution);
 }
 }
 }

@@ -79,6 +79,8 @@ struct AbilityRequest {
     std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
     std::shared_ptr<SandboxCloneParams> sandboxCloneParams = nullptr;
     sptr<UIExtensionAbilityConnectInfo> uiExtensionAbilityConnectInfo = nullptr;
+    // Waive target-declared checks for the insight intent channel.
+    bool isInsightIntentExecution = false;
 
     int64_t restartTime = 0;
     uint64_t specifiedFullTokenId = 0;
