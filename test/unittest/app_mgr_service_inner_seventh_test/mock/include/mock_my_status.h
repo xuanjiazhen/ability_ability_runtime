@@ -66,6 +66,7 @@ public:
     int dumpHeapMemory_ = 0;
     int dumpJsHeapMemory_ = 0;
     bool processExit_ = false;
+    int32_t processExitUserId_ = -1;
     std::shared_ptr<AppExecFwk::AppRunningRecord> checkAppRunning_ = nullptr;
     bool checkAppRunningByUid_ = false;
     int checkAppRunningCall_ = 0;

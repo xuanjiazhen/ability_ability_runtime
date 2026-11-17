@@ -2329,12 +2329,13 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GetAppRunningUniqueIdByPid_002, TestSize.
     AAFwk::MyStatus::GetInstance().isShellCall_ = false;
     AAFwk::MyStatus::GetInstance().getBoolParameter_ = false;
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 100;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 20020001;
 
     std::string temp = "";
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
     auto appRecord = std::make_shared<AppRunningRecord>(info, 0, temp);
-    appRecord->SetUid(0);
+    appRecord->SetUid(20020002);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
 
     pid_t pid = 1000;
@@ -2344,6 +2345,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GetAppRunningUniqueIdByPid_002, TestSize.
 
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
     AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
     TAG_LOGI(AAFwkTag::TEST, "GetAppRunningUniqueIdByPid_002 end");
 }
@@ -2362,12 +2364,13 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GetAppRunningUniqueIdByPid_003, TestSize.
     AAFwk::MyStatus::GetInstance().isShellCall_ = false;
     AAFwk::MyStatus::GetInstance().getBoolParameter_ = false;
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 200000;
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 100;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 20020001;
 
     std::string temp = "";
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
     auto appRecord = std::make_shared<AppRunningRecord>(info, 0, temp);
-    appRecord->SetUid(400000);
+    appRecord->SetUid(20001);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
 
     pid_t pid = 1000;
@@ -2377,6 +2380,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GetAppRunningUniqueIdByPid_003, TestSize.
 
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
     AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
     TAG_LOGI(AAFwkTag::TEST, "GetAppRunningUniqueIdByPid_003 end");
 }
@@ -2395,7 +2399,8 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GetAppRunningUniqueIdByPid_004, TestSize.
     AAFwk::MyStatus::GetInstance().isShellCall_ = false;
     AAFwk::MyStatus::GetInstance().getBoolParameter_ = false;
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 200000;
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 100;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 20020001;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
 
     pid_t pid = 1000;
@@ -2405,6 +2410,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GetAppRunningUniqueIdByPid_004, TestSize.
 
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
     AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "GetAppRunningUniqueIdByPid_004 end");
 }
 

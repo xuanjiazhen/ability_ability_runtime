@@ -1053,7 +1053,7 @@ int32_t AppQueryHelper::GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRu
             TAG_LOGE(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall appRecord null, pid:%{public}d", pid);
             return ERR_PERMISSION_DENIED;
         }
-        if (GetUserIdByUid(appRecord->GetUid()) != GetUserIdByUid(IPCSkeleton::GetCallingUid())) {
+        if (GetUserIdByUid(appRecord->GetUid()) != GetUserIdByUid(IPCSkeleton::GetCallingAppUid())) {
             TAG_LOGE(AAFwkTag::APPMGR, "isLocalDebugOtherAppsCall not same user, permission denied");
             return ERR_PERMISSION_DENIED;
         }

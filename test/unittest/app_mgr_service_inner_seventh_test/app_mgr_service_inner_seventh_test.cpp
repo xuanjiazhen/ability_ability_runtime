@@ -474,16 +474,20 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplication_002, TestSize.Level1)
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
     AAFwk::MyStatus::GetInstance().isCustomSandboxCall_ = false;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 200000;
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 100;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 20020001;
 
+    AAFwk::MyStatus::GetInstance().processExitUserId_ = -1;
     std::string bundleName = "test_bundle";
     bool clearPageStack = false;
     int32_t appIndex = 1;
     int32_t ret = appMgrServiceInner->KillApplication(bundleName, clearPageStack, appIndex);
     EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().processExitUserId_, 100);
 
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
     AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "KillApplication_002 end");
 }
 
@@ -504,16 +508,20 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, KillApplication_003, TestSize.Level1)
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
     AAFwk::MyStatus::GetInstance().isCustomSandboxCall_ = true;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 200000;
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 100;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 20020001;
 
+    AAFwk::MyStatus::GetInstance().processExitUserId_ = -1;
     std::string bundleName = "test_bundle";
     bool clearPageStack = false;
     int32_t appIndex = 1;
     int32_t ret = appMgrServiceInner->KillApplication(bundleName, clearPageStack, appIndex);
     EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().processExitUserId_, 100);
 
     AAFwk::MyStatus::GetInstance().isCustomSandboxCall_ = false;
     AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "KillApplication_003 end");
 }
 
@@ -2759,12 +2767,13 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_004, TestSize.Leve
     AAFwk::MyStatus::GetInstance().notifyProcMemory_ = ERR_OK;
     AAFwk::MyStatus::GetInstance().notifyProcMemoryShellCall_ = 0;
     AAFwk::MyStatus::GetInstance().notifyProcMemoryMapSize_ = 0;
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 100;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 20020001;
 
     std::string temp = "";
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
     auto appRecord = std::make_shared<AppRunningRecord>(info, 0, temp);
-    appRecord->SetUid(0);
+    appRecord->SetUid(20020002);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
 
     std::map<pid_t, MemoryLevel> procLevelMap;
@@ -2776,6 +2785,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_004, TestSize.Leve
 
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
     AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
     TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_004 end");
 }
@@ -2796,12 +2806,13 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_005, TestSize.Leve
     AAFwk::MyStatus::GetInstance().notifyProcMemory_ = ERR_OK;
     AAFwk::MyStatus::GetInstance().notifyProcMemoryShellCall_ = 0;
     AAFwk::MyStatus::GetInstance().notifyProcMemoryMapSize_ = 0;
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 200000;
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 100;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 20020001;
 
     std::string temp = "";
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
     auto appRecord = std::make_shared<AppRunningRecord>(info, 0, temp);
-    appRecord->SetUid(400000);
+    appRecord->SetUid(20001);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
 
     std::map<pid_t, MemoryLevel> procLevelMap;
@@ -2812,6 +2823,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_005, TestSize.Leve
 
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
     AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
     TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_005 end");
 }
@@ -2831,7 +2843,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_006, TestSize.Leve
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
     AAFwk::MyStatus::GetInstance().notifyProcMemory_ = ERR_OK;
     AAFwk::MyStatus::GetInstance().notifyProcMemoryMapSize_ = 0;
-    AAFwk::MyStatus::GetInstance().getCallingUid_ = 200000;
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 100;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 20020001;
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
 
     std::map<pid_t, MemoryLevel> procLevelMap;
@@ -2842,6 +2855,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_006, TestSize.Leve
 
     AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
     AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getCallingAppUid_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_006 end");
 }
 

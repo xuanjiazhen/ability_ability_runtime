@@ -163,6 +163,7 @@ bool AppRunningManager::ProcessExitByBundleNameAndUid(
 bool AppRunningManager::ProcessExitByBundleNameAndAppIndex(const std::string &bundleName, int32_t appIndex,
     std::list<pid_t> &pids, bool clearPageStack, int32_t userId)
 {
+    AAFwk::MyStatus::GetInstance().processExitUserId_ = userId;
     return false;
 }
 

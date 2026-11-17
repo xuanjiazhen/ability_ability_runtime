@@ -3520,7 +3520,7 @@ int32_t AppMgrServiceInner::KillApplication(const std::string &bundleName, bool 
     if (result != ERR_OK) {
         if (AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall() ||
             AAFwk::PermissionVerification::GetInstance()->IsCustomSandboxCall()) {
-            userId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+            userId = GetUserIdByUid(IPCSkeleton::GetCallingAppUid());
         } else {
             TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
             return result;
@@ -4483,7 +4483,7 @@ int32_t AppMgrServiceInner::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLe
     TAG_LOGD(AAFwkTag::APPMGR, "isShellCall %{public}d", isShellCall);
     if (!(isMemmgrCall || (isShellCall && isDevelopMode))) {
         if (isLocalDebugOtherAppsCall) {
-            auto callingUserId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+            auto callingUserId = GetUserIdByUid(IPCSkeleton::GetCallingAppUid());
             std::map<pid_t, MemoryLevel> filteredMap;
             for (const auto &item : procLevelMap) {
                 auto appRecord = appRunningManager_->GetAppRunningRecordByPid(item.first);

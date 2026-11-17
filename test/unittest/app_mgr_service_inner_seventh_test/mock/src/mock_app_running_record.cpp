@@ -21,6 +21,7 @@ AppRunningRecord::AppRunningRecord(
     const std::shared_ptr<ApplicationInfo> &info, const int32_t recordId, const std::string &processName)
     : appRecordId_(recordId), processName_(processName)
 {
+    mainUid_ = 0;
     if (info) {
         appInfo_ = info;
         mainBundleName_ = info->bundleName;
@@ -141,7 +142,7 @@ const std::string &AppRunningRecord::GetCustomProcessFlag() const
 
 int32_t AppRunningRecord::GetUid() const
 {
-    return 0;
+    return mainUid_;
 }
 
 void AppRunningRecord::SetUid(const int32_t uid)
