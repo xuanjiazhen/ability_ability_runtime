@@ -52,7 +52,7 @@
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
 #include "utils/agent_caller_identity_util.h"
-#include "utils/migration_marker_guard.h"
+#include "base_extension_record.h"
 #include "user_controller/user_controller.h"
 
 namespace OHOS {
@@ -1156,28 +1156,21 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
     // requests stop re-delivering it; a failed re-parent keeps it for the next retry
     // (the provider strips the declaration from its receipt on failure, so a failed
     // generation never reaches this clear path).
-    // Gen fencing: only the CURRENT generation's completion may clear the marker.
+    // Confirm-clear is gen-matched against the record's AUTHORITATIVE marker
+    // (BaseExtensionRecord, G-1) — not against the sessionInfo copy.
     if (winCmd == WIN_CMD_FOREGROUND && abilityCmd == AAFwk::ABILITY_CMD_FOREGROUND &&
         sessionInfo->originalCallerInfo.callerToken != nullptr) {
-        // Serialize the read-modify-write against gen stamping and at-least-once inheritance.
-        AAFwk::MigrationMarkerGuard markerGuard;
-        auto recordSessionInfo = abilityRecord->GetSessionInfo();
-        if (recordSessionInfo != nullptr &&
-            recordSessionInfo->originalCallerInfo.callerToken != nullptr &&
-            sessionInfo->originalCallerInfo.migrationGen ==
-            recordSessionInfo->originalCallerInfo.migrationGen) {
-            recordSessionInfo->originalCallerInfo.callerToken = nullptr;
+        auto extensionRecord = BaseExtensionRecord::TransferToExtensionRecordBase(abilityRecord);
+        if (extensionRecord != nullptr &&
+            extensionRecord->ConfirmMigrationDeclaration(sessionInfo->originalCallerInfo.migrationGen)) {
             TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{private}d, gen: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
-        } else if (recordSessionInfo != nullptr &&
-                   recordSessionInfo->originalCallerInfo.callerToken != nullptr &&
-                   sessionInfo->originalCallerInfo.migrationGen <
-                   recordSessionInfo->originalCallerInfo.migrationGen) {
+        } else if (extensionRecord != nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT,
-                "stale migration completion ignored, persistentId: %{private}d, done gen: %{public}u, "
-                "record gen: %{public}u",
+                "migration completion ignored (no marker or stale gen), persistentId: %{private}d, "
+                "done gen: %{public}u, record gen: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
-                recordSessionInfo->originalCallerInfo.migrationGen);
+                extensionRecord->GetMigrationGen());
         }
     }
 

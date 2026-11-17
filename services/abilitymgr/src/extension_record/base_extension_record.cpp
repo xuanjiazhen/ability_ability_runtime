@@ -15,6 +15,8 @@
 
 #include "base_extension_record.h"
 
+#include <cstdint>
+
 #include <singleton.h>
 
 #include "ability_manager_service.h"
@@ -391,6 +393,52 @@ void BaseExtensionRecord::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
             break;
         }
     }
+}
+
+uint32_t BaseExtensionRecord::AdvanceMigrationGen()
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (migrationGen_ == UINT32_MAX) {
+        return 0;  // saturated: reject the migration instead of wrapping the fence to 0
+    }
+    return ++migrationGen_;
+}
+
+void BaseExtensionRecord::SetMigrationDeclaration(const OriginalCallerInfo &declaration,
+    uint32_t targetHostWindowId)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    migrationDeclaration_ = declaration;
+    migrationTargetHostWindowId_ = targetHostWindowId;
+}
+
+bool BaseExtensionRecord::GetMigrationDeclaration(OriginalCallerInfo &declaration,
+    uint32_t &targetHostWindowId) const
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (migrationDeclaration_.callerToken == nullptr) {
+        return false;
+    }
+    declaration = migrationDeclaration_;
+    targetHostWindowId = migrationTargetHostWindowId_;
+    return true;
+}
+
+bool BaseExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (migrationDeclaration_.callerToken == nullptr || gen != migrationDeclaration_.migrationGen) {
+        return false;
+    }
+    // Marker off; the gen itself is retained (monotonic across the record's lifetime).
+    migrationDeclaration_.callerToken = nullptr;
+    return true;
+}
+
+uint32_t BaseExtensionRecord::GetMigrationGen() const
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    return migrationGen_;
 }
 } // namespace AAFwk
 } // namespace OHOS

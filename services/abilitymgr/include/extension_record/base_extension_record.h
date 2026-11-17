@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_BASE_H
 #define OHOS_ABILITY_RUNTIME_EXTENSION_RECORD_BASE_H
 
+#include <mutex>
+
 #include "ability_record.h"
 
 namespace OHOS {
@@ -149,6 +151,42 @@ public:
     void SetRequestId(const std::string &requestId);
     std::string GetRequestId() const;
 
+    // ===== Authoritative migration state (host window migration, G-1) =====
+    // The record owns the migration gen and the unconfirmed-migration marker; the
+    // SessionInfo carried by requests is only a one-way delivery projection stamped from
+    // this state. Replacing the record's sessionInfo (SetSessionInfo) NEVER rolls the
+    // gen/marker back, and every delivery leaves AMS carrying the record's consistent
+    // (declaration, target hostWindowId) pair.
+
+    /**
+     * Advance the migration gen by 1 for a new migration.
+     * @return The new gen, or 0 on saturation (the caller must reject the migration).
+     */
+    uint32_t AdvanceMigrationGen();
+
+    /**
+     * @brief Declare an unconfirmed migration (marker on). Remembered until confirmed by
+     *        a gen-matched completion receipt.
+     * @param declaration The declaration as delivered (gen must be the stamped one).
+     * @param targetHostWindowId The migration target window, delivered with the projection.
+     */
+    void SetMigrationDeclaration(const OriginalCallerInfo &declaration, uint32_t targetHostWindowId);
+
+    /**
+     * @brief At-least-once projection source.
+     * @return true and fills the outputs when a migration is pending; false otherwise.
+     */
+    bool GetMigrationDeclaration(OriginalCallerInfo &declaration, uint32_t &targetHostWindowId) const;
+
+    /**
+     * @brief Confirm-clear by gen: only the CURRENT generation's completion may clear.
+     * @return true when the marker existed and the gen matched (marker cleared).
+     */
+    bool ConfirmMigrationDeclaration(uint32_t gen);
+
+    /** Current migration gen (diagnosis/logging). */
+    uint32_t GetMigrationGen() const;
+
 private:
     void DumpUIExtensionRootHostInfo(std::vector<std::string> &info) const;
 
@@ -163,6 +201,13 @@ private:
     sptr<IRemoteObject> connRemoteObject_ = {};
     bool isConnected = false;
     std::string requestId_;
+    // Authoritative migration state; guarded by migrationMutex_ (LEAF lock: never call
+    // out or acquire other locks while holding it). migrationDeclaration_.callerToken
+    // != nullptr ⇔ an unconfirmed migration is pending.
+    mutable std::mutex migrationMutex_;
+    uint32_t migrationGen_ = 0;
+    OriginalCallerInfo migrationDeclaration_ = {};
+    uint32_t migrationTargetHostWindowId_ = 0;
 };
 } // namespace AAFwk
 } // namespace OHOS

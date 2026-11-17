@@ -30,7 +30,6 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "int_wrapper.h"
-#include "migration_marker_guard.h"
 #include "multi_instance_utils.h"
 #include "param.h"
 #include "request_id_util.h"
@@ -716,29 +715,23 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
     targetService->DoBackgroundAbilityWindowDelayed(false);
-    // At-least-once re-delivery: while a migration is unconfirmed, later foreground requests
-    // carry the declaration again; cleared on confirmation (ScheduleCommandAbilityWindowDone).
-    // The marker read-modify-write is serialized against confirm-clear and gen stamping.
+    // Migration delivery projection (G-1): while a migration is unconfirmed, stamp the
+    // pending declaration AND its target host window onto the request so the provider keeps
+    // getting re-parent chances and the delivered (declaration, hostWindowId) pair is always
+    // the record's consistent pair; with no pending migration, a stale declaration on the
+    // request is stripped — declarations only ever leave AMS stamped from the record's
+    // authoritative state. SetSessionInfo can no longer roll the gen/marker back.
     {
-        AAFwk::MigrationMarkerGuard markerGuard;
-        if (abilityRequest.sessionInfo != nullptr &&
-            abilityRequest.sessionInfo->originalCallerInfo.callerToken == nullptr) {
-            auto unconfirmedInfo = targetService->GetSessionInfo();
-            if (unconfirmedInfo != nullptr && unconfirmedInfo->originalCallerInfo.callerToken != nullptr) {
-                abilityRequest.sessionInfo->originalCallerInfo = unconfirmedInfo->originalCallerInfo;
+        AAFwk::OriginalCallerInfo declaration;
+        uint32_t targetHostWindowId = 0;
+        if (targetService->GetMigrationDeclaration(declaration, targetHostWindowId)) {
+            if (abilityRequest.sessionInfo != nullptr) {
+                abilityRequest.sessionInfo->originalCallerInfo = declaration;
+                abilityRequest.sessionInfo->hostWindowId = targetHostWindowId;
             }
-        }
-        if (abilityRequest.sessionInfo != nullptr) {
-            // Gen monotonicity guard: never roll the record's migration gen back on a plain
-            // reuse/preload update. Paired with UIExtensionRecord::Update.
-            auto oldInfo = targetService->GetSessionInfo();
-            if (oldInfo != nullptr && abilityRequest.sessionInfo->originalCallerInfo.migrationGen <
-                oldInfo->originalCallerInfo.migrationGen) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "migration gen rollback on record update, keep gen: %{public}u",
-                    oldInfo->originalCallerInfo.migrationGen);
-                abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
-                    oldInfo->originalCallerInfo.migrationGen;
-            }
+        } else if (abilityRequest.sessionInfo != nullptr &&
+                   abilityRequest.sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
         }
         targetService->SetSessionInfo(abilityRequest.sessionInfo);
     }

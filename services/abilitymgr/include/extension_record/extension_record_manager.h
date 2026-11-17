@@ -117,8 +117,11 @@ public:
     int32_t GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
         std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded);
 
-    // Handles the migration-update branch of GetOrCreateExtensionRecord; false = fall
-    // through to the normal componentId match.
+    // Handles the migration-update branch of GetOrCreateExtensionRecord. The declaration is
+    // always fully handled here (matched, or rejected with ERR_INVALID_VALUE): it never falls
+    // through to the normal componentId/fresh-record path, so a failed migration can never
+    // silently become a component restart. (The bool return is kept for symmetry; false is
+    // currently unreachable.)
     bool GetMigrationUpdateRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
         std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded, int32_t &ret);
 

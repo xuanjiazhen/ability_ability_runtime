@@ -20,7 +20,6 @@
 #include "ability_util.h"
 #include "app_utils.h"
 #include "extension_running_timeout_monitor.h"
-#include "migration_marker_guard.h"
 #include "preload_ui_extension_execute_callback_proxy.h"
 #include "preload_ui_extension_host_client.h"
 #include "ui_extension_record.h"
@@ -229,13 +228,15 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
             ret = ERR_INVALID_VALUE;
             return true;
         }
+        // Reject visibly instead of falling back to the normal path: a silent fallback could
+        // create a NEW instance (component restart, content state lost) while SCB believes
+        // the migration succeeded (StartUIExtensionAbility returned ERR_OK). SCB decides how
+        // to recover (retry, or destroy + create explicitly) on the visible error.
         TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration update: record not found, persistentId: %{private}d, fallback",
+            "migration update: record not found, persistentId: %{private}d, rejected",
             abilityRequest.sessionInfo->persistentId);
-        // Strip the declaration so the fallback path (componentId match / fresh record) is
-        // not poisoned by a wire-fresh gen this record never stamped.
-        abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
-        return false;
+        ret = ERR_INVALID_VALUE;
+        return true;
     }
     // Field reconciliation: SCB fills originalCallerInfo.persistentId and the top-level
     // persistentId from the same session; a mismatch means the declaration was forged or
@@ -249,9 +250,11 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    // The credential/window/gen-stamp section reads and writes the record's migration
-    // marker; serialize against confirm-clear and at-least-once inheritance.
-    AAFwk::MigrationMarkerGuard markerGuard;
+    // Gen/marker authority lives on the record (BaseExtensionRecord, G-1): Advance/
+    // Declare run under the record's own migration lock; the request sessionInfo below
+    // only carries the one-way delivery projection. ExtensionRecordManager::mutex_ was
+    // already taken and released inside GetAbilityRecordByPersistentId (never nest it
+    // with the record's migration lock).
     auto recordSessionInfo = migrationRecord->GetSessionInfo();
     // Credential gate: the declared previous host token must equal the recorded one (binder-level).
     bool declarationMatched = recordSessionInfo != nullptr &&
@@ -280,19 +283,21 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    // Saturation guard: never let the gen wrap around to 0 (the fence would treat every
-    // later command as stale and the marker could never be cleared).
-    if (recordSessionInfo->originalCallerInfo.migrationGen == UINT32_MAX) {
+    // Gen stamping with saturation protection: 0 means saturated — reject instead of
+    // wrapping the provider-side fence to 0.
+    uint32_t newGen = migrationRecord->AdvanceMigrationGen();
+    if (newGen == 0) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "migration gen saturated, persistentId: %{private}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    // Stamp the migration generation for provider-side monotonic filtering and
-    // generation-matched confirmation.
-    abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
-        recordSessionInfo->originalCallerInfo.migrationGen + 1;
+    // Projection + marker: the delivered declaration (with the stamped gen) and its
+    // target host window are remembered as the record's authoritative pending state.
+    abilityRequest.sessionInfo->originalCallerInfo.migrationGen = newGen;
+    migrationRecord->SetMigrationDeclaration(abilityRequest.sessionInfo->originalCallerInfo,
+        abilityRequest.sessionInfo->hostWindowId);
     abilityRecord = migrationRecord;
     isLoaded = true;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{private}d",
