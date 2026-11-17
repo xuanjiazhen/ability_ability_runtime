@@ -827,6 +827,9 @@ enum class AbilityManagerInterfaceCode {
 
     // force stop process with kill id for cli tool
     FORCE_STOP_PROCESS = 6195,
+
+    // start ui ability with displayId passthrough, restricted to softbus_service (uid 4700)
+    START_UI_ABILITY_WITH_DISPLAY_ID_PASSTHROUGH = 6193,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
