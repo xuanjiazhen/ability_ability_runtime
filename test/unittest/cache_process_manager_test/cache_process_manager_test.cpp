@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #define private public
 #define protected public
 #include "cache_process_manager.h"
+#include "app_utils.h"
 #undef private
 #undef protected
 #include "mock_app_mgr_service_inner.h"
@@ -538,6 +539,140 @@ HWTEST_F(CacheProcessManagerTest, CacheProcessManager_IsAppContainsSrvExt_0100, 
     EXPECT_TRUE(abilityRunningRecord != nullptr);
     
     EXPECT_EQ(cacheProcMgr->IsAppContainsSrvExt(appRunningRecord), false);
+}
+class CacheProcessManagerOverseaTest : public CacheProcessManagerTest {
+public:
+    static constexpr int32_t TEST_MAX_PROC_CACHE_NUM = 2;
+
+    void SetUp() override
+    {
+        auto &appUtils = AAFwk::AppUtils::GetInstance();
+        originalBrokerDelegateBundleName_ = appUtils.brokerDelegateBundleName_;
+        appUtils.brokerDelegateBundleName_ = {true, "com.example.fusionassistant"};
+        cacheProcMgr_ = std::make_shared<CacheProcessManager>();
+        cacheProcMgr_->maxProcCacheNum_ = TEST_MAX_PROC_CACHE_NUM;
+        cacheProcMgr_->warmStartProcesEnable_ = false;
+        cacheProcMgr_->shouldCheckApi = true;
+        cacheProcMgr_->shouldCheckSupport = true;
+    }
+
+    void TearDown() override
+    {
+        AAFwk::AppUtils::GetInstance().brokerDelegateBundleName_ = originalBrokerDelegateBundleName_;
+    }
+
+    std::shared_ptr<AppRunningRecord> MockAssistantRecord()
+    {
+        auto appRecord = MockAppRecord();
+        appRecord->GetApplicationInfo()->bundleName = "com.example.fusionassistant";
+        appRecord->SetUIAbilityLaunched(true);
+        appRecord->SetSupportedProcessCache(true);
+        appRecord->SetEnableProcessCache(true);
+        return appRecord;
+    }
+
+    std::shared_ptr<CacheProcessManager> cacheProcMgr_;
+    AAFwk::DeviceConfiguration<std::string> originalBrokerDelegateBundleName_;
+};
+
+/**
+ * @tc.name: OverseasAssistantSupportsCache
+ * @tc.desc: The overseas assistant can use process cache when all normal conditions are satisfied.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheProcessManagerOverseaTest, OverseasAssistantSupportsCache, TestSize.Level1)
+{
+    cacheProcMgr_->isOversea_ = true;
+    auto appRecord = MockAssistantRecord();
+    EXPECT_TRUE(cacheProcMgr_->IsAppShouldCache(appRecord));
+}
+
+/**
+ * @tc.name: NonOverseasAssistantRejectsCache
+ * @tc.desc: The configured assistant remains excluded from process cache outside overseas regions.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheProcessManagerOverseaTest, NonOverseasAssistantRejectsCache, TestSize.Level1)
+{
+    cacheProcMgr_->isOversea_ = false;
+    auto appRecord = MockAssistantRecord();
+    EXPECT_FALSE(cacheProcMgr_->IsAppShouldCache(appRecord));
+}
+
+/**
+ * @tc.name: OtherApplicationsKeepCacheEligibility
+ * @tc.desc: The region does not change the cache eligibility of other applications.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheProcessManagerOverseaTest, OtherApplicationsKeepCacheEligibility, TestSize.Level1)
+{
+    auto appRecord = MockAssistantRecord();
+    appRecord->GetApplicationInfo()->bundleName = DEFAULT_BUNDLE_NAME;
+    cacheProcMgr_->isOversea_ = false;
+    EXPECT_TRUE(cacheProcMgr_->IsAppShouldCache(appRecord));
+    cacheProcMgr_->isOversea_ = true;
+    EXPECT_TRUE(cacheProcMgr_->IsAppShouldCache(appRecord));
+}
+
+/**
+ * @tc.name: OverseasAssistantRequiresSupportDeclaration
+ * @tc.desc: Overseas eligibility still requires the application to declare process cache support.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheProcessManagerOverseaTest, OverseasAssistantRequiresSupportDeclaration, TestSize.Level1)
+{
+    cacheProcMgr_->isOversea_ = true;
+    auto appRecord = MockAssistantRecord();
+    appRecord->procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
+    EXPECT_FALSE(cacheProcMgr_->IsAppShouldCache(appRecord));
+    appRecord->SetSupportedProcessCache(false);
+    EXPECT_FALSE(cacheProcMgr_->IsAppShouldCache(appRecord));
+}
+
+/**
+ * @tc.name: OverseasAssistantHonorsCacheBlock
+ * @tc.desc: Temporary process cache blocking still applies to the overseas assistant.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheProcessManagerOverseaTest, OverseasAssistantHonorsCacheBlock, TestSize.Level1)
+{
+    cacheProcMgr_->isOversea_ = true;
+    auto appRecord = MockAssistantRecord();
+    appRecord->SetProcessCacheBlocked(true);
+    EXPECT_FALSE(cacheProcMgr_->IsAppShouldCache(appRecord));
+}
+
+/**
+ * @tc.name: OverseasAssistantRequiresUIForWarmStart
+ * @tc.desc: Warm start cache still requires a launched UI ability for the overseas assistant.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheProcessManagerOverseaTest, OverseasAssistantRequiresUIForWarmStart, TestSize.Level1)
+{
+    cacheProcMgr_->isOversea_ = true;
+    cacheProcMgr_->maxProcCacheNum_ = 0;
+    cacheProcMgr_->warmStartProcesEnable_ = true;
+    auto appRecord = MockAssistantRecord();
+    appRecord->SetUIAbilityLaunched(false);
+    EXPECT_FALSE(cacheProcMgr_->IsAppShouldCache(appRecord));
+    appRecord->SetUIAbilityLaunched(true);
+    EXPECT_TRUE(cacheProcMgr_->IsAppShouldCache(appRecord));
+}
+
+/**
+ * @tc.name: OverseasAssistantHonorsCacheEnableState
+ * @tc.desc: Overseas eligibility does not force process cache to be enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CacheProcessManagerOverseaTest, OverseasAssistantHonorsCacheEnableState, TestSize.Level1)
+{
+    cacheProcMgr_->isOversea_ = true;
+    auto appRecord = MockAssistantRecord();
+    appRecord->SetEnableProcessCache(false);
+    EXPECT_FALSE(cacheProcMgr_->IsAppShouldCache(appRecord));
+    appRecord->SetEnableProcessCache(true);
+    cacheProcMgr_->maxProcCacheNum_ = 0;
+    EXPECT_FALSE(cacheProcMgr_->IsAppShouldCache(appRecord));
 }
 } // namespace AppExecFwk
 } // namespace OHOS
