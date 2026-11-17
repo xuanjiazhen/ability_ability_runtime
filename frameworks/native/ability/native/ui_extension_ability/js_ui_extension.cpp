@@ -768,7 +768,7 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
         // the JS-visible proxies. On failure keep the session backgrounded (skip Show).
         uint32_t oldParentWindowId = migrationFencing_.currentParentWindowId;
         if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
-            TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{private}d, "
+            TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{public}d, "
                 "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
                 sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
             if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
@@ -813,7 +813,7 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
             }
             contentSessionPtr->DoUpdateExtensionParent(sessionInfo);
         } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
-            TAG_LOGI(AAFwkTag::UI_EXT, "migration skipped, persistentId: %{private}d, gen: %{public}u, "
+            TAG_LOGI(AAFwkTag::UI_EXT, "migration skipped, persistentId: %{public}d, gen: %{public}u, "
                 "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
                 migrationFencing_.lastGen, sessionInfo->hostWindowId,

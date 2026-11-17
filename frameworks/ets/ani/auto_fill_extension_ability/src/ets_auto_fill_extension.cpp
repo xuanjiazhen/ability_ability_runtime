@@ -278,7 +278,7 @@ void EtsAutoFillExtension::OnCommandWindow(
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null sessionInfo");
         return;
     }
-    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Begin. persistentId: %{private}d, winCmd: %{public}d",
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Begin. persistentId: %{public}d, winCmd: %{public}d",
         sessionInfo->persistentId, winCmd);
     Extension::OnCommandWindow(want, sessionInfo, winCmd);
     switch (winCmd) {
@@ -531,7 +531,7 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
         // Host window migration: re-parent via the shared helper (fail-isolated).
         uint32_t oldParentWindowId = migrationFencing_.currentParentWindowId;
         if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
-            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "host window migration, update parent, persistentId: %{private}d, "
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "host window migration, update parent, persistentId: %{public}d, "
                 "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
                 sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
             if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
@@ -555,13 +555,17 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
                     CallObjectMethod(false, "onCallerChanged", nullptr, wantObj);
                 }
             }
-            // Sync the autofill context's cached session info to the new host window.
+            // Sync the autofill context's cached session info to the new host window:
+            // cache a COPY without the previous-host token (capability hygiene — same as
+            // the ETS content-session cache).
             auto migrateContext = GetContext();
             if (migrateContext != nullptr) {
-                migrateContext->SetSessionInfo(sessionInfo);
+                auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*sessionInfo);
+                cachedInfo->originalCallerInfo.callerToken = nullptr;
+                migrateContext->SetSessionInfo(cachedInfo);
             }
         } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
-            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "migration skipped, persistentId: %{private}d, gen: %{public}u, "
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "migration skipped, persistentId: %{public}d, gen: %{public}u, "
                 "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
                 migrationFencing_.lastGen, sessionInfo->hostWindowId,

@@ -682,11 +682,11 @@ int UIExtensionAbilityManager::ScheduleCommandAbilityWindowDone(const sptr<IRemo
         if (extensionRecord != nullptr) {
             if (extensionRecord->ConfirmMigrationDeclaration(
                 sessionInfo->originalCallerInfo.migrationGen)) {
-                TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{private}d, gen: %{public}u",
+                TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{public}d, gen: %{public}u",
                     sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
             } else {
                 TAG_LOGW(AAFwkTag::UI_EXT,
-                    "migration completion ignored (no marker or stale gen), persistentId: %{private}d, "
+                    "migration completion ignored (no marker or stale gen), persistentId: %{public}d, "
                     "done gen: %{public}u, record gen: %{public}u",
                     sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
                     extensionRecord->GetMigrationGen());

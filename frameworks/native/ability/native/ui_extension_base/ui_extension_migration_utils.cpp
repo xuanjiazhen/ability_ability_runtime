@@ -18,19 +18,15 @@
 namespace OHOS {
 namespace AbilityRuntime {
 
-bool IsValidParentWindowType(uint32_t parentWindowType)
-{
-    // WindowType enum range: [0, WINDOW_TYPE_UI_EXTENSION]; reject unknown raw values
-    // from the wire instead of blind-casting them into Rosen::WindowType.
-    return parentWindowType <= static_cast<uint32_t>(Rosen::WindowType::WINDOW_TYPE_UI_EXTENSION);
-}
-
 bool UpdateWindowParentForMigration(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
     const sptr<Rosen::Window> &uiWindow)
 {
-    if (sessionInfo == nullptr || uiWindow == nullptr ||
-        !IsValidParentWindowType(sessionInfo->parentWindowType)) {
+    // NOTE: window-domain fields (parentWindowType/displayId/realHostWindowId) are passed
+    // through to WMS verbatim — the ability layer has no semantics for them and the
+    // re-parent sink (UpdateExtensionParentParams) does not consume parentWindowType.
+    // Any validation of these fields belongs to the window layer if it ever reads them.
+    if (sessionInfo == nullptr || uiWindow == nullptr) {
         return false;
     }
     sptr<Rosen::WindowOption> option = sptr<Rosen::WindowOption>::MakeSptr();
