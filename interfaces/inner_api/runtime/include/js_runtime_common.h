@@ -25,6 +25,7 @@ public:
     JsRuntimeCommon(const JsRuntimeCommon&) = delete;
     JsRuntimeCommon& operator=(const JsRuntimeCommon&) = delete;
     static JsRuntimeCommon& GetInstance();
+    static bool IsJitAllowed(bool requested);
     bool IsDebugMode();
     bool IsDebugApp();
     bool IsNativeStart();

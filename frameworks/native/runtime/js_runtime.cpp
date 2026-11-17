@@ -668,8 +668,7 @@ void JsRuntime::PostPreload(const Options& options)
     }
     bool profileEnabled = OHOS::system::GetBoolParameter("ark.profile", false);
     postOption.SetEnableProfile(profileEnabled);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "ASMM JIT Verify PostFork, jitEnabled: %{public}d", options.jitEnabled);
-    postOption.SetEnableJIT(options.jitEnabled);
+    postOption.SetEnableJIT(JsRuntimeCommon::IsJitAllowed(options.jitEnabled));
     postOption.SetAOTCompileStatusMap(options.aotCompileStatusMap);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "SmartGC: set options enableWarmStartupSmartGC to RuntimeOption");
     postOption.SetEnableWarmStartupSmartGC(options.enableWarmStartupSmartGC);
@@ -846,8 +845,11 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     std::string asmOpcodeDisableRange = OHOS::system::GetParameter("persist.ark.asmopcodedisablerange", "");
     pandaOption.SetEnableAsmInterpreter(asmInterpreterEnabled);
     pandaOption.SetAsmOpcodeDisableRange(asmOpcodeDisableRange);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "ASMM JIT Verify CreateJsEnv, jitEnabled: %{public}d", options.jitEnabled);
-    pandaOption.SetEnableJIT(options.jitEnabled);
+    bool jitEnabled = options.jitEnabled;
+    if (!options.preload) {
+        jitEnabled = JsRuntimeCommon::IsJitAllowed(options.jitEnabled);
+    }
+    pandaOption.SetEnableJIT(jitEnabled);
 
     if (options.isMultiThread) {
         TAG_LOGD(AAFwkTag::JSRUNTIME, "Start Multi Thread Mode: %{public}d", options.isMultiThread);
