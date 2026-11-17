@@ -171,7 +171,12 @@ napi_status JsRuntimeLite::CreateJsEnv(const Options& options, std::shared_ptr<J
     std::string asmOpcodeDisableRange = OHOS::system::GetParameter("persist.ark.asmopcodedisablerange", "");
     pandaOption.SetEnableAsmInterpreter(asmInterpreterEnabled);
     pandaOption.SetAsmOpcodeDisableRange(asmOpcodeDisableRange);
-    pandaOption.SetEnableJIT(options.jitEnabled);
+    bool jitEnabled = options.jitEnabled;
+    // Preload has no target application token; check permissions in the application process.
+    if (!options.preload) {
+        jitEnabled = JsRuntimeCommon::IsJitAllowed(options.jitEnabled);
+    }
+    pandaOption.SetEnableJIT(jitEnabled);
 
     bool useAbilityRuntime = (options.isStageModel) || (options.isTestFramework);
     if (useAbilityRuntime) {
