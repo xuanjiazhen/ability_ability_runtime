@@ -495,11 +495,18 @@ void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<
     CHECK_POINTER(sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s, persistentId:%{public}d, "
-        "abilityState:%{public}s, pendingState:%{public}d",
+        "abilityState:%{public}s, pendingState:%{public}d, "
+        "sessionInfo: compId: %{public}" PRIu64 ", hostWindowId: %{public}u, realHostWindowId: %{public}d, "
+        "migrationGen: %{public}u, migrationDeclared: %{public}d",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(),
         sessionInfo->persistentId, abilitystateStr.c_str(),
-        static_cast<int32_t>(abilityRecord->GetPendingState()));
+        static_cast<int32_t>(abilityRecord->GetPendingState()),
+        sessionInfo->uiExtensionComponentId,
+        sessionInfo->hostWindowId,
+        sessionInfo->realHostWindowId,
+        sessionInfo->originalCallerInfo.migrationGen,
+        sessionInfo->originalCallerInfo.callerToken != nullptr ? 1 : 0);
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
     if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
         MoveToBackground(abilityRecord);
@@ -655,6 +662,40 @@ int32_t UIExtensionAbilityManager::UnRegisterPreloadUIExtensionHostClient(int32_
     return ERR_OK;
 }
 
+int UIExtensionAbilityManager::ScheduleCommandAbilityWindowDone(const sptr<IRemoteObject> &token,
+    const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd, AbilityCommand abilityCmd)
+{
+    // Host-window migration confirmation (UIExtension-only bookkeeping, kept ahead of the
+    // base processing so the queued-request replay inside CompleteStartServiceReq already
+    // sees the confirmed state): gen-matched confirm-clear against the UIExtensionRecord's
+    // authoritative marker. A failed re-parent never reaches here (the provider strips the
+    // declaration from its failure receipt), so the marker stays for the next
+    // at-least-once re-delivery.
+    if (winCmd == WIN_CMD_FOREGROUND && abilityCmd == AAFwk::ABILITY_CMD_FOREGROUND &&
+        sessionInfo != nullptr && sessionInfo->originalCallerInfo.callerToken != nullptr) {
+        auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
+        std::shared_ptr<ExtensionRecord> extensionRecord;
+        if (abilityRecord != nullptr && uiExtensionAbilityRecordMgr_ != nullptr) {
+            extensionRecord = uiExtensionAbilityRecordMgr_->FindExtensionRecordById(
+                abilityRecord->GetUIExtensionAbilityId());
+        }
+        if (extensionRecord != nullptr) {
+            if (extensionRecord->ConfirmMigrationDeclaration(
+                sessionInfo->originalCallerInfo.migrationGen)) {
+                TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{private}d, gen: %{public}u",
+                    sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+            } else {
+                TAG_LOGW(AAFwkTag::UI_EXT,
+                    "migration completion ignored (no marker or stale gen), persistentId: %{private}d, "
+                    "done gen: %{public}u, record gen: %{public}u",
+                    sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
+                    extensionRecord->GetMigrationGen());
+            }
+        }
+    }
+    return AbilityConnectManager::ScheduleCommandAbilityWindowDone(token, sessionInfo, winCmd, abilityCmd);
+}
+
 int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abilityRequest)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
@@ -708,7 +749,34 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
     targetService->DoBackgroundAbilityWindowDelayed(false);
-    targetService->SetSessionInfo(abilityRequest.sessionInfo);
+    // Migration delivery projection (G-1): while a migration is unconfirmed, stamp the
+    // pending declaration AND its target host window onto the request so the provider keeps
+    // getting re-parent chances and the delivered (declaration, hostWindowId) pair is always
+    // the record's consistent pair; with no pending migration, a stale declaration on the
+    // request is stripped — declarations only ever leave AMS stamped from the
+    // UIExtensionRecord's authoritative state. SetSessionInfo can no longer roll the
+    // gen/marker back. (targetService holds the inner record; the migration authority is
+    // the UIExtensionRecord wrapper resolved through the record manager.)
+    {
+        std::shared_ptr<ExtensionRecord> extensionRecord;
+        if (uiExtensionAbilityRecordMgr_ != nullptr) {
+            extensionRecord = uiExtensionAbilityRecordMgr_->FindExtensionRecordById(
+                targetService->GetUIExtensionAbilityId());
+        }
+        AAFwk::OriginalCallerInfo declaration;
+        uint32_t targetHostWindowId = 0;
+        if (extensionRecord != nullptr &&
+            extensionRecord->GetMigrationDeclaration(declaration, targetHostWindowId)) {
+            if (abilityRequest.sessionInfo != nullptr) {
+                abilityRequest.sessionInfo->originalCallerInfo = declaration;
+                abilityRequest.sessionInfo->hostWindowId = targetHostWindowId;
+            }
+        } else if (abilityRequest.sessionInfo != nullptr &&
+                   abilityRequest.sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
+        }
+        targetService->SetSessionInfo(abilityRequest.sessionInfo);
+    }
 
     if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
         auto &remoteObj = abilityRequest.sessionInfo->sessionToken;
@@ -810,10 +878,17 @@ void UIExtensionAbilityManager::DoForegroundUIExtension(std::shared_ptr<BaseExte
 
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "foreground ability: %{public}s/%{public}s, persistentId: %{public}d, abilityState: %{public}s",
+        "foreground ability: %{public}s/%{public}s, persistentId: %{public}d, abilityState: %{public}s, "
+        "sessionInfo: compId: %{public}" PRIu64 ", hostWindowId: %{public}u, realHostWindowId: %{public}d, "
+        "migrationGen: %{public}u, migrationDeclared: %{public}d",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(),
-        abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str());
+        abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str(),
+        abilityRequest.sessionInfo->uiExtensionComponentId,
+        abilityRequest.sessionInfo->hostWindowId,
+        abilityRequest.sessionInfo->realHostWindowId,
+        abilityRequest.sessionInfo->originalCallerInfo.migrationGen,
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken != nullptr ? 1 : 0);
 
     if (abilityRecord->IsReady() && !abilityRecord->IsAbilityState(AbilityState::INACTIVATING) &&
         !abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING) &&
@@ -915,7 +990,24 @@ void UIExtensionAbilityManager::CompleteStartServiceReq(const std::string &servi
         TAG_LOGI(AAFwkTag::UI_EXT, "complete UI extension foreground requests: %{public}zu, uri: %{public}s",
             requestQueue->requests.size(), serviceUri.c_str());
         for (const auto &request : requestQueue->requests) {
-            auto ret = StartAbilityLocked(request.abilityRequest);
+            auto abilityRequest = request.abilityRequest;
+            // Source the replay from the record (the consistency anchor): a queued snapshot
+            // may predate a migration and replaying it would poison the re-parent.
+            // NOTE: the queue key (serviceUri) IS the record's serviceMap_ key
+            // (element.GetURI() + UIExtensionAbilityId, see GetOrCreateExtensionRecord);
+            // rebuilding the key from the request yields the bare element URI, which never
+            // matches a UIExtension record and would disable the stripping below.
+            auto targetService = GetServiceRecordByElementName(serviceUri);
+            if (targetService != nullptr && targetService->GetSessionInfo() != nullptr &&
+                abilityRequest.sessionInfo != nullptr) {
+                auto recordInfo = targetService->GetSessionInfo();
+                // Copy before stripping: the record's sessionInfo is shared — nulling the
+                // declaration on it directly would erase the unconfirmed-migration marker.
+                auto replayInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*recordInfo);
+                replayInfo->originalCallerInfo.callerToken = nullptr;
+                abilityRequest.sessionInfo = replayInfo;
+            }
+            auto ret = StartAbilityLocked(abilityRequest);
             if (ret != ERR_OK) {
                 TAG_LOGW(AAFwkTag::UI_EXT, "StartAbilityLocked failed: %{public}d, uri: %{public}s",
                     ret, serviceUri.c_str());

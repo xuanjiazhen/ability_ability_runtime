@@ -42,6 +42,7 @@
 #endif // SUPPORT_SCREEN
 #include "want.h"
 #include "window.h"
+#include "window_option.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -56,6 +57,23 @@ constexpr size_t ARGC_THREE = 3;
 constexpr const char* PERMISSION_PRIVACY_WINDOW = "ohos.permission.PRIVACY_WINDOW";
 const std::string UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExtensionTargetType";
 const std::string FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
+
+bool HasJsExtensionWindowRef(napi_env env, const std::vector<napi_ref> &refs, napi_value jsExtensionWindow)
+{
+    for (auto it : refs) {
+        napi_value existing = nullptr;
+        napi_get_reference_value(env, it, &existing);
+        if (existing == nullptr) {
+            continue;  // dead weak ref, pruned by RefreshJsExtensionWindowProxies
+        }
+        bool same = false;
+        napi_strict_equals(env, existing, jsExtensionWindow, &same);
+        if (same) {
+            return true;
+        }
+    }
+    return false;
+}
 } // namespace
 
 #define CHECK_IS_SYSTEM_APP                                                             \
@@ -158,7 +176,14 @@ JsUIExtensionContentSession::JsUIExtensionContentSession(
 void JsUIExtensionContentSession::Finalizer(napi_env env, void* data, void* hint)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
-    std::unique_ptr<JsUIExtensionContentSession>(static_cast<JsUIExtensionContentSession*>(data));
+    auto* session = static_cast<JsUIExtensionContentSession*>(data);
+    if (session != nullptr) {
+        for (auto &ref : session->jsExtensionWindowRefs_) {
+            napi_delete_reference(env, ref);
+        }
+        session->jsExtensionWindowRefs_.clear();
+        delete session;
+    }
 }
 
 napi_value JsUIExtensionContentSession::StartAbility(napi_env env, napi_callback_info info)
@@ -317,7 +342,15 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionHostWindowProxy(napi_env
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
     }
-    return handleEscape.Escape(value->GetNapiValue());
+    napi_value proxyValue = value->GetNapiValue();
+    if (proxyValue != nullptr && !HasJsExtensionWindowRef(env, jsExtensionWindowRefs_, jsExtensionWindow)) {
+        // Weak ref on the napi_wrap target so unwrap always resolves to the JsExtensionWindow.
+        // Dedup registration keeps the vector bounded across repeated proxy fetches.
+        napi_ref ref = nullptr;
+        napi_create_reference(env, jsExtensionWindow, 0, &ref);
+        jsExtensionWindowRefs_.push_back(ref);
+    }
+    return handleEscape.Escape(proxyValue);
 }
 
 napi_value JsUIExtensionContentSession::OnGetUIExtensionWindowProxy(napi_env env, NapiCallbackInfo& info)
@@ -349,7 +382,14 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionWindowProxy(napi_env env
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
     }
-    return handleEscape.Escape(value->GetNapiValue());
+    napi_value proxyValue = value->GetNapiValue();
+    if (proxyValue != nullptr && !HasJsExtensionWindowRef(env, jsExtensionWindowRefs_, jsExtensionWindow)) {
+        // Weak ref on the napi_wrap target: see OnGetUIExtensionHostWindowProxy (deduped).
+        napi_ref ref = nullptr;
+        napi_create_reference(env, jsExtensionWindow, 0, &ref);
+        jsExtensionWindowRefs_.push_back(ref);
+    }
+    return handleEscape.Escape(proxyValue);
 }
 
 napi_value JsUIExtensionContentSession::OnStartAbilityAsCaller(napi_env env, NapiCallbackInfo& info)
@@ -1140,6 +1180,7 @@ napi_value JsUIExtensionContentSession::CreateJsUIExtensionContentSession(napi_e
 
     std::unique_ptr<JsUIExtensionContentSession> jsSession =
         std::make_unique<JsUIExtensionContentSession>(sessionInfo, uiWindow, context, abilityResultListeners);
+    jsSession->env_ = env;
     napi_wrap(env, object, jsSession.release(), Finalizer, nullptr, nullptr);
 
     const char *moduleName = "JsUIExtensionContentSession";
@@ -1175,6 +1216,7 @@ napi_value JsUIExtensionContentSession::CreateJsUIExtensionContentSession(napi_e
 
     std::unique_ptr<JsUIExtensionContentSession> jsSession =
         std::make_unique<JsUIExtensionContentSession>(sessionInfo, uiWindow);
+    jsSession->env_ = env;
     napi_wrap(env, object, jsSession.release(), Finalizer, nullptr, nullptr);
 
     const char *moduleName = "JsUIExtensionContentSession";
@@ -1382,5 +1424,89 @@ void JsUIExtensionContentSession::InitDisplayId(AAFwk::Want &want, AAFwk::StartO
     startOptions.SetDisplayID(window->GetDisplayId());
 }
 #endif
+
+namespace {
+sptr<Rosen::WindowOption> MakeMigrationParentOption(const sptr<AAFwk::SessionInfo> &sessionInfo)
+{
+    if (!IsValidParentWindowType(sessionInfo->parentWindowType)) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "invalid parentWindowType: %{public}u", sessionInfo->parentWindowType);
+        return nullptr;
+    }
+    sptr<Rosen::WindowOption> option = sptr<Rosen::WindowOption>::MakeSptr();
+    if (option != nullptr) {
+        option->SetParentId(sessionInfo->hostWindowId);
+        option->SetRealParentId(sessionInfo->realHostWindowId);
+        option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
+        option->SetDisplayId(sessionInfo->displayId);
+        option->SetCallerPersistentId(sessionInfo->callerPersistentId);
+    }
+    return option;
+}
+
+size_t RefreshJsExtensionWindowProxies(napi_env env, std::vector<napi_ref> &refs,
+    const sptr<Rosen::WindowOption> &option)
+{
+    size_t updatedProxies = 0;
+    for (auto it = refs.begin(); it != refs.end();) {
+        napi_value jsExtensionWindow = nullptr;
+        napi_get_reference_value(env, *it, &jsExtensionWindow);
+        if (jsExtensionWindow == nullptr) {
+            // Dead weak ref: free the handle and drop it so the vector does not grow unboundedly.
+            napi_delete_reference(env, *it);
+            it = refs.erase(it);
+            continue;
+        }
+        Rosen::JsExtensionWindow* jsExtWin = nullptr;
+        napi_unwrap(env, jsExtensionWindow, reinterpret_cast<void**>(&jsExtWin));
+        if (jsExtWin == nullptr) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "unwrap JsExtensionWindow failed");
+            ++it;
+            continue;
+        }
+        Rosen::WMError ret = jsExtWin->UpdateExtensionParent(option);
+        if (ret != Rosen::WMError::WM_OK) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "proxy UpdateExtensionParent failed, ret: %{public}d",
+                static_cast<int32_t>(ret));
+            ++it;
+            continue;
+        }
+        ++updatedProxies;
+        ++it;
+    }
+    return updatedProxies;
+}
+} // namespace
+
+void JsUIExtensionContentSession::DoUpdateExtensionParent(const sptr<AAFwk::SessionInfo> &sessionInfo)
+{
+    if (sessionInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
+        return;
+    }
+    // Second step of migration: cache a session info copy WITHOUT the previous-host token
+    // (the provider does not need the capability object after the re-parent; keeping it
+    // widens the token's exposure) and refresh the JS-visible proxies. The real window
+    // re-parent already happened in the caller (UpdateWindowParentForMigration) — do not
+    // repeat it here.
+    sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr(*sessionInfo);
+    sessionInfo_->originalCallerInfo.callerToken = nullptr;
+    TAG_LOGI(AAFwkTag::UI_EXT, "DoUpdateExtensionParent, persistentId: %{private}d, hostWindowId: %{public}u",
+        sessionInfo->persistentId, sessionInfo->hostWindowId);
+
+    if (env_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env_, proxies not updated");
+        return;
+    }
+    auto option = MakeMigrationParentOption(sessionInfo);
+    if (option == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null WindowOption");
+        return;
+    }
+    size_t updatedProxies = RefreshJsExtensionWindowProxies(env_, jsExtensionWindowRefs_, option);
+    TAG_LOGI(AAFwkTag::UI_EXT, "DoUpdateExtensionParent done, proxies updated: %{public}zu/%{public}zu, "
+        "hostWindowId: %{public}u, persistentId: %{private}d",
+        updatedProxies, jsExtensionWindowRefs_.size(),
+        sessionInfo->hostWindowId, sessionInfo->persistentId);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
