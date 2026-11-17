@@ -50,6 +50,8 @@ public:
     int fimStartFreeInstall_ = ERR_OK;
     int eriQueryAtomicServiceStartupRule_ = ERR_OK;
     std::shared_ptr<AbilityRecord> arGetAbilityRecord_ = nullptr;
+    // Tests inject the records here so that Token::GetAbilityRecordByToken can resolve a host chain.
+    std::vector<std::shared_ptr<AbilityRecord>> tokenRecordRegistry;
     AppExecFwk::AbilityInfo arGetAbilityInfo_ = {};
     bool sbjIsSceneBoardEnabled_ = false;
     int ipcGetCallingUid_ = 1;

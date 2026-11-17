@@ -6941,5 +6941,37 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartPrelaunchAbility_OnRemo
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0200 end");
 }
 
+/*
+ * Feature: AbilityManagerStub
+ * Name: GetUIExtensionRootHostInfoByIdInner_0100
+ * Function: GetUIExtensionRootHostInfoByIdInner
+ * SubFunction: NA
+ * FunctionPoints: dispatch GET_UI_EXTENSION_HOST_INFO_BY_ID and write the ById-only tail fields
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetUIExtensionRootHostInfoByIdInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_GetUIExtensionRootHostInfoByIdInner_0100 start");
+    MessageParcel data;
+    WriteInterfaceToken(data);
+    data.WriteInt32(100);
+
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_CALL(*stub_, GetUIExtensionRootHostInfoById(100, _)).Times(1).WillOnce(Return(ERR_OK));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID), data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+
+    std::unique_ptr<UIExtensionHostInfo> hostInfo(reply.ReadParcelable<UIExtensionHostInfo>());
+    ASSERT_NE(hostInfo, nullptr);
+    EXPECT_EQ(hostInfo->persistentId_, 0);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+    int32_t persistentId = -1;
+    EXPECT_TRUE(reply.ReadInt32(persistentId));
+    EXPECT_EQ(persistentId, 0);
+    EXPECT_TRUE(reply.ReadString().empty());
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_GetUIExtensionRootHostInfoByIdInner_0100 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS
