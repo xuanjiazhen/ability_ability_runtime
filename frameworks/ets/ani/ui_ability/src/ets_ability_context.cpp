@@ -2797,6 +2797,7 @@ void EtsAbilityContext::DisconnectUIServiceExtensionCheck(ani_env *env, ani_obje
     AAFwk::EtsUIServiceProxy* proxy = AAFwk::EtsUIServiceProxy::GetEtsUIServiceProxy(env, proxyObj);
     if (proxy == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null proxy");
+        TAG_LOGE(AAFwkTag::CONTEXT, "proxy");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parameter verification failed");
         return;
     }
