@@ -379,8 +379,7 @@ bool CacheProcessManager::IsAppSupportProcessCacheInnerFirst(const std::shared_p
         TAG_LOGI(AAFwkTag::APPMGR, "precheck failed");
         return false;
     }
-    if (!isOversea_ &&
-        appRecord->GetBundleName() == AAFwk::AppUtils::GetInstance().GetBrokerDelegateBundleName()) {
+    if (!isOversea_ && appRecord->GetBundleName() == AAFwk::AppUtils::GetInstance().GetBrokerDelegateBundleName()) {
         TAG_LOGD(AAFwkTag::APPMGR, "shell assistant, not support.");
         return false;
     }
