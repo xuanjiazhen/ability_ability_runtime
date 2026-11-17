@@ -130,6 +130,11 @@ Token::~Token()
 
 std::shared_ptr<AbilityRecord> Token::GetAbilityRecordByToken(sptr<IRemoteObject> token)
 {
+    for (const auto &record : MyStatus::GetInstance().tokenRecordRegistry_) {
+        if (record != nullptr && record->GetToken() != nullptr && record->GetToken()->AsObject() == token) {
+            return record;
+        }
+    }
     return MyStatus::GetInstance().arGetAbilityRecord_;
 }
 
