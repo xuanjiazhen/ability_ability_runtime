@@ -7,7 +7,7 @@
 | Item | Value |
 |------|-------|
 | Change ID | issue-20260914692272-task-rss-tiered-control |
-| Base / Head | `fdacaa726e1ef3b0a01b59d13822a512446a6e0f` / `WORKTREE（未提交）` |
+| Base / Head | `fdacaa726e1ef3b0a01b59d13822a512446a6e0f` / `2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99` |
 | Reviewed Scope | 计划内 appmgr、聚焦测试及 13 个直接聚合 `process_schedule.cpp` 的既有构建目标 |
 | Reviewer / Date | Agent / 2026-11-17 |
 
@@ -21,7 +21,7 @@
 
 | Task | Planned Files/Symbols | Actual Files/Symbols | Commit | Deviation | Result |
 |------|-----------------------|----------------------|--------|-----------|--------|
-| TASK-1 | `attribution_record.*`、`task_manager_service.*`、`process_schedule.*`、`resource_control_proxy.*`、BUILD.gn、聚焦测试和 SDD 文档 | 与计划一致；另含计划修订后明确列出的 13 个直接聚合目标 BUILD.gn | N/A（未提交） | 全量构建发现直接聚合目标必须同步代理实现，已先修订 design/plan 再修改，无语义扩大；`libappms.map` 最终无差异 | PASS |
+| TASK-1 | `attribution_record.*`、`task_manager_service.*`、`process_schedule.*`、`resource_control_proxy.*`、BUILD.gn、聚焦测试和 SDD 文档 | 与计划一致；另含计划修订后明确列出的 13 个直接聚合目标 BUILD.gn | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | 全量构建发现直接聚合目标必须同步代理实现，已先修订 design/plan 再修改，无语义扩大；`libappms.map` 最终无差异 | PASS |
 
 ## Findings
 

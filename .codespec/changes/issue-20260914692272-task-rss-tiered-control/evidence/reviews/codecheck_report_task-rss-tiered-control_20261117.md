@@ -10,9 +10,9 @@ codecheck_report:
   schema_version: "2.0"
   scope: "task-rss-tiered-control"
   round: 1
-  commit_id: "fdacaa726e1ef3b0a01b59d13822a512446a6e0f"
-  change_id: "I5fbd36bcb699cb76d8cd74990862105f7d9a14c8"
-  report_id: "I5fbd36bcb699cb76d8cd74990862105f7d9a14c8-R1"
+  commit_id: "2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99"
+  change_id: "Id5c10675d909bb3363870d0590d0b84dabcdf823"
+  report_id: "Id5c10675d909bb3363870d0590d0b84dabcdf823-R1"
   date: "2026-11-17"
   gate_decision: "approve"
   risk_level: "low"
@@ -40,7 +40,7 @@ codecheck_report:
 
 **一句话结论**：最终工作区未发现可证实的高/中/低严重度代码缺陷；中间轮发现的引用释放、uid 旧 pending、死亡交错、测试竞态及防抖基线问题均已修复并复核。
 
-**检视范围**：`fdacaa726e1ef3b0a01b59d13822a512446a6e0f` 到当前未提交工作区；**覆盖情况**：C01～C06 均完成 Discover/Challenge，并由独立只读上下文复核；**重要限制**：ARM 用例未运行、实现前 Red 无 fresh 记录、实现代码未提交，最终交付结论另见 SDD Verification Evidence。
+**检视范围**：`fdacaa726e1ef3b0a01b59d13822a512446a6e0f` 到实现提交 `2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99`；**覆盖情况**：C01～C06 均完成 Discover/Challenge，并由独立只读上下文复核；**重要限制**：ARM 用例未运行、实现前 Red 无 fresh 记录，最终交付结论另见 SDD Verification Evidence。
 
 ## 3. 必须立即处理（P0/P1）
 
@@ -53,7 +53,7 @@ codecheck_report:
 
 无正式 Finding。
 
-**未决验证项（不计入 Finding 或评分）**：本机无 qemu，SDK hdc 返回 `E002110`，无法执行 ARM 运行时断言；实现前 Red 未执行；工作区未创建实现提交。上述事项只影响运行验证与交付追溯，不作为静态代码缺陷计分。
+**未决验证项（不计入 Finding 或评分）**：本机无 qemu，SDK hdc 返回 `E002110`，无法执行 ARM 运行时断言；实现前 Red 未执行。实现提交 `2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99` 已创建，交付验证仍以运行结果为准。
 
 ## 5. 分维度速览
 

@@ -10,7 +10,7 @@ status: approved
 owner: "yangzk"
 source_issue: "RR 30096095"
 created_at: 2026-11-16
-updated_at: 2026-11-16
+updated_at: 2026-11-17
 related:
   - 20260914692273
   - 20260914692191
@@ -20,5 +20,6 @@ related_decisions: []
 subprofiles: []
 profile_source: inferred
 code_refs: []
-commits: []
+commits:
+  - 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99
 ---

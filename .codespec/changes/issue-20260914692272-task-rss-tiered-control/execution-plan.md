@@ -66,16 +66,16 @@
 
 | AC | 来源 | Task | 计划代码范围 | 实际 Code Ref | Commit | Review Evidence | 验证状态 |
 |----|------|------|--------------|-----------------|--------|-----------------|----------|
-| AC-5.1 | spec.md US-1 / R-1 | TASK-1 | process_schedule.*、attribution_record.*、task_manager_service.* | 已实现（当前工作区） | Pending（未创建实现提交） | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.2 | spec.md US-1 / R-1 | TASK-1 | process_schedule.*、attribution_record.* | 已实现（当前工作区） | Pending（未创建实现提交） | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.3 | spec.md US-1 / R-2 | TASK-1 | process_schedule.*、resource_control_proxy.* | 已实现（当前工作区） | Pending（未创建实现提交） | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.4 | spec.md US-2 / R-3 | TASK-1 | process_schedule.*、resource_control_proxy.*、task_manager_service.* | 已实现（当前工作区） | Pending（未创建实现提交） | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.5 | spec.md US-2 / R-4 | TASK-1 | resource_control_proxy.*、process_schedule_test/* | 已实现（当前工作区） | Pending（未创建实现提交） | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.6 | spec.md US-2 / R-5 | TASK-1 | resource_control_proxy.*、process_schedule_test/* | 已实现（当前工作区） | Pending（未创建实现提交） | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.7 | spec.md US-2 / R-6 | TASK-1 | process_schedule.*、resource_control_proxy.*、task_manager_service.* | 已实现（当前工作区） | Pending（未创建实现提交） | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.8 | spec.md US-1 / R-7 | TASK-1 | resource_control_proxy.*、resource_control_proxy_test.cpp | 已实现（当前工作区） | Pending（未创建实现提交） | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.9 | spec.md US-3 / R-8 | TASK-1 | process_schedule.*、task_manager_service_test.cpp、resource_control_proxy.* | 已实现（当前工作区） | Pending（未创建实现提交） | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.10 | spec.md US-1 / R-9 | TASK-1 | attribution_record.*、task_manager_service.*、process_schedule_test/* | 已实现（当前工作区） | Pending（未创建实现提交） | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.1 | spec.md US-1 / R-1 | TASK-1 | process_schedule.*、attribution_record.*、task_manager_service.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.2 | spec.md US-1 / R-1 | TASK-1 | process_schedule.*、attribution_record.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.3 | spec.md US-1 / R-2 | TASK-1 | process_schedule.*、resource_control_proxy.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.4 | spec.md US-2 / R-3 | TASK-1 | process_schedule.*、resource_control_proxy.*、task_manager_service.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.5 | spec.md US-2 / R-4 | TASK-1 | resource_control_proxy.*、process_schedule_test/* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.6 | spec.md US-2 / R-5 | TASK-1 | resource_control_proxy.*、process_schedule_test/* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.7 | spec.md US-2 / R-6 | TASK-1 | process_schedule.*、resource_control_proxy.*、task_manager_service.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.8 | spec.md US-1 / R-7 | TASK-1 | resource_control_proxy.*、resource_control_proxy_test.cpp | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.9 | spec.md US-3 / R-8 | TASK-1 | process_schedule.*、task_manager_service_test.cpp、resource_control_proxy.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.10 | spec.md US-1 / R-9 | TASK-1 | attribution_record.*、task_manager_service.*、process_schedule_test/* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
 
 ## 首批实现边界
 
@@ -281,14 +281,14 @@
 
 | Task ID | 计划文件/符号 | 实际文件/符号 | 操作 | Commit | Spec Compliance | Code Quality | Verification | 偏差 |
 |---------|---------------|---------------|------|--------|-----------------|--------------|--------------|------|
-| TASK-1 | `services/appmgr/include/task_mgr/attribution_record.h`、`services/appmgr/src/task_mgr/attribution_record.cpp` | 已实现（当前工作区） | Modify | Pending（未创建实现提交） | `evidence/reviews/spec-compliance.md#ac-5-1-ac-5-2` | `evidence/reviews/code-quality.md#scope` | `evidence/reviews/verification.md#build` | 无 |
-| TASK-1 | `services/appmgr/include/task_mgr/task_manager_service.h`、`services/appmgr/src/task_mgr/task_manager_service.cpp` | 已实现（当前工作区） | Modify | Pending（未创建实现提交） | `evidence/reviews/spec-compliance.md#ac-5-4-ac-5-6-ac-5-7-ac-5-10` | `evidence/reviews/code-quality.md#scope` | `evidence/reviews/verification.md#build` | 无 |
-| TASK-1 | `services/appmgr/include/task_mgr/process_schedule.h`、`services/appmgr/src/task_mgr/process_schedule.cpp` | 已实现（当前工作区） | Modify | Pending（未创建实现提交） | `evidence/reviews/spec-compliance.md#ac-5-1-ac-5-7` | `evidence/reviews/code-quality.md#scope` | `evidence/reviews/verification.md#build` | 无 |
-| TASK-1 | `services/appmgr/include/task_mgr/resource_control_proxy.h`、`services/appmgr/src/task_mgr/resource_control_proxy.cpp` | 已实现（当前工作区） | Create | Pending（未创建实现提交） | `evidence/reviews/spec-compliance.md#ac-5-4-ac-5-8` | `evidence/reviews/code-quality.md#scope` | `evidence/reviews/verification.md#build` | 无 |
-| TASK-1 | `services/appmgr/BUILD.gn`、`test/unittest/process_schedule_test/BUILD.gn`、`test/unittest/task_manager_service_test/BUILD.gn` | 已实现（当前工作区） | Modify | Pending（未创建实现提交） | `evidence/reviews/spec-compliance.md#build` | `evidence/reviews/code-quality.md#build` | `evidence/reviews/verification.md#build` | 无 |
-| TASK-1 | `test/unittest/{ams_service_app_spawn_client_test,ams_service_event_drive_test,cache_process_manager_second_test,app_mgr_service_inner_seventh_test,app_mgr_service_event_handler_test,ams_service_startup_test,ams_app_workflow_test,app_mgr_service_inner_eighth_test,ams_recent_app_list_test,app_mgr_service_inner_ninth_test,app_mgr_service_inner_tenth_test,ams_service_load_ability_process_test}/BUILD.gn`、`test/moduletest/common/ams/BUILD.gn` | 已实现（当前工作区） | Modify | Pending（未创建实现提交） | `evidence/reviews/spec-compliance.md#build` | `evidence/reviews/code-quality.md#build` | `evidence/reviews/verification.md#build` | 全量构建发现：既有目标直接聚合 process_schedule.cpp，必须同步补入代理实现 |
-| TASK-1 | `test/unittest/process_schedule_test/process_schedule_test.cpp`、`resource_control_proxy_test.cpp`、`test/unittest/task_manager_service_test/task_manager_service_test.cpp` | 已实现（当前工作区） | Modify/Create | Pending（未创建实现提交） | `evidence/reviews/spec-compliance.md#verification` | `evidence/reviews/code-quality.md#tests` | `evidence/reviews/verification.md#tests` | 无 |
-| TASK-1 | `.codespec/changes/issue-20260914692272-task-rss-tiered-control/{proposal,spec,design,execution-plan}.md`、`evidence/reviews/` | 已实现（当前工作区） | Modify/Create | Pending（未创建实现提交） | `evidence/reviews/spec-compliance.md#summary` | `evidence/reviews/code-quality.md#summary` | `evidence/reviews/verification.md#summary` | 无 |
+| TASK-1 | `services/appmgr/include/task_mgr/attribution_record.h`、`services/appmgr/src/task_mgr/attribution_record.cpp` | 已实现（当前工作区） | Modify | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/spec-compliance.md#ac-5-1-ac-5-2` | `evidence/reviews/code-quality.md#scope` | `evidence/reviews/verification.md#build` | 无 |
+| TASK-1 | `services/appmgr/include/task_mgr/task_manager_service.h`、`services/appmgr/src/task_mgr/task_manager_service.cpp` | 已实现（当前工作区） | Modify | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/spec-compliance.md#ac-5-4-ac-5-6-ac-5-7-ac-5-10` | `evidence/reviews/code-quality.md#scope` | `evidence/reviews/verification.md#build` | 无 |
+| TASK-1 | `services/appmgr/include/task_mgr/process_schedule.h`、`services/appmgr/src/task_mgr/process_schedule.cpp` | 已实现（当前工作区） | Modify | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/spec-compliance.md#ac-5-1-ac-5-7` | `evidence/reviews/code-quality.md#scope` | `evidence/reviews/verification.md#build` | 无 |
+| TASK-1 | `services/appmgr/include/task_mgr/resource_control_proxy.h`、`services/appmgr/src/task_mgr/resource_control_proxy.cpp` | 已实现（当前工作区） | Create | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/spec-compliance.md#ac-5-4-ac-5-8` | `evidence/reviews/code-quality.md#scope` | `evidence/reviews/verification.md#build` | 无 |
+| TASK-1 | `services/appmgr/BUILD.gn`、`test/unittest/process_schedule_test/BUILD.gn`、`test/unittest/task_manager_service_test/BUILD.gn` | 已实现（当前工作区） | Modify | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/spec-compliance.md#build` | `evidence/reviews/code-quality.md#build` | `evidence/reviews/verification.md#build` | 无 |
+| TASK-1 | `test/unittest/{ams_service_app_spawn_client_test,ams_service_event_drive_test,cache_process_manager_second_test,app_mgr_service_inner_seventh_test,app_mgr_service_event_handler_test,ams_service_startup_test,ams_app_workflow_test,app_mgr_service_inner_eighth_test,ams_recent_app_list_test,app_mgr_service_inner_ninth_test,app_mgr_service_inner_tenth_test,ams_service_load_ability_process_test}/BUILD.gn`、`test/moduletest/common/ams/BUILD.gn` | 已实现（当前工作区） | Modify | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/spec-compliance.md#build` | `evidence/reviews/code-quality.md#build` | `evidence/reviews/verification.md#build` | 全量构建发现：既有目标直接聚合 process_schedule.cpp，必须同步补入代理实现 |
+| TASK-1 | `test/unittest/process_schedule_test/process_schedule_test.cpp`、`resource_control_proxy_test.cpp`、`test/unittest/task_manager_service_test/task_manager_service_test.cpp` | 已实现（当前工作区） | Modify/Create | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/spec-compliance.md#verification` | `evidence/reviews/code-quality.md#tests` | `evidence/reviews/verification.md#tests` | 无 |
+| TASK-1 | `.codespec/changes/issue-20260914692272-task-rss-tiered-control/{proposal,spec,design,execution-plan}.md`、`evidence/reviews/` | 已实现（当前工作区） | Modify/Create | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/spec-compliance.md#summary` | `evidence/reviews/code-quality.md#summary` | `evidence/reviews/verification.md#summary` | 无 |
 
 ## 实现偏差和开放问题
 
@@ -296,4 +296,4 @@
 |---------|------|-----------|----------|----------------|
 | TASK-1 | scope/spec/design/dependency | 无真实 RSS、纳管通道、动态策略或计划外生产文件；13 个直接聚合目标已先纳入 design/plan 再修改 | Resolved（范围守界完成） | ohos-plan / ohos-spec / ohos-design / yangzk |
 | TASK-1 | verification | 实现前 Red 未执行；ARM 无 qemu，hdc `E002110`，无法形成 fresh 设备 Green | Open（环境阻塞） | ohos-review / yangzk |
-| TASK-1 | traceability | 实现代码未创建提交，AC→Commit 追溯未闭合 | Open（用户未授权，禁止自动提交） | yangzk |
+| TASK-1 | traceability | 实现提交已创建，AC→Commit 已关联到 `2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99` | Resolved（本地提交完成） | yangzk |

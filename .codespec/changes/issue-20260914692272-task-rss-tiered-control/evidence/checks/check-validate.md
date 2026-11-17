@@ -25,4 +25,4 @@
 
 ## 结论
 
-本次 validate 明确证明当前 **不能声称完成、通过或可合入**。后续必须先获得可用 ARM 设备执行聚焦测试并保存 fresh 输出，再按用户授权创建实现提交，最后重新运行 `ohos-sdd validate . --level all`。
+本次 validate 明确证明当前 **不能声称完成、通过或可合入**。实现提交 `2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99` 已创建，AC→Commit 已关联；后续仍须获得可用 ARM 设备执行聚焦测试并保存 fresh 输出，最后重新运行 `ohos-sdd validate . --level all`。

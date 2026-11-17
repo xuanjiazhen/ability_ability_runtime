@@ -3,8 +3,8 @@
   "review_mode": "diff",
   "scope": "task-rss-tiered-control",
   "base_sha": "fdacaa726e1ef3b0a01b59d13822a512446a6e0f",
-  "head_sha": "WORKTREE",
-  "dirty": true,
+  "head_sha": "2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99",
+  "dirty": false,
   "knowledge": {
     "status": "available",
     "revision": "b3910d099d653e97070519a0529af31b336e7bc21774a33bacbf65902a72564c",
@@ -103,7 +103,7 @@
       "discover": "done",
       "challenge": "done",
       "coverage_critical": false,
-      "limitations": ["Implementation commit intentionally not created"],
+      "limitations": ["Runtime Green not executed; implementation commit 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 created"],
       "related_findings": []
     }
   ],
@@ -226,7 +226,7 @@
   "limitations": [
     "ARM runtime tests not run: no qemu and hdc E002110",
     "Fresh pre-implementation Red not available and is not claimed",
-    "No implementation commit was created; review is against dirty worktree"
+    "Implementation commit 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 created; runtime validation remains blocked"
   ],
   "report_findings": []
 }

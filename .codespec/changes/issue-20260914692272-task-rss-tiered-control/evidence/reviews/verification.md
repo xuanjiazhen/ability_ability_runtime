@@ -7,7 +7,7 @@
 | Item | Value |
 |------|-------|
 | Change ID | issue-20260914692272-task-rss-tiered-control |
-| Commit / Head | `WORKTREE（fdacaa726e1ef3b0a01b59d13822a512446a6e0f + 未提交修改）` |
+| Commit / Head | `2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99` |
 | Environment | Linux 主机，rk3568 / ARM ohos_clang_arm；无 qemu；SDK hdc 不可用 |
 | Executor / Date | Agent / 2026-11-17 |
 
@@ -50,4 +50,4 @@
 
 ## Code-to-Spec Consistency Conclusion
 
-最终源码及 13 个直接聚合目标已成功构建，静态实现与 Approved spec 一致。由于实现前 Red 和 ARM 运行断言缺失，不能进入 GC Approved，也不能声称 AC-5.1～AC-5.10 已全部运行通过或允许合入。后续必须在可用 rk3568 设备上执行聚焦测试并保留输出，再复核本文件。
+最终源码及 13 个直接聚合目标已成功构建，静态实现与 Approved spec 一致；实现提交 `2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99` 已创建。由于实现前 Red 和 ARM 运行断言缺失，不能进入 GC Approved，也不能声称 AC-5.1～AC-5.10 已全部运行通过或允许合入。后续必须在可用 rk3568 设备上执行聚焦测试并保留输出，再复核本文件。

@@ -8,30 +8,30 @@
 |------|-------|
 | Change ID | issue-20260914692272-task-rss-tiered-control |
 | Spec Revision | `b3910d099d653e97070519a0529af31b336e7bc21774a33bacbf65902a72564c` |
-| Plan Revision | `5b47a8fa22ed5ab2a287de35547d8233d7ac04c64c5aa151609f5182f8179358` |
-| Base / Head | `fdacaa726e1ef3b0a01b59d13822a512446a6e0f` / `WORKTREE（未提交）` |
+| Plan Revision | `89b66532917819b7491d71e8547d48fbdd102fb13a86b4ec5730f83dd4c5117e` |
+| Base / Head | `fdacaa726e1ef3b0a01b59d13822a512446a6e0f` / `2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99` |
 | Reviewer / Date | Agent / 2026-11-17 |
 
 ## Verdict
 
 - [ ] Approved
 - [ ] Needs Changes
-- [x] Blocked（实现前 Red、ARM 运行验证和实现 Commit 尚未闭合；静态实现映射无已知语义偏差）
+- [x] Blocked（实现前 Red 与 ARM 运行验证未闭合；实现提交已创建，静态实现映射无已知语义偏差）
 
 ## AC → Task → Code → Commit → Review
 
 | AC | Task | Code Ref | Commit | Verification Evidence | Result | Gap |
 |----|------|----------|--------|-----------------------|--------|-----|
-| AC-5.1 | TASK-1 | `process_schedule.cpp:97-119,428-443`；`resource_control_proxy.cpp:47-69,236-258` | N/A（未提交） | `verification.md#execution-records`；`ControlledEventContext_0100`、`TriggerReasonMatrix_0100` | PASS（静态映射） | ARM 运行与 Commit 未闭合 |
-| AC-5.2 | TASK-1 | `process_schedule.cpp:71-119,223-267,332-368` | N/A（未提交） | `ControlledTaskMatrix_0100`、`ControlledEndPreviousContext_0100` | PASS（静态映射） | 同上 |
-| AC-5.3 | TASK-1 | `process_schedule.cpp:183-214,223-328`；`resource_control_proxy.cpp:236-258` | N/A（未提交） | `ControlledContextOnlyMatrix_0100`、`UncontrolledToolsNoEvent_0100` | PASS（静态映射） | 同上 |
-| AC-5.4 | TASK-1 | `resource_control_proxy.cpp:85-143`；`process_schedule.cpp:151-180` | N/A（未提交） | `ImmediateStartAndDeathEnd_0100` | PASS（静态映射） | 同上 |
-| AC-5.5 | TASK-1 | `resource_control_proxy.cpp:95-218`；`process_schedule.cpp:406-439` | N/A（未提交） | `DebounceDownAndEnd_0100`、`TriggerReasonMatrix_0100` | PASS（静态映射） | 同上 |
-| AC-5.6 | TASK-1 | `resource_control_proxy.cpp:146-218`；`process_schedule.cpp:406-439` | N/A（未提交） | `DebounceLatestState_0100`、`PendingDownThenEndUsesLatestPrevious_0100` | PASS（静态映射） | 同上 |
-| AC-5.7 | TASK-1 | `process_schedule.cpp:223-368`；`task_manager_service.cpp:349-368,476-500` | N/A（未提交） | `FinalStateAction_0100`、`SelfManagedDeath_0100`、`CreatorDeathCleanup_0100` | PASS（静态映射） | 同上 |
-| AC-5.8 | TASK-1 | `resource_control_proxy.cpp:236-258`；构建无新增真实 RSS 调用 | N/A（未提交） | `ResourceControlProxy_StubOnly_0100`；`codecheck_report_*#分维度速览` | PASS（静态映射） | 同上 |
-| AC-5.9 | TASK-1 | 既有 `StartTask/RegisterManagedProcess` 上限未改；`resource_control_proxy.cpp:95-218` | N/A（未提交） | `DebounceLatestState_0100`；既有 `StartTask_0700`、`RegisterManagedProcessQuota_0900` | PASS（静态映射） | 同上 |
-| AC-5.10 | TASK-1 | `task_manager_service.cpp:47-69,575-627`；`process_schedule.cpp:309-328,378-439` | N/A（未提交） | `ManagedUidCacheAndRetry_0100`、`UidFailureRecoveryMatrix_0100`、`InvalidUidCancelsPending_0100` | PASS（静态映射） | 同上 |
+| AC-5.1 | TASK-1 | `process_schedule.cpp:97-119,428-443`；`resource_control_proxy.cpp:47-69,236-258` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `verification.md#execution-records`；`ControlledEventContext_0100`、`TriggerReasonMatrix_0100` | PASS（静态映射） | ARM 运行未闭合 |
+| AC-5.2 | TASK-1 | `process_schedule.cpp:71-119,223-267,332-368` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ControlledTaskMatrix_0100`、`ControlledEndPreviousContext_0100` | PASS（静态映射） | 同上 |
+| AC-5.3 | TASK-1 | `process_schedule.cpp:183-214,223-328`；`resource_control_proxy.cpp:236-258` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ControlledContextOnlyMatrix_0100`、`UncontrolledToolsNoEvent_0100` | PASS（静态映射） | 同上 |
+| AC-5.4 | TASK-1 | `resource_control_proxy.cpp:85-143`；`process_schedule.cpp:151-180` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ImmediateStartAndDeathEnd_0100` | PASS（静态映射） | 同上 |
+| AC-5.5 | TASK-1 | `resource_control_proxy.cpp:95-218`；`process_schedule.cpp:406-439` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `DebounceDownAndEnd_0100`、`TriggerReasonMatrix_0100` | PASS（静态映射） | 同上 |
+| AC-5.6 | TASK-1 | `resource_control_proxy.cpp:146-218`；`process_schedule.cpp:406-439` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `DebounceLatestState_0100`、`PendingDownThenEndUsesLatestPrevious_0100` | PASS（静态映射） | 同上 |
+| AC-5.7 | TASK-1 | `process_schedule.cpp:223-368`；`task_manager_service.cpp:349-368,476-500` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `FinalStateAction_0100`、`SelfManagedDeath_0100`、`CreatorDeathCleanup_0100` | PASS（静态映射） | 同上 |
+| AC-5.8 | TASK-1 | `resource_control_proxy.cpp:236-258`；构建无新增真实 RSS 调用 | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ResourceControlProxy_StubOnly_0100`；`codecheck_report_*#分维度速览` | PASS（静态映射） | 同上 |
+| AC-5.9 | TASK-1 | 既有 `StartTask/RegisterManagedProcess` 上限未改；`resource_control_proxy.cpp:95-218` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `DebounceLatestState_0100`；既有 `StartTask_0700`、`RegisterManagedProcessQuota_0900` | PASS（静态映射） | 同上 |
+| AC-5.10 | TASK-1 | `task_manager_service.cpp:47-69,575-627`；`process_schedule.cpp:309-328,378-439` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ManagedUidCacheAndRetry_0100`、`UidFailureRecoveryMatrix_0100`、`InvalidUidCancelsPending_0100` | PASS（静态映射） | 同上 |
 
 ## Extra Implementation
 
@@ -59,10 +59,10 @@
 
 | Check | Result | Evidence |
 |-------|--------|----------|
-| 每个 AC 均有真实 Code Ref 和 Commit | FAIL（Commit 未创建） | Code Ref 完整；实现为用户未授权提交的 dirty worktree |
+| 每个 AC 均有真实 Code Ref 和 Commit | PASS（实现提交已创建） | `2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99` |
 | 正向、异常、边界和兼容路径均按 Spec 闭合 | FAIL（运行未闭合） | 静态路径与测试入口齐全，ARM 无 qemu、hdc `E002110` |
 | 没有用声明、占位实现或无关测试冒充完成 | PASS（静态真实性） | 真实代理实现、13 个直接聚合目标补齐、无真实 RSS 调用；不声称运行时 Green |
 
 ## Conclusion
 
-当前源码与 Approved spec 的静态语义映射一致，没有未确认的实现偏差或计划外生产行为。因实现前 Red、设备运行断言和实现 Commit 缺失，本审查不能给 Approved；不得将 `PASS（静态映射）` 解释为 AC 已全部运行通过。后续需以可用设备执行聚焦测试并保留 fresh 输出，再按用户授权创建实现提交后复核追溯链。
+当前源码与 Approved spec 的静态语义映射一致，没有未确认的实现偏差或计划外生产行为；实现提交 `2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99` 已创建。因实现前 Red 和设备运行断言缺失，本审查不能给 Approved；不得将 `PASS（静态映射）` 解释为 AC 已全部运行通过。后续需以可用设备执行聚焦测试并保留 fresh 输出后复核。
