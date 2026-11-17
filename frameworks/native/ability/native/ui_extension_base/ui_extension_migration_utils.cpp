@@ -18,11 +18,19 @@
 namespace OHOS {
 namespace AbilityRuntime {
 
+bool IsValidParentWindowType(uint32_t parentWindowType)
+{
+    // WindowType enum range: [0, WINDOW_TYPE_UI_EXTENSION]; reject unknown raw values
+    // from the wire instead of blind-casting them into Rosen::WindowType.
+    return parentWindowType <= static_cast<uint32_t>(Rosen::WindowType::WINDOW_TYPE_UI_EXTENSION);
+}
+
 bool UpdateWindowParentForMigration(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
     const sptr<Rosen::Window> &uiWindow)
 {
-    if (sessionInfo == nullptr || uiWindow == nullptr) {
+    if (sessionInfo == nullptr || uiWindow == nullptr ||
+        !IsValidParentWindowType(sessionInfo->parentWindowType)) {
         return false;
     }
     sptr<Rosen::WindowOption> option = sptr<Rosen::WindowOption>::MakeSptr();
@@ -53,9 +61,15 @@ bool ShouldExecuteMigration(
         state.lastGen = gen;  // advance gen (this is current) but the parent is already correct
         return false;  // difference check: no-op, skip the window manager call
     }
-    state.lastGen = gen;
-    state.currentParentWindowId = sessionInfo->hostWindowId;
+    // Execution branch: the fence is NOT advanced here. CommitMigrationState advances
+    // it after the re-parent succeeds, so a failure keeps this gen retryable.
     return true;
+}
+
+void CommitMigrationState(MigrationFencingState &state, uint32_t gen, uint32_t hostWindowId)
+{
+    state.lastGen = gen;
+    state.currentParentWindowId = hostWindowId;
 }
 
 } // namespace AbilityRuntime

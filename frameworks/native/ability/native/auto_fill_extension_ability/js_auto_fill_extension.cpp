@@ -554,6 +554,10 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         contentSessions_.emplace(
             obj, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
         CallJsOnRequest(*sharedWant, sessionInfo, uiWindow);
+        // Fresh window: re-seed the migration fence from the real parent (per-window
+        // state; bounds cross-session gen pollution on long-lived AutoFill instances).
+        migrationFencing_ = MigrationFencingState {};
+        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[obj] = uiWindow;
         context->SetSessionInfo(sessionInfo);
 #ifdef SUPPORT_GRAPHICS
@@ -574,10 +578,20 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
                 sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
             if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
                 TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "re-parent failed, keep session backgrounded");
+                // Keep the marker for retry: strip the declaration from this receipt path so
+                // ScheduleCommandAbilityWindowDone does not confirm this failed migration.
+                sessionInfo->originalCallerInfo.callerToken = nullptr;
                 return false;
             }
+            CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
+                sessionInfo->hostWindowId);
             TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
                 "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
+            // Sync the autofill context's cached session info to the new host window.
+            auto migrateContext = GetContext();
+            if (migrateContext != nullptr) {
+                migrateContext->SetSessionInfo(sessionInfo);
+            }
         } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
             TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "migration skipped, persistentId: %{private}d, gen: %{public}u, "
                 "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",

@@ -285,6 +285,15 @@ public:
      */
     std::shared_ptr<BaseExtensionRecord> GetServiceRecordByAbilityRequest(const AbilityRequest &abilityRequest);
 
+    /**
+     * GetServiceRecordByElementName. NOTE: UIExtension records are keyed by
+     * element.GetURI() + UIExtensionAbilityId (suffix); only that exact key matches.
+     *
+     * @param element, the exact serviceMap_ key (e.g. the record's GetURI()).
+     * @return Returns BaseExtensionRecord shared_ptr.
+     */
+    std::shared_ptr<BaseExtensionRecord> GetServiceRecordByElementName(const std::string &element);
+
     bool HasRequestIdInLoadAbilityQueue(int32_t requestId);
     void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId);
     void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId);
@@ -679,14 +688,6 @@ private:
      * @param abilityRecord, the ptr of the ability to command.
      */
     void CompleteCommandAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
-
-    /**
-     * GetServiceRecordByElementName.
-     *
-     * @param element, service ability's element.
-     * @return Returns BaseExtensionRecord shared_ptr.
-     */
-    std::shared_ptr<BaseExtensionRecord> GetServiceRecordByElementName(const std::string &element);
 
     /**
      * GetAbilityConnectedRecordFromRecordList.

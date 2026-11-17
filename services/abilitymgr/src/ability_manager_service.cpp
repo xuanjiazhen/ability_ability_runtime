@@ -218,10 +218,19 @@ constexpr int32_t APP_ALIVE_TIME_MS = 1000;  // Allow background startup within 
 constexpr int32_t REGISTER_FOCUS_DELAY = 5000;
 constexpr size_t OFFSET = 32;
 
-// Single generation point of the uiExtensionComponentId: high 32 bits = host pid, low 32 bits
-// = persistentId, so the id is stable within one process. Do not copy the formula elsewhere.
+// Single generation point of the uiExtensionComponentId: high 32 bits = the CALLING
+// process pid (in practice the scene board's pid, since StartUIExtensionAbility is driven
+// by SCB — the salt is constant system-wide), low 32 bits = persistentId. Collision
+// freedom rests on persistentId being globally unique per UIExtension component. Do not
+// copy the formula elsewhere.
 inline uint64_t GenerateUIExtensionComponentId(int32_t persistentId)
 {
+    // Sanitize non-positive persistentId: a negative int32 sign-extends into uint64 and
+    // would wipe the pid high bits, colliding ids across hosts.
+    if (persistentId <= 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid persistentId: %{public}d, sanitized to 0", persistentId);
+        persistentId = 0;
+    }
     return (static_cast<uint64_t>(IPCSkeleton::GetCallingPid()) << OFFSET) |
         static_cast<uint64_t>(persistentId);
 }
@@ -5247,6 +5256,15 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UI_EXT, "StartUIExtensionAbility begin");
     CHECK_POINTER_AND_RETURN(extensionSessionInfo, ERR_INVALID_VALUE);
+    // Migration declarations are issued by the scene board only (ExtensionSessionManager::
+    // UpdateExtensionSessionParent). The migration branch stamps a gen and re-parents the
+    // provider window to the declared hostWindowId, so a declaration from a non-SA caller
+    // (a host app forging/stale-replaying one) must be rejected at the entry point.
+    if (extensionSessionInfo->originalCallerInfo.callerToken != nullptr &&
+        !PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "migration declaration from non-SA caller rejected");
+        return CHECK_PERMISSION_FAILED;
+    }
     auto pickerRet = SetPickerElementNameAndParams(extensionSessionInfo, userId);
     if (pickerRet != ERR_OK) {
         auto failEventInfo = BuildEventInfo(extensionSessionInfo->want, userId);

@@ -826,6 +826,10 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             return false;
         }
         RegisterBrandColorChangeListener(uiWindow);
+        // Fresh window: re-seed the migration fence from the real parent (per-window
+        // state; bounds cross-session gen pollution, keeps the no-op check meaningful).
+        migrationFencing_ = MigrationFencingState {};
+        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[componentId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context_->GetWindow() == nullptr) {
@@ -848,8 +852,13 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
                 sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
             if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
                 TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
+                // Keep the marker for retry: strip the declaration from this receipt path so
+                // ScheduleCommandAbilityWindowDone does not confirm this failed migration.
+                sessionInfo->originalCallerInfo.callerToken = nullptr;
                 return false;
             }
+            CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
+                sessionInfo->hostWindowId);
             TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
                 "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
             // Proxy/cache update only after the real re-parent succeeded.

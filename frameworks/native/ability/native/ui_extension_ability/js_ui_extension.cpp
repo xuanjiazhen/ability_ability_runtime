@@ -745,6 +745,11 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
             CallObjectMethod("onSessionCreate", argv, ARGC_TWO);
             RegisterBrandColorChangeListener(uiWindow);
         }
+        // Fresh window: re-seed the migration fence from the real parent. The fence is
+        // per-window state; re-seeding also bounds cross-session gen pollution on long-lived
+        // AutoFill-style instances and keeps the initial no-op difference check meaningful.
+        migrationFencing_ = MigrationFencingState {};
+        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[compId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context->GetWindow() == nullptr) {
@@ -767,8 +772,13 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
                 sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
             if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
                 TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
+                // Keep the marker for retry: strip the declaration from this receipt path so
+                // ScheduleCommandAbilityWindowDone does not confirm this failed migration.
+                sessionInfo->originalCallerInfo.callerToken = nullptr;
                 return false;
             }
+            CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
+                sessionInfo->hostWindowId);
             TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
                 "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
             // Proxy/cache update only after the real re-parent succeeded.

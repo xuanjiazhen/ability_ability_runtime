@@ -16,6 +16,7 @@
 #include "ui_extension_record.h"
 
 #include "ability_util.h"
+#include "migration_marker_guard.h"
 #include "session/host/include/zidl/session_interface.h"
 
 namespace OHOS {
@@ -38,27 +39,31 @@ void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
         return;
     }
     // At-least-once re-delivery, paired with StartAbilityLocked: an unconfirmed declaration
-    // rides any reuse request; cleared on confirmation (completion receipt).
-    if (abilityRequest.sessionInfo != nullptr &&
-        abilityRequest.sessionInfo->originalCallerInfo.callerToken == nullptr) {
-        auto unconfirmedInfo = abilityRecord_->GetSessionInfo();
-        if (unconfirmedInfo != nullptr && unconfirmedInfo->originalCallerInfo.callerToken != nullptr) {
-            abilityRequest.sessionInfo->originalCallerInfo = unconfirmedInfo->originalCallerInfo;
+    // rides any reuse request; cleared on confirmation (completion receipt). The marker
+    // read-modify-write is serialized against confirm-clear and gen stamping.
+    {
+        AAFwk::MigrationMarkerGuard markerGuard;
+        if (abilityRequest.sessionInfo != nullptr &&
+            abilityRequest.sessionInfo->originalCallerInfo.callerToken == nullptr) {
+            auto unconfirmedInfo = abilityRecord_->GetSessionInfo();
+            if (unconfirmedInfo != nullptr && unconfirmedInfo->originalCallerInfo.callerToken != nullptr) {
+                abilityRequest.sessionInfo->originalCallerInfo = unconfirmedInfo->originalCallerInfo;
+            }
         }
-    }
-    if (abilityRequest.sessionInfo != nullptr) {
-        // Gen monotonicity guard: never roll the record's migration gen back on a plain
-        // reuse/preload update. Paired with UIExtensionAbilityManager::StartAbilityLocked.
-        auto oldInfo = abilityRecord_->GetSessionInfo();
-        if (oldInfo != nullptr && abilityRequest.sessionInfo->originalCallerInfo.migrationGen <
-            oldInfo->originalCallerInfo.migrationGen) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "migration gen rollback on record update, keep gen: %{public}u",
-                oldInfo->originalCallerInfo.migrationGen);
-            abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
-                oldInfo->originalCallerInfo.migrationGen;
+        if (abilityRequest.sessionInfo != nullptr) {
+            // Gen monotonicity guard: never roll the record's migration gen back on a plain
+            // reuse/preload update. Paired with UIExtensionAbilityManager::StartAbilityLocked.
+            auto oldInfo = abilityRecord_->GetSessionInfo();
+            if (oldInfo != nullptr && abilityRequest.sessionInfo->originalCallerInfo.migrationGen <
+                oldInfo->originalCallerInfo.migrationGen) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "migration gen rollback on record update, keep gen: %{public}u",
+                    oldInfo->originalCallerInfo.migrationGen);
+                abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
+                    oldInfo->originalCallerInfo.migrationGen;
+            }
         }
+        abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
     }
-    abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
 }
 
 void UIExtensionRecord::HandleNotifyUIExtensionTimeout(ErrorCode code)

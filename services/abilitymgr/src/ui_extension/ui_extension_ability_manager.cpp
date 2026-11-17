@@ -30,6 +30,7 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "int_wrapper.h"
+#include "migration_marker_guard.h"
 #include "multi_instance_utils.h"
 #include "param.h"
 #include "request_id_util.h"
@@ -717,26 +718,30 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     targetService->DoBackgroundAbilityWindowDelayed(false);
     // At-least-once re-delivery: while a migration is unconfirmed, later foreground requests
     // carry the declaration again; cleared on confirmation (ScheduleCommandAbilityWindowDone).
-    if (abilityRequest.sessionInfo != nullptr &&
-        abilityRequest.sessionInfo->originalCallerInfo.callerToken == nullptr) {
-        auto unconfirmedInfo = targetService->GetSessionInfo();
-        if (unconfirmedInfo != nullptr && unconfirmedInfo->originalCallerInfo.callerToken != nullptr) {
-            abilityRequest.sessionInfo->originalCallerInfo = unconfirmedInfo->originalCallerInfo;
+    // The marker read-modify-write is serialized against confirm-clear and gen stamping.
+    {
+        AAFwk::MigrationMarkerGuard markerGuard;
+        if (abilityRequest.sessionInfo != nullptr &&
+            abilityRequest.sessionInfo->originalCallerInfo.callerToken == nullptr) {
+            auto unconfirmedInfo = targetService->GetSessionInfo();
+            if (unconfirmedInfo != nullptr && unconfirmedInfo->originalCallerInfo.callerToken != nullptr) {
+                abilityRequest.sessionInfo->originalCallerInfo = unconfirmedInfo->originalCallerInfo;
+            }
         }
-    }
-    if (abilityRequest.sessionInfo != nullptr) {
-        // Gen monotonicity guard: never roll the record's migration gen back on a plain
-        // reuse/preload update. Paired with UIExtensionRecord::Update.
-        auto oldInfo = targetService->GetSessionInfo();
-        if (oldInfo != nullptr && abilityRequest.sessionInfo->originalCallerInfo.migrationGen <
-            oldInfo->originalCallerInfo.migrationGen) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "migration gen rollback on record update, keep gen: %{public}u",
-                oldInfo->originalCallerInfo.migrationGen);
-            abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
-                oldInfo->originalCallerInfo.migrationGen;
+        if (abilityRequest.sessionInfo != nullptr) {
+            // Gen monotonicity guard: never roll the record's migration gen back on a plain
+            // reuse/preload update. Paired with UIExtensionRecord::Update.
+            auto oldInfo = targetService->GetSessionInfo();
+            if (oldInfo != nullptr && abilityRequest.sessionInfo->originalCallerInfo.migrationGen <
+                oldInfo->originalCallerInfo.migrationGen) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "migration gen rollback on record update, keep gen: %{public}u",
+                    oldInfo->originalCallerInfo.migrationGen);
+                abilityRequest.sessionInfo->originalCallerInfo.migrationGen =
+                    oldInfo->originalCallerInfo.migrationGen;
+            }
         }
+        targetService->SetSessionInfo(abilityRequest.sessionInfo);
     }
-    targetService->SetSessionInfo(abilityRequest.sessionInfo);
 
     if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
         auto &remoteObj = abilityRequest.sessionInfo->sessionToken;
@@ -953,7 +958,11 @@ void UIExtensionAbilityManager::CompleteStartServiceReq(const std::string &servi
             auto abilityRequest = request.abilityRequest;
             // Source the replay from the record (the consistency anchor): a queued snapshot
             // may predate a migration and replaying it would poison the re-parent.
-            auto targetService = GetServiceRecordByAbilityRequest(abilityRequest);
+            // NOTE: the queue key (serviceUri) IS the record's serviceMap_ key
+            // (element.GetURI() + UIExtensionAbilityId, see GetOrCreateExtensionRecord);
+            // rebuilding the key from the request yields the bare element URI, which never
+            // matches a UIExtension record and would disable the stripping below.
+            auto targetService = GetServiceRecordByElementName(serviceUri);
             if (targetService != nullptr && targetService->GetSessionInfo() != nullptr &&
                 abilityRequest.sessionInfo != nullptr) {
                 auto recordInfo = targetService->GetSessionInfo();

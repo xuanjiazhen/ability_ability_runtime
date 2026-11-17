@@ -52,6 +52,7 @@
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
 #include "utils/agent_caller_identity_util.h"
+#include "utils/migration_marker_guard.h"
 #include "user_controller/user_controller.h"
 
 namespace OHOS {
@@ -1152,24 +1153,28 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
     }
 
     // Migration confirmation: clear the record's declaration so later ordinary foreground
-    // requests stop re-delivering it; a failed re-parent keeps it for the next retry.
+    // requests stop re-delivering it; a failed re-parent keeps it for the next retry
+    // (the provider strips the declaration from its receipt on failure, so a failed
+    // generation never reaches this clear path).
     // Gen fencing: only the CURRENT generation's completion may clear the marker.
     if (winCmd == WIN_CMD_FOREGROUND && abilityCmd == AAFwk::ABILITY_CMD_FOREGROUND &&
         sessionInfo->originalCallerInfo.callerToken != nullptr) {
+        // Serialize the read-modify-write against gen stamping and at-least-once inheritance.
+        AAFwk::MigrationMarkerGuard markerGuard;
         auto recordSessionInfo = abilityRecord->GetSessionInfo();
         if (recordSessionInfo != nullptr &&
             recordSessionInfo->originalCallerInfo.callerToken != nullptr &&
             sessionInfo->originalCallerInfo.migrationGen ==
             recordSessionInfo->originalCallerInfo.migrationGen) {
             recordSessionInfo->originalCallerInfo.callerToken = nullptr;
-            TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{public}d, gen: %{public}u",
+            TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{private}d, gen: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
         } else if (recordSessionInfo != nullptr &&
                    recordSessionInfo->originalCallerInfo.callerToken != nullptr &&
                    sessionInfo->originalCallerInfo.migrationGen <
                    recordSessionInfo->originalCallerInfo.migrationGen) {
             TAG_LOGW(AAFwkTag::UI_EXT,
-                "stale migration completion ignored, persistentId: %{public}d, done gen: %{public}u, "
+                "stale migration completion ignored, persistentId: %{private}d, done gen: %{public}u, "
                 "record gen: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
                 recordSessionInfo->originalCallerInfo.migrationGen);

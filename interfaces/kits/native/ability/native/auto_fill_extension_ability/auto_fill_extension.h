@@ -61,6 +61,8 @@ public:
      * @return The auto fill extension instance.
      */
     static AutoFillExtension *Create(const std::unique_ptr<Runtime> &runtime);
+
+protected:
     MigrationFencingState migrationFencing_;
 };
 } // namespace AbilityRuntime

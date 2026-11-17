@@ -143,13 +143,16 @@ public:
      * host window migration. ETS has no proxy-cache tracking (a new proxy is created each
      * time GetUIExtensionHostWindowProxy is called), so updating sessionInfo_ here is
      * sufficient — the next proxy call picks up the new hostWindowId automatically.
+     * A COPY without the previous-host token is cached: the provider does not need that
+     * capability object after the re-parent, and caching it widens the token's exposure.
      *
      * @param sessionInfo The migrated session info carrying the new host window id.
      */
     void UpdateSessionInfo(const sptr<AAFwk::SessionInfo> &sessionInfo)
     {
         if (sessionInfo != nullptr) {
-            sessionInfo_ = sessionInfo;
+            sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr(*sessionInfo);
+            sessionInfo_->originalCallerInfo.callerToken = nullptr;
         }
     }
 
