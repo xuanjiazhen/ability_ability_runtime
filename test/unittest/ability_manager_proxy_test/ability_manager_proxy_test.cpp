@@ -3183,6 +3183,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_ChangeAbilityVisibility_02
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::CHANGE_ABILITY_VISIBILITY), mock_->code_);
 
     TAG_LOGI(AAFwkTag::TEST, "end");
+    TAG_LOGI(AAFwkTag::TEST, "start");
 }
 
 /**

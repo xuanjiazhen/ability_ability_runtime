@@ -1058,6 +1058,7 @@ int AbilityManagerProxy::ChangeAbilityVisibility(
     }
     if (!data.WriteParcelable(params.get())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write params fail");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write");
         return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::CHANGE_ABILITY_VISIBILITY, data, reply, option);
