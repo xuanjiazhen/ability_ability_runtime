@@ -3593,8 +3593,10 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_001, TestSiz
     ASSERT_NE(interceptor, nullptr);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().permPermission_ = 0;
     auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    MyStatus::GetInstance().permPermission_ = 1;
 }
 
 /*
@@ -3625,8 +3627,10 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_003, TestSiz
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
     MyStatus::GetInstance().ipcGetCallingUid_ = ERECT_SAFE_UID;
+    MyStatus::GetInstance().permPermission_ = 0;
     auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
     EXPECT_EQ(result, ERR_OK);
+    MyStatus::GetInstance().permPermission_ = 1;
 }
 
 /*
@@ -3640,8 +3644,10 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_001, TestS
     ASSERT_NE(interceptor, nullptr);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().permPermission_ = 0;
     auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    MyStatus::GetInstance().permPermission_ = 1;
 }
 
 /*
@@ -3658,6 +3664,58 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_002, TestS
     MyStatus::GetInstance().ipcGetCallingUid_ = TASKMGR_UID;
     auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
     EXPECT_EQ(result, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RegisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService RegisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_004, TestSize.Level1) {
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new (std::nothrow) MockISAInterceptor();
+    ASSERT_NE(interceptor, nullptr);
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().permPermission_ = 1;
+    auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: UnregisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService UnregisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_003, TestSize.Level1) {
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new (std::nothrow) MockISAInterceptor();
+    ASSERT_NE(interceptor, nullptr);
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().permPermission_ = 1;
+    auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
+    EXPECT_EQ(result, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: UnregisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService UnregisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_004, TestSize.Level1) {
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new (std::nothrow) MockISAInterceptor();
+    ASSERT_NE(interceptor, nullptr);
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = TASKMGR_UID;
+    MyStatus::GetInstance().permPermission_ = 0;
+    auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
+    EXPECT_EQ(result, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+    MyStatus::GetInstance().permPermission_ = 1;
 }
 
 /*
