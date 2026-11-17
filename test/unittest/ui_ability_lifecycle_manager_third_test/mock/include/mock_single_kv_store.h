@@ -148,10 +148,7 @@ public:
         return DistributedKv::Status::SUCCESS;
     };
 
-    DistributedKv::Status Delete(const DistributedKv::Key &key) override
-    {
-        return Delete_;
-    };
+    MOCK_METHOD1(Delete, DistributedKv::Status(const DistributedKv::Key &key));
 
     DistributedKv::Status DeleteBatch(const std::vector<DistributedKv::Key> &keys) override
     {
@@ -202,7 +199,6 @@ public:
     };
 
     DistributedKv::Status GetEntries_ = DistributedKv::Status::SUCCESS;
-    DistributedKv::Status Delete_ = DistributedKv::Status::SUCCESS;
     DistributedKv::Status Put_ = DistributedKv::Status::SUCCESS;
     int32_t putCallTimes_ = 0;
 };

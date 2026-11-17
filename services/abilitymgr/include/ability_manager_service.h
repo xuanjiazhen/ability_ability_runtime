@@ -3319,6 +3319,24 @@ private:
     void KillDirectBootApps(int32_t userId);
     void SubscribeUserUnlockedEvent();
     void SubscribeScreenUnlockedEvent();
+
+    /**
+     * Subscribe the COMMON_EVENT_PACKAGE_DATA_CLEARED event broadcast by the appmgr after
+     * the application data is cleared, and route the event to the user's
+     * UIAbilityLifecycleManager to clear the recover/exit reason records and notify the
+     * window to clear the stack recovery flag.
+     */
+    void SubscribePackageDataClearedEvent();
+
+    /**
+     * Handle the application data cleared event: route to the UIAbilityLifecycleManager
+     * of the given user to remove the KVStore marks and notify the window.
+     *
+     * @param bundleName The bundle name of the application whose data is cleared.
+     * @param accessTokenId The access token id of the application.
+     * @param userId The user id of the application.
+     */
+    void HandlePackageDataCleared(const std::string &bundleName, uint32_t accessTokenId, int32_t userId);
     std::function<void(int32_t)> GetScreenUnlockCallback();
     std::function<void(int32_t)> GetUserScreenUnlockCallback();
     void UnSubscribeScreenUnlockedEvent();
@@ -3776,6 +3794,7 @@ private:
 
     std::shared_ptr<AbilityRuntime::AbilityUserUnlockEventSubscriber> userUnlockSubscriber_;
     std::shared_ptr<AbilityRuntime::AbilityScreenUnlockEventSubscriber> screenSubscriber_;
+    std::shared_ptr<AbilityRuntime::AbilityPackageDataClearedEventSubscriber> packageDataClearedSubscriber_;
     bool isSubscribed_ = false;
     std::mutex subscribedMutex_;
 

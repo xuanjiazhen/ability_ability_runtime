@@ -50,6 +50,7 @@
 #include "mock_app_mgr_service.h"
 #include "mock_my_flag.h"
 #include "mock_permission_verification.h"
+#include "common_event_support.h"
 #define private public
 #define protected public
 #include "app_exit_reason_data_manager.h"
@@ -2588,6 +2589,214 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, NotifyStackRecoverFromDied_0900, Te
     ASSERT_NE(abilityRecord, nullptr);
     mgr->NotifyStackRecoverFromDied(abilityRecord);
     DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = nullptr;
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_HandleAppDataCleared_0100
+ * @tc.desc: recover info exists, notify window to clear flag for each session and remove records
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAppDataCleared_0100, TestSize.Level1)
+{
+    auto mockSceneSessionManagerLite = new (std::nothrow) Rosen::MockSceneSessionManagerLite();
+    Rosen::SessionManagerLite::GetInstance().sceneSessionManagerLiteProxy_ = mockSceneSessionManagerLite;
+    EXPECT_CALL(*mockSceneSessionManagerLite, NotifyStackRecoverFromAMS(1, false)).Times(1)
+        .WillOnce(Return(Rosen::WSError::WS_OK));
+    EXPECT_CALL(*mockSceneSessionManagerLite, NotifyStackRecoverFromAMS(2, false)).Times(1)
+        .WillOnce(Return(Rosen::WSError::WS_OK));
+
+    auto kvStore = std::make_shared<MockSingleKvStore>();
+    nlohmann::json recoverInfoJson = nlohmann::json {
+        { "recover_info_list", { NOTIFY_TEST_MODULE_NAME + NOTIFY_TEST_ABILITY_NAME } },
+        { "session_id_list", { 1, 2 } },
+    };
+    DistributedKv::Value recoverValue(recoverInfoJson.dump());
+    EXPECT_CALL(*kvStore, Get(_, _)).WillRepeatedly(
+        DoAll(SetArgReferee<1>(recoverValue), Return(DistributedKv::Status::SUCCESS)));
+    std::vector<DistributedKv::Entry> allEntries;
+    EXPECT_CALL(*kvStore, GetEntries(_, _)).WillRepeatedly(
+        DoAll(SetArgReferee<1>(allEntries), Return(DistributedKv::Status::SUCCESS)));
+    EXPECT_CALL(*kvStore, Delete(_)).Times(AtLeast(1))
+        .WillRepeatedly(Return(DistributedKv::Status::SUCCESS));
+    DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = kvStore;
+
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    mgr->HandleAppDataCleared(NOTIFY_TEST_BUNDLE_NAME, NOTIFY_TEST_ACCESS_TOKEN_ID);
+    DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = nullptr;
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_HandleAppDataCleared_0200
+ * @tc.desc: no recover info record, no notify and no crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAppDataCleared_0200, TestSize.Level1)
+{
+    auto mockSceneSessionManagerLite = new (std::nothrow) Rosen::MockSceneSessionManagerLite();
+    Rosen::SessionManagerLite::GetInstance().sceneSessionManagerLiteProxy_ = mockSceneSessionManagerLite;
+    EXPECT_CALL(*mockSceneSessionManagerLite, NotifyStackRecoverFromAMS(_, _)).Times(0);
+
+    auto kvStore = std::make_shared<MockSingleKvStore>();
+    EXPECT_CALL(*kvStore, Get(_, _)).WillRepeatedly(Return(DistributedKv::Status::KEY_NOT_FOUND));
+    std::vector<DistributedKv::Entry> allEntries;
+    EXPECT_CALL(*kvStore, GetEntries(_, _)).WillRepeatedly(
+        DoAll(SetArgReferee<1>(allEntries), Return(DistributedKv::Status::SUCCESS)));
+    DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = kvStore;
+
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    mgr->HandleAppDataCleared(NOTIFY_TEST_BUNDLE_NAME, NOTIFY_TEST_ACCESS_TOKEN_ID);
+    DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = nullptr;
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_HandleAppDataCleared_0300
+ * @tc.desc: invalid bundleName or accessTokenId, no notify and no crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAppDataCleared_0300, TestSize.Level1)
+{
+    auto mockSceneSessionManagerLite = new (std::nothrow) Rosen::MockSceneSessionManagerLite();
+    Rosen::SessionManagerLite::GetInstance().sceneSessionManagerLiteProxy_ = mockSceneSessionManagerLite;
+    EXPECT_CALL(*mockSceneSessionManagerLite, NotifyStackRecoverFromAMS(_, _)).Times(0);
+
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    mgr->HandleAppDataCleared("", NOTIFY_TEST_ACCESS_TOKEN_ID);
+    mgr->HandleAppDataCleared(NOTIFY_TEST_BUNDLE_NAME, 0);
+    SUCCEED();
+}
+
+namespace {
+EventFwk::CommonEventData MakePackageDataClearedEvent(const std::string &action, const std::string &bundleName,
+    int32_t tokenId, int32_t userId, bool withParams)
+{
+    Want want;
+    want.SetAction(action);
+    ElementName element("", bundleName, "");
+    want.SetElement(element);
+    if (withParams) {
+        want.SetParam("TOKEN_ID", tokenId);
+        want.SetParam("userId", userId);
+    }
+    EventFwk::CommonEventData data;
+    data.SetWant(want);
+    return data;
+}
+} // namespace
+
+/**
+ * @tc.name: PackageDataClearedEventSubscriber_OnReceiveEvent_0100
+ * @tc.desc: valid data cleared event, callback invoked with parsed bundleName/tokenId/userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_OnReceiveEvent_0100,
+    TestSize.Level1)
+{
+    std::string gotBundleName;
+    uint32_t gotTokenId = 0;
+    int32_t gotUserId = -1;
+    int32_t callCount = 0;
+    auto callback = [&](const std::string &bundleName, uint32_t tokenId, int32_t userId) {
+        gotBundleName = bundleName;
+        gotTokenId = tokenId;
+        gotUserId = userId;
+        callCount++;
+    };
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    auto subscriber = std::make_shared<AbilityRuntime::AbilityPackageDataClearedEventSubscriber>(
+        subscribeInfo, callback);
+    ASSERT_NE(subscriber, nullptr);
+
+    auto data = MakePackageDataClearedEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED,
+        NOTIFY_TEST_BUNDLE_NAME, static_cast<int32_t>(NOTIFY_TEST_ACCESS_TOKEN_ID), 100, true);
+    subscriber->OnReceiveEvent(data);
+    EXPECT_EQ(callCount, 1);
+    EXPECT_EQ(gotBundleName, NOTIFY_TEST_BUNDLE_NAME);
+    EXPECT_EQ(gotTokenId, NOTIFY_TEST_ACCESS_TOKEN_ID);
+    EXPECT_EQ(gotUserId, 100);
+}
+
+/**
+ * @tc.name: PackageDataClearedEventSubscriber_OnReceiveEvent_0200
+ * @tc.desc: action mismatch, callback not invoked
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_OnReceiveEvent_0200,
+    TestSize.Level1)
+{
+    int32_t callCount = 0;
+    auto callback = [&](const std::string &bundleName, uint32_t tokenId, int32_t userId) {
+        callCount++;
+    };
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    auto subscriber = std::make_shared<AbilityRuntime::AbilityPackageDataClearedEventSubscriber>(
+        subscribeInfo, callback);
+
+    auto data = MakePackageDataClearedEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED,
+        NOTIFY_TEST_BUNDLE_NAME, static_cast<int32_t>(NOTIFY_TEST_ACCESS_TOKEN_ID), 100, true);
+    subscriber->OnReceiveEvent(data);
+    EXPECT_EQ(callCount, 0);
+}
+
+/**
+ * @tc.name: PackageDataClearedEventSubscriber_OnReceiveEvent_0300
+ * @tc.desc: invalid bundleName, tokenId or userId, callback not invoked
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_OnReceiveEvent_0300,
+    TestSize.Level1)
+{
+    int32_t callCount = 0;
+    auto callback = [&](const std::string &bundleName, uint32_t tokenId, int32_t userId) {
+        callCount++;
+    };
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    auto subscriber = std::make_shared<AbilityRuntime::AbilityPackageDataClearedEventSubscriber>(
+        subscribeInfo, callback);
+
+    auto action = EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED;
+    // empty bundleName
+    auto emptyNameData = MakePackageDataClearedEvent(action, "", static_cast<int32_t>(NOTIFY_TEST_ACCESS_TOKEN_ID),
+        100, true);
+    subscriber->OnReceiveEvent(emptyNameData);
+    // invalid tokenId
+    auto invalidTokenData = MakePackageDataClearedEvent(action, NOTIFY_TEST_BUNDLE_NAME, 0, 100, true);
+    subscriber->OnReceiveEvent(invalidTokenData);
+    // invalid userId
+    auto invalidUserData = MakePackageDataClearedEvent(action, NOTIFY_TEST_BUNDLE_NAME,
+        static_cast<int32_t>(NOTIFY_TEST_ACCESS_TOKEN_ID), -1, true);
+    subscriber->OnReceiveEvent(invalidUserData);
+    // params missing
+    auto noParamData = MakePackageDataClearedEvent(action, NOTIFY_TEST_BUNDLE_NAME,
+        static_cast<int32_t>(NOTIFY_TEST_ACCESS_TOKEN_ID), 100, false);
+    subscriber->OnReceiveEvent(noParamData);
+    EXPECT_EQ(callCount, 0);
+}
+
+/**
+ * @tc.name: PackageDataClearedEventSubscriber_OnReceiveEvent_0400
+ * @tc.desc: null callback, no crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_OnReceiveEvent_0400,
+    TestSize.Level1)
+{
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    auto subscriber = std::make_shared<AbilityRuntime::AbilityPackageDataClearedEventSubscriber>(
+        subscribeInfo, nullptr);
+    ASSERT_NE(subscriber, nullptr);
+
+    auto data = MakePackageDataClearedEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED,
+        NOTIFY_TEST_BUNDLE_NAME, static_cast<int32_t>(NOTIFY_TEST_ACCESS_TOKEN_ID), 100, true);
+    subscriber->OnReceiveEvent(data);
+    SUCCEED();
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -3320,6 +3320,46 @@ void UIAbilityLifecycleManager::NotifyStackRecoverFromDied(const UIAbilityRecord
         sessionInfo->persistentId, static_cast<int32_t>(exitReason.reason), static_cast<int32_t>(err));
 }
 
+void UIAbilityLifecycleManager::HandleAppDataCleared(const std::string &bundleName, uint32_t accessTokenId)
+{
+    if (bundleName.empty() || accessTokenId == 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid bundleName or accessTokenId");
+        return;
+    }
+    // Read the session ids from the recover info record before removing it: the record
+    // existence itself is the notification gate, so no tracking state is needed.
+    std::vector<int32_t> sessionIds;
+    auto ret = DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
+        GetRecoverSessionIdsByTokenId(accessTokenId, sessionIds);
+    if (ret != ERR_OK || sessionIds.empty()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "no recover info, ret:%{public}d bundleName:%{public}s",
+            ret, bundleName.c_str());
+    } else {
+        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(
+            userId_).GetSceneSessionManagerLiteProxy();
+        if (sceneSessionManager == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "sceneSessionManager is nullptr, bundleName:%{public}s",
+                bundleName.c_str());
+        } else {
+            for (auto sessionId : sessionIds) {
+                // Clear the stack recovery flag of the sessions whose snapshot was enabled,
+                // so the next launch does not show a stale snapshot while data is cleared.
+                auto err = sceneSessionManager->NotifyStackRecoverFromAMS(sessionId, false);
+                TAG_LOGI(AAFwkTag::ABILITYMGR,
+                    "notify stack recover cleared, sessionId:%{public}d err:%{public}d",
+                    sessionId, static_cast<int32_t>(err));
+            }
+        }
+    }
+    // Remove the recover info (with the session id entries) and the exit reason records,
+    // so no stale mark is left after the application data is cleared.
+    (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
+        DeleteAllRecoverInfoByTokenId(accessTokenId);
+    (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
+        DeleteAppExitReason(bundleName, accessTokenId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "handle app data cleared, bundleName:%{public}s", bundleName.c_str());
+}
+
 void UIAbilityLifecycleManager::OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag,
     int32_t requestId)
 {

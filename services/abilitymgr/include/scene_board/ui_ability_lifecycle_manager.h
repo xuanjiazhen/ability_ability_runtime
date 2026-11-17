@@ -263,6 +263,20 @@ public:
     void NotifyStackRecoverFromDied(const UIAbilityRecordPtr &abilityRecord);
 
     /**
+     * @brief Handle the application data cleared event: read the session ids recorded in the
+     *        KVStore recover info of the application, notify the window to clear the stack
+     *        recovery flag of these sessions (isStackRecover = false), then remove the recover
+     *        info and exit reason records, so no stale mark is left after data clearing.
+     *        The record existence itself is the notification gate, no tracking state is needed.
+     *        Called on the common event callback task thread, must not be invoked with any
+     *        AMS lock held (KVStore access and window IPC).
+     *
+     * @param bundleName the bundle name of the application whose data is cleared
+     * @param accessTokenId the access token id of the application
+     */
+    void HandleAppDataCleared(const std::string &bundleName, uint32_t accessTokenId);
+
+    /**
      * resolve the call ipc of ability for scheduling oncall.
      *
      * @param abilityRequest target ability request.

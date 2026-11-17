@@ -180,5 +180,37 @@ void AbilityUserUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEven
     }
     userScreenUnlockCallback_(userId);
 }
+
+AbilityPackageDataClearedEventSubscriber::AbilityPackageDataClearedEventSubscriber(
+    const EventFwk::CommonEventSubscribeInfo &subscribeInfo,
+    const std::function<void(const std::string &bundleName, uint32_t tokenId, int32_t userId)>
+        &dataClearedCallback)
+    : EventFwk::CommonEventSubscriber(subscribeInfo), dataClearedCallback_(dataClearedCallback)
+{}
+
+void AbilityPackageDataClearedEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
+{
+    const AAFwk::Want &want = data.GetWant();
+    const auto &action = want.GetActionRef();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
+    if (action != EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED) {
+        return;
+    }
+    if (dataClearedCallback_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "dataClearedCallback_ nullptr");
+        return;
+    }
+    // Parameters are set by AppMgrServiceInner::NotifyAppStatusByCallerUid.
+    std::string bundleName = want.GetElement().GetBundleName();
+    int32_t tokenId = want.GetIntParam("TOKEN_ID", 0);
+    int32_t userId = want.GetIntParam("userId", INVALID_USERID);
+    if (bundleName.empty() || tokenId == 0 || userId == INVALID_USERID) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid data cleared event, bundleName empty or invalid param");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "package data cleared, bundleName:%{public}s userId:%{public}d",
+        bundleName.c_str(), userId);
+    dataClearedCallback_(bundleName, static_cast<uint32_t>(tokenId), userId);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
