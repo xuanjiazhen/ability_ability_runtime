@@ -61,6 +61,7 @@ constexpr const char* PAGE_CONFIG = "ohos.abilityRuntime.pageConfig";
 constexpr const char* GAME_PRELAUNCH = "ohos.params.gamePrelaunch";
 constexpr int32_t GAME_SA_UID = 7800;
 constexpr int32_t FOUNDATION_UID = 5523;
+constexpr int32_t SOFTBUS_SERVICE_UID = 4700;
 
 #ifdef SUPPORT_ASAN
 constexpr int32_t COLDSTART_TIMEOUT_MULTIPLE = 15000;

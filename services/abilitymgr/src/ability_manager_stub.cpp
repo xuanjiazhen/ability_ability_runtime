@@ -20,8 +20,10 @@
 #include "ability_manager_radar.h"
 #include "app_utils.h"
 #include "fd_guard.h"
+#include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "ipc_skeleton.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_lite_param.h"
 #include "insight_intent_execute_manager.h"
@@ -248,6 +250,9 @@ int AbilityManagerStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel 
     }
     if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_FOR_OPTIONS) {
         return StartAbilityForOptionsInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_FOR_OPTION_BY_SOFTBUS) {
+        return StartAbilityForOptionBySoftbusInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::START_SYNC_MISSIONS) {
         return StartSyncRemoteMissionsInner(data, reply);
@@ -2292,6 +2297,38 @@ int AbilityManagerStub::StartAbilityForSettingsInner(MessageParcel &data, Messag
 
 int AbilityManagerStub::StartAbilityForOptionsInner(MessageParcel &data, MessageParcel &reply)
 {
+    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
+        return ERR_INVALID_VALUE;
+    }
+    SanitizeWantParams(*want);
+    want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
+    StartOptions *startOptions = data.ReadParcelable<StartOptions>();
+    if (startOptions == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
+        return ERR_INVALID_VALUE;
+    }
+    ProcessOptions::SanitizeSystemFields(startOptions->processOptions);
+    sptr<IRemoteObject> callerToken = nullptr;
+    if (data.ReadBool()) {
+        callerToken = data.ReadRemoteObject();
+    }
+    int32_t userId = data.ReadInt32();
+    int requestCode = data.ReadInt32();
+    int32_t result = StartAbility(*want, *startOptions, callerToken, userId, requestCode);
+    reply.WriteInt32(result);
+    delete startOptions;
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::StartAbilityForOptionBySoftbusInner(MessageParcel &data, MessageParcel &reply)
+{
+    if (IPCSkeleton::GetCallingUid() != SOFTBUS_SERVICE_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not softbus_service call, uid:%{public}d", IPCSkeleton::GetCallingUid());
+        reply.WriteInt32(ERR_PERMISSION_DENIED);
+        return NO_ERROR;
+    }
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");

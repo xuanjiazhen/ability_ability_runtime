@@ -824,6 +824,9 @@ enum class AbilityManagerInterfaceCode {
 
     // get ui extension root host info by ability record id
     GET_UI_EXTENSION_HOST_INFO_BY_ID = 6192,
+
+    // start ability for option restricted to softbus_service (uid 4700); displayId pass-through
+    START_ABILITY_FOR_OPTION_BY_SOFTBUS = 6193,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
