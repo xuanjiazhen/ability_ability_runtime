@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <charconv>
 #include <cinttypes>
+#include <cstddef>
+#include <cstdint>
 #include <chrono>
 #include <ctime>
 #include <vector>
@@ -34,6 +36,7 @@
 #include "application_state_observer_stub.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
+#include "task_mgr/crypto_helper.h"
 #include "task_mgr/process_schedule.h"
 #include "task_mgr/task_priority_judge.h"
 #include "saf_agent_fence.h"
@@ -114,6 +117,18 @@ std::string AttributionsToString(const std::map<AttributionId, AttributionRecord
     return result;
 }
 
+/**
+ * @brief Zeroes a token buffer with volatile stores so the compiler cannot elide the
+ *        wipe (plain memset may drop the whole loop for a dead buffer).
+ */
+void WipeTokenBytes(void *data, size_t len)
+{
+    volatile uint8_t *p = static_cast<volatile uint8_t *>(data);
+    for (size_t i = 0; i < len; ++i) {
+        p[i] = 0;
+    }
+}
+
 bool ParsePidText(const std::string &pidText, pid_t &pid)
 {
     pid_t value = 0;
@@ -176,7 +191,6 @@ int32_t TaskManagerService::StartTask(const std::string &taskId)
     }
     TaskCallerInfo caller = GetCallerInfo();
     std::vector<int32_t> authToken;
-    // shortcut: authToken is reserved for the later el3-el5 file decryption, not consumed in this phase.
     int32_t safRet = OHOS::Security::SAF::SafAgentFence::RetrieveAuthTokenByTaskId(
         static_cast<int32_t>(caller.tokenId), taskId, authToken);
     if (safRet != SAF_SUCCESS) {
@@ -189,7 +203,45 @@ int32_t TaskManagerService::StartTask(const std::string &taskId)
     int32_t priority = judge.JudgeLevel(caller.pid);
     TAG_LOGI(AAFwkTag::APPMGR, "judged priority: %{public}d for caller uid: %{public}d",
         priority, caller.uid);
-    return StartTaskInner(caller, taskId, priority);
+    int32_t ret = StartTaskInner(caller, taskId, priority);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    ret = DecryptEl5Files(caller, std::move(authToken));
+    if (ret != ERR_OK) {
+        // Roll the record back: a token-bearing task that cannot unlock its el5 files
+        // must not run; nothing was decrypted, so the rollback skips re-locking.
+        FinishTaskInner(taskId, TaskFinishReason::FINISHED_BY_START_FAILED, SYSTEM_INITIATED_UID,
+            SYSTEM_INITIATED_PID, SKIP_DEADLINE_CHECK);
+        return INNER_ERR;
+    }
+    return ERR_OK;
+}
+
+int32_t TaskManagerService::DecryptEl5Files(const TaskCallerInfo &caller, std::vector<int32_t> authToken)
+{
+    // The fence emits an empty token for low-risk tasks: no el5 material to unlock, and
+    // a token-less unlock would be rejected by the storage manager anyway.
+    if (caller.userId <= 0 || authToken.empty()) {
+        return ERR_OK;
+    }
+    // SAF hands out token bytes, one byte per int32 element; narrow element-wise.
+    std::vector<uint8_t> token;
+    token.reserve(authToken.size());
+    for (int32_t byte : authToken) {
+        token.push_back(static_cast<uint8_t>(byte));
+    }
+    int32_t ret = CryptoHelper::GetInstance().DecryptUserKey(
+        static_cast<uint32_t>(caller.userId), token);
+    WipeTokenBytes(token.data(), token.size() * sizeof(uint8_t));
+    WipeTokenBytes(authToken.data(), authToken.size() * sizeof(int32_t));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "unlock el5 failed, userId: %{public}d, ret: %{public}d",
+            caller.userId, ret);
+        return INNER_ERR;
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "el5 user key unlocked, userId: %{public}d", caller.userId);
+    return ERR_OK;
 }
 
 int32_t TaskManagerService::FinishTask(const std::string &taskId)
@@ -246,6 +298,7 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
     int32_t taskUserId = -1;
     std::unique_ptr<TimeoutContext> timerCtx;
     std::vector<pid_t> managedPids;
+    bool lastTaskOfUser = false;
     {
         std::lock_guard<ffrt::mutex> lock(tasksMutex_);
         auto it = tasks_.find(taskId);
@@ -293,6 +346,15 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
         if (!creatorHasTask) {
             TaskPriorityJudge::GetInstance().UntrackForeground(creatorPid);
         }
+        // EL5 keys are per-user: only the last surviving task of a user re-locks, so a
+        // finishing sibling cannot lock the files of still-running same-user tasks.
+        lastTaskOfUser = true;
+        for (const auto &item : tasks_) {
+            if (item.second.userId == taskUserId) {
+                lastTaskOfUser = false;
+                break;
+            }
+        }
     }
     if (reason == TaskFinishReason::FINISHED_BY_TIMEOUT) {
         timerCtx.reset();
@@ -300,6 +362,17 @@ int32_t TaskManagerService::FinishTaskInner(const std::string &taskId, TaskFinis
         ReleaseTimeoutContext(std::move(timerCtx));
     }
     NotifyTaskFinished(taskId, taskUserId, reason);
+    // The start-failure rollback never decrypted, so it must not re-lock either. Lock
+    // failures are logged only: the task is already gone, an error return would mislead
+    // a retry into ERR_TASK_NOT_FOUND.
+    if (taskUserId > 0 && lastTaskOfUser && reason != TaskFinishReason::FINISHED_BY_START_FAILED) {
+        int32_t el5Ret = CryptoHelper::GetInstance().EncryptUserKey(
+            static_cast<uint32_t>(taskUserId));
+        if (el5Ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "lock el5 failed, userId: %{public}d, ret: %{public}d",
+                taskUserId, el5Ret);
+        }
+    }
     return ERR_OK;
 }
 

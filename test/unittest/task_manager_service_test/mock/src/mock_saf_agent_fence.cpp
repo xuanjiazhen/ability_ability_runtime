@@ -26,6 +26,7 @@ namespace Security {
 namespace SAF {
 namespace {
 int32_t g_mockFenceResult = SAF_SUCCESS;  // default: task valid
+std::vector<int32_t> g_mockFenceToken;
 }  // namespace
 
 void SetMockFenceResult(int32_t result)
@@ -33,10 +34,15 @@ void SetMockFenceResult(int32_t result)
     g_mockFenceResult = result;
 }
 
+void SetMockFenceToken(const std::vector<int32_t> &token)
+{
+    g_mockFenceToken = token;
+}
+
 int32_t SafAgentFence::RetrieveAuthTokenByTaskId(int32_t callerToken, const std::string &taskId,
     std::vector<int32_t> &authToken)
 {
-    authToken.clear();
+    authToken = g_mockFenceToken;
     return g_mockFenceResult;
 }
 }  // namespace SAF

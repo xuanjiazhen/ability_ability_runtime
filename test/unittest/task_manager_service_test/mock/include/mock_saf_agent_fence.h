@@ -17,12 +17,15 @@
 #define MOCK_SAF_AGENT_FENCE_H
 
 #include <cstdint>
+#include <vector>
 
 namespace OHOS {
 namespace Security {
 namespace SAF {
 // Test seam: controls the return value of the mocked SafAgentFence::RetrieveAuthTokenByTaskId.
 void SetMockFenceResult(int32_t result);
+// Test seam: controls the auth token emitted by the mocked fence (default: empty).
+void SetMockFenceToken(const std::vector<int32_t> &token);
 }  // namespace SAF
 }  // namespace Security
 }  // namespace OHOS

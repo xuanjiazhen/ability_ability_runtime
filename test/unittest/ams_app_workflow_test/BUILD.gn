@@ -51,6 +51,7 @@ ohos_unittest("AmsWorkFlowTest") {
     "${ability_runtime_services_path}/appmgr/src/remote_client_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/attribution_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/common.cpp",
+    "${ability_runtime_services_path}/appmgr/src/task_mgr/crypto_helper.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/process_schedule.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/system_load_provider.cpp",
     "${ability_runtime_services_path}/appmgr/src/task_mgr/task_priority_judge.cpp",
@@ -94,6 +95,7 @@ ohos_unittest("AmsWorkFlowTest") {
     "memory_utils:libmeminfo",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
+    "storage_service:storage_manager_sa_proxy",
     "json:nlohmann_json_static",
     "window_manager:session_manager_lite",
   ]
