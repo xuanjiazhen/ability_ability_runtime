@@ -368,7 +368,7 @@ void AppfreezeInner::GetApplicationInfo(FaultData& faultData)
         TAG_LOGE(AAFwkTag::APPDFR, "null application_");
         return;
     }
-    auto &runtime = application->GetRuntime();
+    auto *runtime = application->GetRuntimeSnapshot();
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
         return;
@@ -379,7 +379,7 @@ void AppfreezeInner::GetApplicationInfo(FaultData& faultData)
         return;
     }
 
-    AbilityRuntime::JsRuntime* jsRuntime = static_cast<AbilityRuntime::JsRuntime*>(runtime.get());
+    AbilityRuntime::JsRuntime* jsRuntime = static_cast<AbilityRuntime::JsRuntime*>(runtime);
     if (jsRuntime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
         return;

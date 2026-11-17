@@ -4198,7 +4198,7 @@ int32_t MainThread::ChangeAppGcState(int32_t state, uint64_t tid)
         TAG_LOGE(AAFwkTag::APPKIT, "null application_");
         return ERR_INVALID_VALUE;
     }
-    auto &runtime = application_->GetRuntime();
+    auto *runtime = application_->GetRuntimeSnapshot();
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return ERR_INVALID_VALUE;
@@ -4220,8 +4220,12 @@ int32_t MainThread::ChangeAppGcState(int32_t state, uint64_t tid)
 
     if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
         auto& etsRuntime = static_cast<AbilityRuntime::ETSRuntime&>(*runtime);
-        auto& jsRuntime = static_cast<AbilityRuntime::JsRuntime&>(*etsRuntime.GetJsRuntime());
-        nativeEngine = &jsRuntime.GetNativeEngine();
+        auto& jsRuntimePtr = etsRuntime.GetJsRuntime();
+        if (jsRuntimePtr == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null jsRuntime");
+            return ERR_INVALID_VALUE;
+        }
+        nativeEngine = &(static_cast<AbilityRuntime::JsRuntime&>(*jsRuntimePtr)).GetNativeEngine();
     } else {
         nativeEngine = &(static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetNativeEngine();
     }

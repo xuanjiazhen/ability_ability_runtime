@@ -73,12 +73,20 @@ bool SleepClean::HandleSleepClean(const FaultData &faultData, const std::shared_
 
 size_t SleepClean::GetHeapSize(const std::shared_ptr<OHOSApplication> &application)
 {
-    auto &runtime = application->GetRuntime();
+    if (application == nullptr) {
+        TAG_LOGE(AAFwkTag::APPDFR, "null application");
+        return 0;
+    }
+    auto *runtime = application->GetRuntimeSnapshot();
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
         return 0;
     }
-    AbilityRuntime::JsRuntime *jsRuntime = static_cast<AbilityRuntime::JsRuntime *>(runtime.get());
+    if (runtime->GetLanguage() != AbilityRuntime::Runtime::Language::JS) {
+        TAG_LOGE(AAFwkTag::APPDFR, "not js runtime");
+        return 0;
+    }
+    AbilityRuntime::JsRuntime *jsRuntime = static_cast<AbilityRuntime::JsRuntime *>(runtime);
     if (jsRuntime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
         return 0;

@@ -189,6 +189,15 @@ public:
     }
 
     /**
+     * @brief return a runtime pointer snapshot for cross-thread readers.
+     *
+     * The snapshot must not be cached across a SetRuntime call. It remains valid
+     * across UpdateETSRuntime because the old JS runtime is transferred to the
+     * new ETSRuntime.
+     */
+    AbilityRuntime::Runtime *GetRuntimeSnapshot() const;
+
+    /**
      * @brief return the specified runtime
      *
      * @param runtime

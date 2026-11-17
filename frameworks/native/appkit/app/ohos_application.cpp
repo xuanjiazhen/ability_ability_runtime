@@ -183,7 +183,14 @@ void OHOSApplication::SetRuntime(std::unique_ptr<AbilityRuntime::Runtime> &&runt
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
     }
+    std::lock_guard<std::mutex> lock(runtimeMutex_);
     runtime_ = std::move(runtime);
+}
+
+AbilityRuntime::Runtime *OHOSApplication::GetRuntimeSnapshot() const
+{
+    std::lock_guard<std::mutex> lock(runtimeMutex_);
+    return runtime_.get();
 }
 
 /**

@@ -270,6 +270,33 @@ HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_GetSpecifiedRuntime
 }
 
 /*
+* @tc.number: AppExecFwk_OHOSApplicationTest_GetRuntimeSnapshot_0100
+* @tc.name: GetRuntimeSnapshot
+* @tc.desc: Verify GetRuntimeSnapshot returns null when runtime is empty
+*/
+HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_GetRuntimeSnapshot_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_GetRuntimeSnapshot_0100 start.";
+    EXPECT_EQ(ohosApplication_->GetRuntimeSnapshot(), nullptr);
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_GetRuntimeSnapshot_0100 end.";
+}
+
+/*
+* @tc.number: AppExecFwk_OHOSApplicationTest_GetRuntimeSnapshot_0200
+* @tc.name: GetRuntimeSnapshot
+* @tc.desc: Verify GetRuntimeSnapshot returns the runtime set by SetRuntime
+*/
+HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_GetRuntimeSnapshot_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_GetRuntimeSnapshot_0200 start.";
+    std::unique_ptr<AbilityRuntime::Runtime> runtime = std::make_unique<AbilityRuntime::MockRuntime>();
+    auto *runtimePtr = runtime.get();
+    ohosApplication_->SetRuntime(std::move(runtime));
+    EXPECT_EQ(ohosApplication_->GetRuntimeSnapshot(), runtimePtr);
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_GetRuntimeSnapshot_0200 end.";
+}
+
+/*
 * @tc.number: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0100
 * @tc.name: SetApplicationContext
 * @tc.desc: Verify function SetApplicationContext pointer abilityRuntimeContext_ empty
