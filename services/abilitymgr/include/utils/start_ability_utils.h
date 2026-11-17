@@ -154,6 +154,8 @@ struct StartAbilityWrapParam {
     std::shared_ptr<SandboxCloneParams> sandboxCloneParams = nullptr;
     bool isLaunchSCB = false;
     bool isDirectBootStartup = false;
+    // Set only by the insight intent channel.
+    bool isInsightIntentExecution = false;
     StartAbilityContext startAbilityCtx;
 };
 }

@@ -1419,6 +1419,12 @@ public:
         bool isSilent = false, bool promotePriority = false,
         bool isVisible = false, uint64_t specifiedFullTokenId = 0) override;
 
+    // StartAbilityByCallWithErrMsg implementation that can carry the insight intent flag.
+    int StartAbilityByCallInner(const Want &want, const sptr<IAbilityConnection> &connect,
+        const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg,
+        bool isSilent, bool promotePriority, bool isVisible, uint64_t specifiedFullTokenId,
+        bool isInsightIntentExecution);
+
     /**
      * Start Ability for prelauch.
      *
@@ -1486,7 +1492,8 @@ public:
         bool isImplicit = false,
         bool isDlp = false,
         bool isStartAsCaller = false,
-        uint32_t skillCallerTokenId = 0);
+        uint32_t skillCallerTokenId = 0,
+        bool isInsightIntentExecution = false);
 
     int RequestModalUIExtensionInner(Want want);
 
@@ -3833,8 +3840,6 @@ private:
 
     AbilityRuntime::ExtractInsightIntentGenericInfo GetInsightIntentExecuteInfo(const InsightIntentExecuteParam &param,
         AbilityRuntime::ExtractInsightIntentInfo &extractInfo, AbilityRuntime::InsightIntentInfo &configInfo);
-
-    bool IsInsightIntentCall(const Want &want, const std::string &targetBundleName);
 
     int32_t RecordAppWithReasonByAccessTokenId(uint32_t accessTokenId,
         const ExitReasonCompability &exitReasonCompability);
