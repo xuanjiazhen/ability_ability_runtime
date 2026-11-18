@@ -26,6 +26,8 @@ const char *TaskFinishReasonToString(TaskFinishReason reason)
             return "timeout";
         case TaskFinishReason::FINISHED_BY_CREATOR_DIED:
             return "creatorDied";
+        case TaskFinishReason::FINISHED_BY_START_FAILED:
+            return "startFailed";
         default:
             return "unknown";
     }

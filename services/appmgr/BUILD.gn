@@ -84,6 +84,7 @@ ohos_shared_library("libappms") {
     "src/render_state_observer_manager.cpp",
     "src/task_mgr/attribution_record.cpp",
     "src/task_mgr/common.cpp",
+    "src/task_mgr/crypto_helper.cpp",
     "src/task_mgr/process_schedule.cpp",
     "src/task_mgr/system_load_provider.cpp",
     "src/task_mgr/task_manager_service.cpp",
@@ -174,6 +175,7 @@ ohos_shared_library("libappms") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "window_manager:session_manager_lite",
   ]
   public_external_deps = [ "kv_store:distributeddata_mgr" ]

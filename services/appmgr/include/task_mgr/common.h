@@ -62,6 +62,7 @@ enum class TaskFinishReason : int32_t {
     FINISHED_BY_CALLER = 0,
     FINISHED_BY_TIMEOUT = 1,
     FINISHED_BY_CREATOR_DIED = 2,
+    FINISHED_BY_START_FAILED = 3,
 };
 
 const char *TaskFinishReasonToString(TaskFinishReason reason);
