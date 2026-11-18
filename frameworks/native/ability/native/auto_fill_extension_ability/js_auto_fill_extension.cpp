@@ -379,7 +379,7 @@ void JsAutoFillExtension::OnCommandWindow(
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null sessionInfo");
         return;
     }
-    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Begin. persistentId: %{private}d, winCmd: %{public}d",
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Begin. persistentId: %{public}d, winCmd: %{public}d",
         sessionInfo->persistentId, winCmd);
     Extension::OnCommandWindow(want, sessionInfo, winCmd);
     switch (winCmd) {
@@ -574,20 +574,20 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         // Host window migration: re-parent via the shared helper (fail-isolated).
         uint32_t oldParentWindowId = migrationFencing_.currentParentWindowId;
         if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
-            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "host window migration, update parent, persistentId: %{private}d, "
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "host window migration, update parent, persistentId: %{public}d, "
                 "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
                 sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
             if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
                 TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "re-parent failed, keep session backgrounded");
                 // Keep the marker for retry: strip the declaration from this receipt path so
                 // ScheduleCommandAbilityWindowDone does not confirm this failed migration.
-                sessionInfo->originalCallerInfo.callerToken = nullptr;
+                sessionInfo->originalCallerInfo.migrationGen = 0;  // INP2-05: gen=0 signals "do not confirm"
                 return false;
             }
             CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
                 sessionInfo->hostWindowId);
             TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
-                "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
+                "%{public}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
             // Host-caller (ability) change notification: fires once per identity change —
             // same-ability dual-window migrations do not fire; a notified identity never
             // notifies again (latched in MigrationFencingState, seeded at window creation).
@@ -600,13 +600,33 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
                     CallObjectMethod("onCallerChanged", argv, ARGC_ONE);
                 }
             }
-            // Sync the autofill context's cached session info to the new host window.
+            // Sync the autofill context's cached session info to the new host window:
+            // cache a COPY without the previous-host token (capability hygiene — same as
+            // the UIExtension content-session caches).
             auto migrateContext = GetContext();
             if (migrateContext != nullptr) {
-                migrateContext->SetSessionInfo(sessionInfo);
+                auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*sessionInfo);
+                cachedInfo->originalCallerInfo.callerToken = nullptr;
+                migrateContext->SetSessionInfo(cachedInfo);
             }
-        } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
-            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "migration skipped, persistentId: %{private}d, gen: %{public}u, "
+            // N-01/C3: refresh the JS content session's cached session info + proxies,
+            // same as the JsUIExtension migration path (window re-parent already done).
+            {
+                HandleScope handleScope(jsRuntime_);
+                napi_env env = jsRuntime_.GetNapiEnv();
+                auto sessionIt = contentSessions_.find(obj);
+                if (env != nullptr && sessionIt != contentSessions_.end() && sessionIt->second != nullptr) {
+                    napi_value contentSession = sessionIt->second->GetNapiValue();
+                    void* nativeObject = nullptr;
+                    napi_unwrap(env, contentSession, &nativeObject);
+                    auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
+                    if (contentSessionPtr != nullptr) {
+                        contentSessionPtr->DoUpdateExtensionParent(sessionInfo);
+                    }
+                }
+            }
+        } else if (sessionInfo->originalCallerInfo.migrationGen != 0) {
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "migration skipped, persistentId: %{public}d, gen: %{public}u, "
                 "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
                 migrationFencing_.lastGen, sessionInfo->hostWindowId,

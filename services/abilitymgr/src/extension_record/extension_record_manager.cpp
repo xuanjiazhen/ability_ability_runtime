@@ -224,7 +224,7 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     if (migrationRecord == nullptr) {
         if (hasTerminatingMatch) {
             TAG_LOGW(AAFwkTag::ABILITYMGR,
-                "migration update: record terminating, persistentId: %{private}d, rejected",
+                "migration update: record terminating, persistentId: %{public}d, rejected",
                 abilityRequest.sessionInfo->persistentId);
             ret = ERR_INVALID_VALUE;
             return true;
@@ -235,7 +235,7 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         // returned ERR_OK). The host decides how to recover (retry, or destroy + create
         // explicitly) on the visible error.
         TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration update: record not found, persistentId: %{private}d, rejected",
+            "migration update: record not found, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
@@ -246,7 +246,7 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     if (abilityRequest.sessionInfo->originalCallerInfo.persistentId !=
         abilityRequest.sessionInfo->persistentId) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration persistentId mismatch, declared: %{private}d, request: %{private}d, rejected",
+            "migration persistentId mismatch, declared: %{public}d, request: %{public}d, rejected",
             abilityRequest.sessionInfo->originalCallerInfo.persistentId,
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
@@ -265,7 +265,7 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken;
     if (!declarationMatched) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration declaration mismatch, persistentId: %{private}d, rejected",
+            "migration declaration mismatch, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
@@ -274,7 +274,7 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     // initial state, which would silently confirm a migration that never took effect).
     if (abilityRequest.sessionInfo->hostWindowId == 0) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration to invalid hostWindowId 0, persistentId: %{private}d, rejected",
+            "migration to invalid hostWindowId 0, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
@@ -282,7 +282,7 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     // Window gate: a migration always changes hostWindowId; an unchanged one has no legal path.
     if (recordSessionInfo->hostWindowId == abilityRequest.sessionInfo->hostWindowId) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration declared but hostWindowId unchanged, persistentId: %{private}d, rejected",
+            "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
@@ -295,7 +295,7 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     auto extensionRecord = FindExtensionRecordById(migrationRecord->GetUIExtensionAbilityId());
     if (extensionRecord == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration update: wrapper not found, persistentId: %{private}d, rejected",
+            "migration update: wrapper not found, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
@@ -305,7 +305,7 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     uint32_t newGen = extensionRecord->AdvanceMigrationGen();
     if (newGen == 0) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration gen saturated, persistentId: %{private}d, rejected",
+            "migration gen saturated, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
@@ -313,11 +313,15 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     // Projection + marker: the delivered declaration (with the stamped gen) and its
     // target host window are remembered as the wrapper's authoritative pending state.
     abilityRequest.sessionInfo->originalCallerInfo.migrationGen = newGen;
+    // INP2-05 fix: the credential has been reconciled above — strip the previous-host
+    // token so it NEVER crosses the AMS→provider IPC. The provider-side migration
+    // discriminator is migrationGen (0 = not a migration), not callerToken.
+    abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
     extensionRecord->SetMigrationDeclaration(abilityRequest.sessionInfo->originalCallerInfo,
         abilityRequest.sessionInfo->hostWindowId);
     abilityRecord = migrationRecord;
     isLoaded = true;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{private}d",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d",
         abilityRequest.sessionInfo->persistentId);
     ret = ERR_OK;
     return true;

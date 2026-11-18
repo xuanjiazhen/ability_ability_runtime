@@ -38,10 +38,6 @@ bool UpdateWindowParentForMigration(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
     const sptr<Rosen::Window> &uiWindow);
 
-// Validate a wire-provided parentWindowType before it is cast into Rosen::WindowType:
-// the enum's legal range is [0, WINDOW_TYPE_UI_EXTENSION].
-bool IsValidParentWindowType(uint32_t parentWindowType);
-
 // Gen-fencing check ONLY: returns true for a newer migration (gen > lastGen) whose
 // hostWindowId actually differs. It does NOT advance the fence for the execution
 // branch — the caller must call CommitMigrationState after the re-parent actually

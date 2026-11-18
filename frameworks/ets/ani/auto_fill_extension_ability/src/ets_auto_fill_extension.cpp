@@ -278,7 +278,7 @@ void EtsAutoFillExtension::OnCommandWindow(
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null sessionInfo");
         return;
     }
-    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Begin. persistentId: %{private}d, winCmd: %{public}d",
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Begin. persistentId: %{public}d, winCmd: %{public}d",
         sessionInfo->persistentId, winCmd);
     Extension::OnCommandWindow(want, sessionInfo, winCmd);
     switch (winCmd) {
@@ -452,6 +452,7 @@ bool EtsAutoFillExtension::CreateSessionAndReference(sptr<AAFwk::SessionInfo> se
         return false;
     }
     contentSessions_.emplace(sessionInfo->sessionToken, ref);
+    etsUiExtContentSession_ = etsUiExtContentSession;  // C4 fix: retain for migration refresh
     return true;
 }
 
@@ -531,20 +532,20 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
         // Host window migration: re-parent via the shared helper (fail-isolated).
         uint32_t oldParentWindowId = migrationFencing_.currentParentWindowId;
         if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
-            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "host window migration, update parent, persistentId: %{private}d, "
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "host window migration, update parent, persistentId: %{public}d, "
                 "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
                 sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
             if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
                 TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "re-parent failed, keep session backgrounded");
                 // Keep the marker for retry: strip the declaration from this receipt path so
                 // ScheduleCommandAbilityWindowDone does not confirm this failed migration.
-                sessionInfo->originalCallerInfo.callerToken = nullptr;
+                sessionInfo->originalCallerInfo.migrationGen = 0;  // INP2-05: gen=0 signals "do not confirm"
                 return false;
             }
             CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
                 sessionInfo->hostWindowId);
             TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
-                "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
+                "%{public}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
             // Host-caller (ability) change notification: fires once per identity change —
             // same-ability dual-window migrations do not fire; a notified identity never
             // notifies again (latched in MigrationFencingState, seeded at window creation).
@@ -555,13 +556,22 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
                     CallObjectMethod(false, "onCallerChanged", nullptr, wantObj);
                 }
             }
-            // Sync the autofill context's cached session info to the new host window.
+            // Sync the autofill context's cached session info to the new host window:
+            // cache a COPY without the previous-host token (capability hygiene — same as
+            // the ETS content-session cache).
             auto migrateContext = GetContext();
             if (migrateContext != nullptr) {
-                migrateContext->SetSessionInfo(sessionInfo);
+                auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*sessionInfo);
+                cachedInfo->originalCallerInfo.callerToken = nullptr;
+                migrateContext->SetSessionInfo(cachedInfo);
             }
-        } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
-            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "migration skipped, persistentId: %{private}d, gen: %{public}u, "
+            // C4 fix: refresh the C++ side content session's cached sessionInfo_
+            // (same as P4/P5 — 1 instance = 1 session).
+            if (etsUiExtContentSession_ != nullptr) {
+                etsUiExtContentSession_->UpdateSessionInfo(sessionInfo);
+            }
+        } else if (sessionInfo->originalCallerInfo.migrationGen != 0) {
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "migration skipped, persistentId: %{public}d, gen: %{public}u, "
                 "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
                 migrationFencing_.lastGen, sessionInfo->hostWindowId,
@@ -655,6 +665,7 @@ void EtsAutoFillExtension::DestroyWindow(sptr<AAFwk::SessionInfo> sessionInfo)
     foregroundWindows_.erase(obj);
     contentSessions_.erase(obj);
     callbacks_.erase(obj);
+    etsUiExtContentSession_ = nullptr;  // C4 fix: release with the session
 }
 
 bool EtsAutoFillExtension::CallObjectMethod(bool withResult, const char *name, const char *signature, ...)
@@ -771,6 +782,7 @@ void EtsAutoFillExtension::CallEtsOnRequest(const AAFwk::Want &want, sptr<AAFwk:
         return;
     }
     contentSessions_.emplace(sessionInfo->sessionToken, ref);
+    etsUiExtContentSession_ = etsUiExtContentSession;  // C4 fix: retain for migration refresh
     ProcessRequest(want, sessionInfo, uiWindow, nativeContentSession);
 }
 

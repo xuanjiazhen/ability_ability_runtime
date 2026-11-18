@@ -1428,10 +1428,8 @@ void JsUIExtensionContentSession::InitDisplayId(AAFwk::Want &want, AAFwk::StartO
 namespace {
 sptr<Rosen::WindowOption> MakeMigrationParentOption(const sptr<AAFwk::SessionInfo> &sessionInfo)
 {
-    if (!IsValidParentWindowType(sessionInfo->parentWindowType)) {
-        TAG_LOGW(AAFwkTag::UI_EXT, "invalid parentWindowType: %{public}u", sessionInfo->parentWindowType);
-        return nullptr;
-    }
+    // Window-domain fields are passed through verbatim (validation belongs to the window
+    // layer if it ever consumes them — see UpdateWindowParentForMigration's NOTE).
     sptr<Rosen::WindowOption> option = sptr<Rosen::WindowOption>::MakeSptr();
     if (option != nullptr) {
         option->SetParentId(sessionInfo->hostWindowId);
@@ -1490,7 +1488,7 @@ void JsUIExtensionContentSession::DoUpdateExtensionParent(const sptr<AAFwk::Sess
     // repeat it here.
     sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr(*sessionInfo);
     sessionInfo_->originalCallerInfo.callerToken = nullptr;
-    TAG_LOGI(AAFwkTag::UI_EXT, "DoUpdateExtensionParent, persistentId: %{private}d, hostWindowId: %{public}u",
+    TAG_LOGI(AAFwkTag::UI_EXT, "DoUpdateExtensionParent, persistentId: %{public}d, hostWindowId: %{public}u",
         sessionInfo->persistentId, sessionInfo->hostWindowId);
 
     if (env_ == nullptr) {
@@ -1504,7 +1502,7 @@ void JsUIExtensionContentSession::DoUpdateExtensionParent(const sptr<AAFwk::Sess
     }
     size_t updatedProxies = RefreshJsExtensionWindowProxies(env_, jsExtensionWindowRefs_, option);
     TAG_LOGI(AAFwkTag::UI_EXT, "DoUpdateExtensionParent done, proxies updated: %{public}zu/%{public}zu, "
-        "hostWindowId: %{public}u, persistentId: %{private}d",
+        "hostWindowId: %{public}u, persistentId: %{public}d",
         updatedProxies, jsExtensionWindowRefs_.size(),
         sessionInfo->hostWindowId, sessionInfo->persistentId);
 }

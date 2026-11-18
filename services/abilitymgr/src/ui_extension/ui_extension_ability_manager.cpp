@@ -506,7 +506,7 @@ void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<
         sessionInfo->hostWindowId,
         sessionInfo->realHostWindowId,
         sessionInfo->originalCallerInfo.migrationGen,
-        sessionInfo->originalCallerInfo.callerToken != nullptr ? 1 : 0);
+        sessionInfo->originalCallerInfo.migrationGen != 0 ? 1 : 0);
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
     if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
         MoveToBackground(abilityRecord);
@@ -671,8 +671,9 @@ int UIExtensionAbilityManager::ScheduleCommandAbilityWindowDone(const sptr<IRemo
     // authoritative marker. A failed re-parent never reaches here (the provider strips the
     // declaration from its failure receipt), so the marker stays for the next
     // at-least-once re-delivery.
+    // INP2-05: confirm discriminator is migrationGen (0 = not a migration receipt).
     if (winCmd == WIN_CMD_FOREGROUND && abilityCmd == AAFwk::ABILITY_CMD_FOREGROUND &&
-        sessionInfo != nullptr && sessionInfo->originalCallerInfo.callerToken != nullptr) {
+        sessionInfo != nullptr && sessionInfo->originalCallerInfo.migrationGen != 0) {
         auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
         std::shared_ptr<ExtensionRecord> extensionRecord;
         if (abilityRecord != nullptr && uiExtensionAbilityRecordMgr_ != nullptr) {
@@ -682,11 +683,11 @@ int UIExtensionAbilityManager::ScheduleCommandAbilityWindowDone(const sptr<IRemo
         if (extensionRecord != nullptr) {
             if (extensionRecord->ConfirmMigrationDeclaration(
                 sessionInfo->originalCallerInfo.migrationGen)) {
-                TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{private}d, gen: %{public}u",
+                TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{public}d, gen: %{public}u",
                     sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
             } else {
                 TAG_LOGW(AAFwkTag::UI_EXT,
-                    "migration completion ignored (no marker or stale gen), persistentId: %{private}d, "
+                    "migration completion ignored (no marker or stale gen), persistentId: %{public}d, "
                     "done gen: %{public}u, record gen: %{public}u",
                     sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
                     extensionRecord->GetMigrationGen());
@@ -772,8 +773,8 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
                 abilityRequest.sessionInfo->hostWindowId = targetHostWindowId;
             }
         } else if (abilityRequest.sessionInfo != nullptr &&
-                   abilityRequest.sessionInfo->originalCallerInfo.callerToken != nullptr) {
-            abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
+                   abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
+            abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
         }
         targetService->SetSessionInfo(abilityRequest.sessionInfo);
     }
@@ -888,7 +889,7 @@ void UIExtensionAbilityManager::DoForegroundUIExtension(std::shared_ptr<BaseExte
         abilityRequest.sessionInfo->hostWindowId,
         abilityRequest.sessionInfo->realHostWindowId,
         abilityRequest.sessionInfo->originalCallerInfo.migrationGen,
-        abilityRequest.sessionInfo->originalCallerInfo.callerToken != nullptr ? 1 : 0);
+        abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0 ? 1 : 0);
 
     if (abilityRecord->IsReady() && !abilityRecord->IsAbilityState(AbilityState::INACTIVATING) &&
         !abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING) &&
