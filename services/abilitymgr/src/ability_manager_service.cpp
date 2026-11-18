@@ -1845,7 +1845,8 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
                     {param.isStartAsCaller, isTargetPlugin, param.hostBundleName})
                 .Context<AbilityInterceptorParam::DisposedCtx>({appIndex, nullptr})
                 .BlockAllEscapeCheck(MakeBlockAllEscapeCheck(abilityRequest))
-                .StartAbilityCtx(param.startAbilityCtx).DirectBootStartup(param.isDirectBootStartup).Build();
+                .StartAbilityCtx(param.startAbilityCtx).DirectBootStartup(param.isDirectBootStartup)
+                .GamePrelaunch(param.isGamePrelaunch).Build();
             result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
                 interceptorExecuter_->DoProcess(interceptorParam);
             param.startAbilityCtx.SyncFrom(interceptorParam.startAbilityCtx);
