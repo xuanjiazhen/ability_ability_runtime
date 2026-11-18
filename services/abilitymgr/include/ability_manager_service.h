@@ -576,7 +576,8 @@ public:
      * @param isShow The wanted state, show or hide.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow) override;
+    int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow,
+        const std::shared_ptr<Rosen::WindowShowParams> &params) override;
 
     /**
      * Change the visibility state of an UIAbility by SCB.
@@ -2848,6 +2849,17 @@ public:
      */
     int32_t KillCollaboratorProcess(int32_t collaboratorType, const std::string &bundleName, int32_t userId) override;
 
+    /**
+     * @brief Callback invoked by TaskManagerService when a task is finished
+     *        (via FinishTask, timeout, or creator process death). Iterates all
+     *        AbilityConnectManager instances and cleans stale A2A task
+     *        attribution entries matching the finished taskId from
+     *        BaseExtensionRecord::taskAttributions_.
+     * @param taskId Indicates the finished task id.
+     * @param userId Indicates the user id of the finished task's creator.
+     */
+    void OnTaskFinished(const std::string &taskId, int32_t userId);
+
 protected:
     /**
      * AbilityMgr's request is done.
@@ -3266,17 +3278,6 @@ private:
     int32_t HandleExtensionAbility(sptr<IAbilityConnection> connect,
         std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)>);
     std::vector<std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
-
-    /**
-     * @brief Callback invoked by TaskManagerService when a task is finished
-     *        (via FinishTask, timeout, or creator process death). Iterates all
-     *        AbilityConnectManager instances and cleans stale A2A task
-     *        attribution entries matching the finished taskId from
-     *        BaseExtensionRecord::taskAttributions_.
-     * @param taskId Indicates the finished task id.
-     * @param userId Indicates the user id of the finished task's creator.
-     */
-    void OnTaskFinished(const std::string &taskId, int32_t userId);
 
     int32_t GetServiceMapByUserId(AbilityConnectManager::ServiceMapType &serviceMap, int32_t userId);
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(
