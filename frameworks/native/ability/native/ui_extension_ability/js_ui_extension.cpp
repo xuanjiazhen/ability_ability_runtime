@@ -750,7 +750,6 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
         // AutoFill-style instances and keeps the initial no-op difference check meaningful.
         migrationFencing_ = MigrationFencingState {};
         migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
-        migrationFencing_.lastCallerToken = sessionInfo->callerToken;
         uiWindowMap_[compId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context->GetWindow() == nullptr) {
@@ -782,18 +781,6 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
                 sessionInfo->hostWindowId);
             TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
                 "%{public}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
-            // Host-caller (ability) change notification: fires once per identity change —
-            // same-ability dual-window migrations do not fire; a notified identity never
-            // notifies again (latched in MigrationFencingState, seeded at window creation).
-            if (HasHostCallerChanged(sessionInfo, migrationFencing_)) {
-                HandleScope handleScope(jsRuntime_);
-                napi_env env = jsRuntime_.GetNapiEnv();
-                napi_value napiWant = (env != nullptr) ? OHOS::AppExecFwk::WrapWant(env, want) : nullptr;
-                if (napiWant != nullptr) {
-                    napi_value argv[] = { napiWant };
-                    CallObjectMethod("onCallerChanged", argv, ARGC_ONE);
-                }
-            }
             // Proxy/cache update only after the real re-parent succeeded.
             auto sessionIt = contentSessions_.find(compId);
             if (sessionIt == contentSessions_.end() || sessionIt->second == nullptr) {

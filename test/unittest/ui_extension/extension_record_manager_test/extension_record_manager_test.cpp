@@ -2740,44 +2740,6 @@ HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationWindowZ
 }
 
 /**
- * @tc.name: MigrationFencing_HasHostCallerChanged_0100
- * @tc.desc: onCallerChanged latch semantics: fires once per identity change; a notified
- *           identity never notifies again; same-identity and null cases never fire
- * @tc.type: FUNC
- * @tc.require: issue
- */
-HWTEST_F(ExtensionRecordManagerTest, MigrationFencing_HasHostCallerChanged_0100, TestSize.Level1)
-{
-    MigrationFencingState state;
-    // Null session never fires.
-    EXPECT_FALSE(HasHostCallerChanged(nullptr, state));
-
-    sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
-    ASSERT_NE(sessionInfo, nullptr);
-    // Both-null identity (unseeded latch, null caller): no notification.
-    EXPECT_FALSE(HasHostCallerChanged(sessionInfo, state));
-
-    // Creation seeding: the initial caller becomes known without notification.
-    auto firstCaller = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
-    state.lastCallerToken = firstCaller;
-    sessionInfo->callerToken = firstCaller;
-    // Same-ability dual-window migration: identity unchanged, no notification.
-    EXPECT_FALSE(HasHostCallerChanged(sessionInfo, state));
-
-    // Host ability changed: notify once...
-    auto secondCaller = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
-    sessionInfo->callerToken = secondCaller;
-    EXPECT_TRUE(HasHostCallerChanged(sessionInfo, state));
-    // ...and the notified identity never notifies again.
-    EXPECT_FALSE(HasHostCallerChanged(sessionInfo, state));
-    EXPECT_EQ(state.lastCallerToken, secondCaller);
-
-    // Migration back to the first caller is a new identity change: notifies again.
-    sessionInfo->callerToken = firstCaller;
-    EXPECT_TRUE(HasHostCallerChanged(sessionInfo, state));
-}
-
-/**
  * @tc.name: GetOrCreateExtensionRecord_MigrationRecordNotFound_0100
  * @tc.desc: A migration declaration whose persistentId matches no record is rejected
  *           visibly (ERR_INVALID_VALUE) — never a silent fallback that would create a

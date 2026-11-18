@@ -505,7 +505,6 @@ bool EtsAutoFillExtension::CreateNewWindow(sptr<AAFwk::SessionInfo> sessionInfo,
     // state; bounds cross-session gen pollution on long-lived AutoFill instances).
     migrationFencing_ = MigrationFencingState {};
     migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
-    migrationFencing_.lastCallerToken = sessionInfo->callerToken;
     uiWindowMap_[obj] = uiWindow;
     context->SetSessionInfo(sessionInfo);
 #ifdef SUPPORT_GRAPHICS
@@ -546,16 +545,6 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
                 sessionInfo->hostWindowId);
             TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
                 "%{public}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
-            // Host-caller (ability) change notification: fires once per identity change —
-            // same-ability dual-window migrations do not fire; a notified identity never
-            // notifies again (latched in MigrationFencingState, seeded at window creation).
-            if (HasHostCallerChanged(sessionInfo, migrationFencing_)) {
-                auto env = etsRuntime_.GetAniEnv();
-                ani_ref wantObj = (env != nullptr) ? OHOS::AppExecFwk::WrapWant(env, want) : nullptr;
-                if (wantObj != nullptr) {
-                    CallObjectMethod(false, "onCallerChanged", nullptr, wantObj);
-                }
-            }
             // Sync the autofill context's cached session info to the new host window:
             // cache a COPY without the previous-host token (capability hygiene — same as
             // the ETS content-session cache).
