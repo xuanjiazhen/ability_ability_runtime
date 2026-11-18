@@ -94,6 +94,7 @@ private:
     std::atomic<int> resultCode_ = -1;
     std::atomic<int> connectionState_ = CONNECTION_STATE_DISCONNECTED;
     std::mutex mutex_;
+    mutable std::mutex remoteObjectMutex_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

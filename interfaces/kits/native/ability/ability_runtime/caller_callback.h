@@ -43,37 +43,57 @@ public:
 
     void SetCallBack(CallBackClosure callback)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         callback_ = callback;
     };
     void SetOnRelease(OnReleaseClosure onRelease)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         onRelease_ = onRelease;
     };
     void SetOnRemoteStateChanged(OnRemoteStateChangedClosure onRemoteStateChanged)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         onRemoteStateChanged_ = onRemoteStateChanged;
     };
     void InvokeCallBack(const sptr<IRemoteObject> &remoteObject)
     {
-        if (callback_) {
-            callback_(remoteObject);
+        CallBackClosure callback;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            callback = callback_;
+        }
+        if (callback) {
+            callback(remoteObject);
+            std::lock_guard<std::mutex> lock(mutex_);
             isCallBack_ = true;
         }
     };
     void InvokeOnRelease(const std::string &key)
     {
-        if (onRelease_) {
-            onRelease_(key);
+        OnReleaseClosure onRelease;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            onRelease = onRelease_;
+        }
+        if (onRelease) {
+            onRelease(key);
         }
     };
     void InvokeOnNotify(const std::string &state)
     {
-        if (onRemoteStateChanged_) {
-            onRemoteStateChanged_(state);
+        OnRemoteStateChangedClosure onRemoteStateChanged;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            onRemoteStateChanged = onRemoteStateChanged_;
+        }
+        if (onRemoteStateChanged) {
+            onRemoteStateChanged(state);
         }
     };
     bool IsCallBack() const
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return isCallBack_;
     };
 
@@ -88,6 +108,7 @@ public:
     }
 
 private:
+    mutable std::mutex mutex_;
     CallBackClosure callback_ = {};
     OnReleaseClosure onRelease_ = {};
     OnRemoteStateChangedClosure onRemoteStateChanged_ = {};

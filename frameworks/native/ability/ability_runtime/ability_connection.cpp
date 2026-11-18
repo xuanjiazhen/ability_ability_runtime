@@ -124,6 +124,7 @@ void AbilityConnection::RemoveConnectCallback(const sptr<AbilityConnectCallback>
 
 void AbilityConnection::SetRemoteObject(const sptr<IRemoteObject>& remoteObject)
 {
+    std::lock_guard<std::mutex> lock(remoteObjectMutex_);
     remoteObject_ = remoteObject;
 }
 
@@ -139,6 +140,7 @@ void AbilityConnection::SetConnectionState(int connectionState)
 
 sptr<IRemoteObject> AbilityConnection::GetRemoteObject() const
 {
+    std::lock_guard<std::mutex> lock(remoteObjectMutex_);
     return remoteObject_;
 }
 

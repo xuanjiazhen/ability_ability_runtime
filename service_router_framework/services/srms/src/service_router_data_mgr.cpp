@@ -33,7 +33,6 @@ const std::string SCHEME_SERVICE_ROUTER = "servicerouter";
 bool ServiceRouterDataMgr::LoadAllBundleInfos()
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Called");
-    ClearAllBundleInfos();
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null bundleMgrHelper");
@@ -47,6 +46,7 @@ bool ServiceRouterDataMgr::LoadAllBundleInfos()
     }
 
     std::lock_guard<std::mutex> lock(bundleInfoMutex_);
+    ClearAllBundleInfosLocked();
     for (const auto &bundleInfo : bundleInfos) {
         UpdateBundleInfoLocked(bundleInfo);
     }
@@ -169,6 +169,11 @@ BusinessType ServiceRouterDataMgr::GetBusinessType(const BusinessAbilityFilter &
 void ServiceRouterDataMgr::ClearAllBundleInfos()
 {
     std::lock_guard<std::mutex> lock(bundleInfoMutex_);
+    ClearAllBundleInfosLocked();
+}
+
+void ServiceRouterDataMgr::ClearAllBundleInfosLocked()
+{
     if (!innerServiceInfos_.empty()) {
         innerServiceInfos_.clear();
     }

@@ -104,7 +104,10 @@ int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bund
     moduleStartupConfigInfos_.emplace_back(preloadHapModuleInfo.name, preloadHapModuleInfo.appStartup,
         preloadHapModuleInfo.hapPath, preloadHapModuleInfo.moduleType,
         preloadHapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE);
-    isModuleStartupConfigInited_.emplace(preloadHapModuleInfo.name);
+    {
+        std::lock_guard guard(appStartupConfigInitializationMutex_);
+        isModuleStartupConfigInited_.emplace(preloadHapModuleInfo.name);
+    }
 
     for (const auto& module : bundleInfo.hapModuleInfos) {
         if (module.appStartup.empty()) {
@@ -241,9 +244,12 @@ int32_t StartupManager::LoadAppStartupTaskConfig(bool &needRunAutoStartupTask)
     if (result != ERR_OK) {
         return result;
     }
-    if (pendingStartupTaskInfos_.empty()) {
-        TAG_LOGD(AAFwkTag::STARTUP, "no app startup task");
-        return ERR_OK;
+    {
+        std::lock_guard guard(appStartupConfigInitializationMutex_);
+        if (pendingStartupTaskInfos_.empty()) {
+            TAG_LOGD(AAFwkTag::STARTUP, "no app startup task");
+            return ERR_OK;
+        }
     }
     needRunAutoStartupTask = true;
     return ERR_OK;
@@ -429,6 +435,7 @@ bool StartupManager::HasAppStartupConfig() const
 
 const std::vector<StartupTaskInfo> StartupManager::GetStartupTaskInfos(const std::string &name)
 {
+    std::lock_guard guard(appStartupConfigInitializationMutex_);
     if (!isAppStartupTaskRegistered_) {
         isAppStartupTaskRegistered_ = true;
         return pendingStartupTaskInfos_;
@@ -661,9 +668,12 @@ int32_t StartupManager::AddLoadAppStartupConfigTask(
 int32_t StartupManager::RunLoadModuleStartupConfigTask(
     bool &needRunAutoStartupTask, const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo)
 {
-    if (isModuleStartupConfigInited_.count(hapModuleInfo->name) != 0) {
-        TAG_LOGD(AAFwkTag::STARTUP, "module startup config already loaded");
-        return ERR_OK;
+    {
+        std::lock_guard guard(appStartupConfigInitializationMutex_);
+        if (isModuleStartupConfigInited_.count(hapModuleInfo->name) != 0) {
+            TAG_LOGD(AAFwkTag::STARTUP, "module startup config already loaded");
+            return ERR_OK;
+        }
     }
     ModuleStartupConfigInfo configInfo(hapModuleInfo->name, hapModuleInfo->appStartup, hapModuleInfo->hapPath,
         hapModuleInfo->moduleType, hapModuleInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE);
@@ -690,6 +700,10 @@ int32_t StartupManager::RunLoadModuleStartupConfigTask(
         return ERR_STARTUP_CONFIG_PARSE_ERROR;
     }
     std::lock_guard guard(appStartupConfigInitializationMutex_);
+    if (isModuleStartupConfigInited_.count(hapModuleInfo->name) != 0) {
+        TAG_LOGD(AAFwkTag::STARTUP, "module startup config already loaded");
+        return ERR_OK;
+    }
     preloadSoStartupTasks_.insert(preloadSoStartupTasks.begin(), preloadSoStartupTasks.end());
     pendingStartupTaskInfos_.insert(pendingStartupTaskInfos_.end(), pendingStartupTaskInfos.begin(),
         pendingStartupTaskInfos.end());
