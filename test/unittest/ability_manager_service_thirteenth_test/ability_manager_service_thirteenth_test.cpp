@@ -3555,7 +3555,9 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, OnStartTest_001, TestSize.Level1)
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityManagerService, nullptr);
     abilityManagerService->OnStart();
-    EXPECT_EQ(abilityManagerService->QueryServiceState(), ServiceRunningState::STATE_RUNNING);
+    // samgr is unavailable in the TDD environment, so Publish() fails and
+    // OnStart rolls the state back to STATE_NOT_START.
+    EXPECT_EQ(abilityManagerService->QueryServiceState(), ServiceRunningState::STATE_NOT_START);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest OnStartTest_001 end");
 }
@@ -3577,7 +3579,9 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, OnStartTest_002, TestSize.Level1)
     abilityManagerService->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
     EXPECT_NE(abilityManagerService->subManagersHelper_, nullptr);
     abilityManagerService->OnStart();
-    EXPECT_EQ(abilityManagerService->QueryServiceState(), ServiceRunningState::STATE_RUNNING);
+    // samgr is unavailable in the TDD environment, so Publish() fails and
+    // OnStart rolls the state back to STATE_NOT_START.
+    EXPECT_EQ(abilityManagerService->QueryServiceState(), ServiceRunningState::STATE_NOT_START);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest OnStartTest_002 end");
 }
