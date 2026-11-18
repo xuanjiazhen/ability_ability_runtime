@@ -275,5 +275,20 @@ HWTEST_F(SessionRecordTest, SessionRecord_TrimBufferedOutput_0100, TestSize.Leve
     EXPECT_EQ(session.result->outputText, tail);
     EXPECT_EQ(session.result->errorText, tail);
 }
+
+/**
+ * @tc.name: SessionRecord_Subcommand_0100
+ * @tc.desc: Test subcommand defaults to empty (execCmd/shell sessions never populate it, the
+ *           ExecCmd path never writes it) and keeps the value assigned at session creation
+ * @tc.type: FUNC
+ */
+HWTEST_F(SessionRecordTest, SessionRecord_Subcommand_0100, TestSize.Level1)
+{
+    SessionRecord record;
+    EXPECT_TRUE(record.subcommand.empty());
+
+    record.subcommand = "build";
+    EXPECT_EQ(record.subcommand, "build");
+}
 } // namespace CliTool
 } // namespace OHOS

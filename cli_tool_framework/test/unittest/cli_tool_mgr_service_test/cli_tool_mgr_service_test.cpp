@@ -251,6 +251,60 @@ public:
     }
 };
 
+// CancelSession side-effect probe (REQ 20261029538734, INV-3/INV-4): a scheduler whose
+// subscriber keeps receiving events unless something wrongly cleared the session's
+// subscriptions (DispatchExitEvent reaches the scheduler iff the subscriber is alive).
+class CancelProbeScheduler : public CliToolManagerSchedulerStub {
+public:
+    int32_t SchedulerSessionEvent(const std::string &, const std::string &, const CliToolEvent &) override
+    {
+        eventCount++;
+        return ERR_OK;
+    }
+
+    int32_t SchedulerInputReplyEvent(const std::string &, int32_t) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t SchedulerExecToolReplyEvent(const std::string &, int32_t, const CliSessionInfo &) override
+    {
+        return ERR_OK;
+    }
+
+    std::atomic<int32_t> eventCount { 0 };
+};
+
+// Registers a subscriber for the session and returns the probe scheduler (nullptr on failure).
+// The session record must carry a valid callerPid/callerUid.
+sptr<CancelProbeScheduler> ArmCancelSessionProbe(const std::shared_ptr<SessionRecord> &record)
+{
+    auto scheduler = sptr<CancelProbeScheduler>::MakeSptr();
+    auto &dispatcher = EventDispatcher::GetInstance();
+    if (scheduler == nullptr ||
+        !dispatcher.SetScheduler(record->callerPid, record->callerUid, scheduler) ||
+        !dispatcher.RegisterSubscriber(record->sessionId, "cancel_probe_sub", record->callerPid,
+            record->callerUid)) {
+        return nullptr;
+    }
+    return scheduler;
+}
+
+// INV-3: a rejected CancelSession must not migrate state_, drop the session, clear
+// subscriptions, or mark CANCELLING.
+void AssertCancelRejectionNoSideEffect(CliToolManagerService *service,
+    const std::shared_ptr<SessionRecord> &record, SessionState expectedState,
+    const sptr<CancelProbeScheduler> &probe)
+{
+    EXPECT_EQ(record->GetState(), expectedState); // never CANCELLING on rejection
+    EXPECT_NE(service->GetSessionRecord(record->sessionId), nullptr);
+    if (probe != nullptr) {
+        int32_t before = probe->eventCount.load();
+        EventDispatcher::GetInstance().DispatchExitEvent(record->sessionId, 0);
+        EXPECT_GT(probe->eventCount.load(), before); // subscription still delivers
+    }
+}
+
 class CliToolManagerServiceTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -1123,6 +1177,33 @@ HWTEST_F(CliToolManagerServiceTest, CreateSessionRecord_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CliToolManagerService_CreateSessionRecord_0200
+ * @tc.desc: Test CreateSessionRecord persists param.subcommand verbatim (INV-1) and leaves
+ *           it empty when the caller declared no subcommand (execCmd/shell semantics)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CreateSessionRecord_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CreateSessionRecord_0200 start");
+
+    ExecToolParam param;
+    param.toolName = "create_tool";
+    param.subcommand = "build";
+    auto record = service_->CreateSessionRecord(param, "event-id");
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(record->toolName, "create_tool");
+    EXPECT_EQ(record->subcommand, "build");
+
+    ExecToolParam noSubcommandParam;
+    noSubcommandParam.toolName = "create_tool";
+    auto noSubcommandRecord = service_->CreateSessionRecord(noSubcommandParam, "event-id");
+    ASSERT_NE(noSubcommandRecord, nullptr);
+    EXPECT_TRUE(noSubcommandRecord->subcommand.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CreateSessionRecord_0200 end");
+}
+
+/**
  * @tc.name: CliToolManagerService_SessionRecords_0100
  * @tc.desc: Test session record lookup, leak cleanup, snapshot filtering and removal branches
  * @tc.type: FUNC
@@ -1926,6 +2007,419 @@ HWTEST_F(CliToolManagerServiceTest, ClearSession_0400, TestSize.Level1)
     }
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ClearSession_0400 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0100
+ * @tc.desc: Test CancelSession rejects non-system app callers before touching the session
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0100 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_not_system_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "cancel_tool";
+    record->processId = 999999;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    IPCSkeleton::callingFullTokenId = 1; // non-zero -> IsSystemApp() returns false
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_NOT_SYSTEM_APP);
+    IPCSkeleton::Reset();
+
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::RUNNING, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0200
+ * @tc.desc: Test CancelSession rejects callers without EXEC_CLI_TOOL (EXEC_PUBLIC alone is not enough)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0200 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_no_permission_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "cancel_tool";
+    record->processId = 999999;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    // EXEC_PUBLIC_CLI_TOOL stays granted: proves CancelSession checks EXEC_CLI_TOOL only
+    // (unlike the clearSession/subscribe gate that accepts either permission).
+    PermissionScope scope(false, true);
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_PERMISSION_DENIED);
+
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::RUNNING, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0300
+ * @tc.desc: Test CancelSession with a missing session returns not-found
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0300 start");
+
+    EXPECT_EQ(service_->CancelSession("cancel_missing_session", 2), ERR_CLI_SESSION_NOT_FOUND);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0400
+ * @tc.desc: Test CancelSession rejects a caller that does not own the session
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0400 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_not_owner_session";
+    record->callerPid = IPCSkeleton::GetCallingPid() + 1; // mismatch -> not owner
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "cancel_tool";
+    record->processId = 999999;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_PERMISSION_DENIED);
+
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::RUNNING, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0400 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0500
+ * @tc.desc: Test CancelSession rejects a session that is not RUNNING/SPAWNING
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0500 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_completed_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "cancel_tool";
+    record->processId = 999999;
+    record->SetState(SessionState::COMPLETED);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = true;
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_CLI_SESSION_NOT_FOUND);
+
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::COMPLETED, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0500 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0600
+ * @tc.desc: Test CancelSession rejects an execCmd shell session even if a tool declares support
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0600 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_shell_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI_CMD;
+    record->toolName = "shell";
+    record->processId = 999999;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    // Tool fixtures declare support: a wrong implementation that queried ToolInfo instead of
+    // short-circuiting shell sessions would pass this gate and fail later on the dead pid.
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = true;
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_CLI_NOT_SUPPORT_CANCEL);
+
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::RUNNING, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0600 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0700
+ * @tc.desc: Test CancelSession rejects SKILL sessions without clearing them (unlike ClearSession)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0700 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_skill_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::SKILL;
+    record->toolName = "ohos-arkTSScript";
+    record->processId = -1;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = true;
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_CLI_NOT_SUPPORT_CANCEL);
+
+    // ClearSession removes SKILL sessions and marks CANCELLING; CancelSession must touch nothing.
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::RUNNING, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0700 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0800
+ * @tc.desc: Test CancelSession rejects a tool that never declared supportsCancel
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0800 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_undeclared_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "cancel_tool";
+    record->processId = 999999;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = false;
+    CliToolDataManagerMock::subCommandSupportsCancel = false;
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_CLI_NOT_SUPPORT_CANCEL);
+
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::RUNNING, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0800 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_0900
+ * @tc.desc: Test CancelSession whitelists signal values: 9/0/-1 are rejected without signaling
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_0900, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0900 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_bad_signal_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "cancel_tool";
+    record->subcommand = "build";
+    record->processId = 999999; // dead pid: a wrongly-sent signal would return ERR_CLI_SEND_SIGNAL
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolHasSubCommand = true;
+    CliToolDataManagerMock::subCommandSupportsCancel = true;
+
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 9), ERR_INVALID_PARAM);  // SIGKILL is clearSession-only
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 0), ERR_INVALID_PARAM);
+    EXPECT_EQ(service_->CancelSession(record->sessionId, -1), ERR_INVALID_PARAM);
+
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::RUNNING, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_0900 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_1000
+ * @tc.desc: Test the supportsCancel reverse lookup: sub-command value wins, missing sub-command
+ *           falls back to the tool-level declaration
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_1000, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_1000 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_subcommand_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "cancel_tool";
+    record->subcommand = "build";
+    record->processId = 999999; // reverse lookup passed <=> failure is ERR_CLI_SEND_SIGNAL, not 35700024
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolHasSubCommand = true;
+
+    // Sub-command declares support (effective value true), tool-level does not.
+    CliToolDataManagerMock::subCommandSupportsCancel = true;
+    CliToolDataManagerMock::toolSupportsCancel = false;
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_CLI_SEND_SIGNAL);
+
+    // Neither the sub-command nor the tool declares support.
+    CliToolDataManagerMock::subCommandSupportsCancel = false;
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_CLI_NOT_SUPPORT_CANCEL);
+
+    // Session sub-command missing from the tool map: tool-level declaration applies.
+    record->subcommand = "nosuch";
+    CliToolDataManagerMock::toolSupportsCancel = true;
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_CLI_SEND_SIGNAL);
+
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::RUNNING, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_1000 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_1100
+ * @tc.desc: Test CancelSession delivers SIGINT/SIGTERM to the tool process and keeps the session
+ *           untouched (no CANCELLING, no subscription cleanup)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_1100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_1100 start");
+
+    // Prior cases may have left SIGCHLD as SIG_IGN (StopReaper), which would auto-reap the child
+    // and break the explicit waitpid below; restore the default disposition for determinism.
+    signal(SIGCHLD, SIG_DFL);
+    pid_t childPid = fork();
+    ASSERT_GE(childPid, 0) << "fork failed: " << errno;
+    if (childPid == 0) {
+        // Tool-style child: survives SIGINT/SIGTERM (cooperative cancel is best-effort).
+        signal(SIGINT, SIG_IGN);
+        signal(SIGTERM, SIG_IGN);
+        while (true) {
+            pause();
+        }
+        _exit(0);
+    }
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_success_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "cancel_tool";
+    record->processId = childPid;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = true;
+
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_OK);   // SIGINT (default)
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 15), ERR_OK);  // SIGTERM (explicit)
+
+    // INV-4: best-effort semantics — signal delivered, but state, table entry and subscription stay.
+    EXPECT_EQ(record->GetState(), SessionState::RUNNING);
+    EXPECT_NE(service_->GetSessionRecord(record->sessionId), nullptr);
+    ASSERT_NE(probe, nullptr);
+    int32_t before = probe->eventCount.load();
+    EventDispatcher::GetInstance().DispatchExitEvent(record->sessionId, 0);
+    EXPECT_GT(probe->eventCount.load(), before);
+
+    kill(childPid, SIGKILL);
+    int32_t status = 0;
+    EXPECT_EQ(waitpid(childPid, &status, 0), childPid);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_1100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_1200
+ * @tc.desc: Test CancelSession returns ERR_CLI_SEND_SIGNAL when the process is already gone
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_1200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_1200 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_dead_process_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "cancel_tool";
+    record->processId = 999999; // nonexistent: both group and single-process delivery fail
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = true;
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_CLI_SEND_SIGNAL);
+
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::RUNNING, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_1200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_CancelSession_1300
+ * @tc.desc: Test CancelSession accepts SPAWNING sessions but requires a live processId to signal
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, CancelSession_1300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_1300 start");
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "cancel_spawning_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->callerUid = IPCSkeleton::GetCallingUid();
+    record->sessionType = SessionType::CLI;
+    record->toolName = "cancel_tool";
+    record->processId = -1; // SPAWNING before the fork completes: second pid confirmation fails
+    record->SetState(SessionState::SPAWNING);
+    service_->AddSessionRecord(record);
+    auto probe = ArmCancelSessionProbe(record);
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolSupportsCancel = true;
+    EXPECT_EQ(service_->CancelSession(record->sessionId, 2), ERR_CLI_SEND_SIGNAL);
+
+    AssertCancelRejectionNoSideEffect(service_, record, SessionState::SPAWNING, probe);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_CancelSession_1300 end");
 }
 
 /**
@@ -4715,6 +5209,7 @@ public:
         const sptr<ICliToolManagerScheduler> &) override { return ERR_OK; }
     ErrCode UnsubscribeSession(const std::string &, const std::string &) override { return ERR_OK; }
     ErrCode ClearSession(const std::string &) override { return ERR_OK; }
+    ErrCode CancelSession(const std::string &, int32_t) override { return ERR_OK; }
     ErrCode QuerySession(const std::string &, CliSessionInfo &) override { return ERR_OK; }
     ErrCode SendMessage(const std::string &, const std::string &, const std::string &,
         const sptr<ICliToolManagerScheduler> &) override { return ERR_OK; }

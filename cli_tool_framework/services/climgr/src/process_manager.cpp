@@ -329,5 +329,27 @@ bool ProcessManager::Killpg(pid_t pid) const
     return true;
 }
 
+bool ProcessManager::SendSignal(pid_t pid, int32_t sig) const
+{
+    if (pid <= 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "SendSignal skipped: invalid pid=%{public}d", pid);
+        return false;
+    }
+    int32_t killRet = kill(0 - pid, sig);
+    if (killRet == 0) {
+        return true;
+    }
+    TAG_LOGW(AAFwkTag::CLI_TOOL, "SendSignal killpg result:%{public}d sig:%{public}d", killRet, sig);
+    // The tool process is not guaranteed to be a process-group leader (fork does not setpgid;
+    // the group identity depends on claw_sandbox), so fall back to signaling the single process
+    // to keep the delivery scope aligned with clearSession.
+    killRet = kill(pid, sig);
+    if (killRet != 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "SendSignal kill result:%{public}d sig:%{public}d", killRet, sig);
+        return false;
+    }
+    return true;
+}
+
 } // namespace CliTool
 } // namespace OHOS

@@ -67,6 +67,10 @@ public:
     std::string sessionId = "";
     std::string callerBundleName = "";
     std::string toolName = "";
+    // Sub-command executed by this session (empty for execCmd/shell sessions). Written once at
+    // CreateSessionRecord from ExecToolParam.subcommand and never mutated afterwards (INV-1):
+    // cooperative cancel reads it lock-free to look up the tool's cancel declaration.
+    std::string subcommand = "";
     std::string eventId = "";
     std::string toolCallId = "";
     std::string dmSessionId = "";

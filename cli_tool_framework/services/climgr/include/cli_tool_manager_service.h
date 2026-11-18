@@ -95,6 +95,7 @@ public:
         const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId) override;
 
     int32_t ClearSession(const std::string &sessionId) override;
+    int32_t CancelSession(const std::string &sessionId, int32_t signal) override;
     int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
     int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
@@ -296,6 +297,16 @@ private:
         const std::vector<int64_t> &attributionIds, const std::vector<int32_t> &uids);
 
     bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
+
+    /**
+     * @brief Reverse-lookup of the cooperative-cancel declaration for a session's tool.
+     *
+     * SKILL sessions (no child process) and shell sessions (toolName == "shell", no ToolInfo
+     * declaration) never support cancel. Otherwise the sub-command level declaration wins
+     * when the session's subcommand exists in ToolInfo.subcommands (the model layer backfills
+     * the effective value there); otherwise the tool-level declaration applies; default false.
+     */
+    bool IsSupportsCancel(const std::shared_ptr<SessionRecord> &record) const;
 
     /**
      * @brief Mutex-guarded snapshot of ioMonitor_.
