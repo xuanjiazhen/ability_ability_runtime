@@ -104,6 +104,11 @@ public:
     {}
 };
 
+class SafeModeAppStateCallbackMock : public MockAppStateCallback {
+public:
+    MOCK_METHOD(void, OnStartProcessFailed, (const std::vector<sptr<IRemoteObject>> &abilityTokens), (override));
+};
+
 void AppMgrServiceInnerTest::InitAppInfo(const std::string& deviceName,
     const std::string& abilityName, const std::string& appName, const std::string& bundleName,
     const std::string& moduleName)
@@ -7398,6 +7403,82 @@ HWTEST_F(AppMgrServiceInnerTest, ReportDumpMemResult_001, TestSize.Level1)
     auto ret = serviceInner->ReportDumpMemResult(callback, dumpResult);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: SafeModeAppStartPolicy_001
+ * @tc.desc: Only third-party application starts without a BackupExtension target are blocked in safe mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, SafeModeAppStartPolicy_001, TestSize.Level1)
+{
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    applicationInfo_->isSystemApp = false;
+    abilityInfo_->type = AbilityType::EXTENSION;
+    abilityInfo_->extensionAbilityType = ExtensionAbilityType::SERVICE;
+    serviceInner->isSafeMode_ = false;
+    EXPECT_FALSE(serviceInner->ShouldBlockAppStartInSafeMode(*applicationInfo_, abilityInfo_.get()));
+    EXPECT_FALSE(serviceInner->ShouldBlockAppStartInSafeMode(*applicationInfo_));
+
+    serviceInner->isSafeMode_ = true;
+    EXPECT_TRUE(serviceInner->ShouldBlockAppStartInSafeMode(*applicationInfo_, abilityInfo_.get()));
+    EXPECT_TRUE(serviceInner->ShouldBlockAppStartInSafeMode(*applicationInfo_));
+
+    abilityInfo_->extensionAbilityType = ExtensionAbilityType::BACKUP;
+    EXPECT_FALSE(serviceInner->ShouldBlockAppStartInSafeMode(*applicationInfo_, abilityInfo_.get()));
+    abilityInfo_->type = AbilityType::PAGE;
+    EXPECT_TRUE(serviceInner->ShouldBlockAppStartInSafeMode(*applicationInfo_, abilityInfo_.get()));
+
+    applicationInfo_->isSystemApp = true;
+    EXPECT_FALSE(serviceInner->ShouldBlockAppStartInSafeMode(*applicationInfo_, abilityInfo_.get()));
+    EXPECT_FALSE(serviceInner->ShouldBlockAppStartInSafeMode(*applicationInfo_));
+}
+
+/**
+ * @tc.name: SafeModeRejectsAbilityProcessReuse_001
+ * @tc.desc: A third-party page targeting an existing process is rejected before the ability is added to it.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, SafeModeRejectsAbilityProcessReuse_001, TestSize.Level1)
+{
+    constexpr pid_t REUSE_PID = 5678;
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    serviceInner->isSafeMode_ = true;
+    applicationInfo_->isSystemApp = false;
+    abilityInfo_->type = AbilityType::PAGE;
+    BundleInfo bundleInfo;
+    bundleInfo.applicationInfo = *applicationInfo_;
+    auto record = serviceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_,
+        "testSafeModeReuseProcess", bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->GetPriorityObject()->SetPid(REUSE_PID);
+
+    sptr<SafeModeAppStateCallbackMock> callback = new SafeModeAppStateCallbackMock();
+    serviceInner->appStateCallbacks_.push_back({ callback, 0 });
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = new MockAbilityToken();
+    loadParam->reusePid = REUSE_PID;
+    const std::vector<sptr<IRemoteObject>> expectedTokens { loadParam->token };
+    EXPECT_CALL(*callback, OnStartProcessFailed(expectedTokens)).Times(1);
+    serviceInner->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParam);
+    EXPECT_EQ(record->GetAbilityRunningRecordByToken(loadParam->token), nullptr);
+}
+
+/**
+ * @tc.name: SafeModeRejectsEmptyAppProcess_001
+ * @tc.desc: Starting a third-party process without a target ability reports rejection and leaves no app record.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, SafeModeRejectsEmptyAppProcess_001, TestSize.Level1)
+{
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    serviceInner->isSafeMode_ = true;
+    BundleInfo bundleInfo;
+    bundleInfo.applicationInfo = *applicationInfo_;
+    bundleInfo.applicationInfo.isSystemApp = false;
+    EXPECT_EQ(serviceInner->StartEmptyProcess(AAFwk::Want(), nullptr, bundleInfo, "testSafeModeProcess", 0),
+        ERR_INVALID_OPERATION);
+    EXPECT_TRUE(serviceInner->appRunningManager_->GetAppRunningRecordMap().empty());
 }
 
 /**

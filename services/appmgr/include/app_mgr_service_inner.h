@@ -2658,6 +2658,8 @@ private:
     void MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord, std::string bundleName);
     void UnMarkTemplateProcess(int32_t templatePid);
 
+    bool ShouldBlockAppStartInSafeMode(const ApplicationInfo &appInfo, const AbilityInfo *abilityInfo = nullptr) const;
+
     std::shared_ptr<RemoteClientManager> remoteClientManager_;
     std::shared_ptr<AppRunningManager> appRunningManager_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
@@ -2669,6 +2671,7 @@ private:
     std::shared_ptr<AdvancedSecurityModeManager> securityModeManager_;
     std::shared_ptr<AppPreloader> appPreloader_;
     std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
+    bool isSafeMode_ = false;
     std::shared_ptr<AppExecFwk::AppMgrEventSubscriber> screenOffSubscriber_;
 
     sptr<IStartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;

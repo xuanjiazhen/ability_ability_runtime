@@ -153,6 +153,9 @@ using namespace OHOS::Security;
 using namespace OHOS::Rosen;
 
 namespace {
+constexpr char BOOT_MODE_PARAM[] = "ohos.boot.mode";
+// Provisional value for integration with the boot mode provider.
+constexpr char SAFE_MODE_VALUE[] = "safemode";
 constexpr int32_t PROCESS_AVAILABLE_QUERY_TIMEOUT_MS = 100;
 
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
@@ -527,7 +530,8 @@ AppMgrServiceInner::AppMgrServiceInner()
       appRunningStatusModule_(std::make_shared<AbilityRuntime::AppRunningStatusModule>()),
       securityModeManager_(std::make_shared<AdvancedSecurityModeManager>()),
       appPreloader_(std::make_shared<AppPreloader>(remoteClientManager_)),
-      multiUserConfigurationMgr_(std::make_shared<MultiUserConfigurationMgr>())
+      multiUserConfigurationMgr_(std::make_shared<MultiUserConfigurationMgr>()),
+      isSafeMode_(system::GetParameter(BOOT_MODE_PARAM, "") == SAFE_MODE_VALUE)
 {
     appQueryHelper_.Init(appRunningManager_, remoteClientManager_,
         multiUserConfigurationMgr_, appPreloader_);
@@ -576,6 +580,20 @@ void AppMgrServiceInner::Init()
 AppMgrServiceInner::~AppMgrServiceInner()
 {}
 
+bool AppMgrServiceInner::ShouldBlockAppStartInSafeMode(
+    const ApplicationInfo &appInfo, const AbilityInfo *abilityInfo) const
+{
+    if (!isSafeMode_ || appInfo.isSystemApp) {
+        return false;
+    }
+    if (abilityInfo != nullptr && abilityInfo->type == AbilityType::EXTENSION &&
+        abilityInfo->extensionAbilityType == ExtensionAbilityType::BACKUP) {
+        return false;
+    }
+    TAG_LOGW(AAFwkTag::APPMGR, "Safe mode blocks app start: %{public}s", appInfo.bundleName.c_str());
+    return true;
+}
+
 void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     int32_t requestId, const std::string &customProcess)
 {
@@ -583,6 +601,13 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
         customProcess.c_str());
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "call.");
+    if (ShouldBlockAppStartInSafeMode(abilityInfo.applicationInfo, &abilityInfo)) {
+        if (startSpecifiedAbilityResponse_) {
+            startSpecifiedAbilityResponse_->OnStartSpecifiedFailed(
+                requestId, GetUserIdByUid(abilityInfo.applicationInfo.uid));
+        }
+        return;
+    }
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
     auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
@@ -1928,6 +1953,15 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
         TAG_LOGE(AAFwkTag::APPMGR, "null request");
         return;
     }
+    auto appInfo = request.appInfo;
+    CHECK_POINTER_AND_RETURN_LOG(appInfo, "appInfo null");
+    if (ShouldBlockAppStartInSafeMode(*appInfo)) {
+        if (request.needMakeImage) {
+            HandleMakeImageFailed(appInfo->bundleName, request.abilityName, GetUserIdByUid(appInfo->uid),
+                request.appIndex, ImageError::ERR_PRELOAD_FAILED);
+        }
+        return;
+    }
     auto bundleInfo = request.bundleInfo;
     TAG_LOGI(AAFwkTag::APPMGR, "bundleName:%{public}s, abilityName:%{public}s, \
     appIndex:%{public}d", bundleInfo.name.c_str(), abilityInfo->name.c_str(), request.appIndex);
@@ -1944,13 +1978,11 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
         return;
     }
 
-    auto appInfo = request.appInfo;
     auto hapModuleInfo = request.hapModuleInfo;
     auto want = request.want;
 
     bool isExtensionSandBox = IsIsolateExtensionSandBox(abilityInfo, hapModuleInfo);
     TAG_LOGD(AAFwkTag::APPMGR, "HandlePreloadApplication processName = %{public}s", processName.c_str());
-    CHECK_POINTER_AND_RETURN_LOG(appInfo, "appInfo null");
     AAFwk::ResSchedUtil::GetInstance().ReportPreloadApplicationToRSS(abilityInfo,
         static_cast<int32_t>(request.preloadMode));
     bool appExistFlag = appRunningManager_->IsAppExist(appInfo->accessTokenId);
@@ -2233,6 +2265,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     LoadAbilityCallbackGuard guard(loadParam->loadAbilityCallbackId, loadParam->callingPid, weak_from_this());
     if (!CheckLoadAbilityConditions(loadParam->token, abilityInfo, appInfo)) {
         TAG_LOGE(AAFwkTag::APPMGR, "checkLoadAbilityConditions fail");
+        return;
+    }
+    if (ShouldBlockAppStartInSafeMode(*appInfo, abilityInfo.get())) {
+        NotifyStartProcessFailed(loadParam->token);
         return;
     }
     if (abilityInfo->type == AbilityType::PAGE || abilityInfo->type == AbilityType::EXTENSION) {
@@ -7021,6 +7057,9 @@ void AppMgrServiceInner::StartResidentProcess(const std::vector<BundleInfo> &inf
 void AppMgrServiceInner::StartEmptyResidentProcess(
     const BundleInfo &info, const std::string &processName, int restartCount, bool isEmptyKeepAliveApp)
 {
+    if (ShouldBlockAppStartInSafeMode(info.applicationInfo)) {
+        return;
+    }
     TAG_LOGI(AAFwkTag::APPMGR, "start bundle [%{public}s | processName [%{public}s]]", info.name.c_str(),
         processName.c_str());
     if (!CheckRemoteClient() || !appRunningManager_) {
@@ -7433,6 +7472,9 @@ int AppMgrServiceInner::UserTestAbnormalFinish(const sptr<IRemoteObject> &observ
 int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IRemoteObject> &observer,
     const BundleInfo &info, const std::string &processName, const int userId)
 {
+    if (ShouldBlockAppStartInSafeMode(info.applicationInfo)) {
+        return ERR_INVALID_OPERATION;
+    }
     TAG_LOGI(AAFwkTag::APPMGR, "enter bundle [%{public}s | processName [%{public}s]]", info.name.c_str(),
         processName.c_str());
     if (!CheckRemoteClient() || !appRunningManager_) {
@@ -7578,6 +7620,13 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
     const AbilityRuntime::StartSpecifiedParam &param)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Start specified ability.");
+    if (ShouldBlockAppStartInSafeMode(abilityInfo.applicationInfo, &abilityInfo)) {
+        if (startSpecifiedAbilityResponse_) {
+            startSpecifiedAbilityResponse_->OnStartSpecifiedFailed(
+                param.requestId, GetUserIdByUid(abilityInfo.applicationInfo.uid));
+        }
+        return;
+    }
     if (!CheckRemoteClient()) {
         return;
     }
@@ -10107,6 +10156,9 @@ int32_t AppMgrServiceInner::StartNativeProcessForDebugger(const AAFwk::Want &wan
     auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
     if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, abilityInfo.applicationInfo.appIndex)) {
         TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
+        return ERR_INVALID_OPERATION;
+    }
+    if (ShouldBlockAppStartInSafeMode(*appInfo)) {
         return ERR_INVALID_OPERATION;
     }
     auto accessTokenIdEx = AccessToken::AccessTokenKit::GetHapTokenIDEx(GetUserIdByUid(appInfo->uid),
