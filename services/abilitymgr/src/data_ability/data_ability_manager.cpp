@@ -275,7 +275,17 @@ int DataAbilityManager::AbilityTransitionDone(const sptr<IRemoteObject> &token, 
 
 void DataAbilityManager::OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state)
 {
-    /* Do nothing now. */
+    if (token == nullptr || state != static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED)) {
+        return;
+    }
+    std::lock_guard<ffrt::mutex> locker(mutex_);
+    for (auto it = dataAbilityRecordsLoading_.begin(); it != dataAbilityRecordsLoading_.end(); ++it) {
+        if (it->second && it->second->GetToken() == token) {
+            it->second->RejectLoad();
+            dataAbilityRecordsLoading_.erase(it);
+            return;
+        }
+    }
 }
 
 void DataAbilityManager::OnAbilityDied(const std::shared_ptr<AbilityRecord> &abilityRecord)
@@ -475,10 +485,12 @@ DataAbilityManager::DataAbilityRecordPtr DataAbilityManager::LoadLocked(
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::DATA_ABILITY, "wait failed %{public}d", ret);
         it = dataAbilityRecordsLoading_.find(name);
-        if (it != dataAbilityRecordsLoading_.end()) {
+        if (it != dataAbilityRecordsLoading_.end() && it->second == dataAbilityRecord) {
             dataAbilityRecordsLoading_.erase(it);
         }
-        DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(dataAbilityRecord->GetToken());
+        if (ret != ERR_INVALID_OPERATION) {
+            DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(dataAbilityRecord->GetToken());
+        }
         return nullptr;
     }
 

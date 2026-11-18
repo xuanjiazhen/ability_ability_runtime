@@ -646,6 +646,27 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartRejectionEndsPageLoading, TestSize.
     EXPECT_EQ(sessionInfo->errorReason, "safeModeStartRejected");
 }
 
+HWTEST_F(UIAbilityLifecycleManagerTest, StartRejectionEndsDebugPage, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    AbilityRequest request;
+    Rosen::SessionInfo windowSessionInfo;
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    sessionInfo->sessionToken = new Rosen::Session(windowSessionInfo);
+    request.sessionInfo = sessionInfo;
+    auto record = UIAbilityRecord::CreateAbilityRecord(request);
+    ASSERT_NE(record, nullptr);
+    record->SetDebugApp(true);
+    ASSERT_FALSE(record->IsLoading());
+    mgr->sessionAbilityMap_.emplace(sessionInfo->persistentId, record);
+
+    mgr->OnAbilityRequestDone(record->GetToken()->AsObject(),
+        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED));
+
+    EXPECT_TRUE(mgr->sessionAbilityMap_.empty());
+    EXPECT_EQ(sessionInfo->errorCode, static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_INTERCEPTOR_REJECT));
+}
+
 /**
  * @tc.name: UIAbilityLifecycleManager_GetAbilityRecordByToken_0100
  * @tc.desc: GetAbilityRecordByToken

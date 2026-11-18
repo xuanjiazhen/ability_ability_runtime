@@ -357,9 +357,9 @@ public:
      */
     void DumpMissionInfos(std::vector<std::string> &info) override;
 
-    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag) override;
+    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId) override;
 
-    void OnStartSpecifiedAbilityTimeoutResponse() override;
+    void OnStartSpecifiedAbilityFailed(int32_t requestId) override;
     /**
      * resolve the call ipc of ability for scheduling oncall.
      *
@@ -1265,6 +1265,9 @@ private:
      * @param abilityRequest, the request of ability.
      */
     void EnqueueWaitingAbilityToFront(const AbilityRequest &abilityRequest);
+    bool HasPendingSpecifiedRequestLocked() const;
+    bool TakeSpecifiedRequestLocked(int32_t requestId, AbilityRequest &abilityRequest);
+    void StartWaitingAbilityLocked();
 
     /**
      * @brief Retrieves an ability record by its remote object token in an internal context.

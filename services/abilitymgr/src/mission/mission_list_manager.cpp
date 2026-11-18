@@ -39,6 +39,7 @@
 #include "start_ability_utils.h"
 #include "param.h"
 #include "ui_extension_wrapper.h"
+#include "utils/request_id_util.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ability_first_frame_state_observer_manager.h"
 #endif
@@ -219,10 +220,18 @@ int MissionListManager::StartAbility(const std::shared_ptr<AbilityRecord> &curre
 {
     auto isSpecified = (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED);
     if (isSpecified) {
+        // AppMgr tracks one specified request per process; avoid overwriting an outstanding request.
+        if (HasPendingSpecifiedRequestLocked()) {
+            EnqueueWaitingAbility(abilityRequest);
+            return START_ABILITY_WAITING;
+        }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "ability launch mode:%{public}d",
             static_cast<int32_t>(abilityRequest.abilityInfo.launchMode));
-        EnqueueWaitingAbilityToFront(abilityRequest);
         AbilityRuntime::StartSpecifiedParam specifiedParam;
+        specifiedParam.requestId = AbilityRuntime::RequestIdUtil::GetRequestId();
+        AbilityRequest pendingRequest = abilityRequest;
+        pendingRequest.missionSpecifiedRequestId = specifiedParam.requestId;
+        EnqueueWaitingAbilityToFront(pendingRequest);
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(
             abilityRequest.want, abilityRequest.abilityInfo, specifiedParam);
         return 0;
@@ -357,21 +366,26 @@ void MissionListManager::StartWaitingAbility()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     std::lock_guard guard(managerLock_);
+    StartWaitingAbilityLocked();
+}
+
+void MissionListManager::StartWaitingAbilityLocked()
+{
+    if (waitingAbilityQueue_.empty() || HasPendingSpecifiedRequestLocked()) {
+        return;
+    }
     auto topAbility = GetCurrentTopAbilityLocked();
     if (topAbility != nullptr && topAbility->IsAbilityState(FOREGROUNDING)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "top ability foregrounding");
         return;
     }
 
-    if (!waitingAbilityQueue_.empty()) {
-        AbilityRequest abilityRequest = waitingAbilityQueue_.front();
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s", abilityRequest.abilityInfo.name.c_str());
-        waitingAbilityQueue_.pop();
-        auto callerAbility = GetAbilityRecordByTokenInner(abilityRequest.callerToken);
-        if (StartAbility(topAbility, callerAbility, abilityRequest) == 0 && !abilityRequest.abilityInfo.visible) {
-            SendKeyEvent(abilityRequest);
-        }
-        return;
+    AbilityRequest abilityRequest = waitingAbilityQueue_.front();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s", abilityRequest.abilityInfo.name.c_str());
+    waitingAbilityQueue_.pop();
+    auto callerAbility = GetAbilityRecordByTokenInner(abilityRequest.callerToken);
+    if (StartAbility(topAbility, callerAbility, abilityRequest) == 0 && !abilityRequest.abilityInfo.visible) {
+        SendKeyEvent(abilityRequest);
     }
 }
 
@@ -1079,7 +1093,8 @@ void MissionListManager::OnAbilityRequestDone(const sptr<IRemoteObject> &token, 
     std::lock_guard guard(managerLock_);
     if (state == static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED)) {
         auto abilityRecord = GetAliveAbilityRecordByToken(token);
-        if (abilityRecord == nullptr || !abilityRecord->IsLoading()) {
+        if (abilityRecord == nullptr || abilityRecord->IsTerminating() || abilityRecord->IsReady() ||
+            (!abilityRecord->IsLoading() && !abilityRecord->IsDebug())) {
             return;
         }
         abilityRecord->RemoveLoadTimeoutTask();
@@ -3632,15 +3647,29 @@ void MissionListManager::OnCallConnectDied(const std::shared_ptr<CallRecord> &ca
     CHECK_POINTER(abilityRecord);
     abilityRecord->ReleaseCall(callRecord->GetConCallBack());
 }
-void MissionListManager::OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag)
+
+bool MissionListManager::HasPendingSpecifiedRequestLocked() const
+{
+    return !waitingAbilityQueue_.empty() && waitingAbilityQueue_.front().missionSpecifiedRequestId != 0;
+}
+
+bool MissionListManager::TakeSpecifiedRequestLocked(int32_t requestId, AbilityRequest &abilityRequest)
+{
+    if (!HasPendingSpecifiedRequestLocked() || waitingAbilityQueue_.front().missionSpecifiedRequestId != requestId) {
+        return false;
+    }
+    abilityRequest = std::move(waitingAbilityQueue_.front());
+    waitingAbilityQueue_.pop();
+    return true;
+}
+
+void MissionListManager::OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId)
 {
     std::lock_guard guard(managerLock_);
-    if (waitingAbilityQueue_.empty()) {
+    AbilityRequest abilityRequest;
+    if (!TakeSpecifiedRequestLocked(requestId, abilityRequest)) {
         return;
     }
-
-    AbilityRequest abilityRequest = waitingAbilityQueue_.front();
-    waitingAbilityQueue_.pop();
 
     auto currentTopAbility = GetCurrentTopAbilityLocked();
     std::shared_ptr<AbilityRecord> callerAbility = GetAbilityRecordByTokenInner(abilityRequest.callerToken);
@@ -3650,6 +3679,7 @@ void MissionListManager::OnAcceptWantResponse(const AAFwk::Want &want, const std
         if (mission) {
             auto ability = mission->GetAbilityRecord();
             if (!ability) {
+                StartWaitingAbilityLocked();
                 return;
             }
             ability->SetWant(abilityRequest.want);
@@ -3659,15 +3689,21 @@ void MissionListManager::OnAcceptWantResponse(const AAFwk::Want &want, const std
                 callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
             }
             auto isCallerFromLauncher = (callerAbility && callerAbility->IsLauncherAbility());
-            MoveMissionToFrontInner(mission->GetMissionId(), isCallerFromLauncher, false, callerAbility, nullptr, true);
+            auto ret = MoveMissionToFrontInner(
+                mission->GetMissionId(), isCallerFromLauncher, false, callerAbility, nullptr, true);
             NotifyRestartSpecifiedAbility(abilityRequest, ability->GetToken());
+            if (ret != ERR_OK) {
+                StartWaitingAbilityLocked();
+            }
             return;
         }
     }
 
     abilityRequest.specifiedFlag = flag;
     NotifyStartSpecifiedAbility(abilityRequest, want);
-    StartAbilityLocked(currentTopAbility, callerAbility, abilityRequest);
+    if (StartAbilityLocked(currentTopAbility, callerAbility, abilityRequest) != ERR_OK) {
+        StartWaitingAbilityLocked();
+    }
 }
 
 void MissionListManager::NotifyRestartSpecifiedAbility(AbilityRequest &request, const sptr<IRemoteObject> &token)
@@ -3713,25 +3749,13 @@ void MissionListManager::NotifyStartSpecifiedAbility(AbilityRequest &abilityRequ
     }
 }
 
-void MissionListManager::OnStartSpecifiedAbilityTimeoutResponse()
+void MissionListManager::OnStartSpecifiedAbilityFailed(int32_t requestId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     std::lock_guard guard(managerLock_);
-    if (waitingAbilityQueue_.empty()) {
-        return;
-    }
-    waitingAbilityQueue_.pop();
-
-    if (waitingAbilityQueue_.empty()) {
-        return;
-    }
-    AbilityRequest abilityRequest = waitingAbilityQueue_.front();
-    waitingAbilityQueue_.pop();
-
-    auto currentTopAbility = GetCurrentTopAbilityLocked();
-    auto callerAbility = GetAbilityRecordByTokenInner(abilityRequest.callerToken);
-    if (StartAbility(currentTopAbility, callerAbility, abilityRequest) == 0 && !abilityRequest.abilityInfo.visible) {
-        SendKeyEvent(abilityRequest);
+    AbilityRequest abilityRequest;
+    if (TakeSpecifiedRequestLocked(requestId, abilityRequest)) {
+        StartWaitingAbilityLocked();
     }
 }
 

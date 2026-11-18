@@ -24,6 +24,7 @@
 #include "mission_info_mgr.h"
 #include "mission_list_manager.h"
 #include "startup_util.h"
+#include "utils/request_id_util.h"
 #undef private
 #undef protected
 
@@ -34,6 +35,7 @@ using namespace OHOS::AppExecFwk;
 namespace OHOS {
 namespace AAFwk {
 namespace {
+constexpr int32_t SPECIFIED_REQUEST_ID = 1;
 #ifdef WITH_DLP
 const std::string DLP_INDEX = "ohos.dlp.params.index";
 #endif // WITH_DLP
@@ -72,6 +74,7 @@ void MissionListManagerTest::InitMockMission(std::shared_ptr<MissionListManager>
     ability->SetIsNewWant(false);
 
     abilityRequest.callerToken = ability->GetToken();
+    abilityRequest.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
     missionListManager->EnqueueWaitingAbility(abilityRequest);
     missionListManager->defaultStandardList_->AddMissionToTop(mission);
 }
@@ -323,10 +326,11 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_001, TestSize.Level1)
     ability->SetIsNewWant(false);
 
     abilityRequest.callerToken = ability->GetToken();
+    abilityRequest.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
     missionListManager->EnqueueWaitingAbility(abilityRequest);
     missionListManager->defaultStandardList_->AddMissionToTop(mission);
     Want want;
-    missionListManager->OnAcceptWantResponse(want, "flag");
+    missionListManager->OnAcceptWantResponse(want, "flag", SPECIFIED_REQUEST_ID);
     EXPECT_EQ(ability->IsNewWant(), true);
     missionListManager.reset();
 }
@@ -352,7 +356,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_002, TestSize.Level1)
     mission->abilityRecord_ = ability;
     ability->SetIsNewWant(false);
     Want want;
-    missionListManager->OnAcceptWantResponse(want, "flag");
+    missionListManager->OnAcceptWantResponse(want, "flag", SPECIFIED_REQUEST_ID);
     EXPECT_EQ(ability->IsNewWant(), false);
     missionListManager.reset();
 }
@@ -376,7 +380,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_003, TestSize.Level3)
     InitMockMission(missionListManager, abilityRequest, want, ability);
     ASSERT_TRUE(ability != nullptr);
 
-    missionListManager->OnAcceptWantResponse(want, "flag");
+    missionListManager->OnAcceptWantResponse(want, "flag", SPECIFIED_REQUEST_ID);
     EXPECT_EQ(ability->lifeCycleStateInfo_.launchParam.launchReason, LaunchReason::LAUNCHREASON_CONTINUATION);
     missionListManager.reset();
 }
@@ -400,7 +404,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_004, TestSize.Level3)
     InitMockMission(missionListManager, abilityRequest, want, ability);
     ASSERT_TRUE(ability != nullptr);
 
-    missionListManager->OnAcceptWantResponse(want, "flag");
+    missionListManager->OnAcceptWantResponse(want, "flag", SPECIFIED_REQUEST_ID);
     EXPECT_EQ(ability->lifeCycleStateInfo_.launchParam.launchReason, LaunchReason::LAUNCHREASON_APP_RECOVERY);
     missionListManager.reset();
 }
@@ -423,7 +427,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_005, TestSize.Level3)
     InitMockMission(missionListManager, abilityRequest, want, ability);
     ASSERT_TRUE(ability != nullptr);
 
-    missionListManager->OnAcceptWantResponse(want, "flag");
+    missionListManager->OnAcceptWantResponse(want, "flag", SPECIFIED_REQUEST_ID);
     EXPECT_EQ(ability->lifeCycleStateInfo_.launchParam.launchReason, LaunchReason::LAUNCHREASON_START_ABILITY);
     missionListManager.reset();
 }
@@ -1745,6 +1749,52 @@ HWTEST_F(MissionListManagerTest, StartRejectionRemovesLoadingMission, TestSize.L
 
     EXPECT_FALSE(record->IsLoading());
     EXPECT_EQ(mgr->GetMissionById(MISSION_ID), nullptr);
+}
+
+HWTEST_F(MissionListManagerTest, StartRejectionRemovesDebugMission, TestSize.Level1)
+{
+    auto mgr = std::make_shared<MissionListManager>(0);
+    mgr->Init();
+    auto record = InitAbilityRecord();
+    ASSERT_NE(record, nullptr);
+    record->SetDebugApp(true);
+    ASSERT_FALSE(record->IsLoading());
+    constexpr int32_t MISSION_ID = 1;
+    record->SetMissionId(MISSION_ID);
+    auto mission = std::make_shared<Mission>(MISSION_ID, record, "rejectedDebugMission");
+    mgr->defaultStandardList_->AddMissionToTop(mission);
+
+    mgr->OnAbilityRequestDone(record->GetToken()->AsObject(),
+        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED));
+
+    EXPECT_EQ(mgr->GetMissionById(MISSION_ID), nullptr);
+}
+
+HWTEST_F(MissionListManagerTest, SpecifiedRejectionAdvancesOnlyMatchingRequest, TestSize.Level1)
+{
+    auto mgr = std::make_shared<MissionListManager>(0);
+    mgr->Init();
+    AbilityRequest rejected;
+    const auto rejectedRequestId = AbilityRuntime::RequestIdUtil::GetRequestId();
+    rejected.missionSpecifiedRequestId = rejectedRequestId;
+    mgr->waitingAbilityQueue_.push(rejected);
+    AbilityRequest next;
+    next.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
+    next.abilityInfo.visible = true;
+    EXPECT_EQ(mgr->StartAbility(nullptr, nullptr, next), START_ABILITY_WAITING);
+
+    mgr->StartWaitingAbility();
+    mgr->OnStartSpecifiedAbilityFailed(0);
+    ASSERT_EQ(mgr->waitingAbilityQueue_.size(), 2U);
+
+    mgr->OnStartSpecifiedAbilityFailed(rejectedRequestId);
+    ASSERT_EQ(mgr->waitingAbilityQueue_.size(), 1U);
+    auto nextRequestId = mgr->waitingAbilityQueue_.front().missionSpecifiedRequestId;
+    EXPECT_NE(nextRequestId, 0);
+    EXPECT_NE(nextRequestId, rejectedRequestId);
+    mgr->OnStartSpecifiedAbilityFailed(rejectedRequestId);
+    ASSERT_EQ(mgr->waitingAbilityQueue_.size(), 1U);
+    EXPECT_EQ(mgr->waitingAbilityQueue_.front().missionSpecifiedRequestId, nextRequestId);
 }
 
 /*
@@ -5525,7 +5575,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_006, TestSize.Level1)
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     Want want;
     std::string flag = "";
-    missionListManager->OnAcceptWantResponse(want, flag);
+    missionListManager->OnAcceptWantResponse(want, flag, SPECIFIED_REQUEST_ID);
     EXPECT_TRUE(missionListManager != nullptr);
     missionListManager.reset();
 }
@@ -5549,7 +5599,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_007, TestSize.Level1)
     missionListManager->defaultSingleList_ = missionList;
     missionListManager->launcherList_ = missionList;
     missionListManager->defaultStandardList_ = missionList;
-    missionListManager->OnAcceptWantResponse(want, flag);
+    missionListManager->OnAcceptWantResponse(want, flag, SPECIFIED_REQUEST_ID);
     EXPECT_TRUE(missionListManager != nullptr);
     missionListManager.reset();
 }
@@ -5579,7 +5629,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_008, TestSize.Level1)
     std::shared_ptr<MissionList> missionList = std::make_shared<MissionList>();
     missionList->missions_.push_back(mission);
     missionListManager->currentMissionLists_.push_back(missionList);
-    missionListManager->OnAcceptWantResponse(want, flag);
+    missionListManager->OnAcceptWantResponse(want, flag, SPECIFIED_REQUEST_ID);
     EXPECT_TRUE(missionListManager != nullptr);
     missionListManager.reset();
 }
@@ -6420,48 +6470,49 @@ HWTEST_F(MissionListManagerTest, Unmarshalling_001, TestSize.Level1)
 
 /*
  * Feature: MissionListManager
- * Function: OnStartSpecifiedAbilityTimeoutResponse
+ * Function: OnStartSpecifiedAbilityFailed
  * SubFunction: NA
- * FunctionPoints: MissionListManager OnStartSpecifiedAbilityTimeoutResponse
+ * FunctionPoints: MissionListManager OnStartSpecifiedAbilityFailed
  * EnvConditions: NA
- * CaseDescription: Verify OnStartSpecifiedAbilityTimeoutResponse
+ * CaseDescription: Verify OnStartSpecifiedAbilityFailed
  */
-HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityTimeoutResponse_001, TestSize.Level1)
+HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityFailed_001, TestSize.Level1)
 {
     constexpr int32_t userId = 3;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     EXPECT_NE(missionListManager, nullptr);
     Want want;
-    missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
+    missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
 }
 
 /*
  * Feature: MissionListManager
- * Function: OnStartSpecifiedAbilityTimeoutResponse
+ * Function: OnStartSpecifiedAbilityFailed
  * SubFunction: NA
- * FunctionPoints: MissionListManager OnStartSpecifiedAbilityTimeoutResponse
+ * FunctionPoints: MissionListManager OnStartSpecifiedAbilityFailed
  * EnvConditions: NA
- * CaseDescription: Verify OnStartSpecifiedAbilityTimeoutResponse
+ * CaseDescription: Verify OnStartSpecifiedAbilityFailed
  */
-HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityTimeoutResponse_002, TestSize.Level1)
+HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityFailed_002, TestSize.Level1)
 {
     constexpr int32_t userId = 3;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     EXPECT_NE(missionListManager, nullptr);
     AbilityRequest abilityRequest;
+    abilityRequest.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
     missionListManager->waitingAbilityQueue_.push(abilityRequest);
-    missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
+    missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
 }
 
 /*
  * Feature: MissionListManager
- * Function: OnStartSpecifiedAbilityTimeoutResponse
+ * Function: OnStartSpecifiedAbilityFailed
  * SubFunction: NA
- * FunctionPoints: MissionListManager OnStartSpecifiedAbilityTimeoutResponse
+ * FunctionPoints: MissionListManager OnStartSpecifiedAbilityFailed
  * EnvConditions: NA
- * CaseDescription: Verify OnStartSpecifiedAbilityTimeoutResponse
+ * CaseDescription: Verify OnStartSpecifiedAbilityFailed
  */
-HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityTimeoutResponse_003, TestSize.Level1)
+HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityFailed_003, TestSize.Level1)
 {
     constexpr int32_t userId = 3;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
@@ -6470,21 +6521,23 @@ HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityTimeoutResponse_003, Tes
     AbilityRequest abilityRequest2;
     abilityRequest1.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
     abilityRequest1.abilityInfo.visible = false;
+    abilityRequest1.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
     missionListManager->waitingAbilityQueue_.push(abilityRequest1);
-    missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
+    missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
+    abilityRequest2.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
     missionListManager->waitingAbilityQueue_.push(abilityRequest2);
-    missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
+    missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
 }
 
 /*
  * Feature: MissionListManager
- * Function: OnStartSpecifiedAbilityTimeoutResponse
+ * Function: OnStartSpecifiedAbilityFailed
  * SubFunction: NA
- * FunctionPoints: MissionListManager OnStartSpecifiedAbilityTimeoutResponse
+ * FunctionPoints: MissionListManager OnStartSpecifiedAbilityFailed
  * EnvConditions: NA
- * CaseDescription: Verify OnStartSpecifiedAbilityTimeoutResponse
+ * CaseDescription: Verify OnStartSpecifiedAbilityFailed
  */
-HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityTimeoutResponse_004, TestSize.Level1)
+HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityFailed_004, TestSize.Level1)
 {
     constexpr int32_t userId = 3;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
@@ -6493,21 +6546,23 @@ HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityTimeoutResponse_004, Tes
     AbilityRequest abilityRequest2;
     abilityRequest1.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
     abilityRequest1.abilityInfo.visible = true;
+    abilityRequest1.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
     missionListManager->waitingAbilityQueue_.push(abilityRequest1);
-    missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
+    missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
+    abilityRequest2.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
     missionListManager->waitingAbilityQueue_.push(abilityRequest2);
-    missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
+    missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
 }
 
 /*
  * Feature: MissionListManager
- * Function: OnStartSpecifiedAbilityTimeoutResponse
+ * Function: OnStartSpecifiedAbilityFailed
  * SubFunction: NA
- * FunctionPoints: MissionListManager OnStartSpecifiedAbilityTimeoutResponse
+ * FunctionPoints: MissionListManager OnStartSpecifiedAbilityFailed
  * EnvConditions: NA
- * CaseDescription: Verify OnStartSpecifiedAbilityTimeoutResponse
+ * CaseDescription: Verify OnStartSpecifiedAbilityFailed
  */
-HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityTimeoutResponse_005, TestSize.Level1)
+HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityFailed_005, TestSize.Level1)
 {
     constexpr int32_t userId = 3;
     auto missionListManager = std::make_shared<MissionListManager>(userId);
@@ -6516,10 +6571,12 @@ HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityTimeoutResponse_005, Tes
     AbilityRequest abilityRequest2;
     abilityRequest1.abilityInfo.launchMode = AppExecFwk::LaunchMode::SINGLETON;
     abilityRequest1.abilityInfo.visible = true;
+    abilityRequest1.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
     missionListManager->waitingAbilityQueue_.push(abilityRequest1);
-    missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
+    missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
+    abilityRequest2.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
     missionListManager->waitingAbilityQueue_.push(abilityRequest2);
-    missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
+    missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
 }
 
 /*

@@ -90,6 +90,7 @@ struct AbilityRequest {
     int32_t callerTokenRecordId = -1;
     int32_t userId = -1;
     int32_t loadExtensionTimeout = 0; // only for connectAbility
+    int32_t missionSpecifiedRequestId = 0;
     uint32_t callerAccessTokenId = 0;
     uint32_t specifyTokenId = 0;
     uint32_t skillCallerTokenId = 0;

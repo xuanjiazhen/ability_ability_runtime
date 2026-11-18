@@ -49,6 +49,9 @@ public:
      */
     int WaitForLoaded(ffrt::mutex &mutex, const std::chrono::system_clock::duration &timeout);
 
+    // Called with the same manager mutex held as WaitForLoaded.
+    void RejectLoad();
+
     /**
      * @brief Get the ability scheduler
      * @return Pointer to the ability scheduler interface
@@ -164,6 +167,7 @@ private:
     sptr<IRemoteObject::DeathRecipient> callerDeathRecipient_;  // caller binderDied Recipient
     std::list<ClientInfo> clients_ {};
     ffrt::condition_variable loadedCond_ {};
+    bool loadRejected_ = false;
     AbilityRequest request_ {};
     AbilityRecordPtr ability_ {};
 };

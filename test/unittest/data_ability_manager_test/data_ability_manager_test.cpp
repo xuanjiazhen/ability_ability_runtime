@@ -14,6 +14,7 @@
  */
 
 #include <chrono>
+#include <future>
 #include <thread>
 #include <gtest/gtest.h>
 
@@ -997,6 +998,33 @@ HWTEST_F(DataAbilityManagerTest, AaFwk_DataAbilityManager_LoadLocked_002, TestSi
     dataAbilityManager->dataAbilityRecordsLoading_[name] = dataAbilityRecord;
     auto res = dataAbilityManager->LoadLocked(name, abilityRequest);
     EXPECT_EQ(res, nullptr);
+}
+
+HWTEST_F(DataAbilityManagerTest, StartRejectionWakesDataAbilityWaiters, TestSize.Level1)
+{
+    auto manager = std::make_unique<DataAbilityManager>();
+    auto record = std::make_shared<DataAbilityRecord>(abilityRequest_);
+    record->ability_ = AbilityRecord::CreateAbilityRecord(abilityRequest_);
+    ASSERT_NE(record->GetToken(), nullptr);
+    manager->dataAbilityRecordsLoading_[STRING_DATA_ABILITY] = record;
+    std::promise<void> firstWaiting;
+    std::promise<void> secondWaiting;
+    auto waitForLoad = [&](std::promise<void> &waiting) {
+        std::lock_guard<ffrt::mutex> lock(manager->mutex_);
+        waiting.set_value();
+        return record->WaitForLoaded(manager->mutex_, seconds(5));
+    };
+    auto first = std::async(std::launch::async, waitForLoad, std::ref(firstWaiting));
+    auto second = std::async(std::launch::async, waitForLoad, std::ref(secondWaiting));
+    firstWaiting.get_future().wait();
+    secondWaiting.get_future().wait();
+
+    manager->OnAbilityRequestDone(record->GetToken(),
+        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED));
+
+    EXPECT_EQ(first.get(), ERR_INVALID_OPERATION);
+    EXPECT_EQ(second.get(), ERR_INVALID_OPERATION);
+    EXPECT_TRUE(manager->dataAbilityRecordsLoading_.empty());
 }
 
 /*

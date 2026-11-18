@@ -80,8 +80,8 @@ public:
         const std::vector<std::string> &params) = 0;
     virtual void DumpMission(int missionId, std::vector<std::string> &info) = 0;
     virtual void DumpMissionInfos(std::vector<std::string> &info) = 0;
-    virtual void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag) = 0;
-    virtual void OnStartSpecifiedAbilityTimeoutResponse() = 0;
+    virtual void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId) = 0;
+    virtual void OnStartSpecifiedAbilityFailed(int32_t requestId) = 0;
     virtual int ResolveLocked(const AbilityRequest &abilityRequest) = 0;
 
     virtual int ReleaseCallLocked(const sptr<IAbilityConnection> &connect,

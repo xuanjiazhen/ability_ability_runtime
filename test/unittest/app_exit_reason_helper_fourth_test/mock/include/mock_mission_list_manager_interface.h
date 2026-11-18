@@ -160,11 +160,11 @@ public:
     {
         return;
     }
-    void OnAcceptWantResponse(const AAFwk::Want& want, const std::string& flag) override
+    void OnAcceptWantResponse(const AAFwk::Want& want, const std::string& flag, int32_t requestId) override
     {
         return;
     }
-    void OnStartSpecifiedAbilityTimeoutResponse() override
+    void OnStartSpecifiedAbilityFailed(int32_t requestId) override
     {
         return;
     }

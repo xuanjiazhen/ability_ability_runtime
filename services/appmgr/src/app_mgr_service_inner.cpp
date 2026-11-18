@@ -2268,7 +2268,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         return;
     }
     if (ShouldBlockAppStartInSafeMode(*appInfo, abilityInfo.get())) {
-        if (abilityInfo->type == AbilityType::PAGE) {
+        if (abilityInfo->type == AbilityType::PAGE || abilityInfo->type == AbilityType::DATA) {
             std::lock_guard lock(appStateCallbacksLock_);
             for (const auto &item : appStateCallbacks_) {
                 if (item.callback != nullptr) {

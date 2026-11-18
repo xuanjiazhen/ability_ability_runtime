@@ -260,10 +260,10 @@ void DoSomethingTestWithMyAPI4(std::shared_ptr<MissionListManager> missionListMg
     auto callRecord = std::make_shared<CallRecord>(int32Param, abilityRecord, nullptr, abilityRecord->GetToken());
     missionListMgr->OnCallConnectDied(callRecord);
     Want want;
-    missionListMgr->OnAcceptWantResponse(want, stringParam);
+    missionListMgr->OnAcceptWantResponse(want, stringParam, int32Param);
     missionListMgr->EnqueueWaitingAbility(abilityRequest);
     missionListMgr->EnqueueWaitingAbility(abilityRequest); // add twice
-    missionListMgr->OnStartSpecifiedAbilityTimeoutResponse();
+    missionListMgr->OnStartSpecifiedAbilityFailed(int32Param);
     missionListMgr->GetMissionBySpecifiedFlag(want, stringParam);
     abilityRequest.abilityInfo.launchMode = static_cast<LaunchMode>(uint32Param % 3);  // 3 means luanch mode max enum
     abilityRequest.startRecent = boolParam;

@@ -71,16 +71,24 @@ int DataAbilityRecord::WaitForLoaded(ffrt::mutex &mutex, const std::chrono::syst
 {
     CHECK_POINTER_AND_RETURN(ability_, ERR_INVALID_STATE);
 
+    if (loadRejected_) {
+        return ERR_INVALID_OPERATION;
+    }
     // Data ability uses 'ACTIVATE' as loaded state.
     if (ability_->GetAbilityState() == ACTIVE) {
         return ERR_OK;
     }
 
     std::unique_lock<ffrt::mutex> lock(mutex, std::adopt_lock);
-    auto ret = loadedCond_.wait_for(lock, timeout, [this] { return ability_->GetAbilityState() == ACTIVE; });
+    auto ret = loadedCond_.wait_for(lock, timeout, [this] {
+        return loadRejected_ || ability_->GetAbilityState() == ACTIVE;
+    });
     lock.release();
     if (!ret) {
         return ERR_TIMED_OUT;
+    }
+    if (loadRejected_) {
+        return ERR_INVALID_OPERATION;
     }
 
     if (!scheduler_ || ability_->GetAbilityState() != ACTIVE) {
@@ -88,6 +96,12 @@ int DataAbilityRecord::WaitForLoaded(ffrt::mutex &mutex, const std::chrono::syst
     }
 
     return ERR_OK;
+}
+
+void DataAbilityRecord::RejectLoad()
+{
+    loadRejected_ = true;
+    loadedCond_.notify_all();
 }
 
 sptr<IAbilityScheduler> DataAbilityRecord::GetScheduler()

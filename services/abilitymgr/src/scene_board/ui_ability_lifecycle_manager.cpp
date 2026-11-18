@@ -756,7 +756,8 @@ void UIAbilityLifecycleManager::OnAbilityRequestDone(const sptr<IRemoteObject> &
     if (state == static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED)) {
         std::lock_guard guard(sessionLock_);
         auto abilityRecord = GetAbilityRecordByTokenLocked(token);
-        if (abilityRecord == nullptr || abilityRecord->IsTerminating() || !abilityRecord->IsLoading()) {
+        if (abilityRecord == nullptr || abilityRecord->IsTerminating() || abilityRecord->IsReady() ||
+            (!abilityRecord->IsLoading() && !abilityRecord->IsDebug())) {
             return;
         }
         abilityRecord->RemoveLoadTimeoutTask();

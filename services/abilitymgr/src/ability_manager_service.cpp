@@ -11546,7 +11546,7 @@ void AbilityManagerService::OnAcceptWantResponse(
     if (!missionListManager) {
         return;
     }
-    missionListManager->OnAcceptWantResponse(want, flag);
+    missionListManager->OnAcceptWantResponse(want, flag, requestId);
 }
 
 void AbilityManagerService::OnStartSpecifiedAbilityTimeoutResponse(int32_t requestId, int32_t userId)
@@ -11563,7 +11563,7 @@ void AbilityManagerService::OnStartSpecifiedAbilityTimeoutResponse(int32_t reque
     if (!missionListManager) {
         return;
     }
-    missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
+    missionListManager->OnStartSpecifiedAbilityFailed(requestId);
 }
 
 void AbilityManagerService::OnStartSpecifiedProcessResponse(const std::string &flag, int32_t userId, int32_t requestId,
@@ -11616,7 +11616,11 @@ void AbilityManagerService::OnStartSpecifiedFailed(int32_t requestId, int32_t us
         auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
         CHECK_POINTER(uiAbilityManager);
         uiAbilityManager->OnStartSpecifiedFailed(requestId);
+        return;
     }
+    auto missionListManager = GetMissionListManagerByUserId(userId);
+    CHECK_POINTER(missionListManager);
+    missionListManager->OnStartSpecifiedAbilityFailed(requestId);
 }
 
 int AbilityManagerService::GetAbilityRunningInfos(std::vector<AbilityRunningInfo> &info)
