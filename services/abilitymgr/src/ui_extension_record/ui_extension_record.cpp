@@ -133,6 +133,7 @@ bool UIExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen)
     }
     // Marker off; the gen itself is retained (monotonic across the record's lifetime).
     migrationDeclaration_.migrationGen = 0;
+    confirmedHostWindowId_ = migrationTargetHostWindowId_;
     return true;
 }
 
@@ -140,6 +141,12 @@ uint32_t UIExtensionRecord::GetMigrationGen() const
 {
     std::lock_guard<std::mutex> lock(migrationMutex_);
     return migrationGen_;
+}
+
+uint32_t UIExtensionRecord::GetConfirmedHostWindowId() const
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    return confirmedHostWindowId_;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

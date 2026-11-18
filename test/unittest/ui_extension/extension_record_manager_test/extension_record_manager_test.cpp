@@ -3100,5 +3100,63 @@ HWTEST_F(ExtensionRecordManagerTest, MigrationChain_FailureKeepsMarker_0100, Tes
     // Retry succeeds → confirm clears.
     EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen));
 }
+
+/**
+ * @tc.name: MigrationChain_RetryAfterProjectionPollution_0100
+ * @tc.desc: R1 fix: after migration declaration + projection (which pollutes
+ *           record.sessionInfo_->hostWindowId to target), a retry with the same
+ *           target must still pass the window gate — confirmedHostWindowId_ is
+ *           only updated on ConfirmMigrationDeclaration, not on SetSessionInfo.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationChain_RetryAfterProjectionPollution_0100, TestSize.Level1)
+{
+    const std::string hostBundle = "com.example.unittest";
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = hostBundle;
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto record = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(record, nullptr);
+    auto extRecord = std::make_shared<UIExtensionRecord>(record);
+    ASSERT_NE(extRecord, nullptr);
+
+    // Step 1: Declare migration (target=20).
+    uint32_t gen = extRecord->AdvanceMigrationGen();
+    AAFwk::OriginalCallerInfo declaration;
+    declaration.persistentId = 10;
+    declaration.migrationGen = gen;
+    extRecord->SetMigrationDeclaration(declaration, 20);
+
+    // Step 2: Simulate projection — SetSessionInfo with hostWindowId=target.
+    // This pollutes record.sessionInfo_->hostWindowId to 20.
+    sptr<AAFwk::SessionInfo> projectedInfo(new AAFwk::SessionInfo(*request.sessionInfo));
+    projectedInfo->hostWindowId = 20;
+    record->SetSessionInfo(projectedInfo);
+
+    // Step 3: Simulate failure — do NOT call ConfirmMigrationDeclaration.
+    // confirmedHostWindowId_ stays 0 (initial), not 20.
+    EXPECT_EQ(extRecord->GetConfirmedHostWindowId(), 0u);
+
+    // Step 4: Retry with same target=20.
+    // Gate compares confirmedHostWindowId_(0) vs request.hostWindowId(20) → 0≠20 → pass.
+    EXPECT_NE(extRecord->GetConfirmedHostWindowId(), 20u);
+
+    // Step 5: AdvanceMigrationGen for retry → gen=2 (monotonic, not reset).
+    uint32_t retryGen = extRecord->AdvanceMigrationGen();
+    EXPECT_EQ(retryGen, gen + 1);
+
+    // Step 6: Simulate success → ConfirmMigrationDeclaration updates confirmedHostWindowId_.
+    extRecord->SetMigrationDeclaration(declaration, 20);
+    declaration.migrationGen = retryGen;
+    extRecord->SetMigrationDeclaration(declaration, 20);
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(retryGen));
+    EXPECT_EQ(extRecord->GetConfirmedHostWindowId(), 20u);
+
+    // Step 7: Same target=20 now → confirmedHostWindowId_(20) == 20 → would be rejected.
+    EXPECT_EQ(extRecord->GetConfirmedHostWindowId(), 20u);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

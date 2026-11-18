@@ -275,8 +275,7 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    // Window gate: a migration always changes hostWindowId; an unchanged one has no legal path.
-    if (recordSessionInfo->hostWindowId == abilityRequest.sessionInfo->hostWindowId) {
+    if (extensionRecord->GetConfirmedHostWindowId() == abilityRequest.sessionInfo->hostWindowId) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
