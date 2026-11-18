@@ -34,6 +34,7 @@
 #include "cli_tool_manager_service.h"
 #include "cli_function_data_manager.h"
 #include "ccm_util.h"
+#include "tool_pid_resolver.h"
 #undef private
 #undef protected
 
@@ -124,6 +125,7 @@ private:
 
 constexpr int32_t ATTR_TEST_CALLER_UID = 3099;
 constexpr pid_t ATTR_TEST_ANCHOR_PID = 4321;
+constexpr pid_t ATTR_TEST_TOOL_PID = 4322;
 constexpr int64_t ATTR_TEST_ATTRIBUTION_ID = 5555;
 constexpr int32_t ATTR_TEST_WAIT_MS = 1000;
 
@@ -338,6 +340,10 @@ void CliToolManagerServiceTest::TearDown()
     // Safety net (outside sessionsMutex_: StopReaper joins the reaper, whose WaitPid takes sessionsMutex_):
     // stop the reaper if a test started it and did not stop it. No-op if never started.
     service_->StopReaper();
+    // Fence outstanding ToolPidResolver poll chains (bumps the epoch each scheduled
+    // poll captured): a delayed ffrt poll must never fire after the suite has moved
+    // on. No-op unless a chain is in flight.
+    ToolPidResolver::GetInstance().ResetForTest();
 }
 
 /**
@@ -4870,8 +4876,9 @@ HWTEST_F(CliToolManagerServiceTest, MixedDeploy_NewWriteNewRead_0100, TestSize.L
 
 /**
  * @tc.name: CliToolManagerService_AttachTaskAttribution_0100
- * @tc.desc: attach hook, accepted verdict: anchor pid registered with the
- *           CLI tool contract and the session-record uid; handle stored
+ * @tc.desc: attach hook, accepted verdict: the resolved TOOL child pid (never the
+ *           sandbox host) is registered with the CLI tool contract and the
+ *           session-record uid; handle stored
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0100, TestSize.Level1)
@@ -4885,11 +4892,12 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0100, TestSize.Level1)
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    service_->AttachTaskAttribution(record);
+    service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID);
 
     EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
     EXPECT_EQ(g_mockAppMgr->lastRegisterTaskId, "task_attach_attrib_0100");
-    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_ANCHOR_PID));
+    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_TOOL_PID));
+    EXPECT_NE(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_ANCHOR_PID));
     EXPECT_EQ(g_mockAppMgr->lastRegisterTool, ATTRIBUTION_TOOL_CLI);
     EXPECT_EQ(g_mockAppMgr->lastRegisterCallerUid, ATTR_TEST_CALLER_UID);
     EXPECT_EQ(record->attributionId, ATTR_TEST_ATTRIBUTION_ID);
@@ -4916,7 +4924,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0200, TestSize.Level1)
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    service_->AttachTaskAttribution(record);
+    service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID);
 
     EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
     EXPECT_EQ(record->attributionId, 0);
@@ -4943,7 +4951,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0300, TestSize.Level1)
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    service_->AttachTaskAttribution(record);
+    service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID);
 
     EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
     EXPECT_EQ(record->taskId, "task_attach_attrib_0300");
@@ -4955,8 +4963,9 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0300, TestSize.Level1)
 
 /**
  * @tc.name: CliToolManagerService_AttachTaskAttribution_0400
- * @tc.desc: attach hook, invalid anchor pid (e.g. the reaper already
- *           invalidated processId before the hook ran): no IPC is attempted.
+ * @tc.desc: attach hook, host already reaped (processId invalidated by the
+ *           reaper before the hook ran): the tool child must be dead too, so
+ *           no IPC is attempted.
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0400, TestSize.Level1)
@@ -4970,13 +4979,343 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0400, TestSize.Level1)
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    service_->AttachTaskAttribution(record);
+    service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID);
 
     EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
     EXPECT_EQ(record->attributionId, 0);
     EXPECT_EQ(record->attributionState, AttributionState::NONE);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0400 end");
+}
+
+// Resets the ToolPidResolver seams around each resolver case (mirrors the
+// TaskAttributionManager::ResetConnection pattern in SetUp).
+class ToolPidResolverScope {
+public:
+    ToolPidResolverScope()
+    {
+        ToolPidResolver::GetInstance().ResetForTest();
+    }
+    ~ToolPidResolverScope()
+    {
+        ToolPidResolver::GetInstance().ResetForTest();
+    }
+};
+
+/**
+ * @tc.name: CliToolManagerService_ResolveToolPid_0100
+ * @tc.desc: capture-then-register: the poll chain discovers the tool child of
+ *           the sandbox host and attaches the attribution to the TOOL pid (never
+ *           the host); the chain ends on discovery (no further polls).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0100 start");
+    ToolPidResolverScope resolverScope;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "resolve_capture_session";
+    record->taskId = "task_resolve_0100";
+    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    std::vector<int64_t> delays;
+    std::vector<std::function<void()>> pendingPolls;
+    ToolPidResolver::GetInstance().SetSchedulerForTest(
+        [&delays, &pendingPolls](int64_t delayMs, std::function<void()> next) {
+            delays.emplace_back(delayMs);
+            pendingPolls.emplace_back(std::move(next));
+        });
+    int32_t scanCalls = 0;
+    ToolPidResolver::GetInstance().SetScanForTest(
+        [&scanCalls](pid_t anchor, std::string &comm) {
+            ++scanCalls;
+            EXPECT_EQ(anchor, ATTR_TEST_ANCHOR_PID);
+            comm = "ohos-location";
+            return ATTR_TEST_TOOL_PID;
+        });
+
+    service_->ResolveToolPid(record);
+    ASSERT_EQ(pendingPolls.size(), 1); // first poll scheduled at the burst interval
+    EXPECT_EQ(delays[0], ToolPidResolver::BURST_INTERVAL_MS);
+    pendingPolls[0](); // drive the first poll synchronously
+
+    EXPECT_EQ(scanCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_TOOL_PID));
+    EXPECT_NE(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_ANCHOR_PID));
+    EXPECT_EQ(record->attributionState, AttributionState::ATTACHED);
+    EXPECT_EQ(record->attributionId, ATTR_TEST_ATTRIBUTION_ID);
+    EXPECT_EQ(pendingPolls.size(), 1); // discovery ended the chain
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResolveToolPid_0200
+ * @tc.desc: host reaped before discovery: the poll gives up without scanning or
+ *           registering (the tool child is dead too — nested lifetime), and the
+ *           chain stops (no further polls scheduled).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0200 start");
+    ToolPidResolverScope resolverScope;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "resolve_host_dead_session";
+    record->taskId = "task_resolve_0200";
+    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    std::vector<std::function<void()>> pendingPolls;
+    ToolPidResolver::GetInstance().SetSchedulerForTest(
+        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
+            pendingPolls.emplace_back(std::move(next));
+        });
+    int32_t scanCalls = 0;
+    ToolPidResolver::GetInstance().SetScanForTest(
+        [&scanCalls](pid_t anchor, std::string &comm) {
+            ++scanCalls;
+            return -1;
+        });
+
+    service_->ResolveToolPid(record);
+    ASSERT_EQ(pendingPolls.size(), 1);
+    record->processId = -1; // the reaper invalidated the host before the first poll ran
+    pendingPolls[0]();
+
+    EXPECT_EQ(scanCalls, 0); // the host-liveness gate precedes the scan
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+    EXPECT_EQ(record->attributionState, AttributionState::NONE);
+    EXPECT_EQ(pendingPolls.size(), 1); // give-up ended the chain
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResolveToolPid_0300
+ * @tc.desc: pacing and budget: a missing tool keeps the chain at the burst
+ *           interval inside the burst window and the backoff interval at its
+ *           edge; once the budget deadline passes, the poll gives up without
+ *           registering (observable miss).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0300 start");
+    ToolPidResolverScope resolverScope;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "resolve_timeout_session";
+    record->taskId = "task_resolve_0300";
+    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    std::vector<int64_t> delays;
+    std::vector<std::function<void()>> pendingPolls;
+    ToolPidResolver::GetInstance().SetSchedulerForTest(
+        [&delays, &pendingPolls](int64_t delayMs, std::function<void()> next) {
+            delays.emplace_back(delayMs);
+            pendingPolls.emplace_back(std::move(next));
+        });
+    ToolPidResolver::GetInstance().SetScanForTest(
+        [](pid_t anchor, std::string &comm) { return -1; });
+    auto future = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+    auto past = std::chrono::steady_clock::now() - std::chrono::seconds(1);
+
+    ToolPidResolver::GetInstance().PollForTest(record, 0, future); // early burst: reschedules at burst pace
+    ASSERT_EQ(delays.size(), 1);
+    EXPECT_EQ(delays[0], ToolPidResolver::BURST_INTERVAL_MS);
+    ToolPidResolver::GetInstance().PollForTest(record, ToolPidResolver::BURST_POLL_COUNT - 2, future);
+    ASSERT_EQ(delays.size(), 2);
+    EXPECT_EQ(delays[1], ToolPidResolver::BURST_INTERVAL_MS); // last poll still inside the burst window
+    ToolPidResolver::GetInstance().PollForTest(record, ToolPidResolver::BURST_POLL_COUNT - 1, future);
+    ASSERT_EQ(delays.size(), 3);
+    EXPECT_EQ(delays[2], ToolPidResolver::BACKOFF_INTERVAL_MS); // burst window exhausted
+
+    ToolPidResolver::GetInstance().PollForTest(record, ToolPidResolver::BURST_POLL_COUNT, past);
+    EXPECT_EQ(delays.size(), 3); // budget give-up: nothing more scheduled
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+    EXPECT_EQ(record->attributionState, AttributionState::NONE);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResolveToolPid_0400
+ * @tc.desc: NONE-state gate (first capture wins): after a successful attach, a
+ *           later capture (or a direct attach call) with a different pid is
+ *           blocked by the attribution state machine — exactly one registration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0400 start");
+    ToolPidResolverScope resolverScope;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "resolve_none_gate_session";
+    record->taskId = "task_resolve_0400";
+    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    std::vector<std::function<void()>> pendingPolls;
+    ToolPidResolver::GetInstance().SetSchedulerForTest(
+        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
+            pendingPolls.emplace_back(std::move(next));
+        });
+    pid_t discovered = ATTR_TEST_TOOL_PID;
+    ToolPidResolver::GetInstance().SetScanForTest(
+        [&discovered](pid_t anchor, std::string &comm) {
+            comm = "ohos-location";
+            return discovered;
+        });
+
+    service_->ResolveToolPid(record);
+    ASSERT_EQ(pendingPolls.size(), 1);
+    pendingPolls[0]();
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
+
+    // A second capture reports a different pid: the state machine blocks a second
+    // registration (fail-safe: never more than one attribution per session).
+    discovered = ATTR_TEST_TOOL_PID + 100;
+    ToolPidResolver::GetInstance().PollForTest(record, 1,
+        std::chrono::steady_clock::now() + std::chrono::seconds(1));
+    service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID + 200);
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_TOOL_PID));
+    EXPECT_EQ(record->attributionState, AttributionState::ATTACHED);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0400 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResolveToolPid_0500
+ * @tc.desc: taskId not carried: Resolve schedules nothing and never scans —
+ *           unattributed sessions pay zero cost.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0500 start");
+    ToolPidResolverScope resolverScope;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "resolve_no_taskid_session";
+    record->taskId = "";
+    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    std::vector<std::function<void()>> pendingPolls;
+    ToolPidResolver::GetInstance().SetSchedulerForTest(
+        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
+            pendingPolls.emplace_back(std::move(next));
+        });
+    int32_t scanCalls = 0;
+    ToolPidResolver::GetInstance().SetScanForTest(
+        [&scanCalls](pid_t anchor, std::string &comm) {
+            ++scanCalls;
+            return ATTR_TEST_TOOL_PID;
+        });
+
+    service_->ResolveToolPid(record);
+
+    EXPECT_EQ(pendingPolls.size(), 0);
+    EXPECT_EQ(scanCalls, 0);
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0500 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResolveToolPid_0600
+ * @tc.desc: session ended before discovery (record already off the table): the
+ *           poll gives up without scanning or registering, and the chain stops.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0600 start");
+    ToolPidResolverScope resolverScope;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "resolve_off_table_session";
+    record->taskId = "task_resolve_0600";
+    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    // deliberately NOT added to the session table: the teardown already removed it
+
+    std::vector<std::function<void()>> pendingPolls;
+    ToolPidResolver::GetInstance().SetSchedulerForTest(
+        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
+            pendingPolls.emplace_back(std::move(next));
+        });
+    int32_t scanCalls = 0;
+    ToolPidResolver::GetInstance().SetScanForTest(
+        [&scanCalls](pid_t anchor, std::string &comm) {
+            ++scanCalls;
+            return ATTR_TEST_TOOL_PID;
+        });
+
+    ToolPidResolver::GetInstance().PollForTest(record, 0,
+        std::chrono::steady_clock::now() + std::chrono::seconds(1));
+
+    EXPECT_EQ(scanCalls, 0); // the in-table probe precedes the scan
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+    EXPECT_EQ(pendingPolls.size(), 0); // give-up ended the chain
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0600 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResolveToolPid_0700
+ * @tc.desc: test-boundary fence: ResetForTest invalidates an already-scheduled
+ *           poll chain; driving the stale continuation afterwards is a silent
+ *           no-op (no scan, no registration, chain dropped).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0700 start");
+    ToolPidResolverScope resolverScope;
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "resolve_fence_session";
+    record->taskId = "task_resolve_0700";
+    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    std::vector<std::function<void()>> pendingPolls;
+    ToolPidResolver::GetInstance().SetSchedulerForTest(
+        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
+            pendingPolls.emplace_back(std::move(next));
+        });
+    int32_t scanCalls = 0;
+    ToolPidResolver::GetInstance().SetScanForTest(
+        [&scanCalls](pid_t anchor, std::string &comm) {
+            ++scanCalls;
+            return ATTR_TEST_TOOL_PID;
+        });
+
+    service_->ResolveToolPid(record);
+    ASSERT_EQ(pendingPolls.size(), 1);
+    ToolPidResolver::GetInstance().ResetForTest(); // test boundary: fence the live chain
+    pendingPolls[0](); // stale continuation runs after the fence
+
+    EXPECT_EQ(scanCalls, 0); // the fence aborts before the scan
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+    EXPECT_EQ(record->attributionState, AttributionState::NONE);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0700 end");
 }
 
 /**
@@ -5279,7 +5618,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_RelayDetach_0100, Test
     service_->AddSessionRecord(record);
 
     g_mockAppMgr->blockRegister = true;
-    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record); });
+    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID); });
     ASSERT_TRUE(WaitForRegisterEntered(1));
 
     service_->RemoveSessionRecord(record->sessionId);
@@ -5316,7 +5655,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_RelayDetach_0200, Test
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    service_->AttachTaskAttribution(record);
+    service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID);
     EXPECT_EQ(record->attributionState, AttributionState::ATTACHED);
 
     service_->RemoveSessionRecord(record->sessionId);
@@ -5348,7 +5687,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_RelayDetach_0300, Test
     service_->AddSessionRecord(record);
 
     g_mockAppMgr->blockRegister = true;
-    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record); });
+    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID); });
     ASSERT_TRUE(WaitForRegisterEntered(1));
 
     service_->RemoveSessionRecord(record->sessionId);
@@ -5382,7 +5721,7 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_RelayDetach_0400, Test
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    service_->AttachTaskAttribution(record);
+    service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID);
     EXPECT_EQ(record->attributionState, AttributionState::FAILED);
     EXPECT_EQ(record->taskId, "task_relay_detach_0400");
 
@@ -5414,7 +5753,7 @@ HWTEST_F(CliToolManagerServiceTest, WaitPid_RelayDetach_0100, TestSize.Level1)
     service_->AddSessionRecord(record);
 
     g_mockAppMgr->blockRegister = true;
-    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record); });
+    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID); });
     ASSERT_TRUE(WaitForRegisterEntered(1));
 
     service_->WaitPid(record->processId, 0, 0);
@@ -5452,7 +5791,7 @@ HWTEST_F(CliToolManagerServiceTest, OnStop_RelayDetach_0100, TestSize.Level1)
     service_->AddSessionRecord(record);
 
     g_mockAppMgr->blockRegister = true;
-    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record); });
+    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID); });
     ASSERT_TRUE(WaitForRegisterEntered(1));
 
     service_->OnStop();

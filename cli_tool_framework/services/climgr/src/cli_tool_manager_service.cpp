@@ -55,6 +55,7 @@
 #include "process_manager.h"
 #include "session_record.h"
 #include "task_attribution_manager.h"
+#include "tool_pid_resolver.h"
 #include "tool_util.h"
 #include "want_params.h"
 #include "want_params_wrapper.h"
@@ -548,16 +549,20 @@ void CliToolManagerService::RemoveSessionRecord(const std::string &sessionId)
     PostDetachTaskAttribution(taskId, attributionId, callerUid);
 }
 
-void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record)
+void CliToolManagerService::ResolveToolPid(const std::shared_ptr<SessionRecord> &record)
 {
-    if (record == nullptr) {
+    ToolPidResolver::GetInstance().Resolve(record);
+}
+
+void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record, pid_t pidToAttach)
+{
+    if (record == nullptr || pidToAttach <= 0) {
         return;
     }
     // Phase 1 — snapshot under the table lock and mark PENDING. A record that already left
     // the table (or was attached twice) must not register: no teardown could consume an
     // ATTACHED written to an off-table record, leaking the attribution to the appmgr backstop.
     std::string taskId;
-    pid_t anchor = -1;
     int32_t callerUid = -1;
     {
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
@@ -568,11 +573,13 @@ void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionR
         if (it == sessionRecords_.end() || it->second != record) {
             return;
         }
-        // Capture the anchor once: the reaper may invalidate record->processId at any moment.
-        anchor = record->processId;
-        if (anchor <= 0) {
+        // The host anchor must still be live: the tool child is nested in the host's
+        // lifetime (same process group — Killpg covers both), so a reaped host means the
+        // tool is dead and the session is tearing down; registering there would leave a
+        // stale attribution behind.
+        if (record->processId <= 0) {
             TAG_LOGW(AAFwkTag::CLI_TOOL,
-                "AttachTaskAttribution skipped: invalid anchor pid, sessionId=%{public}s, taskId=%{public}s",
+                "AttachTaskAttribution skipped: host reaped, sessionId=%{public}s, taskId=%{public}s",
                 record->sessionId.c_str(), record->taskId.c_str());
             return;
         }
@@ -580,12 +587,15 @@ void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionR
         callerUid = record->callerUid;
         record->attributionState = AttributionState::PENDING;
     }
-    // Phase 2 — sync IPC outside the lock (lock-held long IPC is forbidden).
+    // Phase 2 — sync IPC outside the lock (lock-held long IPC is forbidden). The registered
+    // pid is the resolved tool child, never the host: record->processId keeps its host-pid
+    // WaitPid-matching semantics.
     int64_t attributionId = 0;
-    int32_t ret = TaskAttributionManager::GetInstance().AttachProcess(taskId, anchor, callerUid, attributionId);
+    int32_t ret = TaskAttributionManager::GetInstance().AttachProcess(taskId, pidToAttach, callerUid,
+        attributionId);
     // Phase 3+4 — reconcile the verdict under the lock; a teardown that consumed while the IPC
     // was in flight leaves this side the single finisher, compensating its own registration.
-    if (WriteBackAttachResult(record, "AttachTaskAttribution", ret == ERR_OK, ret, anchor, taskId,
+    if (WriteBackAttachResult(record, "AttachTaskAttribution", ret == ERR_OK, ret, pidToAttach, taskId,
         attributionId)) {
         PostDetachTaskAttribution(taskId, attributionId, callerUid);
     }
@@ -1321,7 +1331,7 @@ int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, 
         return ERR_NO_INIT;
     }
 
-    AttachTaskAttribution(record);
+    ResolveToolPid(record);
 
     if (!bundleName.empty()) {
         RegisterAppStateObserver(bundleName, record->callerPid);
@@ -1826,7 +1836,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
         RemoveSessionRecord(record->sessionId);
         return ERR_NO_INIT;
     }
-    AttachTaskAttribution(record);
+    ResolveToolPid(record);
     if (!bundleName.empty()) {
         RegisterAppStateObserver(bundleName, record->callerPid);
     }
@@ -1935,7 +1945,7 @@ int32_t CliToolManagerService::SetupCmdSession(const ExecToolParam &toolParam, c
         return ERR_NO_INIT;
     }
 
-    AttachTaskAttribution(record);
+    ResolveToolPid(record);
 
     if (!context.callerBundleName.empty()) {
         RegisterAppStateObserver(context.callerBundleName, record->callerPid);

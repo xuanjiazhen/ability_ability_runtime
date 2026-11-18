@@ -33,6 +33,7 @@
 #include "exec_result_wrap.h"
 #include "ffrt.h"
 #include "function_result_wrap.h"
+#include "iapplication_state_observer.h"
 #include "invoke_function_param.h"
 #include "invoke_function_result.h"
 #include "iremote_object.h"
@@ -54,6 +55,7 @@ namespace CliTool {
 class SessionRecord;
 class SkillCallbackAdapter;
 class CliToolManagerService;
+class ToolPidResolver;
 
 enum class HookType { CLI, FUNCTION };
 
@@ -62,6 +64,7 @@ class CliToolManagerService : public SystemAbility,
     DECLARE_SYSTEM_ABILITY(CliToolManagerService);
 
     friend class SkillCallbackAdapter;
+    friend class ToolPidResolver;
 
 public:
     static sptr<CliToolManagerService> GetInstance();
@@ -275,7 +278,15 @@ private:
     std::vector<std::shared_ptr<SessionRecord>> GetSessionRecords();
     void RemoveSessionRecord(const std::string &sessionId);
 
-    void AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record);
+    // Discovers the tool child forked inside the sandbox host and switches the attribution
+    // anchor to it (short-term bridge; see ToolPidResolver). No-op without a taskId.
+    void ResolveToolPid(const std::shared_ptr<SessionRecord> &record);
+    // Registers pidToAttach (the resolved tool child) as the managed process of the
+    // record's task. Phase 1 gates on the host still being live: the tool is nested in
+    // the host's lifetime, so a reaped host means the session is tearing down and any
+    // registration there would leave a stale attribution. record->processId keeps its
+    // host-pid reaping semantics and is never the attribution anchor.
+    void AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record, pid_t pidToAttach);
     void PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId, int32_t callerUid);
     // Caller must hold sessionsMutex_. Consumes an ATTACHED attribution into the detach triple
     // (returns true) or relays a PENDING one to the write-back (CONSUMED, nothing to detach now).
