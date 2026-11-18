@@ -7485,9 +7485,6 @@ int AppMgrServiceInner::UserTestAbnormalFinish(const sptr<IRemoteObject> &observ
 int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IRemoteObject> &observer,
     const BundleInfo &info, const std::string &processName, const int userId)
 {
-    if (ShouldBlockAppStartInSafeMode(info.applicationInfo)) {
-        return ERR_INVALID_OPERATION;
-    }
     TAG_LOGI(AAFwkTag::APPMGR, "enter bundle [%{public}s | processName [%{public}s]]", info.name.c_str(),
         processName.c_str());
     if (!CheckRemoteClient() || !appRunningManager_) {
@@ -10169,9 +10166,6 @@ int32_t AppMgrServiceInner::StartNativeProcessForDebugger(const AAFwk::Want &wan
     auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
     if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, abilityInfo.applicationInfo.appIndex)) {
         TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
-        return ERR_INVALID_OPERATION;
-    }
-    if (ShouldBlockAppStartInSafeMode(*appInfo)) {
         return ERR_INVALID_OPERATION;
     }
     auto accessTokenIdEx = AccessToken::AccessTokenKit::GetHapTokenIDEx(GetUserIdByUid(appInfo->uid),

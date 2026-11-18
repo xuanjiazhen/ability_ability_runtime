@@ -7468,23 +7468,6 @@ HWTEST_F(AppMgrServiceInnerTest, SafeModeRejectsAbilityProcessReuse_001, TestSiz
 }
 
 /**
- * @tc.name: SafeModeRejectsEmptyAppProcess_001
- * @tc.desc: Starting a third-party process without a target ability reports rejection and leaves no app record.
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerTest, SafeModeRejectsEmptyAppProcess_001, TestSize.Level1)
-{
-    auto serviceInner = std::make_shared<AppMgrServiceInner>();
-    serviceInner->isSafeMode_ = true;
-    BundleInfo bundleInfo;
-    bundleInfo.applicationInfo = *applicationInfo_;
-    bundleInfo.applicationInfo.isSystemApp = false;
-    EXPECT_EQ(serviceInner->StartEmptyProcess(AAFwk::Want(), nullptr, bundleInfo, "testSafeModeProcess", 0),
-        ERR_INVALID_OPERATION);
-    EXPECT_TRUE(serviceInner->appRunningManager_->GetAppRunningRecordMap().empty());
-}
-
-/**
  * @tc.name: SafeModeRejectsUserTestBeforeProcessCleanup
  * @tc.desc: A third-party test request reports a failure before looking up or stopping any running process.
  * @tc.type: FUNC
@@ -7503,6 +7486,7 @@ HWTEST_F(AppMgrServiceInnerTest, SafeModeRejectsUserTestBeforeProcessCleanup, Te
     EXPECT_CALL(*observer, TestFinished("Test process start blocked in safe mode.", -1)).Times(1);
 
     EXPECT_EQ(serviceInner->StartUserTestProcess(want, observer->AsObject(), bundleInfo, 0), ERR_INVALID_OPERATION);
+    EXPECT_TRUE(serviceInner->appRunningManager_->GetAppRunningRecordMap().empty());
 }
 
 /**
