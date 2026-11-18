@@ -51,6 +51,7 @@
 #include "want_params_wrapper.h"
 #include "application_configuration_manager.h"
 #include "ohos_application.h"
+#include "ui_extension_migration_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -764,6 +765,7 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     option->SetDensity(sessionInfo->density);
     option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
+    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     if (context_->isNotAllow != -1) {
         bool isNotAllow = context_->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
@@ -824,6 +826,8 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             return false;
         }
         RegisterBrandColorChangeListener(uiWindow);
+        migrationFencing_ = MigrationFencingState {};
+        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[componentId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context_->GetWindow() == nullptr) {
@@ -837,6 +841,28 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
+            [this](const sptr<AAFwk::SessionInfo> &info) {
+                            auto sessionIt = contentSessions_.find(componentId);
+                            if (sessionIt == contentSessions_.end() || sessionIt->second == nullptr) {
+                                TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, content session not found, "
+                                    "compId: %{public}" PRIu64, componentId);
+                                return;
+                            }
+                            HandleScope handleScope(jsRuntime_);
+                            napi_env env = jsRuntime_.GetNapiEnv();
+                            napi_value contentSession = sessionIt->second->GetNapiValue();
+                            void* nativeObject = nullptr;
+                            napi_unwrap(env, contentSession, &nativeObject);
+                            auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
+                            if (contentSessionPtr == nullptr) {
+                                TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, unwrap failed");
+                                return;
+                            }
+                            contentSessionPtr->DoUpdateExtensionParent(info);
+                        })) {
+            return false;
+        }
     }
     return true;
 }

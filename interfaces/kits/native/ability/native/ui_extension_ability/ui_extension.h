@@ -22,11 +22,13 @@
 #include <unordered_set>
 
 #include "extension_base.h"
+#include "ui_extension_migration_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 class UIExtensionContext;
 class Runtime;
+
 /**
  * @brief Basic ui extension components.
  */
@@ -108,6 +110,7 @@ protected:
     virtual bool ForegroundWindowWithInsightIntent(
         const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo, bool needForeground);
     virtual bool HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo);
+
     void RegisterBrandColorChangeListener(const sptr<Rosen::Window> &uiWindow);
 private:
     int32_t WindowNotifeBrandColorChange(Rosen::SubSystemId id, uint32_t customId, AAFwk::Want &&data,
@@ -119,6 +122,7 @@ protected:
     std::set<uint64_t> foregroundWindows_;
     uint64_t intentId_;
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
+    MigrationFencingState migrationFencing_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

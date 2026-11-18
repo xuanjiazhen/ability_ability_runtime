@@ -117,8 +117,47 @@ public:
     int32_t GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
         std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded);
 
+    bool GetMigrationUpdateRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
+        std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded, int32_t &ret);
+
     std::shared_ptr<AAFwk::BaseExtensionRecord> GetAbilityRecordBySessionInfo(
         const sptr<AAFwk::SessionInfo> &sessionInfo);
+
+    /**
+     * @brief Find extension record by persistentId for host window migration update.
+     *
+     * persistentId stays stable when UIExtension component migrates between host windows
+     * (uiExtensionComponentId changes because the host record id changes), so the original
+     * record is matched by persistentId. Terminating matches do not stop the scan (they never
+     * shadow a live one) but are reported via hasTerminatingMatch so the caller can reject.
+     *
+     * @param sessionInfo The session info of the migration update request.
+     * @param hostBundleName The host bundle name, observation only (cross-bundle host
+     *        migration is legal within one process).
+     * @param hasTerminatingMatch Set true when a record with the same persistentId was seen
+     *        but its termination had already been triggered (death rule: unusable).
+     * @return The matched live record, or nullptr when not found.
+     */
+    std::shared_ptr<AAFwk::BaseExtensionRecord> GetAbilityRecordByPersistentId(
+        const sptr<AAFwk::SessionInfo> &sessionInfo, const std::string &hostBundleName,
+        bool &hasTerminatingMatch);
+
+    /**
+     * @brief Look up the ExtensionRecord wrapper by the inner record id (no bundle check).
+     * @return The wrapper, or nullptr when absent.
+     */
+    std::shared_ptr<ExtensionRecord> FindExtensionRecordById(int32_t recordId);
+
+    /**
+     * @brief Check whether the session info marks a migration update request.
+     *
+     * A request is a migration update when originalCallerInfo.callerToken is non-null and
+     * originalCallerInfo.persistentId is valid.
+     *
+     * @param sessionInfo The session info to check.
+     * @return true for migration update request.
+     */
+    bool IsMigrationUpdateRequest(const sptr<AAFwk::SessionInfo> &sessionInfo) const;
 
     std::shared_ptr<AAFwk::AbilityRecord> GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token);
 
