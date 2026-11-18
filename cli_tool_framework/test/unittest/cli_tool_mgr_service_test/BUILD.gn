@@ -57,6 +57,7 @@ ohos_unittest("cli_tool_mgr_service_test") {
     "${cli_tool_framework_path}/services/climgr/src/process_manager.cpp",
     "${cli_tool_framework_path}/services/climgr/src/session_record.cpp",
     "${cli_tool_framework_path}/services/climgr/src/task_attribution_manager.cpp",
+    "${cli_tool_framework_path}/services/climgr/src/tool_pid_resolver.cpp",
     "${cli_tool_framework_path}/services/climgr/src/tool_util.cpp",
     "${cli_tool_framework_path}/services/common/src/ccm_util.cpp",
     "mock/src/accesstoken_kit.cpp",
