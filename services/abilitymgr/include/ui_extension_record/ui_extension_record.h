@@ -59,6 +59,7 @@ public:
     bool ConfirmMigrationDeclaration(uint32_t gen) override;
 
     uint32_t GetMigrationGen() const override;
+    uint32_t GetConfirmedHostWindowId() const;
 
 private:
     enum ErrorCode {
@@ -75,6 +76,7 @@ private:
     uint32_t migrationGen_ = 0;
     AAFwk::OriginalCallerInfo migrationDeclaration_ = {};
     uint32_t migrationTargetHostWindowId_ = 0;
+    uint32_t confirmedHostWindowId_ = 0;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
