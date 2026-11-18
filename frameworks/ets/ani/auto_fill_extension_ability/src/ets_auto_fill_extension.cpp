@@ -452,6 +452,7 @@ bool EtsAutoFillExtension::CreateSessionAndReference(sptr<AAFwk::SessionInfo> se
         return false;
     }
     contentSessions_.emplace(sessionInfo->sessionToken, ref);
+    etsUiExtContentSession_ = etsUiExtContentSession;  // C4 fix: retain for migration refresh
     return true;
 }
 
@@ -538,7 +539,7 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
                 TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "re-parent failed, keep session backgrounded");
                 // Keep the marker for retry: strip the declaration from this receipt path so
                 // ScheduleCommandAbilityWindowDone does not confirm this failed migration.
-                sessionInfo->originalCallerInfo.callerToken = nullptr;
+                sessionInfo->originalCallerInfo.migrationGen = 0;  // INP2-05: gen=0 signals "do not confirm"
                 return false;
             }
             CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
@@ -564,7 +565,12 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
                 cachedInfo->originalCallerInfo.callerToken = nullptr;
                 migrateContext->SetSessionInfo(cachedInfo);
             }
-        } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            // C4 fix: refresh the C++ side content session's cached sessionInfo_
+            // (same as P4/P5 — 1 instance = 1 session).
+            if (etsUiExtContentSession_ != nullptr) {
+                etsUiExtContentSession_->UpdateSessionInfo(sessionInfo);
+            }
+        } else if (sessionInfo->originalCallerInfo.migrationGen != 0) {
             TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "migration skipped, persistentId: %{public}d, gen: %{public}u, "
                 "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
@@ -659,6 +665,7 @@ void EtsAutoFillExtension::DestroyWindow(sptr<AAFwk::SessionInfo> sessionInfo)
     foregroundWindows_.erase(obj);
     contentSessions_.erase(obj);
     callbacks_.erase(obj);
+    etsUiExtContentSession_ = nullptr;  // C4 fix: release with the session
 }
 
 bool EtsAutoFillExtension::CallObjectMethod(bool withResult, const char *name, const char *signature, ...)
@@ -775,6 +782,7 @@ void EtsAutoFillExtension::CallEtsOnRequest(const AAFwk::Want &want, sptr<AAFwk:
         return;
     }
     contentSessions_.emplace(sessionInfo->sessionToken, ref);
+    etsUiExtContentSession_ = etsUiExtContentSession;  // C4 fix: retain for migration refresh
     ProcessRequest(want, sessionInfo, uiWindow, nativeContentSession);
 }
 

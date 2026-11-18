@@ -45,8 +45,11 @@ bool ShouldExecuteMigration(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
     MigrationFencingState &state)
 {
+    // INP2-05: the migration discriminator is migrationGen (0 = plain request, ≥1 =
+    // AMS-stamped migration), NOT callerToken — the previous-host token is stripped at
+    // AMS before delivery and never reaches this process.
     if (sessionInfo == nullptr ||
-        sessionInfo->originalCallerInfo.callerToken == nullptr) {
+        sessionInfo->originalCallerInfo.migrationGen == 0) {
         return false;  // not a migration command
     }
     uint32_t gen = sessionInfo->originalCallerInfo.migrationGen;

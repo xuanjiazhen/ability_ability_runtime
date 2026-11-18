@@ -754,7 +754,7 @@ HWTEST_F(ExtensionRecordManagerTest, UIExtensionRecord_Update_MigrationRetention
     // At-least-once projection: while the migration is unconfirmed (marker kept on the
     // record), a reuse request carries the FULL declaration and the target host window so
     // the provider keeps getting re-parent chances.
-    EXPECT_EQ(reuseSessionInfo->originalCallerInfo.callerToken, previousHostToken);
+    EXPECT_EQ(reuseSessionInfo->originalCallerInfo.callerToken, nullptr);  // INP2-05: stripped at AMS
     EXPECT_EQ(reuseSessionInfo->hostWindowId, 9u);
 }
 
@@ -2517,8 +2517,7 @@ HWTEST_F(ExtensionRecordManagerTest, MigrationFencing_ShouldExecute_CheckOnly_01
 
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
     ASSERT_NE(sessionInfo, nullptr);
-    sessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
-    sessionInfo->originalCallerInfo.migrationGen = 4;
+    sessionInfo->originalCallerInfo.migrationGen = 4;  // INP2-05: gen is the discriminator
     sessionInfo->hostWindowId = 9;
 
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
@@ -2542,8 +2541,7 @@ HWTEST_F(ExtensionRecordManagerTest, MigrationFencing_CommitMigrationState_0100,
 
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
     ASSERT_NE(sessionInfo, nullptr);
-    sessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
-    sessionInfo->originalCallerInfo.migrationGen = 4;
+    sessionInfo->originalCallerInfo.migrationGen = 4;  // INP2-05: gen is the discriminator
     sessionInfo->hostWindowId = 9;
 
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
@@ -2837,7 +2835,6 @@ HWTEST_F(ExtensionRecordManagerTest, MigrationState_SetSessionInfoDoesNotRollbac
     ASSERT_NE(uiRecord, nullptr);
 
     AAFwk::OriginalCallerInfo declaration;
-    declaration.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     declaration.persistentId = 10;
     declaration.migrationGen = 5;
     uiRecord->SetMigrationDeclaration(declaration, 9);
@@ -2880,7 +2877,6 @@ HWTEST_F(ExtensionRecordManagerTest, MigrationState_ConfirmByGen_0100, TestSize.
     EXPECT_EQ(uiRecord->AdvanceMigrationGen(), 2u);
 
     AAFwk::OriginalCallerInfo declaration;
-    declaration.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     declaration.persistentId = 10;
     declaration.migrationGen = 2;
     uiRecord->SetMigrationDeclaration(declaration, 9);
@@ -2969,6 +2965,178 @@ HWTEST_F(ExtensionRecordManagerTest, UIExtensionRecord_Update_ProjectionCarriesC
     extRecord->Update(staleRequest);
     EXPECT_EQ(staleSessionInfo->hostWindowId, 9u);  // record's target wins
     EXPECT_EQ(staleSessionInfo->originalCallerInfo.migrationGen, 1u);  // record's gen wins
+}
+
+/**
+ * @tc.name: MigrationChain_ConfirmAfterSuccess_0100
+ * @tc.desc: A-1 integration: full migration lifecycle — declare → advance gen → project →
+ *           confirm-clear. Simulates the ScheduleCommandAbilityWindowDone flow.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationChain_ConfirmAfterSuccess_0100, TestSize.Level1)
+{
+    const std::string hostBundle = "com.example.unittest";
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = hostBundle;
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto record = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(record, nullptr);
+    auto extRecord = std::make_shared<UIExtensionRecord>(record);
+    ASSERT_NE(extRecord, nullptr);
+
+    // Step 1: Declare (simulates GetMigrationUpdateRecord stamping gen + marker).
+    uint32_t gen = extRecord->AdvanceMigrationGen();
+    ASSERT_EQ(gen, 1u);
+    AAFwk::OriginalCallerInfo declaration;
+    declaration.persistentId = 10;
+    declaration.migrationGen = gen;
+    extRecord->SetMigrationDeclaration(declaration, 42);
+
+    // Step 2: Project (simulates StartAbilityLocked/UIExtensionRecord::Update).
+    AAFwk::OriginalCallerInfo projected;
+    uint32_t targetHostWindowId = 0;
+    ASSERT_TRUE(extRecord->GetMigrationDeclaration(projected, targetHostWindowId));
+    EXPECT_EQ(projected.migrationGen, gen);
+    EXPECT_EQ(targetHostWindowId, 42u);
+
+    // Step 3: Confirm (simulates ScheduleCommandAbilityWindowDone override).
+    // Stale gen (0) must not confirm.
+    EXPECT_FALSE(extRecord->ConfirmMigrationDeclaration(0));
+    // Wrong gen must not confirm.
+    EXPECT_FALSE(extRecord->ConfirmMigrationDeclaration(gen + 1));
+    // Correct gen confirms and clears the marker.
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen));
+
+    // Step 4: After confirm, no pending declaration.
+    AAFwk::OriginalCallerInfo emptyDecl;
+    uint32_t emptyTarget = 0;
+    EXPECT_FALSE(extRecord->GetMigrationDeclaration(emptyDecl, emptyTarget));
+
+    // Step 5: Gen stays monotonic after confirm.
+    EXPECT_EQ(extRecord->AdvanceMigrationGen(), 2u);
+}
+
+/**
+ * @tc.name: MigrationChain_ReplayStripAndProject_0100
+ * @tc.desc: A-1 integration: simulates the BACKGROUNDING → enqueue → replay flow —
+ *           a queued stale declaration is stripped, then the projection re-arms it
+ *           with the record's current (gen, target) pair.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationChain_ReplayStripAndProject_0100, TestSize.Level1)
+{
+    const std::string hostBundle = "com.example.unittest";
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = hostBundle;
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto record = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(record, nullptr);
+    auto extRecord = std::make_shared<UIExtensionRecord>(record);
+    ASSERT_NE(extRecord, nullptr);
+
+    // AMS stamps gen=1 and sets the marker (simulates first migration delivery accepted).
+    uint32_t gen = extRecord->AdvanceMigrationGen();
+    AAFwk::OriginalCallerInfo declaration;
+    declaration.persistentId = 10;
+    declaration.migrationGen = gen;
+    extRecord->SetMigrationDeclaration(declaration, 99);
+
+    // Simulate: BACKGROUNDING → enqueue → replay.
+    // The replayed request carries a stale declaration snapshot (old gen, old target).
+    sptr<AAFwk::SessionInfo> replayInfo(new AAFwk::SessionInfo());
+    replayInfo->hostWindowId = 50;  // stale target
+    replayInfo->originalCallerInfo.migrationGen = gen;
+    AAFwk::AbilityRequest replayRequest = request;
+    replayRequest.sessionInfo = replayInfo;
+
+    // Step 1: Strip (simulates CompleteStartServiceReq strip).
+    replayInfo->originalCallerInfo.migrationGen = 0;
+
+    // Step 2: Project (simulates StartAbilityLocked — re-arms from record's authority).
+    AAFwk::OriginalCallerInfo projected;
+    uint32_t targetHostWindowId = 0;
+    ASSERT_TRUE(extRecord->GetMigrationDeclaration(projected, targetHostWindowId));
+    replayInfo->originalCallerInfo = projected;
+    replayInfo->hostWindowId = targetHostWindowId;
+
+    // Step 3: The re-armed request carries the record's pair, not the stale one.
+    EXPECT_EQ(replayInfo->originalCallerInfo.migrationGen, gen);
+    EXPECT_EQ(replayInfo->hostWindowId, 99u);  // NOT the stale 50
+
+    // Step 4: Provider fence accepts it (gen > lastGen since fence is at 0).
+    MigrationFencingState fence;
+    EXPECT_TRUE(ShouldExecuteMigration(replayInfo, fence));
+
+    // Step 5: Success → commit fence → confirm-clear marker.
+    CommitMigrationState(fence, gen, 99u);
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen));
+    AAFwk::OriginalCallerInfo empty;
+    uint32_t emptyTarget = 0;
+    EXPECT_FALSE(extRecord->GetMigrationDeclaration(empty, emptyTarget));
+}
+
+/**
+ * @tc.name: MigrationChain_FailureKeepsMarker_0100
+ * @tc.desc: A-1 integration: re-parent failure sets migrationGen=0 on the receipt →
+ *           confirm fails → marker retained → at-least-once retries succeed.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationChain_FailureKeepsMarker_0100, TestSize.Level1)
+{
+    const std::string hostBundle = "com.example.unittest";
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = hostBundle;
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto record = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(record, nullptr);
+    auto extRecord = std::make_shared<UIExtensionRecord>(record);
+    ASSERT_NE(extRecord, nullptr);
+
+    // Declare migration (gen=1, target=77).
+    uint32_t gen = extRecord->AdvanceMigrationGen();
+    AAFwk::OriginalCallerInfo declaration;
+    declaration.persistentId = 10;
+    declaration.migrationGen = gen;
+    extRecord->SetMigrationDeclaration(declaration, 77);
+
+    // Provider receives the migration request.
+    sptr<AAFwk::SessionInfo> receipt = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    receipt->originalCallerInfo = declaration;
+
+    // Simulate re-parent FAILURE: provider sets migrationGen=0 on the receipt
+    // (INP2-05: gen=0 is the "do not confirm" signal).
+    receipt->originalCallerInfo.migrationGen = 0;
+
+    // AMS receives the receipt: gen=0 fails the confirm discriminator.
+    EXPECT_EQ(receipt->originalCallerInfo.migrationGen, 0u);
+
+    // Confirm fails → marker retained.
+    // (In production, the AMS confirm override checks migrationGen != 0 before
+    // calling ConfirmMigrationDeclaration. Simulate: gen==0 → skip confirm.)
+    // Marker is still there:
+    AAFwk::OriginalCallerInfo still;
+    uint32_t stillTarget = 0;
+    EXPECT_TRUE(extRecord->GetMigrationDeclaration(still, stillTarget));
+    EXPECT_EQ(still.migrationGen, gen);
+
+    // At-least-once retry: next projection re-arms with same gen.
+    AAFwk::OriginalCallerInfo retry;
+    uint32_t retryTarget = 0;
+    EXPECT_TRUE(extRecord->GetMigrationDeclaration(retry, retryTarget));
+    EXPECT_EQ(retry.migrationGen, gen);
+    EXPECT_EQ(retryTarget, 77u);
+
+    // Retry succeeds → confirm clears.
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen));
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

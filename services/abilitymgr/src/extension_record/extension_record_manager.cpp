@@ -313,6 +313,10 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     // Projection + marker: the delivered declaration (with the stamped gen) and its
     // target host window are remembered as the wrapper's authoritative pending state.
     abilityRequest.sessionInfo->originalCallerInfo.migrationGen = newGen;
+    // INP2-05 fix: the credential has been reconciled above — strip the previous-host
+    // token so it NEVER crosses the AMS→provider IPC. The provider-side migration
+    // discriminator is migrationGen (0 = not a migration), not callerToken.
+    abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
     extensionRecord->SetMigrationDeclaration(abilityRequest.sessionInfo->originalCallerInfo,
         abilityRequest.sessionInfo->hostWindowId);
     abilityRecord = migrationRecord;

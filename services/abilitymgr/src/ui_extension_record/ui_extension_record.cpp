@@ -52,8 +52,8 @@ void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
                 abilityRequest.sessionInfo->hostWindowId = targetHostWindowId;
             }
         } else if (abilityRequest.sessionInfo != nullptr &&
-                   abilityRequest.sessionInfo->originalCallerInfo.callerToken != nullptr) {
-            abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
+                   abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
+            abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
         }
         abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
     }
@@ -121,7 +121,9 @@ bool UIExtensionRecord::GetMigrationDeclaration(AAFwk::OriginalCallerInfo &decla
     uint32_t &targetHostWindowId) const
 {
     std::lock_guard<std::mutex> lock(migrationMutex_);
-    if (migrationDeclaration_.callerToken == nullptr) {
+    // INP2-05: marker presence is determined by migrationGen, not callerToken (which
+    // is stripped at AMS before SetMigrationDeclaration and never stored non-null).
+    if (migrationDeclaration_.migrationGen == 0) {
         return false;
     }
     declaration = migrationDeclaration_;
@@ -132,11 +134,12 @@ bool UIExtensionRecord::GetMigrationDeclaration(AAFwk::OriginalCallerInfo &decla
 bool UIExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen)
 {
     std::lock_guard<std::mutex> lock(migrationMutex_);
-    if (migrationDeclaration_.callerToken == nullptr || gen != migrationDeclaration_.migrationGen) {
+    // INP2-05: marker presence is migrationGen != 0; confirm-clear zeroes the gen.
+    if (migrationDeclaration_.migrationGen == 0 || gen != migrationDeclaration_.migrationGen) {
         return false;
     }
     // Marker off; the gen itself is retained (monotonic across the record's lifetime).
-    migrationDeclaration_.callerToken = nullptr;
+    migrationDeclaration_.migrationGen = 0;
     return true;
 }
 

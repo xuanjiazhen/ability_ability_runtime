@@ -651,7 +651,7 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
                 TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
                 // Keep the marker for retry: strip the declaration from this receipt path so
                 // ScheduleCommandAbilityWindowDone does not confirm this failed migration.
-                sessionInfo->originalCallerInfo.callerToken = nullptr;
+                sessionInfo->originalCallerInfo.migrationGen = 0;  // INP2-05: gen=0 signals "do not confirm"
                 return false;
             }
             CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
@@ -672,7 +672,7 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             if (etsUiExtContentSession_ != nullptr) {
                 etsUiExtContentSession_->UpdateSessionInfo(sessionInfo);
             }
-        } else if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
+        } else if (sessionInfo->originalCallerInfo.migrationGen != 0) {
             TAG_LOGI(AAFwkTag::UI_EXT, "migration skipped, persistentId: %{public}d, gen: %{public}u, "
                 "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
