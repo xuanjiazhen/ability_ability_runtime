@@ -128,7 +128,7 @@ bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const st
     Security::AccessToken::NativeTokenInfo nativeTokenInfo;
     int32_t result = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(callerToken, nativeTokenInfo);
     if (result != ERR_OK || nativeTokenInfo.processName != processName) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "check process fail");
+        TAG_LOGE(AAFwkTag::DEFAULT, "chk proc fail");
         return false;
     }
     return true;
@@ -352,7 +352,7 @@ int PermissionVerification::CheckSkillStartByCallPermission(const VerificationIn
     }
     if (!VerifyCallingPermission(PermissionConstants::PERMISSION_ABILITY_BACKGROUND_COMMUNICATION,
         verificationInfo.skillCallerTokenId)) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "skill COMMUNICATION permission denied");
+        TAG_LOGE(AAFwkTag::DEFAULT, "skill COMMUNICATION perm deny");
         return CHECK_PERMISSION_FAILED;
     }
     if (!JudgeStartInvisibleAbility(verificationInfo.accessTokenId, verificationInfo.visible,
@@ -381,7 +381,7 @@ int PermissionVerification::CheckStartByCallPermission(const VerificationInfo &v
     if (!VerifyCallingPermission(
         PermissionConstants::PERMISSION_ABILITY_BACKGROUND_COMMUNICATION,
         verificationInfo.specifiedFullTokenId)) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+        TAG_LOGE(AAFwkTag::DEFAULT, "perm deny");
         return CHECK_PERMISSION_FAILED;
     }
     if (!JudgeStartInvisibleAbility(verificationInfo.accessTokenId, verificationInfo.visible)) {
@@ -539,7 +539,7 @@ bool PermissionVerification::IsSystemAppCallByTokenId(uint32_t callerTokenId) co
     }
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerTokenId);
     if (tokenType != Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "Not TOKEN_HAP.");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Not HAP");
         return false;
     }
     Security::AccessToken::HapTokenInfo hapInfo;
@@ -563,7 +563,7 @@ bool PermissionVerification::VerifyPrepareTerminatePermission() const
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "Permission denied");
+    TAG_LOGD(AAFwkTag::DEFAULT, "perm deny");
     return false;
 }
 
@@ -572,7 +572,7 @@ bool PermissionVerification::VerifyPrepareTerminatePermission(const int &tokenId
     int32_t ret = Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId,
         PermissionConstants::PERMISSION_PREPARE_TERMINATE, false);
     if (ret != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
-        TAG_LOGD(AAFwkTag::DEFAULT, "permission denied");
+        TAG_LOGD(AAFwkTag::DEFAULT, "perm deny");
         return false;
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "verify AccessToken success");
@@ -629,7 +629,7 @@ bool PermissionVerification::VerifyBlockAllAppStartPermission() const
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }
-    TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+    TAG_LOGE(AAFwkTag::DEFAULT, "perm deny");
     return false;
 }
 
@@ -639,7 +639,7 @@ bool PermissionVerification::VerifyStartUIAbilityToHiddenPermission() const
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }
-    TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+    TAG_LOGE(AAFwkTag::DEFAULT, "perm deny");
     return false;
 }
 
@@ -649,7 +649,7 @@ bool PermissionVerification::VerifySuperviseKiaServicePermission() const
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }
-    TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+    TAG_LOGE(AAFwkTag::DEFAULT, "perm deny");
     return false;
 }
 
@@ -659,7 +659,7 @@ bool PermissionVerification::VerifyStartLocalDebug(int32_t tokenId) const
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }
-    TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+    TAG_LOGE(AAFwkTag::DEFAULT, "perm deny");
     return false;
 }
 
@@ -696,7 +696,7 @@ bool PermissionVerification::IsLocalDebugOtherAppsCall(uint32_t specifyTokenId, 
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }
-    TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+    TAG_LOGE(AAFwkTag::DEFAULT, "perm deny");
     return false;
 }
 
@@ -716,7 +716,7 @@ bool PermissionVerification::IsCustomSandboxCall(uint32_t specifyTokenId, int32_
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }
-    TAG_LOGE(AAFwkTag::DEFAULT, "Custom sandbox Permission denied");
+    TAG_LOGE(AAFwkTag::DEFAULT, "Custom sandbox perm deny");
     return false;
 }
 
@@ -739,7 +739,7 @@ bool PermissionVerification::VerifyStartSelfUIAbility(int tokenId) const
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }
-    TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+    TAG_LOGE(AAFwkTag::DEFAULT, "perm deny");
     return false;
 }
 
@@ -750,7 +750,7 @@ bool PermissionVerification::VerifyFusionAccessPermission() const
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }
-    TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+    TAG_LOGE(AAFwkTag::DEFAULT, "perm deny");
     return false;
 }
 }  // namespace AAFwk
