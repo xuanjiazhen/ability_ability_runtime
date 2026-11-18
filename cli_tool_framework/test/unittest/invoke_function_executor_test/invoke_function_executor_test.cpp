@@ -28,8 +28,12 @@
 #include "insight_intent_execute_param.h"
 #include "intent_client.h"
 #include "invoke_function_executor.h"
+#include "ipc_object_stub.h"
+#include "iremote_object.h"
+#include "remote_object_wrapper.h"
 #include "string_wrapper.h"
 #include "want_params.h"
+#include "want_params_wrapper.h"
 
 using namespace testing::ext;
 
@@ -148,7 +152,7 @@ protected:
     {
         auto capture = std::make_shared<ResultCapture>();
         auto executor = InvokeFunctionExecutor::Create();
-        executor->Execute(param, MakeCallback(capture));
+        executor->Execute(param, MakeCallback(capture), false, nullptr);
         return capture;
     }
 
@@ -157,7 +161,7 @@ protected:
     {
         auto capture = std::make_shared<ResultCapture>();
         auto executor = InvokeFunctionExecutor::Create();
-        executor->Execute(MakeParam(), MakeCallback(capture), true);
+        executor->Execute(MakeParam(), MakeCallback(capture), true, nullptr);
         return capture;
     }
 
@@ -544,6 +548,61 @@ HWTEST_F(InvokeFunctionExecutorTest, InvokeFunctionExecutor_ToolCallIdEmptyCompa
     EXPECT_TRUE(capture->result.result.success);
     EXPECT_FALSE(AAFwk::IntentClient::GetInstance().lastWantParam_.HasParam(
         AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID));
+}
+
+/**
+ * @tc.name: InvokeFunctionExecutor_CallerTokenBoxed_1800
+ * @tc.desc: The caller ability token (context->GetToken(), passed through
+ *           Execute) rides the reserved "ohos.insightIntent.callerToken" key in
+ *           the WantParamWrapper envelope (TYPE_PROPERTY/VALUE_PROPERTY) into
+ *           the intent execution, round-tripping the same remote object.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokeFunctionExecutorTest, InvokeFunctionExecutor_CallerTokenBoxed_1800, TestSize.Level1)
+{
+    sptr<IRemoteObject> callerToken = new IPCObjectStub(u"InvokeFunctionExecutorTestCaller");
+    ASSERT_NE(callerToken, nullptr);
+
+    auto capture = std::make_shared<ResultCapture>();
+    auto executor = InvokeFunctionExecutor::Create();
+    executor->Execute(MakeParam(), MakeCallback(capture), true, callerToken);
+    ASSERT_TRUE(WaitForResult(capture));
+    EXPECT_TRUE(capture->result.result.success);
+
+    auto &intentClient = AAFwk::IntentClient::GetInstance();
+    ASSERT_TRUE(intentClient.executeCalled_);
+    sptr<AAFwk::IInterface> tokenValue = intentClient.lastWantParam_.GetParam(
+        AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN);
+    ASSERT_NE(tokenValue, nullptr);
+    // The token is nested in the WantParamWrapper envelope (a bare RemoteObjectWrap
+    // would be dropped by WantParams marshalling).
+    auto *iwp = AAFwk::IWantParams::Query(tokenValue);
+    ASSERT_NE(iwp, nullptr);
+    AAFwk::WantParams tokenWrap = AAFwk::WantParamWrapper::Unbox(iwp);
+    EXPECT_EQ(GetWantParamString(tokenWrap, AAFwk::TYPE_PROPERTY), AAFwk::REMOTE_OBJECT);
+    sptr<AAFwk::IInterface> remoteObjValue = tokenWrap.GetParam(AAFwk::VALUE_PROPERTY);
+    ASSERT_NE(remoteObjValue, nullptr);
+    auto *iRemoteObj = AAFwk::IRemoteObjectWrap::Query(remoteObjValue);
+    ASSERT_NE(iRemoteObj, nullptr);
+    EXPECT_EQ(AAFwk::RemoteObjectWrap::UnBox(iRemoteObj), callerToken);
+}
+
+/**
+ * @tc.name: InvokeFunctionExecutor_CallerTokenAbsent_1900
+ * @tc.desc: When no caller ability token is supplied (system entry / no
+ *           UIAbilityContext) the reserved "ohos.insightIntent.callerToken" key
+ *           is absent from the wantParam handed to the intent execution.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InvokeFunctionExecutorTest, InvokeFunctionExecutor_CallerTokenAbsent_1900, TestSize.Level1)
+{
+    auto capture = RunPublic();
+    ASSERT_TRUE(WaitForResult(capture));
+    EXPECT_TRUE(capture->result.result.success);
+
+    auto &intentClient = AAFwk::IntentClient::GetInstance();
+    ASSERT_TRUE(intentClient.executeCalled_);
+    EXPECT_FALSE(intentClient.lastWantParam_.HasParam(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN));
 }
 
 } // namespace

@@ -23,6 +23,7 @@
 
 #include "invoke_function_param.h"
 #include "invoke_function_result.h"
+#include "iremote_object.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -54,11 +55,16 @@ public:
      * @brief Start an invocation. When isPublicInvoke is true, the function info is
      *        obtained via GetPublicFunctionInfo (permission + open-to-third-party check
      *        on the service side); otherwise via GetFunctionInfo (system app path).
+     *        callerAbilityToken is the caller UIAbility token (context->GetToken())
+     *        threaded to the service side through wantParam for launch attribution;
+     *        null when the caller supplies no UIAbilityContext.
      */
-    void Execute(const InvokeFunctionParam &param, InvokeResultCallback callback, bool isPublicInvoke = false);
+    void Execute(const InvokeFunctionParam &param, InvokeResultCallback callback, bool isPublicInvoke,
+        sptr<IRemoteObject> callerAbilityToken);
 
 private:
-    void DoExecute(const InvokeFunctionParam &param, bool isPublicInvoke);
+    void DoExecute(const InvokeFunctionParam &param, bool isPublicInvoke,
+        const sptr<IRemoteObject> &callerAbilityToken);
     void ReportError(int32_t errorCode);
     void SetupTimeout();
 

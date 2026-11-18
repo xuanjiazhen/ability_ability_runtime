@@ -18,15 +18,18 @@
 #include <mutex>
 #include <string>
 
+#include "ability_context.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_tool_mgr_client.h"
 #include "function_info.h"
 #include "hilog_tag_wrapper.h"
+#include "insight_intent/insight_intent_execute_param.h"
 #include "invoke_function_executor.h"
 #include "js_error_utils.h"
 #include "js_function_hook.h"
 #include "js_function_manager_utils.h"
+#include "napi_base_context.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "string_wrapper.h"
@@ -87,66 +90,64 @@ void InvokeFunctionCallJs(napi_env env, napi_value jsCb, void *context, void *da
     delete holder;
 }
 
-bool IsUIAbilityContext(napi_env env, napi_value value)
+std::shared_ptr<AbilityRuntime::AbilityContext> GetAbilityContext(napi_env env, napi_value value)
 {
-    if (value == nullptr) {
-        return false;
+    bool stageMode = false;
+    napi_status status = AbilityRuntime::IsStageContext(env, value, stageMode);
+    if (status != napi_ok || !stageMode) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "get ability context: not a stage context");
+        return nullptr;
     }
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, value, &valueType);
-    if (valueType != napi_object) {
-        return false;
+    auto context = AbilityRuntime::GetStageModeContext(env, value);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "get ability context: get stage context failed");
+        return nullptr;
     }
-    // The contextType lives on the native impl object: value.__context_impl__.contextType
-    napi_value contextImpl = nullptr;
-    napi_get_named_property(env, value, "__context_impl__", &contextImpl);
-    napi_valuetype implValueType = napi_undefined;
-    napi_typeof(env, contextImpl, &implValueType);
-    if (implValueType != napi_object) {
-        return false;
+    auto abilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "get ability context: convert to AbilityContext failed");
+        return nullptr;
     }
-    napi_value contextType = nullptr;
-    napi_get_named_property(env, contextImpl, "contextType", &contextType);
-    napi_valuetype typeValueType = napi_undefined;
-    napi_typeof(env, contextType, &typeValueType);
-    if (typeValueType != napi_string) {
-        return false;
-    }
-    std::string typeStr;
-    if (!AppExecFwk::UnwrapStringFromJS2(env, contextType, typeStr)) {
-        return false;
-    }
-    return typeStr == "UIAbilityContext";
+    return abilityContext;
 }
 
-bool ValidateOptions(napi_env env, napi_value options)
+// Resolve the optional UIAbilityContext carried by options.context (the 4th
+// invokeFunction argument). The parameter is optional: an absent / null context
+// keeps outContext null and the invocation proceeds without a caller token (the
+// intent implementation side decides how a token-less invocation settles). When a
+// context is supplied it must resolve to a UIAbilityContext; anything else is a
+// parameter usage error.
+bool ParseInvokeContext(napi_env env, napi_value options,
+    std::shared_ptr<AbilityRuntime::AbilityContext> &outContext)
 {
+    outContext = nullptr;
     if (options == nullptr) {
         return true;
     }
     napi_valuetype optionsType = napi_undefined;
     napi_typeof(env, options, &optionsType);
-    if (optionsType == napi_undefined || optionsType == napi_null) {
-        return true;
-    }
     if (optionsType != napi_object) {
-        return false;
+        return true;  // absent / non-object options carry no context
     }
     napi_value contextValue = nullptr;
     napi_get_named_property(env, options, "context", &contextValue);
     napi_valuetype contextType = napi_undefined;
     napi_typeof(env, contextValue, &contextType);
     if (contextType == napi_undefined || contextType == napi_null) {
-        return true;  // context field absent / null: nothing to validate
+        return true;  // optional: no context, no caller token
     }
-    if (!IsUIAbilityContext(env, contextValue)) {
+    outContext = GetAbilityContext(env, contextValue);
+    if (outContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "options.context does not resolve to a UIAbilityContext");
         return false;
     }
     return true;
 }
 
-bool ParseInvokeFunctionParam(napi_env env, size_t argc, napi_value *argv, InvokeFunctionParam &out)
+bool ParseInvokeFunctionParam(napi_env env, size_t argc, napi_value *argv, InvokeFunctionParam &out,
+    std::shared_ptr<AbilityRuntime::AbilityContext> &outContext)
 {
+    outContext = nullptr;
     if (argc < INDEX_THREE) {
         ThrowTooFewParametersError(env);
         return false;
@@ -171,13 +172,13 @@ bool ParseInvokeFunctionParam(napi_env env, size_t argc, napi_value *argv, Invok
     out.args.Remove("ohos.insightIntent.dmSessionId");
     out.args.Remove("ohos.task.id");
     if (argc >= INDEX_FOUR) {
-        if (!ValidateOptions(env, argv[INDEX_THREE])) {
-            ThrowInvalidParamError(env, "option invalid");
-            return false;
-        }
         std::string optionsMsg;
         if (!UnwrapInvokeOptions(env, argv[INDEX_THREE], out.invokeOptions, optionsMsg)) {
             ThrowInvalidParamError(env, optionsMsg.empty() ? "option invalid" : optionsMsg.c_str());
+            return false;
+        }
+        if (!ParseInvokeContext(env, argv[INDEX_THREE], outContext)) {
+            ThrowInvalidParamError(env, "context is not a UIAbilityContext");
             return false;
         }
     }
@@ -320,11 +321,14 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
     HandleEscape handleEscape(env);
 
     InvokeFunctionParam param;
-    if (!ParseInvokeFunctionParam(env, argc, argv, param)) {
+    std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext;
+    if (!ParseInvokeFunctionParam(env, argc, argv, param, abilityContext)) {
         return CreateJsUndefined(env);  // validation already threw a JS exception
     }
 
-    napi_value result = StartInvokeFunction(env, param, false);
+    // options.context is optional on both entries; when supplied its token is
+    // threaded to the service side for launch attribution.
+    napi_value result = StartInvokeFunction(env, param, false, abilityContext);
     return handleEscape.Escape(result);
 }
 
@@ -334,16 +338,17 @@ napi_value JSFunctionManager::OnInvokePublicFunction(napi_env env, size_t argc, 
     HandleEscape handleEscape(env);
 
     InvokeFunctionParam param;
-    if (!ParseInvokeFunctionParam(env, argc, argv, param)) {
+    std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext;
+    if (!ParseInvokeFunctionParam(env, argc, argv, param, abilityContext)) {
         return CreateJsUndefined(env);  // validation already threw a JS exception
     }
 
-    napi_value result = StartInvokeFunction(env, param, true);
+    napi_value result = StartInvokeFunction(env, param, true, abilityContext);
     return handleEscape.Escape(result);
 }
 
 napi_value JSFunctionManager::StartInvokeFunction(napi_env env, const InvokeFunctionParam &param,
-    bool isPublicInvoke)
+    bool isPublicInvoke, std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext)
 {
     // Create promise
     napi_value promise = nullptr;
@@ -388,7 +393,12 @@ napi_value JSFunctionManager::StartInvokeFunction(napi_env env, const InvokeFunc
     InvokeFunctionParam invokeParam = param;
     InjectTransportTraceIds(invokeParam);
 
-    InvokeFunctionExecutor::Create()->Execute(invokeParam, bridge, isPublicInvoke);
+    // Caller UIAbility token for launch attribution (null when no UIAbilityContext
+    // was supplied, e.g. the system entry).
+    sptr<IRemoteObject> callerAbilityToken =
+        (abilityContext != nullptr) ? abilityContext->GetToken() : nullptr;
+
+    InvokeFunctionExecutor::Create()->Execute(invokeParam, bridge, isPublicInvoke, callerAbilityToken);
 
     return promise;
 }

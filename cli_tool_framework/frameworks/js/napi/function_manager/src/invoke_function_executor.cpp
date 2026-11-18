@@ -23,10 +23,13 @@
 #include "function_info.h"
 #include "function_result_wrap.h"
 #include "hilog_tag_wrapper.h"
+#include "insight_intent/insight_intent_execute_param.h"
 #include "intent_client.h"
 #include "invoke_function_callback_client.h"
 #include "invoke_function_param.h"
+#include "remote_object_wrapper.h"
 #include "string_wrapper.h"
+#include "want_params_wrapper.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -56,13 +59,13 @@ std::shared_ptr<InvokeFunctionExecutor> InvokeFunctionExecutor::Create()
 }
 
 void InvokeFunctionExecutor::Execute(const InvokeFunctionParam &param, InvokeResultCallback callback,
-    bool isPublicInvoke)
+    bool isPublicInvoke, sptr<IRemoteObject> callerAbilityToken)
 {
     callback_ = std::move(callback);
     auto self = shared_from_this();
     SetupTimeout();
-    ffrt::submit([self, param, isPublicInvoke]() {
-        self->DoExecute(param, isPublicInvoke);
+    ffrt::submit([self, param, isPublicInvoke, callerAbilityToken]() {
+        self->DoExecute(param, isPublicInvoke, callerAbilityToken);
     });
 }
 
@@ -87,7 +90,8 @@ void InvokeFunctionExecutor::ReportError(int32_t errorCode)
     }
 }
 
-void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param, bool isPublicInvoke)
+void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param, bool isPublicInvoke,
+    const sptr<IRemoteObject> &callerAbilityToken)
 {
     FunctionInfo functionInfo;
     // Public path: GetPublicFunctionInfo enforces the ACCESS_PUBLIC_FUNCTION permission and
@@ -168,6 +172,22 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param, bool is
     }
     if (!taskId.empty()) {
         execParam.wantParam.SetParam("ohos.task.id", AAFwk::String::Box(taskId));
+    }
+    // Authoritative injection (transport leg): carry the caller ability token
+    // (context->GetToken(), resolved from options.context on the NAPI layer) through
+    // wantParam so the service side can resolve launch attribution for the intent
+    // execution. No identity flag is injected; the service side derives the caller
+    // identity from the calling token.
+    if (callerAbilityToken != nullptr) {
+        // Serialize the caller token through the WantParamWrapper envelope. A bare
+        // RemoteObjectWrap would be silently dropped by WantParams marshalling
+        // (its WriteMarshalling has no IRemoteObjectWrap branch), so the remote
+        // object must be nested under TYPE_PROPERTY / VALUE_PROPERTY.
+        AAFwk::WantParams tokenWrap;
+        tokenWrap.SetParam(AAFwk::TYPE_PROPERTY, AAFwk::String::Box(AAFwk::REMOTE_OBJECT));
+        tokenWrap.SetParam(AAFwk::VALUE_PROPERTY, AAFwk::RemoteObjectWrap::Box(callerAbilityToken));
+        execParam.wantParam.SetParam(AppExecFwk::INSIGHT_INTENT_CALLER_TOKEN,
+            AAFwk::WantParamWrapper::Box(tokenWrap));
     }
     execParam.callback = client;
 

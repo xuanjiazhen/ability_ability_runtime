@@ -16,9 +16,14 @@
 #ifndef OHOS_FUNCTION_JS_FUNCTION_MANAGER_H
 #define OHOS_FUNCTION_JS_FUNCTION_MANAGER_H
 
+#include <memory>
+
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+class AbilityContext;
+}
 namespace CliTool {
 
 struct InvokeFunctionParam;
@@ -108,9 +113,13 @@ private:
      * @param env The N-API environment.
      * @param param The parsed invocation parameters.
      * @param isPublicInvoke Whether to use the public (third-party) path.
+     * @param abilityContext The caller's UIAbilityContext resolved from
+     *        options.context; its token is threaded to the service side for
+     *        launch attribution (null when absent).
      * @return Returns the N-API promise value.
      */
-    napi_value StartInvokeFunction(napi_env env, const InvokeFunctionParam &param, bool isPublicInvoke);
+    napi_value StartInvokeFunction(napi_env env, const InvokeFunctionParam &param, bool isPublicInvoke,
+        std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext);
 
     napi_value OnRegisterFunctionHook(napi_env env, size_t argc, napi_value *argv);
 

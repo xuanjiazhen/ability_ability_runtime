@@ -94,6 +94,7 @@ constexpr size_t INSIGHT_INTENT_TASK_ID_MAX_LEN = 256;
 constexpr char INSIGHT_INTENT_CALLER_BUNDLE_NAME[] = "ohos.insightIntent.executeParam.callerBundleName";
 constexpr char INSIGHT_INTENT_CALLER_TOKEN_ID[] = "ohos.insightIntent.executeParam.callerTokenId";
 constexpr char INSIGHT_INTENT_CALLER_UID[] = "ohos.insightIntent.executeParam.callerUid";
+constexpr char INSIGHT_INTENT_CALLER_TOKEN[] = "ohos.insightIntent.callerToken";
 
 constexpr int32_t INVALID_DISPLAY_ID = -1;
 constexpr char METHOD_PARAM_SEPARATOR = '\x1f';
