@@ -275,19 +275,25 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    if (extensionRecord->GetConfirmedHostWindowId() == abilityRequest.sessionInfo->hostWindowId) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
-            abilityRequest.sessionInfo->persistentId);
-        ret = ERR_INVALID_VALUE;
-        return true;
-    }
     // owns this inner record (ExtensionRecordManager is its only creator — see
     // extensionRecordId, stamped onto the inner record as its UIExtensionAbilityId.
     auto extensionRecord = FindExtensionRecordById(migrationRecord->GetUIExtensionAbilityId());
     if (extensionRecord == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "migration update: wrapper not found, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    // One-shot seeding: before the first migration the factual host window IS the
+    // confirmed host window, so a "migration" to the current window is rejected here
+    // instead of consuming a redundant gen that the provider would no-op anyway.
+    if (recordSessionInfo != nullptr && recordSessionInfo->hostWindowId != 0) {
+        extensionRecord->SeedConfirmedHostWindowId(recordSessionInfo->hostWindowId);
+    }
+    if (extensionRecord->GetConfirmedHostWindowId() == abilityRequest.sessionInfo->hostWindowId) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
@@ -310,6 +316,9 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
     extensionRecord->SetMigrationDeclaration(abilityRequest.sessionInfo->originalCallerInfo,
         abilityRequest.sessionInfo->hostWindowId);
+    // Fact/intent separation: remember the delivered (new-host) session; the confirmation
+    // receipt adopts a sanitized copy of it as the record's factual sessionInfo.
+    extensionRecord->SetMigrationDeliverySessionInfo(abilityRequest.sessionInfo);
     abilityRecord = migrationRecord;
     isLoaded = true;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d",

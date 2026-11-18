@@ -501,8 +501,8 @@ bool EtsAutoFillExtension::CreateNewWindow(sptr<AAFwk::SessionInfo> sessionInfo,
         return false;
     }
     CallEtsOnRequest(*sharedWant, sessionInfo, uiWindow);
-    // Fresh window: re-seed the migration fence from the real parent (per-window
-    // state; bounds cross-session gen pollution on long-lived AutoFill instances).
+    // 1 UIExtensionComponent : 1 window : 1 provider instance (AMS routes records by
+    // uiExtensionComponentId); the fence is per-instance, re-seeded on window re-creation.
     migrationFencing_ = MigrationFencingState {};
     migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
     uiWindowMap_[obj] = uiWindow;

@@ -54,6 +54,14 @@ public:
         uint32_t targetHostWindowId) {}
 
     /**
+     * @brief Remember the delivered session of the pending migration. On gen-matched
+     *        confirmation the record's factual sessionInfo is advanced by adopting a
+     *        sanitized copy of it (fact/intent separation: the intent only ever lives in
+     *        the delivery, never in the record's sessionInfo).
+     */
+    virtual void SetMigrationDeliverySessionInfo(const sptr<AAFwk::SessionInfo> &deliverySessionInfo) {}
+
+    /**
      * @brief At-least-once projection source.
      * @return true and fills the outputs when a migration is pending; false otherwise.
      */
@@ -77,6 +85,25 @@ public:
     {
         return 0;
     }
+
+    /**
+     * @brief Last CONFIRMED host window (0 = never migrated). The unchanged-window gate
+     *        compares against this, NOT against the record's sessionInfo (which is only
+     *        advanced on confirmation), so an unconfirmed re-declaration of the same
+     *        target (at-least-once retry) is never blocked by the window gate.
+     */
+    virtual uint32_t GetConfirmedHostWindowId() const
+    {
+        return 0;
+    }
+
+    /**
+     * @brief Seed the confirmed host window from the record's factual sessionInfo before
+     *        the first migration, so a first "migration" to the current window is rejected
+     *        instead of consuming a redundant gen. One-shot: no effect once a migration
+     *        has been declared or confirmed.
+     */
+    virtual void SeedConfirmedHostWindowId(uint32_t factHostWindowId) {}
 
     sptr<IRemoteObject> GetCallToken() const;
 

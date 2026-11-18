@@ -47,11 +47,17 @@ void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
                 abilityRequest.sessionInfo->originalCallerInfo = declaration;
                 abilityRequest.sessionInfo->hostWindowId = targetHostWindowId;
             }
-        } else if (abilityRequest.sessionInfo != nullptr &&
-                   abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
-            abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
+            // Fact/intent separation: while the migration is unconfirmed the record keeps
+            // its factual sessionInfo (previous host token + window); the intent lives
+            // only in the delivery. ConfirmMigrationDeclaration advances the fact.
+        } else {
+            if (abilityRequest.sessionInfo != nullptr &&
+                abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
+                abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
+                abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
+            }
+            abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
         }
-        abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
     }
 }
 
@@ -113,6 +119,12 @@ void UIExtensionRecord::SetMigrationDeclaration(const AAFwk::OriginalCallerInfo 
     migrationTargetHostWindowId_ = targetHostWindowId;
 }
 
+void UIExtensionRecord::SetMigrationDeliverySessionInfo(const sptr<AAFwk::SessionInfo> &deliverySessionInfo)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    migrationDeliverySessionInfo_ = deliverySessionInfo;
+}
+
 bool UIExtensionRecord::GetMigrationDeclaration(AAFwk::OriginalCallerInfo &declaration,
     uint32_t &targetHostWindowId) const
 {
@@ -134,6 +146,17 @@ bool UIExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen)
     // Marker off; the gen itself is retained (monotonic across the record's lifetime).
     migrationDeclaration_.migrationGen = 0;
     confirmedHostWindowId_ = migrationTargetHostWindowId_;
+    // Fact advance: adopt the delivered (new-host) session without the intent marker, so
+    // the record's sessionInfo stays the confirmed fact (token + window) and the next
+    // migration's credential gate compares against the NEW host's token.
+    if (migrationDeliverySessionInfo_ != nullptr && abilityRecord_ != nullptr) {
+        auto factSession = sptr<AAFwk::SessionInfo>::MakeSptr(*migrationDeliverySessionInfo_);
+        if (factSession != nullptr) {
+            factSession->originalCallerInfo.migrationGen = 0;
+            abilityRecord_->SetSessionInfo(factSession);
+        }
+        migrationDeliverySessionInfo_ = nullptr;
+    }
     return true;
 }
 
@@ -147,6 +170,16 @@ uint32_t UIExtensionRecord::GetConfirmedHostWindowId() const
 {
     std::lock_guard<std::mutex> lock(migrationMutex_);
     return confirmedHostWindowId_;
+}
+
+void UIExtensionRecord::SeedConfirmedHostWindowId(uint32_t factHostWindowId)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (factHostWindowId == 0 || confirmedHostWindowId_ != 0 ||
+        migrationGen_ != 0 || migrationDeclaration_.migrationGen != 0) {
+        return;
+    }
+    confirmedHostWindowId_ = factHostWindowId;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

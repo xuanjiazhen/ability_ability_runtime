@@ -745,9 +745,8 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
             CallObjectMethod("onSessionCreate", argv, ARGC_TWO);
             RegisterBrandColorChangeListener(uiWindow);
         }
-        // Fresh window: re-seed the migration fence from the real parent. The fence is
-        // per-window state; re-seeding also bounds cross-session gen pollution on long-lived
-        // AutoFill-style instances and keeps the initial no-op difference check meaningful.
+        // 1 UIExtensionComponent : 1 window : 1 provider instance (AMS routes records by
+        // uiExtensionComponentId); the fence is per-instance, re-seeded on window re-creation.
         migrationFencing_ = MigrationFencingState {};
         migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[compId] = uiWindow;

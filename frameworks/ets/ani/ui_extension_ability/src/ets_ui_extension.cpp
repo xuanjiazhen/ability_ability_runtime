@@ -623,8 +623,8 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             CallObjectMethod(false, "onSessionCreate", nullptr, wantObj, sessonObj);
             RegisterBrandColorChangeListener(uiWindow);
         }
-        // Fresh window: re-seed the migration fence from the real parent (per-window
-        // state; bounds cross-session gen pollution, keeps the no-op check meaningful).
+        // 1 UIExtensionComponent : 1 window : 1 provider instance (AMS routes records by
+        // uiExtensionComponentId); the fence is per-instance, re-seeded on window re-creation.
         migrationFencing_ = MigrationFencingState {};
         migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[compId] = uiWindow;

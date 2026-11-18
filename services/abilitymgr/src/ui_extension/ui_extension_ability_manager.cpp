@@ -762,11 +762,17 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
                 abilityRequest.sessionInfo->originalCallerInfo = declaration;
                 abilityRequest.sessionInfo->hostWindowId = targetHostWindowId;
             }
-        } else if (abilityRequest.sessionInfo != nullptr &&
-                   abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
-            abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
+            // Fact/intent separation: while unconfirmed, the record keeps its factual
+            // sessionInfo (previous host token + window). The confirmation receipt
+            // (ScheduleCommandAbilityWindowDone) adopts the delivered session as fact.
+        } else {
+            if (abilityRequest.sessionInfo != nullptr &&
+                abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
+                abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
+                abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
+            }
+            targetService->SetSessionInfo(abilityRequest.sessionInfo);
         }
-        targetService->SetSessionInfo(abilityRequest.sessionInfo);
     }
 
     if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {

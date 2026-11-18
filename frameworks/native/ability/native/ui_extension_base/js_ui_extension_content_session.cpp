@@ -58,22 +58,6 @@ constexpr const char* PERMISSION_PRIVACY_WINDOW = "ohos.permission.PRIVACY_WINDO
 const std::string UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExtensionTargetType";
 const std::string FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
 
-bool HasJsExtensionWindowRef(napi_env env, const std::vector<napi_ref> &refs, napi_value jsExtensionWindow)
-{
-    for (auto it : refs) {
-        napi_value existing = nullptr;
-        napi_get_reference_value(env, it, &existing);
-        if (existing == nullptr) {
-            continue;  // dead weak ref, pruned by RefreshJsExtensionWindowProxies
-        }
-        bool same = false;
-        napi_strict_equals(env, existing, jsExtensionWindow, &same);
-        if (same) {
-            return true;
-        }
-    }
-    return false;
-}
 } // namespace
 
 #define CHECK_IS_SYSTEM_APP                                                             \
@@ -343,12 +327,18 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionHostWindowProxy(napi_env
         return CreateJsUndefined(env);
     }
     napi_value proxyValue = value->GetNapiValue();
-    if (proxyValue != nullptr && !HasJsExtensionWindowRef(env, jsExtensionWindowRefs_, jsExtensionWindow)) {
+    if (proxyValue != nullptr) {
         // Weak ref on the napi_wrap target so unwrap always resolves to the JsExtensionWindow.
-        // Dedup registration keeps the vector bounded across repeated proxy fetches.
+        // Each fetch creates a fresh wrapper object, so refs are never deduped here; the
+        // vector is bounded by dead-ref pruning on the next migration
+        // (RefreshJsExtensionWindowProxies) and the finalizer.
         napi_ref ref = nullptr;
-        napi_create_reference(env, jsExtensionWindow, 0, &ref);
-        jsExtensionWindowRefs_.push_back(ref);
+        napi_status status = napi_create_reference(env, jsExtensionWindow, 0, &ref);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "napi_create_reference failed: %{public}d", status);
+        } else {
+            jsExtensionWindowRefs_.push_back(ref);
+        }
     }
     return handleEscape.Escape(proxyValue);
 }
@@ -383,11 +373,16 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionWindowProxy(napi_env env
         return CreateJsUndefined(env);
     }
     napi_value proxyValue = value->GetNapiValue();
-    if (proxyValue != nullptr && !HasJsExtensionWindowRef(env, jsExtensionWindowRefs_, jsExtensionWindow)) {
-        // Weak ref on the napi_wrap target: see OnGetUIExtensionHostWindowProxy (deduped).
+    if (proxyValue != nullptr) {
+        // Weak ref on the napi_wrap target: see OnGetUIExtensionHostWindowProxy (no dedup;
+        // bounded by migration-time pruning and the finalizer).
         napi_ref ref = nullptr;
-        napi_create_reference(env, jsExtensionWindow, 0, &ref);
-        jsExtensionWindowRefs_.push_back(ref);
+        napi_status status = napi_create_reference(env, jsExtensionWindow, 0, &ref);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "napi_create_reference failed: %{public}d", status);
+        } else {
+            jsExtensionWindowRefs_.push_back(ref);
+        }
     }
     return handleEscape.Escape(proxyValue);
 }

@@ -53,13 +53,17 @@ public:
     void SetMigrationDeclaration(const AAFwk::OriginalCallerInfo &declaration,
         uint32_t targetHostWindowId) override;
 
+    void SetMigrationDeliverySessionInfo(const sptr<AAFwk::SessionInfo> &deliverySessionInfo) override;
+
     bool GetMigrationDeclaration(AAFwk::OriginalCallerInfo &declaration,
         uint32_t &targetHostWindowId) const override;
 
     bool ConfirmMigrationDeclaration(uint32_t gen) override;
 
     uint32_t GetMigrationGen() const override;
-    uint32_t GetConfirmedHostWindowId() const;
+    uint32_t GetConfirmedHostWindowId() const override;
+
+    void SeedConfirmedHostWindowId(uint32_t factHostWindowId) override;
 
 private:
     enum ErrorCode {
@@ -77,6 +81,7 @@ private:
     AAFwk::OriginalCallerInfo migrationDeclaration_ = {};
     uint32_t migrationTargetHostWindowId_ = 0;
     uint32_t confirmedHostWindowId_ = 0;
+    sptr<AAFwk::SessionInfo> migrationDeliverySessionInfo_ = nullptr;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
