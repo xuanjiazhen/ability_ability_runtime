@@ -39,10 +39,6 @@ void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord_");
         return;
     }
-    // Migration delivery projection (G-1), paired with StartAbilityLocked: while a
-    // migration is unconfirmed, stamp the pending declaration AND its target host window
-    // onto the request; with no pending migration, a stale declaration is stripped.
-    // SetSessionInfo can no longer roll the gen/marker back.
     {
         AAFwk::OriginalCallerInfo declaration;
         uint32_t targetHostWindowId = 0;
@@ -121,8 +117,6 @@ bool UIExtensionRecord::GetMigrationDeclaration(AAFwk::OriginalCallerInfo &decla
     uint32_t &targetHostWindowId) const
 {
     std::lock_guard<std::mutex> lock(migrationMutex_);
-    // INP2-05: marker presence is determined by migrationGen, not callerToken (which
-    // is stripped at AMS before SetMigrationDeclaration and never stored non-null).
     if (migrationDeclaration_.migrationGen == 0) {
         return false;
     }
@@ -134,7 +128,6 @@ bool UIExtensionRecord::GetMigrationDeclaration(AAFwk::OriginalCallerInfo &decla
 bool UIExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen)
 {
     std::lock_guard<std::mutex> lock(migrationMutex_);
-    // INP2-05: marker presence is migrationGen != 0; confirm-clear zeroes the gen.
     if (migrationDeclaration_.migrationGen == 0 || gen != migrationDeclaration_.migrationGen) {
         return false;
     }

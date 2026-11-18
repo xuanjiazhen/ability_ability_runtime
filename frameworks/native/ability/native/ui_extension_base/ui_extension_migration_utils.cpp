@@ -15,6 +15,8 @@
 
 #include "ui_extension_migration_utils.h"
 
+#include "hilog_tag_wrapper.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 
@@ -22,10 +24,6 @@ bool UpdateWindowParentForMigration(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
     const sptr<Rosen::Window> &uiWindow)
 {
-    // NOTE: window-domain fields (parentWindowType/displayId/realHostWindowId) are passed
-    // through to WMS verbatim — the ability layer has no semantics for them and the
-    // re-parent sink (UpdateExtensionParentParams) does not consume parentWindowType.
-    // Any validation of these fields belongs to the window layer if it ever reads them.
     if (sessionInfo == nullptr || uiWindow == nullptr) {
         return false;
     }
@@ -45,8 +43,6 @@ bool ShouldExecuteMigration(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
     MigrationFencingState &state)
 {
-    // INP2-05: the migration discriminator is migrationGen (0 = plain request, ≥1 =
-    // AMS-stamped migration), NOT callerToken — the previous-host token is stripped at
     // AMS before delivery and never reaches this process.
     if (sessionInfo == nullptr ||
         sessionInfo->originalCallerInfo.migrationGen == 0) {
@@ -69,6 +65,43 @@ void CommitMigrationState(MigrationFencingState &state, uint32_t gen, uint32_t h
 {
     state.lastGen = gen;
     state.currentParentWindowId = hostWindowId;
+}
+
+bool ExecuteMigrationIfNeeded(
+    const sptr<AAFwk::SessionInfo> &sessionInfo,
+    const sptr<Rosen::Window> &uiWindow,
+    MigrationFencingState &fence,
+    const std::function<void(const sptr<AAFwk::SessionInfo> &)> &contentSessionUpdater)
+{
+    if (sessionInfo == nullptr) {
+        return true;
+    }
+    if (!ShouldExecuteMigration(sessionInfo, fence)) {
+        if (sessionInfo->originalCallerInfo.migrationGen != 0) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "migration skipped, persistentId: %{public}d, gen: %{public}u, "
+                "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
+                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
+                fence.lastGen, sessionInfo->hostWindowId, fence.currentParentWindowId);
+        }
+        return true;
+    }
+    TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{public}d, "
+        "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
+        sessionInfo->originalCallerInfo.migrationGen, fence.currentParentWindowId,
+        sessionInfo->hostWindowId);
+    if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
+        sessionInfo->originalCallerInfo.migrationGen = 0;
+        return false;
+    }
+    CommitMigrationState(fence, sessionInfo->originalCallerInfo.migrationGen,
+        sessionInfo->hostWindowId);
+    TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
+        "%{public}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
+    if (contentSessionUpdater) {
+        contentSessionUpdater(sessionInfo);
+    }
+    return true;
 }
 
 } // namespace AbilityRuntime

@@ -47,7 +47,6 @@ public:
     // requests is a one-way delivery projection stamped from this state. Replacing the
     // inner record's sessionInfo never rolls the gen/marker back, and every delivery
     // leaves AMS carrying this record's consistent (declaration, target hostWindowId)
-    // pair.
 
     uint32_t AdvanceMigrationGen() override;
 
@@ -70,7 +69,6 @@ private:
     };
     void HandleNotifyUIExtensionTimeout(ErrorCode code);
 
-    // Authoritative migration state; guarded by migrationMutex_ (LEAF lock: never call
     // out or acquire other locks while holding it). migrationDeclaration_.callerToken
     // != nullptr ⇔ an unconfirmed migration is pending.
     mutable std::mutex migrationMutex_;

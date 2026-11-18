@@ -640,33 +640,13 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
-        // Host window migration: re-parent via the shared helper (fail-isolated).
-        uint32_t oldParentWindowId = migrationFencing_.currentParentWindowId;
-        if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
-            TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{public}d, "
-                "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
-                sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
-            if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
-                TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
-                // Keep the marker for retry: strip the declaration from this receipt path so
-                // ScheduleCommandAbilityWindowDone does not confirm this failed migration.
-                sessionInfo->originalCallerInfo.migrationGen = 0;  // INP2-05: gen=0 signals "do not confirm"
-                return false;
-            }
-            CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
-                sessionInfo->hostWindowId);
-            TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
-                "%{public}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
-            // Sync the content session's cached session info to the new hostWindowId.
-            if (etsUiExtContentSession_ != nullptr) {
-                etsUiExtContentSession_->UpdateSessionInfo(sessionInfo);
-            }
-        } else if (sessionInfo->originalCallerInfo.migrationGen != 0) {
-            TAG_LOGI(AAFwkTag::UI_EXT, "migration skipped, persistentId: %{public}d, gen: %{public}u, "
-                "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
-                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
-                migrationFencing_.lastGen, sessionInfo->hostWindowId,
-                migrationFencing_.currentParentWindowId);
+        if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
+            [this](const sptr<AAFwk::SessionInfo> &info) {
+                            if (etsUiExtContentSession_ != nullptr) {
+                                etsUiExtContentSession_->UpdateSessionInfo(info);
+                            }
+                        })) {
+            return false;
         }
     }
     return true;

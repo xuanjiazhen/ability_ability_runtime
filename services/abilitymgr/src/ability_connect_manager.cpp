@@ -1436,7 +1436,6 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
         HandleCommandDestroy(sessionInfo);
     }
 
-    // Host-window-migration confirmation is UIExtension-only bookkeeping: it lives in the
     // UIExtensionAbilityManager::ScheduleCommandAbilityWindowDone override (the marker
     // authority is the UIExtensionRecord), not in this base implementation.
 

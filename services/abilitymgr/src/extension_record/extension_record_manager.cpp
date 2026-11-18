@@ -229,8 +229,6 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
             ret = ERR_INVALID_VALUE;
             return true;
         }
-        // Reject visibly instead of falling back to the normal path: a silent fallback could
-        // create a NEW instance (component restart, content state lost) while the host
         // session wrapper believes the migration succeeded (StartUIExtensionAbility
         // returned ERR_OK). The host decides how to recover (retry, or destroy + create
         // explicitly) on the visible error.
@@ -240,7 +238,6 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    // Field reconciliation: the host session wrapper fills originalCallerInfo.persistentId
     // and the top-level persistentId from the same session; a mismatch means the
     // declaration was forged or garbled.
     if (abilityRequest.sessionInfo->originalCallerInfo.persistentId !=
@@ -252,7 +249,6 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    // Gen/marker authority lives on the UIExtensionRecord wrapper (G-1): Advance/Declare
     // run under the wrapper's own migration lock; the request sessionInfo below only
     // carries the one-way delivery projection. ExtensionRecordManager::mutex_ was already
     // taken and released inside GetAbilityRecordByPersistentId (never nest it with the
@@ -287,11 +283,8 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    // Wrapper resolution: the migration authority is the UIExtensionRecord wrapper that
     // owns this inner record (ExtensionRecordManager is its only creator — see
-    // UIExtensionRecordFactory::CreateRecord). The map key is the manager-generated
     // extensionRecordId, stamped onto the inner record as its UIExtensionAbilityId.
-    // Defensive null reject keeps the gate total.
     auto extensionRecord = FindExtensionRecordById(migrationRecord->GetUIExtensionAbilityId());
     if (extensionRecord == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
@@ -313,7 +306,6 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     // Projection + marker: the delivered declaration (with the stamped gen) and its
     // target host window are remembered as the wrapper's authoritative pending state.
     abilityRequest.sessionInfo->originalCallerInfo.migrationGen = newGen;
-    // INP2-05 fix: the credential has been reconciled above — strip the previous-host
     // token so it NEVER crosses the AMS→provider IPC. The provider-side migration
     // discriminator is migrationGen (0 = not a migration), not callerToken.
     abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;

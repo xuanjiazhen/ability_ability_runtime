@@ -665,13 +665,11 @@ int32_t UIExtensionAbilityManager::UnRegisterPreloadUIExtensionHostClient(int32_
 int UIExtensionAbilityManager::ScheduleCommandAbilityWindowDone(const sptr<IRemoteObject> &token,
     const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd, AbilityCommand abilityCmd)
 {
-    // Host-window migration confirmation (UIExtension-only bookkeeping, kept ahead of the
     // base processing so the queued-request replay inside CompleteStartServiceReq already
     // sees the confirmed state): gen-matched confirm-clear against the UIExtensionRecord's
     // authoritative marker. A failed re-parent never reaches here (the provider strips the
     // declaration from its failure receipt), so the marker stays for the next
     // at-least-once re-delivery.
-    // INP2-05: confirm discriminator is migrationGen (0 = not a migration receipt).
     if (winCmd == WIN_CMD_FOREGROUND && abilityCmd == AAFwk::ABILITY_CMD_FOREGROUND &&
         sessionInfo != nullptr && sessionInfo->originalCallerInfo.migrationGen != 0) {
         auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
@@ -750,14 +748,6 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
     targetService->DoBackgroundAbilityWindowDelayed(false);
-    // Migration delivery projection (G-1): while a migration is unconfirmed, stamp the
-    // pending declaration AND its target host window onto the request so the provider keeps
-    // getting re-parent chances and the delivered (declaration, hostWindowId) pair is always
-    // the record's consistent pair; with no pending migration, a stale declaration on the
-    // request is stripped — declarations only ever leave AMS stamped from the
-    // UIExtensionRecord's authoritative state. SetSessionInfo can no longer roll the
-    // gen/marker back. (targetService holds the inner record; the migration authority is
-    // the UIExtensionRecord wrapper resolved through the record manager.)
     {
         std::shared_ptr<ExtensionRecord> extensionRecord;
         if (uiExtensionAbilityRecordMgr_ != nullptr) {
@@ -992,19 +982,14 @@ void UIExtensionAbilityManager::CompleteStartServiceReq(const std::string &servi
             requestQueue->requests.size(), serviceUri.c_str());
         for (const auto &request : requestQueue->requests) {
             auto abilityRequest = request.abilityRequest;
-            // Source the replay from the record (the consistency anchor): a queued snapshot
-            // may predate a migration and replaying it would poison the re-parent.
-            // NOTE: the queue key (serviceUri) IS the record's serviceMap_ key
-            // (element.GetURI() + UIExtensionAbilityId, see GetOrCreateExtensionRecord);
+                    // (element.GetURI() + UIExtensionAbilityId, see GetOrCreateExtensionRecord);
             // rebuilding the key from the request yields the bare element URI, which never
             // matches a UIExtension record and would disable the stripping below.
             auto targetService = GetServiceRecordByElementName(serviceUri);
             if (targetService != nullptr && targetService->GetSessionInfo() != nullptr &&
                 abilityRequest.sessionInfo != nullptr) {
                 auto recordInfo = targetService->GetSessionInfo();
-                // Copy before stripping: the record's sessionInfo is shared — nulling the
-                // declaration on it directly would erase the unconfirmed-migration marker.
-                auto replayInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*recordInfo);
+                        auto replayInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*recordInfo);
                 replayInfo->originalCallerInfo.callerToken = nullptr;
                 abilityRequest.sessionInfo = replayInfo;
             }

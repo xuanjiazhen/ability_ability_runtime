@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_UI_EXTENSION_MIGRATION_UTILS_H
 #define OHOS_ABILITY_RUNTIME_UI_EXTENSION_MIGRATION_UTILS_H
 
+#include <functional>
+
 #include "session_info.h"
 #include "window.h"
 #include "window_option.h"
@@ -53,6 +55,24 @@ void CommitMigrationState(
     MigrationFencingState &state,
     uint32_t gen,
     uint32_t hostWindowId);
+
+// Execute the full migration block (shared by all 6 provider paths). Encapsulates
+// the four-step sequence: ShouldExecuteMigration → UpdateWindowParentForMigration →
+// CommitMigrationState → contentSessionUpdater. On failure strips the gen (signals
+// "do not confirm" to AMS) and returns false; on skip (stale/no-op) returns true.
+//
+// @param sessionInfo  The migration request's session info.
+// @param uiWindow     The window to re-parent.
+// @param fence        Per-instance migration fencing state.
+// @param contentSessionUpdater  Called only after a successful re-parent, to refresh
+//                               cached session info / proxies. Receives the sessionInfo.
+// @return true if the session should proceed (migration done / skipped / not a migration);
+//         false if re-parent failed (caller should keep the session backgrounded).
+bool ExecuteMigrationIfNeeded(
+    const sptr<AAFwk::SessionInfo> &sessionInfo,
+    const sptr<Rosen::Window> &uiWindow,
+    MigrationFencingState &fence,
+    const std::function<void(const sptr<AAFwk::SessionInfo> &)> &contentSessionUpdater);
 
 } // namespace AbilityRuntime
 } // namespace OHOS

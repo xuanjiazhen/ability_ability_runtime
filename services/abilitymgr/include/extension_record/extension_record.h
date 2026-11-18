@@ -36,9 +36,6 @@ public:
     virtual ~ExtensionRecord();
 
     // ===== Host-window migration (UIExtension-only capability) =====
-    // Same pattern as Update()/ContinueToGetCallerToken(): declared here for dispatch
-    // through the base pointer, with INERT defaults — only UIExtensionRecord carries the
-    // authoritative migration state (gen + unconfirmed marker); every other wrapper type
     // never migrates and keeps the zero-cost defaults.
 
     /**
