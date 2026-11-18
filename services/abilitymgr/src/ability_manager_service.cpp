@@ -221,6 +221,27 @@ constexpr int32_t NEW_RULE_VALUE_SIZE = 6;
 constexpr int32_t APP_ALIVE_TIME_MS = 1000;  // Allow background startup within 1 second after application startup
 constexpr int32_t REGISTER_FOCUS_DELAY = 5000;
 constexpr size_t OFFSET = 32;
+
+// Single generation point of the uiExtensionComponentId: high 32 bits = the CALLING
+// process pid — the HOST APP process that owns the UIExtensionComponent session (ArkUI's
+// ExtensionSessionManager runs in-process in the host, so creation, migration declaration
+// and minimize all arrive from the same owning host process), low 32 bits = persistentId.
+// The id is host-process scoped: different hosts get different pid salts, and persistentId
+// must stay unique within one host process. The id stays stable across host-window
+// migration ONLY because the migration declaration is also issued by that same host
+// process. Do not copy the formula elsewhere.
+inline uint64_t GenerateUIExtensionComponentId(int32_t persistentId)
+{
+    // Sanitize non-positive persistentId: a negative int32 sign-extends into uint64 and
+    // would wipe the pid high bits, colliding ids across hosts.
+    if (persistentId <= 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid persistentId: %{public}d, sanitized to 0", persistentId);
+        persistentId = 0;
+    }
+    return (static_cast<uint64_t>(IPCSkeleton::GetCallingPid()) << OFFSET) |
+        static_cast<uint64_t>(persistentId);
+}
+
 constexpr int32_t PENG_LAI_UID = 7655;
 constexpr int32_t TASKMGR_UID = 7005;
 constexpr int32_t RSS_UID = 1096;
@@ -5406,9 +5427,8 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     int result = GenerateEmbeddableUIAbilityRequest(extensionSessionInfo->want, abilityRequest, callerToken,
         validUserId);
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
-    abilityRequest.sessionInfo->uiExtensionComponentId = (
-        static_cast<uint64_t>(callerRecord->GetRecordId()) << OFFSET) |
-        static_cast<uint64_t>(abilityRequest.sessionInfo->persistentId);
+    abilityRequest.sessionInfo->uiExtensionComponentId =
+        GenerateUIExtensionComponentId(abilityRequest.sessionInfo->persistentId);
     TAG_LOGI(AAFwkTag::UI_EXT, "StartUIExtension: persistentId: %{public}d, element: %{public}s/%{public}s",
         abilityRequest.sessionInfo->persistentId, extensionSessionInfo->want.GetBundleNameRef().c_str(),
         extensionSessionInfo->want.GetAbilityNameRef().c_str());
@@ -6262,9 +6282,8 @@ int AbilityManagerService::MinimizeUIExtensionAbility(const sptr<SessionInfo> &e
         SendExtensionReport(*eventInfo, EXTENSION_TYPE_NOT_UI_EXTENSION);
         return ERR_WRONG_INTERFACE_CALL;
     }
-    extensionSessionInfo->uiExtensionComponentId = (
-        static_cast<uint64_t>(abilityRecord->GetRecordId()) << OFFSET) |
-        static_cast<uint64_t>(extensionSessionInfo->persistentId);
+    extensionSessionInfo->uiExtensionComponentId =
+        GenerateUIExtensionComponentId(extensionSessionInfo->persistentId);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "UIExtension component id: %{public}" PRId64 ", element: %{public}s/%{public}s",
         extensionSessionInfo->uiExtensionComponentId, extensionSessionInfo->want.GetBundleNameRef().c_str(),
         extensionSessionInfo->want.GetAbilityNameRef().c_str());

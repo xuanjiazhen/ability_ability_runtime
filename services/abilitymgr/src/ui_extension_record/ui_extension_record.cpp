@@ -15,6 +15,8 @@
 
 #include "ui_extension_record.h"
 
+#include <cstdint>
+
 #include "ability_util.h"
 #include "session/host/include/zidl/session_interface.h"
 
@@ -37,7 +39,24 @@ void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord_");
         return;
     }
-    abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
+    // Migration delivery projection (G-1), paired with StartAbilityLocked: while a
+    // migration is unconfirmed, stamp the pending declaration AND its target host window
+    // onto the request; with no pending migration, a stale declaration is stripped.
+    // SetSessionInfo can no longer roll the gen/marker back.
+    {
+        AAFwk::OriginalCallerInfo declaration;
+        uint32_t targetHostWindowId = 0;
+        if (GetMigrationDeclaration(declaration, targetHostWindowId)) {
+            if (abilityRequest.sessionInfo != nullptr) {
+                abilityRequest.sessionInfo->originalCallerInfo = declaration;
+                abilityRequest.sessionInfo->hostWindowId = targetHostWindowId;
+            }
+        } else if (abilityRequest.sessionInfo != nullptr &&
+                   abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
+            abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
+        }
+        abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
+    }
 }
 
 void UIExtensionRecord::HandleNotifyUIExtensionTimeout(ErrorCode code)
@@ -79,6 +98,55 @@ void UIExtensionRecord::TerminateTimeout()
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     HandleNotifyUIExtensionTimeout(ErrorCode::TERMINATE_TIMEOUT);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Notify wms, the uiextension terminate time out.");
+}
+
+uint32_t UIExtensionRecord::AdvanceMigrationGen()
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (migrationGen_ == UINT32_MAX) {
+        return 0;  // saturated: reject the migration instead of wrapping the fence to 0
+    }
+    return ++migrationGen_;
+}
+
+void UIExtensionRecord::SetMigrationDeclaration(const AAFwk::OriginalCallerInfo &declaration,
+    uint32_t targetHostWindowId)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    migrationDeclaration_ = declaration;
+    migrationTargetHostWindowId_ = targetHostWindowId;
+}
+
+bool UIExtensionRecord::GetMigrationDeclaration(AAFwk::OriginalCallerInfo &declaration,
+    uint32_t &targetHostWindowId) const
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    // INP2-05: marker presence is determined by migrationGen, not callerToken (which
+    // is stripped at AMS before SetMigrationDeclaration and never stored non-null).
+    if (migrationDeclaration_.migrationGen == 0) {
+        return false;
+    }
+    declaration = migrationDeclaration_;
+    targetHostWindowId = migrationTargetHostWindowId_;
+    return true;
+}
+
+bool UIExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    // INP2-05: marker presence is migrationGen != 0; confirm-clear zeroes the gen.
+    if (migrationDeclaration_.migrationGen == 0 || gen != migrationDeclaration_.migrationGen) {
+        return false;
+    }
+    // Marker off; the gen itself is retained (monotonic across the record's lifetime).
+    migrationDeclaration_.migrationGen = 0;
+    return true;
+}
+
+uint32_t UIExtensionRecord::GetMigrationGen() const
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    return migrationGen_;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -15,6 +15,8 @@
 
 #include "extension_record_manager.h"
 
+#include <cstdint>
+
 #include "ability_util.h"
 #include "app_utils.h"
 #include "global_constant.h"
@@ -212,10 +214,131 @@ int32_t ExtensionRecordManager::GetActiveUIExtensionListByUid(
     return ERR_OK;
 }
 
+bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityRequest &abilityRequest,
+    const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
+    bool &isLoaded, int32_t &ret)
+{
+    bool hasTerminatingMatch = false;
+    auto migrationRecord = GetAbilityRecordByPersistentId(abilityRequest.sessionInfo, hostBundleName,
+        hasTerminatingMatch);
+    if (migrationRecord == nullptr) {
+        if (hasTerminatingMatch) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "migration update: record terminating, persistentId: %{public}d, rejected",
+                abilityRequest.sessionInfo->persistentId);
+            ret = ERR_INVALID_VALUE;
+            return true;
+        }
+        // Reject visibly instead of falling back to the normal path: a silent fallback could
+        // create a NEW instance (component restart, content state lost) while the host
+        // session wrapper believes the migration succeeded (StartUIExtensionAbility
+        // returned ERR_OK). The host decides how to recover (retry, or destroy + create
+        // explicitly) on the visible error.
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration update: record not found, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    // Field reconciliation: the host session wrapper fills originalCallerInfo.persistentId
+    // and the top-level persistentId from the same session; a mismatch means the
+    // declaration was forged or garbled.
+    if (abilityRequest.sessionInfo->originalCallerInfo.persistentId !=
+        abilityRequest.sessionInfo->persistentId) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration persistentId mismatch, declared: %{public}d, request: %{public}d, rejected",
+            abilityRequest.sessionInfo->originalCallerInfo.persistentId,
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    // Gen/marker authority lives on the UIExtensionRecord wrapper (G-1): Advance/Declare
+    // run under the wrapper's own migration lock; the request sessionInfo below only
+    // carries the one-way delivery projection. ExtensionRecordManager::mutex_ was already
+    // taken and released inside GetAbilityRecordByPersistentId (never nest it with the
+    // wrapper's migration lock). (Every wrapper created by this manager is a
+    // UIExtensionRecord — see UIExtensionRecordFactory::CreateRecord — and ExtensionRecord's
+    // inert defaults backstop any hypothetical non-UI wrapper.)
+    auto recordSessionInfo = migrationRecord->GetSessionInfo();
+    // Credential gate: the declared previous host token must equal the recorded one (binder-level).
+    bool declarationMatched = recordSessionInfo != nullptr &&
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken;
+    if (!declarationMatched) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration declaration mismatch, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    // Target gate: 0 is not a valid host window (and collides with the provider-side fence
+    // initial state, which would silently confirm a migration that never took effect).
+    if (abilityRequest.sessionInfo->hostWindowId == 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration to invalid hostWindowId 0, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    // Window gate: a migration always changes hostWindowId; an unchanged one has no legal path.
+    if (recordSessionInfo->hostWindowId == abilityRequest.sessionInfo->hostWindowId) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    // Wrapper resolution: the migration authority is the UIExtensionRecord wrapper that
+    // owns this inner record (ExtensionRecordManager is its only creator — see
+    // UIExtensionRecordFactory::CreateRecord). The map key is the manager-generated
+    // extensionRecordId, stamped onto the inner record as its UIExtensionAbilityId.
+    // Defensive null reject keeps the gate total.
+    auto extensionRecord = FindExtensionRecordById(migrationRecord->GetUIExtensionAbilityId());
+    if (extensionRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration update: wrapper not found, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    // Gen stamping with saturation protection: 0 means saturated — reject instead of
+    // wrapping the provider-side fence to 0.
+    uint32_t newGen = extensionRecord->AdvanceMigrationGen();
+    if (newGen == 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration gen saturated, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    // Projection + marker: the delivered declaration (with the stamped gen) and its
+    // target host window are remembered as the wrapper's authoritative pending state.
+    abilityRequest.sessionInfo->originalCallerInfo.migrationGen = newGen;
+    // INP2-05 fix: the credential has been reconciled above — strip the previous-host
+    // token so it NEVER crosses the AMS→provider IPC. The provider-side migration
+    // discriminator is migrationGen (0 = not a migration), not callerToken.
+    abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
+    extensionRecord->SetMigrationDeclaration(abilityRequest.sessionInfo->originalCallerInfo,
+        abilityRequest.sessionInfo->hostWindowId);
+    abilityRecord = migrationRecord;
+    isLoaded = true;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d",
+        abilityRequest.sessionInfo->persistentId);
+    ret = ERR_OK;
+    return true;
+}
+
 int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
     const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded)
 {
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
+    // Migration branch: validate the declaration (gates) and stamp the gen. Only wire-fresh
+    // declarations enter here; replayed ones are stripped (see CompleteStartServiceReq).
+    if (IsMigrationUpdateRequest(abilityRequest.sessionInfo)) {
+        int32_t migrationRet = ERR_OK;
+        if (GetMigrationUpdateRecord(abilityRequest, hostBundleName, abilityRecord, isLoaded, migrationRet)) {
+            return migrationRet;
+        }
+    }
     abilityRecord = GetAbilityRecordBySessionInfo(abilityRequest.sessionInfo);
     if (abilityRecord != nullptr) {
         isLoaded = true;
@@ -290,6 +413,68 @@ std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRe
                 "found record, uiExtensionComponentId: %{public}" PRIu64, sessionInfo->uiExtensionComponentId);
             return abilityRecord;
         }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRecordByPersistentId(
+    const sptr<AAFwk::SessionInfo> &sessionInfo, const std::string &hostBundleName,
+    bool &hasTerminatingMatch)
+{
+    CHECK_POINTER_AND_RETURN(sessionInfo, nullptr);
+    hasTerminatingMatch = false;
+    if (sessionInfo->persistentId == 0) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "persistentId invalid.");
+        return nullptr;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto& it : extensionRecords_) {
+        if (it.second == nullptr) {
+            continue;
+        }
+        std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord = it.second->abilityRecord_;
+        if (abilityRecord == nullptr) {
+            continue;
+        }
+        sptr<AAFwk::SessionInfo> recordSessionInfo = abilityRecord->GetSessionInfo();
+        if (recordSessionInfo == nullptr) {
+            continue;
+        }
+        if (recordSessionInfo->persistentId != sessionInfo->persistentId) {
+            continue;
+        }
+        // Keep scanning past a terminating match (never shadows a live one); report it for reject.
+        if (abilityRecord->IsTerminating()) {
+            hasTerminatingMatch = true;
+            continue;
+        }
+        // Cross-bundle host migration in one process is legal; security is enforced by the
+        // callerToken reconciliation in the migration branch.
+        if (it.second->hostBundleName_ != hostBundleName) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "cross-bundle host migration, persistentId: %{public}d, from: %{public}s, to: %{public}s",
+                sessionInfo->persistentId, it.second->hostBundleName_.c_str(), hostBundleName.c_str());
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "found record, persistentId: %{public}d", sessionInfo->persistentId);
+        return abilityRecord;
+    }
+    return nullptr;
+}
+
+bool ExtensionRecordManager::IsMigrationUpdateRequest(const sptr<AAFwk::SessionInfo> &sessionInfo) const
+{
+    return sessionInfo != nullptr &&
+        sessionInfo->originalCallerInfo.callerToken != nullptr &&
+        sessionInfo->originalCallerInfo.persistentId != 0;
+}
+
+std::shared_ptr<ExtensionRecord> ExtensionRecordManager::FindExtensionRecordById(int32_t recordId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = extensionRecords_.find(recordId);
+    if (it != extensionRecords_.end()) {
+        return it->second;
     }
     return nullptr;
 }

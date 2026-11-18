@@ -19,6 +19,7 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include "extension_record.h"
@@ -39,6 +40,27 @@ public:
     void ForegroundTimeout();
     void BackgroundTimeout();
     void TerminateTimeout();
+
+    // ===== Host-window migration: the authoritative state lives ONLY here =====
+    // (UIExtension is the only migratable extension type.) The record owns the migration
+    // gen and the unconfirmed-migration marker; the AAFwk::SessionInfo carried by
+    // requests is a one-way delivery projection stamped from this state. Replacing the
+    // inner record's sessionInfo never rolls the gen/marker back, and every delivery
+    // leaves AMS carrying this record's consistent (declaration, target hostWindowId)
+    // pair.
+
+    uint32_t AdvanceMigrationGen() override;
+
+    void SetMigrationDeclaration(const AAFwk::OriginalCallerInfo &declaration,
+        uint32_t targetHostWindowId) override;
+
+    bool GetMigrationDeclaration(AAFwk::OriginalCallerInfo &declaration,
+        uint32_t &targetHostWindowId) const override;
+
+    bool ConfirmMigrationDeclaration(uint32_t gen) override;
+
+    uint32_t GetMigrationGen() const override;
+
 private:
     enum ErrorCode {
         LOAD_TIMEOUT = 0,
@@ -47,6 +69,14 @@ private:
         TERMINATE_TIMEOUT = 3
     };
     void HandleNotifyUIExtensionTimeout(ErrorCode code);
+
+    // Authoritative migration state; guarded by migrationMutex_ (LEAF lock: never call
+    // out or acquire other locks while holding it). migrationDeclaration_.callerToken
+    // != nullptr ⇔ an unconfirmed migration is pending.
+    mutable std::mutex migrationMutex_;
+    uint32_t migrationGen_ = 0;
+    AAFwk::OriginalCallerInfo migrationDeclaration_ = {};
+    uint32_t migrationTargetHostWindowId_ = 0;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

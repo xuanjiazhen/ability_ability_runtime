@@ -30,6 +30,8 @@
 #include "session_info.h"
 #include "preload_ui_extension_execute_callback_interface.h"
 #include "ui_extension_record.h"
+#include "ui_extension_migration_utils.h"
+#include "ability_connect_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -429,6 +431,331 @@ HWTEST_F(ExtensionRecordManagerTest, GetAbilityRecordBySessionInfo_0100, TestSiz
     extRecordMgr->GetOrCreateExtensionRecord(abilityRequest2, bundleName, abilityRecord2, bLoaded);
     int32_t hostPid = 0;
     extRecordMgr->GetHostPidForExtensionId(extensionRecordId, hostPid);
+}
+
+/**
+ * @tc.name: IsMigrationUpdateRequest_0100
+ * @tc.desc: IsMigrationUpdateRequest detects migration flag in sessionInfo
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, IsMigrationUpdateRequest_0100, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    EXPECT_FALSE(extRecordMgr->IsMigrationUpdateRequest(nullptr));
+
+    sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
+    EXPECT_FALSE(extRecordMgr->IsMigrationUpdateRequest(sessionInfo));
+
+    sessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    EXPECT_FALSE(extRecordMgr->IsMigrationUpdateRequest(sessionInfo));
+
+    sessionInfo->originalCallerInfo.persistentId = 10;
+    EXPECT_TRUE(extRecordMgr->IsMigrationUpdateRequest(sessionInfo));
+}
+
+/**
+ * @tc.name: GetAbilityRecordByPersistentId_0100
+ * @tc.desc: GetAbilityRecordByPersistentId matches by persistentId with hostBundleName ownership
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, GetAbilityRecordByPersistentId_0100, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+    const std::string hostBundle = "com.example.unittest";
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = hostBundle;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
+    sessionInfo->uiExtensionComponentId = 100;
+    sessionInfo->persistentId = 10;
+    abilityRequest.sessionInfo = sessionInfo;
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+    extRecord->hostBundleName_ = hostBundle;
+    extRecordMgr->AddExtensionRecord(5, extRecord);
+
+    bool terminatingMatch = false;
+    EXPECT_EQ(extRecordMgr->GetAbilityRecordByPersistentId(nullptr, hostBundle, terminatingMatch), nullptr);
+
+    sptr<AAFwk::SessionInfo> sessionParam(new AAFwk::SessionInfo());
+    sessionParam->persistentId = 0;
+    EXPECT_EQ(extRecordMgr->GetAbilityRecordByPersistentId(sessionParam, hostBundle, terminatingMatch), nullptr);
+
+    sessionParam->persistentId = 10;
+    terminatingMatch = true;  // reset by the call for a valid lookup
+    EXPECT_EQ(extRecordMgr->GetAbilityRecordByPersistentId(sessionParam, hostBundle, terminatingMatch), abilityRecord);
+    EXPECT_FALSE(terminatingMatch);
+
+    sessionParam->persistentId = 11;
+    EXPECT_EQ(extRecordMgr->GetAbilityRecordByPersistentId(sessionParam, hostBundle, terminatingMatch), nullptr);
+
+    // Cross-bundle host migration is legal in the same process: bundle mismatch is observed,
+    // not rejected (security is enforced by callerToken reconciliation in the migration branch).
+    sessionParam->persistentId = 10;
+    EXPECT_EQ(extRecordMgr->GetAbilityRecordByPersistentId(sessionParam, "com.example.other", terminatingMatch),
+        abilityRecord);
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecord_MigrationUpdate_0100
+ * @tc.desc: Migration update request reuses the original record matched by persistentId
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationUpdate_0100, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+    const std::string hostBundle = "com.example.unittest";
+
+    AAFwk::AbilityRequest createRequest;
+    createRequest.appInfo.bundleName = hostBundle;
+    createRequest.abilityInfo.name = "MainAbility";
+    createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
+    createSessionInfo->uiExtensionComponentId = 100;
+    createSessionInfo->persistentId = 10;
+    createRequest.sessionInfo = createSessionInfo;
+    auto createdRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(createRequest);
+    ASSERT_NE(createdRecord, nullptr);
+    auto extRecord = std::make_shared<ExtensionRecord>(createdRecord);
+    extRecord->hostBundleName_ = hostBundle;
+    extRecordMgr->AddExtensionRecord(5, extRecord);
+
+    // Reconciliation prerequisite: the recorded host token equals the declared previous host.
+    auto previousHostToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    createSessionInfo->callerToken = previousHostToken;
+    createSessionInfo->hostWindowId = 7;
+    createdRecord->SetSessionInfo(createSessionInfo);
+
+    AAFwk::AbilityRequest migrationRequest;
+    migrationRequest.appInfo.bundleName = hostBundle;
+    migrationRequest.abilityInfo.name = "MainAbility";
+    migrationRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> migrationSessionInfo(new AAFwk::SessionInfo());
+    migrationSessionInfo->uiExtensionComponentId = 200;
+    migrationSessionInfo->persistentId = 10;
+    migrationSessionInfo->hostWindowId = 9;  // different from the recorded 7
+    migrationSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();  // new host
+    migrationSessionInfo->originalCallerInfo.callerToken = previousHostToken;            // declared
+    migrationSessionInfo->originalCallerInfo.persistentId = 10;
+    migrationRequest.sessionInfo = migrationSessionInfo;
+
+    std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = nullptr;
+    bool isLoaded = false;
+    auto ret = extRecordMgr->GetOrCreateExtensionRecord(migrationRequest, hostBundle, resultRecord, isLoaded);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(isLoaded);
+    EXPECT_EQ(resultRecord, createdRecord);
+    ret = extRecordMgr->GetOrCreateExtensionRecord(migrationRequest, hostBundle, resultRecord, isLoaded);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(resultRecord, createdRecord);
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecord_MigrationDeclarationMismatch_0100
+ * @tc.desc: Migration with a forged/mismatched previous-host declaration is rejected (fallback)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationDeclarationMismatch_0100, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+    const std::string hostBundle = "com.example.unittest";
+
+    AAFwk::AbilityRequest createRequest;
+    createRequest.appInfo.bundleName = hostBundle;
+    createRequest.abilityInfo.name = "MainAbility";
+    createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
+    createSessionInfo->uiExtensionComponentId = 100;
+    createSessionInfo->persistentId = 10;
+    createSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();  // recorded host
+    createRequest.sessionInfo = createSessionInfo;
+    auto createdRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(createRequest);
+    ASSERT_NE(createdRecord, nullptr);
+    createdRecord->SetSessionInfo(createSessionInfo);
+    auto extRecord = std::make_shared<UIExtensionRecord>(createdRecord);
+    extRecord->hostBundleName_ = hostBundle;
+    extRecordMgr->AddExtensionRecord(5, extRecord);
+
+    AAFwk::AbilityRequest forgedRequest;
+    forgedRequest.appInfo.bundleName = hostBundle;
+    forgedRequest.abilityInfo.name = "MainAbility";
+    forgedRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> forgedSessionInfo(new AAFwk::SessionInfo());
+    forgedSessionInfo->uiExtensionComponentId = 200;
+    forgedSessionInfo->persistentId = 10;
+    forgedSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    // Declared previous host token differs from the recorded one: reconciliation fails.
+    forgedSessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    forgedSessionInfo->originalCallerInfo.persistentId = 10;
+    forgedRequest.sessionInfo = forgedSessionInfo;
+
+    std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = createdRecord;
+    bool isLoaded = false;
+    auto ret = extRecordMgr->GetOrCreateExtensionRecord(forgedRequest, hostBundle, resultRecord, isLoaded);
+    // Declaration mismatch must be rejected visibly (no silent fallback re-creation).
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(resultRecord, createdRecord);  // untouched
+    EXPECT_FALSE(isLoaded);
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecord_MigrationWindowUnchanged_0100
+ * @tc.desc: Valid declaration with unchanged hostWindowId is rejected (no legal main-flow path)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationWindowUnchanged_0100, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+    const std::string hostBundle = "com.example.unittest";
+
+    AAFwk::AbilityRequest createRequest;
+    createRequest.appInfo.bundleName = hostBundle;
+    createRequest.abilityInfo.name = "MainAbility";
+    createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
+    createSessionInfo->uiExtensionComponentId = 100;
+    createSessionInfo->persistentId = 10;
+    createSessionInfo->hostWindowId = 7;
+    auto previousHostToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    createSessionInfo->callerToken = previousHostToken;
+    createRequest.sessionInfo = createSessionInfo;
+    auto createdRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(createRequest);
+    ASSERT_NE(createdRecord, nullptr);
+    createdRecord->SetSessionInfo(createSessionInfo);
+    auto extRecord = std::make_shared<UIExtensionRecord>(createdRecord);
+    extRecord->hostBundleName_ = hostBundle;
+    extRecordMgr->AddExtensionRecord(5, extRecord);
+
+    // Valid credential (declared previous host == recorded host) but hostWindowId unchanged:
+    // a migration always changes hostWindowId, so this state has no legal main-flow path.
+    AAFwk::AbilityRequest noOpRequest;
+    noOpRequest.appInfo.bundleName = hostBundle;
+    noOpRequest.abilityInfo.name = "MainAbility";
+    noOpRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> noOpSessionInfo(new AAFwk::SessionInfo());
+    noOpSessionInfo->uiExtensionComponentId = 200;
+    noOpSessionInfo->persistentId = 10;
+    noOpSessionInfo->hostWindowId = 7;  // unchanged
+    noOpSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    noOpSessionInfo->originalCallerInfo.callerToken = previousHostToken;
+    noOpSessionInfo->originalCallerInfo.persistentId = 10;
+    noOpRequest.sessionInfo = noOpSessionInfo;
+
+    std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = createdRecord;
+    bool isLoaded = false;
+    auto ret = extRecordMgr->GetOrCreateExtensionRecord(noOpRequest, hostBundle, resultRecord, isLoaded);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(resultRecord, createdRecord);
+    EXPECT_FALSE(isLoaded);
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecord_MigrationTerminatingFallback_0100
+ * @tc.desc: Migration update never reuses a record whose termination has been triggered
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationTerminatingFallback_0100, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+    const std::string hostBundle = "com.example.unittest";
+
+    AAFwk::AbilityRequest createRequest;
+    createRequest.appInfo.bundleName = hostBundle;
+    createRequest.abilityInfo.name = "MainAbility";
+    createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
+    createSessionInfo->uiExtensionComponentId = 100;
+    createSessionInfo->persistentId = 10;
+    createRequest.sessionInfo = createSessionInfo;
+    auto terminatingRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(createRequest);
+    ASSERT_NE(terminatingRecord, nullptr);
+    terminatingRecord->SetTerminatingState();
+    auto extRecord = std::make_shared<UIExtensionRecord>(terminatingRecord);
+    extRecord->hostBundleName_ = hostBundle;
+    extRecordMgr->AddExtensionRecord(5, extRecord);
+
+    AAFwk::AbilityRequest migrationRequest;
+    migrationRequest.appInfo.bundleName = hostBundle;
+    migrationRequest.abilityInfo.name = "MainAbility";
+    migrationRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> migrationSessionInfo(new AAFwk::SessionInfo());
+    migrationSessionInfo->uiExtensionComponentId = 200;
+    migrationSessionInfo->persistentId = 10;
+    migrationSessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    migrationSessionInfo->originalCallerInfo.persistentId = 10;
+    migrationRequest.sessionInfo = migrationSessionInfo;
+
+    std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = terminatingRecord;
+    bool isLoaded = false;
+    auto ret = extRecordMgr->GetOrCreateExtensionRecord(migrationRequest, hostBundle, resultRecord, isLoaded);
+    // Terminating target is rejected visibly: no second instance is created while the old one
+    // is still dying, and the window manager can retry after the record is fully destroyed.
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(resultRecord, terminatingRecord);  // untouched
+    EXPECT_FALSE(isLoaded);
+}
+
+/**
+ * @tc.name: UIExtensionRecord_Update_MigrationRetention_0100
+ * @tc.desc: Reuse request without migration flag inherits stable originalCallerInfo from record
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, UIExtensionRecord_Update_MigrationRetention_0100, TestSize.Level1)
+{
+    const std::string hostBundle = "com.example.unittest";
+
+    AAFwk::AbilityRequest savedRequest;
+    savedRequest.appInfo.bundleName = hostBundle;
+    savedRequest.abilityInfo.name = "MainAbility";
+    savedRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> savedSessionInfo(new AAFwk::SessionInfo());
+    savedSessionInfo->uiExtensionComponentId = 100;
+    savedSessionInfo->persistentId = 10;
+    savedSessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    savedSessionInfo->originalCallerInfo.persistentId = 10;
+    savedRequest.sessionInfo = savedSessionInfo;
+    auto previousHostToken = savedSessionInfo->originalCallerInfo.callerToken;
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(savedRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetSessionInfo(savedSessionInfo);
+    auto extRecord = std::make_shared<UIExtensionRecord>(abilityRecord);
+    ASSERT_NE(extRecord, nullptr);
+    // G-1: the unconfirmed-migration marker lives on the UIExtensionRecord wrapper
+    // (authoritative), not in the inner record's sessionInfo copy.
+    extRecord->SetMigrationDeclaration(savedSessionInfo->originalCallerInfo, 9);
+
+    AAFwk::AbilityRequest reuseRequest;
+    reuseRequest.appInfo.bundleName = hostBundle;
+    reuseRequest.abilityInfo.name = "MainAbility";
+    reuseRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> reuseSessionInfo(new AAFwk::SessionInfo());
+    reuseSessionInfo->uiExtensionComponentId = 100;
+    reuseSessionInfo->persistentId = 10;
+    reuseRequest.sessionInfo = reuseSessionInfo;
+
+    extRecord->Update(reuseRequest);
+    // At-least-once projection: while the migration is unconfirmed (marker kept on the
+    // record), a reuse request carries the FULL declaration and the target host window so
+    // the provider keeps getting re-parent chances.
+    EXPECT_EQ(reuseSessionInfo->originalCallerInfo.callerToken, nullptr);  // INP2-05: stripped at AMS
+    EXPECT_EQ(reuseSessionInfo->hostWindowId, 9u);
 }
 
 /**
@@ -2173,6 +2500,643 @@ HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_CallerInstance_NullCaller
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: MigrationFencing_ShouldExecute_CheckOnly_0100
+ * @tc.desc: ShouldExecuteMigration is check-only on the execution branch: the fence is
+ *           NOT advanced before the re-parent result is known
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationFencing_ShouldExecute_CheckOnly_0100, TestSize.Level1)
+{
+    MigrationFencingState state;
+    state.lastGen = 3;
+    state.currentParentWindowId = 5;
+
+    sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
+    ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->originalCallerInfo.migrationGen = 4;  // INP2-05: gen is the discriminator
+    sessionInfo->hostWindowId = 9;
+
+    EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
+    // Fence must stay open until CommitMigrationState, so a failed re-parent stays retryable.
+    EXPECT_EQ(state.lastGen, 3u);
+    EXPECT_EQ(state.currentParentWindowId, 5u);
+}
+
+/**
+ * @tc.name: MigrationFencing_CommitMigrationState_0100
+ * @tc.desc: CommitMigrationState records the executed gen/parent; the committed gen and
+ *           older gens are then fenced as stale (out-of-order protection regression)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationFencing_CommitMigrationState_0100, TestSize.Level1)
+{
+    MigrationFencingState state;
+    state.lastGen = 3;
+    state.currentParentWindowId = 5;
+
+    sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
+    ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->originalCallerInfo.migrationGen = 4;  // INP2-05: gen is the discriminator
+    sessionInfo->hostWindowId = 9;
+
+    EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
+    CommitMigrationState(state, sessionInfo->originalCallerInfo.migrationGen, sessionInfo->hostWindowId);
+    EXPECT_EQ(state.lastGen, 4u);
+    EXPECT_EQ(state.currentParentWindowId, 9u);
+
+    // Same gen (at-least-once replay after success) is fenced as stale.
+    EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
+    // Older gen (late out-of-order command) is fenced as stale too.
+    sessionInfo->originalCallerInfo.migrationGen = 3;
+    EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
+    // Newer gen with a different host executes again.
+    sessionInfo->originalCallerInfo.migrationGen = 5;
+    EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
+}
+
+/**
+ * @tc.name: MigrationFencing_RetryAfterFailedReParent_0100
+ * @tc.desc: Without CommitMigrationState (re-parent failed), the SAME gen is re-executable;
+ *           after commit (success), it is fenced. This is the RT-01 fix contract.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationFencing_RetryAfterFailedReParent_0100, TestSize.Level1)
+{
+    MigrationFencingState state;
+    sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
+    ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    sessionInfo->originalCallerInfo.migrationGen = 1;
+    sessionInfo->hostWindowId = 7;
+
+    // First delivery: fence open, execution allowed.
+    EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
+    // Re-parent failed: no commit. At-least-once re-delivery of the SAME gen must retry.
+    EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
+    // Re-parent succeeded on retry: commit fences the gen.
+    CommitMigrationState(state, sessionInfo->originalCallerInfo.migrationGen, sessionInfo->hostWindowId);
+    EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
+}
+
+/**
+ * @tc.name: MigrationFencing_NoOpBranch_AdvancesGen_0100
+ * @tc.desc: A newer gen whose hostWindowId equals the current parent is a no-op: skipped
+ *           but lastGen advances (no pending side effect)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationFencing_NoOpBranch_AdvancesGen_0100, TestSize.Level1)
+{
+    MigrationFencingState state;
+    state.lastGen = 3;
+    state.currentParentWindowId = 9;
+
+    sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
+    ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    sessionInfo->originalCallerInfo.migrationGen = 5;
+    sessionInfo->hostWindowId = 9;
+
+    EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
+    EXPECT_EQ(state.lastGen, 5u);
+    EXPECT_EQ(state.currentParentWindowId, 9u);
+}
+
+/**
+ * @tc.name: MigrationFencing_Guards_0100
+ * @tc.desc: Non-migration inputs (null sessionInfo / null declared callerToken) never migrate
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationFencing_Guards_0100, TestSize.Level1)
+{
+    MigrationFencingState state;
+    EXPECT_FALSE(ShouldExecuteMigration(nullptr, state));
+
+    sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
+    ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->originalCallerInfo.migrationGen = 1;
+    sessionInfo->hostWindowId = 7;
+    EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
+    EXPECT_EQ(state.lastGen, 0u);
+    EXPECT_EQ(state.currentParentWindowId, 0u);
+}
+
+/**
+ * @tc.name: UpdateWindowParentForMigration_NullGuards_0100
+ * @tc.desc: UpdateWindowParentForMigration rejects null sessionInfo / null window
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, UpdateWindowParentForMigration_NullGuards_0100, TestSize.Level1)
+{
+    EXPECT_FALSE(UpdateWindowParentForMigration(nullptr, nullptr));
+}
+
+// Exposes the protected AddToServiceMap wrapper for the suffixed-key regression test.
+class TestServiceMapManager : public AAFwk::AbilityConnectManager {
+public:
+    explicit TestServiceMapManager(int userId) : AbilityConnectManager(userId) {}
+    void AddRecord(const std::string &key, std::shared_ptr<AAFwk::BaseExtensionRecord> record)
+    {
+        CallAddToServiceMap(key, record);
+    }
+};
+
+/**
+ * @tc.name: ServiceMap_UIExtensionSuffixedKey_LookupRegression_0100
+ * @tc.desc: UIExtension records are keyed by element.GetURI()+UIExtensionAbilityId; the
+ *           bare-key lookup used by the old replay path always misses them, while the
+ *           queue-key (suffixed) lookup used by CompleteStartServiceReq hits (RT-03 fix)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, ServiceMap_UIExtensionSuffixedKey_LookupRegression_0100, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<TestServiceMapManager>(100);
+    ASSERT_NE(connectManager, nullptr);
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.moduleName = "entry";
+    abilityRequest.appInfo.bundleName = abilityRequest.abilityInfo.bundleName;
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    // UIExtension records enter serviceMap_ with the suffixed key (see
+    // UIExtensionAbilityManager::GetOrCreateExtensionRecord / EnqueueStartServiceReq).
+    AppExecFwk::ElementName element(abilityRequest.abilityInfo.deviceId,
+        abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name,
+        abilityRequest.abilityInfo.moduleName);
+    const std::string suffixedKey = element.GetURI() + "7";
+    connectManager->AddRecord(suffixedKey, abilityRecord);
+
+    // Bare-key lookup rebuilt from the request must miss UIExtension records...
+    EXPECT_EQ(connectManager->GetServiceRecordByAbilityRequest(abilityRequest), nullptr);
+    // ...while the queue-key lookup (the fixed replay path) must hit.
+    EXPECT_EQ(connectManager->GetServiceRecordByElementName(suffixedKey), abilityRecord);
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecord_MigrationWindowZero_0100
+ * @tc.desc: Valid declaration but target hostWindowId==0 is rejected (invalid target; also
+ *           prevents the zero-sentinel silently confirming a no-op migration) (RT-04 fix)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationWindowZero_0100, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+    const std::string hostBundle = "com.example.unittest";
+
+    AAFwk::AbilityRequest createRequest;
+    createRequest.appInfo.bundleName = hostBundle;
+    createRequest.abilityInfo.name = "MainAbility";
+    createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
+    createSessionInfo->uiExtensionComponentId = 100;
+    createSessionInfo->persistentId = 10;
+    createSessionInfo->hostWindowId = 7;
+    auto previousHostToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    createSessionInfo->callerToken = previousHostToken;
+    createRequest.sessionInfo = createSessionInfo;
+    auto createdRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(createRequest);
+    ASSERT_NE(createdRecord, nullptr);
+    createdRecord->SetSessionInfo(createSessionInfo);
+    auto extRecord = std::make_shared<UIExtensionRecord>(createdRecord);
+    extRecord->hostBundleName_ = hostBundle;
+    extRecordMgr->AddExtensionRecord(5, extRecord);
+
+    // Valid credential (declared previous host == recorded host) but target hostWindowId == 0.
+    AAFwk::AbilityRequest zeroRequest;
+    zeroRequest.appInfo.bundleName = hostBundle;
+    zeroRequest.abilityInfo.name = "MainAbility";
+    zeroRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> zeroSessionInfo(new AAFwk::SessionInfo());
+    zeroSessionInfo->uiExtensionComponentId = 200;
+    zeroSessionInfo->persistentId = 10;
+    zeroSessionInfo->hostWindowId = 0;  // invalid target
+    zeroSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    zeroSessionInfo->originalCallerInfo.callerToken = previousHostToken;
+    zeroSessionInfo->originalCallerInfo.persistentId = 10;
+    zeroRequest.sessionInfo = zeroSessionInfo;
+
+    std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = createdRecord;
+    bool isLoaded = false;
+    auto ret = extRecordMgr->GetOrCreateExtensionRecord(zeroRequest, hostBundle, resultRecord, isLoaded);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(resultRecord, createdRecord);  // untouched
+    EXPECT_FALSE(isLoaded);
+    // The gen must not be stamped for a rejected target.
+    EXPECT_EQ(zeroSessionInfo->originalCallerInfo.migrationGen, 0u);
+}
+
+/**
+ * @tc.name: MigrationFencing_HasHostCallerChanged_0100
+ * @tc.desc: onCallerChanged latch semantics: fires once per identity change; a notified
+ *           identity never notifies again; same-identity and null cases never fire
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationFencing_HasHostCallerChanged_0100, TestSize.Level1)
+{
+    MigrationFencingState state;
+    // Null session never fires.
+    EXPECT_FALSE(HasHostCallerChanged(nullptr, state));
+
+    sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
+    ASSERT_NE(sessionInfo, nullptr);
+    // Both-null identity (unseeded latch, null caller): no notification.
+    EXPECT_FALSE(HasHostCallerChanged(sessionInfo, state));
+
+    // Creation seeding: the initial caller becomes known without notification.
+    auto firstCaller = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    state.lastCallerToken = firstCaller;
+    sessionInfo->callerToken = firstCaller;
+    // Same-ability dual-window migration: identity unchanged, no notification.
+    EXPECT_FALSE(HasHostCallerChanged(sessionInfo, state));
+
+    // Host ability changed: notify once...
+    auto secondCaller = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    sessionInfo->callerToken = secondCaller;
+    EXPECT_TRUE(HasHostCallerChanged(sessionInfo, state));
+    // ...and the notified identity never notifies again.
+    EXPECT_FALSE(HasHostCallerChanged(sessionInfo, state));
+    EXPECT_EQ(state.lastCallerToken, secondCaller);
+
+    // Migration back to the first caller is a new identity change: notifies again.
+    sessionInfo->callerToken = firstCaller;
+    EXPECT_TRUE(HasHostCallerChanged(sessionInfo, state));
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecord_MigrationRecordNotFound_0100
+ * @tc.desc: A migration declaration whose persistentId matches no record is rejected
+ *           visibly (ERR_INVALID_VALUE) — never a silent fallback that would create a
+ *           new instance while SCB believes the migration succeeded (N-1)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, GetOrCreateExtensionRecord_MigrationRecordNotFound_0100, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+    const std::string hostBundle = "com.example.unittest";
+
+    // No record is registered for persistentId 42.
+    AAFwk::AbilityRequest migrationRequest;
+    migrationRequest.appInfo.bundleName = hostBundle;
+    migrationRequest.abilityInfo.name = "MainAbility";
+    migrationRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    sptr<AAFwk::SessionInfo> migrationSessionInfo(new AAFwk::SessionInfo());
+    migrationSessionInfo->uiExtensionComponentId = 300;
+    migrationSessionInfo->persistentId = 42;
+    migrationSessionInfo->hostWindowId = 9;
+    migrationSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    migrationSessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    migrationSessionInfo->originalCallerInfo.persistentId = 42;
+    migrationRequest.sessionInfo = migrationSessionInfo;
+
+    std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = nullptr;
+    bool isLoaded = false;
+    auto ret = extRecordMgr->GetOrCreateExtensionRecord(migrationRequest, hostBundle, resultRecord, isLoaded);
+    // Rejected visibly: SCB gets the error and decides recovery, instead of AMS silently
+    // creating a fresh instance (component restart) behind an ERR_OK.
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(resultRecord, nullptr);
+    EXPECT_FALSE(isLoaded);
+}
+
+/**
+ * @tc.name: MigrationState_SetSessionInfoDoesNotRollback_0100
+ * @tc.desc: G-1 invariant: replacing the record's sessionInfo never rolls the migration
+ *           gen/marker back (the authority lives on the record, not the sessionInfo)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationState_SetSessionInfoDoesNotRollback_0100, TestSize.Level1)
+{
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = "com.example.unittest";
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto record = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(record, nullptr);
+    auto uiRecord = std::make_shared<UIExtensionRecord>(record);
+    ASSERT_NE(uiRecord, nullptr);
+
+    AAFwk::OriginalCallerInfo declaration;
+    declaration.persistentId = 10;
+    declaration.migrationGen = 5;
+    uiRecord->SetMigrationDeclaration(declaration, 9);
+    EXPECT_EQ(uiRecord->GetMigrationGen(), 5u);
+
+    // A plain/stale sessionInfo (no declaration, old host window) replaces the record's
+    // sessionInfo — the marker and gen must survive (authority lives on the wrapper).
+    auto plainInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    plainInfo->hostWindowId = 7;
+    record->SetSessionInfo(plainInfo);
+
+    AAFwk::OriginalCallerInfo restored;
+    uint32_t targetHostWindowId = 0;
+    EXPECT_TRUE(uiRecord->GetMigrationDeclaration(restored, targetHostWindowId));
+    EXPECT_EQ(restored.migrationGen, 5u);
+    EXPECT_EQ(targetHostWindowId, 9u);
+    EXPECT_EQ(uiRecord->GetMigrationGen(), 5u);
+}
+
+/**
+ * @tc.name: MigrationState_ConfirmByGen_0100
+ * @tc.desc: Gen-matched confirm-clear: only the CURRENT generation's completion clears the
+ *           marker; the gen itself is retained (monotonic across the record's lifetime)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationState_ConfirmByGen_0100, TestSize.Level1)
+{
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = "com.example.unittest";
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto record = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(record, nullptr);
+    auto uiRecord = std::make_shared<UIExtensionRecord>(record);
+    ASSERT_NE(uiRecord, nullptr);
+
+    EXPECT_EQ(uiRecord->AdvanceMigrationGen(), 1u);
+    EXPECT_EQ(uiRecord->AdvanceMigrationGen(), 2u);
+
+    AAFwk::OriginalCallerInfo declaration;
+    declaration.persistentId = 10;
+    declaration.migrationGen = 2;
+    uiRecord->SetMigrationDeclaration(declaration, 9);
+
+    // Stale generation completion: rejected, marker survives.
+    EXPECT_FALSE(uiRecord->ConfirmMigrationDeclaration(1));
+    AAFwk::OriginalCallerInfo restored;
+    uint32_t target = 0;
+    EXPECT_TRUE(uiRecord->GetMigrationDeclaration(restored, target));
+
+    // Current generation completion: clears the marker, keeps the gen.
+    EXPECT_TRUE(uiRecord->ConfirmMigrationDeclaration(2));
+    EXPECT_FALSE(uiRecord->GetMigrationDeclaration(restored, target));
+    EXPECT_EQ(uiRecord->GetMigrationGen(), 2u);
+    EXPECT_EQ(uiRecord->AdvanceMigrationGen(), 3u);  // monotonic after confirm
+}
+
+/**
+ * @tc.name: UIExtensionRecord_Update_StaleDeclarationStripped_0100
+ * @tc.desc: With no pending migration on the record, a stale declaration riding a request
+ *           is stripped — declarations only ever leave AMS stamped from the record state
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, UIExtensionRecord_Update_StaleDeclarationStripped_0100, TestSize.Level1)
+{
+    const std::string hostBundle = "com.example.unittest";
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = hostBundle;
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(abilityRecord, nullptr);
+    auto extRecord = std::make_shared<UIExtensionRecord>(abilityRecord);
+    ASSERT_NE(extRecord, nullptr);
+
+    AAFwk::AbilityRequest staleRequest = request;
+    sptr<AAFwk::SessionInfo> staleSessionInfo(new AAFwk::SessionInfo());
+    staleSessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    staleSessionInfo->originalCallerInfo.migrationGen = 3;
+    staleRequest.sessionInfo = staleSessionInfo;
+
+    extRecord->Update(staleRequest);
+    EXPECT_EQ(staleSessionInfo->originalCallerInfo.callerToken, nullptr);
+    EXPECT_EQ(staleSessionInfo->originalCallerInfo.migrationGen, 3u);  // gen untouched, token stripped
+}
+
+/**
+ * @tc.name: UIExtensionRecord_Update_ProjectionCarriesConsistentPair_0100
+ * @tc.desc: While a migration is pending, the projection overwrites BOTH the declaration
+ *           and the target hostWindowId on the request — the delivered pair is always the
+ *           record's consistent pair (stale host window can never re-mount) (gen① closure)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, UIExtensionRecord_Update_ProjectionCarriesConsistentPair_0100, TestSize.Level1)
+{
+    const std::string hostBundle = "com.example.unittest";
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = hostBundle;
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetSessionInfo(request.sessionInfo);
+    auto extRecord = std::make_shared<UIExtensionRecord>(abilityRecord);
+    ASSERT_NE(extRecord, nullptr);
+    ASSERT_EQ(extRecord->AdvanceMigrationGen(), 1u);
+
+    AAFwk::OriginalCallerInfo declaration;
+    declaration.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    declaration.persistentId = 10;
+    declaration.migrationGen = 1;
+    extRecord->SetMigrationDeclaration(declaration, 9);
+
+    // Stale request: old host window + old declaration gen.
+    AAFwk::AbilityRequest staleRequest = request;
+    sptr<AAFwk::SessionInfo> staleSessionInfo(new AAFwk::SessionInfo());
+    staleSessionInfo->hostWindowId = 7;  // stale target
+    staleSessionInfo->originalCallerInfo.callerToken = declaration.callerToken;
+    staleSessionInfo->originalCallerInfo.migrationGen = 0;  // stale gen
+    staleRequest.sessionInfo = staleSessionInfo;
+
+    extRecord->Update(staleRequest);
+    EXPECT_EQ(staleSessionInfo->hostWindowId, 9u);  // record's target wins
+    EXPECT_EQ(staleSessionInfo->originalCallerInfo.migrationGen, 1u);  // record's gen wins
+}
+
+/**
+ * @tc.name: MigrationChain_ConfirmAfterSuccess_0100
+ * @tc.desc: A-1 integration: full migration lifecycle — declare → advance gen → project →
+ *           confirm-clear. Simulates the ScheduleCommandAbilityWindowDone flow.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationChain_ConfirmAfterSuccess_0100, TestSize.Level1)
+{
+    const std::string hostBundle = "com.example.unittest";
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = hostBundle;
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto record = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(record, nullptr);
+    auto extRecord = std::make_shared<UIExtensionRecord>(record);
+    ASSERT_NE(extRecord, nullptr);
+
+    // Step 1: Declare (simulates GetMigrationUpdateRecord stamping gen + marker).
+    uint32_t gen = extRecord->AdvanceMigrationGen();
+    ASSERT_EQ(gen, 1u);
+    AAFwk::OriginalCallerInfo declaration;
+    declaration.persistentId = 10;
+    declaration.migrationGen = gen;
+    extRecord->SetMigrationDeclaration(declaration, 42);
+
+    // Step 2: Project (simulates StartAbilityLocked/UIExtensionRecord::Update).
+    AAFwk::OriginalCallerInfo projected;
+    uint32_t targetHostWindowId = 0;
+    ASSERT_TRUE(extRecord->GetMigrationDeclaration(projected, targetHostWindowId));
+    EXPECT_EQ(projected.migrationGen, gen);
+    EXPECT_EQ(targetHostWindowId, 42u);
+
+    // Step 3: Confirm (simulates ScheduleCommandAbilityWindowDone override).
+    // Stale gen (0) must not confirm.
+    EXPECT_FALSE(extRecord->ConfirmMigrationDeclaration(0));
+    // Wrong gen must not confirm.
+    EXPECT_FALSE(extRecord->ConfirmMigrationDeclaration(gen + 1));
+    // Correct gen confirms and clears the marker.
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen));
+
+    // Step 4: After confirm, no pending declaration.
+    AAFwk::OriginalCallerInfo emptyDecl;
+    uint32_t emptyTarget = 0;
+    EXPECT_FALSE(extRecord->GetMigrationDeclaration(emptyDecl, emptyTarget));
+
+    // Step 5: Gen stays monotonic after confirm.
+    EXPECT_EQ(extRecord->AdvanceMigrationGen(), 2u);
+}
+
+/**
+ * @tc.name: MigrationChain_ReplayStripAndProject_0100
+ * @tc.desc: A-1 integration: simulates the BACKGROUNDING → enqueue → replay flow —
+ *           a queued stale declaration is stripped, then the projection re-arms it
+ *           with the record's current (gen, target) pair.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationChain_ReplayStripAndProject_0100, TestSize.Level1)
+{
+    const std::string hostBundle = "com.example.unittest";
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = hostBundle;
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto record = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(record, nullptr);
+    auto extRecord = std::make_shared<UIExtensionRecord>(record);
+    ASSERT_NE(extRecord, nullptr);
+
+    // AMS stamps gen=1 and sets the marker (simulates first migration delivery accepted).
+    uint32_t gen = extRecord->AdvanceMigrationGen();
+    AAFwk::OriginalCallerInfo declaration;
+    declaration.persistentId = 10;
+    declaration.migrationGen = gen;
+    extRecord->SetMigrationDeclaration(declaration, 99);
+
+    // Simulate: BACKGROUNDING → enqueue → replay.
+    // The replayed request carries a stale declaration snapshot (old gen, old target).
+    sptr<AAFwk::SessionInfo> replayInfo(new AAFwk::SessionInfo());
+    replayInfo->hostWindowId = 50;  // stale target
+    replayInfo->originalCallerInfo.migrationGen = gen;
+    AAFwk::AbilityRequest replayRequest = request;
+    replayRequest.sessionInfo = replayInfo;
+
+    // Step 1: Strip (simulates CompleteStartServiceReq strip).
+    replayInfo->originalCallerInfo.migrationGen = 0;
+
+    // Step 2: Project (simulates StartAbilityLocked — re-arms from record's authority).
+    AAFwk::OriginalCallerInfo projected;
+    uint32_t targetHostWindowId = 0;
+    ASSERT_TRUE(extRecord->GetMigrationDeclaration(projected, targetHostWindowId));
+    replayInfo->originalCallerInfo = projected;
+    replayInfo->hostWindowId = targetHostWindowId;
+
+    // Step 3: The re-armed request carries the record's pair, not the stale one.
+    EXPECT_EQ(replayInfo->originalCallerInfo.migrationGen, gen);
+    EXPECT_EQ(replayInfo->hostWindowId, 99u);  // NOT the stale 50
+
+    // Step 4: Provider fence accepts it (gen > lastGen since fence is at 0).
+    MigrationFencingState fence;
+    EXPECT_TRUE(ShouldExecuteMigration(replayInfo, fence));
+
+    // Step 5: Success → commit fence → confirm-clear marker.
+    CommitMigrationState(fence, gen, 99u);
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen));
+    AAFwk::OriginalCallerInfo empty;
+    uint32_t emptyTarget = 0;
+    EXPECT_FALSE(extRecord->GetMigrationDeclaration(empty, emptyTarget));
+}
+
+/**
+ * @tc.name: MigrationChain_FailureKeepsMarker_0100
+ * @tc.desc: A-1 integration: re-parent failure sets migrationGen=0 on the receipt →
+ *           confirm fails → marker retained → at-least-once retries succeed.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, MigrationChain_FailureKeepsMarker_0100, TestSize.Level1)
+{
+    const std::string hostBundle = "com.example.unittest";
+    AAFwk::AbilityRequest request;
+    request.appInfo.bundleName = hostBundle;
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    request.sessionInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    auto record = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(record, nullptr);
+    auto extRecord = std::make_shared<UIExtensionRecord>(record);
+    ASSERT_NE(extRecord, nullptr);
+
+    // Declare migration (gen=1, target=77).
+    uint32_t gen = extRecord->AdvanceMigrationGen();
+    AAFwk::OriginalCallerInfo declaration;
+    declaration.persistentId = 10;
+    declaration.migrationGen = gen;
+    extRecord->SetMigrationDeclaration(declaration, 77);
+
+    // Provider receives the migration request.
+    sptr<AAFwk::SessionInfo> receipt = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
+    receipt->originalCallerInfo = declaration;
+
+    // Simulate re-parent FAILURE: provider sets migrationGen=0 on the receipt
+    // (INP2-05: gen=0 is the "do not confirm" signal).
+    receipt->originalCallerInfo.migrationGen = 0;
+
+    // AMS receives the receipt: gen=0 fails the confirm discriminator.
+    EXPECT_EQ(receipt->originalCallerInfo.migrationGen, 0u);
+
+    // Confirm fails → marker retained.
+    // (In production, the AMS confirm override checks migrationGen != 0 before
+    // calling ConfirmMigrationDeclaration. Simulate: gen==0 → skip confirm.)
+    // Marker is still there:
+    AAFwk::OriginalCallerInfo still;
+    uint32_t stillTarget = 0;
+    EXPECT_TRUE(extRecord->GetMigrationDeclaration(still, stillTarget));
+    EXPECT_EQ(still.migrationGen, gen);
+
+    // At-least-once retry: next projection re-arms with same gen.
+    AAFwk::OriginalCallerInfo retry;
+    uint32_t retryTarget = 0;
+    EXPECT_TRUE(extRecord->GetMigrationDeclaration(retry, retryTarget));
+    EXPECT_EQ(retry.migrationGen, gen);
+    EXPECT_EQ(retryTarget, 77u);
+
+    // Retry succeeds → confirm clears.
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen));
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

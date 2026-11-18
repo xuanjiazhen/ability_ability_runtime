@@ -47,6 +47,7 @@
 #include "napi/native_api.h"
 #include "tokenid_kit.h"
 #include "ui_extension_window_command.h"
+#include "ui_extension_migration_utils.h"
 #include "want_params_wrapper.h"
 
 #ifdef WINDOWS_PLATFORM
@@ -622,6 +623,11 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             CallObjectMethod(false, "onSessionCreate", nullptr, wantObj, sessonObj);
             RegisterBrandColorChangeListener(uiWindow);
         }
+        // Fresh window: re-seed the migration fence from the real parent (per-window
+        // state; bounds cross-session gen pollution, keeps the no-op check meaningful).
+        migrationFencing_ = MigrationFencingState {};
+        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
+        migrationFencing_.lastCallerToken = sessionInfo->callerToken;
         uiWindowMap_[compId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context && context->GetWindow() == nullptr) {
@@ -635,6 +641,44 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // Host window migration: re-parent via the shared helper (fail-isolated).
+        uint32_t oldParentWindowId = migrationFencing_.currentParentWindowId;
+        if (ShouldExecuteMigration(sessionInfo, migrationFencing_)) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{public}d, "
+                "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
+                sessionInfo->originalCallerInfo.migrationGen, oldParentWindowId, sessionInfo->hostWindowId);
+            if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
+                // Keep the marker for retry: strip the declaration from this receipt path so
+                // ScheduleCommandAbilityWindowDone does not confirm this failed migration.
+                sessionInfo->originalCallerInfo.migrationGen = 0;  // INP2-05: gen=0 signals "do not confirm"
+                return false;
+            }
+            CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
+                sessionInfo->hostWindowId);
+            TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
+                "%{public}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
+            // Host-caller (ability) change notification: fires once per identity change —
+            // same-ability dual-window migrations do not fire; a notified identity never
+            // notifies again (latched in MigrationFencingState, seeded at window creation).
+            if (HasHostCallerChanged(sessionInfo, migrationFencing_)) {
+                auto env = etsRuntime_.GetAniEnv();
+                ani_ref wantObj = (env != nullptr) ? OHOS::AppExecFwk::WrapWant(env, want) : nullptr;
+                if (wantObj != nullptr) {
+                    CallObjectMethod(false, "onCallerChanged", nullptr, wantObj);
+                }
+            }
+            // Sync the content session's cached session info to the new hostWindowId.
+            if (etsUiExtContentSession_ != nullptr) {
+                etsUiExtContentSession_->UpdateSessionInfo(sessionInfo);
+            }
+        } else if (sessionInfo->originalCallerInfo.migrationGen != 0) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "migration skipped, persistentId: %{public}d, gen: %{public}u, "
+                "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
+                sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
+                migrationFencing_.lastGen, sessionInfo->hostWindowId,
+                migrationFencing_.currentParentWindowId);
+        }
     }
     return true;
 }
@@ -661,6 +705,7 @@ sptr<Rosen::Window> EtsUIExtension::CreateUIWindow(const std::shared_ptr<UIExten
     option->SetDensity(sessionInfo->density);
     option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
     option->SetDisplayId(sessionInfo->displayId);
+    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     if (context->isNotAllow != -1) {
         bool isNotAllow = context->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
