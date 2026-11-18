@@ -87,6 +87,7 @@ private:
     BusinessType GetBusinessType(const BusinessAbilityFilter &filter) const;
 
     void ClearAllBundleInfos();
+    void ClearAllBundleInfosLocked();
 
 private:
     mutable std::mutex bundleInfoMutex_;

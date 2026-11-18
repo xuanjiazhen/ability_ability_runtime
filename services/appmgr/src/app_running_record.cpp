@@ -1581,7 +1581,7 @@ bool AppRunningRecord::IsLastPageAbilityRecord(const sptr<IRemoteObject> &token)
 
 void AppRunningRecord::SetTerminating()
 {
-    isTerminating = true;
+    isTerminating.store(true);
     auto prioObject = GetPriorityObject();
     if (prioObject) {
         AbilityRuntime::FreezeUtil::GetInstance().DeleteAppLifecycleEvent(prioObject->GetPid());
@@ -1590,7 +1590,7 @@ void AppRunningRecord::SetTerminating()
 
 bool AppRunningRecord::IsTerminating()
 {
-    return isTerminating;
+    return isTerminating.load();
 }
 
 bool AppRunningRecord::IsKeepAliveApp() const
@@ -2509,11 +2509,13 @@ void AppRunningRecord::ClearChildAppRecordMap()
 
 void AppRunningRecord::SetParentAppRecord(std::shared_ptr<AppRunningRecord> appRecord)
 {
+    std::lock_guard<ffrt::mutex> lock(parentAppRecordLock_);
     parentAppRecord_ = appRecord;
 }
 
 std::shared_ptr<AppRunningRecord> AppRunningRecord::GetParentAppRecord()
 {
+    std::lock_guard<ffrt::mutex> lock(parentAppRecordLock_);
     return parentAppRecord_.lock();
 }
 
@@ -3009,11 +3011,13 @@ bool AppRunningRecord::CancelTask(std::string msg)
 
 void AppRunningRecord::SetBrowserHost(sptr<IRemoteObject> browser)
 {
+    std::lock_guard<ffrt::mutex> lock(browserHostLock_);
     browserHost_ = browser;
 }
 
 sptr<IRemoteObject> AppRunningRecord::GetBrowserHost()
 {
+    std::lock_guard<ffrt::mutex> lock(browserHostLock_);
     return browserHost_;
 }
 

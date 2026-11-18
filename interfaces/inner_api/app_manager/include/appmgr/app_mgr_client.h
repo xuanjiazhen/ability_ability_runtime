@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_APP_MGR_CLIENT_H
 #define OHOS_ABILITY_RUNTIME_APP_MGR_CLIENT_H
 
+#include <mutex>
+
 #include "ui_ability_last_caller_info.h"
 #include "ability_debug_response_interface.h"
 #include "ability_info.h"
@@ -1969,9 +1971,11 @@ private:
     sptr<IRemoteObject> GetRemoteObject();
 
     bool IsAmsServiceReady();
+    sptr<IAmsMgr> GetAmsService();
 
 private:
     std::shared_ptr<AppMgrRemoteHolder> mgrHolder_;
+    std::mutex amsServiceMutex_;
     sptr<IAmsMgr> amsService_ {};
 };
 }  // namespace AppExecFwk

@@ -36,6 +36,7 @@ public:
         if (context != nullptr) {
             context->Unbind();
         }
+        ExtensionBase<C>::SetExtensionCommon(nullptr);
     }
 
     void Init(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &record,

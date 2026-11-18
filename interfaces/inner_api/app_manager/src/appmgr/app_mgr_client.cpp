@@ -1030,7 +1030,7 @@ void AppMgrClient::SetKeepAliveEnableState(const std::string &bundleName, bool e
     if (!IsAmsServiceReady()) {
         return;
     }
-    amsService_->SetKeepAliveEnableState(bundleName, enable, uid);
+    GetAmsService()->SetKeepAliveEnableState(bundleName, enable, uid);
 }
 
 void AppMgrClient::SetKeepAliveDkv(const std::string &bundleName, bool enable, int32_t uid)
@@ -1038,7 +1038,7 @@ void AppMgrClient::SetKeepAliveDkv(const std::string &bundleName, bool enable, i
     if (!IsAmsServiceReady()) {
         return;
     }
-    amsService_->SetKeepAliveDkv(bundleName, enable, uid);
+    GetAmsService()->SetKeepAliveDkv(bundleName, enable, uid);
 }
 
 void AppMgrClient::SetKeepAliveAppService(const std::string &bundleName, bool enable, int32_t uid)
@@ -1046,7 +1046,7 @@ void AppMgrClient::SetKeepAliveAppService(const std::string &bundleName, bool en
     if (!IsAmsServiceReady()) {
         return;
     }
-    amsService_->SetKeepAliveAppService(bundleName, enable, uid);
+    GetAmsService()->SetKeepAliveAppService(bundleName, enable, uid);
 }
 
 void AppMgrClient::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
@@ -1351,7 +1351,7 @@ int32_t AppMgrClient::RegisterAppDebugListener(const sptr<IAppDebugListener> &li
     if (!IsAmsServiceReady()) {
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService_->RegisterAppDebugListener(listener);
+    return GetAmsService()->RegisterAppDebugListener(listener);
 }
 
 int32_t AppMgrClient::UnregisterAppDebugListener(const sptr<IAppDebugListener> &listener)
@@ -1359,7 +1359,7 @@ int32_t AppMgrClient::UnregisterAppDebugListener(const sptr<IAppDebugListener> &
     if (!IsAmsServiceReady()) {
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService_->UnregisterAppDebugListener(listener);
+    return GetAmsService()->UnregisterAppDebugListener(listener);
 }
 
 int32_t AppMgrClient::AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal)
@@ -1367,7 +1367,7 @@ int32_t AppMgrClient::AttachAppDebug(const std::string &bundleName, bool isDebug
     if (!IsAmsServiceReady()) {
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService_->AttachAppDebug(bundleName, isDebugFromLocal);
+    return GetAmsService()->AttachAppDebug(bundleName, isDebugFromLocal);
 }
 
 int32_t AppMgrClient::DetachAppDebug(const std::string &bundleName)
@@ -1375,7 +1375,7 @@ int32_t AppMgrClient::DetachAppDebug(const std::string &bundleName)
     if (!IsAmsServiceReady()) {
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService_->DetachAppDebug(bundleName);
+    return GetAmsService()->DetachAppDebug(bundleName);
 }
 
 int32_t AppMgrClient::SetAppWaitingDebug(const std::string &bundleName, bool isPersist)
@@ -1384,7 +1384,7 @@ int32_t AppMgrClient::SetAppWaitingDebug(const std::string &bundleName, bool isP
         TAG_LOGE(AAFwkTag::APPMGR, "App manager service is not ready.");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService_->SetAppWaitingDebug(bundleName, isPersist);
+    return GetAmsService()->SetAppWaitingDebug(bundleName, isPersist);
 }
 
 int32_t AppMgrClient::CancelAppWaitingDebug()
@@ -1393,7 +1393,7 @@ int32_t AppMgrClient::CancelAppWaitingDebug()
         TAG_LOGE(AAFwkTag::APPMGR, "App manager service is not ready.");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService_->CancelAppWaitingDebug();
+    return GetAmsService()->CancelAppWaitingDebug();
 }
 
 int32_t AppMgrClient::GetWaitingDebugApp(std::vector<std::string> &debugInfoList)
@@ -1402,7 +1402,7 @@ int32_t AppMgrClient::GetWaitingDebugApp(std::vector<std::string> &debugInfoList
         TAG_LOGE(AAFwkTag::APPMGR, "App manager service is not ready.");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService_->GetWaitingDebugApp(debugInfoList);
+    return GetAmsService()->GetWaitingDebugApp(debugInfoList);
 }
 
 bool AppMgrClient::IsWaitingDebugApp(const std::string &bundleName)
@@ -1411,7 +1411,7 @@ bool AppMgrClient::IsWaitingDebugApp(const std::string &bundleName)
         TAG_LOGE(AAFwkTag::APPMGR, "App manager service is not ready.");
         return false;
     }
-    return amsService_->IsWaitingDebugApp(bundleName);
+    return GetAmsService()->IsWaitingDebugApp(bundleName);
 }
 
 void AppMgrClient::ClearNonPersistWaitingDebugFlag()
@@ -1420,7 +1420,7 @@ void AppMgrClient::ClearNonPersistWaitingDebugFlag()
         TAG_LOGE(AAFwkTag::APPMGR, "App manager service is not ready.");
         return;
     }
-    amsService_->ClearNonPersistWaitingDebugFlag();
+    GetAmsService()->ClearNonPersistWaitingDebugFlag();
 }
 
 int32_t AppMgrClient::RegisterAbilityDebugResponse(const sptr<IAbilityDebugResponse> &response)
@@ -1428,7 +1428,7 @@ int32_t AppMgrClient::RegisterAbilityDebugResponse(const sptr<IAbilityDebugRespo
     if (!IsAmsServiceReady()) {
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService_->RegisterAbilityDebugResponse(response);
+    return GetAmsService()->RegisterAbilityDebugResponse(response);
 }
 
 bool AppMgrClient::IsAttachDebug(const std::string &bundleName)
@@ -1436,7 +1436,7 @@ bool AppMgrClient::IsAttachDebug(const std::string &bundleName)
     if (!IsAmsServiceReady()) {
         return false;
     }
-    return amsService_->IsAttachDebug(bundleName);
+    return GetAmsService()->IsAttachDebug(bundleName);
 }
 
 bool AppMgrClient::IsAmsServiceReady()
@@ -1452,12 +1452,20 @@ bool AppMgrClient::IsAmsServiceReady()
         return false;
     }
 
-    amsService_ = service->GetAmsMgr();
-    if (amsService_ == nullptr) {
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "amsService_ is nullptr.");
         return false;
     }
+    std::lock_guard<std::mutex> lock(amsServiceMutex_);
+    amsService_ = amsService;
     return true;
+}
+
+sptr<IAmsMgr> AppMgrClient::GetAmsService()
+{
+    std::lock_guard<std::mutex> lock(amsServiceMutex_);
+    return amsService_;
 }
 
 int32_t AppMgrClient::RegisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer,

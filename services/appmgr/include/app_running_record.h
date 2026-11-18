@@ -1461,8 +1461,10 @@ private:
     std::shared_ptr<StartupTaskData> startupTaskData_ = nullptr;
     std::weak_ptr<AppMgrServiceInner> appMgrServiceInner_;
     std::weak_ptr<AppRunningRecord> parentAppRecord_;
+    mutable ffrt::mutex parentAppRecordLock_;
     sptr<AppDeathRecipient> appDeathRecipient_ = nullptr;
     sptr<IRemoteObject> browserHost_;
+    mutable ffrt::mutex browserHostLock_;
 
     // Structs and Optional Types
     AppSpawnStartMsg startMsg_; // render record
@@ -1580,6 +1582,7 @@ private:
     bool isSingleton_ = false;
     bool isStageBasedModel_ = false;
     std::atomic_bool isStrictMode_ = false;
+    std::atomic<bool> isTerminating = false;
     bool isTerminating = false;
     bool isUnSetPermission_ = false;
     bool isUserRequestCleaning_ = false;

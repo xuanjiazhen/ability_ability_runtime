@@ -238,8 +238,13 @@ void ForegroundAppConnectionClientImpl::ResetStatus()
 
 void ForegroundAppConnectionClientImpl::NotifyServiceDiedToObservers()
 {
-    auto observers = GetObservers();
-    ResetStatus();
+    std::unordered_set<std::shared_ptr<ForegroundAppConnection>> observers;
+    {
+        std::lock_guard<std::mutex> guard(observerLock_);
+        observers = userObservers_;
+        isRegistered_ = false;
+        userObservers_.clear();
+    }
     for (auto it = observers.begin(); it != observers.end(); ++it) {
         auto observer = *it;
         if (observer) {
