@@ -781,7 +781,7 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
             CommitMigrationState(migrationFencing_, sessionInfo->originalCallerInfo.migrationGen,
                 sessionInfo->hostWindowId);
             TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
-                "%{private}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
+                "%{public}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
             // Host-caller (ability) change notification: fires once per identity change —
             // same-ability dual-window migrations do not fire; a notified identity never
             // notifies again (latched in MigrationFencingState, seeded at window creation).

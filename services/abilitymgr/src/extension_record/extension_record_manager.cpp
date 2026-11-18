@@ -246,7 +246,7 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
     if (abilityRequest.sessionInfo->originalCallerInfo.persistentId !=
         abilityRequest.sessionInfo->persistentId) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration persistentId mismatch, declared: %{private}d, request: %{private}d, rejected",
+            "migration persistentId mismatch, declared: %{public}d, request: %{public}d, rejected",
             abilityRequest.sessionInfo->originalCallerInfo.persistentId,
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
