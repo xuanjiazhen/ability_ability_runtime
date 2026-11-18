@@ -36,6 +36,11 @@ void AbilityConnectManager::OnStartSpecifiedProcessResponse(const std::string &f
 void AbilityConnectManager::OnStartSpecifiedProcessTimeoutResponse(int32_t requestId)
 {}
 
+bool AbilityConnectManager::OnStartSpecifiedProcessFailed(int32_t requestId)
+{
+    return false;
+}
+
 void AbilityConnectManager::StartSpecifiedProcess(
     const LoadAbilityContext &context, const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {}

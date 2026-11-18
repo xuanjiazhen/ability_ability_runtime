@@ -1684,8 +1684,25 @@ void AbilityConnectManager::StartSpecifiedProcess(
         TAG_LOGD(AAFwkTag::ABILITYMGR, "loadAbilityQueue_ size > 1, requestId: %{public}d", requestId);
         return;
     }
-    DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedProcess(
-        *context.want, *context.abilityInfo, requestId, context.loadParam->customProcessFlag);
+    StartNextSpecifiedProcessLocked();
+}
+
+void AbilityConnectManager::StartNextSpecifiedProcessLocked()
+{
+    while (!loadAbilityQueue_.empty()) {
+        auto &front = loadAbilityQueue_.front();
+        if (!front.empty()) {
+            const auto &[requestId, context] = *front.begin();
+            if (context.want != nullptr && context.abilityInfo != nullptr && context.loadParam != nullptr &&
+                context.appInfo != nullptr) {
+                DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedProcess(
+                    *context.want, *context.abilityInfo, requestId, context.loadParam->customProcessFlag);
+                return;
+            }
+            TAG_LOGE(AAFwkTag::EXT, "invalid specified process context, requestId: %{public}d", requestId);
+        }
+        loadAbilityQueue_.pop_front();
+    }
 }
 
 void AbilityConnectManager::OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId)
@@ -1708,12 +1725,14 @@ void AbilityConnectManager::OnStartSpecifiedProcessResponse(const std::string &f
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "OnStartSpecifiedProcessResponse invalid context, requestId: %{public}d", requestId);
             loadAbilityQueue_.pop_front();
+            StartNextSpecifiedProcessLocked();
             return;
         }
         context.want->SetParam(PARAM_SPECIFIED_PROCESS_FLAG, flag);
         DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(*context.loadParam,
             *context.abilityInfo, *context.appInfo, *context.want);
         loadAbilityQueue_.pop_front();
+        StartNextSpecifiedProcessLocked();
     }
 }
 
@@ -1736,12 +1755,40 @@ void AbilityConnectManager::OnStartSpecifiedProcessTimeoutResponse(int32_t reque
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "OnStartSpecifiedProcessTimeoutResponse invalid context, requestId: %{public}d", requestId);
             loadAbilityQueue_.pop_front();
+            StartNextSpecifiedProcessLocked();
             return;
         }
         DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(*context.loadParam,
             *context.abilityInfo, *context.appInfo, *context.want);
         loadAbilityQueue_.pop_front();
+        StartNextSpecifiedProcessLocked();
     }
+}
+
+bool AbilityConnectManager::OnStartSpecifiedProcessFailed(int32_t requestId)
+{
+    std::shared_ptr<AbilityRuntime::LoadParam> loadParam;
+    {
+        std::lock_guard guard(loadAbilityQueueLock_);
+        if (loadAbilityQueue_.empty()) {
+            return false;
+        }
+        auto &front = loadAbilityQueue_.front();
+        auto it = front.find(requestId);
+        if (it == front.end()) {
+            return false;
+        }
+        loadParam = it->second.loadParam;
+        loadAbilityQueue_.pop_front();
+        StartNextSpecifiedProcessLocked();
+    }
+    if (loadParam != nullptr && loadParam->token != nullptr) {
+        auto abilityRecord = GetExtensionByTokenFromServiceMap(loadParam->token);
+        if (abilityRecord != nullptr) {
+            OnLoadAbilityFailed(abilityRecord);
+        }
+    }
+    return true;
 }
 
 bool AbilityConnectManager::HasRequestIdInLoadAbilityQueue(int32_t requestId)

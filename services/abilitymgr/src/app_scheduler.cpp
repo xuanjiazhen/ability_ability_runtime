@@ -290,7 +290,9 @@ void AppScheduler::OnAbilityRequestDone(const sptr<IRemoteObject> &token, const 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "state:%{public}d", static_cast<int32_t>(state));
     auto callback = callback_.lock();
     CHECK_POINTER(callback);
-    appAbilityState_ = ConvertToAppAbilityState(static_cast<int32_t>(state));
+    if (state != AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED) {
+        appAbilityState_ = ConvertToAppAbilityState(static_cast<int32_t>(state));
+    }
     callback->OnAbilityRequestDone(token, static_cast<int32_t>(state));
 }
 

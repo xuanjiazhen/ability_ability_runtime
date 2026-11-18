@@ -753,6 +753,21 @@ void UIAbilityLifecycleManager::OnAbilityRequestDone(const sptr<IRemoteObject> &
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Ability request state %{public}d done.", state);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (state == static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED)) {
+        std::lock_guard guard(sessionLock_);
+        auto abilityRecord = GetAbilityRecordByTokenLocked(token);
+        if (abilityRecord == nullptr || abilityRecord->IsTerminating() || !abilityRecord->IsLoading()) {
+            return;
+        }
+        abilityRecord->RemoveLoadTimeoutTask();
+        abilityRecord->SetLoading(false);
+        NotifySCBToHandleException(abilityRecord,
+            static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_INTERCEPTOR_REJECT), "safeModeStartRejected");
+        if (GetAbilityRecordByTokenLocked(token) != nullptr) {
+            EraseAbilityRecord(abilityRecord);
+        }
+        return;
+    }
     AppAbilityState abilityState = DelayedSingleton<AppScheduler>::GetInstance()->ConvertToAppAbilityState(state);
     if (abilityState == AppAbilityState::ABILITY_STATE_FOREGROUND) {
         std::lock_guard<ffrt::mutex> guard(sessionLock_);

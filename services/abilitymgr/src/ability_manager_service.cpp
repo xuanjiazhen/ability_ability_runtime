@@ -11607,7 +11607,11 @@ void AbilityManagerService::OnStartSpecifiedProcessTimeoutResponse(int32_t reque
 
 void AbilityManagerService::OnStartSpecifiedFailed(int32_t requestId, int32_t userId)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "On accept want response");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Specified process start failed, requestId: %{public}d", requestId);
+    auto connectManager = GetUIExtensionAbilityManagerByUserId(userId);
+    if (connectManager != nullptr && connectManager->OnStartSpecifiedProcessFailed(requestId)) {
+        return;
+    }
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
         CHECK_POINTER(uiAbilityManager);

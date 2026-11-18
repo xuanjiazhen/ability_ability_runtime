@@ -1723,6 +1723,30 @@ HWTEST_F(MissionListManagerTest, OnAbilityRequestDone_002, TestSize.Level1)
     missionListManager.reset();
 }
 
+/**
+ * @tc.name: StartRejectionRemovesLoadingMission
+ * @tc.desc: A rejected page stops loading and is removed from the active mission list.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MissionListManagerTest, StartRejectionRemovesLoadingMission, TestSize.Level1)
+{
+    auto mgr = std::make_shared<MissionListManager>(0);
+    mgr->Init();
+    auto record = InitAbilityRecord();
+    ASSERT_NE(record, nullptr);
+    record->SetLoading(true);
+    constexpr int32_t MISSION_ID = 1;
+    record->SetMissionId(MISSION_ID);
+    auto mission = std::make_shared<Mission>(MISSION_ID, record, "rejectedMission");
+    mgr->defaultStandardList_->AddMissionToTop(mission);
+
+    mgr->OnAbilityRequestDone(record->GetToken()->AsObject(),
+        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED));
+
+    EXPECT_FALSE(record->IsLoading());
+    EXPECT_EQ(mgr->GetMissionById(MISSION_ID), nullptr);
+}
+
 /*
  * Feature: MissionListManager
  * Function: OnAppStateChanged

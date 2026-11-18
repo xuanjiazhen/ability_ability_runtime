@@ -288,6 +288,7 @@ public:
     bool HasRequestIdInLoadAbilityQueue(int32_t requestId);
     void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId);
     void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId);
+    bool OnStartSpecifiedProcessFailed(int32_t requestId);
     void StartSpecifiedProcess(const LoadAbilityContext &context,
         const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
@@ -737,6 +738,7 @@ private:
     int DispatchTerminate(const std::shared_ptr<BaseExtensionRecord> &abilityRecord, const sptr<IRemoteObject> &token);
 
     void HandleStartTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+    void StartNextSpecifiedProcessLocked();
     void HandleStopTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void HandleTerminateDisconnectTask(const ConnectListType& connectlist);
     void HandleCommandTimeoutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);

@@ -1077,6 +1077,22 @@ void MissionListManager::OnAbilityRequestDone(const sptr<IRemoteObject> &token, 
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Ability request state %{public}d done.", state);
     std::lock_guard guard(managerLock_);
+    if (state == static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED)) {
+        auto abilityRecord = GetAliveAbilityRecordByToken(token);
+        if (abilityRecord == nullptr || !abilityRecord->IsLoading()) {
+            return;
+        }
+        abilityRecord->RemoveLoadTimeoutTask();
+        abilityRecord->SetLoading(false);
+#ifdef SUPPORT_SCREEN
+        if (abilityRecord->IsStartingWindow()) {
+            PostCancelStartingWindowTask(abilityRecord);
+        }
+#endif
+        HandleAbilityDiedByDefault(abilityRecord);
+        PostStartWaitingAbility();
+        return;
+    }
     AppAbilityState abilityState = DelayedSingleton<AppScheduler>::GetInstance()->ConvertToAppAbilityState(state);
     if (abilityState == AppAbilityState::ABILITY_STATE_FOREGROUND) {
         auto abilityRecord = GetAliveAbilityRecordByToken(token);

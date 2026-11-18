@@ -33,6 +33,8 @@
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
+#include "iremote_stub.h"
+#include "itest_observer.h"
 #include "mock_ability_token.h"
 #include "mock_app_scheduler.h"
 #include "mock_app_utils.h"
@@ -104,9 +106,11 @@ public:
     {}
 };
 
-class SafeModeAppStateCallbackMock : public MockAppStateCallback {
+class SafeModeTestObserverMock : public IRemoteStub<AAFwk::ITestObserver> {
 public:
-    MOCK_METHOD(void, OnStartProcessFailed, (const std::vector<sptr<IRemoteObject>> &abilityTokens), (override));
+    void TestStatus(const std::string &, const int64_t &) override {}
+    AAFwk::ShellCommandResult ExecuteShellCommand(const std::string &, int64_t) override { return {}; }
+    MOCK_METHOD(void, TestFinished, (const std::string &, const int64_t &), (override));
 };
 
 void AppMgrServiceInnerTest::InitAppInfo(const std::string& deviceName,
@@ -7453,13 +7457,12 @@ HWTEST_F(AppMgrServiceInnerTest, SafeModeRejectsAbilityProcessReuse_001, TestSiz
     ASSERT_NE(record, nullptr);
     record->GetPriorityObject()->SetPid(REUSE_PID);
 
-    sptr<SafeModeAppStateCallbackMock> callback = new SafeModeAppStateCallbackMock();
+    sptr<MockAppStateCallback> callback = new MockAppStateCallback();
     serviceInner->appStateCallbacks_.push_back({ callback, 0 });
     auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
     loadParam->token = new MockAbilityToken();
     loadParam->reusePid = REUSE_PID;
-    const std::vector<sptr<IRemoteObject>> expectedTokens { loadParam->token };
-    EXPECT_CALL(*callback, OnStartProcessFailed(expectedTokens)).Times(1);
+    EXPECT_CALL(*callback, OnAbilityRequestDone(loadParam->token, AbilityState::ABILITY_STATE_START_REJECTED)).Times(1);
     serviceInner->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParam);
     EXPECT_EQ(record->GetAbilityRunningRecordByToken(loadParam->token), nullptr);
 }
@@ -7479,6 +7482,27 @@ HWTEST_F(AppMgrServiceInnerTest, SafeModeRejectsEmptyAppProcess_001, TestSize.Le
     EXPECT_EQ(serviceInner->StartEmptyProcess(AAFwk::Want(), nullptr, bundleInfo, "testSafeModeProcess", 0),
         ERR_INVALID_OPERATION);
     EXPECT_TRUE(serviceInner->appRunningManager_->GetAppRunningRecordMap().empty());
+}
+
+/**
+ * @tc.name: SafeModeRejectsUserTestBeforeProcessCleanup
+ * @tc.desc: A third-party test request reports a failure before looking up or stopping any running process.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, SafeModeRejectsUserTestBeforeProcessCleanup, TestSize.Level1)
+{
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    serviceInner->isSafeMode_ = true;
+    serviceInner->remoteClientManager_ = nullptr;
+    BundleInfo bundleInfo;
+    bundleInfo.applicationInfo = *applicationInfo_;
+    bundleInfo.applicationInfo.isSystemApp = false;
+    AAFwk::Want want;
+    want.SetParam("-b", bundleInfo.applicationInfo.bundleName);
+    sptr<SafeModeTestObserverMock> observer = new SafeModeTestObserverMock();
+    EXPECT_CALL(*observer, TestFinished("Test process start blocked in safe mode.", -1)).Times(1);
+
+    EXPECT_EQ(serviceInner->StartUserTestProcess(want, observer->AsObject(), bundleInfo, 0), ERR_INVALID_OPERATION);
 }
 
 /**

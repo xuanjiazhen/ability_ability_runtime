@@ -1750,6 +1750,36 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_OnStartSpecifiedProcessRespo
     EXPECT_EQ(context.want->GetStringParam("ohoSpecifiedProcessFlag"), "flag");
 }
 
+/**
+ * @tc.name: SpecifiedProcessRejectionRetiresOnlyTheHead
+ * @tc.desc: A rejected extension leaves the next request available for its own response.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityConnectManagerTest, SpecifiedProcessRejectionRetiresOnlyTheHead, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<AbilityConnectManager>(0);
+    AbilityConnectManager::LoadAbilityContext rejected;
+    rejected.loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    rejected.abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    rejected.appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    rejected.want = std::make_shared<Want>();
+    auto next = rejected;
+    next.want = std::make_shared<Want>();
+    constexpr int32_t REJECTED_ID = 1;
+    constexpr int32_t NEXT_ID = 2;
+    connectManager->loadAbilityQueue_.push_back({ { REJECTED_ID, rejected } });
+    connectManager->loadAbilityQueue_.push_back({ { NEXT_ID, next } });
+
+    EXPECT_FALSE(connectManager->OnStartSpecifiedProcessFailed(NEXT_ID));
+    EXPECT_TRUE(connectManager->OnStartSpecifiedProcessFailed(REJECTED_ID));
+    EXPECT_FALSE(connectManager->HasRequestIdInLoadAbilityQueue(REJECTED_ID));
+    EXPECT_TRUE(connectManager->HasRequestIdInLoadAbilityQueue(NEXT_ID));
+    connectManager->OnStartSpecifiedProcessResponse("next", NEXT_ID);
+    EXPECT_EQ(next.want->GetStringParam("ohoSpecifiedProcessFlag"), "next");
+    EXPECT_FALSE(rejected.want->HasParameter("ohoSpecifiedProcessFlag"));
+    EXPECT_TRUE(connectManager->loadAbilityQueue_.empty());
+}
+
 /*
  * Feature: AbilityConnectManager
  * Function: OnStartSpecifiedProcessTimeoutResponse

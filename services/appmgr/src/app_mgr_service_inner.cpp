@@ -2268,7 +2268,16 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         return;
     }
     if (ShouldBlockAppStartInSafeMode(*appInfo, abilityInfo.get())) {
-        NotifyStartProcessFailed(loadParam->token);
+        if (abilityInfo->type == AbilityType::PAGE) {
+            std::lock_guard lock(appStateCallbacksLock_);
+            for (const auto &item : appStateCallbacks_) {
+                if (item.callback != nullptr) {
+                    item.callback->OnAbilityRequestDone(loadParam->token, AbilityState::ABILITY_STATE_START_REJECTED);
+                }
+            }
+        } else {
+            NotifyStartProcessFailed(loadParam->token);
+        }
         return;
     }
     if (abilityInfo->type == AbilityType::PAGE || abilityInfo->type == AbilityType::EXTENSION) {
@@ -7387,6 +7396,10 @@ int AppMgrServiceInner::StartUserTestProcess(
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid bundle name");
         return ERR_INVALID_VALUE;
+    }
+    if (ShouldBlockAppStartInSafeMode(bundleInfo.applicationInfo)) {
+        UserTestAbnormalFinish(observer, "Test process start blocked in safe mode.");
+        return ERR_INVALID_OPERATION;
     }
 
     KillProcessConfig config{false, false, "StartUserTestProcess"};

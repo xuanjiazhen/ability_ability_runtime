@@ -620,6 +620,33 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAbilityRequestDone_002, TestSize.Level
 }
 
 /**
+ * @tc.name: StartRejectionEndsPageLoading
+ * @tc.desc: The page stops loading and its session gets policy rejection rather than a load timeout.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartRejectionEndsPageLoading, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    AbilityRequest request;
+    Rosen::SessionInfo windowSessionInfo;
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    sessionInfo->sessionToken = new Rosen::Session(windowSessionInfo);
+    request.sessionInfo = sessionInfo;
+    auto record = UIAbilityRecord::CreateAbilityRecord(request);
+    ASSERT_NE(record, nullptr);
+    record->SetLoading(true);
+    mgr->sessionAbilityMap_.emplace(sessionInfo->persistentId, record);
+
+    mgr->OnAbilityRequestDone(record->GetToken()->AsObject(),
+        static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED));
+
+    EXPECT_FALSE(record->IsLoading());
+    EXPECT_TRUE(mgr->sessionAbilityMap_.empty());
+    EXPECT_EQ(sessionInfo->errorCode, static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_INTERCEPTOR_REJECT));
+    EXPECT_EQ(sessionInfo->errorReason, "safeModeStartRejected");
+}
+
+/**
  * @tc.name: UIAbilityLifecycleManager_GetAbilityRecordByToken_0100
  * @tc.desc: GetAbilityRecordByToken
  * @tc.type: FUNC
