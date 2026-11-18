@@ -2268,7 +2268,8 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         return;
     }
     if (ShouldBlockAppStartInSafeMode(*appInfo, abilityInfo.get())) {
-        if (abilityInfo->type == AbilityType::PAGE || abilityInfo->type == AbilityType::DATA) {
+        if (abilityInfo->type == AbilityType::PAGE || abilityInfo->type == AbilityType::DATA ||
+            abilityInfo->type == AbilityType::SERVICE) {
             std::lock_guard lock(appStateCallbacksLock_);
             for (const auto &item : appStateCallbacks_) {
                 if (item.callback != nullptr) {
@@ -7630,14 +7631,14 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
     const AbilityRuntime::StartSpecifiedParam &param)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Start specified ability.");
-    if (ShouldBlockAppStartInSafeMode(abilityInfo.applicationInfo, &abilityInfo)) {
+    auto notifyStartFailed = [this, &abilityInfo, &param]() {
         if (startSpecifiedAbilityResponse_) {
             startSpecifiedAbilityResponse_->OnStartSpecifiedFailed(
                 param.requestId, GetUserIdByUid(abilityInfo.applicationInfo.uid));
         }
-        return;
-    }
-    if (!CheckRemoteClient()) {
+    };
+    if (ShouldBlockAppStartInSafeMode(abilityInfo.applicationInfo, &abilityInfo) || !CheckRemoteClient()) {
+        notifyStartFailed();
         return;
     }
 
@@ -7655,10 +7656,12 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
         appIndex = abilityInfo.appIndex;
     }
     if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
+        notifyStartFailed();
         return;
     }
     if (UserRecordManager::GetInstance().IsLogoutUser(GetUserIdByUid(appInfo->uid))) {
         TAG_LOGE(AAFwkTag::APPMGR, "disable start process in logout user");
+        notifyStartFailed();
         return;
     }
 
@@ -7686,6 +7689,7 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
         auto ret = TryToUseImageInfo(abilityInfoPtr, appInfo, nullptr, "", appIndex, processName,
             instanceKey, "", customProcessFlag, appRecord, false);
         if (ret != ERR_OK) {
+            notifyStartFailed();
             return;
         }
         ReportEventToRSS(abilityInfo, appRecord);
@@ -7702,6 +7706,7 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
             customProcessFlag);
         if (!appRecord) {
             TAG_LOGE(AAFwkTag::APPMGR, "start process [%{public}s] fail", processName.c_str());
+            notifyStartFailed();
             return;
         }
         if (hapModuleInfo.isStageBasedModel && !IsMainProcess(appInfo, processName)) {

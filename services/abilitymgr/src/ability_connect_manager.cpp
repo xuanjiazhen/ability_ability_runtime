@@ -1479,21 +1479,23 @@ void AbilityConnectManager::CompleteCommandAbility(std::shared_ptr<BaseExtension
     }
 }
 
+std::shared_ptr<std::list<AbilityRequest>> AbilityConnectManager::TakeStartServiceRequests(
+    const std::string &serviceUri)
+{
+    std::lock_guard guard(startServiceReqListLock_);
+    auto requests = startServiceReqList_.extract(serviceUri);
+    if (requests.empty()) {
+        return nullptr;
+    }
+    if (taskHandler_) {
+        taskHandler_->CancelTask(std::string("start_service_timeout:") + serviceUri);
+    }
+    return std::move(requests.mapped());
+}
+
 void AbilityConnectManager::CompleteStartServiceReq(const std::string &serviceUri)
 {
-    std::shared_ptr<std::list<OHOS::AAFwk::AbilityRequest>> reqList;
-    {
-        std::lock_guard guard(startServiceReqListLock_);
-        auto it = startServiceReqList_.find(serviceUri);
-        if (it != startServiceReqList_.end()) {
-            reqList = it->second;
-            startServiceReqList_.erase(it);
-            if (taskHandler_) {
-                taskHandler_->CancelTask(std::string("start_service_timeout:") + serviceUri);
-            }
-        }
-    }
-
+    auto reqList = TakeStartServiceRequests(serviceUri);
     if (reqList) {
         TAG_LOGI(AAFwkTag::EXT, "target service activating: %{public}zu, uri: %{public}s", reqList->size(),
             serviceUri.c_str());
@@ -2528,6 +2530,24 @@ void AbilityConnectManager::HandleCallBackDiedTask(const sptr<IRemoteObject> &co
     sptr<IAbilityConnection> object = iface_cast<IAbilityConnection>(connect);
     std::lock_guard guard(serialMutex_);
     DisconnectAbilityLocked(object, true);
+}
+
+void AbilityConnectManager::OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state)
+{
+    if (state != static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED)) {
+        return;
+    }
+    std::lock_guard guard(serialMutex_);
+    auto service = GetExtensionByTokenFromServiceMap(token);
+    if (!service || service->GetAbilityInfo().type != AbilityType::SERVICE || service->IsReady() ||
+        !service->IsAbilityState(AbilityState::INITIAL)) {
+        return;
+    }
+    service->RemoveLoadTimeoutTask();
+    TakeStartServiceRequests(service->GetURI());
+    HandleConnectRecordOnAbilityDied(service);
+    MoveToTerminatingMap(service);
+    RemoveServiceAbility(service);
 }
 
 void AbilityConnectManager::OnLoadAbilityFailed(std::shared_ptr<BaseExtensionRecord> abilityRecord)

@@ -15,6 +15,8 @@
 
 #include "mission_list_manager.h"
 
+#include <atomic>
+#include <climits>
 #include <cstdlib>
 
 #include "ability_manager_errors.h"
@@ -39,7 +41,6 @@
 #include "start_ability_utils.h"
 #include "param.h"
 #include "ui_extension_wrapper.h"
-#include "utils/request_id_util.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ability_first_frame_state_observer_manager.h"
 #endif
@@ -220,20 +221,9 @@ int MissionListManager::StartAbility(const std::shared_ptr<AbilityRecord> &curre
 {
     auto isSpecified = (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED);
     if (isSpecified) {
-        // AppMgr tracks one specified request per process; avoid overwriting an outstanding request.
-        if (HasPendingSpecifiedRequestLocked()) {
-            EnqueueWaitingAbility(abilityRequest);
-            return START_ABILITY_WAITING;
-        }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "ability launch mode:%{public}d",
             static_cast<int32_t>(abilityRequest.abilityInfo.launchMode));
-        AbilityRuntime::StartSpecifiedParam specifiedParam;
-        specifiedParam.requestId = AbilityRuntime::RequestIdUtil::GetRequestId();
-        AbilityRequest pendingRequest = abilityRequest;
-        pendingRequest.missionSpecifiedRequestId = specifiedParam.requestId;
-        EnqueueWaitingAbilityToFront(pendingRequest);
-        DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(
-            abilityRequest.want, abilityRequest.abilityInfo, specifiedParam);
+        StartSpecifiedRequestLocked(abilityRequest);
         return 0;
     }
 
@@ -350,16 +340,47 @@ void MissionListManager::EnqueueWaitingAbility(const AbilityRequest &abilityRequ
     return;
 }
 
-void MissionListManager::EnqueueWaitingAbilityToFront(const AbilityRequest &abilityRequest)
+void MissionListManager::StartSpecifiedRequestLocked(const AbilityRequest &abilityRequest)
 {
-    std::queue<AbilityRequest> abilityQueue;
-    abilityQueue.push(abilityRequest);
-    waitingAbilityQueue_.swap(abilityQueue);
-    while (!abilityQueue.empty()) {
-        AbilityRequest tempAbilityRequest = abilityQueue.front();
-        abilityQueue.pop();
-        waitingAbilityQueue_.push(tempAbilityRequest);
+    // AppMgr keeps one outstanding specified request per process. Other applications can start independently.
+    for (auto &entry : pendingSpecifiedRequests_) {
+        const auto &first = entry.second.front();
+        if (first.abilityInfo.bundleName == abilityRequest.abilityInfo.bundleName &&
+            first.abilityInfo.appIndex == abilityRequest.abilityInfo.appIndex && first.uid == abilityRequest.uid) {
+            entry.second.push_back(abilityRequest);
+            return;
+        }
     }
+    DispatchSpecifiedRequestLocked({abilityRequest});
+}
+
+void MissionListManager::DispatchSpecifiedRequestLocked(std::deque<AbilityRequest> requests)
+{
+    // The shared failure callback also carries positive UIExtension IDs; AppMgr reserves -1 for no request.
+    static std::atomic<uint32_t> sequence {0};
+    int32_t requestId;
+    do {
+        requestId = INT32_MIN + static_cast<int32_t>(sequence.fetch_add(1, std::memory_order_relaxed) % INT32_MAX);
+    } while (pendingSpecifiedRequests_.count(requestId) != 0);
+    auto &next = pendingSpecifiedRequests_.emplace(requestId, std::move(requests)).first->second.front();
+    AbilityRuntime::StartSpecifiedParam param;
+    param.requestId = requestId;
+    DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(next.want, next.abilityInfo, param);
+}
+
+bool MissionListManager::FinishSpecifiedRequestLocked(int32_t requestId, AbilityRequest &request)
+{
+    auto pending = pendingSpecifiedRequests_.extract(requestId);
+    if (pending.empty()) {
+        return false;
+    }
+    auto &requests = pending.mapped();
+    request = std::move(requests.front());
+    requests.pop_front();
+    if (!requests.empty()) {
+        DispatchSpecifiedRequestLocked(std::move(requests));
+    }
+    return true;
 }
 
 void MissionListManager::StartWaitingAbility()
@@ -371,7 +392,7 @@ void MissionListManager::StartWaitingAbility()
 
 void MissionListManager::StartWaitingAbilityLocked()
 {
-    if (waitingAbilityQueue_.empty() || HasPendingSpecifiedRequestLocked()) {
+    if (waitingAbilityQueue_.empty()) {
         return;
     }
     auto topAbility = GetCurrentTopAbilityLocked();
@@ -2973,6 +2994,7 @@ void MissionListManager::BackToLauncher()
 
     std::queue<AbilityRequest> emptyQueue;
     std::swap(waitingAbilityQueue_, emptyQueue);
+    pendingSpecifiedRequests_.clear();
 
     launcherList_->AddMissionToTop(launcherRootMission);
     MoveMissionListToTop(launcherList_);
@@ -3648,26 +3670,11 @@ void MissionListManager::OnCallConnectDied(const std::shared_ptr<CallRecord> &ca
     abilityRecord->ReleaseCall(callRecord->GetConCallBack());
 }
 
-bool MissionListManager::HasPendingSpecifiedRequestLocked() const
-{
-    return !waitingAbilityQueue_.empty() && waitingAbilityQueue_.front().missionSpecifiedRequestId != 0;
-}
-
-bool MissionListManager::TakeSpecifiedRequestLocked(int32_t requestId, AbilityRequest &abilityRequest)
-{
-    if (!HasPendingSpecifiedRequestLocked() || waitingAbilityQueue_.front().missionSpecifiedRequestId != requestId) {
-        return false;
-    }
-    abilityRequest = std::move(waitingAbilityQueue_.front());
-    waitingAbilityQueue_.pop();
-    return true;
-}
-
 void MissionListManager::OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId)
 {
     std::lock_guard guard(managerLock_);
     AbilityRequest abilityRequest;
-    if (!TakeSpecifiedRequestLocked(requestId, abilityRequest)) {
+    if (!FinishSpecifiedRequestLocked(requestId, abilityRequest)) {
         return;
     }
 
@@ -3753,8 +3760,8 @@ void MissionListManager::OnStartSpecifiedAbilityFailed(int32_t requestId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     std::lock_guard guard(managerLock_);
-    AbilityRequest abilityRequest;
-    if (TakeSpecifiedRequestLocked(requestId, abilityRequest)) {
+    AbilityRequest rejected;
+    if (FinishSpecifiedRequestLocked(requestId, rejected)) {
         StartWaitingAbilityLocked();
     }
 }
@@ -3963,6 +3970,14 @@ void MissionListManager::AddUninstallTags(const std::string &bundleName, int32_t
 
 void MissionListManager::EraseWaitingAbility(const std::string &bundleName, int32_t uid)
 {
+    for (auto it = pendingSpecifiedRequests_.begin(); it != pendingSpecifiedRequests_.end();) {
+        const auto &request = it->second.front();
+        if (request.abilityInfo.bundleName == bundleName && request.uid == uid) {
+            it = pendingSpecifiedRequests_.erase(it);
+        } else {
+            ++it;
+        }
+    }
     std::queue<AbilityRequest> abilityQueue;
     waitingAbilityQueue_.swap(abilityQueue);
     while (!abilityQueue.empty()) {

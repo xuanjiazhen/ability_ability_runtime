@@ -141,7 +141,7 @@ public:
      */
     int AttachAbilityThreadLocked(const sptr<IAbilityScheduler> &scheduler, const sptr<IRemoteObject> &token);
 
-    virtual void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state) {}
+    virtual void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state);
 
     void OnAppStateChanged(const AppInfo &info);
 
@@ -474,6 +474,7 @@ protected:
      * After the service starting completes, complete the request list
      */
     virtual void CompleteStartServiceReq(const std::string &serviceUri);
+    std::shared_ptr<std::list<AbilityRequest>> TakeStartServiceRequests(const std::string &serviceUri);
 
     bool IsCacheExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 

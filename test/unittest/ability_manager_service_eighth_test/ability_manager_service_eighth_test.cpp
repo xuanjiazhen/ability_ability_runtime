@@ -101,6 +101,33 @@ void AbilityManagerServiceEighthTest::TearDown()
     abilityMs_.reset();
 }
 
+HWTEST_F(AbilityManagerServiceEighthTest, RejectedFAServiceReleasesOnlyItsPendingStart, TestSize.Level1)
+{
+    constexpr int32_t ownerUserId = 100;
+    auto manager = std::make_shared<CommonExtensionManager>(ownerUserId);
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    abilityMs_->subManagersHelper_->commonExtensionManagers_.emplace(ownerUserId, manager);
+    auto request = GenerateAbilityRequest("", "ServiceAbility", "service", "com.example.service", "entry");
+    request.abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
+    request.appInfo.uid = 0;
+    auto record = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(record, nullptr);
+    record->SetDebugApp(true);
+    auto key = manager->GetServiceKey(record);
+    manager->serviceMap_.emplace(key, record);
+    manager->EnqueueStartServiceReq(request, record->GetURI());
+    constexpr auto rejected = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED);
+    abilityMs_->OnAbilityRequestDone(record->GetToken(), rejected);
+    EXPECT_EQ(manager->serviceMap_.count(key), 0U);
+    EXPECT_EQ(manager->startServiceReqList_.count(record->GetURI()), 0U);
+
+    auto retry = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(retry, nullptr);
+    manager->serviceMap_.emplace(key, retry);
+    abilityMs_->OnAbilityRequestDone(record->GetToken(), rejected);
+    EXPECT_EQ(manager->GetExtensionByTokenFromServiceMap(retry->GetToken()), retry);
+}
+
 std::shared_ptr<AbilityRecord> AbilityManagerServiceEighthTest::GetAbilityRecord()
 {
     Want want;

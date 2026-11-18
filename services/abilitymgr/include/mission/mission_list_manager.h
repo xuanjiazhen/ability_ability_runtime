@@ -16,7 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_MISSION_LIST_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_MISSION_LIST_MANAGER_H
 
+#include <deque>
 #include <list>
+#include <map>
 #include <mutex>
 #include <queue>
 #include <memory>
@@ -1259,14 +1261,9 @@ private:
      */
     void EnqueueWaitingAbility(const AbilityRequest &abilityRequest);
 
-    /**
-     * push front waiting ability to queue.
-     *
-     * @param abilityRequest, the request of ability.
-     */
-    void EnqueueWaitingAbilityToFront(const AbilityRequest &abilityRequest);
-    bool HasPendingSpecifiedRequestLocked() const;
-    bool TakeSpecifiedRequestLocked(int32_t requestId, AbilityRequest &abilityRequest);
+    void StartSpecifiedRequestLocked(const AbilityRequest &abilityRequest);
+    void DispatchSpecifiedRequestLocked(std::deque<AbilityRequest> requests);
+    bool FinishSpecifiedRequestLocked(int32_t requestId, AbilityRequest &request);
     void StartWaitingAbilityLocked();
 
     /**
@@ -1377,6 +1374,7 @@ private:
     std::list<std::shared_ptr<AbilityRecord>> terminateAbilityList_;
 
     std::queue<AbilityRequest> waitingAbilityQueue_;
+    std::map<int32_t, std::deque<AbilityRequest>> pendingSpecifiedRequests_;
     mutable ffrt::mutex managerLock_;
 
     std::mutex exitReasonTaskMutex_;

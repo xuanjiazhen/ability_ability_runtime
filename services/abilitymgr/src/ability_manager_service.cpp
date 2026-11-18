@@ -9123,7 +9123,10 @@ void AbilityManagerService::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
         }
         case AppExecFwk::AbilityType::SERVICE:
         case AppExecFwk::AbilityType::EXTENSION: {
-            auto connectManager = GetConnectManagerByUserId(userId, abilityRecord->GetAbilityInfo().extensionAbilityType);
+            auto connectManager = type == AppExecFwk::AbilityType::SERVICE &&
+                state == static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_START_REJECTED) ?
+                GetCommonExtensionManagerByToken(token) :
+                GetConnectManagerByUserId(userId, abilityRecord->GetAbilityInfo().extensionAbilityType);
             if (!connectManager) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null userId=%{public}d", userId);
                 return;

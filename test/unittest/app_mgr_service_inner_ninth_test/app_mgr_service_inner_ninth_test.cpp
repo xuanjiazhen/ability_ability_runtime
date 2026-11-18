@@ -14,12 +14,14 @@
  */
 
 #include <gtest/gtest.h>
+#include <utility>
 #include "ability_util.h"  // Mock header to override CHECK_POINTER_AND_RETURN_LOG
 #include "mock_task_handler_wrap.h"  // Mock TaskHandlerWrap for testing
 #define private public
 #include "app_mgr_service_inner.h"
 #include "app_running_record.h"
 #include "app_spawn_client.h"
+#include "param.h"
 #include "app_utils.h"
 #include "render_record.h"
 #include "child_process_record.h"
@@ -139,6 +141,28 @@ void AppMgrServiceInnerNinthTest::TearDownTestCase() {}
 void AppMgrServiceInnerNinthTest::SetUp() {}
 
 void AppMgrServiceInnerNinthTest::TearDown() {}
+
+HWTEST_F(AppMgrServiceInnerNinthTest, SpecifiedBundleLookupFailureReportsRequest, TestSize.Level1)
+{
+    auto inner = std::make_shared<AppMgrServiceInner>();
+    auto &status = AAFwk::MyStatus::GetInstance();
+    auto oldSpawn = std::exchange(status.getSpawnClient_, std::make_shared<AppSpawnClient>());
+    auto oldBms = std::exchange(status.getBundleManagerHelper_, std::make_shared<BundleMgrHelper>());
+    auto oldResult = std::exchange(status.getBundleInfoV9_, ERR_INVALID_VALUE);
+    inner->isSafeMode_ = false;
+    auto response = sptr<MockStartSpecifiedAbilityResponse>::MakeSptr();
+    inner->RegisterStartSpecifiedAbilityResponse(response);
+    AbilityRuntime::StartSpecifiedParam param;
+    constexpr int32_t requestId = -2;
+    param.requestId = requestId;
+    AbilityInfo abilityInfo;
+    abilityInfo.applicationInfo.uid = 0;
+    EXPECT_CALL(*response, OnStartSpecifiedFailed(requestId, 0)).Times(1);
+    inner->StartSpecifiedAbility(AAFwk::Want(), abilityInfo, param);
+    status.getSpawnClient_ = oldSpawn;
+    status.getBundleManagerHelper_ = oldBms;
+    status.getBundleInfoV9_ = oldResult;
+}
 
 /**
  * @tc.name: PreloadApplication_001

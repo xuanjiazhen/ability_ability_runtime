@@ -24,7 +24,6 @@
 #include "mission_info_mgr.h"
 #include "mission_list_manager.h"
 #include "startup_util.h"
-#include "utils/request_id_util.h"
 #undef private
 #undef protected
 
@@ -74,8 +73,7 @@ void MissionListManagerTest::InitMockMission(std::shared_ptr<MissionListManager>
     ability->SetIsNewWant(false);
 
     abilityRequest.callerToken = ability->GetToken();
-    abilityRequest.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
-    missionListManager->EnqueueWaitingAbility(abilityRequest);
+    missionListManager->pendingSpecifiedRequests_[SPECIFIED_REQUEST_ID].push_back(abilityRequest);
     missionListManager->defaultStandardList_->AddMissionToTop(mission);
 }
 
@@ -326,8 +324,7 @@ HWTEST_F(MissionListManagerTest, OnAcceptWantResponse_001, TestSize.Level1)
     ability->SetIsNewWant(false);
 
     abilityRequest.callerToken = ability->GetToken();
-    abilityRequest.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
-    missionListManager->EnqueueWaitingAbility(abilityRequest);
+    missionListManager->pendingSpecifiedRequests_[SPECIFIED_REQUEST_ID].push_back(abilityRequest);
     missionListManager->defaultStandardList_->AddMissionToTop(mission);
     Want want;
     missionListManager->OnAcceptWantResponse(want, "flag", SPECIFIED_REQUEST_ID);
@@ -1770,31 +1767,35 @@ HWTEST_F(MissionListManagerTest, StartRejectionRemovesDebugMission, TestSize.Lev
     EXPECT_EQ(mgr->GetMissionById(MISSION_ID), nullptr);
 }
 
-HWTEST_F(MissionListManagerTest, SpecifiedRejectionAdvancesOnlyMatchingRequest, TestSize.Level1)
+HWTEST_F(MissionListManagerTest, SpecifiedStartsDoNotWaitForAnotherApplication, TestSize.Level1)
 {
     auto mgr = std::make_shared<MissionListManager>(0);
     mgr->Init();
-    AbilityRequest rejected;
-    const auto rejectedRequestId = AbilityRuntime::RequestIdUtil::GetRequestId();
-    rejected.missionSpecifiedRequestId = rejectedRequestId;
-    mgr->waitingAbilityQueue_.push(rejected);
-    AbilityRequest next;
-    next.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
-    next.abilityInfo.visible = true;
-    EXPECT_EQ(mgr->StartAbility(nullptr, nullptr, next), START_ABILITY_WAITING);
+    AbilityRequest first;
+    first.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
+    first.abilityInfo.bundleName = "com.example.first";
+    ASSERT_EQ(mgr->StartAbility(nullptr, nullptr, first), ERR_OK);
+    ASSERT_EQ(mgr->pendingSpecifiedRequests_.size(), 1U);
+    const auto firstId = mgr->pendingSpecifiedRequests_.begin()->first;
+    AbilityRequest second = first;
+    second.abilityInfo.bundleName = "com.example.second";
+    ASSERT_EQ(mgr->StartAbility(nullptr, nullptr, second), ERR_OK);
+    ASSERT_EQ(mgr->pendingSpecifiedRequests_.size(), 2U);
+    EXPECT_TRUE(mgr->waitingAbilityQueue_.empty());
 
-    mgr->StartWaitingAbility();
-    mgr->OnStartSpecifiedAbilityFailed(0);
-    ASSERT_EQ(mgr->waitingAbilityQueue_.size(), 2U);
-
-    mgr->OnStartSpecifiedAbilityFailed(rejectedRequestId);
-    ASSERT_EQ(mgr->waitingAbilityQueue_.size(), 1U);
-    auto nextRequestId = mgr->waitingAbilityQueue_.front().missionSpecifiedRequestId;
-    EXPECT_NE(nextRequestId, 0);
-    EXPECT_NE(nextRequestId, rejectedRequestId);
-    mgr->OnStartSpecifiedAbilityFailed(rejectedRequestId);
-    ASSERT_EQ(mgr->waitingAbilityQueue_.size(), 1U);
-    EXPECT_EQ(mgr->waitingAbilityQueue_.front().missionSpecifiedRequestId, nextRequestId);
+    auto secondId = mgr->pendingSpecifiedRequests_.rbegin()->first;
+    auto retry = second;
+    retry.abilityInfo.name = "Retry";
+    ASSERT_EQ(mgr->StartAbility(nullptr, nullptr, retry), ERR_OK);
+    EXPECT_EQ(mgr->pendingSpecifiedRequests_.at(secondId).size(), 2U);
+    mgr->OnStartSpecifiedAbilityFailed(firstId);
+    mgr->OnStartSpecifiedAbilityFailed(firstId);
+    ASSERT_EQ(mgr->pendingSpecifiedRequests_.size(), 1U);
+    EXPECT_EQ(mgr->pendingSpecifiedRequests_.begin()->first, secondId);
+    mgr->OnStartSpecifiedAbilityFailed(secondId);
+    ASSERT_EQ(mgr->pendingSpecifiedRequests_.size(), 1U);
+    EXPECT_NE(mgr->pendingSpecifiedRequests_.begin()->first, secondId);
+    EXPECT_EQ(mgr->pendingSpecifiedRequests_.begin()->second.front().abilityInfo.name, retry.abilityInfo.name);
 }
 
 /*
@@ -6499,8 +6500,7 @@ HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityFailed_002, TestSize.Lev
     auto missionListManager = std::make_shared<MissionListManager>(userId);
     EXPECT_NE(missionListManager, nullptr);
     AbilityRequest abilityRequest;
-    abilityRequest.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
-    missionListManager->waitingAbilityQueue_.push(abilityRequest);
+    missionListManager->pendingSpecifiedRequests_[SPECIFIED_REQUEST_ID].push_back(abilityRequest);
     missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
 }
 
@@ -6521,11 +6521,9 @@ HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityFailed_003, TestSize.Lev
     AbilityRequest abilityRequest2;
     abilityRequest1.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
     abilityRequest1.abilityInfo.visible = false;
-    abilityRequest1.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
-    missionListManager->waitingAbilityQueue_.push(abilityRequest1);
+    missionListManager->pendingSpecifiedRequests_[SPECIFIED_REQUEST_ID].push_back(abilityRequest1);
     missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
-    abilityRequest2.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
-    missionListManager->waitingAbilityQueue_.push(abilityRequest2);
+    missionListManager->pendingSpecifiedRequests_[SPECIFIED_REQUEST_ID].push_back(abilityRequest2);
     missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
 }
 
@@ -6546,11 +6544,9 @@ HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityFailed_004, TestSize.Lev
     AbilityRequest abilityRequest2;
     abilityRequest1.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
     abilityRequest1.abilityInfo.visible = true;
-    abilityRequest1.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
-    missionListManager->waitingAbilityQueue_.push(abilityRequest1);
+    missionListManager->pendingSpecifiedRequests_[SPECIFIED_REQUEST_ID].push_back(abilityRequest1);
     missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
-    abilityRequest2.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
-    missionListManager->waitingAbilityQueue_.push(abilityRequest2);
+    missionListManager->pendingSpecifiedRequests_[SPECIFIED_REQUEST_ID].push_back(abilityRequest2);
     missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
 }
 
@@ -6571,11 +6567,9 @@ HWTEST_F(MissionListManagerTest, OnStartSpecifiedAbilityFailed_005, TestSize.Lev
     AbilityRequest abilityRequest2;
     abilityRequest1.abilityInfo.launchMode = AppExecFwk::LaunchMode::SINGLETON;
     abilityRequest1.abilityInfo.visible = true;
-    abilityRequest1.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
-    missionListManager->waitingAbilityQueue_.push(abilityRequest1);
+    missionListManager->pendingSpecifiedRequests_[SPECIFIED_REQUEST_ID].push_back(abilityRequest1);
     missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
-    abilityRequest2.missionSpecifiedRequestId = SPECIFIED_REQUEST_ID;
-    missionListManager->waitingAbilityQueue_.push(abilityRequest2);
+    missionListManager->pendingSpecifiedRequests_[SPECIFIED_REQUEST_ID].push_back(abilityRequest2);
     missionListManager->OnStartSpecifiedAbilityFailed(SPECIFIED_REQUEST_ID);
 }
 
