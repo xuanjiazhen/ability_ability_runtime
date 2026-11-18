@@ -47,6 +47,8 @@ public:
 
     bool Killpg(pid_t pid) const;
 
+    bool SendSignal(pid_t pid, int32_t sig) const;
+
 private:
     ProcessManager() = default;
     ~ProcessManager() = default;

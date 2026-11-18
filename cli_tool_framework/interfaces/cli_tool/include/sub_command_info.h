@@ -36,6 +36,11 @@ public:
     std::string outputSchema;   // JSON string
     std::vector<std::string> eventTypes;
     std::string eventSchemas;   // JSON string
+    // Declares whether the subcommand supports cooperative cancellation (cancelSession).
+    // Holds the effective value once parsed as part of a ToolInfo: an explicit declaration
+    // (including false) takes precedence over the tool-level flag, while undeclared
+    // subcommands are backfilled with the tool-level value during ToolInfo::ParseFromJson.
+    bool cancelable = false;
 
     SubCommandInfo() = default;
     ~SubCommandInfo() = default;
