@@ -595,12 +595,12 @@ bool DialogSessionManager::IsCreateCloneSelectorDialog(StartAbilityContext &ctx,
     bool wantWithClone = ctx.ConsumeIsWantWithAppCloneIndex();
     bool sandboxClone = ctx.isSandBoxClone;
     if (wantWithClone || sandboxClone) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "with clone index");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "with clone idx");
         return false;
     }
     auto appIndexes = StartAbilityUtils::GetCloneAppIndexes(bundleName, userId);
     if (appIndexes.empty()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "not create clone index");
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "not create clone index");
         return false;
     }
     return true;
