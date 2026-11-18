@@ -95,6 +95,7 @@ public:
         const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId) override;
 
     int32_t ClearSession(const std::string &sessionId) override;
+    int32_t CancelSession(const std::string &sessionId, int32_t signal) override;
     int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
     int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
@@ -269,6 +270,10 @@ private:
     void DelayUnloadTask();
 
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
+    // Effective cancelable value snapshotted at session creation: sub-command declaration
+    // wins when it exists in ToolInfo.subcommands (model-layer backfill), otherwise the
+    // tool-level declaration applies; unregistered tools default to false.
+    bool SnapshotCancelable(const std::string &toolName, const std::string &subcommand) const;
     void AddSessionRecord(const std::shared_ptr<SessionRecord> &record);
     int32_t TryAddSessionRecord(const std::shared_ptr<SessionRecord> &record);
     std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
@@ -296,6 +301,30 @@ private:
         const std::vector<int64_t> &attributionIds, const std::vector<int32_t> &uids);
 
     bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
+
+    /**
+     * @brief CancelSession-specific session-owner check with a dedicated error code.
+     *
+     * Same pid-comparison semantics as IsSessionOwner, but reports the failure through the
+     * cancelSession-only ERR_CLI_NOT_SESSION_OWNER instead of the generic permission error,
+     * so JS callers can distinguish "not the session owner" from missing permissions.
+     * Other session APIs (clearSession/subscribeSession/querySession/sendMessage) keep using
+     * IsSessionOwner and must not be affected.
+     *
+     * @param record Session record to check against the calling pid.
+     * @return int32_t ERR_OK when the caller owns the session, ERR_CLI_NOT_SESSION_OWNER otherwise.
+     */
+    int32_t CheckCancelSessionOwner(const std::shared_ptr<SessionRecord> &record) const;
+
+    /**
+     * @brief Cooperative-cancel eligibility of a session, read from the cancelable snapshot
+     *        taken at CreateSessionRecord (dev-spec 6.2: tool config hot-updates during the
+     *        session lifetime do not affect existing sessions).
+     *
+     * SKILL sessions (no child process) and shell sessions (toolName == "shell", no ToolInfo
+     * declaration) never support cancel. Otherwise the creation-time snapshot decides.
+     */
+    bool IsCancelable(const std::shared_ptr<SessionRecord> &record) const;
 
     /**
      * @brief Mutex-guarded snapshot of ioMonitor_.

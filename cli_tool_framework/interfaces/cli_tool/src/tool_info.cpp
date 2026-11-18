@@ -120,6 +120,31 @@ void ParseVisibility(const nlohmann::json &json, ToolInfo &tool)
     }
     tool.visibility = visibility;
 }
+
+// Backfills cancelable for subcommands that do not explicitly declare their own value
+// with the tool-level declaration, implementing the two-level priority model: an explicit
+// subcommand declaration (including false) takes precedence, and only undeclared
+// subcommands inherit the tool-level value. Runs after all subcommands and the tool-level
+// flag are parsed, so SubCommandInfo.cancelable always carries the effective value.
+// Extracted into a helper to keep the nesting depth of ParseFromJson within the code
+// style limit.
+void BackfillSubCommandCancelable(const nlohmann::json &json, ToolInfo &tool)
+{
+    if (tool.subcommands.empty()) {
+        return;
+    }
+    if (!json.contains("subcommands") || !json["subcommands"].is_object()) {
+        return;
+    }
+    const nlohmann::json &subcommandsJson = json["subcommands"];
+    for (auto &pair : tool.subcommands) {
+        auto it = subcommandsJson.find(pair.first);
+        if (it == subcommandsJson.end() || it->contains("cancelable")) {
+            continue;
+        }
+        pair.second.cancelable = tool.cancelable;
+    }
+}
 } // namespace
 
 // ToolInfo implementation
@@ -148,7 +173,8 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
            parcel.WriteString(subcommandsJson) &&
            parcel.WriteBool(isLockScreenExecutionAllowed) &&
            parcel.WriteString(visibility) &&
-           parcel.WriteStringVector(supportedDevices);
+           parcel.WriteStringVector(supportedDevices) &&
+           parcel.WriteBool(cancelable);
 }
 
 ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
@@ -172,7 +198,8 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         !parcel.ReadString(subcommandsJson) ||
         !parcel.ReadBool(tool->isLockScreenExecutionAllowed) ||
         !parcel.ReadString(tool->visibility) ||
-        !parcel.ReadStringVector(&tool->supportedDevices)) {
+        !parcel.ReadStringVector(&tool->supportedDevices) ||
+        !parcel.ReadBool(tool->cancelable)) {
         delete tool;
         return nullptr;
     }
@@ -420,6 +447,16 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         }
         tool.isLockScreenExecutionAllowed = json["isLockScreenExecutionAllowed"];
     }
+    if (json.contains("cancelable")) {
+        if (!json["cancelable"].is_boolean()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: cancelable is not a boolean");
+            return false;
+        }
+        tool.cancelable = json["cancelable"];
+    }
+    // cancelable priority resolution: an explicit subcommand declaration (including
+    // false) overrides the tool level, undeclared subcommands inherit the tool level.
+    BackfillSubCommandCancelable(json, tool);
 
     // visibility is optional; parsing (exact value-domain validation with conservative
     // fallback per R-7) is extracted into ParseVisibility to keep the nesting depth of
@@ -477,6 +514,9 @@ nlohmann::json ToolInfo::ParseToJson() const
         j["subcommands"] = subcommandsJson;
     }
     j["isLockScreenExecutionAllowed"] = isLockScreenExecutionAllowed;
+    // The key is written unconditionally so a KVStore value stays self-describing: legacy
+    // data without this key parses back with the false default, no migration needed.
+    j["cancelable"] = cancelable;
     j["visibility"] = visibility;
     j["supportedDevices"] = supportedDevices;
 

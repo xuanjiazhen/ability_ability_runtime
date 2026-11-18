@@ -19,6 +19,10 @@ public:
     static int32_t getToolByNameResult;
     static bool toolHasSubCommand;
     static bool toolIsLockScreenExecEnabled;
+    // Cooperative-cancel fixtures (REQ 20261029538734): GetToolByName backfills these onto the
+    // tool-level and sub-command-level declarations; default false keeps the historical behavior.
+    static bool toolCancelable;
+    static bool subCommandCancelable;
     static std::string subCommandName;
     static std::vector<std::string> toolPermissions;
     static std::vector<std::string> subCommandPermissions;

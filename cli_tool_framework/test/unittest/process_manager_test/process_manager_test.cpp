@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <fcntl.h>
+#include <csignal>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -470,6 +471,91 @@ HWTEST_F(ProcessManagerTest, Killpg_0200, TestSize.Level1)
 
     EXPECT_FALSE(manager.Killpg(0));
     EXPECT_FALSE(manager.Killpg(-1));
+}
+
+/**
+ * @tc.name: ProcessManager_SendSignal_0100
+ * @tc.desc: Test SendSignal delivers to the whole process group of a group-leader child
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, SendSignal_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_SendSignal_0100 start";
+
+    pid_t pid = fork();
+    ASSERT_GE(pid, 0) << "fork failed: " << errno;
+    if (pid == 0) {
+        // Child becomes its own process-group leader; default SIGTERM disposition ends it.
+        setpgid(0, 0);
+        pause();
+        _exit(0);
+    }
+    // Parent-side setpgid removes the race with the child's own setpgid call.
+    ASSERT_EQ(setpgid(pid, pid), 0);
+    EXPECT_TRUE(ProcessManager::GetInstance().SendSignal(pid, SIGTERM));
+    int32_t status = 0;
+    ASSERT_EQ(waitpid(pid, &status, 0), pid);
+
+    GTEST_LOG_(INFO) << "ProcessManager_SendSignal_0100 end";
+}
+
+/**
+ * @tc.name: ProcessManager_SendSignal_0200
+ * @tc.desc: Test SendSignal falls back to the single process when group delivery fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, SendSignal_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_SendSignal_0200 start";
+
+    pid_t pid = fork();
+    ASSERT_GE(pid, 0) << "fork failed: " << errno;
+    if (pid == 0) {
+        // NOT a group leader; SIGINT is ignored so survival after delivery is observable.
+        signal(SIGINT, SIG_IGN);
+        while (true) {
+            pause();
+        }
+        _exit(0);
+    }
+    // No group with pgid == pid exists, so kill(-pid) fails and the fallback kill(pid) must hit.
+    EXPECT_TRUE(ProcessManager::GetInstance().SendSignal(pid, SIGINT));
+    EXPECT_EQ(kill(pid, 0), 0); // child ignored SIGINT and is still alive
+    kill(pid, SIGKILL);
+    int32_t status = 0;
+    ASSERT_EQ(waitpid(pid, &status, 0), pid);
+
+    GTEST_LOG_(INFO) << "ProcessManager_SendSignal_0200 end";
+}
+
+/**
+ * @tc.name: ProcessManager_SendSignal_0300
+ * @tc.desc: Test SendSignal returns false when both group and single-process delivery fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, SendSignal_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_SendSignal_0300 start";
+
+    EXPECT_FALSE(ProcessManager::GetInstance().SendSignal(999999, SIGINT));
+    EXPECT_FALSE(ProcessManager::GetInstance().SendSignal(999999, SIGTERM));
+
+    GTEST_LOG_(INFO) << "ProcessManager_SendSignal_0300 end";
+}
+
+/**
+ * @tc.name: ProcessManager_SendSignal_0400
+ * @tc.desc: Test SendSignal rejects non-positive pid without calling kill
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, SendSignal_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_SendSignal_0400 start";
+
+    EXPECT_FALSE(ProcessManager::GetInstance().SendSignal(0, SIGINT));
+    EXPECT_FALSE(ProcessManager::GetInstance().SendSignal(-1, SIGTERM));
+
+    GTEST_LOG_(INFO) << "ProcessManager_SendSignal_0400 end";
 }
 
 // ==================== CreateShellProcess Tests ====================

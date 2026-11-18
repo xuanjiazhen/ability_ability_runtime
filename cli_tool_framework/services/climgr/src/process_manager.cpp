@@ -329,5 +329,29 @@ bool ProcessManager::Killpg(pid_t pid) const
     return true;
 }
 
+bool ProcessManager::SendSignal(pid_t pid, int32_t sig) const
+{
+    if (pid <= 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "SendSignal skipped: invalid pid=%{public}d", pid);
+        return false;
+    }
+    int32_t killRet = kill(0 - pid, sig);
+    if (killRet == 0) {
+        return true;
+    }
+    TAG_LOGW(AAFwkTag::CLI_TOOL, "SendSignal killpg result:%{public}d sig:%{public}d", killRet, sig);
+    // The spawn path does not setpgid, so the tool process is not guaranteed to be a process-group
+    // leader and killpg(-pid) may fail with ESRCH, delivering nothing at all. Fall back to
+    // signaling the single process so the signal still reaches the tool itself (cancelSession is
+    // a best-effort cooperative path). Note: unlike cancelSession, clearSession never falls
+    // back - SIGKILL group delivery (Killpg) is its whole delivery scope and fails with ERR_NOT_KILL.
+    killRet = kill(pid, sig);
+    if (killRet != 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "SendSignal kill result:%{public}d sig:%{public}d", killRet, sig);
+        return false;
+    }
+    return true;
+}
+
 } // namespace CliTool
 } // namespace OHOS
