@@ -83,6 +83,18 @@ public:
         return E_OK;
     }
 
+    virtual int32_t EncryptEl5UserKey(uint32_t userId) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t DecryptEl5UserKey(uint32_t userId,
+                                      const std::vector<uint8_t> &token,
+                                      const std::vector<uint8_t> &secret) override
+    {
+        return E_OK;
+    }
+
     virtual int32_t GetBundleStats(const std::string &pkgName, BundleStats &bundleStats,
         int32_t index, uint32_t statFlag) override
     {

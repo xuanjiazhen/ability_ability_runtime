@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "ffrt.h"
 
@@ -288,6 +289,20 @@ private:
      * @return Returns ERR_OK on success; ERR_TASK_ALREADY_EXISTS if the task already exists.
      */
     int32_t StartTaskInner(const TaskCallerInfo &caller, const std::string &taskId, int32_t priority);
+
+    /**
+     * @brief Unlocks the creator user's EL5 user key through the storage manager so
+     *        that the task can access el5-encrypted files: the SAF agent fence token
+     *        is passed in (the secret stays empty by design) and both token buffers
+     *        are wiped after the call. Low-risk tasks (empty token) and non-positive
+     *        user ids are skipped. Runs without tasksMutex_ held — synchronous
+     *        cross-SA IPC must not run under a lock (OH-7).
+     * @param caller Indicates the captured caller identity.
+     * @param authToken Indicates the auth token bytes from the SAF agent fence.
+     * @return Returns ERR_OK on success; INNER_ERR when the storage manager rejects
+     *         the unlock or is unreachable — the caller must roll the task back.
+     */
+    [[nodiscard]] int32_t DecryptEl5Files(const TaskCallerInfo &caller, std::vector<int32_t> authToken);
 
     /**
      * @brief Single-exit cleanup for all three finish paths (caller finish / timeout /
