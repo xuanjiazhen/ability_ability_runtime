@@ -1352,7 +1352,7 @@ private:
     };
 
 private:
-    int32_t RunLaunchServiceTask(const std::function<int32_t(const std::shared_ptr<AppMgrServiceInner> &)> &task);
+
 
     int DumpIpcAllInner(const AppMgrService::DumpIpcKey key, std::string& result);
     int DumpIpcWithPidInner(const AppMgrService::DumpIpcKey key,
@@ -1366,8 +1366,6 @@ private:
     AppMgrServiceState appMgrServiceState_;
     std::shared_ptr<AppMgrServiceInner> appMgrServiceInner_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
-    std::mutex launchServiceTaskMutex_;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> launchServiceTaskHandler_;
     std::shared_ptr<AMSEventHandler> eventHandler_;
     sptr<ISystemAbilityManager> systemAbilityMgr_;
     sptr<IAmsMgr> amsMgrScheduler_;
