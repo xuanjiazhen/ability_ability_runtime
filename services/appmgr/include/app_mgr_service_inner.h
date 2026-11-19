@@ -1186,6 +1186,7 @@ public:
      */
     void OnRenderProcessExited(pid_t pid);
 
+    void PostLaunchServiceProcessExited(pid_t pid);
     void OnLaunchServiceProcessExited(pid_t pid);
 
     int VerifyKillProcessPermission(const sptr<IRemoteObject> &token) const;

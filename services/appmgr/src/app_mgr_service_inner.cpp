@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <cerrno>
 #include <fcntl.h>
+#include <future>
 #include <mutex>
 #include <queue>
 #include <securec.h>
@@ -12875,6 +12876,19 @@ int32_t AppMgrServiceInner::ExitMasterProcessRole()
     return ERR_OK;
 }
 
+void AppMgrServiceInner::PostLaunchServiceProcessExited(pid_t pid)
+{
+    auto task = [weak = weak_from_this(), pid]() {
+        if (auto inner = weak.lock()) {
+            inner->OnLaunchServiceProcessExited(pid);
+        }
+    };
+    auto handler = GetTaskHandler();
+    if (handler == nullptr || !handler->SubmitTask(task, "OnLaunchServiceProcessExitedTask")) {
+        TAG_LOGE(AAFwkTag::APPMGR, "post process exit failed, pid:%{public}d", pid);
+    }
+}
+
 void AppMgrServiceInner::OnLaunchServiceProcessExited(pid_t pid)
 {
     GetLaunchServiceManager()->HandleLaunchServiceProcessDied(pid);
@@ -13497,8 +13511,12 @@ int32_t AppMgrServiceInner::GetAllRegisteredInformation(
 void AppMgrServiceInner::SetLaunchServicesEnabled(const std::string &bundleName, int32_t userId, int32_t appIndex,
     const std::vector<uint8_t> &token, bool enable, int32_t callerUid, std::function<void(int32_t)> completion)
 {
-    GetLaunchServiceManager()->SetLaunchServicesEnabled(
-        bundleName, userId, appIndex, token, enable, callerUid, std::move(completion));
+    if (completion == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "completion null");
+        return;
+    }
+    GetLaunchServiceManager()->SetLaunchServicesEnabled(bundleName, userId, appIndex, token, enable, callerUid,
+        std::move(completion));
 }
 
 void AppMgrServiceInner::StartLaunchServicesAfterBoot()

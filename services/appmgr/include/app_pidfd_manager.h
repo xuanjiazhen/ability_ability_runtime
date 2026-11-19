@@ -16,6 +16,7 @@
 #ifndef OHOS_APP_PIDFD_MANAGER_H
 #define OHOS_APP_PIDFD_MANAGER_H
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -67,7 +68,9 @@ public:
      * If pidfd_open fails (the process already exited, ESRCH), the cleanup task
      * is dispatched directly. The type selects which exit handler is dispatched.
      */
-    bool AddWatcher(pid_t pid, PidFdType type);
+    // Returns -1 on failure. LAUNCH_SERVICE receives an owned duplicate that the
+    // caller must close; CHILD/RENDER receive a borrowed watcher descriptor.
+    int32_t AddWatcher(pid_t pid, PidFdType type);
 
 private:
     AppPidFdManager();
@@ -91,13 +94,10 @@ private:
     void DispatchCleanup(pid_t pid, PidFdType type);
 
     static int32_t OpenPidFd(pid_t pid, unsigned int flags);
-    void *StorePidFd(pid_t pid, int32_t pidfd);
-
     std::map<pid_t, PidFdEntry> pidfdMap_;
     std::mutex mapMutex_;
     std::weak_ptr<AppMgrServiceInner> appMgrServiceInner_;
     std::weak_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> launchServiceTaskHandler_;
 
     DISALLOW_COPY_AND_MOVE(AppPidFdManager);
 };
