@@ -1186,6 +1186,7 @@ public:
      */
     void OnRenderProcessExited(pid_t pid);
 
+    void PostLaunchServiceProcessExited(pid_t pid);
     void OnLaunchServiceProcessExited(pid_t pid);
 
     int VerifyKillProcessPermission(const sptr<IRemoteObject> &token) const;
@@ -1891,6 +1892,8 @@ public:
     virtual int32_t CheckIsKiaProcess(pid_t pid, bool &isKia);
 
     bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &isDebug);
+
+    std::shared_ptr<LaunchServiceManager> GetLaunchServiceManager();
 
     std::shared_ptr<AAFwk::TaskHandlerWrap> GetTaskHandler() const
     {
@@ -2631,7 +2634,6 @@ private:
     bool GetKeepAliveState(const std::shared_ptr<AppRunningRecord> &appRecord);
     void OnProcessDied(std::shared_ptr<AppRunningRecord> appRecord);
     friend class LaunchServiceManager;
-    std::shared_ptr<LaunchServiceManager> GetLaunchServiceManager();
     bool IsBlockedByDisposeRules(const std::string &bundleName, int32_t userId,
         int32_t appIndex);
     int32_t PreCheckStartProcess(const std::string &bundleName, int32_t uid, int32_t appIndex);

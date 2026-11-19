@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
@@ -31,6 +32,8 @@
 #include "launch_service_observer.h"
 #include "task_handler_wrap.h"
 
+#include "unique_fd.h"
+
 namespace OHOS {
 namespace AppExecFwk {
 class AppMgrServiceInner;
@@ -41,6 +44,8 @@ struct AppSpawnStartMsg;
 class LaunchServiceManager : public std::enable_shared_from_this<LaunchServiceManager> {
 public:
     explicit LaunchServiceManager(const std::weak_ptr<AppMgrServiceInner> &appMgrServiceInner);
+
+    void SetTaskHandler(const std::shared_ptr<AAFwk::TaskHandlerWrap> &handler);
 
     int32_t RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
     int32_t UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid);
@@ -82,10 +87,10 @@ private:
         int32_t pid = 0;
         uint32_t restartCount = 0;
         uint64_t generation = 0;
+        std::shared_ptr<UniqueFd> pidfd;
         std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
     };
     int32_t CheckLaunchServiceStartLocked(const LaunchServiceKey &key, AAFwk::LaunchServiceDescriptor &descriptor);
-    int32_t CheckLaunchServiceWatcher(const LaunchServiceKey &key, int32_t pid, bool watching);
     std::function<void(int32_t)> CreateLaunchServicesEnabledCompletion(const std::string &bundleName, int32_t userId,
         int32_t appIndex, bool enable, std::function<void(int32_t)> completion);
     int32_t StartLaunchService(const LaunchServiceKey &key, const LaunchService &service, uint32_t restartCount = 0,
@@ -112,6 +117,8 @@ private:
     std::string GetLaunchServiceRestartTaskName(const LaunchServiceKey &key, uint64_t generation) const;
     std::shared_ptr<AAFwk::TaskHandlerWrap> GetTaskHandler() const;
 
+    mutable std::mutex taskHandlerMutex_;
+    std::weak_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::weak_ptr<AppMgrServiceInner> appMgrServiceInner_;
     mutable std::shared_mutex launchServiceMutex_;
     uint64_t launchServiceGeneration_ = 0;

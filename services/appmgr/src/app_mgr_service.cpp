@@ -56,6 +56,7 @@
 #include "bundle_constants.h"
 #include "cache_process_manager.h"
 #include "launch_service_info.h"
+#include "launch_service_manager.h"
 #include "launch_service_operation_callback.h"
 #include "uri_permission_manager_client.h"
 #include "appfreeze_manager.h"
@@ -129,6 +130,7 @@ constexpr int32_t USER_UID = 2000;
 constexpr const char* HIVIEW_PROCESS_NAME = "hiview";
 constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+constexpr const char* LAUNCH_SERVICE_PC_MODE_SWITCH_PARAM = "const.window.support_window_pcmode_switch";
 constexpr const char* LAUNCH_SERVICE_MAIN_MODE_PARAM = "const.sceneboard.mainmode";
 constexpr const char* LAUNCH_SERVICE_PC_MODE_PARAM = "persist.sceneboard.ispcmode";
 constexpr const char* ALLOW_LAUNCH_SERVICE_ON_NON_DUAL_MODE_DEVICE_PARAM =
@@ -136,11 +138,12 @@ constexpr const char* ALLOW_LAUNCH_SERVICE_ON_NON_DUAL_MODE_DEVICE_PARAM =
 
 bool IsDaemonDeviceSupported()
 {
-    if (system::GetParameter(LAUNCH_SERVICE_MAIN_MODE_PARAM, "").empty() &&
-        system::GetParameter(LAUNCH_SERVICE_PC_MODE_PARAM, "").empty()) {
+    if (!system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_SWITCH_PARAM, false)) {
         return system::GetBoolParameter(ALLOW_LAUNCH_SERVICE_ON_NON_DUAL_MODE_DEVICE_PARAM, false);
     }
-    return system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_PARAM, false);
+    auto mainMode = system::GetParameter(LAUNCH_SERVICE_MAIN_MODE_PARAM, "");
+    return (mainMode == "0" || mainMode == "1") &&
+        system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_PARAM, false);
 }
 
 bool VerifyRegisterDaemonPermission()
@@ -254,6 +257,7 @@ void AppMgrService::OnStop()
         launchServiceTaskHandler.swap(launchServiceTaskHandler_);
     }
     if (appMgrServiceInner_) {
+        appMgrServiceInner_->GetLaunchServiceManager()->SetTaskHandler(nullptr);
         appMgrServiceInner_->OnStop();
     }
     TAG_LOGI(AAFwkTag::APPMGR, "stop service success");
@@ -385,6 +389,7 @@ ErrCode AppMgrService::Init()
         if (launchServiceTaskHandler_ == nullptr) {
             return ERR_INVALID_OPERATION;
         }
+        appMgrServiceInner_->GetLaunchServiceManager()->SetTaskHandler(launchServiceTaskHandler_);
     }
     taskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler("app_mgr_task_queue",
         DEFAULT_CONCURRENT_NUMBER);
