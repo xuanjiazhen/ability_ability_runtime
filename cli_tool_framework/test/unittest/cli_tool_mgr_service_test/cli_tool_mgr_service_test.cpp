@@ -5004,9 +5004,11 @@ public:
 
 /**
  * @tc.name: CliToolManagerService_ResolveToolPid_0100
- * @tc.desc: capture-then-register: the poll chain discovers the tool child of
- *           the sandbox host and attaches the attribution to the TOOL pid (never
- *           the host); the chain ends on discovery (no further polls).
+ * @tc.desc: single delayed attach: ResolveToolPid schedules exactly one delayed
+ *           task (RESOLVE_DELAY_MS) and firing it registers the HOST pid — the
+ *           re-anchoring onto the tool child happens on the appmgr side (outside
+ *           climgr's hidepid-clipped view); the attach state machine writes back
+ *           ATTACHED and nothing is ever scheduled again.
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0100, TestSize.Level1)
@@ -5015,49 +5017,42 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0100, TestSize.Level1)
     ToolPidResolverScope resolverScope;
 
     auto record = std::make_shared<SessionRecord>();
-    record->sessionId = "resolve_capture_session";
+    record->sessionId = "resolve_delayed_session";
     record->taskId = "task_resolve_0100";
     record->processId = ATTR_TEST_ANCHOR_PID;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
     std::vector<int64_t> delays;
-    std::vector<std::function<void()>> pendingPolls;
+    std::vector<std::function<void()>> pendingFires;
     ToolPidResolver::GetInstance().SetSchedulerForTest(
-        [&delays, &pendingPolls](int64_t delayMs, std::function<void()> next) {
+        [&delays, &pendingFires](int64_t delayMs, std::function<void()> next) {
             delays.emplace_back(delayMs);
-            pendingPolls.emplace_back(std::move(next));
-        });
-    int32_t scanCalls = 0;
-    ToolPidResolver::GetInstance().SetScanForTest(
-        [&scanCalls](pid_t anchor, std::string &comm) {
-            ++scanCalls;
-            EXPECT_EQ(anchor, ATTR_TEST_ANCHOR_PID);
-            comm = "ohos-location";
-            return ATTR_TEST_TOOL_PID;
+            pendingFires.emplace_back(std::move(next));
         });
 
     service_->ResolveToolPid(record);
-    ASSERT_EQ(pendingPolls.size(), 1); // first poll scheduled at the burst interval
-    EXPECT_EQ(delays[0], ToolPidResolver::BURST_INTERVAL_MS);
-    pendingPolls[0](); // drive the first poll synchronously
+    ASSERT_EQ(pendingFires.size(), 1); // exactly one delayed submit, no chain
+    EXPECT_EQ(delays[0], ToolPidResolver::RESOLVE_DELAY_MS);
+    pendingFires[0](); // the delay elapses: the sandbox setup + spawn window is covered
 
-    EXPECT_EQ(scanCalls, 1);
     EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
-    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_TOOL_PID));
-    EXPECT_NE(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_ANCHOR_PID));
+    // The registered pid is the HOST pid — the server-side appmgr probe re-anchors it
+    // onto the live tool child (or falls back to this very pid when no child is found).
+    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_ANCHOR_PID));
     EXPECT_EQ(record->attributionState, AttributionState::ATTACHED);
     EXPECT_EQ(record->attributionId, ATTR_TEST_ATTRIBUTION_ID);
-    EXPECT_EQ(pendingPolls.size(), 1); // discovery ended the chain
+    EXPECT_EQ(pendingFires.size(), 1); // single shot: firing never schedules again
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0100 end");
 }
 
 /**
  * @tc.name: CliToolManagerService_ResolveToolPid_0200
- * @tc.desc: host reaped before discovery: the poll gives up without scanning or
- *           registering (the tool child is dead too — nested lifetime), and the
- *           chain stops (no further polls scheduled).
+ * @tc.desc: host reaped before the delayed attach fires: the attach state
+ *           machine's Phase-1 host-liveness gate blocks the registration (a
+ *           dead host's tool child is dead too — nested lifetime) and the
+ *           session keeps its NONE state.
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0200, TestSize.Level1)
@@ -5072,37 +5067,28 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0200, TestSize.Level1)
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    std::vector<std::function<void()>> pendingPolls;
+    std::vector<std::function<void()>> pendingFires;
     ToolPidResolver::GetInstance().SetSchedulerForTest(
-        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
-            pendingPolls.emplace_back(std::move(next));
-        });
-    int32_t scanCalls = 0;
-    ToolPidResolver::GetInstance().SetScanForTest(
-        [&scanCalls](pid_t anchor, std::string &comm) {
-            ++scanCalls;
-            return -1;
+        [&pendingFires](int64_t delayMs, std::function<void()> next) {
+            pendingFires.emplace_back(std::move(next));
         });
 
     service_->ResolveToolPid(record);
-    ASSERT_EQ(pendingPolls.size(), 1);
-    record->processId = -1; // the reaper invalidated the host before the first poll ran
-    pendingPolls[0]();
+    ASSERT_EQ(pendingFires.size(), 1);
+    record->processId = -1; // the reaper invalidated the host before the delay elapsed
+    pendingFires[0]();
 
-    EXPECT_EQ(scanCalls, 0); // the host-liveness gate precedes the scan
-    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0); // the host-liveness gate precedes the IPC
     EXPECT_EQ(record->attributionState, AttributionState::NONE);
-    EXPECT_EQ(pendingPolls.size(), 1); // give-up ended the chain
+    EXPECT_EQ(pendingFires.size(), 1); // single shot: no further scheduling either way
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0200 end");
 }
 
 /**
  * @tc.name: CliToolManagerService_ResolveToolPid_0300
- * @tc.desc: pacing and budget: a missing tool keeps the chain at the burst
- *           interval inside the burst window and the backoff interval at its
- *           edge; once the budget deadline passes, the poll gives up without
- *           registering (observable miss).
+ * @tc.desc: taskId not carried: Resolve schedules nothing and never registers —
+ *           unattributed sessions pay zero cost.
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0300, TestSize.Level1)
@@ -5111,47 +5097,32 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0300, TestSize.Level1)
     ToolPidResolverScope resolverScope;
 
     auto record = std::make_shared<SessionRecord>();
-    record->sessionId = "resolve_timeout_session";
-    record->taskId = "task_resolve_0300";
+    record->sessionId = "resolve_no_taskid_session";
+    record->taskId = "";
     record->processId = ATTR_TEST_ANCHOR_PID;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    std::vector<int64_t> delays;
-    std::vector<std::function<void()>> pendingPolls;
+    std::vector<std::function<void()>> pendingFires;
     ToolPidResolver::GetInstance().SetSchedulerForTest(
-        [&delays, &pendingPolls](int64_t delayMs, std::function<void()> next) {
-            delays.emplace_back(delayMs);
-            pendingPolls.emplace_back(std::move(next));
+        [&pendingFires](int64_t delayMs, std::function<void()> next) {
+            pendingFires.emplace_back(std::move(next));
         });
-    ToolPidResolver::GetInstance().SetScanForTest(
-        [](pid_t anchor, std::string &comm) { return -1; });
-    auto future = std::chrono::steady_clock::now() + std::chrono::seconds(1);
-    auto past = std::chrono::steady_clock::now() - std::chrono::seconds(1);
 
-    ToolPidResolver::GetInstance().PollForTest(record, 0, future); // early burst: reschedules at burst pace
-    ASSERT_EQ(delays.size(), 1);
-    EXPECT_EQ(delays[0], ToolPidResolver::BURST_INTERVAL_MS);
-    ToolPidResolver::GetInstance().PollForTest(record, ToolPidResolver::BURST_POLL_COUNT - 2, future);
-    ASSERT_EQ(delays.size(), 2);
-    EXPECT_EQ(delays[1], ToolPidResolver::BURST_INTERVAL_MS); // last poll still inside the burst window
-    ToolPidResolver::GetInstance().PollForTest(record, ToolPidResolver::BURST_POLL_COUNT - 1, future);
-    ASSERT_EQ(delays.size(), 3);
-    EXPECT_EQ(delays[2], ToolPidResolver::BACKOFF_INTERVAL_MS); // burst window exhausted
+    service_->ResolveToolPid(record);
 
-    ToolPidResolver::GetInstance().PollForTest(record, ToolPidResolver::BURST_POLL_COUNT, past);
-    EXPECT_EQ(delays.size(), 3); // budget give-up: nothing more scheduled
+    EXPECT_EQ(pendingFires.size(), 0);
     EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
-    EXPECT_EQ(record->attributionState, AttributionState::NONE);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0300 end");
 }
 
 /**
  * @tc.name: CliToolManagerService_ResolveToolPid_0400
- * @tc.desc: NONE-state gate (first capture wins): after a successful attach, a
- *           later capture (or a direct attach call) with a different pid is
- *           blocked by the attribution state machine — exactly one registration.
+ * @tc.desc: NONE-state gate (exactly-once): after the delayed attach registered
+ *           the host pid, a second attach attempt with a different pid is
+ *           blocked by the attribution state machine — never more than one
+ *           registration per session.
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0400, TestSize.Level1)
@@ -5166,31 +5137,22 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0400, TestSize.Level1)
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    std::vector<std::function<void()>> pendingPolls;
+    std::vector<std::function<void()>> pendingFires;
     ToolPidResolver::GetInstance().SetSchedulerForTest(
-        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
-            pendingPolls.emplace_back(std::move(next));
-        });
-    pid_t discovered = ATTR_TEST_TOOL_PID;
-    ToolPidResolver::GetInstance().SetScanForTest(
-        [&discovered](pid_t anchor, std::string &comm) {
-            comm = "ohos-location";
-            return discovered;
+        [&pendingFires](int64_t delayMs, std::function<void()> next) {
+            pendingFires.emplace_back(std::move(next));
         });
 
     service_->ResolveToolPid(record);
-    ASSERT_EQ(pendingPolls.size(), 1);
-    pendingPolls[0]();
+    ASSERT_EQ(pendingFires.size(), 1);
+    pendingFires[0]();
     EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
 
-    // A second capture reports a different pid: the state machine blocks a second
-    // registration (fail-safe: never more than one attribution per session).
-    discovered = ATTR_TEST_TOOL_PID + 100;
-    ToolPidResolver::GetInstance().PollForTest(record, 1,
-        std::chrono::steady_clock::now() + std::chrono::seconds(1));
-    service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID + 200);
+    // A later attach carrying a different pid is blocked: the state machine allows
+    // exactly one registration per session (fail-safe against stale retries).
+    service_->AttachTaskAttribution(record, ATTR_TEST_TOOL_PID);
     EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
-    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_TOOL_PID));
+    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_ANCHOR_PID));
     EXPECT_EQ(record->attributionState, AttributionState::ATTACHED);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0400 end");
@@ -5198,8 +5160,8 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0400, TestSize.Level1)
 
 /**
  * @tc.name: CliToolManagerService_ResolveToolPid_0500
- * @tc.desc: taskId not carried: Resolve schedules nothing and never scans —
- *           unattributed sessions pay zero cost.
+ * @tc.desc: invalid host pid at schedule time: Resolve skips before scheduling
+ *           anything (the session is already tearing down), zero cost.
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0500, TestSize.Level1)
@@ -5208,28 +5170,21 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0500, TestSize.Level1)
     ToolPidResolverScope resolverScope;
 
     auto record = std::make_shared<SessionRecord>();
-    record->sessionId = "resolve_no_taskid_session";
-    record->taskId = "";
-    record->processId = ATTR_TEST_ANCHOR_PID;
+    record->sessionId = "resolve_invalid_host_session";
+    record->taskId = "task_resolve_0500";
+    record->processId = -1; // already reaped when the session reached the mount point
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    std::vector<std::function<void()>> pendingPolls;
+    std::vector<std::function<void()>> pendingFires;
     ToolPidResolver::GetInstance().SetSchedulerForTest(
-        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
-            pendingPolls.emplace_back(std::move(next));
-        });
-    int32_t scanCalls = 0;
-    ToolPidResolver::GetInstance().SetScanForTest(
-        [&scanCalls](pid_t anchor, std::string &comm) {
-            ++scanCalls;
-            return ATTR_TEST_TOOL_PID;
+        [&pendingFires](int64_t delayMs, std::function<void()> next) {
+            pendingFires.emplace_back(std::move(next));
         });
 
     service_->ResolveToolPid(record);
 
-    EXPECT_EQ(pendingPolls.size(), 0);
-    EXPECT_EQ(scanCalls, 0);
+    EXPECT_EQ(pendingFires.size(), 0);
     EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0500 end");
@@ -5237,8 +5192,10 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0500, TestSize.Level1)
 
 /**
  * @tc.name: CliToolManagerService_ResolveToolPid_0600
- * @tc.desc: session ended before discovery (record already off the table): the
- *           poll gives up without scanning or registering, and the chain stops.
+ * @tc.desc: session ended before the delayed attach (record already off the
+ *           table but still alive by reference): the attach state machine's
+ *           Phase-1 in-table gate blocks the registration; no crash, nothing
+ *           scheduled afterwards.
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0600, TestSize.Level1)
@@ -5253,24 +5210,19 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0600, TestSize.Level1)
     record->callerUid = ATTR_TEST_CALLER_UID;
     // deliberately NOT added to the session table: the teardown already removed it
 
-    std::vector<std::function<void()>> pendingPolls;
+    std::vector<std::function<void()>> pendingFires;
     ToolPidResolver::GetInstance().SetSchedulerForTest(
-        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
-            pendingPolls.emplace_back(std::move(next));
-        });
-    int32_t scanCalls = 0;
-    ToolPidResolver::GetInstance().SetScanForTest(
-        [&scanCalls](pid_t anchor, std::string &comm) {
-            ++scanCalls;
-            return ATTR_TEST_TOOL_PID;
+        [&pendingFires](int64_t delayMs, std::function<void()> next) {
+            pendingFires.emplace_back(std::move(next));
         });
 
-    ToolPidResolver::GetInstance().PollForTest(record, 0,
-        std::chrono::steady_clock::now() + std::chrono::seconds(1));
+    service_->ResolveToolPid(record);
+    ASSERT_EQ(pendingFires.size(), 1);
+    pendingFires[0](); // the record is still alive here: the weak gate passes...
 
-    EXPECT_EQ(scanCalls, 0); // the in-table probe precedes the scan
-    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
-    EXPECT_EQ(pendingPolls.size(), 0); // give-up ended the chain
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0); // ...but the in-table gate precedes the IPC
+    EXPECT_EQ(record->attributionState, AttributionState::NONE);
+    EXPECT_EQ(pendingFires.size(), 1);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0600 end");
 }
@@ -5278,8 +5230,8 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0600, TestSize.Level1)
 /**
  * @tc.name: CliToolManagerService_ResolveToolPid_0700
  * @tc.desc: test-boundary fence: ResetForTest invalidates an already-scheduled
- *           poll chain; driving the stale continuation afterwards is a silent
- *           no-op (no scan, no registration, chain dropped).
+ *           delayed task; driving the stale task afterwards is a silent no-op
+ *           (no registration, the session keeps its NONE state).
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0700, TestSize.Level1)
@@ -5294,25 +5246,18 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0700, TestSize.Level1)
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
-    std::vector<std::function<void()>> pendingPolls;
+    std::vector<std::function<void()>> pendingFires;
     ToolPidResolver::GetInstance().SetSchedulerForTest(
-        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
-            pendingPolls.emplace_back(std::move(next));
-        });
-    int32_t scanCalls = 0;
-    ToolPidResolver::GetInstance().SetScanForTest(
-        [&scanCalls](pid_t anchor, std::string &comm) {
-            ++scanCalls;
-            return ATTR_TEST_TOOL_PID;
+        [&pendingFires](int64_t delayMs, std::function<void()> next) {
+            pendingFires.emplace_back(std::move(next));
         });
 
     service_->ResolveToolPid(record);
-    ASSERT_EQ(pendingPolls.size(), 1);
-    ToolPidResolver::GetInstance().ResetForTest(); // test boundary: fence the live chain
-    pendingPolls[0](); // stale continuation runs after the fence
+    ASSERT_EQ(pendingFires.size(), 1);
+    ToolPidResolver::GetInstance().ResetForTest(); // test boundary: fence the pending task
+    pendingFires[0](); // stale task runs after the fence
 
-    EXPECT_EQ(scanCalls, 0); // the fence aborts before the scan
-    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0); // the fence aborts before the attach
     EXPECT_EQ(record->attributionState, AttributionState::NONE);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0700 end");
@@ -5321,9 +5266,9 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0700, TestSize.Level1)
 /**
  * @tc.name: CliToolManagerService_ResolveToolPid_0800
  * @tc.desc: weak capture: once the record left the table and its last strong
- *           reference dropped, the scheduled continuation finds the weak
- *           reference expired and gives up without scanning or registering
- *           (no delayed record retention, no use-after-free); the chain stops.
+ *           reference dropped, the delayed task finds the weak reference
+ *           expired and gives up without registering (no delayed record
+ *           retention, no use-after-free); nothing is scheduled again.
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0800, TestSize.Level1)
@@ -5339,28 +5284,21 @@ HWTEST_F(CliToolManagerServiceTest, ResolveToolPid_0800, TestSize.Level1)
     service_->AddSessionRecord(record);
     std::weak_ptr<SessionRecord> observer = record; // proves the record really died
 
-    std::vector<std::function<void()>> pendingPolls;
+    std::vector<std::function<void()>> pendingFires;
     ToolPidResolver::GetInstance().SetSchedulerForTest(
-        [&pendingPolls](int64_t delayMs, std::function<void()> next) {
-            pendingPolls.emplace_back(std::move(next));
-        });
-    int32_t scanCalls = 0;
-    ToolPidResolver::GetInstance().SetScanForTest(
-        [&scanCalls](pid_t anchor, std::string &comm) {
-            ++scanCalls;
-            return ATTR_TEST_TOOL_PID;
+        [&pendingFires](int64_t delayMs, std::function<void()> next) {
+            pendingFires.emplace_back(std::move(next));
         });
 
     service_->ResolveToolPid(record);
-    ASSERT_EQ(pendingPolls.size(), 1);
+    ASSERT_EQ(pendingFires.size(), 1);
     service_->RemoveSessionRecord(record->sessionId); // teardown: off the table
     record.reset();                                  // last strong reference dropped
     ASSERT_TRUE(observer.expired());                 // record destroyed immediately
-    pendingPolls[0]();                                // continuation runs against a dead record
+    pendingFires[0]();                               // the task runs against a dead record
 
-    EXPECT_EQ(scanCalls, 0);                         // the weak gate precedes the scan
-    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
-    EXPECT_EQ(pendingPolls.size(), 1);               // give-up ended the chain
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);       // the weak gate precedes the attach
+    EXPECT_EQ(pendingFires.size(), 1);               // give-up ended with no rescheduling
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResolveToolPid_0800 end");
 }
