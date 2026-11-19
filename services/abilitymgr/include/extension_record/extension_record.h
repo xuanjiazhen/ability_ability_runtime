@@ -35,7 +35,6 @@ public:
 
     virtual ~ExtensionRecord();
 
-
     /**
      * Advance the migration gen by 1 for a new migration.
      * @return The new gen, or 0 when migration is unsupported or saturated (reject).
@@ -53,9 +52,9 @@ public:
 
     /**
      * @brief Remember the delivered session of the pending migration. On gen-matched
-     *        confirmation the record's factual sessionInfo is advanced by adopting a
-     *        sanitized copy of it (fact/intent separation: the intent only ever lives in
-     *        the delivery, never in the record's sessionInfo).
+     *        confirmation the record's sessionInfo is advanced by adopting a sanitized
+     *        copy of it (the pending-migration state only ever lives in the delivery,
+     *        never in the record's sessionInfo).
      */
     virtual void SetMigrationDeliverySessionInfo(const sptr<AAFwk::SessionInfo> &deliverySessionInfo) {}
 

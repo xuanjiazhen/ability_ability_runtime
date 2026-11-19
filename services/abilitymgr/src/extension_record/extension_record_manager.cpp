@@ -214,27 +214,30 @@ int32_t ExtensionRecordManager::GetActiveUIExtensionListByUid(
     return ERR_OK;
 }
 
-bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityRequest &abilityRequest,
-    const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
-    bool &isLoaded, int32_t &ret)
+std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::FindLiveMigrationRecord(
+    const sptr<AAFwk::SessionInfo> &sessionInfo, const std::string &hostBundleName, int32_t &ret)
 {
     bool hasTerminatingMatch = false;
-    auto migrationRecord = GetAbilityRecordByPersistentId(abilityRequest.sessionInfo, hostBundleName,
-        hasTerminatingMatch);
-    if (migrationRecord == nullptr) {
-        if (hasTerminatingMatch) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR,
-                "migration update: record terminating, persistentId: %{public}d, rejected",
-                abilityRequest.sessionInfo->persistentId);
-            ret = ERR_INVALID_VALUE;
-            return true;
-        }
+    auto migrationRecord = GetAbilityRecordByPersistentId(sessionInfo, hostBundleName, hasTerminatingMatch);
+    if (migrationRecord != nullptr) {
+        return migrationRecord;
+    }
+    if (hasTerminatingMatch) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration update: record terminating, persistentId: %{public}d, rejected",
+            sessionInfo->persistentId);
+    } else {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "migration update: record not found, persistentId: %{public}d, rejected",
-            abilityRequest.sessionInfo->persistentId);
-        ret = ERR_INVALID_VALUE;
-        return true;
+            sessionInfo->persistentId);
     }
+    ret = ERR_INVALID_VALUE;
+    return nullptr;
+}
+
+bool ExtensionRecordManager::CheckMigrationDeclaration(const AAFwk::AbilityRequest &abilityRequest,
+    const sptr<AAFwk::SessionInfo> &recordSessionInfo, int32_t &ret)
+{
     if (abilityRequest.sessionInfo->originalCallerInfo.persistentId !=
         abilityRequest.sessionInfo->persistentId) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
@@ -242,9 +245,8 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
             abilityRequest.sessionInfo->originalCallerInfo.persistentId,
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
-        return true;
+        return false;
     }
-    auto recordSessionInfo = migrationRecord->GetSessionInfo();
     bool declarationMatched = recordSessionInfo != nullptr &&
         abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken;
     if (!declarationMatched) {
@@ -252,13 +254,28 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
             "migration declaration mismatch, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
-        return true;
+        return false;
     }
     if (abilityRequest.sessionInfo->hostWindowId == 0) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "migration to invalid hostWindowId 0, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
+        return false;
+    }
+    return true;
+}
+
+bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityRequest &abilityRequest,
+    const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
+    bool &isLoaded, int32_t &ret)
+{
+    auto migrationRecord = FindLiveMigrationRecord(abilityRequest.sessionInfo, hostBundleName, ret);
+    if (migrationRecord == nullptr) {
+        return true;
+    }
+    auto recordSessionInfo = migrationRecord->GetSessionInfo();
+    if (!CheckMigrationDeclaration(abilityRequest, recordSessionInfo, ret)) {
         return true;
     }
     auto extensionRecord = FindExtensionRecordById(migrationRecord->GetUIExtensionAbilityId());

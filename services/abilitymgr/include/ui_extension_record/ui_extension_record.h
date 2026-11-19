@@ -41,7 +41,6 @@ public:
     void BackgroundTimeout();
     void TerminateTimeout();
 
-
     uint32_t AdvanceMigrationGen() override;
 
     void SetMigrationDeclaration(const AAFwk::OriginalCallerInfo &declaration,

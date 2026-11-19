@@ -762,32 +762,37 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
         uiWindow->UpdateExtensionConfig(sharedWant);
         if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
             [this, &compId](const sptr<AAFwk::SessionInfo> &info) {
-                auto sessionIt = contentSessions_.find(compId);
-                if (sessionIt == contentSessions_.end() || sessionIt->second == nullptr) {
-                    TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, content session not found, "
-                        "compId: %{public}" PRIu64, compId);
-                    return;
-                }
-                HandleScope handleScope(jsRuntime_);
-                napi_env env = jsRuntime_.GetNapiEnv();
-                if (env == nullptr) {
-                    TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, null env");
-                    return;
-                }
-                napi_value contentSession = sessionIt->second->GetNapiValue();
-                void* nativeObject = nullptr;
-                napi_unwrap(env, contentSession, &nativeObject);
-                auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
-                if (contentSessionPtr == nullptr) {
-                    TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, unwrap failed");
-                    return;
-                }
-                contentSessionPtr->DoUpdateExtensionParent(info);
+                UpdateMigrationProxies(compId, info);
             })) {
             return false;
         }
     }
     return true;
+}
+
+void JsUIExtension::UpdateMigrationProxies(uint64_t compId, const sptr<AAFwk::SessionInfo> &info)
+{
+    auto sessionIt = contentSessions_.find(compId);
+    if (sessionIt == contentSessions_.end() || sessionIt->second == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, content session not found, "
+            "compId: %{public}" PRIu64, compId);
+        return;
+    }
+    HandleScope handleScope(jsRuntime_);
+    napi_env env = jsRuntime_.GetNapiEnv();
+    if (env == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, null env");
+        return;
+    }
+    napi_value contentSession = sessionIt->second->GetNapiValue();
+    void* nativeObject = nullptr;
+    napi_unwrap(env, contentSession, &nativeObject);
+    auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
+    if (contentSessionPtr == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "migration proxy update skipped, unwrap failed");
+        return;
+    }
+    contentSessionPtr->DoUpdateExtensionParent(info);
 }
 
 sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtensionContext> context,

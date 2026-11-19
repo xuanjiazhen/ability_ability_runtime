@@ -570,29 +570,36 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         uiWindow->UpdateExtensionConfig(sharedWant);
         if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
             [this, &obj](const sptr<AAFwk::SessionInfo> &info) {
-                auto migrateContext = GetContext();
-                if (migrateContext != nullptr) {
-                    auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*info);
-                    cachedInfo->originalCallerInfo.callerToken = nullptr;
-                    migrateContext->SetSessionInfo(cachedInfo);
-                }
-                HandleScope handleScope(jsRuntime_);
-                napi_env env = jsRuntime_.GetNapiEnv();
-                auto sessionIt = contentSessions_.find(obj);
-                if (env != nullptr && sessionIt != contentSessions_.end() && sessionIt->second != nullptr) {
-                    napi_value contentSession = sessionIt->second->GetNapiValue();
-                    void* nativeObject = nullptr;
-                    napi_unwrap(env, contentSession, &nativeObject);
-                    auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
-                    if (contentSessionPtr != nullptr) {
-                        contentSessionPtr->DoUpdateExtensionParent(info);
-                    }
-                }
+                UpdateAutoFillMigrationState(obj, info);
             })) {
             return false;
         }
     }
     return true;
+}
+
+void JsAutoFillExtension::UpdateAutoFillMigrationState(const sptr<IRemoteObject> &obj,
+    const sptr<AAFwk::SessionInfo> &info)
+{
+    auto migrateContext = GetContext();
+    if (migrateContext != nullptr) {
+        auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*info);
+        cachedInfo->originalCallerInfo.callerToken = nullptr;
+        migrateContext->SetSessionInfo(cachedInfo);
+    }
+    HandleScope handleScope(jsRuntime_);
+    napi_env env = jsRuntime_.GetNapiEnv();
+    auto sessionIt = contentSessions_.find(obj);
+    if (env == nullptr || sessionIt == contentSessions_.end() || sessionIt->second == nullptr) {
+        return;
+    }
+    napi_value contentSession = sessionIt->second->GetNapiValue();
+    void* nativeObject = nullptr;
+    napi_unwrap(env, contentSession, &nativeObject);
+    auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
+    if (contentSessionPtr != nullptr) {
+        contentSessionPtr->DoUpdateExtensionParent(info);
+    }
 }
 
 void JsAutoFillExtension::ForegroundWindow(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo)

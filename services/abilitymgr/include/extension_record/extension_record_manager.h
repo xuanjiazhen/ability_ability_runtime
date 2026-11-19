@@ -208,6 +208,12 @@ public:
 private:
     inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
 
+    std::shared_ptr<AAFwk::BaseExtensionRecord> FindLiveMigrationRecord(
+        const sptr<AAFwk::SessionInfo> &sessionInfo, const std::string &hostBundleName, int32_t &ret);
+
+    bool CheckMigrationDeclaration(const AAFwk::AbilityRequest &abilityRequest,
+        const sptr<AAFwk::SessionInfo> &recordSessionInfo, int32_t &ret);
+
 private:
     int32_t userId_;
     static std::atomic_int32_t extensionRecordId_;

@@ -501,14 +501,37 @@ bool EtsAutoFillExtension::CreateNewWindow(sptr<AAFwk::SessionInfo> sessionInfo,
         return false;
     }
     CallEtsOnRequest(*sharedWant, sessionInfo, uiWindow);
+    OnWindowCreated(sessionInfo, obj, uiWindow);
+    return true;
+}
+
+void EtsAutoFillExtension::OnWindowCreated(const sptr<AAFwk::SessionInfo> &sessionInfo,
+    const sptr<IRemoteObject> &obj, const sptr<Rosen::Window> &uiWindow)
+{
     migrationFencing_ = MigrationFencingState {};
     migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
     uiWindowMap_[obj] = uiWindow;
+    auto context = GetContext();
+    if (context == nullptr) {
+        return;
+    }
     context->SetSessionInfo(sessionInfo);
 #ifdef SUPPORT_GRAPHICS
     context->SetWindow(uiWindow);
 #endif // SUPPORT_GRAPHICS
-    return true;
+}
+
+void EtsAutoFillExtension::UpdateAutoFillMigrationState(const sptr<AAFwk::SessionInfo> &info)
+{
+    auto migrateContext = GetContext();
+    if (migrateContext != nullptr) {
+        auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*info);
+        cachedInfo->originalCallerInfo.callerToken = nullptr;
+        migrateContext->SetSessionInfo(cachedInfo);
+    }
+    if (etsUiExtContentSession_ != nullptr) {
+        etsUiExtContentSession_->UpdateSessionInfo(info);
+    }
 }
 
 bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
@@ -527,17 +550,7 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
         if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
-            [this](const sptr<AAFwk::SessionInfo> &info) {
-                auto migrateContext = GetContext();
-                if (migrateContext != nullptr) {
-                    auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*info);
-                    cachedInfo->originalCallerInfo.callerToken = nullptr;
-                    migrateContext->SetSessionInfo(cachedInfo);
-                }
-                if (etsUiExtContentSession_ != nullptr) {
-                    etsUiExtContentSession_->UpdateSessionInfo(info);
-                }
-            })) {
+            [this](const sptr<AAFwk::SessionInfo> &info) { UpdateAutoFillMigrationState(info); })) {
             return false;
         }
         return true;
