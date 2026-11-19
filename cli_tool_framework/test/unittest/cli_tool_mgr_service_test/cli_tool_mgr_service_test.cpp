@@ -5020,6 +5020,11 @@ public:
     ErrCode UnregisterFunctionHook(const sptr<IFunctionHookInterface> &) override { return ERR_OK; }
     ErrCode BeforeInvokeFunction(InvokeFunctionParam &) override { return ERR_OK; }
     ErrCode AfterInvokeFunction(FunctionResultWrap &) override { return ERR_OK; }
+    ErrCode GetPublicFunctions(FunctionsRawData &) override { return ERR_OK; }
+    ErrCode GetPublicFunctionInfo(const std::string &, const std::string &, FunctionInfo &) override
+    {
+        return ERR_OK;
+    }
 
     std::string lastEventId;
     std::string lastExecToolTaskId;

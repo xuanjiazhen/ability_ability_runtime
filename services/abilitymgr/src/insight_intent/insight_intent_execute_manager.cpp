@@ -976,7 +976,9 @@ int32_t InsightIntentExecuteManager::CheckExportedIntentCallerPermission(const s
 {
     bool exported = GetInsightIntentExported(targetBundleName, targetModuleName, targetIntentName, userId);
     if (!exported) {
-        TAG_LOGE(AAFwkTag::INTENT, "target intent not exported for third-party caller");
+        TAG_LOGE(AAFwkTag::INTENT, "target intent not exported for third-party caller, bundle:%{public}s, "
+            "module:%{public}s, intent:%{public}s, userId:%{public}d", targetBundleName.c_str(),
+            targetModuleName.c_str(), targetIntentName.c_str(), userId);
         return INTENT_NOT_EXIST;
     }
 
@@ -995,22 +997,35 @@ bool InsightIntentExecuteManager::GetInsightIntentExported(const std::string &ta
     const std::string &targetModuleName, const std::string &targetIntentName, int32_t userId)
 {
     if (targetBundleName.empty() || targetModuleName.empty() || targetIntentName.empty()) {
+        TAG_LOGW(AAFwkTag::INTENT, "GetInsightIntentExported invalid param, bundle:%{public}s, module:%{public}s, "
+            "intent:%{public}s", targetBundleName.c_str(), targetModuleName.c_str(), targetIntentName.c_str());
         return false;
     }
     AbilityRuntime::IntentKey key{targetBundleName, targetModuleName, targetIntentName, userId};
     auto cache = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance();
     if (cache == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "GetInsightIntentExported null cache");
         return false;
     }
+    TAG_LOGD(AAFwkTag::INTENT, "GetInsightIntentExported query, bundle:%{public}s, module:%{public}s, "
+        "intent:%{public}s, userId:%{public}d", targetBundleName.c_str(), targetModuleName.c_str(),
+        targetIntentName.c_str(), userId);
     // Dual-mode storage (mirrors GetInsightIntentExecuteInfo): config info first,
     // then the full extract info as a fallback.
     AbilityRuntime::InsightIntentInfo configInfo;
     cache->GetConfigInsightIntentInfo(key, configInfo);
     if (!configInfo.bundleName.empty()) {
+        TAG_LOGD(AAFwkTag::INTENT, "GetInsightIntentExported config hit, exported:%{public}d",
+            configInfo.exported ? 1 : 0);
         return configInfo.exported;
     }
+    TAG_LOGW(AAFwkTag::INTENT, "GetInsightIntentExported config miss, fallback to extract, bundle:%{public}s, "
+        "module:%{public}s, intent:%{public}s", targetBundleName.c_str(), targetModuleName.c_str(),
+        targetIntentName.c_str());
     AbilityRuntime::ExtractInsightIntentInfo extractInfo;
     cache->GetInsightIntentInfo(key, extractInfo);
+    TAG_LOGD(AAFwkTag::INTENT, "GetInsightIntentExported extract fallback, exported:%{public}d",
+        extractInfo.exported ? 1 : 0);
     return extractInfo.exported;
 }
 
