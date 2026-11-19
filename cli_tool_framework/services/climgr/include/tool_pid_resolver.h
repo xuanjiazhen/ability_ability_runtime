@@ -79,10 +79,14 @@ public:
 
     // Pacing: the first BURST_POLL_COUNT polls run at BURST_INTERVAL_MS (covering the
     // sandbox setup + spawn window), later polls at BACKOFF_INTERVAL_MS until the budget.
-    static constexpr int32_t BURST_POLL_COUNT = 10;
-    static constexpr int64_t BURST_INTERVAL_MS = 10;
-    static constexpr int64_t BACKOFF_INTERVAL_MS = 200;
-    static constexpr int64_t RESOLVE_BUDGET_MS = 2000;
+    // DEBUG pacing (on-device triage, 2026-11-19, high-frequency profile): widened until
+    // the "tool pid never observed" miss is located — revert to (10, 10, 200, 2000) once
+    // the resolved.log poll-index data settles the real spawn latency. Note the chain is
+    // serial: a slow sweep widens the effective interval to max(interval, sweep time).
+    static constexpr int32_t BURST_POLL_COUNT = 30;
+    static constexpr int64_t BURST_INTERVAL_MS = 5;
+    static constexpr int64_t BACKOFF_INTERVAL_MS = 50;
+    static constexpr int64_t RESOLVE_BUDGET_MS = 5000;
 
 private:
     ToolPidResolver() = default;

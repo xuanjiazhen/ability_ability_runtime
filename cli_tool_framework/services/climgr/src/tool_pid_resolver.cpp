@@ -138,6 +138,9 @@ void ToolPidResolver::Resolve(const std::shared_ptr<SessionRecord> &record)
         return;
     }
     auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(RESOLVE_BUDGET_MS);
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "ToolPidResolver chain started, sessionId=%{public}s, hostPid=%{public}d, taskId=%{public}s",
+        record->sessionId.c_str(), record->processId.load(), record->taskId.c_str());
     // burst = -1 so the first scheduled poll runs as burst 0 at the burst interval.
     ScheduleNext(record, -1, deadline, BURST_INTERVAL_MS);
 }
@@ -150,22 +153,22 @@ void ToolPidResolver::Poll(const std::shared_ptr<SessionRecord> &record, int32_t
     if (anchor <= 0) {
         TAG_LOGW(AAFwkTag::CLI_TOOL,
             "ToolPidResolver give up: host reaped before tool observed, no tool attribution, "
-            "sessionId=%{public}s, taskId=%{public}s",
-            record->sessionId.c_str(), record->taskId.c_str());
+            "hostPid=%{public}d, sessionId=%{public}s, taskId=%{public}s",
+            anchor, record->sessionId.c_str(), record->taskId.c_str());
         return;
     }
     if (!IsRecordInTable(record)) {
         TAG_LOGW(AAFwkTag::CLI_TOOL,
             "ToolPidResolver give up: session ended before tool observed, no tool attribution, "
-            "sessionId=%{public}s, taskId=%{public}s",
-            record->sessionId.c_str(), record->taskId.c_str());
+            "hostPid=%{public}d, sessionId=%{public}s, taskId=%{public}s",
+            anchor, record->sessionId.c_str(), record->taskId.c_str());
         return;
     }
     if (std::chrono::steady_clock::now() >= deadline) {
         TAG_LOGW(AAFwkTag::CLI_TOOL,
             "ToolPidResolver give up: tool pid never observed within budget, no tool attribution, "
-            "sessionId=%{public}s, taskId=%{public}s",
-            record->sessionId.c_str(), record->taskId.c_str());
+            "hostPid=%{public}d, sessionId=%{public}s, taskId=%{public}s",
+            anchor, record->sessionId.c_str(), record->taskId.c_str());
         return;
     }
     std::string comm;
@@ -193,18 +196,22 @@ pid_t ToolPidResolver::ScanForChild(pid_t anchor, std::string &comm)
         return -1;
     }
     pid_t toolPid = -1;
+    int32_t entries = 0;
+    int32_t openFail = 0;
     struct dirent *entry = nullptr;
     while ((entry = readdir(dir)) != nullptr) {
         long pidValue = 0;
         if (!IsNumericProcEntry(entry->d_name, pidValue)) {
             continue;
         }
+        ++entries;
         // snprintf is forbidden by the secure-coding rules; string concatenation cannot
         // truncate, which also removes the old fixed-buffer length proof.
         std::string statPath = "/proc/" + std::to_string(pidValue) + "/stat";
         int fd = open(statPath.c_str(), O_RDONLY | O_CLOEXEC);
         if (fd < 0) {
-            continue; // raced with process exit — not an error
+            ++openFail; // silent in production semantics, but counted: EMFILE would look
+            continue;   // exactly like "never observed" without this line
         }
         char line[STAT_LINE_MAX];
         ssize_t nread = read(fd, line, sizeof(line) - 1);
@@ -227,6 +234,12 @@ pid_t ToolPidResolver::ScanForChild(pid_t anchor, std::string &comm)
         break; // one tool child per sandbox session: the first live child claims the slot
     }
     closedir(dir);
+    // One line per sweep (on-device triage): entries shows the scan actually walked the
+    // table, openFail exposes the fd-exhaustion blind spot, result carries the verdict.
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "ScanForChild sweep, hostPid=%{public}d, entries=%{public}d, openFail=%{public}d, "
+        "result=%{public}d, comm=%{public}s",
+        anchor, entries, openFail, toolPid, comm.c_str());
     return toolPid;
 }
 
@@ -257,12 +270,15 @@ void ToolPidResolver::ScheduleNext(const std::shared_ptr<SessionRecord> &record,
     const std::chrono::steady_clock::time_point &deadline, int64_t delayMs)
 {
     uint64_t epoch = epoch_.load();
+    // Snapshot for the give-up line: after teardown the record is gone, so the lambda
+    // cannot read the anchor from it anymore.
+    pid_t lastAnchor = record->processId.load();
     // Weak capture keeps the session table the record's sole owner: once teardown has
     // destroyed the record, the chain ends here instead of holding it for the rest of the
     // budget (only the control block survives until this tick). The id copies keep the
     // give-up line as observable as the in-Poll variant after the record is gone.
     auto next = [weakRecord = std::weak_ptr<SessionRecord>(record), sessionId = record->sessionId,
-                    taskId = record->taskId, burst, deadline, this, epoch]() {
+                    taskId = record->taskId, lastAnchor, burst, deadline, this, epoch]() {
         if (epoch_.load() != epoch) {
             return; // fenced by ResetForTest: drop the stale chain silently
         }
@@ -270,8 +286,8 @@ void ToolPidResolver::ScheduleNext(const std::shared_ptr<SessionRecord> &record,
         if (liveRecord == nullptr) {
             TAG_LOGW(AAFwkTag::CLI_TOOL,
                 "ToolPidResolver give up: session ended before tool observed, no tool attribution, "
-                "sessionId=%{public}s, taskId=%{public}s",
-                sessionId.c_str(), taskId.c_str());
+                "lastHostPid=%{public}d, sessionId=%{public}s, taskId=%{public}s",
+                lastAnchor, sessionId.c_str(), taskId.c_str());
             return;
         }
         Poll(liveRecord, burst + 1, deadline);
