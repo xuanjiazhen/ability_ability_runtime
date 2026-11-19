@@ -47,6 +47,25 @@ public:
 
     bool Killpg(pid_t pid) const;
 
+    /**
+     * @brief Kill the session's whole process tree, tolerating the sandbox pid-namespace fork.
+     *
+     * claw_sandbox (processId) may have already forked the real command process
+     * (commandPid) after unshare(CLONE_NEWPID). When commandPid is resolved, its process
+     * group covers the command and all its descendants (seccomp blocks setpgid/setsid in the
+     * sandbox, so nothing escapes) and the sandbox monitor exits on its own once the command
+     * is gone; when the command is already gone and the monitor lingers, the anchor kill
+     * backstop applies (SIGKILL, never only the external self-exit). When unresolved, live
+     * children of the sandbox are group-killed and directly killed (pre-setpgid window),
+     * then the sandbox itself is killed both ways — in the pid-ns form the sandbox never
+     * leads a group, so Killpg alone would miss it.
+     *
+     * @param processId Indicates the claw_sandbox anchor pid (ignored when <= 0).
+     * @param commandPid Indicates the discovered command pid, or -1 when unresolved.
+     * @return Returns true when at least one kill was delivered.
+     */
+    bool KillSessionProcess(pid_t processId, pid_t commandPid) const;
+
 private:
     ProcessManager() = default;
     ~ProcessManager() = default;
@@ -56,6 +75,8 @@ private:
     void CloseNonStdFds() const;
     void SetupChildPipesAndExec(const SessionRecord &record,
         std::vector<char *> &execArgs, std::vector<char *> &envp) const;
+    // Direct SIGKILL to one process (no process-group semantics); returns false on ESRCH/EPERM.
+    bool Kill(pid_t pid) const;
 
     static const char *clawSandboxPath_;
 };
