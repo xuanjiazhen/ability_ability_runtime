@@ -35,7 +35,6 @@
 
 namespace {
 const char *TASK_ON_CHILD_PROCESS_EXITED = "OnChildProcessExitedTask";
-constexpr const char *TASK_ON_LAUNCH_SERVICE_EXITED = "OnLaunchServiceProcessExitedTask";
 } // namespace
 
 namespace OHOS {
@@ -48,8 +47,20 @@ AppPidFdManager &AppPidFdManager::GetInstance()
 }
 
 AppPidFdManager::AppPidFdManager()
-    : launchServiceTaskHandler_(AAFwk::TaskHandlerWrap::CreateQueueHandler(
-        "launch_service_pidfd_task_queue", AAFwk::TaskQoS::USER_INTERACTIVE))
+    : pidFdOperations_ {
+        &AppPidFdManager::OpenPidFd,
+        [](int32_t operation, int32_t fd, uint32_t events, void *data,
+            void (*callback)(void *, uint32_t)) -> int32_t {
+            constexpr ffrt_qos_t qos = 0;
+            return ffrt_epoll_ctl(qos, operation, fd, events, data, callback);
+        },
+        [](int32_t fd, uint64_t oldTag, uint64_t newTag) {
+            fdsan_exchange_owner_tag(fd, oldTag, newTag);
+        },
+        [](int32_t fd, uint64_t tag) -> int32_t {
+            return fdsan_close_with_tag(fd, tag);
+        }
+    }
 {}
 
 AppPidFdManager::~AppPidFdManager()
@@ -58,9 +69,8 @@ AppPidFdManager::~AppPidFdManager()
     TAG_LOGW(AAFwkTag::APPMGR, "AppPidFdManager destroy");
     for (auto &item : pidfdMap_) {
         if (item.second.pidfd >= 0) {
-            ffrt_qos_t qos = 0;
-            ffrt_epoll_ctl(qos, EPOLL_CTL_DEL, item.second.pidfd, 0, nullptr, nullptr);
-            fdsan_close_with_tag(item.second.pidfd, static_cast<uint32_t>(AAFwkTag::APPMGR));
+            pidFdOperations_.poll(EPOLL_CTL_DEL, item.second.pidfd, 0, nullptr, nullptr);
+            pidFdOperations_.closeWithTag(item.second.pidfd, static_cast<uint32_t>(AAFwkTag::APPMGR));
         }
     }
     pidfdMap_.clear();
@@ -85,7 +95,7 @@ bool AppPidFdManager::AddWatcher(pid_t pid, PidFdType type)
         TAG_LOGE(AAFwkTag::APPMGR, "invalid pid");
         return false;
     }
-    int32_t pidfd = OpenPidFd(pid, PIDFD_NONBLOCK);
+    int32_t pidfd = pidFdOperations_.open(pid, PIDFD_NONBLOCK);
     if (pidfd < 0) {
         const int32_t openError = errno;
         // The process has already exited (ESRCH) before we could open the pidfd.
@@ -97,17 +107,15 @@ bool AppPidFdManager::AddWatcher(pid_t pid, PidFdType type)
         DispatchCleanup(pid, type);
         return openError == ESRCH;
     }
-    fdsan_exchange_owner_tag(pidfd, 0, static_cast<uint32_t>(AAFwkTag::APPMGR));
-
+    pidFdOperations_.exchangeOwnerTag(pidfd, 0, static_cast<uint32_t>(AAFwkTag::APPMGR));
     void *data = StorePidFd(pid, pidfd);
-    ffrt_qos_t qos = 0;
     auto cb = &AppPidFdManager::OnChildPidfdEvent;
     if (type == PidFdType::RENDER) {
         cb = &AppPidFdManager::OnRenderPidfdEvent;
     } else if (type == PidFdType::LAUNCH_SERVICE) {
         cb = &AppPidFdManager::OnLaunchServicePidfdEvent;
     }
-    int32_t ret = ffrt_epoll_ctl(qos, EPOLL_CTL_ADD, pidfd, EPOLLIN, data, cb);
+    int32_t ret = pidFdOperations_.poll(EPOLL_CTL_ADD, pidfd, EPOLLIN, data, cb);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "ffrt_epoll_ctl add failed, pid:%{public}d, ret:%{public}d", pid, ret);
         std::lock_guard<std::mutex> lock(mapMutex_);
@@ -115,7 +123,7 @@ bool AppPidFdManager::AddWatcher(pid_t pid, PidFdType type)
         if (it != pidfdMap_.end() && it->second.pidfd == pidfd) {
             pidfdMap_.erase(it);
         }
-        fdsan_close_with_tag(pidfd, static_cast<uint32_t>(AAFwkTag::APPMGR));
+        pidFdOperations_.closeWithTag(pidfd, static_cast<uint32_t>(AAFwkTag::APPMGR));
         if (type != PidFdType::LAUNCH_SERVICE) {
             DispatchCleanup(pid, type);
         }
@@ -137,9 +145,8 @@ void *AppPidFdManager::StorePidFd(pid_t pid, int32_t pidfd)
         if (it != pidfdMap_.end()) {
             TAG_LOGW(AAFwkTag::APPMGR, "pid already exist:%{public}d", pid);
             // Should not happen; replace the stale entry defensively.
-            ffrt_qos_t qos = 0;
-            ffrt_epoll_ctl(qos, EPOLL_CTL_DEL, it->second.pidfd, 0, nullptr, nullptr);
-            fdsan_close_with_tag(it->second.pidfd, static_cast<uint32_t>(AAFwkTag::APPMGR));
+            pidFdOperations_.poll(EPOLL_CTL_DEL, it->second.pidfd, 0, nullptr, nullptr);
+            pidFdOperations_.closeWithTag(it->second.pidfd, static_cast<uint32_t>(AAFwkTag::APPMGR));
             it->second.pidfd = pidfd;
             it->second.pid = static_cast<int32_t>(pid);
             data = &it->second.pid;
@@ -200,9 +207,8 @@ void AppPidFdManager::OnPidfdFired(pid_t pid, PidFdType type)
         pidfdMap_.erase(it);
     }
     if (pidfd >= 0) {
-        ffrt_qos_t qos = 0;
-        ffrt_epoll_ctl(qos, EPOLL_CTL_DEL, pidfd, 0, nullptr, nullptr);
-        fdsan_close_with_tag(pidfd, static_cast<uint32_t>(AAFwkTag::APPMGR));
+        pidFdOperations_.poll(EPOLL_CTL_DEL, pidfd, 0, nullptr, nullptr);
+        pidFdOperations_.closeWithTag(pidfd, static_cast<uint32_t>(AAFwkTag::APPMGR));
     }
     DispatchCleanup(pid, type);
 }
@@ -210,16 +216,22 @@ void AppPidFdManager::OnPidfdFired(pid_t pid, PidFdType type)
 void AppPidFdManager::DispatchCleanup(pid_t pid, PidFdType type)
 {
     auto inner = appMgrServiceInner_.lock();
-    auto handler = type == PidFdType::LAUNCH_SERVICE ? launchServiceTaskHandler_ : taskHandler_.lock();
-    if (!inner || !handler) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null inner or handler, pid:%{public}d", pid);
+    if (!inner) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null inner, pid:%{public}d", pid);
+        return;
+    }
+    if (type == PidFdType::LAUNCH_SERVICE) {
+        inner->PostLaunchServiceProcessExited(pid);
+        return;
+    }
+    auto handler = taskHandler_.lock();
+    if (!handler) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null handler, pid:%{public}d", pid);
         return;
     }
     auto task = [inner, pid, type]() {
         if (type == PidFdType::RENDER) {
             inner->OnRenderProcessExited(pid);
-        } else if (type == PidFdType::LAUNCH_SERVICE) {
-            inner->OnLaunchServiceProcessExited(pid);
         } else {
 #ifdef SUPPORT_CHILD_PROCESS
             inner->OnChildProcessExited(pid);
@@ -227,8 +239,7 @@ void AppPidFdManager::DispatchCleanup(pid_t pid, PidFdType type)
         }
     };
     handler->SubmitTask(task, AAFwk::TaskAttribute{
-        .taskName_ = type == PidFdType::LAUNCH_SERVICE ? TASK_ON_LAUNCH_SERVICE_EXITED :
-            TASK_ON_CHILD_PROCESS_EXITED,
+        .taskName_ = TASK_ON_CHILD_PROCESS_EXITED,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
 }

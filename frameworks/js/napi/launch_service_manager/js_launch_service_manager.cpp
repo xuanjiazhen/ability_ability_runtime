@@ -599,8 +599,14 @@ napi_value SubmitLaunchServicesEnabled(napi_env env, const std::string &bundleNa
         std::lock_guard<std::mutex> lock(g_enableMutex);
         g_enableRequests[env].emplace_back(request);
     }
-    DaemonServiceManagerClient::GetInstance().SetLaunchServicesEnabled(bundleName, userId, appIndex, token, enable,
-        [request](int32_t result) { CompleteEnableRequest(request, result); });
+    auto execute = std::make_unique<NapiAsyncTask::ExecuteCallback>(
+        [request, bundleName, userId, appIndex, token, enable]() {
+            DaemonServiceManagerClient::GetInstance().SetLaunchServicesEnabled(
+                bundleName, userId, appIndex, token, enable,
+                [request](int32_t result) { CompleteEnableRequest(request, result); });
+        });
+    NapiAsyncTask::Schedule("JsLaunchServiceManager::SubmitLaunchServicesEnabled", env,
+        std::make_unique<NapiAsyncTask>(static_cast<napi_ref>(nullptr), std::move(execute), nullptr));
     return promise;
 }
 
