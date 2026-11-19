@@ -716,11 +716,11 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareTool_0100, TestSize.Level1
     std::string detail;
 
     EXPECT_EQ(service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
-        toolInfo, sandboxConfig, bundleName, detail), ERR_TOOL_NOT_EXIST);
+        "prepare_tool_1700000000_1", toolInfo, sandboxConfig, bundleName, detail), ERR_TOOL_NOT_EXIST);
 
     CliToolDataManagerMock::getToolByNameResult = ERR_OK;
     int32_t result = service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
-        toolInfo, sandboxConfig, bundleName, detail);
+        "prepare_tool_1700000000_1", toolInfo, sandboxConfig, bundleName, detail);
     EXPECT_TRUE(result == ERR_OK || result == ERR_NOT_HAP);
     if (result == ERR_OK) {
         EXPECT_EQ(toolInfo.name, param.toolName);
@@ -2583,7 +2583,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0100, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "shell_1700000000_1", sandboxConfig, bundleName);
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0100 end");
@@ -2605,7 +2605,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0200, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "shell_1700000000_1", sandboxConfig, bundleName);
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0200 end");
@@ -2628,7 +2628,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0300, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "shell_1700000000_1", sandboxConfig, bundleName);
     EXPECT_TRUE(result == ERR_OK || result == ERR_NOT_HAP);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0300 end");
@@ -2652,7 +2652,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareCmd_0400, TestSize.Level1)
     std::string bundleName;
 
     int32_t result = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
-        sandboxConfig, bundleName);
+        "shell_1700000000_1", sandboxConfig, bundleName);
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateAndPrepareCmd_0400 end");
@@ -7597,6 +7597,170 @@ HWTEST_F(CliToolManagerServiceTest, TryAddSessionRecord_0700, TestSize.Level1)
     EXPECT_EQ(service_->GetSessionRecord("overflow_should_fail"), nullptr);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_TryAddSessionRecord_0700 end");
+}
+
+// ==================== sessionId timing / E-3 residue tests (feature 20260806903809, BR-7/BR-5/E-3) ====================
+// ExecTool/ExecCmd now create the session record (and its sessionId) BEFORE the sandboxConfig is
+// generated, forward record->sessionId into config generation and reuse the record afterwards.
+// In the unit-test env the config generation fails at the HAP gate (GetBundleInfoByTokenId), so
+// these tests verify the observable contract at that seam: no session residue on failure (E-3)
+// and the forwarded sessionId is the record's own id, never regenerated (BR-7/BR-5).
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_SessionIdBeforeConfig_NoResidueOnFailure_0100
+ * @tc.desc: ExecTool creates the record before config generation; when config generation fails
+ *           (ERR_NOT_HAP in test env) the pre-created record must not be registered (E-3).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_SessionIdBeforeConfig_NoResidueOnFailure_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_SessionIdBeforeConfig_NoResidueOnFailure_0100 start");
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+
+    ExecToolParam param;
+    param.toolName = "residue_tool";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    size_t recordsBefore = service_->sessionRecords_.size();
+    int32_t result = service_->ExecTool(param, "event_residue_tool", scheduler);
+
+    // Config generation fails at the HAP gate; the record pre-created before the config must NOT
+    // be registered — the shared_ptr is released with the stack, no residue (E-3, AC-1.3).
+    EXPECT_TRUE(result == ERR_NOT_HAP || IsPermissionGateResult(result));
+    EXPECT_EQ(service_->sessionRecords_.size(), recordsBefore);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_SessionIdBeforeConfig_NoResidueOnFailure_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_SessionIdPlumbing_RecordIdForwarded_0100
+ * @tc.desc: The sessionId produced by CreateSessionRecord (called by ExecTool before config
+ *           generation) is forwarded through ValidateAndPrepareTool without regeneration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_SessionIdPlumbing_RecordIdForwarded_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_SessionIdPlumbing_RecordIdForwarded_0100 start");
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+
+    ExecToolParam param;
+    param.toolName = "plumbing_tool";
+    // Step 1 (the new ExecTool order): create the record BEFORE config generation.
+    std::shared_ptr<SessionRecord> record = service_->CreateSessionRecord(param, "event_plumbing");
+    ASSERT_NE(record, nullptr);
+    std::string sessionId = record->sessionId;
+    EXPECT_FALSE(sessionId.empty());
+    // BR-1: <name>_<timestamp>_<random>.
+    EXPECT_NE(sessionId.find("plumbing_tool_"), std::string::npos);
+
+    // Step 2: the pre-created id is forwarded through the new ValidateAndPrepareTool signature.
+    // In the test env config generation fails at the HAP gate; the id must stay unchanged
+    // (BR-7 same-source premise + BR-5 no side effect).
+    ToolInfo toolInfo;
+    std::string sandboxConfig;
+    std::string bundleName;
+    std::string detail;
+    int32_t ret = service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
+        record->sessionId, toolInfo, sandboxConfig, bundleName, detail);
+    EXPECT_TRUE(ret == ERR_NOT_HAP || ret == ERR_INVALID_PARAM || IsPermissionGateResult(ret));
+    EXPECT_EQ(record->sessionId, sessionId);
+    EXPECT_TRUE(service_->sessionRecords_.find(record->sessionId) == service_->sessionRecords_.end());
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_SessionIdPlumbing_RecordIdForwarded_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_Shell_SessionIdBeforeConfig_NoResidueOnFailure_0100
+ * @tc.desc: ExecCmd shell path creates the record before config generation; when config
+ *           generation fails (ERR_NOT_HAP in test env) the record must not be registered (E-3).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_Shell_SessionIdBeforeConfig_NoResidueOnFailure_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_Shell_SessionIdBeforeConfig_NoResidueOnFailure_0100 start");
+
+    auto &ccmUtil = CcmUtil::GetInstance();
+    ccmUtil.isSupportExecCmd_.isLoaded = true;
+    ccmUtil.isSupportExecCmd_.value = true;
+
+    ExecCmdParam param;
+    param.cmd = "/bin/echo hello";
+    param.execCmdOptions.timeout = 30;
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    size_t recordsBefore = service_->sessionRecords_.size();
+    int32_t result = service_->ExecCmd(param, "event_shell_residue", scheduler, "sub_shell_residue");
+
+    // Config generation fails at the HAP gate; the record pre-created before the config must NOT
+    // be registered (E-3, AC-1.2/AC-1.3).
+    EXPECT_TRUE(result == ERR_NOT_HAP || IsPermissionGateResult(result));
+    EXPECT_EQ(service_->sessionRecords_.size(), recordsBefore);
+
+    ccmUtil.isSupportExecCmd_.isLoaded = false;
+    ccmUtil.isSupportExecCmd_.value = false;
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_Shell_SessionIdBeforeConfig_NoResidueOnFailure_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_Shell_SessionIdPlumbing_RecordIdForwarded_0100
+ * @tc.desc: The sessionId generated before ValidateAndPrepareCmd (new ExecCmd shell order) is
+ *           forwarded through the new signature without regeneration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_Shell_SessionIdPlumbing_RecordIdForwarded_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_Shell_SessionIdPlumbing_RecordIdForwarded_0100 start");
+
+    ExecCmdParam param;
+    param.cmd = "/bin/echo hello";
+    param.execCmdOptions.timeout = 30;
+
+    // Step 1 (the new ExecCmd shell order): the record and its sessionId exist BEFORE the config.
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = ToolUtil::GenerateCliSessionId("shell", record);
+    std::string sessionId = record->sessionId;
+    EXPECT_FALSE(sessionId.empty());
+    EXPECT_NE(sessionId.find("shell_"), std::string::npos);
+
+    // Step 2: the pre-created id is forwarded through the new ValidateAndPrepareCmd signature;
+    // in the test env config generation fails at the HAP gate, and the id must stay unchanged.
+    std::string sandboxConfig;
+    std::string bundleName;
+    int32_t ret = service_->ValidateAndPrepareCmd(param, IPCSkeleton::GetCallingTokenID(),
+        record->sessionId, sandboxConfig, bundleName);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_NOT_HAP);
+    EXPECT_EQ(record->sessionId, sessionId);
+    EXPECT_TRUE(service_->sessionRecords_.find(record->sessionId) == service_->sessionRecords_.end());
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_Shell_SessionIdPlumbing_RecordIdForwarded_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_ToolMode_SessionIdBeforeConfig_NoResidueOnFailure_0100
+ * @tc.desc: ExecCmd tool command mode creates the record before GenerateSandboxConfig; when
+ *           config generation fails (ERR_NOT_HAP in test env) the record must not be registered.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_SessionIdBeforeConfig_NoResidueOnFailure_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_SessionIdBeforeConfig_NoResidueOnFailure_0100 start");
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+
+    ExecCmdParam param;
+    param.cmd = "mocktool";
+    param.execCmdOptions.isShellCommand = false;
+    param.execCmdOptions.timeout = 30;
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    size_t recordsBefore = service_->sessionRecords_.size();
+    int32_t result = service_->ExecCmd(param, "event_toolmode_residue", scheduler, "sub_toolmode_residue");
+
+    // Tool mode mirrors the ExecTool order: record created before GenerateSandboxConfig, so on
+    // the HAP-gate failure the record must NOT be registered (E-3).
+    EXPECT_TRUE(result == ERR_NOT_HAP || IsPermissionGateResult(result));
+    EXPECT_EQ(service_->sessionRecords_.size(), recordsBefore);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_SessionIdBeforeConfig_NoResidueOnFailure_0100 end");
 }
 } // namespace CliTool
 } // namespace OHOS

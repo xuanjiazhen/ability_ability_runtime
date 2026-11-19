@@ -54,11 +54,13 @@ public:
 
     static std::string GenerateCliSessionId(const std::string &name, std::shared_ptr<SessionRecord> record);
 
+    // sessionId must be generated (ToolUtil::GenerateCliSessionId) before these calls so the
+    // value embedded in the sandboxConfig is the same one the session record uses (BR-7).
     static bool GenerateSandboxConfig(const ExecToolParam &param, AccessToken::AccessTokenID tokenId,
-        std::string &sandboxConfig, std::string &bundleName);
+        const std::string &sessionId, std::string &sandboxConfig, std::string &bundleName);
 
     static bool GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::AccessTokenID tokenId,
-        std::string &sandboxConfig, std::string &bundleName);
+        const std::string &sessionId, std::string &sandboxConfig, std::string &bundleName);
 
     static void TransferToCmdParam(const AAFwk::WantParams &args, std::vector<std::string> &execArgs);
 

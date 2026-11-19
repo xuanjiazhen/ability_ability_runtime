@@ -265,9 +265,10 @@ std::string ToolUtil::GenerateCliSessionId(const std::string &name, std::shared_
 }
 
 bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &, Security::AccessToken::AccessTokenID,
-    std::string &sandboxConfig, std::string &bundleName)
+    const std::string &sessionId, std::string &sandboxConfig, std::string &bundleName)
 {
-    sandboxConfig = "{}";
+    // Mirror the real implementation: the caller-supplied sessionId is embedded in the config.
+    sandboxConfig = "{\"sessionId\":\"" + sessionId + "\"}";
     bundleName = "bundle.mock";
     return true;
 }

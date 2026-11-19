@@ -185,7 +185,7 @@ std::string ToolUtil::GenerateCliSessionId(const std::string &name, std::shared_
 }
 
 bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::AccessTokenID tokenId,
-    std::string &sandboxConfig, std::string &bundleName)
+    const std::string &sessionId, std::string &sandboxConfig, std::string &bundleName)
 {
     AppExecFwk::BundleInfo bundleInfo;
     if (!ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
@@ -220,16 +220,19 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     envConfig["ohos_cli_callerTokenId"] = std::to_string(IPCSkeleton::GetCallingTokenID());
     config["env"] = envConfig;
     config["nsFlags"] = {"pid"};
+    config["sessionId"] = sessionId;
 
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d, cliName:%{public}s, subCliName:%{public}s",
-        bundleInfo.name.c_str(), bundleInfo.gid, param.toolName.c_str(), param.subcommand.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "bundleName:%{public}s, gid:%{public}d, cliName:%{public}s, subCliName:%{public}s, sessionId:%{public}s",
+        bundleInfo.name.c_str(), bundleInfo.gid, param.toolName.c_str(), param.subcommand.c_str(),
+        sessionId.c_str());
     return true;
 }
 
 bool ToolUtil::GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::AccessTokenID tokenId,
-    std::string &sandboxConfig, std::string &bundleName)
+    const std::string &sessionId, std::string &sandboxConfig, std::string &bundleName)
 {
     AppExecFwk::BundleInfo bundleInfo;
     if (!ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
@@ -250,9 +253,11 @@ bool ToolUtil::GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::
     }
     config["env"] = param.execCmdOptions.env;
     config["nsFlags"] = {"pid"};
+    config["sessionId"] = sessionId;
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d", bundleInfo.name.c_str(), bundleInfo.gid);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d, sessionId:%{public}s",
+        bundleInfo.name.c_str(), bundleInfo.gid, sessionId.c_str());
     return true;
 }
 
