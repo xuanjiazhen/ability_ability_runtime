@@ -3116,7 +3116,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ChangeAbilityVisibility_001, TestSize.Le
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
-    int32_t ret = uiAbilityLifecycleManager->ChangeAbilityVisibility(nullptr, true);
+    int32_t ret = uiAbilityLifecycleManager->ChangeAbilityVisibility(nullptr, true, nullptr);
     EXPECT_EQ(ERR_INVALID_VALUE, ret);
 }
 
@@ -3525,7 +3525,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ChangeAbilityVisibility_002, TestSize.Le
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
     sptr<IRemoteObject> token = nullptr;
     bool isShow = false;
-    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow), ERR_INVALID_VALUE);
+    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow, nullptr), ERR_INVALID_VALUE);
 }
 
 /**
@@ -3543,7 +3543,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ChangeAbilityVisibility_003, TestSize.Le
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
     sptr<IRemoteObject> token = abilityRecord->GetToken()->AsObject();
     bool isShow = true;
-    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow), ERR_NATIVE_NOT_SELF_APPLICATION);
+    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow, nullptr),
+        ERR_NATIVE_NOT_SELF_APPLICATION);
 }
 
 /**
@@ -3562,7 +3563,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ChangeAbilityVisibility_004, TestSize.Le
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
     sptr<IRemoteObject> token = abilityRecord->GetToken()->AsObject();
     bool isShow = true;
-    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow), ERR_INVALID_VALUE);
+    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow, nullptr), ERR_INVALID_VALUE);
 }
 
 /**
@@ -3583,7 +3584,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ChangeAbilityVisibility_005, TestSize.Le
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
     sptr<IRemoteObject> token = abilityRecord->GetToken()->AsObject();
     bool isShow = true;
-    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow), ERR_START_OPTIONS_CHECK_FAILED);
+    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow, nullptr), ERR_START_OPTIONS_CHECK_FAILED);
 }
 
 /**
@@ -3604,7 +3605,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ChangeAbilityVisibility_006, TestSize.Le
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
     sptr<IRemoteObject> token = abilityRecord->GetToken()->AsObject();
     bool isShow = true;
-    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow), ERR_START_OPTIONS_CHECK_FAILED);
+    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow, nullptr), ERR_START_OPTIONS_CHECK_FAILED);
 }
 
 /**
@@ -3627,7 +3628,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ChangeAbilityVisibility_007, TestSize.Le
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
     sptr<IRemoteObject> token = abilityRecord->GetToken()->AsObject();
     bool isShow = true;
-    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow), ERR_START_OPTIONS_CHECK_FAILED);
+    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow, nullptr), ERR_START_OPTIONS_CHECK_FAILED);
 }
 
 /**
@@ -3651,7 +3652,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ChangeAbilityVisibility_008, TestSize.Le
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
     sptr<IRemoteObject> token = abilityRecord->GetToken()->AsObject();
     bool isShow = true;
-    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow), ERR_START_OPTIONS_CHECK_FAILED);
+    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow, nullptr), ERR_START_OPTIONS_CHECK_FAILED);
 }
 
 /**
@@ -3675,7 +3676,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, ChangeAbilityVisibility_009, TestSize.Le
     uiAbilityLifecycleManager->sessionAbilityMap_.emplace(0, abilityRecord);
     sptr<IRemoteObject> token = abilityRecord->GetToken()->AsObject();
     bool isShow = false;
-    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow), ERR_START_OPTIONS_CHECK_FAILED);
+    EXPECT_EQ(uiAbilityLifecycleManager->ChangeAbilityVisibility(token, isShow, nullptr),
+        ERR_START_OPTIONS_CHECK_FAILED);
 }
 
 /**
@@ -8578,6 +8580,130 @@ HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunch_005, TestSiz
     // Foundation uid should pass uid check, then hit IsGameSAPreLaunch check
     auto result = mgr->NotifyCompleteGamePreLaunch(record->GetToken());
     EXPECT_NE(result, CHECK_PERMISSION_FAILED);
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_001
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid with invalid pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunchByPid_001, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto result = mgr->NotifyCompleteGamePreLaunchByPid(0);
+    EXPECT_EQ(result, ERR_NOT_GAME_PRELOAD_STATE);
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_002
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid when no ability record matches the pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunchByPid_002, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    EXPECT_NE(abilityRecord, nullptr);
+    abilityRecord->SetPid(12345);
+    mgr->sessionAbilityMap_.emplace(1, abilityRecord);
+    auto result = mgr->NotifyCompleteGamePreLaunchByPid(99999);
+    EXPECT_EQ(result, ERR_NOT_GAME_PRELOAD_STATE);
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_003
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid with matching record but not game SA prelaunch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunchByPid_003, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    EXPECT_NE(abilityRecord, nullptr);
+    abilityRecord->SetPid(12345);
+    abilityRecord->SetGameSAPreLaunch(false);
+    mgr->sessionAbilityMap_.emplace(1, abilityRecord);
+    auto result = mgr->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_EQ(result, ERR_NOT_GAME_PRELOAD_STATE);
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_004
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid whit game SA prelaunch record.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunchByPid_004, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    EXPECT_NE(abilityRecord, nullptr);
+    abilityRecord->SetPid(12345);
+    abilityRecord->SetGameSAPreLaunch(true);
+    mgr->sessionAbilityMap_.emplace(1, abilityRecord);
+    auto result = mgr->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_NE(result, ERR_NOT_GAME_PRELOAD_STATE);
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_005
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid picks the game SA prelaunch record among multiple
+ *      records sharing the same pid (multiple instances in one process).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunchByPid_005, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto normalRecord = InitAbilityRecord();
+    EXPECT_NE(normalRecord, nullptr);
+    normalRecord->SetPid(12345);
+    normalRecord->SetGameSAPreLaunch(false);
+    mgr->sessionAbilityMap_.emplace(1, normalRecord);
+ 
+    auto prelaunchRecord = InitAbilityRecord();
+    EXPECT_NE(prelaunchRecord, nullptr);
+    prelaunchRecord->SetPid(12345);
+    prelaunchRecord->SetGameSAPreLaunch(true);
+    mgr->sessionAbilityMap_.emplace(2, prelaunchRecord);
+ 
+    auto result = mgr->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_NE(result, ERR_NOT_GAME_PRELOAD_STATE);
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_006
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid skips null record in sessionAbilityMap and still
+ *      finds the game SA prelaunch record.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunchByPid_006, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    mgr->sessionAbilityMap_.emplace(1, nullptr);
+    auto abilityRecord = InitAbilityRecord();
+    EXPECT_NE(abilityRecord, nullptr);
+    abilityRecord->SetPid(12345);
+    abilityRecord->SetGameSAPreLaunch(true);
+    mgr->sessionAbilityMap_.emplace(2, abilityRecord);
+    auto result = mgr->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_NE(result, ERR_NOT_GAME_PRELOAD_STATE);
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunchByPid_007
+ * @tc.desc: Test NotifyCompleteGamePreLaunchByPid with prelaunch record whose token is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunchByPid_007, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    EXPECT_NE(abilityRecord, nullptr);
+    abilityRecord->SetPid(12345);
+    abilityRecord->SetGameSAPreLaunch(true);
+    abilityRecord->token_ = nullptr;
+    mgr->sessionAbilityMap_.emplace(1, abilityRecord);
+    auto result = mgr->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 
 /**

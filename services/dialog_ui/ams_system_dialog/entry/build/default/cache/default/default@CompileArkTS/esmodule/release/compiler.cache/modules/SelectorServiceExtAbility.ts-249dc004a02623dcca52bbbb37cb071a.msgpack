@@ -1,0 +1,763 @@
+Ôr@Ÿªassertions¤code´customTransformCache¬dependencies¢id¤meta±moduleSideEffects¬originalCode±originalSourcemap«resolvedIds®sourcemapChainµsyntheticNamedExportsµtransformDependencies®transformFiles¨cacheAstÔrAÚ?&/*
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import bundleManager from '@ohos.bundle.bundleManager';
+import defaultAppManager from '@ohos.bundle.defaultAppManager';
+import display from '@ohos.display';
+import drawableDescriptor from '@ohos.arkui.drawableDescriptor';
+import extension from '@ohos.app.ability.ServiceExtensionAbility';
+import window from '@ohos.window';
+import PositionUtils from '../utils/PositionUtils';
+import deviceInfo from '@ohos.deviceInfo';
+import systemparameter from '@ohos.systemParameterEnhance';
+import dataPreferences from '@ohos.data.preferences';
+const TAG = 'SelectorDialog_Service';
+let winNum = 1;
+let win;
+export default class SelectorServiceExtensionAbility extends extension {
+    onCreate(want) {
+        console.debug(TAG, 'onCreate, want: ' + JSON.stringify(want));
+        globalThis.selectExtensionContext = this.context;
+        globalThis.currentExtensionContext = this.context;
+        globalThis.ExtensionType = 'ServiceExtension';
+        globalThis.defaultAppManager = defaultAppManager;
+        globalThis.bundleManager = bundleManager;
+        let options = { name: 'dialogStore' };
+        try {
+            globalThis.preferences = dataPreferences.getPreferencesSync(this.context, options);
+        }
+        catch (error) {
+            console.error(TAG, 'Failed to getPreferencesSync callback. Code: ' + JSON.stringify(error));
+        }
+    }
+    async getPhoneShowHapList() {
+        const lineNums = 8;
+        let showHapList = [];
+        let phoneShowHapList = [];
+        let jsonIconMap = new Map();
+        for (let i = 1; i <= globalThis.params.hapList.length; i++) {
+            console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
+            await this.getHapResource(globalThis.params.hapList[i - 1], showHapList, jsonIconMap);
+            if (i % lineNums === 0) {
+                phoneShowHapList.push(showHapList);
+                showHapList = [];
+            }
+            if (i >= globalThis.params.hapList.length && showHapList.length > 0) {
+                phoneShowHapList.push(showHapList);
+            }
+        }
+        globalThis.phoneShowHapList = phoneShowHapList;
+        console.debug(TAG, 'phoneShowHapList: ' + JSON.stringify(phoneShowHapList));
+        const signalRowlineNums = 4;
+        let signalRowShowHapList = [];
+        let signalRowPhoneShowHapList = [];
+        for (let i = 1; i <= globalThis.params.hapList.length; i++) {
+            console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
+            await this.getHapResource(globalThis.params.hapList[i - 1], signalRowShowHapList, jsonIconMap);
+            if (i % signalRowlineNums === 0) {
+                signalRowPhoneShowHapList.push(signalRowShowHapList);
+                signalRowShowHapList = [];
+            }
+            if (i >= globalThis.params.hapList.length && signalRowShowHapList.length > 0) {
+                signalRowPhoneShowHapList.push(signalRowShowHapList);
+            }
+        }
+        globalThis.signalRowPhoneShowHapList = signalRowPhoneShowHapList;
+        globalThis.jsonIconMap = jsonIconMap;
+        console.debug(TAG, 'signalRowPhoneShowHapList: ' + JSON.stringify(signalRowPhoneShowHapList));
+    }
+    async getPcShowHapList() {
+        let pcShowHapList = [];
+        let jsonIconMap = new Map();
+        for (let i = 0; i < globalThis.params.hapList.length; i++) {
+            await this.getHapResource(globalThis.params.hapList[i], pcShowHapList, jsonIconMap);
+        }
+        globalThis.pcShowHapList = pcShowHapList;
+        globalThis.jsonIconMap = jsonIconMap;
+        console.debug(TAG, 'pcShowHapList: ' + JSON.stringify(pcShowHapList));
+    }
+    async getHapResource(hap, showHapList, jsonIconMap) {
+        let bundleName = hap.bundle;
+        let moduleName = hap.module;
+        let abilityName = hap.ability;
+        let appName = '';
+        let appIcon = '';
+        let type = '';
+        let userId = Number('0');
+        let appIndex = Number(hap.appIndex);
+        if (!globalThis.params.isDefaultSelector) {
+            type = hap.type;
+            userId = Number(hap.userId);
+        }
+        let lableId = Number(hap.label);
+        if (lableId === 0) {
+            lableId = Number(hap.bundleLabel);
+        }
+        let moduleContext = globalThis.selectExtensionContext.createModuleContext(bundleName, moduleName);
+        await moduleContext.resourceManager.getString(lableId).then(value => {
+            if (appIndex === 0) {
+                appName = value;
+            }
+            else {
+                appName = value + hap.appIndex;
+            }
+        }).catch(error => {
+            console.error(TAG, 'getString error:' + JSON.stringify(error));
+        });
+        let iconId = Number(hap.icon);
+        if (iconId === 0) {
+            iconId = Number(hap.bundleIcon);
+        }
+        await moduleContext.resourceManager.getMediaBase64(iconId).then(value => {
+            appIcon = value;
+            if (appIcon.indexOf('image/json') > -1) {
+                try {
+                    const imageDescriptor = moduleContext.resourceManager.getDrawableDescriptor(iconId);
+                    if (imageDescriptor !== null && imageDescriptor !== undefined &&
+                        imageDescriptor instanceof drawableDescriptor.LayeredDrawableDescriptor) {
+                        let layeredDrawableDescriptor = imageDescriptor;
+                        let foregroundDescriptor = layeredDrawableDescriptor.getForeground();
+                        if (foregroundDescriptor !== null && foregroundDescriptor !== undefined) {
+                            jsonIconMap.set(bundleName + ':' + moduleName + ':' + abilityName + ':' + hap.appIndex, foregroundDescriptor.getPixelMap());
+                        }
+                        else {
+                            console.error(TAG, 'get foregroundDescriptor is null');
+                        }
+                    }
+                }
+                catch (e) {
+                    console.error(TAG, 'get drawableDescriptor error:' + JSON.stringify(e));
+                }
+            }
+        }).catch(error => {
+            console.error(TAG, 'getMediaBase64 error:' + JSON.stringify(error));
+        });
+        showHapList.push(bundleName + '#' + abilityName + '#' + appName +
+            '#' + appIcon + '#' + moduleName + '#' + type + '#' + userId + '#' + appIndex);
+    }
+    async onRequest(want, startId) {
+        console.debug(TAG, 'onRequest, want: ' + JSON.stringify(want));
+        globalThis.abilityWant = want;
+        try {
+            globalThis.params = JSON.parse(want.parameters.params);
+            globalThis.callerToken = want.parameters.callerToken;
+            let lineNums = 0;
+            if (globalThis.params && globalThis.params.hapList && globalThis.params.hapList.length) {
+                lineNums = globalThis.params.hapList.length;
+            }
+            globalThis.lineNums = lineNums;
+            globalThis.position = PositionUtils.getSelectorDialogPosition(lineNums);
+            display.on('change', (data) => {
+                try {
+                    if (!globalThis.position) {
+                        console.error(TAG, 'globalThis.position is invalid in display change callback, skip');
+                        return;
+                    }
+                    let position = PositionUtils.getSelectorDialogPosition(lineNums);
+                    if (!position) {
+                        console.error(TAG, 'position is invalid in display change callback, skip');
+                        return;
+                    }
+                    if (position.offsetX !== globalThis.position.offsetX || position.offsetY !== globalThis.position.offsetY) {
+                        win.moveTo(position.offsetX, position.offsetY);
+                    }
+                    if (position.width !== globalThis.position.width || position.height !== globalThis.position.height) {
+                        win.resetSize(position.width, position.height);
+                    }
+                    globalThis.position = position;
+                }
+                catch (error) {
+                    console.error(TAG, 'display change callback failed: ' + JSON.stringify(error));
+                }
+            });
+        }
+        catch (exception) {
+            console.error(TAG, 'Failed to register display change callback. Code: ' + JSON.stringify(exception));
+        }
+        try {
+            let displayClass = display.getDefaultDisplaySync();
+            console.debug(TAG, 'onRequest display is' + JSON.stringify(displayClass));
+        }
+        catch (error) {
+            console.error(TAG, 'Failed to getDefaultDisplaySync callback. Code: ' + JSON.stringify(error));
+        }
+        console.debug(TAG, 'onRequest, want: ' + JSON.stringify(want));
+        console.debug(TAG, 'onRequest, params: ' + JSON.stringify(globalThis.params));
+        console.debug(TAG, 'onRequest, position: ' + JSON.stringify(globalThis.position));
+        if (!globalThis.params.isDefaultSelector) {
+            globalThis.modelFlag = Boolean(globalThis.params.modelFlag);
+            globalThis.action = Boolean(globalThis.params.action);
+        }
+        try {
+            if (globalThis.params.isDefaultSelector) {
+                await this.getPhoneShowHapList();
+            }
+            else {
+                await this.getPcShowHapList();
+            }
+        }
+        catch (error) {
+            console.error(TAG, 'Failed to get hap list: ' + JSON.stringify(error));
+        }
+        try {
+            AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
+        }
+        catch (error) {
+            console.error(TAG, 'Failed to set oversizeHeight: ' + JSON.stringify(error));
+        }
+        display.getDefaultDisplay().then(dis => {
+            try {
+                if (!globalThis.position) {
+                    console.error(TAG, 'globalThis.position is invalid in getDefaultDisplay callback, skip');
+                    return;
+                }
+                let navigationBarRect = {
+                    left: globalThis.position.offsetX,
+                    top: globalThis.position.offsetY,
+                    width: globalThis.position.width,
+                    height: globalThis.position.height
+                };
+                if (winNum > 1 && win) {
+                    win.destroy();
+                    winNum--;
+                }
+                let windowType = (typeof (globalThis.callerToken) === 'object' && globalThis.callerToken !== null) ?
+                    window.WindowType.TYPE_DIALOG : window.WindowType.TYPE_SYSTEM_ALERT;
+                this.createWindow('SelectorDialog' + startId, windowType, navigationBarRect);
+                winNum++;
+            }
+            catch (error) {
+                console.error(TAG, 'display getDefaultDisplay callback failed: ' + JSON.stringify(error));
+            }
+        });
+    }
+    onDestroy() {
+        console.info(TAG, 'SelectorServiceExtensionAbility onDestroy.');
+        if (win !== undefined) {
+            win.destroy();
+        }
+    }
+    async createWindow(name, windowType, rect) {
+        let deviceTypeInfo = deviceInfo.deviceType;
+        console.info(TAG, 'create window');
+        try {
+            win = await window.create(globalThis.selectExtensionContext, name, windowType);
+            if (windowType === window.WindowType.TYPE_DIALOG) {
+                await win.bindDialogTarget(globalThis.callerToken.value, () => {
+                    win.destroyWindow();
+                    winNum--;
+                    if (winNum === 0) {
+                        globalThis.selectExtensionContext.terminateSelf();
+                    }
+                });
+            }
+            if (deviceTypeInfo !== 'default') {
+                await win.hideNonSystemFloatingWindows(true);
+            }
+            await win.moveTo(rect.left, rect.top);
+            await win.resetSize(rect.width, rect.height);
+            if (systemparameter.getSync('persist.sys.abilityms.isdialogconfirmpermission', 'false') === 'false' &&
+                globalThis.preferences.getSync('isdialogconfirmpermission', 'false') === 'false') {
+                if (globalThis.params.isDefaultSelector) {
+                    globalThis.currentURL = 'pages/selectorPhoneDialog';
+                }
+                else {
+                    globalThis.currentURL = 'pages/selectorPcDialog';
+                }
+                await win.loadContent('pages/permissionConfirmDialog');
+            }
+            else {
+                if (globalThis.params.isDefaultSelector) {
+                    await win.loadContent('pages/selectorPhoneDialog');
+                }
+                else {
+                    await win.loadContent('pages/selectorPcDialog');
+                }
+            }
+            await win.setBackgroundColor('#00000000');
+            await win.show();
+        }
+        catch (e) {
+            console.error(TAG, 'window create failed: ' + JSON.stringify(e));
+        }
+    }
+    async moveWindow(rect) {
+        try {
+            await win.moveTo(rect.left, rect.top);
+            await win.resetSize(rect.width, rect.height);
+            if (globalThis.params.isDefaultSelector) {
+                try {
+                    await win.loadContent('pages/selectorPhoneDialog');
+                    await win.setBackgroundColor('#00000000');
+                }
+                catch (e) {
+                    console.error(TAG, 'window loadContent failed: ' + JSON.stringify(e));
+                }
+            }
+            await win.show();
+        }
+        catch (e) {
+            console.error(TAG, 'window move failed: ' + JSON.stringify(e));
+        }
+    }
+    onConfigurationUpdate(config) {
+        console.debug(TAG, 'configuration is : ' + JSON.stringify(config));
+        if (!globalThis.params || !globalThis.params.isDefaultSelector) {
+            console.debug(TAG, 'device is not phone');
+            return;
+        }
+        try {
+            let displayClass = display.getDefaultDisplaySync();
+            console.debug(TAG, 'display is' + JSON.stringify(displayClass));
+            globalThis.position = PositionUtils.getSelectorDialogPosition(globalThis.lineNums);
+            if (!globalThis.position) {
+                console.error(TAG, 'globalThis.position is invalid, skip moveWindow');
+                return;
+            }
+            let navigationBarRect = {
+                left: globalThis.position.offsetX,
+                top: globalThis.position.offsetY,
+                width: globalThis.position.width,
+                height: globalThis.position.height
+            };
+            AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
+            console.debug(TAG, 'onConfigurationUpdate navigationBarRect is' + JSON.stringify(navigationBarRect));
+            this.moveWindow(navigationBarRect);
+        }
+        catch (error) {
+            console.error(TAG, 'onConfigurationUpdate moveWindow failed: ' + JSON.stringify(error));
+        }
+    }
+}
+;
+//# sourceMappingURL=SelectorServiceExtAbility.js.mapÂšÙ hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.bundle.bundleManager.d.tsÙ… hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.bundle.defaultAppManager.d.tsÙt hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.display.d.tsÙ… hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.arkui.drawableDescriptor.d.tsÙ hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.app.ability.ServiceExtensionAbility.d.tsÙs hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.window.d.tsÙœ/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/PositionUtils.tsÙw hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.deviceInfo.d.tsÙƒ hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.systemParameterEnhance.d.tsÙ} hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.data.preferences.d.tsÙ´/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.tsÔrBšªmoduleName±isLocalDependency¯isNodeEntryFile§pkgPath±belongProjectPath§pkgNameªpkgVersion±dependencyPkgInfo°belongModulePath¬shouldEmitJs¥entryÃÂÙx/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entryÙr/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog¥entry¥1.0.0Ô  Ùx/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entryÃÃÚ6é/*
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import bundleManager from '@ohos.bundle.bundleManager';
+import defaultAppManager from '@ohos.bundle.defaultAppManager';
+import display from '@ohos.display';
+import drawableDescriptor from '@ohos.arkui.drawableDescriptor';
+import extension from '@ohos.app.ability.ServiceExtensionAbility';
+import type image from '@ohos.multimedia.image';
+import window from '@ohos.window';
+import PositionUtils from '../utils/PositionUtils';
+import deviceInfo from '@ohos.deviceInfo';
+import systemparameter from '@ohos.systemParameterEnhance';
+import dataPreferences from '@ohos.data.preferences';
+
+const TAG = 'SelectorDialog_Service';
+
+let winNum = 1;
+let win;
+
+export default class SelectorServiceExtensionAbility extends extension {
+  onCreate(want) {
+    console.debug(TAG, 'onCreate, want: ' + JSON.stringify(want));
+    globalThis.selectExtensionContext = this.context;
+    globalThis.currentExtensionContext = this.context;
+    globalThis.ExtensionType = 'ServiceExtension';
+    globalThis.defaultAppManager = defaultAppManager;
+    globalThis.bundleManager = bundleManager;
+    let options = {name:'dialogStore'};
+    try {
+      globalThis.preferences = dataPreferences.getPreferencesSync(this.context, options);
+    } catch (error) {
+      console.error(TAG, 'Failed to getPreferencesSync callback. Code: ' + JSON.stringify(error));
+    }
+  }
+
+  async getPhoneShowHapList() {
+    const lineNums = 8;
+    let showHapList = [];
+    let phoneShowHapList = [];
+    let jsonIconMap: Map<string, image.PixelMap> = new Map();
+    for (let i = 1; i <= globalThis.params.hapList.length; i++) {
+      console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
+      await this.getHapResource(globalThis.params.hapList[i - 1], showHapList, jsonIconMap);
+      if (i % lineNums === 0) {
+        phoneShowHapList.push(showHapList);
+        showHapList = [];
+      }
+      if (i >= globalThis.params.hapList.length && showHapList.length > 0) {
+        phoneShowHapList.push(showHapList);
+      }
+    }
+    globalThis.phoneShowHapList = phoneShowHapList;
+    console.debug(TAG, 'phoneShowHapList: ' + JSON.stringify(phoneShowHapList));
+
+    const signalRowlineNums = 4;
+    let signalRowShowHapList = [];
+    let signalRowPhoneShowHapList = [];
+    for (let i = 1; i <= globalThis.params.hapList.length; i++) {
+      console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
+      await this.getHapResource(globalThis.params.hapList[i - 1], signalRowShowHapList, jsonIconMap);
+      if (i % signalRowlineNums === 0) {
+        signalRowPhoneShowHapList.push(signalRowShowHapList);
+        signalRowShowHapList = [];
+      }
+      if (i >= globalThis.params.hapList.length && signalRowShowHapList.length > 0) {
+        signalRowPhoneShowHapList.push(signalRowShowHapList);
+      }
+    }
+    globalThis.signalRowPhoneShowHapList = signalRowPhoneShowHapList;
+    globalThis.jsonIconMap = jsonIconMap;
+    console.debug(TAG, 'signalRowPhoneShowHapList: ' + JSON.stringify(signalRowPhoneShowHapList));
+  }
+
+  async getPcShowHapList() {
+    let pcShowHapList = [];
+    let jsonIconMap: Map<string, image.PixelMap> = new Map();
+    for (let i = 0; i < globalThis.params.hapList.length; i++) {
+      await this.getHapResource(globalThis.params.hapList[i], pcShowHapList, jsonIconMap);
+    }
+    globalThis.pcShowHapList = pcShowHapList;
+    globalThis.jsonIconMap = jsonIconMap;
+    console.debug(TAG, 'pcShowHapList: ' + JSON.stringify(pcShowHapList));
+  }
+
+  async getHapResource(hap, showHapList, jsonIconMap) {
+    let bundleName = hap.bundle;
+    let moduleName = hap.module;
+    let abilityName = hap.ability;
+    let appName = '';
+    let appIcon = '';
+    let type = '';
+    let userId = Number('0');
+    let appIndex = Number(hap.appIndex);
+    if (!globalThis.params.isDefaultSelector) {
+      type = hap.type;
+      userId = Number(hap.userId);
+    }
+    let lableId = Number(hap.label);
+    if (lableId === 0) {
+      lableId = Number(hap.bundleLabel);
+    }
+    let moduleContext = globalThis.selectExtensionContext.createModuleContext(bundleName, moduleName);
+    await moduleContext.resourceManager.getString(lableId).then(value => {
+      if (appIndex === 0) {
+        appName = value;
+      } else {
+        appName = value + hap.appIndex;
+      }
+    }).catch(error => {
+      console.error(TAG, 'getString error:' + JSON.stringify(error));
+    });
+
+    let iconId = Number(hap.icon);
+    if (iconId === 0) {
+      iconId = Number(hap.bundleIcon);
+    }
+    await moduleContext.resourceManager.getMediaBase64(iconId).then(value => {
+      appIcon = value;
+      if (appIcon.indexOf('image/json') > -1) {
+        try {
+          const imageDescriptor = moduleContext.resourceManager.getDrawableDescriptor(iconId);
+          if (imageDescriptor !== null && imageDescriptor !== undefined &&
+            imageDescriptor instanceof drawableDescriptor.LayeredDrawableDescriptor) {
+            let layeredDrawableDescriptor: drawableDescriptor.LayeredDrawableDescriptor =
+              <drawableDescriptor.LayeredDrawableDescriptor> imageDescriptor;
+            let foregroundDescriptor: drawableDescriptor.DrawableDescriptor = layeredDrawableDescriptor.getForeground();
+            if (foregroundDescriptor !== null && foregroundDescriptor !== undefined) {
+              jsonIconMap.set(bundleName + ':' + moduleName + ':' + abilityName + ':' + hap.appIndex,
+                foregroundDescriptor.getPixelMap());
+            } else {
+              console.error(TAG, 'get foregroundDescriptor is null');
+            }
+          }
+        } catch (e) {
+          console.error(TAG, 'get drawableDescriptor error:' + JSON.stringify(e));
+        }
+      }
+    }).catch(error => {
+      console.error(TAG, 'getMediaBase64 error:' + JSON.stringify(error));
+    });
+    showHapList.push(bundleName + '#' + abilityName + '#' + appName +
+      '#' + appIcon + '#' + moduleName + '#' + type + '#' + userId + '#' + appIndex);
+  }
+
+  async onRequest(want, startId) {
+    console.debug(TAG, 'onRequest, want: ' + JSON.stringify(want));
+    globalThis.abilityWant = want;
+    try {
+      globalThis.params = JSON.parse(want.parameters.params);
+      globalThis.callerToken = want.parameters.callerToken;
+      let lineNums = 0;
+      if (globalThis.params && globalThis.params.hapList && globalThis.params.hapList.length) {
+        lineNums = globalThis.params.hapList.length;
+      }
+      globalThis.lineNums = lineNums;
+      globalThis.position = PositionUtils.getSelectorDialogPosition(lineNums);
+
+      display.on('change', (data: number) => {
+        try {
+          if (!globalThis.position) {
+            console.error(TAG, 'globalThis.position is invalid in display change callback, skip');
+            return;
+          }
+          let position = PositionUtils.getSelectorDialogPosition(lineNums);
+          if (!position) {
+            console.error(TAG, 'position is invalid in display change callback, skip');
+            return;
+          }
+          if (position.offsetX !== globalThis.position.offsetX || position.offsetY !== globalThis.position.offsetY) {
+            win.moveTo(position.offsetX, position.offsetY);
+          }
+          if (position.width !== globalThis.position.width || position.height !== globalThis.position.height) {
+            win.resetSize(position.width, position.height);
+          }
+          globalThis.position = position;
+        } catch (error) {
+          console.error(TAG, 'display change callback failed: ' + JSON.stringify(error));
+        }
+      });
+    } catch (exception) {
+      console.error(TAG, 'Failed to register display change callback. Code: ' + JSON.stringify(exception));
+    }
+    try {
+      let displayClass = display.getDefaultDisplaySync();
+      console.debug(TAG, 'onRequest display is' + JSON.stringify(displayClass));
+    } catch (error) {
+      console.error(TAG, 'Failed to getDefaultDisplaySync callback. Code: ' + JSON.stringify(error));
+    }
+    console.debug(TAG, 'onRequest, want: ' + JSON.stringify(want));
+    console.debug(TAG, 'onRequest, params: ' + JSON.stringify(globalThis.params));
+    console.debug(TAG, 'onRequest, position: ' + JSON.stringify(globalThis.position));
+    if (!globalThis.params.isDefaultSelector) {
+      globalThis.modelFlag = Boolean(globalThis.params.modelFlag);
+      globalThis.action = Boolean(globalThis.params.action);
+    }
+    try {
+      if (globalThis.params.isDefaultSelector) {
+        await this.getPhoneShowHapList();
+      } else {
+        await this.getPcShowHapList();
+      }
+    } catch (error) {
+      console.error(TAG, 'Failed to get hap list: ' + JSON.stringify(error));
+    }
+    try {
+      AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
+    } catch (error) {
+      console.error(TAG, 'Failed to set oversizeHeight: ' + JSON.stringify(error));
+    }
+    display.getDefaultDisplay().then(dis => {
+      try {
+        if (!globalThis.position) {
+          console.error(TAG, 'globalThis.position is invalid in getDefaultDisplay callback, skip');
+          return;
+        }
+        let navigationBarRect = {
+          left: globalThis.position.offsetX,
+          top: globalThis.position.offsetY,
+          width: globalThis.position.width,
+          height: globalThis.position.height
+        };
+        if (winNum > 1 && win) {
+          win.destroy();
+          winNum--;
+        }
+        let windowType = (typeof(globalThis.callerToken) === 'object' && globalThis.callerToken !== null) ?
+          window.WindowType.TYPE_DIALOG : window.WindowType.TYPE_SYSTEM_ALERT;
+        this.createWindow('SelectorDialog' + startId, windowType, navigationBarRect);
+        winNum++;
+      } catch (error) {
+        console.error(TAG, 'display getDefaultDisplay callback failed: ' + JSON.stringify(error));
+      }
+    });
+  }
+
+  onDestroy() {
+    console.info(TAG, 'SelectorServiceExtensionAbility onDestroy.');
+    if (win !== undefined) {
+      win.destroy();
+    }
+  }
+
+  private async createWindow(name: string, windowType: number, rect) {
+    let deviceTypeInfo = deviceInfo.deviceType;
+    console.info(TAG, 'create window');
+    try {
+      win = await window.create(globalThis.selectExtensionContext, name, windowType);
+      if (windowType === window.WindowType.TYPE_DIALOG) {
+        await win.bindDialogTarget(globalThis.callerToken.value, () => {
+          win.destroyWindow();
+          winNum--;
+          if (winNum === 0) {
+            globalThis.selectExtensionContext.terminateSelf();
+          }
+        });
+      }
+      if (deviceTypeInfo !== 'default') {
+        await win.hideNonSystemFloatingWindows(true);
+      }
+      await win.moveTo(rect.left, rect.top);
+      await win.resetSize(rect.width, rect.height);
+      if (systemparameter.getSync('persist.sys.abilityms.isdialogconfirmpermission', 'false') === 'false' &&
+        globalThis.preferences.getSync('isdialogconfirmpermission', 'false') === 'false') {
+        if (globalThis.params.isDefaultSelector) {
+          globalThis.currentURL = 'pages/selectorPhoneDialog';
+        } else {
+          globalThis.currentURL = 'pages/selectorPcDialog';
+        }
+        await win.loadContent('pages/permissionConfirmDialog');
+      } else {
+        if (globalThis.params.isDefaultSelector) {
+          await win.loadContent('pages/selectorPhoneDialog');
+        } else {
+          await win.loadContent('pages/selectorPcDialog');
+        }
+      }
+      await win.setBackgroundColor('#00000000');
+      await win.show();
+    } catch (e) {
+      console.error(TAG, 'window create failed: ' + JSON.stringify(e));
+    }
+  }
+
+  private async moveWindow(rect): Promise<void> {
+    try {
+      await win.moveTo(rect.left, rect.top);
+      await win.resetSize(rect.width, rect.height);
+      if (globalThis.params.isDefaultSelector) {
+        try {
+          await win.loadContent('pages/selectorPhoneDialog');
+          await win.setBackgroundColor('#00000000');
+        } catch (e) {
+          console.error(TAG, 'window loadContent failed: ' + JSON.stringify(e));
+        }
+      }
+      await win.show();
+    } catch (e) {
+      console.error(TAG, 'window move failed: ' + JSON.stringify(e));
+    }
+  }
+
+  onConfigurationUpdate(config): void {
+    console.debug(TAG, 'configuration is : ' + JSON.stringify(config));
+    if (!globalThis.params || !globalThis.params.isDefaultSelector) {
+      console.debug(TAG, 'device is not phone');
+      return;
+    }
+    try {
+      let displayClass = display.getDefaultDisplaySync();
+      console.debug(TAG, 'display is' + JSON.stringify(displayClass));
+      globalThis.position = PositionUtils.getSelectorDialogPosition(globalThis.lineNums);
+      if (!globalThis.position) {
+        console.error(TAG, 'globalThis.position is invalid, skip moveWindow');
+        return;
+      }
+      let navigationBarRect = {
+        left: globalThis.position.offsetX,
+        top: globalThis.position.offsetY,
+        width: globalThis.position.width,
+        height: globalThis.position.height
+      };
+      AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
+      console.debug(TAG, 'onConfigurationUpdate navigationBarRect is' + JSON.stringify(navigationBarRect));
+      this.moveWindow(navigationBarRect);
+    } catch (error) {
+      console.error(TAG, 'onConfigurationUpdate moveWindow failed: ' + JSON.stringify(error));
+    }
+  }
+};ÀÔrCšº@ohos.bundle.bundleManager¾@ohos.bundle.defaultAppManager­@ohos.display¾@ohos.arkui.drawableDescriptorÙ)@ohos.app.ability.ServiceExtensionAbility¬@ohos.window°@ohos.deviceInfo¼@ohos.systemParameterEnhance¶@ohos.data.preferences¶../utils/PositionUtilsÔrD—ªassertions¨external¢id¤meta±moduleSideEffectsªresolvedByµsyntheticNamedExportsAÃÙ hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.bundle.bundleManager.d.tsÔrE‘¯hostModulesInfo’ÔrF’²hostDependencyName®hostModuleNameº@ohos.bundle.bundleManager¥entryFº@ohos.bundle.bundleManager¥entryÃªoh-resolveÂDAÃÙ… hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.bundle.defaultAppManager.d.tsE‘F¾@ohos.bundle.defaultAppManager¥entryÃªoh-resolveÂDAÃÙt hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.display.d.tsE–F­@ohos.display¥entryF­@ohos.display¥entryF­@ohos.display¥entryF­@ohos.display¥entryF­@ohos.display¥entryF­@ohos.display¥entryÃªoh-resolveÂDAÃÙ… hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.arkui.drawableDescriptor.d.tsE’F¾@ohos.arkui.drawableDescriptor¥entryF¾@ohos.arkui.drawableDescriptor¥entryÃªoh-resolveÂDAÃÙ hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.app.ability.ServiceExtensionAbility.d.tsE”FÙ)@ohos.app.ability.ServiceExtensionAbility¥entryFÙ)@ohos.app.ability.ServiceExtensionAbility¥entryFÙ)@ohos.app.ability.ServiceExtensionAbility¥entryFÙ)@ohos.app.ability.ServiceExtensionAbility¥entryÃªoh-resolveÂDAÃÙs hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.window.d.tsE”F¬@ohos.window¥entryF¬@ohos.window¥entryF¬@ohos.window¥entryF¬@ohos.window¥entryÃªoh-resolveÂDAÃÙw hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.deviceInfo.d.tsE–F°@ohos.deviceInfo¥entryF°@ohos.deviceInfo¥entryF°@ohos.deviceInfo¥entryF°@ohos.deviceInfo¥entryF°@ohos.deviceInfo¥entryF°@ohos.deviceInfo¥entryÃªoh-resolveÂDAÃÙƒ hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.systemParameterEnhance.d.tsE’F¼@ohos.systemParameterEnhance¥entryF¼@ohos.systemParameterEnhance¥entryÃªoh-resolveÂDAÃÙ} hvigor_ignore__mnt_disk_workspace_preheat_code_prod_code_prebuilts_ohos-sdk_linux_26.1.0_ets_api_@ohos.data.preferences.d.tsE’F¶@ohos.data.preferences¥entryF¶@ohos.data.preferences¥entryÃªoh-resolveÂDAÂÙœ/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/PositionUtils.tsAÃªoh-resolveÂ“ÔrG–§version¤fileªsourceRoot§sources¥names¨mappings¼SelectorServiceExtAbility.js ‘¼SelectorServiceExtAbility.tsÜW‘”    ‘” –”   ” ” ” ”6 6”7 7–”   ” ” ” ”> >”? ?–”   ” ” ” ”# #”$ $–”   ” ” ” ”? ?”Ì@ Ì@–”   ” ” ” ”ÌA ÌA”ÌB ÌB–”   ” ” ” ”! !”" "–”   ” ” ” ”2 2”3 3–”   ” ” ” ”) )”* *–”   ” ” ” ”: :”; ;–”   ” ” ” ”4 4”5 5–”   ” ”	 	” ”$ $”% %–”   ” ”
+ 
+” ” ” ””   ” ” ” ˜”    ”  ”  ”  ”  ”4  5”=  =”ÌF  ÌF”” !” !
+” !” !Ü ” "” "” "” "” "” "” "”- ")”0 ",”4 "0”5 "1”> ":”? ";”ÌC "?”ÌD "Ì@”ÌE "ÌA”ÌF "ÌB™” #” #” #”) #%”, #(”0 #,”1 #-”8 #4”9 #5™” $” $” $”* $&”- $)”1 $-”2 $.”9 $5”: $6—” %” %” %”  %”# %”5 %1”6 %2—” &” &” &”$ & ”' &#”8 &4”9 &5—” '” '” '”  '”# '”0 ',”1 '-š” (” (” (” (” (” (” (”+ (%”- (&”. ('’” )” )Ü ” *” *” *”" *”% *”4 *.”5 */”ÌG *ÌA”ÌH *ÌB”ÌL *ÌF”ÌM *ÌG”ÌT *ÌN”ÌV *ÌP”Ì] *ÌW”Ì^ *ÌX”Ì_ *ÌY‘”	 +”” +” +” +” +Ü ” ,” ,” ,” ,” ,” ,” ,”ÌN ,ÌH”ÌQ ,ÌK”ÌU ,ÌO”ÌV ,ÌP”Ì_ ,ÌY”Ì` ,ÌZ”Ìe ,Ì_”Ìf ,Ì`”Ìg ,Ìa”Ìh ,Ìb‘”	 -’” .” .”” 0”	 0”
+ 0” 0–” 1” 1
+” 1” 1” 1” 1–” 2” 2” 2” 2” 2” 2–” 3” 3” 3” 3”! 3”" 3˜” 4” 4” 4” 43” 47”! 4:”# 4<”$ 4=Ü ” 5” 5	” 5” 5” 5” 5” 5” 5” 5”' 5#”( 5$”. 5*”/ 5+”6 52”7 53”= 59”? 5;”Ì@ 5<”ÌB 5>”ÌD 5Ì@Ü %” 6” 6” 6” 6” 6” 6” 6”( 6"”+ 6%”, 6&”- 6'”0 6*”1 6+”2 6,”3 6-”; 65”= 67”Ì@ 6:”ÌE 6?”ÌH 6ÌB”ÌL 6ÌF”ÌM 6ÌG”ÌV 6ÌP”ÌW 6ÌQ”Ìa 6Ì[”Ìb 6Ì\”Ìh 6Ìb”Ìi 6Ìc”Ìp 6Ìj”Ìq 6Ìk”Ìr 6Ìl”Ìu 6Ìo”Ìv 6Ìp”Ìw 6Ìq”Ìx 6Ìr”Ìy 6Ìs”Ìz 6ÌtÜ ” 7” 7” 7” 7”% 7”& 7 ”0 7*”1 7+”7 71”8 72”? 79”Ì@ 7:”ÌA 7;”ÌD 7>”ÌE 7?”ÌF 7Ì@”ÌH 7ÌB”ÌS 7ÌM”ÌU 7ÌO”Ì` 7ÌZ”Ìa 7Ì[”Ìb 7Ì\˜” 8” 8
+” 8” 8” 8”! 8”" 8”$ 8˜” 9”  9”! 9”% 9”& 9”1 9)”2 9*”3 9+•” :” :” :”  :”! :‘” ;Ü ” <” <
+” <” <” <”  <”& < ”' <!”. <(”/ <)”5 </”9 <3”ÌD <>”ÌE <?”ÌK <ÌE”ÌN <ÌH”ÌO <ÌI”ÌQ <ÌK˜” =”  =”! =”% =”& =”1 =)”2 =*”3 =+‘” >‘”	 ?—” Ì@” Ì@” Ì@”# Ì@”& Ì@"”6 Ì@2”7 Ì@3Ü ” ÌA” ÌA” ÌA” ÌA” ÌA” ÌA” ÌA”/ ÌA+”2 ÌA.”6 ÌA2”7 ÌA3”Ì@ ÌA<”ÌA ÌA=”ÌQ ÌAÌM”ÌR ÌAÌN”ÌS ÌAÌO”ÌT ÌAÌP–” ÌC” ÌC
+” ÌC”" ÌC”# ÌC”$ ÌC –” ÌD” ÌD”  ÌD”# ÌD”% ÌD!”& ÌD"–” ÌE” ÌE”% ÌE!”( ÌE$”* ÌE&”+ ÌE'Ü ” ÌF” ÌF	” ÌF” ÌF” ÌF” ÌF” ÌF” ÌF” ÌF”' ÌF#”( ÌF$”. ÌF*”/ ÌF+”6 ÌF2”7 ÌF3”= ÌF9”? ÌF;”Ì@ ÌF<”ÌB ÌF>”ÌD ÌFÌ@Ü %” ÌG” ÌG” ÌG” ÌG” ÌG” ÌG” ÌG”( ÌG"”+ ÌG%”, ÌG&”- ÌG'”0 ÌG*”1 ÌG+”2 ÌG,”3 ÌG-”; ÌG5”= ÌG7”Ì@ ÌG:”ÌE ÌG?”ÌH ÌGÌB”ÌL ÌGÌF”ÌM ÌGÌG”ÌV ÌGÌP”ÌW ÌGÌQ”Ìa ÌGÌ[”Ìb ÌGÌ\”Ìh ÌGÌb”Ìi ÌGÌc”Ìp ÌGÌj”Ìq ÌGÌk”Ìr ÌGÌl”Ìu ÌGÌo”Ìv ÌGÌp”Ìw ÌGÌq”Ìx ÌGÌr”Ìy ÌGÌs”Ìz ÌGÌtÜ ” ÌH” ÌH” ÌH” ÌH”% ÌH”& ÌH ”0 ÌH*”1 ÌH+”7 ÌH1”8 ÌH2”? ÌH9”Ì@ ÌH:”ÌA ÌH;”ÌD ÌH>”ÌE ÌH?”ÌF ÌHÌ@”ÌH ÌHÌB”Ì\ ÌHÌV”Ì^ ÌHÌX”Ìi ÌHÌc”Ìj ÌHÌd”Ìk ÌHÌe˜” ÌI” ÌI
+” ÌI” ÌI”% ÌI”* ÌI$”+ ÌI%”- ÌI'˜” ÌJ”) ÌJ!”* ÌJ"”. ÌJ&”/ ÌJ'”ÌC ÌJ;”ÌD ÌJ<”ÌE ÌJ=•” ÌK”$ ÌK”' ÌK”) ÌK!”* ÌK"‘” ÌLÜ ” ÌM” ÌM
+” ÌM” ÌM” ÌM”  ÌM”& ÌM ”' ÌM!”. ÌM(”/ ÌM)”5 ÌM/”9 ÌM3”ÌM ÌMÌG”ÌN ÌMÌH”ÌT ÌMÌN”ÌW ÌMÌQ”ÌX ÌMÌR”ÌZ ÌMÌT˜” ÌN”) ÌN!”* ÌN"”. ÌN&”/ ÌN'”ÌC ÌN;”ÌD ÌN<”ÌE ÌN=‘” ÌO‘”	 ÌP—” ÌQ” ÌQ” ÌQ”, ÌQ(”/ ÌQ+”ÌH ÌQÌD”ÌI ÌQÌE—” ÌR” ÌR” ÌR” ÌR”! ÌR”, ÌR(”- ÌR)Ü ” ÌS” ÌS” ÌS” ÌS” ÌS” ÌS” ÌS”8 ÌS4”; ÌS7”? ÌS;”Ì@ ÌS<”ÌI ÌSÌE”ÌJ ÌSÌF”Ìc ÌSÌ_”Ìd ÌSÌ`”Ìe ÌSÌa”Ìf ÌSÌb’” ÌT” ÌT”” ÌV”	 ÌV”
+ ÌV” ÌV–” ÌW” ÌW” ÌW” ÌW” ÌW” ÌW˜” ÌX” ÌX” ÌX” ÌX3” ÌX7”! ÌX:”# ÌX<”$ ÌX=Ü ” ÌY” ÌY	” ÌY” ÌY” ÌY” ÌY” ÌY” ÌY” ÌY”& ÌY"”' ÌY#”- ÌY)”. ÌY*”5 ÌY1”6 ÌY2”< ÌY8”> ÌY:”? ÌY;”ÌA ÌY=”ÌC ÌY?Ü ” ÌZ” ÌZ” ÌZ” ÌZ”% ÌZ”& ÌZ ”0 ÌZ*”1 ÌZ+”7 ÌZ1”8 ÌZ2”? ÌZ9”Ì@ ÌZ:”ÌA ÌZ;”ÌB ÌZ<”ÌD ÌZ>”ÌQ ÌZÌK”ÌS ÌZÌM”Ì^ ÌZÌX”Ì_ ÌZÌY”Ì` ÌZÌZ‘”	 Ì[—” Ì\” Ì\” Ì\”  Ì\”# Ì\”0 Ì\,”1 Ì\-—” Ì]” Ì]” Ì]” Ì]”! Ì]”, Ì](”- Ì])Ü ” Ì^” Ì^” Ì^” Ì^” Ì^” Ì^” Ì^”, Ì^(”/ Ì^+”3 Ì^/”4 Ì^0”= Ì^9”> Ì^:”ÌK Ì^ÌG”ÌL Ì^ÌH”ÌM Ì^ÌI”ÌN Ì^ÌJ’” Ì_” Ì_š” Ìa”	 Ìa”
+ Ìa” Ìa” Ìa” Ìa” Ìa”) Ìa'”+ Ìa)”6 Ìa4˜” Ìb” Ìb” Ìb” Ìb” Ìb” Ìb”# Ìb”$ Ìb ˜” Ìc” Ìc” Ìc” Ìc” Ìc” Ìc”# Ìc”$ Ìc ˜” Ìd” Ìd” Ìd” Ìd” Ìd” Ìd”% Ìd!”& Ìd"–” Ìe” Ìe” Ìe” Ìe” Ìe” Ìe–” Ìf” Ìf” Ìf” Ìf” Ìf” Ìf–” Ìg” Ìg” Ìg” Ìg” Ìg” Ìg™” Ìh” Ìh” Ìh” Ìh” Ìh” Ìh” Ìh”  Ìh”! Ìh›” Ìi” Ìi” Ìi” Ìi” Ìi” Ìi”! Ìi”" Ìi”* Ìi&”+ Ìi'”, Ìi(™” Ìj” Ìj” Ìj	” Ìj” Ìj” Ìj” Ìj”0 Ìj,”2 Ìj.—” Ìk” Ìk
+” Ìk” Ìk” Ìk” Ìk” Ìkš” Ìl” Ìl” Ìl” Ìl” Ìl” Ìl”  Ìl”& Ìl ”' Ìl!”( Ìl"‘”	 Ìm›” Ìn” Ìn” Ìn” Ìn” Ìn” Ìn”  Ìn”! Ìn”& Ìn"”' Ìn#”( Ìn$–” Ìo” Ìo” Ìo” Ìo” Ìo” Ìoš” Ìp” Ìp” Ìp” Ìp” Ìp”  Ìp”! Ìp”, Ìp&”- Ìp'”. Ìp(‘”	 ÌqŸ” Ìr” Ìr” Ìr” Ìr”& Ìr"”' Ìr#”= Ìr9”> Ìr:”ÌQ ÌrÌM”ÌR ÌrÌN”Ì\ ÌrÌX”Ì^ ÌrÌZ”Ìh ÌrÌd”Ìi ÌrÌe”Ìj ÌrÌfÜ ” Ìs” Ìs
+” Ìs” Ìs”+ Ìs'”, Ìs(”5 Ìs1”6 Ìs2”= Ìs9”> Ìs:”? Ìs;”ÌC Ìs?”ÌD ÌsÌ@”ÌI ÌsÌE”ÌJ ÌsÌF”ÌL ÌsÌH–” Ìt” Ìt
+” Ìt” Ìt” Ìt”  Ìt•” Ìu” Ìu” Ìu” Ìu”  Ìu‘” Ìv‘” Ìv™” Ìw” Ìw” Ìw” Ìw”" Ìw”% Ìw”& Ìw”. Ìw&”/ Ìw'‘” Ìx™” Ìy”	 Ìy”
+ Ìy” Ìy” Ìy” Ìy” Ìy” Ìy” ÌyÜ ” Ìz” Ìz” Ìz” Ìz” Ìz” Ìz” Ìz”1 Ìz+”4 Ìz.”8 Ìz2”9 Ìz3”ÌB Ìz<”ÌC Ìz=”ÌH ÌzÌB”ÌI ÌzÌC”ÌJ ÌzÌD”ÌK ÌzÌE”” Ì{”	 Ì{”
+ Ì{” Ì{›” Ì}” Ì}” Ì}” Ì}” Ì}” Ì}” Ì}”  Ì}”$ Ì} ”% Ì}!”& Ì}"–” Ì~” Ì~” Ì~” Ì~” Ì~” Ì~š” Ì” Ì” Ì” Ì” Ì” Ì”  Ì”* Ì$”+ Ì%”, Ì&‘”	 Ì€Ü ” Ì” Ì
+” Ì” Ì”+ Ì'”, Ì(”: Ì6”; Ì7”ÌA Ì=”ÌB Ì>”ÌC Ì?”ÌG ÌÌC”ÌH ÌÌD”ÌM ÌÌI”ÌN ÌÌJ”ÌP ÌÌL•” Ì‚” Ì‚” Ì‚” Ì‚” Ì‚œ” Ìƒ” Ìƒ
+” Ìƒ” Ìƒ” Ìƒ”  Ìƒ”, Ìƒ&”- Ìƒ'”0 Ìƒ*”1 Ìƒ+”2 Ìƒ,”4 Ìƒ.’” Ì„” Ì„” Ì…
+” Ì…”) Ì…”, Ì…"”9 Ì…/”: Ì…0”ÌI Ì…?”ÌJ Ì…Ì@”Ì_ Ì…ÌU”Ì` Ì…ÌV”Ìf Ì…Ì\”Ìg Ì…Ì]”Ìh Ì…Ì^™” Ì†
+” Ì†”' Ì†”, Ì†"”0 Ì†&”4 Ì†*”ÌC Ì†9”ÌH Ì†>”ÌQ Ì†ÌG—” Ì‡”' Ì‡”3 Ì‡'”ÌE Ì‡9”ÌF Ì‡:”Ì_ Ì‡ÌS”Ìa Ì‡ÌU–” Ìˆ” Ìˆ”5 Ìˆ)”8 Ì‰=”ÌG Ì‰ÌL”ÌH Ì‰ÌM™” ÌŠ” ÌŠ”0 ÌŠ$”3 ÌŠÌN”ÌL ÌŠÌg”ÌM ÌŠÌh”ÌZ ÌŠÌu”Ì\ ÌŠÌw”Ì] ÌŠÌxš” Ì‹” Ì‹”0 Ì‹$”5 Ì‹)”9 Ì‹-”= Ì‹1”ÌQ Ì‹ÌE”ÌV Ì‹ÌJ”Ì_ Ì‹ÌS”Ìa Ì‹ÌUÜ ” ÌŒ”' ÌŒ”( ÌŒ”+ ÌŒ”, ÌŒ”6 ÌŒ(”9 ÌŒ+”< ÌŒ.”? ÌŒ1”ÌI ÌŒ;”ÌL ÌŒ>”ÌO ÌŒÌA”ÌR ÌŒÌD”Ì] ÌŒÌO”Ì` ÌŒÌR”Ìc ÌŒÌU”Ìf ÌŒÌX”Ìi ÌŒÌ[”Ìj ÌŒÌ\”Ìr ÌŒÌd”Ìt Ì”Ìˆ Ì$”Ì‰ Ì%”Ì” Ì0”Ì– Ì2”Ì— Ì3”Ì˜ Ì4‘” Ì‘” Ìš” Ì”# Ì”$ Ì”) Ì”* Ì”- Ì”/ Ì!”ÌQ ÌÌC”ÌR ÌÌD”ÌS ÌÌE‘” Ì‘” Ì‘‘” Ì’	”” Ì’
+” Ì’” Ì’” Ì’Ü ” Ì“
+” Ì“” Ì“”! Ì“”" Ì“”% Ì“”' Ì“”ÌF Ì“<”ÌI Ì“?”ÌM Ì“ÌC”ÌN Ì“ÌD”ÌW Ì“ÌM”ÌX Ì“ÌN”ÌY Ì“ÌO”ÌZ Ì“ÌP”Ì[ Ì“ÌQ”Ì\ Ì“ÌR‘” Ì”	‘” Ì•™” Ì–”	 Ì–”
+ Ì–” Ì–” Ì–” Ì–” Ì–” Ì–” Ì–Ü ” Ì—” Ì—” Ì—” Ì—” Ì—” Ì—” Ì—”6 Ì—0”9 Ì—3”= Ì—7”> Ì—8”ÌG Ì—ÌA”ÌH Ì—ÌB”ÌM Ì—ÌG”ÌN Ì—ÌH”ÌO Ì—ÌI”ÌP Ì—ÌJ”” Ì˜”	 Ì˜”
+ Ì˜” Ì˜” Ì™” Ì™” Ì™” Ì™” Ì™”# Ì™”& Ì™"”) Ì™%”, Ì™(”7 Ì™3”: Ì™6”= Ì™9”Ì@ Ì™<”ÌG Ì™ÌCÜ ” Ìš” Ìš	” Ìš” Ìš” Ìš” Ìš”" Ìš”, Ìš&”/ Ìš)”2 Ìš,”5 Ìš/”9 Ìš3”< Ìš6”? Ìš9”ÌB Ìš<”ÌH ÌšÌB”ÌK ÌšÌE”ÌN ÌšÌH”ÌQ ÌšÌK”ÌY ÌšÌS”ÌZ ÌšÌT”Ì[ ÌšÌU’” Ì›” Ì›˜” Ì”	 Ì”
+ Ì” Ì” Ì” Ì” Ì”! ÌÜ ” Ì” Ì” Ì” Ì” Ì” Ì” Ì”. Ì*”1 Ì-”5 Ì1”6 Ì2”? Ì;”Ì@ Ì<”ÌD ÌÌ@”ÌE ÌÌA”ÌF ÌÌB”ÌG ÌÌC—” ÌŸ” ÌŸ” ÌŸ” ÌŸ”! ÌŸ”% ÌŸ!”& ÌŸ"’” Ì ” Ì Ü ” Ì¡” Ì¡” Ì¡” Ì¡”  Ì¡”$ Ì¡”% Ì¡”* Ì¡$”+ Ì¡%”/ Ì¡)”0 Ì¡*”: Ì¡4”; Ì¡5”ÌA Ì¡;”ÌB Ì¡<”ÌC Ì¡=›” Ì¢” Ì¢” Ì¢”" Ì¢”% Ì¢”) Ì¢#”* Ì¢$”4 Ì¢.”5 Ì¢/”Ì@ Ì¢:”ÌA Ì¢;–” Ì£” Ì£
+” Ì£” Ì£” Ì£” Ì£Ü ” Ì¤” Ì¤
+” Ì¤” Ì¤”! Ì¤”% Ì¤”/ Ì¤)”0 Ì¤*”6 Ì¤0”7 Ì¤1”> Ì¤8”ÌB Ì¤<”ÌL Ì¤ÌF”ÌM Ì¤ÌG”ÌS Ì¤ÌM”ÌT Ì¤ÌN”Ì[ Ì¤ÌU”Ì\ Ì¤ÌV”Ìb Ì¤Ì\”Ìd Ì¤Ì^›” Ì¥” Ì¥” Ì¥”% Ì¥”& Ì¥”, Ì¥$”- Ì¥%”4 Ì¥,”5 Ì¥-”; Ì¥3”< Ì¥4‘” Ì¦—” Ì§” Ì§” Ì§” Ì§”" Ì§”* Ì§$”+ Ì§%œ” Ì¨” Ì¨” Ì¨” Ì¨”" Ì¨”/ Ì¨)”0 Ì¨*”ÌI Ì¨ÌC”ÌJ Ì¨ÌD”ÌR Ì¨ÌL”ÌS Ì¨ÌM”ÌT Ì¨ÌN›” Ìª” Ìª” Ìª” Ìª” Ìª” Ìª”! Ìª”" Ìª”& Ìª(”( Ìª*”* Ìª,’” Ì«” Ì«—” Ì¬
+” Ì¬” Ì¬”# Ì¬”$ Ì¬”, Ì¬"”. Ì¬$š” Ì­” Ì­”  Ì­”% Ì­”& Ì­”) Ì­”+ Ì­”Ìl Ì­Ì`”Ìm Ì­Ìa”Ìn Ì­Ìb’” Ì®” Ì®‘” Ì¯›” Ì°
+” Ì°”  Ì°”# Ì°”0 Ì°&”1 Ì°'”ÌJ Ì°Ì@”ÌK Ì°ÌA”ÌS Ì°ÌI”ÌT Ì°ÌJ”ÌU Ì°ÌK•” Ì±
+” Ì±” Ì±”! Ì±”# Ì±š” Ì²” Ì²”  Ì²”% Ì²”& Ì²”) Ì²”+ Ì²”Ìa Ì²ÌU”Ìb Ì²ÌV”Ìc Ì²ÌW’” Ì³” Ì³‘” Ì´Ü ” Ìµ
+” Ìµ”  Ìµ”! Ìµ”( Ìµ”- Ìµ#”7 Ìµ-”8 Ìµ.”Ì@ Ìµ6”ÌA Ìµ7”ÌH Ìµ>”ÌL ÌµÌB”ÌT ÌµÌJ”ÌU ÌµÌK”Ì\ ÌµÌR”Ìa ÌµÌW”Ìk ÌµÌa”Ìl ÌµÌb”Ìt ÌµÌj”Ìu ÌµÌk”Ì| ÌµÌr”Ì~ ÌµÌt” Ì¶” Ì¶” Ì¶”" Ì¶”# Ì¶”+ Ì¶”, Ì¶ ”3 Ì¶'”5 Ì¶)”= Ì¶1”> Ì¶2”ÌE Ì¶9”ÌF Ì¶:”ÌG Ì¶;‘” Ì·Ü ” Ì¸
+” Ì¸”  Ì¸”! Ì¸”& Ì¸”+ Ì¸!”5 Ì¸+”6 Ì¸,”> Ì¸4”? Ì¸5”ÌD Ì¸:”ÌH Ì¸>”ÌP Ì¸ÌF”ÌQ Ì¸ÌG”ÌW Ì¸ÌM”Ì\ Ì¸ÌR”Ìf Ì¸Ì\”Ìg Ì¸Ì]”Ìo Ì¸Ìe”Ìp Ì¸Ìf”Ìv Ì¸Ìl”Ìx Ì¸Ìn” Ì¹” Ì¹” Ì¹”% Ì¹”& Ì¹”. Ì¹"”/ Ì¹#”4 Ì¹(”6 Ì¹*”> Ì¹2”? Ì¹3”ÌE Ì¹9”ÌF Ì¹:”ÌG Ì¹;‘” Ìº—” Ì»
+” Ì»” Ì»”' Ì»”* Ì» ”2 Ì»(”3 Ì»)‘” Ì¼	”” Ì¼
+” Ì¼” Ì¼” Ì¼Ü ” Ì½
+” Ì½” Ì½”! Ì½”" Ì½”% Ì½”' Ì½”ÌI Ì½?”ÌL Ì½ÌB”ÌP Ì½ÌF”ÌQ Ì½ÌG”ÌZ Ì½ÌP”Ì[ Ì½ÌQ”Ì` Ì½ÌV”Ìa Ì½ÌW”Ìb Ì½ÌX”Ìc Ì½ÌY‘” Ì¾	”” Ì¿” Ì¿” Ì¿” Ì¿	‘”	 ÌÀ”” ÌÀ” ÌÀ” ÌÀ” ÌÀÜ ” ÌÁ” ÌÁ” ÌÁ” ÌÁ” ÌÁ” ÌÁ” ÌÁ”ÌS ÌÁÌM”ÌV ÌÁÌP”ÌZ ÌÁÌT”Ì[ ÌÁÌU”Ìd ÌÁÌ^”Ìe ÌÁÌ_”Ìn ÌÁÌh”Ìo ÌÁÌi”Ìp ÌÁÌj”Ìq ÌÁÌk‘”	 ÌÂ’” ÌÃ” ÌÃ™” ÌÄ” ÌÄ
+” ÌÄ” ÌÄ”& ÌÄ ”' ÌÄ!”< ÌÄ6”> ÌÄ8”? ÌÄ9Ü ” ÌÅ” ÌÅ” ÌÅ” ÌÅ” ÌÅ” ÌÅ” ÌÅ”5 ÌÅ/”8 ÌÅ2”< ÌÅ6”= ÌÅ7”ÌF ÌÅÌ@”ÌG ÌÅÌA”ÌS ÌÅÌM”ÌT ÌÅÌN”ÌU ÌÅÌO”ÌV ÌÅÌP‘”	 ÌÆ”” ÌÆ” ÌÆ” ÌÆ” ÌÆÜ ” ÌÇ” ÌÇ” ÌÇ” ÌÇ” ÌÇ” ÌÇ” ÌÇ”ÌQ ÌÇÌK”ÌT ÌÇÌN”ÌX ÌÇÌR”ÌY ÌÇÌS”Ìb ÌÇÌ\”Ìc ÌÇÌ]”Ìh ÌÇÌb”Ìi ÌÇÌc”Ìj ÌÇÌd”Ìk ÌÇÌe‘”	 ÌÈÜ ” ÌÉ” ÌÉ” ÌÉ” ÌÉ” ÌÉ” ÌÉ” ÌÉ”. ÌÉ*”1 ÌÉ-”5 ÌÉ1”6 ÌÉ2”? ÌÉ;”Ì@ ÌÉ<”ÌD ÌÉÌ@”ÌE ÌÉÌA”ÌF ÌÉÌB”ÌG ÌÉÌCÜ ” ÌÊ” ÌÊ” ÌÊ” ÌÊ” ÌÊ” ÌÊ” ÌÊ”0 ÌÊ,”3 ÌÊ/”7 ÌÊ3”8 ÌÊ4”ÌA ÌÊ=”ÌB ÌÊ>”ÌL ÌÊÌH”ÌM ÌÊÌI”ÌS ÌÊÌO”ÌT ÌÊÌP”ÌU ÌÊÌQ”ÌV ÌÊÌRÜ ” ÌË” ÌË” ÌË” ÌË” ÌË” ÌË” ÌË”2 ÌË.”5 ÌË1”9 ÌË5”: ÌË6”ÌC ÌË?”ÌD ÌËÌ@”ÌN ÌËÌJ”ÌO ÌËÌK”ÌW ÌËÌS”ÌX ÌËÌT”ÌY ÌËÌU”ÌZ ÌËÌV™” ÌÌ” ÌÌ” ÌÌ	” ÌÌ” ÌÌ” ÌÌ” ÌÌ”0 ÌÌ,”2 ÌÌ.” ÌÍ” ÌÍ” ÌÍ”  ÌÍ”# ÌÍ”* ÌÍ$”+ ÌÍ%”5 ÌÍ/”6 ÌÍ0”< ÌÍ6”= ÌÍ7”ÌF ÌÍÌ@”ÌG ÌÍÌA”ÌH ÌÍÌB” ÌÎ” ÌÎ” ÌÎ” ÌÎ”  ÌÎ”' ÌÎ!”( ÌÎ"”2 ÌÎ,”3 ÌÎ-”9 ÌÎ3”: ÌÎ4”Ì@ ÌÎ:”ÌA ÌÎ;”ÌB ÌÎ<‘”	 ÌÏ’” ÌĞ” ÌĞ˜” ÌÑ” ÌÑ
+” ÌÑ” ÌÑ”! ÌÑ”" ÌÑ”3 ÌÑ-”5 ÌÑ/—” ÌÒ” ÌÒ” ÌÒ” ÌÒ”. ÌÒ&”0 ÌÒ(”1 ÌÒ)‘” ÌÓ‘” ÌÓ—” ÌÔ” ÌÔ” ÌÔ” ÌÔ”+ ÌÔ#”- ÌÔ%”. ÌÔ&‘” ÌÕ‘”	 ÌÖ”” ÌÖ” ÌÖ” ÌÖ” ÌÖÜ ” Ì×” Ì×” Ì×” Ì×” Ì×” Ì×” Ì×”9 Ì×3”< Ì×6”Ì@ Ì×:”ÌA Ì×;”ÌJ Ì×ÌD”ÌK Ì×ÌE”ÌP Ì×ÌJ”ÌQ Ì×ÌK”ÌR Ì×ÌL”ÌS Ì×ÌM‘”	 ÌØ’” ÌÙ” ÌÙÜ ” ÌÚ” ÌÚ” ÌÚ”" ÌÚ”# ÌÚ”3 ÌÚ-”5 ÌÚ/”? ÌÚ9”Ì@ ÌÚ:”ÌH ÌÚÌB”ÌI ÌÚÌC”ÌW ÌÚÌQ”ÌX ÌÚÌR”ÌY ÌÚÌS”ÌZ ÌÚÌT”Ì` ÌÚÌZ”Ìa ÌÚÌ[”Ìb ÌÚÌ\”Ìc ÌÚÌ]”Ìj ÌÚÌd”Ìk ÌÚÌe”Ìl ÌÚÌf‘”	 ÌÛ”” ÌÛ” ÌÛ” ÌÛ” ÌÛÜ ” ÌÜ” ÌÜ” ÌÜ” ÌÜ” ÌÜ” ÌÜ” ÌÜ”? ÌÜ9”ÌB ÌÜ<”ÌF ÌÜÌ@”ÌG ÌÜÌA”ÌP ÌÜÌJ”ÌQ ÌÜÌK”ÌV ÌÜÌP”ÌW ÌÜÌQ”ÌX ÌÜÌR”ÌY ÌÜÌS‘”	 Ìİ›” ÌŞ” ÌŞ” ÌŞ”! ÌŞ”# ÌŞ”$ ÌŞ ”( ÌŞ$”) ÌŞ%”, ÌŞ(”- ÌŞ)”/ ÌŞ+’” Ìß” Ìß
+—” Ìà” Ìà” Ìà” Ìà”  Ìà”( Ìà ”* Ìà"š” Ìá
+” Ìá” Ìá”! Ìá”" Ìá”% Ìá”' Ìá”Ìk ÌáÌa”Ìl ÌáÌb”Ìm ÌáÌc’” Ìâ
+” Ìâ‘” Ìã	”” Ìä” Ìä”% Ìä”( Ìä ˜” Ìå
+” Ìå” Ìå”$ Ìå”% Ìå”- Ìå#”. Ìå$”5 Ìå+˜” Ìæ
+” Ìæ” Ìæ”# Ìæ”$ Ìæ”, Ìæ"”- Ìæ#”4 Ìæ*˜” Ìç
+” Ìç” Ìç”% Ìç”& Ìç”. Ìç$”/ Ìç%”4 Ìç*˜” Ìè
+” Ìè” Ìè”& Ìè”' Ìè”/ Ìè%”0 Ìè&”6 Ìè,’” Ìé	” Ìé
+˜” Ìê” Ìê” Ìê” Ìê” Ìê”" Ìê”% Ìê”' Ìê–” Ìë
+” Ìë” Ìë” Ìë”! Ìë”" Ìë”” Ìì
+” Ìì” Ìì” Ìì‘” Ìí	Ü ” Ìî” Ìî” Ìî”! Ìî”" Ìî”) Ìî ”* Ìî!”4 Ìî+”5 Ìî,”Ì@ Ìî7”ÌA Ìî8”ÌF Ìî=”ÌN ÌîÌE”ÌR ÌîÌI”Ì\ ÌîÌS”Ì] ÌîÌT”Ìh ÌîÌ_”Ìm ÌîÌd”Ìq ÌîÌh”Ìr ÌîÌi”Ìs ÌîÌj”Ìt ÌîÌkŸ” Ìï
+” Ìï” Ìï”% Ìï”& Ìï”1 Ìï'”2 Ìï(”3 Ìï)”4 Ìï*”: Ìï0”; Ìï1”ÌE Ìï;”ÌF Ìï<”ÌW ÌïÌM”ÌX ÌïÌN” Ìğ” Ìğ” Ìğ”! Ìğ”" Ìğ”2 Ìğ*”5 Ìğ-”< Ìğ4”> Ìğ6”ÌH ÌğÌ@”ÌJ ÌğÌB”Ì[ ÌğÌS”Ì\ ÌğÌT”Ì] ÌğÌU”” Ìñ” Ìñ” Ìñ” Ìñ‘” Ìò”” Ìò” Ìò” Ìò” ÌòÜ ” Ìó” Ìó” Ìó” Ìó” Ìó”! Ìó”# Ìó”ÌP ÌóÌH”ÌS ÌóÌK”ÌW ÌóÌO”ÌX ÌóÌP”Ìa ÌóÌY”Ìb ÌóÌZ”Ìg ÌóÌ_”Ìh ÌóÌ`”Ìi ÌóÌa”Ìj ÌóÌb‘” Ìô”” Ìõ”	 Ìõ”
+ Ìõ” Ìõ’” Ìö” Ìö’” Ìø” Ìøš” Ìù” Ìù” Ìù” Ìù” Ìù” Ìù” Ìù”ÌF ÌùÌB”ÌG ÌùÌC”ÌH ÌùÌD–” Ìú” Ìú” Ìú” Ìú” Ìú” Ìú–” Ìû” Ìû	” Ìû
+” Ìû” Ìû” Ìû‘”	 Ìü’” Ìı” Ìıš” Ìÿ
+”	 Ìÿ”
+ Ìÿ” Ìÿ” Ìÿ” Ìÿ)” Ìÿ+”' Ìÿ=”) Ìÿ?”- ÌÿÌC˜” Í ” Í ” Í ” Í ”' Í #”( Í $”2 Í .”3 Í /š” Í” Í” Í” Í” Í” Í” Í”) Í%”* Í&”+ Í'’” Í” ÍÜ ” Í” Í	” Í” Í” Í” Í”% Í”& Í ”0 Í*”1 Í+”ÌG ÍÌA”ÌI ÍÌC”ÌM ÍÌG”ÌO ÍÌI”ÌY ÍÌS”ÌZ ÍÌT”Ì[ ÍÌUš” Í” Í
+” Í” Í”% Í”& Í ”0 Í*”1 Í+”< Í6”> Í8” Í” Í” Í” Í”* Í"”+ Í#”5 Í-”6 Í.”ÌA Í9”ÌB Í:”ÌG Í?”ÌI ÍÌA”ÌL ÍÌD”ÌN ÍÌF–” Í
+” Í” Í”% Í”' Í”( Í”” Í
+” Í” Í” Í–” Í
+” Í” Í”# Í”$ Í”& Í˜” Í	”" Í	”# Í	”9 Í	-”: Í	.”ÌG Í	;”ÌI Í	=”ÌJ Í	>‘” Í
+”” Í” Í	” Í
+” Í‘” Í–” Í” Í
+” Í”# Í”, Í&”. Í(™” Í” Í” Í” Í”6 Í.”7 Í/”; Í3”< Í4”= Í5‘” ÍŸ” Í” Í” Í” Í” Í” Í”! Í”" Í”& Í ”( Í"”, Í&”- Í'”0 Í*”1 Í+”2 Í,Ÿ” Í” Í” Í” Í” Í”  Í”$ Í”% Í”* Í$”, Í&”0 Í*”1 Í+”7 Í1”8 Í2”9 Í3œ” Í” Í
+” Í”  Í”' Í!”( Í"”ÌY ÍÌS”Ì[ ÍÌU”Ìb ÍÌ\”Ìc ÍÌ]”Ìh ÍÌb”Ìo ÍÌi” Í” Í” Í”& Í”' Í”. Í&”/ Í'”ÌJ ÍÌB”ÌL ÍÌD”ÌS ÍÌK”ÌT ÍÌL”ÌY ÍÌQ”Ì` ÍÌX”Ìb ÍÌZ˜” Í” Í” Í” Í”% Í”& Í”7 Í/”9 Í1—” Í
+” Í” Í”) Í”, Í"”ÌG Í=”ÌH Í>‘” Í	‘” Í—” Í
+” Í” Í”) Í”, Í"”ÌD Í:”ÌE Í;‘” Í	™” Í” Í” Í” Í”% Í”& Í”ÌE Í=”ÌF Í>”ÌG Í?‘” Í‘” Í˜” Í” Í” Í” Í”% Í”& Í”7 Í/”9 Í1™” Í
+” Í” Í” Í”) Í”* Í ”ÌE Í;”ÌF Í<”ÌG Í=‘” Í	‘” Í™” Í
+” Í” Í” Í”) Í”* Í ”ÌB Í8”ÌC Í9”ÌD Í:‘” Í	‘” Í ™” Í!” Í!” Í!” Í!”( Í!"”) Í!#”4 Í!.”5 Í!/”6 Í!0—” Í"” Í"” Í"” Í"” Í"” Í"” Í"‘”	 Í#”” Í#” Í#” Í#” Í#Ü ” Í$” Í$” Í$” Í$” Í$” Í$” Í$”7 Í$1”: Í$4”> Í$8”? Í$9”ÌH Í$ÌB”ÌI Í$ÌC”ÌJ Í$ÌD”ÌK Í$ÌE”ÌL Í$ÌF”ÌM Í$ÌG‘”	 Í%’” Í&” Í&–” Í(
+”	 Í(”
+ Í(” Í(” Í(” Í(’” Í)” Í)Ÿ” Í*” Í*” Í*” Í*” Í*” Í*”! Í*”" Í*”& Í* ”( Í*"”, Í*&”- Í*'”0 Í**”1 Í*+”2 Í*,Ÿ” Í+” Í+” Í+” Í+” Í+”  Í+”$ Í+”% Í+”* Í+$”, Í+&”0 Í+*”1 Í++”7 Í+1”8 Í+2”9 Í+3˜” Í,” Í,
+” Í,” Í,”! Í,”" Í,”3 Í,-”5 Í,/’” Í-” Í-™” Í.
+” Í.” Í.” Í.”) Í.”* Í. ”ÌE Í.;”ÌF Í.<”ÌG Í.=™” Í/
+” Í/” Í/” Í/”0 Í/&”1 Í/'”< Í/2”= Í/3”> Í/4‘” Í0	”” Í0
+” Í0” Í0” Í0Ü ” Í1
+” Í1” Í1”! Í1”" Í1”% Í1”' Í1”ÌD Í1:”ÌG Í1=”ÌK Í1ÌA”ÌL Í1ÌB”ÌU Í1ÌK”ÌV Í1ÌL”ÌW Í1ÌM”ÌX Í1ÌN”ÌY Í1ÌO”ÌZ Í1ÌP‘” Í2	‘” Í3—” Í4” Í4” Í4” Í4” Í4” Í4” Í4‘”	 Í5”” Í5” Í5” Í5” Í5Ü ” Í6” Í6” Í6” Í6” Í6” Í6” Í6”5 Í6/”8 Í62”< Í66”= Í67”ÌF Í6Ì@”ÌG Í6ÌA”ÌH Í6ÌB”ÌI Í6ÌC”ÌJ Í6ÌD”ÌK Í6ÌE‘”	 Í7’” Í8” Í8”” Í:” Í:” Í:”  Í:Ü ” Í;” Í;” Í;” Í;” Í;” Í;” Í;”0 Í;,”3 Í;/”7 Í;3”8 Í;4”ÌA Í;=”ÌB Í;>”ÌH Í;ÌD”ÌI Í;ÌE”ÌJ Í;ÌF”ÌK Í;ÌG” Í<” Í<” Í<	” Í<” Í<” Í<”" Í<”# Í<”- Í<)”. Í<*”4 Í<0”5 Í<1”ÌF Í<ÌB”ÌH Í<ÌDš” Í=” Í=” Í=” Í=” Í=” Í=” Í=”4 Í=.”5 Í=/”6 Í=0’” Í>” Í>‘”	 Í?’” Í@” Í@™” ÍA” ÍA
+” ÍA” ÍA”& ÍA ”' ÍA!”< ÍA6”> ÍA8”? ÍA9Ü ” ÍB” ÍB” ÍB” ÍB” ÍB” ÍB” ÍB”+ ÍB%”. ÍB(”2 ÍB,”3 ÍB-”< ÍB6”= ÍB7”ÌI ÍBÌC”ÌJ ÍBÌD”ÌK ÍBÌE”ÌL ÍBÌF” ÍC” ÍC” ÍC” ÍC”" ÍC”/ ÍC)”0 ÍC*”ÌI ÍCÌC”ÌJ ÍCÌD”ÌT ÍCÌN”ÌU ÍCÌO”Ì] ÍCÌW”Ì^ ÍCÌX”Ì_ ÍCÌY—” ÍD” ÍD
+” ÍD” ÍD” ÍD”$ ÍD”& ÍD š” ÍE” ÍE” ÍE” ÍE” ÍE”! ÍE”# ÍE”ÌT ÍEÌL”ÌU ÍEÌM”ÌV ÍEÌN’” ÍF” ÍF‘” ÍG”” ÍH” ÍH
+”! ÍH”$ ÍH˜” ÍI” ÍI” ÍI”  ÍI”! ÍI”) ÍI!”* ÍI"”1 ÍI)˜” ÍJ” ÍJ” ÍJ” ÍJ”  ÍJ”( ÍJ ”) ÍJ!”0 ÍJ(˜” ÍK” ÍK” ÍK”! ÍK”" ÍK”* ÍK"”+ ÍK#”0 ÍK(˜” ÍL” ÍL” ÍL”" ÍL”# ÍL”+ ÍL#”, ÍL$”2 ÍL*’” ÍM” ÍMÜ ” ÍN” ÍN” ÍN”" ÍN”# ÍN”3 ÍN-”5 ÍN/”? ÍN9”Ì@ ÍN:”ÌH ÍNÌB”ÌI ÍNÌC”ÌW ÍNÌQ”ÌX ÍNÌR”ÌY ÍNÌS”ÌZ ÍNÌT”Ì` ÍNÌZ”Ìa ÍNÌ[”Ìb ÍNÌ\”Ìc ÍNÌ]”Ìj ÍNÌd”Ìk ÍNÌe”Ìl ÍNÌfÜ ” ÍO” ÍO” ÍO” ÍO” ÍO” ÍO” ÍO”ÌK ÍOÌE”ÌN ÍOÌH”ÌR ÍOÌL”ÌS ÍOÌM”Ì\ ÍOÌV”Ì] ÍOÌW”Ìn ÍOÌh”Ìo ÍOÌi”Ìp ÍOÌj”Ìq ÍOÌk˜” ÍP” ÍP
+” ÍP” ÍP” ÍP”- ÍP'”. ÍP(”/ ÍP)‘”	 ÍQ”” ÍQ” ÍQ” ÍQ” ÍQÜ ” ÍR” ÍR” ÍR” ÍR” ÍR” ÍR” ÍR”ÌJ ÍRÌD”ÌM ÍRÌG”ÌQ ÍRÌK”ÌR ÍRÌL”Ì[ ÍRÌU”Ì\ ÍRÌV”Ìa ÍRÌ[”Ìb ÍRÌ\”Ìc ÍRÌ]”Ìd ÍRÌ^‘”	 ÍS’” ÍT” ÍT‘” ÍU’”  ÍU” ÍUÔrH–§version¤file§sources®sourcesContent¥names¨mappingsÀ‘À‘ÀÜX‘”    ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”  	 ‘”  
+ ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”    ‘”  ! ‘”  " ‘”  # ‘”  $ ‘”  % ‘”  & ‘”  ' ‘”  ( ‘”  ) ‘”  * ‘”  + ‘”  , ‘”  - ‘”  . ‘”  / ‘”  0 ‘”  1 ‘”  2 ‘”  3 ‘”  4 ‘”  5 ‘”  6 ‘”  7 ‘”  8 ‘”  9 ‘”  : ‘”  ; ‘”  < ‘”  = ‘”  > ‘”  ? ‘”  Ì@ ‘”  ÌA ‘”  ÌB ‘”  ÌC ‘”  ÌD ‘”  ÌE ‘”  ÌF ‘”  ÌG ‘”  ÌH ‘”  ÌI ‘”  ÌJ ‘”  ÌK ‘”  ÌL ‘”  ÌM ‘”  ÌN ‘”  ÌO ‘”  ÌP ‘”  ÌQ ‘”  ÌR ‘”  ÌS ‘”  ÌT ‘”  ÌU ‘”  ÌV ‘”  ÌW ‘”  ÌX ‘”  ÌY ‘”  ÌZ ‘”  Ì[ ‘”  Ì\ ‘”  Ì] ‘”  Ì^ ‘”  Ì_ ‘”  Ì` ‘”  Ìa ‘”  Ìb ‘”  Ìc ‘”  Ìd ‘”  Ìe ‘”  Ìf ‘”  Ìg ‘”  Ìh ‘”  Ìi ‘”  Ìj ‘”  Ìk ‘”  Ìl ‘”  Ìm ‘”  Ìn ‘”  Ìo ‘”  Ìp ‘”  Ìq ‘”  Ìr ‘”  Ìs ‘”  Ìt ‘”  Ìu ‘”  Ìv ‘”  Ìw ‘”  Ìx ‘”  Ìy ‘”  Ìz ‘”  Ì{ ‘”  Ì| ‘”  Ì} ‘”  Ì~ ‘”  Ì ‘”  Ì€ ‘”  Ì ‘”  Ì‚ ‘”  Ìƒ ‘”  Ì„ ‘”  Ì… ‘”  Ì† ‘”  Ì‡ ‘”  Ìˆ ‘”  Ì‰ ‘”  ÌŠ ‘”  Ì‹ ‘”  ÌŒ ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì‘ ‘”  Ì’ ‘”  Ì“ ‘”  Ì” ‘”  Ì• ‘”  Ì– ‘”  Ì— ‘”  Ì˜ ‘”  Ì™ ‘”  Ìš ‘”  Ì› ‘”  Ìœ ‘”  Ì ‘”  Ì ‘”  ÌŸ ‘”  Ì  ‘”  Ì¡ ‘”  Ì¢ ‘”  Ì£ ‘”  Ì¤ ‘”  Ì¥ ‘”  Ì¦ ‘”  Ì§ ‘”  Ì¨ ‘”  Ì© ‘”  Ìª ‘”  Ì« ‘”  Ì¬ ‘”  Ì­ ‘”  Ì® ‘”  Ì¯ ‘”  Ì° ‘”  Ì± ‘”  Ì² ‘”  Ì³ ‘”  Ì´ ‘”  Ìµ ‘”  Ì¶ ‘”  Ì· ‘”  Ì¸ ‘”  Ì¹ ‘”  Ìº ‘”  Ì» ‘”  Ì¼ ‘”  Ì½ ‘”  Ì¾ ‘”  Ì¿ ‘”  ÌÀ ‘”  ÌÁ ‘”  ÌÂ ‘”  ÌÃ ‘”  ÌÄ ‘”  ÌÅ ‘”  ÌÆ ‘”  ÌÇ ‘”  ÌÈ ‘”  ÌÉ ‘”  ÌÊ ‘”  ÌË ‘”  ÌÌ ‘”  ÌÍ ‘”  ÌÎ ‘”  ÌÏ ‘”  ÌĞ ‘”  ÌÑ ‘”  ÌÒ ‘”  ÌÓ ‘”  ÌÔ ‘”  ÌÕ ‘”  ÌÖ ‘”  Ì× ‘”  ÌØ ‘”  ÌÙ ‘”  ÌÚ ‘”  ÌÛ ‘”  ÌÜ ‘”  Ìİ ‘”  ÌŞ ‘”  Ìß ‘”  Ìà ‘”  Ìá ‘”  Ìâ ‘”  Ìã ‘”  Ìä ‘”  Ìå ‘”  Ìæ ‘”  Ìç ‘”  Ìè ‘”  Ìé ‘”  Ìê ‘”  Ìë ‘”  Ìì ‘”  Ìí ‘”  Ìî ‘”  Ìï ‘”  Ìğ ‘”  Ìñ ‘”  Ìò ‘”  Ìó ‘”  Ìô ‘”  Ìõ ‘”  Ìö ‘”  Ì÷ ‘”  Ìø ‘”  Ìù ‘”  Ìú ‘”  Ìû ‘”  Ìü ‘”  Ìı ‘”  Ìş ‘”  Ìÿ ‘”  Í  ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í	 ‘”  Í
+ ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í  ‘”  Í! ‘”  Í" ‘”  Í# ‘”  Í$ ‘”  Í% ‘”  Í& ‘”  Í' ‘”  Í( ‘”  Í) ‘”  Í* ‘”  Í+ ‘”  Í, ‘”  Í- ‘”  Í. ‘”  Í/ ‘”  Í0 ‘”  Í1 ‘”  Í2 ‘”  Í3 ‘”  Í4 ‘”  Í5 ‘”  Í6 ‘”  Í7 ‘”  Í8 ‘”  Í9 ‘”  Í: ‘”  Í; ‘”  Í< ‘”  Í= ‘”  Í> ‘”  Í? ‘”  Í@ ‘”  ÍA ‘”  ÍB ‘”  ÍC ‘”  ÍD ‘”  ÍE ‘”  ÍF ‘”  ÍG ‘”  ÍH ‘”  ÍI ‘”  ÍJ ‘”  ÍK ‘”  ÍL ‘”  ÍM ‘”  ÍN ‘”  ÍO ‘”  ÍP ‘”  ÍQ ‘”  ÍR ‘”  ÍS ‘”  ÍT ‘”  ÍU ‘”  ÍV ‘”  ÍW ÔrI’§missing¦pluginÃ¦genAbcÂÔ  ÔrJ”²dynamicImportCache¹exportAllDeclarationCache»exportNamedDeclarationCache«importCachešÔrK•¤type¥start£endªspecifiers¦source±ImportDeclarationÍsÍª‘ÔrL”¤type¥start£end¥local¶ImportDefaultSpecifierÍzÍ‡ÔrM”¤type¥start£end¤nameªIdentifierÍzÍ‡­bundleManagerÔrN•¤type¥start£end¥value£raw§LiteralÍÍ©º@ohos.bundle.bundleManager¼'@ohos.bundle.bundleManager'K±ImportDeclarationÍ¬Íë‘L¶ImportDefaultSpecifierÍ³ÍÄMªIdentifierÍ³ÍÄ±defaultAppManagerN§LiteralÍÊÍê¾@ohos.bundle.defaultAppManagerÙ '@ohos.bundle.defaultAppManager'K±ImportDeclarationÍíÍ‘L¶ImportDefaultSpecifierÍôÍûMªIdentifierÍôÍû§displayN§LiteralÍÍ­@ohos.display¯'@ohos.display'K±ImportDeclarationÍÍS‘L¶ImportDefaultSpecifierÍÍ,MªIdentifierÍÍ,²drawableDescriptorN§LiteralÍ2ÍR¾@ohos.arkui.drawableDescriptorÙ '@ohos.arkui.drawableDescriptor'K±ImportDeclarationÍUÍ—‘L¶ImportDefaultSpecifierÍ\ÍeMªIdentifierÍ\Íe©extensionN§LiteralÍkÍ–Ù)@ohos.app.ability.ServiceExtensionAbilityÙ+'@ohos.app.ability.ServiceExtensionAbility'K±ImportDeclarationÍ™Í»‘L¶ImportDefaultSpecifierÍ Í¦MªIdentifierÍ Í¦¦windowN§LiteralÍ¬Íº¬@ohos.window®'@ohos.window'K±ImportDeclarationÍ½Íğ‘L¶ImportDefaultSpecifierÍÄÍÑMªIdentifierÍÄÍÑ­PositionUtilsN§LiteralÍ×Íï¶../utils/PositionUtils¸'../utils/PositionUtils'K±ImportDeclarationÍòÍ‘L¶ImportDefaultSpecifierÍùÍMªIdentifierÍùÍªdeviceInfoN§LiteralÍ	Í°@ohos.deviceInfo²'@ohos.deviceInfo'K±ImportDeclarationÍÍY‘L¶ImportDefaultSpecifierÍ%Í4MªIdentifierÍ%Í4¯systemparameterN§LiteralÍ:ÍX¼@ohos.systemParameterEnhance¾'@ohos.systemParameterEnhance'K±ImportDeclarationÍ[Í‘L¶ImportDefaultSpecifierÍbÍqMªIdentifierÍbÍq¯dataPreferencesN§LiteralÍwÍ¶@ohos.data.preferences¸'@ohos.data.preferences'

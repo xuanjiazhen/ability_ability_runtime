@@ -291,6 +291,7 @@ private:
 
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
     void AddSessionRecord(const std::shared_ptr<SessionRecord> &record);
+    int32_t TryAddSessionRecord(const std::shared_ptr<SessionRecord> &record);
     std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
     std::vector<std::shared_ptr<SessionRecord>> GetSessionRecords();
     void RemoveSessionRecord(const std::string &sessionId);
@@ -316,6 +317,16 @@ private:
         const std::vector<int64_t> &attributionIds, const std::vector<int32_t> &uids);
 
     bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
+
+    /**
+     * @brief Mutex-guarded snapshot of ioMonitor_.
+     *
+     * OnStop (samgr unload thread) may clear ioMonitor_ while in-flight IPC/ffrt readers still use it;
+     * an unsynchronized read/write of a plain shared_ptr is a data race (UB, worst case UAF). Readers must
+     * take a snapshot through this accessor (the refcount keeps a still-reading monitor alive) instead of
+     * touching ioMonitor_ directly.
+     */
+    std::shared_ptr<IOMonitor> GetIOMonitor();
 
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecOptions &options);
     void UnregisterSessionWithMonitors(const std::string &sessionId);
@@ -403,6 +414,10 @@ private:
 
     bool initialized_ = false;
     bool isDeveloperMode_ = false;
+    // ioMonitor_ is shared between OnStop (writes nullptr on unload) and in-flight IPC/ffrt paths
+    // (register/unregister/send); every access after Init must go through GetIOMonitor() or hold
+    // ioMonitorMutex_. Init() itself runs before Publish(), single-threaded, and may assign directly.
+    ffrt::mutex ioMonitorMutex_;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
 
     // ---- SIGCHLD self-pipe + dedicated reaper thread ----

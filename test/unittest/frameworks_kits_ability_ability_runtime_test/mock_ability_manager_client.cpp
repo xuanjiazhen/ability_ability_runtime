@@ -183,7 +183,8 @@ ErrCode AbilityManagerClient::PreloadUIExtensionAbility(const Want &want, std::s
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow)
+ErrCode AbilityManagerClient::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow,
+    const std::shared_ptr<Rosen::WindowShowParams> &params)
 {
     return MyFlag::GetInstance()->GetChangeAbilityVisibility();
 }
@@ -514,7 +515,7 @@ ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbility
 }
 
 ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
-    const sptr<IAbilityConnection> &connect)
+    int32_t userId, const sptr<IAbilityConnection> &connect)
 {
     return ERR_OK;
 }
@@ -1160,6 +1161,11 @@ ErrCode AbilityManagerClient::NotifyCancelGamePreLaunch(const sptr<IRemoteObject
 }
 
 ErrCode AbilityManagerClient::NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::NotifyCompleteGamePreLaunchByPid(int32_t pid)
 {
     return ERR_OK;
 }

@@ -35,6 +35,7 @@
 #include "mission_snapshot.h"
 #include "snapshot.h"
 #include "sandbox_clone_params.h"
+#include "wm_animation_common.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -3155,7 +3156,30 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_ChangeAbilityVisibility_01
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
 
     auto token = sptr<MockAbilityToken>::MakeSptr();
-    proxy_->ChangeAbilityVisibility(token, true);
+    proxy_->ChangeAbilityVisibility(token, true, nullptr);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::CHANGE_ABILITY_VISIBILITY), mock_->code_);
+
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
+ * @tc.name: AbilityManagerProxy_ChangeAbilityVisibility_0200
+ * @tc.desc: ChangeAbilityVisibility with showParams
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_ChangeAbilityVisibility_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    auto token = sptr<MockAbilityToken>::MakeSptr();
+    auto params = std::make_shared<Rosen::WindowShowParams>();
+    params->windowFocused = false;
+    params->raiseTop = false;
+    proxy_->ChangeAbilityVisibility(token, true, params);
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::CHANGE_ABILITY_VISIBILITY), mock_->code_);
 
     TAG_LOGI(AAFwkTag::TEST, "end");
@@ -4000,6 +4024,56 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_NotifyCompleteGamePreLaunc
     sptr<IRemoteObject> callerToken = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
     auto res = proxy_->NotifyCompleteGamePreLaunch(callerToken);
     EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: NotifyCompleteGamePreLaunchByPid
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy NotifyCompleteGamePreLaunchByPid
+ * EnvConditions: NA
+ * CaseDescription: Verify NotifyCompleteGamePreLaunchByPid with invalid pid
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_NotifyCompleteGamePreLaunchByPid_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(0);
+    auto res = proxy_->NotifyCompleteGamePreLaunchByPid(0);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: NotifyCompleteGamePreLaunchByPid
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy NotifyCompleteGamePreLaunchByPid
+ * EnvConditions: NA
+ * CaseDescription: Verify NotifyCompleteGamePreLaunchByPid with valid pid
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_NotifyCompleteGamePreLaunchByPid_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(NO_ERROR));
+    auto res = proxy_->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: NotifyCompleteGamePreLaunchByPid
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy NotifyCompleteGamePreLaunchByPid
+ * EnvConditions: NA
+ * CaseDescription: Verify NotifyCompleteGamePreLaunchByPid with SendRequest failure
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_NotifyCompleteGamePreLaunchByPid_003, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_INVALID_VALUE));
+    auto res = proxy_->NotifyCompleteGamePreLaunchByPid(12345);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
 }
 
 /*

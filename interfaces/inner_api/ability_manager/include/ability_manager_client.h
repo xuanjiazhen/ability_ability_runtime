@@ -673,7 +673,8 @@ public:
      * @return ERR_OK on success; ERR_CAPABILITY_NOT_SUPPORT when unsupported;
      *         ERR_INVALID_VALUE when the manager cannot be resolved.
      */
-    ErrCode ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow);
+    ErrCode ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow,
+        const std::shared_ptr<Rosen::WindowShowParams> &params);
 
     /**
      * Change a UIAbility's visibility at SCB's request (window hide from the window manager).
@@ -1620,14 +1621,16 @@ public:
      *
      * @param want The want of the ability to prelaunch (explicit element required).
      * @param frameNum Frame number used to remove the start window; 0 means not specified.
+     * @param userId Target user id for the prelaunch.
      * @param connect Optional IAbilityConnection callback; when non-null, OnAbilityConnectDone
      *        is called after prelaunch completes to return the caller object.
      * @return ERR_OK on success; RESOLVE_CALL_NO_PERMISSIONS for non-RSS callers;
-     *         ERR_INVALID_VALUE for implicit want / SCB disabled; RESOLVE_CALL_ABILITY_TYPE_ERR /
-     *         RESOLVE_CALL_ABILITY_VERSION_ERR for unsupported targets; interceptor errors.
+     *         ERR_INVALID_VALUE for implicit want / SCB disabled; CHECK_PERMISSION_FAILED for
+     *         DLP-index wants or a failed cross-user account check;
+     *         RESOLVE_CALL_ABILITY_TYPE_ERR / RESOLVE_CALL_ABILITY_VERSION_ERR for unsupported targets;
      */
     ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum = 0,
-        const sptr<IAbilityConnection> &connect = nullptr);
+        int32_t userId = DEFAULT_INVAL_VALUE, const sptr<IAbilityConnection> &connect = nullptr);
 
     /**
      * Start a sandbox-clone instance of an application (CLI-tool driven sandbox scenario).
@@ -2598,6 +2601,14 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
+     * @brief Get root host info of a UIExtension by ability record id. SA only.
+     * @param abilityRecordId The record id of the UIExtension (AbilityRecord::recordId_).
+     * @param hostInfo Output root host info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo);
+
+    /**
      * @brief Get session info of a UIExtension. SA or SCB only.
      * @param token The ability token.
      * @param uiExtensionSessionInfo Output session info.
@@ -2990,7 +3001,9 @@ public:
 
     /**
      * @brief Register a start-interceptor SA (ability start rule interception).
-     * Internal: only specific partner uids (PENG_LAI_UID / TASKMGR_UID) allowed;
+     * Internal: allowed callers are partner UIDs (PENG_LAI_UID / TASKMGR_UID /
+     * ERECT_SAFE_UID / GAME_SA_UID, kept until the SAs obtain the permission)
+     * or SA callers holding ohos.permission.REGISTER_SA_INTERCEPTOR;
      * others get CHECK_PERMISSION_FAILED.
      * @param interceptor The SA interceptor.
      * @return Returns ERR_OK on success, others on failure.
@@ -2998,7 +3011,10 @@ public:
     ErrCode RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor);
 
     /**
-     * @brief Unregister a start-interceptor SA. TASKMGR_UID only.
+     * @brief Unregister a start-interceptor SA.
+     * Internal: allowed callers are partner UIDs (TASKMGR_UID / GAME_SA_UID, kept
+     * until the SAs obtain the permission) or SA callers holding
+     * ohos.permission.REGISTER_SA_INTERCEPTOR; others get CHECK_PERMISSION_FAILED.
      * @param interceptor The interceptor remote object to remove.
      * @return Returns ERR_OK on success; CHECK_PERMISSION_FAILED otherwise.
      */
@@ -3088,6 +3104,14 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken);
+
+    /**
+     * @brief Notify that game pre-launch is complete and clear the prelaunch
+     * flag. SCB must be enabled.
+     * @param pid The target game process pid.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode NotifyCompleteGamePreLaunchByPid(int32_t pid);
 
     /**
      * @brief Start a self-bundle UIAbility in a new child process attached to
@@ -3218,11 +3242,11 @@ public:
      */
     ErrCode NotifyInsightIntentExecute(uint64_t intentId);
 
+    ErrCode GetDynamicAgentCardsForMigration(std::string &jsonStr);
+
     ErrCode RegisterWillInsightIntentExecuteCallback(const sptr<IRemoteObject> &callback);
 
     ErrCode UnregisterWillInsightIntentExecuteCallback();
-
-    ErrCode GetDynamicAgentCardsForMigration(std::string &jsonStr);
 
     /**
      * @brief Best-effort attribution of the task id onto an existing ConnectionRecord

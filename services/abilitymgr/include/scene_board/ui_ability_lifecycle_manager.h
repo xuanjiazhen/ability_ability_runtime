@@ -32,6 +32,7 @@
 namespace OHOS {
 namespace Rosen {
 struct PendingSessionActivationConfig;
+struct WindowShowParams;
 }
 namespace AbilityRuntime {
 struct StartSpecifiedParam;
@@ -467,7 +468,8 @@ public:
      * @param isShow Whether to show the ability
      * @return ERR_OK if successful, error code otherwise
      */
-    int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow);
+    int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow,
+        const std::shared_ptr<Rosen::WindowShowParams> &params);
 
     /**
      * @brief Change UI ability visibility through SCB
@@ -600,6 +602,13 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken);
+
+    /**
+     * @brief Complete game prelaunch by pid, clear flag and notify SCB.
+     * @param pid Target game process pid.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t NotifyCompleteGamePreLaunchByPid(int32_t pid);
 
     ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
         int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);

@@ -259,6 +259,10 @@ ohos_shared_library("abilityms") {
 
   defines = []
 
+  if (ability_runtime_app_no_response_dialog) {
+    defines += [ "APP_NO_RESPONSE_DIALOG" ]
+  }
+
   if (ability_runtime_dsoftbus_enable) {
     external_deps += [ "dsoftbus:softbus_client" ]
     defines += [ "SUPPORT_RECORDER_DSOFTBUS" ]
@@ -331,6 +335,11 @@ ohos_shared_library("abilityms") {
 
   if (ability_runtime_no_screen) {
     defines += [ "DISABLE_LAUNCHER" ]
+  }
+
+  if (abilityms_security_guard_enabled) {
+    defines += [ "ABILITYMS_SECURITY_GUARD_ENABLE" ]
+    external_deps += [ "security_guard:libsg_collect_sdk" ]
   }
 
   ldflags = [ "-Wl,-Bsymbolic" ]
@@ -459,6 +468,10 @@ ohos_static_library("abilityms_static") {
   }
 
   defines = []
+
+  if (ability_runtime_app_no_response_dialog) {
+    defines += [ "APP_NO_RESPONSE_DIALOG" ]
+  }
 
   if (ability_runtime_dsoftbus_enable) {
     external_deps += [ "dsoftbus:softbus_client" ]

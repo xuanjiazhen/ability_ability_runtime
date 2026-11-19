@@ -1,0 +1,1169 @@
+> hvigor [32mFinished ::clean... after 2 ms [39m
+> hvigor [32mFinished :entry:clean... after 3 ms [39m
+> hvigor [32mFinished :default:clean... after 1 ms [39m
+> hvigor [32mFinished ::PreBuildApp... after 1 ms [39m
+> hvigor [32mFinished :entry:default@PreBuild... after 340 ms [39m
+> hvigor [32mFinished :default:default@PreBuild... after 13 ms [39m
+> hvigor [32mFinished ::DuplicateDependencyCheck... after 1 ms [39m
+> hvigor [32mFinished :entry:default@CreateModuleInfo... after 2 ms [39m
+> hvigor [32mFinished :entry:default@GenerateMetadata... after 5 ms [39m
+> hvigor [32mFinished :entry:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mFinished :entry:default@MergeProfile... after 7 ms [39m
+> hvigor [32mFinished :entry:default@PreCheckSyscap... after 1 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgContextInfo... after 15 ms [39m
+> hvigor [32mFinished :entry:default@ProcessIntegratedHsp... after 2 ms [39m
+> hvigor [32mFinished :default:default@CreateModuleInfo... after 2 ms [39m
+> hvigor [32mFinished :default:default@GenerateMetadata... after 3 ms [39m
+> hvigor [32mFinished :default:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mFinished :default:default@MergeProfile... after 3 ms [39m
+> hvigor [32mFinished :default:default@PreCheckSyscap... after 1 ms [39m
+> hvigor [32mFinished :default:default@GeneratePkgContextInfo... after 5 ms [39m
+> hvigor [32mFinished :default:default@ProcessIntegratedHsp... after 1 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mFinished :entry:default@MakePackInfo... after 5 ms [39m
+> hvigor [32mFinished :entry:default@ProcessProfile... after 4 s 298 ms [39m
+> hvigor [32mFinished :entry:default@ProcessRouterMap... after 5 ms [39m
+> hvigor [32mFinished :entry:default@ProcessShareConfig... after 4 ms [39m
+> hvigor [32mFinished :entry:default@ProcessStartupConfig... after 3 ms [39m
+> hvigor [32mFinished :default:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mFinished :default:default@MakePackInfo... after 3 ms [39m
+> hvigor [32mFinished :default:default@ProcessProfile... after 6 ms [39m
+> hvigor [32mFinished :default:default@ProcessRouterMap... after 4 ms [39m
+> hvigor [32mFinished :default:default@ProcessShareConfig... after 3 ms [39m
+> hvigor [32mFinished :default:default@ProcessStartupConfig... after 2 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithNinja... after 2 ms [39m
+> hvigor [32mFinished :entry:default@ProcessResource... after 5 ms [39m
+> hvigor [32mFinished :entry:default@GenerateLoaderJson... after 13 ms [39m
+> hvigor [32mFinished :default:default@BuildNativeWithNinja... after 2 ms [39m
+> hvigor [32mFinished :default:default@ProcessResource... after 3 ms [39m
+> hvigor [32mFinished :default:default@GenerateLoaderJson... after 21 ms [39m
+> hvigor [32mFinished :entry:default@ProcessLibs... after 11 ms [39m
+> hvigor [32mFinished :entry:default@SyscapTransform... after 1 s 647 ms [39m
+> hvigor [32mFinished :default:default@ProcessLibs... after 5 ms [39m
+> hvigor [32mFinished :default:default@SyscapTransform... after 1 s 847 ms [39m
+> hvigor [32mFinished :entry:default@CompileResource... after 4 s 515 ms [39m
+> hvigor [32mFinished :entry:default@DoNativeStrip... after 1 s 928 ms [39m
+> hvigor [32mFinished :entry:default@BuildJS... after 2 ms [39m
+> hvigor [32mFinished :default:default@DoNativeStrip... after 39 ms [39m
+> hvigor [32mFinished :entry:default@CacheNativeLibs... after 5 ms [39m
+> hvigor [32mFinished :default:default@CacheNativeLibs... after 7 ms [39m
+> hvigor [32mFinished :default:default@CompileResource... after 2 s 163 ms [39m
+> hvigor [32mFinished :default:default@BuildJS... after 2 ms [39m
+> hvigor [32mFinished :entry:default@CompileArkTS... after 17 s 988 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgModuleJson... after 2 ms [39m
+> hvigor [32mFinished :entry:default@ProcessCompiledResources... after 2 ms [39m
+> hvigor [32mFinished :entry:default@PackageHap... after 1 s 147 ms [39m
+> hvigor [32mFinished :entry:default@PackingCheck... after 21 ms [39m
+> hvigor [32mFinished :entry:default@SignHap... after 2 ms [39m
+> hvigor [32mFinished :entry:default@CollectDebugSymbol... after 5 ms [39m
+> hvigor [32mFinished :entry:assembleHap... after 1 ms [39m
+> hvigor [32mFinished :default:default@CompileArkTS... after 22 s 62 ms [39m
+> hvigor [32mFinished :default:default@GeneratePkgModuleJson... after 3 ms [39m
+> hvigor [32mFinished :default:default@ProcessCompiledResources... after 1 ms [39m
+> hvigor [32mFinished :default:default@PackageHap... after 802 ms [39m
+> hvigor [32mFinished :default:default@PackingCheck... after 10 ms [39m
+> hvigor [32mFinished :default:default@SignHap... after 2 ms [39m
+> hvigor [32mFinished :default:default@CollectDebugSymbol... after 2 ms [39m
+> hvigor [32mFinished :default:assembleHap... after 1 ms [39m
+> hvigor [32mFinished ::MakeProjectPackInfo... after 5 ms [39m
+> hvigor [32mFinished ::ProcessProjectPrivacyProfile... after 3 ms [39m
+> hvigor [32mFinished ::GeneratePackRes... after 1 ms [39m
+> hvigor [32mFinished ::PackageApp... after 2 s 985 ms [39m
+> hvigor [32mFinished ::SignApp... after 2 ms [39m
+> hvigor [32mFinished ::assembleApp... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 1 min 474 ms [39m
+
+> hvigor [33mWARN: The project has not explicitly set the 'targetSdkVersion' version at build-profile.json5. It is recommended to configure it. Reference: https://developer.huawei.com/consumer/en/doc/harmonyos-guides/ide-hvigor-build-profile-app#section45865492619[39m
+> hvigor [33mWARN: uiSyntax has been deprecated.
+         at /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/module.json5:31:22[39m
+> hvigor [33mWARN: Field "module.srcEntrance" has been deprecated. Use "module.srcEntry" instead.
+      at /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/module.json5[39m
+> hvigor [33mWARN: Warning: the string of 'message_moreApps_selector' does not have a base resource.
+Warning: the string of 'message_moreOpenMode_selector' does not have a base resource.
+Warning: the string of 'message_openThisWay_selector' does not have a base resource.
+Warning: the string of 'message_recommendApps_selector' does not have a base resource.
+Warning: the string of 'message_sure_selector' does not have a base resource.
+Warning: the string of 'message_title_pc_selector' does not have a base resource.
+[39m
+> hvigor [33mWARN: [33mWARN: [33m[33mArkTS:WARN: Has 111 ArkTS Linter Error. You can get the output in /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/build/default/cache/default/default@CompileArkTS/esmodule/release/ArkTS/ArkTSLinter_output.json[39m[39m
+[33mWARN: [33m[33mArkTS:WARN: For details about ArkTS syntax errors, see FAQs[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/PositionUtils.ts:123:22
+ The 'orientation' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/PositionUtils.ts:123:46
+ The 'Orientation' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/PositionUtils.ts:123:58
+ The 'PORTRAIT' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/PositionUtils.ts:124:20
+ The 'orientation' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/PositionUtils.ts:124:44
+ The 'Orientation' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/PositionUtils.ts:124:56
+ The 'PORTRAIT_INVERTED' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:33:62
+ 'extension' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:36:46
+ 'context' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:37:47
+ 'context' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:43:72
+ 'context' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:219:18
+ 'SetOrCreate' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:223:13
+ 'getDefaultDisplay' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:240:61
+ 'TYPE_SYSTEM_ALERT' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:260:26
+ 'create' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:275:11
+ 'systemparameter' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:275:27
+ 'getSync' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorServiceExtAbility.ts:335:18
+ 'SetOrCreate' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/TipsServiceExtAbility.ts:27:58
+ 'extension' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/TipsServiceExtAbility.ts:30:44
+ 'context' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/TipsServiceExtAbility.ts:54:13
+ 'getDefaultDisplay' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/TipsServiceExtAbility.ts:66:27
+ The 'TYPE_DIALOG' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/TipsServiceExtAbility.ts:66:59
+ 'TYPE_SYSTEM_ALERT' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/TipsServiceExtAbility.ts:83:26
+ 'create' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/JumpInterceptorServiceExtAbility.ts:26:63
+ 'extension' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/JumpInterceptorServiceExtAbility.ts:29:55
+ 'context' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/JumpInterceptorServiceExtAbility.ts:46:13
+ 'getDefaultDisplay' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/JumpInterceptorServiceExtAbility.ts:58:81
+ 'TYPE_SYSTEM_ALERT' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/JumpInterceptorServiceExtAbility.ts:103:26
+ 'create' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SwitchUserServiceExtAbility.ts:31:64
+ 'extension' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SwitchUserServiceExtAbility.ts:40:13
+ 'getDefaultDisplay' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SwitchUserServiceExtAbility.ts:46:73
+ 'TYPE_SCREENSHOT' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SwitchUserServiceExtAbility.ts:71:26
+ 'create' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SwitchUserServiceExtAbility.ts:71:38
+ 'context' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:23:55
+ The 'UIExtensionAbility' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:26:51
+ The 'context' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:28:50
+ The 'getPreferencesSync' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:28:50
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:28:74
+ The 'context' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:38:13
+ 'systemparameter' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:38:29
+ 'getSync' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:38:29
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:41:21
+ The 'loadContent' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:41:21
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:43:21
+ The 'loadContent' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets:43:21
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:27:43
+ The 'UIExtensionAbility' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:45:60
+ 'ASSERT_FAULT_SESSION_ID' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:54:13
+ The 'loadContent' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:54:13
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:55:13
+ 'setWindowBackgroundColor' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:55:13
+ The 'setWindowBackgroundColor' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:55:13
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:64:35
+ The 'get' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:66:37
+ 'UserStatus' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:66:37
+ The 'UserStatus' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:66:48
+ 'ASSERT_TERMINATE' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:66:48
+ The 'ASSERT_TERMINATE' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ShareExtAbility/AssertFaultShareExtAbility.ts:69:22
+ 'notifyDebugAssertResult' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets:98:12
+ The 'alignRules' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets:232:10
+ 'indicatorStyle' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/AbilityInfoUtils.ets:32:18
+ 'createModuleContext' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/AbilityInfoUtils.ets:32:18
+ 'createModuleContext' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/AbilityInfoUtils.ets:38:46
+ The 'getDrawableDescriptor' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/AbilityInfoUtils.ets:38:46
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/AbilityInfoUtils.ets:39:25
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/AbilityInfoUtils.ets:47:58
+ 'createModuleContext' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/AbilityInfoUtils.ets:47:58
+ 'createModuleContext' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/TitileComponent.ets:31:9
+ 'animateTo' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/TitileComponent.ets:105:26
+ The 'terminateSelf' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/ContentDisplayComponent.ets:45:34
+ 'getContext' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/data/TargetManager.ets:36:42
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/data/TargetManager.ets:38:49
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/data/TargetManager.ets:46:31
+ 'queryExtensionAbilityInfoSync' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/data/TargetManager.ets:48:35
+ 'ExtensionAbilityFlag' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/data/TargetManager.ets:48:56
+ 'GET_EXTENSION_ABILITY_INFO_DEFAULT' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/BreakpointSystem.ets:72:38
+ 'matchMediaSync' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/BreakpointSystem.ets:74:38
+ 'matchMediaSync' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/utils/BreakpointSystem.ets:76:38
+ 'matchMediaSync' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/TipsDialogComponent.ets:57:30
+ The 'terminateSelf' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:33:30
+ 'GetShared' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:45:49
+ 'PanelHeight' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:45:49
+ The 'PanelHeight' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:45:61
+ 'WRAP_CONTENT' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:45:61
+ The 'WRAP_CONTENT' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:63:35
+ 'matchMediaSync' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:72:34
+ 'getContext' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:78:69
+ The system capacity of this api 'isFoldable' is not supported on all devices
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:79:25
+ The system capacity of this api 'getFoldDisplayMode' is not supported on all devices
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:79:58
+ The system capacity of this api 'FoldDisplayMode' is not supported on all devices
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:79:74
+ The system capacity of this api 'FOLD_DISPLAY_MODE_FULL' is not supported on all devices
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:109:34
+ 'getContext' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:114:73
+ The system capacity of this api 'isFoldable' is not supported on all devices
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:115:29
+ The system capacity of this api 'getFoldDisplayMode' is not supported on all devices
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:115:62
+ The system capacity of this api 'FoldDisplayMode' is not supported on all devices
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:115:78
+ The system capacity of this api 'FOLD_DISPLAY_MODE_FULL' is not supported on all devices
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:194:25
+ The 'terminateSelf' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:203:13
+ 'Panel' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:211:14
+ 'type' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:211:19
+ 'PanelType' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:211:29
+ 'CUSTOM' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:211:29
+ The 'CUSTOM' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:212:14
+ 'customHeight' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:212:14
+ The 'customHeight' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:216:14
+ 'dragBar' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:225:9
+ 'UIExtensionComponent' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:225:9
+ The 'UIExtensionComponent' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:233:14
+ 'onRelease' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:233:14
+ 'onRelease' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:233:14
+ The 'onRelease' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:234:30
+ The 'terminateSelf' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:237:14
+ 'onError' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:237:14
+ The 'onError' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:239:30
+ The 'terminateSelf' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:242:14
+ 'onResult' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:242:14
+ 'onResult' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:242:14
+ The 'onResult' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:243:30
+ The 'terminateSelfWithResult' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:20:28
+ 'GetShared' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:37:66
+ 'UserStatus' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:37:77
+ 'ASSERT_TERMINATE' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:51:66
+ 'UserStatus' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:51:77
+ 'ASSERT_CONTINUE' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:65:66
+ 'UserStatus' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:65:77
+ 'ASSERT_RETRY' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:79:66
+ 'UserStatus' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:79:77
+ 'ASSERT_TERMINATE' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:92:7
+ 'AlertDialog' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:92:19
+ 'show' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:99:28
+ The 'DialogButtonDirection' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:99:50
+ The 'HORIZONTAL' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:105:22
+ The 'DialogButtonStyle' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:105:40
+ The 'HIGHLIGHT' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:114:22
+ The 'DialogButtonStyle' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:114:40
+ The 'HIGHLIGHT' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:123:22
+ The 'DialogButtonStyle' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets:123:40
+ The 'HIGHLIGHT' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/permissionConfirmDialog.ets:22:28
+ 'GetShared' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/permissionConfirmDialog.ets:34:59
+ The 'terminateSelf' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/permissionConfirmDialog.ets:43:14
+ 'replaceUrl' has been deprecated.
+[39m[39m
+[33mWARN: [33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/PhonePage.ets:204:17
+ Property 'storage' is private and can not be initialized through the component constructor.[39m[39m
+[33mWARN: [33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/ContentDisplayComponent.ets:110:17
+ Property 'storage' is private and can not be initialized through the component constructor.[39m[39m
+[33mWARN: [33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/ContentDisplayComponent.ets:122:25
+ Property 'targetInfoArray' is private and can not be initialized through the component constructor.[39m[39m
+[33mWARN: [33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/ContentDisplayComponent.ets:122:25
+ Property 'storage' is private and can not be initialized through the component constructor.[39m[39m
+[33mWARN: [33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/SingleRowComponent.ets:32:17
+ Property 'targetInfo' is private and can not be initialized through the component constructor.[39m[39m
+[33mWARN: [33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/SingleRowComponent.ets:32:17
+ Property 'storage' is private and can not be initialized through the component constructor.[39m[39m
+[33mWARN: [33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/TargetComponent.ets:29:1
+ It's not a recommended way to export struct with '@Entry' decorator, which may cause ACE Engine error in component preview mode.[39m[39m
+[39m
+> hvigor [33mWARN: Will skip sign 'hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/build-profile.json5.[39m
+> hvigor [33mWARN: [33mWARN: [33m[33mArkTS:WARN: Has 2 ArkTS Linter Error. You can get the output in /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/build/default/cache/default/default@CompileArkTS/esmodule/release/ArkTS/ArkTSLinter_output.json[39m[39m
+[33mWARN: [33m[33mArkTS:WARN: For details about ArkTS syntax errors, see FAQs[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:51:18
+ The 'getUIContext' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:51:33
+ The 'getHostContext' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:109:7
+ 'insightIntentDriver' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:109:27
+ 'getAllInsightIntentInfo' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:109:51
+ 'insightIntentDriver' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:109:71
+ 'GetInsightIntentFlag' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:109:92
+ 'GET_FULL_INSIGHT_INTENT' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:118:34
+ 'developType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:118:49
+ 'insightIntentDriver' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:118:69
+ 'DevelopType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:118:81
+ 'CONFIGURATION' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:120:47
+ 'bundleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:130:43
+ 'getApplicationInfo' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:131:36
+ 'ApplicationFlag' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:131:52
+ 'GET_APPLICATION_INFO_WITH_PERMISSION' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:165:80
+ 'intentName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:165:108
+ 'intentType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:165:143
+ 'displayName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:165:174
+ 'moduleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:179:43
+ 'bundleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:179:43
+ The 'bundleName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:180:43
+ 'moduleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:180:43
+ The 'moduleName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:181:24
+ The 'getUIContext' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:181:39
+ The 'getHostContext' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:184:56
+ 'createModuleContext' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:219:35
+ The 'replacePath' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:221:54
+ 'intentName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:221:54
+ The 'intentName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:259:68
+ 'createBundleContext' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:321:10
+ The 'clip' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:326:27
+ 'displayName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:326:27
+ The 'displayName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:332:27
+ 'displayDescription' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:332:27
+ The 'displayDescription' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:412:8
+ The 'clip' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:416:6
+ The 'expandSafeArea' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:416:22
+ The 'SafeAreaType' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:416:35
+ The 'SYSTEM' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:416:45
+ The 'SafeAreaEdge' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentContent.ets:416:58
+ The 'BOTTOM' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/DetailItem.ets:48:33
+ 'bundleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/DetailItem.ets:48:33
+ The 'bundleName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/DetailItem.ets:69:33
+ 'intentName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/DetailItem.ets:69:33
+ The 'intentName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/DetailItem.ets:90:33
+ 'intentType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/DetailItem.ets:90:33
+ The 'intentType' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:81:4
+ The 'clip' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:123:47
+ The 'getParamByName' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:124:47
+ 'parameters' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:124:47
+ The 'parameters' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:128:59
+ 'parameters' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:128:59
+ The 'parameters' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:129:44
+ 'parameters' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:129:44
+ The 'parameters' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:130:61
+ 'subIntentInfo' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:130:61
+ The 'subIntentInfo' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:131:28
+ 'intentType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:131:28
+ The 'intentType' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:132:63
+ 'subIntentInfo' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:132:63
+ The 'subIntentInfo' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:134:53
+ 'subIntentInfo' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:134:53
+ The 'subIntentInfo' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:144:30
+ The 'get' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:146:15
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:165:44
+ The 'getBundleInfo' API is supported since SDK version 14. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:165:44
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:189:42
+ The 'extensionAbilityTypeName' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:292:38
+ 'bundleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:292:38
+ The 'bundleName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:293:38
+ 'moduleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:293:38
+ The 'moduleName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:294:45
+ 'intentName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:294:45
+ The 'intentName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:296:20
+ The 'insightIntent' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:296:34
+ The 'ExecuteMode' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:296:46
+ The 'UI_ABILITY_FOREGROUND' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:300:28
+ 'intentType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:300:28
+ The 'intentType' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:301:13
+ 'uris' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:301:13
+ The 'uris' API is supported since SDK version 18. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:303:28
+ 'intentType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:303:28
+ The 'intentType' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:304:26
+ 'intentType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:304:26
+ The 'intentType' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:305:13
+ 'executeMode' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:305:13
+ The 'executeMode' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:305:27
+ The 'insightIntent' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:305:41
+ The 'ExecuteMode' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:305:53
+ The 'UI_ABILITY_FOREGROUND' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:307:28
+ 'intentType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:307:28
+ The 'intentType' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:308:13
+ 'executeMode' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:308:13
+ The 'executeMode' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:308:27
+ The 'insightIntent' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:308:41
+ The 'ExecuteMode' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:308:53
+ The 'UI_ABILITY_BACKGROUND' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:310:28
+ 'intentType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:310:28
+ The 'intentType' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:311:13
+ 'executeMode' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:311:13
+ The 'executeMode' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:311:45
+ 'subIntentInfo' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:311:45
+ The 'subIntentInfo' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:312:92
+ 'intentName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:312:92
+ The 'intentName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:312:125
+ 'executeMode' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:312:125
+ The 'executeMode' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:312:188
+ 'subIntentInfo' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:312:188
+ The 'subIntentInfo' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:315:28
+ 'intentType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:315:28
+ The 'intentType' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:316:23
+ 'subIntentInfo' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:316:23
+ The 'subIntentInfo' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:316:73
+ 'subIntentInfo' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:316:73
+ The 'subIntentInfo' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:318:15
+ 'bundleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:318:15
+ The 'bundleName' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:319:15
+ 'moduleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:319:15
+ The 'moduleName' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:320:15
+ 'abilityName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:320:15
+ The 'abilityName' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:322:64
+ 'intentName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:322:64
+ The 'intentName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:324:27
+ 'bundleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:324:27
+ The 'bundleName' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:325:28
+ 'abilityName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:325:28
+ The 'abilityName' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:326:27
+ 'moduleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:326:27
+ The 'moduleName' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:329:69
+ 'intentName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:329:69
+ The 'intentName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:330:58
+ 'insightIntentParam' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:330:58
+ The 'insightIntentParam' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:336:35
+ 'intentType' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:336:35
+ The 'intentType' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:337:60
+ 'subIntentInfo' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:337:60
+ The 'subIntentInfo' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:343:61
+ 'insightIntentDriver' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:343:81
+ 'execute' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:378:11
+ 'UIExtensionComponent' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:378:11
+ The 'UIExtensionComponent' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:391:11
+ 'FormComponent' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:394:40
+ 'bundleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:394:40
+ The 'bundleName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:396:40
+ 'moduleName' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:396:40
+ The 'moduleName' API is supported since SDK version 20. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:407:14
+ The 'clip' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:557:12
+ The 'optionWidth' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:638:30
+ The 'getUIContext' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:638:45
+ The 'showAlertDialog' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:728:31
+ The 'pop' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:803:38
+ The 'getUIContext' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:803:53
+ The 'showAlertDialog' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:878:8
+ The 'clip' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:891:12
+ The 'bindSheet' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:892:21
+ The 'SheetSize' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:892:31
+ The 'MEDIUM' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:895:25
+ The 'SheetType' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:895:35
+ The 'BOTTOM' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/view/IntentDetailPage.ets:912:6
+ The 'clip' API is supported since SDK version 12. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/pages/Index.ets:26:69
+ The 'NavPathStack' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/pages/Index.ets:53:6
+ The 'navDestination' API is supported since SDK version 10. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/entryability/EntryAbility.ets:29:72
+ The 'instanceName' API is supported since SDK version 18. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/entryability/EntryAbility.ets:30:72
+ The 'instanceType' API is supported since SDK version 18. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/entryability/EntryAbility.ets:66:42
+ The 'setColorMode' API is supported since SDK version 11. However, the current compatible SDK version is 9.
+ It is recommended to use apiAvailable to safeguard API compatibility.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/entryability/EntryAbility.ets:66:42
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/entryability/EntryAbility.ets:72:112
+ 'USER_SECURITY' is system api
+[39m[39m
+[39m
+> hvigor [33mWARN: Will skip sign 'hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/build-profile.json5.[39m
+> hvigor [33mWARN: Will skip sign 'app'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/build-profile.json5.[39m
+

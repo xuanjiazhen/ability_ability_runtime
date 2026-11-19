@@ -22,6 +22,7 @@
 
 #include "ability_info.h"
 #include "ability_manager_errors.h"
+#include "process_options.h"
 #include "start_ability_context.h"
 #include "start_options.h"
 #include "want.h"
@@ -38,6 +39,8 @@ struct AbilityInterceptorParam {
     sptr<IRemoteObject> callerToken = nullptr;
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo;  // resolved target abilityInfo passed to the interceptor
     StartAbilityContext startAbilityCtx;  // start-ability request-scoped context (default-constructed = absent)
+    bool isDirectBootStartup = false;
+    bool isPrelaunch = false; // true when launched via StartAbilityForPrelaunch
 
     // Per-interceptor contexts, accessed via GetContext<T>()
     struct EcologicalCtx {
@@ -71,6 +74,17 @@ struct AbilityInterceptorParam {
             }
         }
         return nullptr;
+    }
+
+    bool IsPreloadStartAbility() const
+    {
+        if (isPrelaunch) {
+            return true;
+        }
+        const auto *dispCtx = GetContext<DisposedCtx>();
+        const StartOptions *startOptions = dispCtx ? dispCtx->startOptions : nullptr;
+        return (startOptions == nullptr || startOptions->processOptions == nullptr) ?
+            false : startOptions->processOptions->isPreloadStart;
     }
 };
 
@@ -110,6 +124,16 @@ public:
     InterceptorParamBuilder &StartAbilityCtx(const StartAbilityContext &ctx)
     {
         param_.startAbilityCtx = ctx;
+        return *this;
+    }
+    InterceptorParamBuilder &DirectBootStartup(bool isDirectBootStartup)
+    {
+        param_.isDirectBootStartup = isDirectBootStartup;
+        return *this;
+    }
+    InterceptorParamBuilder &Prelaunch(bool isPrelaunch)
+    {
+        param_.isPrelaunch = isPrelaunch;
         return *this;
     }
 

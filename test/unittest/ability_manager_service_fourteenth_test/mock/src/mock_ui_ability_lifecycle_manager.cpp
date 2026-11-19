@@ -228,6 +228,11 @@ int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemot
     return 0;
 }
 
+int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunchByPid(int32_t pid)
+{
+    return 0;
+}
+
 int UIAbilityLifecycleManager::MinimizeUIAbility(const std::shared_ptr<AbilityRecord> &abilityRecord, bool fromUser,
     uint32_t sceneFlag, int32_t backgroundReason)
 {
@@ -650,7 +655,8 @@ void UIAbilityLifecycleManager::TerminateSession(std::shared_ptr<AbilityRecord> 
 {
 }
 
-int UIAbilityLifecycleManager::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow)
+int UIAbilityLifecycleManager::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow,
+    const std::shared_ptr<Rosen::WindowShowParams> &params)
 {
     return 0;
 }

@@ -30,6 +30,7 @@
 #include "sandbox_clone_params.h"
 #include "string_wrapper.h"
 #include "token_setproc.h"
+#include "wm_animation_common.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -4416,6 +4417,32 @@ HWTEST_F(AbilityManagerStubTest, ChangeAbilityVisibility_0100, TestSize.Level1)
     auto token = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     data.WriteRemoteObject(token);
     data.WriteBool(true);
+    data.WriteParcelable(nullptr);
+
+    auto ret = stub_->ChangeAbilityVisibilityInner(data, reply);
+    EXPECT_EQ(ret, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
+ * @tc.name: ChangeAbilityVisibility_0200
+ * @tc.desc: ChangeAbilityVisibility with showParams
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, ChangeAbilityVisibility_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    auto token = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    data.WriteRemoteObject(token);
+    data.WriteBool(true);
+    Rosen::WindowShowParams showParams;
+    showParams.windowFocused = false;
+    showParams.raiseTop = false;
+    data.WriteParcelable(&showParams);
 
     auto ret = stub_->ChangeAbilityVisibilityInner(data, reply);
     EXPECT_EQ(ret, NO_ERROR);
@@ -5454,6 +5481,54 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_NotifyCompleteGamePreLaunchI
     auto res = stub_->NotifyCompleteGamePreLaunchInner(data, reply);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
 
+    // Verify the result was written to reply
+    int32_t result = reply.ReadInt32();
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: NotifyCompleteGamePreLaunchByPidInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub NotifyCompleteGamePreLaunchByPidInner
+ * EnvConditions: NA
+ * CaseDescription: Verify NotifyCompleteGamePreLaunchByPidInner with invalid pid.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_NotifyCompleteGamePreLaunchByPidInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+ 
+    // Write invalid pid
+    data.WriteInt32(0);
+ 
+    auto res = stub_->NotifyCompleteGamePreLaunchByPidInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+ 
+    // Verify the result was written to reply
+    int32_t result = reply.ReadInt32();
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: NotifyCompleteGamePreLaunchByPidInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub NotifyCompleteGamePreLaunchByPidInner
+ * EnvConditions: NA
+ * CaseDescription: Verify NotifyCompleteGamePreLaunchByPidInner with valid pid.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_NotifyCompleteGamePreLaunchByPidInner_002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+ 
+    // Write valid pid
+    data.WriteInt32(12345);
+    // Write valid token
+    auto res = stub_->NotifyCompleteGamePreLaunchByPidInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+ 
     // Verify the result was written to reply
     int32_t result = reply.ReadInt32();
     EXPECT_EQ(result, NO_ERROR);
@@ -6978,6 +7053,92 @@ HWTEST_F(AbilityManagerStubTest, RemoveIntentRecord_OnRemoteRequest_0100, TestSi
         data, reply, option);
     EXPECT_EQ(res, NO_ERROR);
     EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartAbilityForPrelaunchInner via OnRemoteRequest
+ * EnvConditions: code is START_PRELAUNCH_ABILITY, parcel carries userId and no connect
+ * CaseDescription: Verify dispatching START_PRELAUNCH_ABILITY through OnRemoteRequest
+ *                  parses want/frameNum/userId/hasConnect in order and forwards the userId
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0100 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    const int32_t frameNum = 5;
+    ASSERT_TRUE(data.WriteInt32(frameNum));
+    ASSERT_TRUE(data.WriteInt32(USER_ID));
+    ASSERT_TRUE(data.WriteBool(false));
+
+    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, frameNum, USER_ID, _))
+        .WillOnce(Invoke([](const Want &parsed, int32_t parsedFrameNum,
+            int32_t parsedUserId, const sptr<IAbilityConnection> &parsedConnect) {
+            EXPECT_EQ(parsed.GetBundleNameRef(), "com.test.bundle");
+            EXPECT_EQ(parsed.GetAbilityNameRef(), "MainAbility");
+            EXPECT_EQ(parsedFrameNum, 5);
+            EXPECT_EQ(parsedConnect, nullptr);
+            EXPECT_EQ(parsedUserId, USER_ID);
+            return ERR_OK;
+        }));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_PRELAUNCH_ABILITY), data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0100 end");
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartAbilityForPrelaunchInner via OnRemoteRequest
+ * EnvConditions: code is START_PRELAUNCH_ABILITY, parcel carries userId and connect
+ * CaseDescription: Verify the optional connect object is read and the userId is
+ *                  forwarded when hasConnect is true
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0200 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+
+    Want want;
+    want.SetElementName("com.test.bundle", "MainAbility");
+    ASSERT_TRUE(data.WriteParcelable(&want));
+    ASSERT_TRUE(data.WriteInt32(0));
+    ASSERT_TRUE(data.WriteInt32(USER_ID));
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+    ASSERT_TRUE(data.WriteBool(true));
+    ASSERT_TRUE(data.WriteRemoteObject(connect->AsObject()));
+
+    EXPECT_CALL(*stub_, StartAbilityForPrelaunch(_, 0, USER_ID, _))
+        .WillOnce(Invoke([](const Want &, int32_t, int32_t, const sptr<IAbilityConnection> &parsedConnect) {
+            EXPECT_NE(parsedConnect, nullptr);
+            return ERR_INVALID_VALUE;
+        }));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_PRELAUNCH_ABILITY), data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartPrelaunchAbility_OnRemote_WithUserId_0200 end");
 }
 
 } // namespace AAFwk

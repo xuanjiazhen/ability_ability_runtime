@@ -112,8 +112,8 @@ bool ImplicitStartProcessor::IsImplicitStartAction(const Want &want)
     }
 
     if (want.GetActionRef() != BLACK_ACTION_SELECT_DATA &&
-        !want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG)) {//intent openlink do not Implicit compare
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "implicit start, action:%{public}s", want.GetActionRef().data());
+        !want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG)) { //intent openLink only one ability
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "implicit start, action:%{public}s", want.GetActionRef().c_str());
         return true;
     }
 
@@ -584,7 +584,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
 
     if (abilityInfos.size() + extensionInfos.size() > 1) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "filter applications by erms");
-        bool ret = FilterAbilityList(request.want, abilityInfos, extensionInfos, userId);
+        bool ret = FilterAbilityList(request.want, abilityInfos, userId);
         FindAppClone(abilityInfos, extensionInfos, genReqParam.isAppCloneSelector);
         if (!ret) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "FilterAbilityList failed");
@@ -659,6 +659,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
         dialogAppInfo.bundleLabelId = info.applicationInfo.labelId;
         dialogAppInfo.visible = info.visible;
         dialogAppInfo.appIndex = info.applicationInfo.appIndex;
+        dialogAppInfo.accessTokenId = info.applicationInfo.accessTokenId;
         dialogAppInfo.multiAppMode = info.applicationInfo.multiAppMode;
         dialogAppInfo.codePath = info.applicationInfo.codePath;
         dialogAppInfo.installSource = info.applicationInfo.installSource;
@@ -713,6 +714,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAppIndexes(int32_t userId, A
         dialogAppInfo.bundleLabelId = info.applicationInfo.labelId;
         dialogAppInfo.visible = info.visible;
         dialogAppInfo.appIndex = info.applicationInfo.appIndex;
+        dialogAppInfo.accessTokenId = info.applicationInfo.accessTokenId;
         dialogAppInfo.multiAppMode = info.applicationInfo.multiAppMode;
         dialogAppInfo.codePath = info.applicationInfo.codePath;
         dialogAppInfo.installSource = info.applicationInfo.installSource;
@@ -785,6 +787,7 @@ int ImplicitStartProcessor::QueryBmsAppInfos(AbilityRequest &request, int32_t us
             dialogAppInfo.bundleLabelId = abilityInfo.applicationInfo.labelId;
             dialogAppInfo.visible = abilityInfo.visible;
             dialogAppInfo.appIndex = abilityInfo.applicationInfo.appIndex;
+            dialogAppInfo.accessTokenId = abilityInfo.applicationInfo.accessTokenId;
             dialogAppInfo.multiAppMode = abilityInfo.applicationInfo.multiAppMode;
             dialogAppInfo.codePath = abilityInfo.applicationInfo.codePath;
             dialogAppInfo.installSource = abilityInfo.applicationInfo.installSource;
@@ -915,12 +918,12 @@ sptr<AppExecFwk::IDefaultApp> ImplicitStartProcessor::GetDefaultAppProxy()
 }
 
 bool ImplicitStartProcessor::FilterAbilityList(const Want &want, std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
-    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos, int32_t userId)
+    int32_t userId)
 {
     ErmsCallerInfo callerInfo;
     GetEcologicalCallerInfo(want, callerInfo, userId);
     int ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance()->
-        EvaluateResolveInfos(want, callerInfo, 0, abilityInfos, extensionInfos));
+        EvaluateResolveInfos(want, callerInfo, 0, abilityInfos));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "resolve infos failed");
         return false;
@@ -1042,6 +1045,7 @@ void ImplicitStartProcessor::AddAbilityInfoToDialogInfos(const AddInfoParam &par
     dialogAppInfo.bundleLabelId = param.info.applicationInfo.labelId;
     dialogAppInfo.visible = param.info.visible;
     dialogAppInfo.appIndex = param.info.appIndex;
+    dialogAppInfo.accessTokenId = param.info.applicationInfo.accessTokenId;
     dialogAppInfo.multiAppMode = param.info.applicationInfo.multiAppMode;
     dialogAppInfo.isAppLink = (param.info.linkType == AppExecFwk::LinkType::APP_LINK);
     dialogAppInfo.codePath = param.info.applicationInfo.codePath;
@@ -1058,7 +1062,7 @@ void ImplicitStartProcessor::EraseInvisibleAppInfos(const AbilityRequest &reques
         return;
     }
     for (auto it = dialogAppInfos.begin(); it != dialogAppInfos.end();) {
-        if (!it->visible) {
+        if (!it->visible && it->accessTokenId != request.specifyTokenId) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "Caller without permission, erase: %{public}s",
                 it->bundleName.c_str());
             it = dialogAppInfos.erase(it);
@@ -1095,7 +1099,6 @@ bool ImplicitStartProcessor::IsExistDefaultApp(int32_t userId, const std::string
 void ImplicitStartProcessor::SetTargetLinkInfo(const std::vector<AppExecFwk::SkillUriForAbilityAndExtension> &skillUri,
     Want &want)
 {
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     for (const auto& iter : skillUri) {
         if (iter.isMatch) {
             want.RemoveParam("send_to_erms_targetLinkFeature");
@@ -1150,8 +1153,6 @@ int32_t ImplicitStartProcessor::FindAppClone(std::vector<AppExecFwk::AbilityInfo
         return ERR_OK;
     }
 
-    bool isExitAbilityAppClone = FindAbilityAppClone(abilityInfos);
-    bool isExitExtensionAppClone = FindExtensionAppClone(extensionInfos);
     if ((abilityInfos.size() == 0 && FindExtensionAppClone(extensionInfos)) ||
         (extensionInfos.size() == 0 && FindAbilityAppClone(abilityInfos))) {
         isAppCloneSelector = true;

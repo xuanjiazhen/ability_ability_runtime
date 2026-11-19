@@ -33,6 +33,7 @@
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
 #include "snapshot.h"
+#include "wm_animation_common.h"
 #ifdef SUPPORT_SCREEN
 #include "pixel_map_bridge.h"
 #endif //SUPPORT_SCREEN
@@ -389,17 +390,17 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel
     if (interfaceCode == AbilityManagerInterfaceCode::SEND_LOCAL_PENDING_WANT_SENDER) {
         return SendLocalWantSenderInner(data, reply);
     }
-    if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CURRENT_PROCESS) {
-        return StartSelfUIAbilityInCurrentProcessInner(data, reply);
-    }
-    if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_FOR_DISTRIBUTED) {
-        return ExecuteIntentForDistributedInner(data, reply);
-    }
     if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_BY_APP_CONTEXT) {
         return StartSelfUIAbilityByAppContextInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CHILD_PROCESS) {
         return StartSelfUIAbilityInChildProcessInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CURRENT_PROCESS) {
+        return StartSelfUIAbilityInCurrentProcessInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_FOR_DISTRIBUTED) {
+        return ExecuteIntentForDistributedInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -682,6 +683,9 @@ int AbilityManagerStub::OnRemoteRequestInnerFourteenth(uint32_t code, MessagePar
     }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_UI_EXTENSION_SESSION_INFO) {
         return GetUIExtensionSessionInfoInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID) {
+        return GetUIExtensionRootHostInfoByIdInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::PRELOAD_UIEXTENSION_ABILITY) {
         return PreloadUIExtensionAbilityInner(data, reply);
@@ -985,6 +989,12 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
     MessageParcel &reply, MessageOption &option)
 {
     AbilityManagerInterfaceCode interfaceCode = static_cast<AbilityManagerInterfaceCode>(code);
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_APP_SERVICE_EXTENSION_KEEP_ALIVE) {
+        return SetAppServiceExtensionKeepAliveInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_APP_SERVICE_EXTENSIONS_KEEP_ALIVE) {
+        return QueryKeepAliveAppServiceExtensionsInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::UPDATE_KIOSK_APP_LIST) {
         return UpdateKioskApplicationListInner(data, reply);
     }
@@ -1005,12 +1015,6 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
     }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_KIOSK_INFO) {
         return GetKioskStatusInner(data, reply);
-    }
-    if (interfaceCode == AbilityManagerInterfaceCode::SET_APP_SERVICE_EXTENSION_KEEP_ALIVE) {
-        return SetAppServiceExtensionKeepAliveInner(data, reply);
-    }
-    if (interfaceCode == AbilityManagerInterfaceCode::GET_APP_SERVICE_EXTENSIONS_KEEP_ALIVE) {
-        return QueryKeepAliveAppServiceExtensionsInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::SUSPEND_EXTENSION_ABILITY) {
         return SuspendExtensionAbilityInner(data, reply);
@@ -1078,6 +1082,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     }
     if (interfaceCode == AbilityManagerInterfaceCode::COMPLETE_GAME_PRELAUNCH) {
         return NotifyCompleteGamePreLaunchInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::COMPLETE_GAME_PRELAUNCH_BY_PID) {
+        return NotifyCompleteGamePreLaunchByPidInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::SET_GAME_PRELAUNCH_COMPLETE_TIME) {
         return SetGamePreLaunchCompleteTimeInner(data, reply);
@@ -1897,7 +1904,8 @@ int AbilityManagerStub::ChangeAbilityVisibilityInner(MessageParcel &data, Messag
     }
 
     bool isShow = data.ReadBool();
-    int result = ChangeAbilityVisibility(token, isShow);
+    std::shared_ptr<Rosen::WindowShowParams> params(data.ReadParcelable<Rosen::WindowShowParams>());
+    int result = ChangeAbilityVisibility(token, isShow, params);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail");
         return ERR_NATIVE_IPC_PARCEL_FAILED;
@@ -2536,7 +2544,7 @@ int AbilityManagerStub::GetPendingRequestWantInner(MessageParcel &data, MessageP
 
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (!want) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "read wanr parcel failed");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read want parcelable failed");
         return ERR_INVALID_VALUE;
     }
     SanitizeWantParams(*want);
@@ -2561,7 +2569,7 @@ int AbilityManagerStub::GetPendingRequestWantFromProxyInner(MessageParcel &data,
 
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
     if (!want) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "read wanr parcel failed");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read want parcelable failed");
         return ERR_INVALID_VALUE;
     }
     SanitizeWantParams(*want);
@@ -2974,9 +2982,11 @@ int AbilityManagerStub::StartAbilityForPrelaunchInner(MessageParcel &data, Messa
     SanitizeWantParams(*want);
     want->AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     int32_t frameNum = data.ReadInt32();
+    int32_t userId = data.ReadInt32();
     sptr<IAbilityConnection> connect = nullptr;
     bool hasConnect = data.ReadBool();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilityForPrelaunchInner hasConnect:%{public}d", hasConnect ? 1 : 0);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilityForPrelaunchInner hasConnect:%{public}d, userId:%{public}d",
+        hasConnect ? 1 : 0, userId);
     if (hasConnect) {
         auto remoteObj = data.ReadRemoteObject();
         if (remoteObj != nullptr) {
@@ -2985,7 +2995,7 @@ int AbilityManagerStub::StartAbilityForPrelaunchInner(MessageParcel &data, Messa
             TAG_LOGW(AAFwkTag::ABILITYMGR, "hasConnect=true but ReadRemoteObject returned null");
         }
     }
-    int32_t result = StartAbilityForPrelaunch(*want, frameNum, connect);
+    int32_t result = StartAbilityForPrelaunch(*want, frameNum, userId, connect);
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "resolve call ability ret = %{public}d", result);
     reply.WriteInt32(result);
@@ -4490,6 +4500,22 @@ int32_t AbilityManagerStub::NotifyCompleteGamePreLaunchInner(MessageParcel &data
     }
     return NO_ERROR;
 }
+ 
+int32_t AbilityManagerStub::NotifyCompleteGamePreLaunchByPidInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    int32_t pid = data.ReadInt32();
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid pid: %{public}d", pid);
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = NotifyCompleteGamePreLaunchByPid(pid);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
 
 int32_t AbilityManagerStub::SetGamePreLaunchCompleteTimeInner(MessageParcel &data, MessageParcel &reply)
 {
@@ -5205,6 +5231,34 @@ int32_t AbilityManagerStub::GetUIExtensionSessionInfoInner(MessageParcel &data, 
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::GetUIExtensionRootHostInfoByIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t abilityRecordId = data.ReadInt32();
+    UIExtensionHostInfo hostInfo;
+    auto result = GetUIExtensionRootHostInfoById(abilityRecordId, hostInfo);
+    if (!reply.WriteParcelable(&hostInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write ui extension host info fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!reply.WriteInt32(hostInfo.persistentId_)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write persistentId fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!reply.WriteString(hostInfo.moduleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write moduleName fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    return NO_ERROR;
+}
+
 int32_t AbilityManagerStub::OpenAtomicServiceInner(MessageParcel &data, MessageParcel &reply)
 {
     std::unique_ptr<Want> want(data.ReadParcelable<Want>());
@@ -5352,8 +5406,8 @@ int32_t AbilityManagerStub::CleanUIAbilityBySCBInner(MessageParcel &data, Messag
     if (sessionInfo != nullptr) {
         sessionInfo->want.AdoptAllLegacyFd(FdTraversalMode::RECURSIVE);
     }
-    uint32_t sceneFlag = data.ReadUint32();
     bool isUserRequestedExit = data.ReadBool();
+    uint32_t sceneFlag = data.ReadUint32();
     int32_t result = CleanUIAbilityBySCB(sessionInfo, isUserRequestedExit, sceneFlag);
     reply.WriteInt32(result);
     return NO_ERROR;
@@ -5769,6 +5823,59 @@ int32_t AbilityManagerStub::RevokeDelegatorInner(MessageParcel &data, MessagePar
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::GetAllInsightIntentInfoInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetAllInsightIntentInfoInner");
+    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
+    auto userId = data.ReadInt32();
+    std::vector<InsightIntentInfoForQuery> infos;
+    int32_t result = GetAllInsightIntentInfo(flag, infos, userId);
+    if (!InsightIntentInfoForQuery::MarshallingVector(reply, infos)) {
+        return INNER_ERR;
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetInsightIntentInfoByBundleNameInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
+    auto bundleName = std::string(data.ReadString());
+    auto userId = data.ReadInt32();
+    std::vector<InsightIntentInfoForQuery> infos;
+    int32_t result = GetInsightIntentInfoByBundleName(flag, bundleName, infos, userId);
+    if (!InsightIntentInfoForQuery::MarshallingVector(reply, infos)) {
+        return INNER_ERR;
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetInsightIntentInfoByIntentNameInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
+    auto bundleName = std::string(data.ReadString());
+    auto modlueName = std::string(data.ReadString());
+    auto intentName = std::string(data.ReadString());
+    auto userId = data.ReadInt32();
+    InsightIntentInfoForQuery info;
+    int32_t result = GetInsightIntentInfoByIntentName(flag, bundleName, modlueName, intentName, info, userId);
+    if (!reply.WriteParcelable(&info)) {
+        return INNER_ERR;
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
 int32_t AbilityManagerStub::StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -5837,59 +5944,6 @@ int32_t AbilityManagerStub::StartUIAbilityWithCallbackInner(MessageParcel &data,
     return NO_ERROR;
 }
 
-int32_t AbilityManagerStub::GetAllInsightIntentInfoInner(MessageParcel &data, MessageParcel &reply)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetAllInsightIntentInfoInner");
-    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
-    auto userId = data.ReadInt32();
-    std::vector<InsightIntentInfoForQuery> infos;
-    int32_t result = GetAllInsightIntentInfo(flag, infos, userId);
-    if (!InsightIntentInfoForQuery::MarshallingVector(reply, infos)) {
-        return INNER_ERR;
-    }
-    if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
-        return INNER_ERR;
-    }
-    return NO_ERROR;
-}
-
-int32_t AbilityManagerStub::GetInsightIntentInfoByBundleNameInner(MessageParcel &data, MessageParcel &reply)
-{
-    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
-    auto bundleName = std::string(data.ReadString());
-    auto userId = data.ReadInt32();
-    std::vector<InsightIntentInfoForQuery> infos;
-    int32_t result = GetInsightIntentInfoByBundleName(flag, bundleName, infos, userId);
-    if (!InsightIntentInfoForQuery::MarshallingVector(reply, infos)) {
-        return INNER_ERR;
-    }
-    if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
-        return INNER_ERR;
-    }
-    return NO_ERROR;
-}
-
-int32_t AbilityManagerStub::GetInsightIntentInfoByIntentNameInner(MessageParcel &data, MessageParcel &reply)
-{
-    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
-    auto bundleName = std::string(data.ReadString());
-    auto modlueName = std::string(data.ReadString());
-    auto intentName = std::string(data.ReadString());
-    auto userId = data.ReadInt32();
-    InsightIntentInfoForQuery info;
-    int32_t result = GetInsightIntentInfoByIntentName(flag, bundleName, modlueName, intentName, info, userId);
-    if (!reply.WriteParcelable(&info)) {
-        return INNER_ERR;
-    }
-    if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
-        return INNER_ERR;
-    }
-    return NO_ERROR;
-}
-
 int32_t AbilityManagerStub::SuspendExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IAbilityConnection> callback = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
@@ -5927,6 +5981,35 @@ int32_t AbilityManagerStub::RestartSelfAtomicServiceInner(MessageParcel &data, M
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
         return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::SetAppServiceExtensionKeepAliveInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::string bundleName = data.ReadString();
+    bool flag = data.ReadBool();
+    int32_t result = SetAppServiceExtensionKeepAlive(bundleName, flag);
+    if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::QueryKeepAliveAppServiceExtensionsInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::vector<KeepAliveInfo> list;
+    int32_t result = QueryKeepAliveAppServiceExtensions(list);
+    reply.WriteInt32(list.size());
+    for (auto &it : list) {
+        if (!reply.WriteParcelable(&it)) {
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
 }
@@ -6026,6 +6109,7 @@ int32_t AbilityManagerStub::GetKioskStatusInner(MessageParcel &data, MessageParc
 
 int32_t AbilityManagerStub::RegisterSAInterceptorInner(MessageParcel &data, MessageParcel &reply)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call RegisterSaInterceptorInner");
     auto interceptor = iface_cast<AbilityRuntime::ISAInterceptor>(data.ReadRemoteObject());
     if (interceptor == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "interceptor is null.");
@@ -6051,35 +6135,6 @@ int32_t AbilityManagerStub::UnregisterSAInterceptorInner(MessageParcel &data, Me
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Fail to write result.");
         return ERR_WRITE_RESULT_CODE_FAILED;
-    }
-    return NO_ERROR;
-}
-
-int AbilityManagerStub::SetAppServiceExtensionKeepAliveInner(MessageParcel &data, MessageParcel &reply)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::string bundleName = data.ReadString();
-    bool flag = data.ReadBool();
-    int32_t result = SetAppServiceExtensionKeepAlive(bundleName, flag);
-    if (!reply.WriteInt32(result)) {
-        return ERR_INVALID_VALUE;
-    }
-    return NO_ERROR;
-}
-
-int AbilityManagerStub::QueryKeepAliveAppServiceExtensionsInner(MessageParcel &data, MessageParcel &reply)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::vector<KeepAliveInfo> list;
-    int32_t result = QueryKeepAliveAppServiceExtensions(list);
-    reply.WriteInt32(list.size());
-    for (auto &it : list) {
-        if (!reply.WriteParcelable(&it)) {
-            return ERR_INVALID_VALUE;
-        }
-    }
-    if (!reply.WriteInt32(result)) {
-        return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
 }

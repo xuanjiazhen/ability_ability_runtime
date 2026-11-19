@@ -311,7 +311,7 @@ void BaseExtensionRecord::ConnectAbilityWithWant(const Want &want)
 
 void BaseExtensionRecord::ConnectAbility()
 {
-    TAG_LOGI(AAFwkTag::SERVICE_EXT, "ConnectAbility");
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "ConnA");
     Want want = GetWant();
     UpdateDmsCallerInfo(want);
     ConnectAbilityWithWant(want);
@@ -426,6 +426,27 @@ void BaseExtensionRecord::RemoveTaskAttribution(int32_t recordId, const std::str
     if (vec.empty()) {
         taskAttributions_.erase(it);
     }
+}
+
+size_t BaseExtensionRecord::CleanTaskAttributionsByTaskId(const std::string &taskId)
+{
+    size_t removed = 0;
+    std::lock_guard<ffrt::mutex> lock(taskAttributionsMutex_);
+    for (auto it = taskAttributions_.begin(); it != taskAttributions_.end();) {
+        auto &vec = it->second;
+        size_t before = vec.size();
+        vec.erase(std::remove_if(vec.begin(), vec.end(),
+            [&taskId](const AgentTaskAttribution &a) {
+                return a.taskId == taskId;
+            }), vec.end());
+        removed += before - vec.size();
+        if (vec.empty()) {
+            it = taskAttributions_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    return removed;
 }
 } // namespace AAFwk
 } // namespace OHOS

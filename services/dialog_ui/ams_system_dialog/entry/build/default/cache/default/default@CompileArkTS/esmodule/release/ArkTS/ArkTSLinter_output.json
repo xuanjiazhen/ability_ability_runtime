@@ -1,0 +1,812 @@
+[
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets",
+    "line": 26,
+    "character": 9,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets",
+    "line": 27,
+    "character": 23,
+    "messageText": "Object literal must correspond to some explicitly declared class or interface (arkts-no-untyped-obj-literals)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets",
+    "line": 28,
+    "character": 9,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets",
+    "line": 37,
+    "character": 9,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets",
+    "line": 39,
+    "character": 13,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/ServiceExtAbility/SelectorExtensionAbility.ets",
+    "line": 40,
+    "character": 13,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 43,
+    "character": 11,
+    "messageText": "Property 'listener' has no initializer and is not definitely assigned in the constructor."
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 111,
+    "character": 20,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 120,
+    "character": 15,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 122,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 123,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 124,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 125,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 126,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 126,
+    "character": 60,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 126,
+    "character": 85,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 126,
+    "character": 91,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 133,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 157,
+    "character": 51,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 161,
+    "character": 51,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 178,
+    "character": 50,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 180,
+    "character": 36,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 185,
+    "character": 49,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 222,
+    "character": 18,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 230,
+    "character": 14,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets",
+    "line": 250,
+    "character": 9,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 54,
+    "character": 3,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 58,
+    "character": 20,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 59,
+    "character": 19,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 65,
+    "character": 26,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 78,
+    "character": 15,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 79,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 80,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 81,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 82,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 83,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 83,
+    "character": 60,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 83,
+    "character": 85,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 83,
+    "character": 91,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 90,
+    "character": 9,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 91,
+    "character": 23,
+    "messageText": "Object literal must correspond to some explicitly declared class or interface (arkts-no-untyped-obj-literals)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 92,
+    "character": 19,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 93,
+    "character": 19,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 94,
+    "character": 20,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 97,
+    "character": 11,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 99,
+    "character": 7,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 101,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 106,
+    "character": 7,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 109,
+    "character": 14,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 109,
+    "character": 19,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 119,
+    "character": 7,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 125,
+    "character": 18,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 125,
+    "character": 23,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 125,
+    "character": 36,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 128,
+    "character": 9,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 129,
+    "character": 9,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 130,
+    "character": 9,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 134,
+    "character": 9,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 136,
+    "character": 9,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 136,
+    "character": 25,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 137,
+    "character": 59,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 140,
+    "character": 67,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 144,
+    "character": 23,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 148,
+    "character": 21,
+    "messageText": "Only \"as T\" syntax is supported for type casts (arkts-as-casts)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 152,
+    "character": 21,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 164,
+    "character": 17,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 164,
+    "character": 48,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 170,
+    "character": 20,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 173,
+    "character": 16,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 224,
+    "character": 9,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 235,
+    "character": 9,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 274,
+    "character": 21,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 274,
+    "character": 54,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 279,
+    "character": 31,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 339,
+    "character": 18,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 370,
+    "character": 54,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 375,
+    "character": 31,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 436,
+    "character": 18,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPcDialog.ets",
+    "line": 470,
+    "character": 32,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/tipsDialog.ets",
+    "line": 16,
+    "character": 1,
+    "messageText": "Declaration merging is not supported (arkts-no-decl-merging)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/tipsDialog.ets",
+    "line": 29,
+    "character": 30,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/tipsDialog.ets",
+    "line": 37,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 16,
+    "character": 1,
+    "messageText": "Declaration merging is not supported (arkts-no-decl-merging)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 29,
+    "character": 30,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 36,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 40,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 40,
+    "character": 41,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 41,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 41,
+    "character": 42,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 42,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 42,
+    "character": 41,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 43,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 43,
+    "character": 69,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 43,
+    "character": 94,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 43,
+    "character": 100,
+    "messageText": "Use explicit types instead of \"any\", \"unknown\" (arkts-no-any-unknown)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 49,
+    "character": 7,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 56,
+    "character": 62,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/jumpInterceptorDialog.ets",
+    "line": 56,
+    "character": 88,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/TargetComponent.ets",
+    "line": 50,
+    "character": 21,
+    "messageText": {
+      "messageText": "Argument of type 'UIExtensionContext | undefined' is not assignable to parameter of type 'UIExtensionContext'.",
+      "category": 1,
+      "code": 2345,
+      "next": [
+        {
+          "messageText": "Type 'undefined' is not assignable to type 'UIExtensionContext'.",
+          "category": 1,
+          "code": 2322
+        }
+      ]
+    }
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/view/TargetComponent.ets",
+    "line": 75,
+    "character": 21,
+    "messageText": {
+      "messageText": "Argument of type 'UIExtensionContext | undefined' is not assignable to parameter of type 'UIExtensionContext'.",
+      "category": 1,
+      "code": 2345,
+      "next": [
+        {
+          "messageText": "Type 'undefined' is not assignable to type 'UIExtensionContext'.",
+          "category": 1,
+          "code": 2322
+        }
+      ]
+    }
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets",
+    "line": 31,
+    "character": 5,
+    "messageText": {
+      "messageText": "Type 'string | undefined' is not assignable to type 'string'.",
+      "category": 1,
+      "code": 2322,
+      "next": [
+        {
+          "messageText": "Type 'undefined' is not assignable to type 'string'.",
+          "category": 1,
+          "code": 2322
+        }
+      ]
+    }
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets",
+    "line": 38,
+    "character": 7,
+    "messageText": "Object is possibly 'undefined'."
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets",
+    "line": 52,
+    "character": 7,
+    "messageText": "Object is possibly 'undefined'."
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets",
+    "line": 66,
+    "character": 7,
+    "messageText": "Object is possibly 'undefined'."
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/assertFaultDialog.ets",
+    "line": 80,
+    "character": 7,
+    "messageText": "Object is possibly 'undefined'."
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/permissionConfirmDialog.ets",
+    "line": 34,
+    "character": 9,
+    "messageText": "Object is possibly 'undefined'."
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/permissionConfirmDialog.ets",
+    "line": 31,
+    "character": 9,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/permissionConfirmDialog.ets",
+    "line": 32,
+    "character": 9,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/permissionConfirmDialog.ets",
+    "line": 40,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/permissionConfirmDialog.ets",
+    "line": 41,
+    "character": 5,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  },
+  {
+    "categoryInfo": "Warning",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/permissionConfirmDialog.ets",
+    "line": 44,
+    "character": 14,
+    "messageText": "\"globalThis\" is not supported (arkts-no-globalthis)"
+  }
+]

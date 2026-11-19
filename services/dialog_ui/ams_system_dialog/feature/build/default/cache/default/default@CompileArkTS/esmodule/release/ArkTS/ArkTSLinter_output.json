@@ -1,0 +1,38 @@
+[
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/entryability/EntryAbility.ets",
+    "line": 104,
+    "character": 5,
+    "messageText": {
+      "messageText": "Type 'ColorMode | undefined' is not assignable to type 'ColorMode'.",
+      "category": 1,
+      "code": 2322,
+      "next": [
+        {
+          "messageText": "Type 'undefined' is not assignable to type 'ColorMode'.",
+          "category": 1,
+          "code": 2322
+        }
+      ]
+    }
+  },
+  {
+    "categoryInfo": "Error",
+    "fileName": "/mnt/disk/workspace/preheat_code_prod/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/feature/src/main/ets/entryability/EntryAbility.ets",
+    "line": 155,
+    "character": 5,
+    "messageText": {
+      "messageText": "Type 'ColorMode | undefined' is not assignable to type 'ColorMode'.",
+      "category": 1,
+      "code": 2322,
+      "next": [
+        {
+          "messageText": "Type 'undefined' is not assignable to type 'ColorMode'.",
+          "category": 1,
+          "code": 2322
+        }
+      ]
+    }
+  }
+]

@@ -27,6 +27,7 @@
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
 #include "snapshot.h"
+#include "wm_animation_common.h"
 #ifdef SUPPORT_SCREEN
 #include "pixel_map_bridge.h"
 #endif //SUPPORT_SCREEN
@@ -1038,7 +1039,8 @@ int AbilityManagerProxy::PreloadUIExtensionAbility(
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow)
+int AbilityManagerProxy::ChangeAbilityVisibility(
+    sptr<IRemoteObject> token, bool isShow, const std::shared_ptr<Rosen::WindowShowParams> &params)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1052,6 +1054,10 @@ int AbilityManagerProxy::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool
     }
     if (!data.WriteBool(isShow)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write isShow fail");
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    if (!data.WriteParcelable(params.get())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write params fail");
         return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::CHANGE_ABILITY_VISIBILITY, data, reply, option);
@@ -3228,6 +3234,11 @@ int AbilityManagerProxy::RegisterMissionListener(const std::string &deviceId,
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    if (!listener) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "listener null");
+        return ERR_INVALID_VALUE;
+    }
+
     if (!WriteInterfaceToken(data)) {
         return INNER_ERR;
     }
@@ -4213,10 +4224,10 @@ int AbilityManagerProxy::StartAbilityByCallWithErrMsg(const Want &want, const sp
 }
 
 int AbilityManagerProxy::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
-    const sptr<IAbilityConnection> &connect)
+    int32_t userId, const sptr<IAbilityConnection> &connect)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerProxy::StartAbilityForPrelaunch begin, hasConnect:%{public}d.",
-        connect != nullptr ? 1 : 0);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerProxy::StartAbilityForPrelaunch begin, "
+        "hasConnect:%{public}d, userId:%{public}d.", connect != nullptr ? 1 : 0, userId);
     int error;
     MessageParcel data;
     MessageParcel reply;
@@ -4232,6 +4243,10 @@ int AbilityManagerProxy::StartAbilityForPrelaunch(const Want &want, const int32_
     }
     if (!data.WriteInt32(frameNum)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "frameNum write fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
         return ERR_INVALID_VALUE;
     }
     bool hasConnect = (connect != nullptr);
@@ -6430,6 +6445,47 @@ int32_t AbilityManagerProxy::GetUIExtensionRootHostInfo(const sptr<IRemoteObject
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::GetUIExtensionRootHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write object fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteInt32(abilityRecordId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write abilityRecordId fail");
+        return INNER_ERR;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto error = SendRequest(AbilityManagerInterfaceCode::GET_UI_EXTENSION_HOST_INFO_BY_ID, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+
+    std::unique_ptr<UIExtensionHostInfo> info(reply.ReadParcelable<UIExtensionHostInfo>());
+    if (info == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read host info fail");
+        return INNER_ERR;
+    }
+    hostInfo = *info;
+    int32_t result = reply.ReadInt32();
+
+    int32_t persistentId = 0;
+    if (!reply.ReadInt32(persistentId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "read persistentId failed, use default value");
+        persistentId = 0;
+    }
+    std::string moduleName = reply.ReadString();
+    hostInfo.persistentId_ = persistentId;
+    hostInfo.moduleName = moduleName;
+    hostInfo.elementName_.SetModuleName(moduleName);
+    return result;
+}
+
 int32_t AbilityManagerProxy::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
     UIExtensionSessionInfo &uiExtensionSessionInfo, int32_t userId)
 {
@@ -8334,6 +8390,33 @@ int32_t AbilityManagerProxy::NotifyCompleteGamePreLaunch(const sptr<IRemoteObjec
         return ERR_WRITE_CALLER_TOKEN_FAILED;
     }
     auto ret = SendRequest(AbilityManagerInterfaceCode::COMPLETE_GAME_PRELAUNCH, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "send request error:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::NotifyCompleteGamePreLaunchByPid(int32_t pid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid pid: %{public}d", pid);
+        return ERR_INVALID_VALUE;
+    }
+ 
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+ 
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write pid fail");
+        return ERR_WRITE_INT32_FAILED;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::COMPLETE_GAME_PRELAUNCH_BY_PID, data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "send request error:%{public}d", ret);
         return ret;
