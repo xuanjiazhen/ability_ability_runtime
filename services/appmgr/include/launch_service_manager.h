@@ -83,6 +83,7 @@ private:
         uint32_t restartCount = 0;
         uint64_t generation = 0;
         std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
+        std::shared_ptr<int32_t> signalFd;
     };
     int32_t CheckLaunchServiceStartLocked(const LaunchServiceKey &key, AAFwk::LaunchServiceDescriptor &descriptor);
     int32_t CheckLaunchServiceWatcher(const LaunchServiceKey &key, int32_t pid, bool watching);
