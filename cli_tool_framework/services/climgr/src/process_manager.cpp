@@ -38,6 +38,7 @@
 #include "exec_tool_param.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
+#include "proc_scanner.h"
 #include "tokenid_kit.h"
 #include "tool_info.h"
 #include "tool_util.h"
@@ -327,6 +328,50 @@ bool ProcessManager::Killpg(pid_t pid) const
         return false;
     }
     return true;
+}
+
+bool ProcessManager::Kill(pid_t pid) const
+{
+    if (pid <= 0) {
+        return false;
+    }
+    int32_t killRet = kill(pid, SIGKILL);
+    if (killRet != 0) {
+        // ESRCH here is common: the target exits concurrently with the kill.
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "kill pid:%{public}d result:%{public}d", pid, killRet);
+        return false;
+    }
+    return true;
+}
+
+bool ProcessManager::KillSessionProcess(pid_t processId, pid_t commandPid) const
+{
+    if (commandPid > 0) {
+        // Resolved pid-ns form: one group kill covers the command and every descendant (seccomp
+        // keeps them in the group); the direct kill covers the window before setpgid(0, 0)
+        // where the group does not exist yet. The sandbox monitor follows on its own — it
+        // exits as soon as the command it waits on is gone.
+        bool killed = Killpg(commandPid);
+        return Kill(commandPid) || killed;
+    }
+    if (processId <= 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "KillSessionProcess skipped: invalid processId=%{public}d", processId);
+        return false;
+    }
+    // Discovery not resolved: the command may already exist as a live child of the sandbox
+    // (claw_sandbox forks exactly one). Kill its group (covers descendants once it leads the
+    // group) and the child itself (covers the pre-setpgid window).
+    bool killed = false;
+    pid_t child = ProcScanner::FindCommandProcess(processId);
+    if (child > 0) {
+        killed = Killpg(child) || killed;
+        killed = Kill(child) || killed;
+    }
+    // Killpg covers the exec-in-place form (the sandbox itself leads the group); the direct
+    // kill covers the pid-ns form, where the sandbox never joins a new group and would
+    // otherwise survive Killpg(processId) as a lingering monitor.
+    killed = Killpg(processId) || killed;
+    return Kill(processId) || killed;
 }
 
 } // namespace CliTool
