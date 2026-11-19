@@ -169,12 +169,12 @@ int32_t CheckLaunchServiceQuery(const std::shared_ptr<BundleMgrHelper> &bundleMg
     return ERR_OK;
 }
 
-bool IsDaemonProcessAlive(pid_t pid)
+bool IsDaemonProcessAlive(const std::shared_ptr<UniqueFd> &pidfd)
 {
-    if (pid <= 0) {
+    if (pidfd == nullptr || pidfd->Get() < 0) {
         return false;
     }
-    if (kill(pid, 0) == 0) {
+    if (syscall(SYS_pidfd_send_signal, pidfd->Get(), 0, nullptr, 0) == 0) {
         return true;
     }
     return errno != ESRCH;
@@ -666,25 +666,16 @@ void ConvertLaunchServiceInformations(const std::vector<UserIam::UserAuth::Launc
     }
 }
 
-int32_t SendLaunchServiceKillSignal(int32_t pid)
+int32_t SendLaunchServiceKillSignal(const std::shared_ptr<UniqueFd> &pidfd)
 {
-    int32_t pidfd = static_cast<int32_t>(syscall(SYS_pidfd_open, pid, 0));
-    if (pidfd < 0) {
-        const int openError = errno;
-        if (openError != ESRCH) {
-            TAG_LOGE(AAFwkTag::APPMGR,
-                "open launch service pidfd failed, pid=%{public}d, errno=%{public}d", pid, openError);
-            return AAFwk::INNER_ERR;
-        }
-    } else {
-        auto ret = syscall(SYS_pidfd_send_signal, pidfd, SIGNAL_KILL, nullptr, 0);
-        const int signalError = errno;
-        close(pidfd);
-        if (ret != 0 && signalError != ESRCH) {
-            TAG_LOGE(AAFwkTag::APPMGR,
-                "signal launch service failed, pid=%{public}d, errno=%{public}d", pid, signalError);
-            return AAFwk::INNER_ERR;
-        }
+    if (pidfd == nullptr || pidfd->Get() < 0) {
+        return AAFwk::INNER_ERR;
+    }
+    auto ret = syscall(SYS_pidfd_send_signal, pidfd->Get(), SIGNAL_KILL, nullptr, 0);
+    const int32_t signalError = errno;
+    if (ret != 0 && signalError != ESRCH) {
+        TAG_LOGE(AAFwkTag::APPMGR, "signal launch service failed, errno=%{public}d", signalError);
+        return AAFwk::INNER_ERR;
     }
     return ERR_OK;
 }
@@ -699,7 +690,7 @@ LaunchServiceManager::LaunchServiceManager(const std::weak_ptr<AppMgrServiceInne
 std::shared_ptr<AAFwk::TaskHandlerWrap> LaunchServiceManager::GetTaskHandler() const
 {
     auto appMgrServiceInner = appMgrServiceInner_.lock();
-    return appMgrServiceInner == nullptr ? nullptr : appMgrServiceInner->taskHandler_;
+    return appMgrServiceInner == nullptr ? nullptr : appMgrServiceInner->GetLaunchServiceTaskHandler();
 }
 
 int32_t LaunchServiceManager::CheckLaunchServiceStartLocked(
@@ -731,19 +722,6 @@ int32_t LaunchServiceManager::CheckLaunchServiceStartLocked(
     return ERR_OK;
 }
 
-int32_t LaunchServiceManager::CheckLaunchServiceWatcher(const LaunchServiceKey &key, int32_t pid, bool watching)
-{
-    if (!watching) {
-        TAG_LOGE(AAFwkTag::APPMGR, "watch launch service failed, pid:%{public}d", pid);
-        auto stopResult = StopLaunchService(key, pid);
-        if (stopResult != ERR_OK && stopResult != AAFwk::ERR_LAUNCH_SERVICE_NOT_RUNNING) {
-            TAG_LOGE(AAFwkTag::APPMGR, "stop unmonitored launch service failed: %{public}d", stopResult);
-        }
-        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
-    }
-    return ERR_OK;
-}
-
 int32_t LaunchServiceManager::StartLaunchService(
     const LaunchServiceKey &key, const LaunchService &service, uint32_t restartCount, uint64_t expectedGeneration)
 {
@@ -764,7 +742,6 @@ int32_t LaunchServiceManager::StartLaunchServiceLocked(
     }
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     int32_t pid = 0;
-    bool watching = false;
     {
         std::lock_guard<std::shared_mutex> lock(launchServiceMutex_);
         auto iter = launchServiceRuntimeRecords_.find(key);
@@ -779,7 +756,7 @@ int32_t LaunchServiceManager::StartLaunchServiceLocked(
             return queryResult;
         }
         if (iter != launchServiceRuntimeRecords_.end()) {
-            if (iter->second.pid > 0 && IsDaemonProcessAlive(iter->second.pid)) {
+            if (iter->second.pid > 0 && IsDaemonProcessAlive(iter->second.pidfd)) {
                 TAG_LOGI(AAFwkTag::APPMGR, "launch service already running, pid=%{public}d", iter->second.pid);
                 return ERR_OK;
             }
@@ -792,21 +769,21 @@ int32_t LaunchServiceManager::StartLaunchServiceLocked(
             TAG_LOGE(AAFwkTag::APPMGR, "spawn launch service failed, result=%{public}d", ret);
             return ret != ERR_OK ? ret : AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
         }
-
+        auto pidfd = std::make_shared<UniqueFd>(
+            AppPidFdManager::GetInstance().AddWatcher(pid, PidFdType::LAUNCH_SERVICE));
+        if (pidfd->Get() < 0) {
+            return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+        }
         if (++launchServiceGeneration_ == 0) {
             ++launchServiceGeneration_;
         }
-        launchServiceRuntimeRecords_[key] = {service, daemonUid, pid, restartCount, launchServiceGeneration_};
+        launchServiceRuntimeRecords_[key] = {service, daemonUid, pid, restartCount, launchServiceGeneration_, pidfd};
         TAG_LOGI(AAFwkTag::APPMGR,
             "start launch service success, bundle=%{public}s, service=%{public}s, pid=%{public}d",
             key.bundleName.c_str(), key.serviceName.c_str(), pid);
         NotifyLaunchServiceProcessStateChanged(key, pid, AbilityRuntime::LaunchServiceProcessState::CREATED);
-        watching = AppPidFdManager::GetInstance().AddWatcher(pid, PidFdType::LAUNCH_SERVICE);
-        if (!watching) {
-            launchServiceRuntimeRecords_[key].generation = 0;
-        }
     }
-    return CheckLaunchServiceWatcher(key, pid, watching);
+    return ERR_OK;
 }
 
 int32_t LaunchServiceManager::StopLaunchService(const LaunchServiceKey &key, int32_t expectedPid)
@@ -838,7 +815,7 @@ int32_t LaunchServiceManager::StopLaunchService(const LaunchServiceKey &key, int
             return AAFwk::ERR_LAUNCH_SERVICE_NOT_RUNNING;
         }
         pid = iter->second.pid;
-        auto ret = SendLaunchServiceKillSignal(pid);
+        auto ret = SendLaunchServiceKillSignal(iter->second.pidfd);
         if (ret != ERR_OK) {
             return ret;
         }
@@ -1369,6 +1346,7 @@ void LaunchServiceManager::HandleLaunchServiceProcessDied(int32_t pid)
         }
         key = iter->first;
         iter->second.pid = 0;
+        iter->second.pidfd.reset();
         generation = iter->second.generation;
         needRestart = generation != 0 && iter->second.service.keepAlive;
         if (needRestart) {
@@ -1391,7 +1369,9 @@ void LaunchServiceManager::HandleLaunchServiceProcessDied(int32_t pid)
         }
         manager->RestartLaunchService(key, generation);
     };
-    taskHandler->SubmitTask(restartTask, GetLaunchServiceRestartTaskName(key, generation), delay, false);
+    if (auto handler = GetTaskHandler()) {
+        handler->SubmitTask(restartTask, GetLaunchServiceRestartTaskName(key, generation), delay);
+    }
 }
 
 void LaunchServiceManager::StopLaunchServices(const std::string &bundleName, int32_t userId, int32_t appIndex)
@@ -1526,7 +1506,13 @@ std::function<void(int32_t)> LaunchServiceManager::CreateLaunchServicesEnabledCo
                     AAFwk::ABILITY_SERVICE_NOT_CONNECTED);
             return;
         }
-        auto handler = AAFwk::TaskHandlerWrap::GetFfrtHandler();
+        auto manager = managerWeak.lock();
+        auto inner = manager == nullptr ? nullptr : manager->appMgrServiceInner_.lock();
+        if (inner == nullptr) {
+            completion(AAFwk::ABILITY_SERVICE_NOT_CONNECTED);
+            return;
+        }
+        auto handler = inner->GetLaunchServiceTaskHandler();
         if (handler == nullptr) {
             completion(AAFwk::ABILITY_SERVICE_NOT_CONNECTED);
             return;
@@ -1555,16 +1541,6 @@ void LaunchServiceManager::SetLaunchServicesEnabled(const std::string &bundleNam
 {
     if (IsEnterpriseSpaceCrossUser(callerUid / BASE_USER_RANGE, userId)) {
         completion(AAFwk::ERR_TARGET_BUNDLE_NOT_EXIST);
-        return;
-    }
-    AAFwk::LaunchServiceDescriptor descriptor;
-    descriptor.bundleName = bundleName;
-    descriptor.userId = userId;
-    descriptor.appIndex = appIndex;
-    auto callerResult = CheckDaemonSameDeveloper(descriptor, callerUid);
-    if (callerResult != ERR_OK) {
-        completion(
-            callerResult == AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND ? AAFwk::ERR_TARGET_BUNDLE_NOT_EXIST : callerResult);
         return;
     }
     auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
