@@ -564,6 +564,7 @@ bool AbilityManagerService::Init()
 
     SubscribeScreenUnlockedEvent();
     SubscribeUserUnlockedEvent();
+    SubscribePackageDataClearedEvent();
     AddWatchParameters();
     appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(subManagersHelper_);
     InitAppSpawnMsgPipe();
@@ -10572,6 +10573,49 @@ void AbilityManagerService::SubscribeScreenUnlockedEvent()
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "SU life, subscribe su suc");
     isSubscribed_ = true;
+}
+
+void AbilityManagerService::SubscribePackageDataClearedEvent()
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    std::lock_guard<std::mutex> lock(subscribedMutex_);
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    subscribeInfo.SetThreadMode(EventFwk::CommonEventSubscribeInfo::COMMON);
+    auto dataClearedCallback = [abilityManager = weak_from_this()](const std::string &bundleName,
+        uint32_t accessTokenId, int32_t userId) {
+        // Handle the event off the common event dispatch thread: the handling queries the KVStore
+        // and calls the window manager via IPC.
+        ffrt::submit([abilityManager, bundleName, accessTokenId, userId]() {
+            auto abilityMgr = abilityManager.lock();
+            if (abilityMgr == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityMgr pointer");
+                return;
+            }
+            abilityMgr->HandlePackageDataCleared(bundleName, accessTokenId, userId);
+            }, ffrt::task_attr().name("HandlePackageDataCleared"));
+    };
+    appDataClearedSubscriber_ = std::make_shared<AbilityRuntime::AppDataClearedEventSubscriber>(
+        subscribeInfo, dataClearedCallback);
+    bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(appDataClearedSubscriber_);
+    if (!subResult) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "subscribe package data cleared event failed");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "subscribe package data cleared event suc");
+}
+
+void AbilityManagerService::HandlePackageDataCleared(const std::string &bundleName, uint32_t accessTokenId,
+    int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "bundleName:%{public}s userId:%{public}d", bundleName.c_str(), userId);
+    auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
+    if (uiAbilityManager == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null uiAbilityManager, userId:%{public}d", userId);
+        return;
+    }
+    uiAbilityManager->HandleAppDataCleared(bundleName, accessTokenId);
 }
 
 std::function<void(int32_t)> AbilityManagerService::GetScreenUnlockCallback()
