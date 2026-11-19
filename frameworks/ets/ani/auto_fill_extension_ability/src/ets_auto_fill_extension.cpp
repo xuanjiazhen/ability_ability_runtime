@@ -30,6 +30,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "int_wrapper.h"
+#include "ui_extension_migration_utils.h"
 #include "want_params_wrapper.h"
 
 #ifdef WINDOWS_PLATFORM
@@ -277,7 +278,7 @@ void EtsAutoFillExtension::OnCommandWindow(
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null sessionInfo");
         return;
     }
-    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Begin. persistentId: %{private}d, winCmd: %{public}d",
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Begin. persistentId: %{public}d, winCmd: %{public}d",
         sessionInfo->persistentId, winCmd);
     Extension::OnCommandWindow(want, sessionInfo, winCmd);
     switch (winCmd) {
@@ -451,6 +452,7 @@ bool EtsAutoFillExtension::CreateSessionAndReference(sptr<AAFwk::SessionInfo> se
         return false;
     }
     contentSessions_.emplace(sessionInfo->sessionToken, ref);
+    etsUiExtContentSession_ = etsUiExtContentSession;
     return true;
 }
 
@@ -477,6 +479,7 @@ bool EtsAutoFillExtension::CreateNewWindow(sptr<AAFwk::SessionInfo> sessionInfo,
     option->SetDensity(sessionInfo->density);
     option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
     option->SetDisplayId(sessionInfo->displayId);
+    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     if (context->isNotAllow != -1) {
         bool isNotAllow = context->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "isNotAllow: %{public}d", isNotAllow);
@@ -498,6 +501,8 @@ bool EtsAutoFillExtension::CreateNewWindow(sptr<AAFwk::SessionInfo> sessionInfo,
         return false;
     }
     CallEtsOnRequest(*sharedWant, sessionInfo, uiWindow);
+    migrationFencing_ = MigrationFencingState {};
+    migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
     uiWindowMap_[obj] = uiWindow;
     context->SetSessionInfo(sessionInfo);
 #ifdef SUPPORT_GRAPHICS
@@ -521,6 +526,20 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
+            [this](const sptr<AAFwk::SessionInfo> &info) {
+                auto migrateContext = GetContext();
+                if (migrateContext != nullptr) {
+                    auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*info);
+                    cachedInfo->originalCallerInfo.callerToken = nullptr;
+                    migrateContext->SetSessionInfo(cachedInfo);
+                }
+                if (etsUiExtContentSession_ != nullptr) {
+                    etsUiExtContentSession_->UpdateSessionInfo(info);
+                }
+            })) {
+            return false;
+        }
         return true;
     }
     return CreateNewWindow(sessionInfo, obj, sharedWant);
@@ -609,6 +628,7 @@ void EtsAutoFillExtension::DestroyWindow(sptr<AAFwk::SessionInfo> sessionInfo)
     foregroundWindows_.erase(obj);
     contentSessions_.erase(obj);
     callbacks_.erase(obj);
+    etsUiExtContentSession_ = nullptr;
 }
 
 bool EtsAutoFillExtension::CallObjectMethod(bool withResult, const char *name, const char *signature, ...)
@@ -725,6 +745,7 @@ void EtsAutoFillExtension::CallEtsOnRequest(const AAFwk::Want &want, sptr<AAFwk:
         return;
     }
     contentSessions_.emplace(sessionInfo->sessionToken, ref);
+    etsUiExtContentSession_ = etsUiExtContentSession;
     ProcessRequest(want, sessionInfo, uiWindow, nativeContentSession);
 }
 

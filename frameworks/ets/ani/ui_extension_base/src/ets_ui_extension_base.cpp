@@ -48,6 +48,7 @@
 #include "string_wrapper.h"
 #include "tokenid_kit.h"
 #include "ui_extension_window_command.h"
+#include "ui_extension_migration_utils.h"
 #include "want_params_wrapper.h"
 
 namespace OHOS {
@@ -702,6 +703,7 @@ sptr<Rosen::WindowOption> EtsUIExtensionBase::CreateWindowOption(const sptr<AAFw
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     option->SetDensity(sessionInfo->density);
     option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
+    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     if (context_->isNotAllow != -1) {
         bool isNotAllow = context_->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
@@ -754,6 +756,8 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
             return false;
         }
         RegisterBrandColorChangeListener(uiWindow);
+        migrationFencing_ = MigrationFencingState {};
+        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[componentId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context_->GetWindow() == nullptr) {
@@ -767,6 +771,14 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
+            [this](const sptr<AAFwk::SessionInfo> &info) {
+                if (etsUiExtContentSession_ != nullptr) {
+                    etsUiExtContentSession_->UpdateSessionInfo(info);
+                }
+            })) {
+            return false;
+        }
     }
     return true;
 }

@@ -20,7 +20,9 @@
 #include "auto_fill_extension_context.h"
 #include "configuration.h"
 #include "ets_runtime.h"
+#include "ets_ui_extension_content_session.h"
 #include "session_info.h"
+#include "ui_extension_migration_utils.h"
 #include "view_data.h"
 
 namespace OHOS {
@@ -142,9 +144,11 @@ private:
     std::shared_ptr<AppExecFwk::ETSNativeReference> etsObj_;
     std::shared_ptr<AppExecFwk::ETSNativeReference> shellContextRef_ = nullptr;
     std::map<sptr<IRemoteObject>, sptr<Rosen::Window>> uiWindowMap_;
+    MigrationFencingState migrationFencing_;
     std::set<sptr<IRemoteObject>> foregroundWindows_;
     std::map<sptr<IRemoteObject>, ani_ref> contentSessions_;
     std::map<sptr<IRemoteObject>, ani_ref> callbacks_;
+    std::shared_ptr<EtsUIExtensionContentSession> etsUiExtContentSession_;
     bool isPopup_ = false;
 };
 } // namespace AbilityRuntime

@@ -52,6 +52,7 @@
 #include "string_wrapper.h"
 #include "timeout_state_utils.h"
 #include "ui_extension_wrapper.h"
+#include "base_extension_record.h"
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
 #include "utils/agent_caller_identity_util.h"
@@ -1418,7 +1419,7 @@ int AbilityConnectManager::ScheduleCommandAbilityWindowDone(
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     std::string element = abilityRecord->GetURI();
     TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "%{public}s/%{public}s, persistentId:%{private}d, winCmd:%{public}d, abilityCmd:%{public}d",
+        "%{public}s/%{public}s, persistentId:%{public}d, winCmd:%{public}d, abilityCmd:%{public}d",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(),
         sessionInfo->persistentId, winCmd, abilityCmd);
@@ -2296,7 +2297,7 @@ void AbilityConnectManager::CommandAbilityWindow(const std::shared_ptr<BaseExten
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER(abilityRecord);
     CHECK_POINTER(sessionInfo);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s, persistentId: %{private}d, wincmd: %{public}d",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s, persistentId: %{public}d, wincmd: %{public}d",
         abilityRecord->GetURI().c_str(), sessionInfo->persistentId, winCmd);
     abilityRecord->SetAbilityWindowState(sessionInfo, winCmd, false);
     if (taskHandler_ != nullptr) {

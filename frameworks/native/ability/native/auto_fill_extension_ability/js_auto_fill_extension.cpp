@@ -42,6 +42,7 @@
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
 #include "string_wrapper.h"
+#include "ui_extension_migration_utils.h"
 #include "want_params_wrapper.h"
 
 namespace OHOS {
@@ -378,7 +379,7 @@ void JsAutoFillExtension::OnCommandWindow(
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null sessionInfo");
         return;
     }
-    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Begin. persistentId: %{private}d, winCmd: %{public}d",
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "Begin. persistentId: %{public}d, winCmd: %{public}d",
         sessionInfo->persistentId, winCmd);
     Extension::OnCommandWindow(want, sessionInfo, winCmd);
     switch (winCmd) {
@@ -527,6 +528,7 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         option->SetDensity(sessionInfo->density);
         option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
         option->SetDisplayId(sessionInfo->displayId);
+        option->SetCallerPersistentId(sessionInfo->callerPersistentId);
         if (context->isNotAllow != -1) {
             bool isNotAllow = context->isNotAllow == 1 ? true : false;
             TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "isNotAllow: %{public}d", isNotAllow);
@@ -552,6 +554,8 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         contentSessions_.emplace(
             obj, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
         CallJsOnRequest(*sharedWant, sessionInfo, uiWindow);
+        migrationFencing_ = MigrationFencingState {};
+        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[obj] = uiWindow;
         context->SetSessionInfo(sessionInfo);
 #ifdef SUPPORT_GRAPHICS
@@ -563,7 +567,30 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
             TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null uiWindow");
             return false;
         }
-        uiWindow->UpdateExtensionConfig(sharedWant);        
+        uiWindow->UpdateExtensionConfig(sharedWant);
+        if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
+            [this, &obj](const sptr<AAFwk::SessionInfo> &info) {
+                auto migrateContext = GetContext();
+                if (migrateContext != nullptr) {
+                    auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*info);
+                    cachedInfo->originalCallerInfo.callerToken = nullptr;
+                    migrateContext->SetSessionInfo(cachedInfo);
+                }
+                HandleScope handleScope(jsRuntime_);
+                napi_env env = jsRuntime_.GetNapiEnv();
+                auto sessionIt = contentSessions_.find(obj);
+                if (env != nullptr && sessionIt != contentSessions_.end() && sessionIt->second != nullptr) {
+                    napi_value contentSession = sessionIt->second->GetNapiValue();
+                    void* nativeObject = nullptr;
+                    napi_unwrap(env, contentSession, &nativeObject);
+                    auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
+                    if (contentSessionPtr != nullptr) {
+                        contentSessionPtr->DoUpdateExtensionParent(info);
+                    }
+                }
+            })) {
+            return false;
+        }
     }
     return true;
 }

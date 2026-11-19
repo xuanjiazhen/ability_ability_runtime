@@ -33,6 +33,7 @@
 #include "ui_extension_window_command.h"
 #include "want.h"
 #include "window.h"
+#include "ui_extension_migration_utils.h"
 #ifdef SUPPORT_GRAPHICS
 #include "display_manager.h"
 #include "window_manager.h"
@@ -205,6 +206,7 @@ protected:
     std::shared_ptr<NativeReference> jsObj_;
     std::shared_ptr<UIExtensionContext> context_;
     std::map<uint64_t, sptr<Rosen::Window>> uiWindowMap_;
+    MigrationFencingState migrationFencing_;
     std::set<uint64_t> foregroundWindows_;
     std::map<uint64_t, std::shared_ptr<NativeReference>> contentSessions_;
     std::shared_ptr<AbilityResultListeners> abilityResultListeners_ = nullptr;
