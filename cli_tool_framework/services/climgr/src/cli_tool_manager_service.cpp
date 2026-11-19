@@ -53,6 +53,7 @@
 #include "permission_query_util.h"
 #include "permission_util.h"
 #include "process_manager.h"
+#include "proc_scanner.h"
 #include "session_record.h"
 #include "task_attribution_manager.h"
 #include "tool_util.h"
@@ -178,9 +179,9 @@ void CliToolManagerService::HandleProcessTimeout(const std::string &sessionId)
 
     EventDispatcher::GetInstance().DispatchErrorEvent(sessionId, "session timed out");
     if (record->processId > 0) {
-        ProcessManager::GetInstance().Killpg(record->processId);
+        ProcessManager::GetInstance().KillSessionProcess(record->processId, record->commandPid);
     } else {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "HandleProcessTimeout skip Killpg: invalid processId, sessionId=%{public}s",
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "HandleProcessTimeout skip kill: invalid processId, sessionId=%{public}s",
             sessionId.c_str());
     }
 }
@@ -393,8 +394,8 @@ void CliToolManagerService::OnStop()
     TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr stop");
     initialized_ = false;
 
-    // Collect active PIDs before clearing sessions.
-    std::vector<pid_t> activePids;
+    // Collect active targets before clearing sessions: (sandbox pid, resolved command pid).
+    std::vector<std::pair<pid_t, pid_t>> activeTargets;
     std::vector<std::string> detachTaskIds;
     std::vector<int64_t> detachAttributionIds;
     std::vector<int32_t> detachUids;
@@ -405,7 +406,7 @@ void CliToolManagerService::OnStop()
                 continue;
             }
             if (record->processId > 0 && !record->HasProcessExited()) {
-                activePids.emplace_back(record->processId);
+                activeTargets.emplace_back(record->processId, record->commandPid);
             }
             // ATTACHED collected here; PENDING relayed to the attach write-back (its compensating
             // detach is the single finisher — without the relay the registration would leak).
@@ -427,10 +428,11 @@ void CliToolManagerService::OnStop()
 
     // Kill each active child and clean up its tool token: SIG_IGN (set in StopReaper) auto-reaps
     // them; WaitPid runs only for DeleteToolTokenByPid (no record, so no FinalizeBackgroundSession).
+    // WaitPid still keys on the sandbox pid: only the anchor is a direct child of climgr.
     auto &processManager = ProcessManager::GetInstance();
-    for (pid_t pid : activePids) {
-        processManager.Killpg(pid);
-        WaitPid(pid, 0, SIGCHLD);
+    for (const auto &[processId, commandPid] : activeTargets) {
+        processManager.KillSessionProcess(processId, commandPid);
+        WaitPid(processId, 0, SIGCHLD);
     }
 
     // Backstop: reap any pre-existing zombies SIG_IGN did not retroactively catch (defensive; on OHOS Linux
@@ -580,15 +582,98 @@ void CliToolManagerService::AttachTaskAttribution(const std::shared_ptr<SessionR
         callerUid = record->callerUid;
         record->attributionState = AttributionState::PENDING;
     }
-    // Phase 2 — sync IPC outside the lock (lock-held long IPC is forbidden).
+    // Phase 2 — async resolution + registration. The real command process is a grandchild:
+    // claw_sandbox (the anchor) forks it after unshare(CLONE_NEWPID), so the anchor is only a
+    // monitor. Resolving the command pid polls /proc for up to the discovery window and must
+    // never run inline — it would delay the execTool/execCmd IPC reply (BR-3: no timing impact).
+    ffrt::submit([record, taskId, anchor, callerUid]() {
+        auto service = CliToolManagerService::GetInstance();
+        if (service == nullptr) {
+            return;
+        }
+        service->ResolveCommandAndAttach(record, taskId, anchor, callerUid);
+    });
+}
+
+void CliToolManagerService::ResolveCommandAndAttach(const std::shared_ptr<SessionRecord> &record,
+    const std::string &taskId, pid_t anchor, int32_t callerUid)
+{
+    if (record == nullptr || anchor <= 0) {
+        return;
+    }
+    // Poll until the command child shows up in /proc. Early exits: a teardown that consumed the
+    // PENDING state wins the race (nothing registered, nothing to compensate); a dead anchor
+    // (exit or zombie) means no command will ever be forked — fall back immediately.
+    int32_t pollMs = std::max(commandDiscoveryPollMs_.load(std::memory_order_relaxed), 1);
+    int32_t timeoutMs = std::max(commandDiscoveryTimeoutMs_.load(std::memory_order_relaxed), 0);
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
+    pid_t commandPid = -1;
+    while (true) {
+        if (!IsAttributionPending(record)) {
+            return;
+        }
+        commandPid = ProcScanner::FindCommandProcess(anchor);
+        if (commandPid > 0) {
+            break;
+        }
+        if (std::chrono::steady_clock::now() >= deadline) {
+            break;
+        }
+        if (ProcScanner::CheckLiveness(anchor) == ProcLiveness::DEAD) {
+            // The anchor exited before any command child became visible. In the pid-ns form the
+            // command child (if it ever existed) died with the monitor or was reparented beyond
+            // ppid reach; in the exec-in-place form the anchor WAS the command. Nothing
+            // attributable survives, so do NOT create the registration at all: the reaper
+            // teardown consumes the PENDING state with zero IPC — timelier than registering a
+            // dead pid only to post a compensating unregister right after.
+            TAG_LOGI(AAFwkTag::CLI_TOOL,
+                "anchor exited before command discovery, skip attach, sessionId=%{public}s, "
+                "anchorPid=%{public}d",
+                record->sessionId.c_str(), anchor);
+            return;
+        }
+        // UNKNOWN (unreadable /proc): keep polling — never conclude death from a failed read.
+        std::this_thread::sleep_for(std::chrono::milliseconds(pollMs));
+    }
+    // -1 keeps the fallback semantics: the anchor is the command itself (exec-in-place form)
+    // or the discovery window simply lapsed.
+    record->commandPid.store(commandPid, std::memory_order_relaxed);
+    if (commandPid > 0) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL,
+            "command process resolved, sessionId=%{public}s, anchorPid=%{public}d, commandPid=%{public}d",
+            record->sessionId.c_str(), anchor, commandPid);
+    } else {
+        TAG_LOGI(AAFwkTag::CLI_TOOL,
+            "command process unresolved, attach falls back to anchor, sessionId=%{public}s, anchorPid=%{public}d",
+            record->sessionId.c_str(), anchor);
+    }
+    pid_t target = (commandPid > 0) ? commandPid : anchor;
+    if (!IsAttributionPending(record)) {
+        // Teardown consumed the PENDING state while polling; nothing was registered.
+        return;
+    }
+    // Sync IPC outside any lock (lock-held long IPC is forbidden).
     int64_t attributionId = 0;
-    int32_t ret = TaskAttributionManager::GetInstance().AttachProcess(taskId, anchor, callerUid, attributionId);
+    int32_t ret = TaskAttributionManager::GetInstance().AttachProcess(taskId, target, callerUid, attributionId);
     // Phase 3+4 — reconcile the verdict under the lock; a teardown that consumed while the IPC
     // was in flight leaves this side the single finisher, compensating its own registration.
-    if (WriteBackAttachResult(record, "AttachTaskAttribution", ret == ERR_OK, ret, anchor, taskId,
+    if (WriteBackAttachResult(record, "AttachTaskAttribution", ret == ERR_OK, ret, target, taskId,
         attributionId)) {
         PostDetachTaskAttribution(taskId, attributionId, callerUid);
     }
+}
+
+bool CliToolManagerService::IsAttributionPending(const std::shared_ptr<SessionRecord> &record)
+{
+    if (record == nullptr) {
+        return false;
+    }
+    std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
+    auto it = sessionRecords_.find(record->sessionId);
+    if (it == sessionRecords_.end() || it->second != record) {
+        return false;
+    }
+    return record->attributionState == AttributionState::PENDING;
 }
 
 void CliToolManagerService::PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId,
@@ -1309,14 +1394,14 @@ int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, 
         return createRet;
     }
     if (auto limitRet = TryAddSessionRecord(record); limitRet != ERR_OK) {
-        ProcessManager::GetInstance().Killpg(record->processId);
+        ProcessManager::GetInstance().KillSessionProcess(record->processId, record->commandPid);
         return limitRet;
     }
     EventDispatcher::GetInstance().RegisterTraceIds(
         record->sessionId, record->toolCallId, record->dmSessionId);
 
     if (!RegisterSessionWithMonitors(record, param.options)) {
-        ProcessManager::GetInstance().Killpg(record->processId);
+        ProcessManager::GetInstance().KillSessionProcess(record->processId, record->commandPid);
         RemoveSessionRecord(record->sessionId);
         return ERR_NO_INIT;
     }
@@ -1820,7 +1905,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
         return createRet;
     }
     if (!RegisterSessionWithMonitors(record, actualParam.execCmdOptions.AsExecOptions())) {
-        ProcessManager::GetInstance().Killpg(record->processId);
+        ProcessManager::GetInstance().KillSessionProcess(record->processId, record->commandPid);
         EventDispatcher::GetInstance().UnregisterSubscriber(
             record->sessionId, subscriptionId, callerPid, callerUid);
         RemoveSessionRecord(record->sessionId);
@@ -1927,7 +2012,7 @@ int32_t CliToolManagerService::SetupCmdSession(const ExecToolParam &toolParam, c
     }
 
     if (!RegisterSessionWithMonitors(record, toolParam.options)) {
-        ProcessManager::GetInstance().Killpg(record->processId);
+        ProcessManager::GetInstance().KillSessionProcess(record->processId, record->commandPid);
         EventDispatcher::GetInstance().UnregisterSubscriber(
             record->sessionId, context.subscriptionId, context.callerPid, context.callerUid);
         RemoveSessionRecord(record->sessionId);
@@ -2113,7 +2198,7 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
         std::lock_guard<ffrt::mutex> guard(observerMutex_);
         bundleObservers_.erase(bundleName);
     }
-    std::vector<pid_t> activePids;
+    std::vector<std::pair<pid_t, pid_t>> activeTargets;
     std::vector<std::string> removedSessionIds;
     std::vector<std::string> detachTaskIds;
     std::vector<int64_t> detachAttributionIds;
@@ -2140,7 +2225,7 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
             }
 
             if (sessionRecord->processId > 0 && !sessionRecord->HasProcessExited()) {
-                activePids.emplace_back(sessionRecord->processId);
+                activeTargets.emplace_back(sessionRecord->processId, sessionRecord->commandPid);
             }
             // ATTACHED collected here; PENDING relayed to the attach write-back (same contract as OnStop).
             CollectDetachRequest(*sessionRecord, detachTaskIds, detachAttributionIds, detachUids);
@@ -2153,8 +2238,8 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
         EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
     }
 
-    for (pid_t pid : activePids) {
-        ProcessManager::GetInstance().Killpg(pid);
+    for (const auto &[processId, commandPid] : activeTargets) {
+        ProcessManager::GetInstance().KillSessionProcess(processId, commandPid);
     }
 
     PostDetachRequests(detachTaskIds, detachAttributionIds, detachUids);
@@ -2271,7 +2356,7 @@ int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
         return ERR_OK;
     }
 
-    if (!ProcessManager::GetInstance().Killpg(record->processId)) {
+    if (!ProcessManager::GetInstance().KillSessionProcess(record->processId, record->commandPid)) {
         return ERR_NOT_KILL;
     }
     record->SetState(SessionState::CANCELLING);

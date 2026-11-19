@@ -276,6 +276,19 @@ private:
     void RemoveSessionRecord(const std::string &sessionId);
 
     void AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record);
+    // Async continuation of AttachTaskAttribution on an ffrt worker: polls ProcScanner until the
+    // sandboxed command pid shows up (or the window lapses), stores it on the record, then
+    // registers the resolved target. Aborts without registering when the teardown consumed the
+    // PENDING state while polling (nothing was registered, so nothing needs compensation).
+    void ResolveCommandAndAttach(const std::shared_ptr<SessionRecord> &record, const std::string &taskId,
+        pid_t anchor, int32_t callerUid);
+    // Discovery-poll guard: true only while the record is still the live table entry and its
+    // attribution is still PENDING. Races starting after a true verdict are arbitrated by
+    // WriteBackAttachResult on the attach side.
+    bool IsAttributionPending(const std::shared_ptr<SessionRecord> &record);
+    // Test seam only: command-process discovery tuning. Production keeps the defaults.
+    static inline std::atomic<int32_t> commandDiscoveryPollMs_ { 50 };
+    static inline std::atomic<int32_t> commandDiscoveryTimeoutMs_ { 2000 };
     void PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId, int32_t callerUid);
     // Caller must hold sessionsMutex_. Consumes an ATTACHED attribution into the detach triple
     // (returns true) or relays a PENDING one to the write-back (CONSUMED, nothing to detach now).
