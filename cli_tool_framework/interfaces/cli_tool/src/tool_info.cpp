@@ -148,7 +148,8 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
            parcel.WriteString(subcommandsJson) &&
            parcel.WriteBool(isLockScreenExecutionAllowed) &&
            parcel.WriteString(visibility) &&
-           parcel.WriteStringVector(supportedDevices);
+           parcel.WriteStringVector(supportedDevices) &&
+           parcel.WriteBool(isLongRunning);
 }
 
 ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
@@ -172,7 +173,8 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         !parcel.ReadString(subcommandsJson) ||
         !parcel.ReadBool(tool->isLockScreenExecutionAllowed) ||
         !parcel.ReadString(tool->visibility) ||
-        !parcel.ReadStringVector(&tool->supportedDevices)) {
+        !parcel.ReadStringVector(&tool->supportedDevices) ||
+        !parcel.ReadBool(tool->isLongRunning)) {
         delete tool;
         return nullptr;
     }
@@ -421,6 +423,29 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         tool.isLockScreenExecutionAllowed = json["isLockScreenExecutionAllowed"];
     }
 
+    // isLongRunning is optional; when absent it stays false (short-running by default)
+    if (json.contains("isLongRunning")) {
+        if (!json["isLongRunning"].is_boolean()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: isLongRunning is not a boolean");
+            return false;
+        }
+        tool.isLongRunning = json["isLongRunning"];
+    }
+
+    // Effective-value fallback for subcommands: a subcommand without its own isLongRunning
+    // declaration inherits the tool-level declaration, while an explicit subcommand-level
+    // declaration (including false) keeps its own value. Computed once here at config load
+    // time so serialization and NAPI exposure only read the effective value.
+    if (tool.hasSubCommand && json.contains("subcommands")) {
+        const nlohmann::json &subcommandsJson = json["subcommands"];
+        for (auto &entry : tool.subcommands) {
+            if (!subcommandsJson.contains(entry.first) ||
+                !subcommandsJson[entry.first].contains("isLongRunning")) {
+                entry.second.isLongRunning = tool.isLongRunning;
+            }
+        }
+    }
+
     // visibility is optional; parsing (exact value-domain validation with conservative
     // fallback per R-7) is extracted into ParseVisibility to keep the nesting depth of
     // this function within the code style limit.
@@ -479,6 +504,7 @@ nlohmann::json ToolInfo::ParseToJson() const
     j["isLockScreenExecutionAllowed"] = isLockScreenExecutionAllowed;
     j["visibility"] = visibility;
     j["supportedDevices"] = supportedDevices;
+    j["isLongRunning"] = isLongRunning;
 
     return j;
 }

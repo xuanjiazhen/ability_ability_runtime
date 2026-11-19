@@ -46,6 +46,10 @@ bool SubCommandInfo::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write eventSchemas");
         return false;
     }
+    if (!parcel.WriteBool(isLongRunning)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write isLongRunning");
+        return false;
+    }
     return true;
 }
 
@@ -84,6 +88,11 @@ SubCommandInfo *SubCommandInfo::Unmarshalling(Parcel &parcel)
     }
     if (!parcel.ReadString(subCmd->eventSchemas)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read eventSchemas");
+        delete subCmd;
+        return nullptr;
+    }
+    if (!parcel.ReadBool(subCmd->isLongRunning)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read isLongRunning");
         delete subCmd;
         return nullptr;
     }
@@ -162,6 +171,17 @@ bool SubCommandInfo::ParseFromJson(const nlohmann::json &json, SubCommandInfo &s
         subCmd.eventSchemas = json["eventSchemas"].dump();
     }
 
+    // isLongRunning is optional; when absent it stays false (short-running by default).
+    // The tool-level fallback is applied by ToolInfo::ParseFromJson after all subcommands
+    // are parsed.
+    if (json.contains("isLongRunning")) {
+        if (!json["isLongRunning"].is_boolean()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: isLongRunning is not a boolean");
+            return false;
+        }
+        subCmd.isLongRunning = json["isLongRunning"];
+    }
+
     return true;
 }
 
@@ -196,6 +216,7 @@ nlohmann::json SubCommandInfo::ParseToJson() const
             json["eventSchemas"] = eventSchemas;
         }
     }
+    json["isLongRunning"] = isLongRunning;
 
     return json;
 }

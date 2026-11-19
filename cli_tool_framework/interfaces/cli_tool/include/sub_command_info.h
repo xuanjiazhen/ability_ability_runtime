@@ -36,6 +36,10 @@ public:
     std::string outputSchema;   // JSON string
     std::vector<std::string> eventTypes;
     std::string eventSchemas;   // JSON string
+    // Whether this subcommand is long-running. Holds the effective value: subcommand-level
+    // declaration takes precedence, falling back to the tool-level declaration when absent.
+    // Declaration only: does not change the timeout behavior of execTool.
+    bool isLongRunning = false;
 
     SubCommandInfo() = default;
     ~SubCommandInfo() = default;

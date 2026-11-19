@@ -19,9 +19,11 @@ public:
     static int32_t getToolByNameResult;
     static bool toolHasSubCommand;
     static bool toolIsLockScreenExecEnabled;
+    static bool toolIsLongRunning;
     static std::string subCommandName;
     static std::vector<std::string> toolPermissions;
     static std::vector<std::string> subCommandPermissions;
+    static bool subCommandIsLongRunning;
     // Query-path fixtures (REQ 20260812019200): defaults keep the historical behavior
     // (GetAllTools -> empty + ERR_OK; GetToolByName fills visibility="private").
     static int32_t getAllToolsResult;

@@ -731,6 +731,11 @@ napi_value CreateJsSubCommandInfo(napi_env env, const SubCommandInfo &subcmd)
     napi_value jsEventSchemas = ParseJsonStringToJsObject(env, subcmd.eventSchemas);
     napi_set_named_property(env, jsObj, "eventSchemas", jsEventSchemas);
 
+    // Set isLongRunning (effective value: subcommand-level declaration > tool-level
+    // declaration > false; computed at config load time in the model layer).
+    napi_value jsIsLongRunning = AppExecFwk::WrapBoolToJS(env, subcmd.isLongRunning);
+    napi_set_named_property(env, jsObj, "isLongRunning", jsIsLongRunning);
+
     return jsObj;
 }
 
@@ -872,6 +877,11 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool)
         napi_set_element(env, jsSupportedDevices, i, jsDevice);
     }
     napi_set_named_property(env, jsObj, "supportedDevices", jsSupportedDevices);
+
+    // Set isLongRunning (tool-level declaration value; effective value of a subcommand is
+    // exposed on the subcommand object). Declaration only: does not change execTool timeout.
+    napi_value jsIsLongRunning = AppExecFwk::WrapBoolToJS(env, tool.isLongRunning);
+    napi_set_named_property(env, jsObj, "isLongRunning", jsIsLongRunning);
 
     return jsObj;
 }

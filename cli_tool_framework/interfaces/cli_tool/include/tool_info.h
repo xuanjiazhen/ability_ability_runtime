@@ -81,6 +81,10 @@ public:
     // letters, digits, underscores and hyphens with a length of less than 20 characters
     // (validated during parsing). Empty array means no device restriction.
     std::vector<std::string> supportedDevices;
+    // Whether the tool is a long-running tool. Tool-level declaration; the effective value
+    // of a subcommand is the subcommand-level declaration falling back to this field.
+    // Declaration only: does not change the timeout behavior of execTool.
+    bool isLongRunning = false;
 
     ToolInfo() = default;
     ~ToolInfo() = default;
