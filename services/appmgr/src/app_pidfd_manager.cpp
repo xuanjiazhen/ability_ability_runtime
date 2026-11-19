@@ -35,7 +35,6 @@
 
 namespace {
 const char *TASK_ON_CHILD_PROCESS_EXITED = "OnChildProcessExitedTask";
-constexpr const char *TASK_ON_LAUNCH_SERVICE_EXITED = "OnLaunchServiceProcessExitedTask";
 } // namespace
 
 namespace OHOS {
@@ -47,10 +46,7 @@ AppPidFdManager &AppPidFdManager::GetInstance()
     return manager;
 }
 
-AppPidFdManager::AppPidFdManager()
-    : launchServiceTaskHandler_(AAFwk::TaskHandlerWrap::CreateQueueHandler(
-        "launch_service_pidfd_task_queue", AAFwk::TaskQoS::USER_INTERACTIVE))
-{}
+AppPidFdManager::AppPidFdManager() = default;
 
 AppPidFdManager::~AppPidFdManager()
 {
@@ -210,16 +206,22 @@ void AppPidFdManager::OnPidfdFired(pid_t pid, PidFdType type)
 void AppPidFdManager::DispatchCleanup(pid_t pid, PidFdType type)
 {
     auto inner = appMgrServiceInner_.lock();
-    auto handler = type == PidFdType::LAUNCH_SERVICE ? launchServiceTaskHandler_ : taskHandler_.lock();
-    if (!inner || !handler) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null inner or handler, pid:%{public}d", pid);
+    if (!inner) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null inner, pid:%{public}d", pid);
+        return;
+    }
+    if (type == PidFdType::LAUNCH_SERVICE) {
+        inner->PostLaunchServiceProcessExited(pid);
+        return;
+    }
+    auto handler = taskHandler_.lock();
+    if (!handler) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null handler, pid:%{public}d", pid);
         return;
     }
     auto task = [inner, pid, type]() {
         if (type == PidFdType::RENDER) {
             inner->OnRenderProcessExited(pid);
-        } else if (type == PidFdType::LAUNCH_SERVICE) {
-            inner->OnLaunchServiceProcessExited(pid);
         } else {
 #ifdef SUPPORT_CHILD_PROCESS
             inner->OnChildProcessExited(pid);
@@ -227,8 +229,7 @@ void AppPidFdManager::DispatchCleanup(pid_t pid, PidFdType type)
         }
     };
     handler->SubmitTask(task, AAFwk::TaskAttribute{
-        .taskName_ = type == PidFdType::LAUNCH_SERVICE ? TASK_ON_LAUNCH_SERVICE_EXITED :
-            TASK_ON_CHILD_PROCESS_EXITED,
+        .taskName_ = TASK_ON_CHILD_PROCESS_EXITED,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
 }

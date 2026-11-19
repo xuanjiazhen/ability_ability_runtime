@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <cerrno>
 #include <fcntl.h>
+#include <future>
 #include <mutex>
 #include <queue>
 #include <securec.h>
@@ -79,6 +80,7 @@
 #include "killing_process_manager.h"
 #include "last_exit_detail_info.h"
 #include "launch_service_manager.h"
+#include "launch_service_operation_callback.h"
 #include "os_account_manager.h"
 #include "app_native_spawn_manager.h"
 #include "app_pidfd_manager.h"
@@ -4995,6 +4997,11 @@ void AppMgrServiceInner::UpdateExtensionState(const sptr<IRemoteObject> &token, 
 
 void AppMgrServiceInner::OnStop()
 {
+    std::shared_ptr<AAFwk::TaskHandlerWrap> launchHandler;
+    {
+        std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
+        launchHandler.swap(launchServiceTaskHandler_);
+    }
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager null");
         return;
@@ -12875,6 +12882,102 @@ int32_t AppMgrServiceInner::ExitMasterProcessRole()
     return ERR_OK;
 }
 
+bool AppMgrServiceInner::InitLaunchServiceTaskHandler()
+{
+    std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
+    if (launchServiceTaskHandler_ == nullptr) {
+        launchServiceTaskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler(
+            "app_mgr_launch_service_queue", 1, AAFwk::TaskQoS::USER_INTERACTIVE);
+    }
+    return launchServiceTaskHandler_ != nullptr;
+}
+
+int32_t AppMgrServiceInner::RunLaunchServiceTask(
+    const std::function<int32_t(const std::shared_ptr<AppMgrServiceInner> &)> &task)
+{
+    std::shared_ptr<AAFwk::TaskHandlerWrap> handler;
+    {
+        std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
+        handler = launchServiceTaskHandler_;
+    }
+    auto inner = shared_from_this();
+    if (handler == nullptr) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    constexpr int32_t launchServiceTaskTimeoutMs = 5000;
+    const auto deadline = std::chrono::steady_clock::now() +
+        std::chrono::milliseconds(launchServiceTaskTimeoutMs);
+    auto promise = std::make_shared<std::promise<int32_t>>();
+    auto future = promise->get_future();
+    auto handle = handler->SubmitTask([inner, task, promise, deadline]() {
+        if (std::chrono::steady_clock::now() >= deadline) {
+            promise->set_value(AAFwk::ERR_LAUNCH_SERVICE_TIMEOUT);
+            return;
+        }
+        promise->set_value(task(inner));
+    });
+    if (!handle) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    if (future.wait_until(deadline) != std::future_status::ready) {
+        handle.Cancel();
+        TAG_LOGW(AAFwkTag::APPMGR, "launch service task timeout");
+        return AAFwk::ERR_LAUNCH_SERVICE_TIMEOUT;
+    }
+    return future.get();
+}
+
+int32_t AppMgrServiceInner::PostResidentStartupCompleted()
+{
+    std::shared_ptr<AAFwk::TaskHandlerWrap> launchHandler;
+    {
+        std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
+        launchHandler = launchServiceTaskHandler_;
+    }
+    if (launchHandler == nullptr || taskHandler_ == nullptr) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    auto task = [inner = shared_from_this(), launchHandler]() {
+        auto handle = launchHandler->SubmitTask([inner]() { inner->StartLaunchServicesAfterBoot(); });
+        if (!handle) {
+            TAG_LOGE(AAFwkTag::APPMGR, "submit boot launch service task failed");
+        }
+    };
+    auto handle = taskHandler_->SubmitTask(task,
+        AAFwk::TaskAttribute{
+            .taskName_ = "StartLaunchServicesAfterResident", .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE});
+    return handle ? ERR_OK : AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+}
+
+bool AppMgrServiceInner::PostLaunchServiceTask(
+    const std::function<void()> &task, const std::string &name, int64_t delayMillis)
+{
+    auto handler = GetLaunchServiceTaskHandler();
+    if (handler == nullptr) {
+        return false;
+    }
+    auto handle = handler->SubmitTask(task, name, delayMillis, false);
+    return static_cast<bool>(handle);
+}
+
+std::shared_ptr<AAFwk::TaskHandlerWrap> AppMgrServiceInner::GetLaunchServiceTaskHandler()
+{
+    std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
+    return launchServiceTaskHandler_;
+}
+
+void AppMgrServiceInner::PostLaunchServiceProcessExited(pid_t pid)
+{
+    auto task = [weak = weak_from_this(), pid]() {
+        if (auto inner = weak.lock()) {
+            inner->OnLaunchServiceProcessExited(pid);
+        }
+    };
+    if (!PostLaunchServiceTask(task, "OnLaunchServiceProcessExitedTask")) {
+        TAG_LOGE(AAFwkTag::APPMGR, "post process exit failed, pid:%{public}d", pid);
+    }
+}
+
 void AppMgrServiceInner::OnLaunchServiceProcessExited(pid_t pid)
 {
     GetLaunchServiceManager()->HandleLaunchServiceProcessDied(pid);
@@ -13464,41 +13567,77 @@ std::shared_ptr<LaunchServiceManager> AppMgrServiceInner::GetLaunchServiceManage
 
 int32_t AppMgrServiceInner::RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
 {
-    return GetLaunchServiceManager()->RegisterDaemon(descriptor, callerUid);
+    return RunLaunchServiceTask([descriptor, callerUid](const auto &inner) {
+        return inner->GetLaunchServiceManager()->RegisterDaemon(descriptor, callerUid);
+    });
 }
 
 int32_t AppMgrServiceInner::UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
 {
-    return GetLaunchServiceManager()->UnregisterDaemon(descriptor, callerUid);
+    return RunLaunchServiceTask([descriptor, callerUid](const auto &inner) {
+        return inner->GetLaunchServiceManager()->UnregisterDaemon(descriptor, callerUid);
+    });
 }
 
 int32_t AppMgrServiceInner::StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
 {
-    return GetLaunchServiceManager()->StartDaemon(descriptor, callerUid);
+    return RunLaunchServiceTask([descriptor, callerUid](const auto &inner) {
+        return inner->GetLaunchServiceManager()->StartDaemon(descriptor, callerUid);
+    });
 }
 
 int32_t AppMgrServiceInner::StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t callerUid)
 {
-    return GetLaunchServiceManager()->StopDaemon(descriptor, callerUid);
+    return RunLaunchServiceTask([descriptor, callerUid](const auto &inner) {
+        return inner->GetLaunchServiceManager()->StopDaemon(descriptor, callerUid);
+    });
 }
 
 int32_t AppMgrServiceInner::GetLaunchServiceInformation(const AbilityRuntime::LaunchServiceDescriptor &descriptor,
     AbilityRuntime::LaunchServiceInformation &information, int32_t callerUid)
 {
-    return GetLaunchServiceManager()->GetLaunchServiceInformation(descriptor, information, callerUid);
+    auto result = std::make_shared<AbilityRuntime::LaunchServiceInformation>();
+    auto ret = RunLaunchServiceTask([descriptor, callerUid, result](const auto &inner) {
+        return inner->GetLaunchServiceManager()->GetLaunchServiceInformation(descriptor, *result, callerUid);
+    });
+    if (ret == ERR_OK) {
+        information = std::move(*result);
+    }
+    return ret;
 }
 
 int32_t AppMgrServiceInner::GetAllRegisteredInformation(
     std::vector<AbilityRuntime::LaunchServiceInformation> &informations, int32_t userId, int32_t callerUserId)
 {
-    return GetLaunchServiceManager()->GetAllRegisteredInformation(informations, userId, callerUserId);
+    auto result = std::make_shared<std::vector<AbilityRuntime::LaunchServiceInformation>>();
+    auto ret = RunLaunchServiceTask([userId, callerUserId, result](const auto &inner) {
+        return inner->GetLaunchServiceManager()->GetAllRegisteredInformation(*result, userId, callerUserId);
+    });
+    if (ret == ERR_OK) {
+        informations = std::move(*result);
+    }
+    return ret;
 }
 
-void AppMgrServiceInner::SetLaunchServicesEnabled(const std::string &bundleName, int32_t userId, int32_t appIndex,
+int32_t AppMgrServiceInner::SetLaunchServicesEnabled(const std::string &bundleName, int32_t userId, int32_t appIndex,
     const std::vector<uint8_t> &token, bool enable, int32_t callerUid, std::function<void(int32_t)> completion)
 {
-    GetLaunchServiceManager()->SetLaunchServicesEnabled(
-        bundleName, userId, appIndex, token, enable, callerUid, std::move(completion));
+    auto inner = shared_from_this();
+    return PostLaunchServiceTask([inner, bundleName, userId, appIndex, token, enable, callerUid, completion]() {
+        inner->GetLaunchServiceManager()->SetLaunchServicesEnabled(
+            bundleName, userId, appIndex, token, enable, callerUid, completion);
+    }) ? ERR_OK : AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+}
+
+int32_t AppMgrServiceInner::SetLaunchServicesEnabled(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    const std::vector<uint8_t> &token, bool enable, int32_t callerUid,
+    const sptr<AbilityRuntime::ILaunchServiceOperationCallback> &callback)
+{
+    if (callback == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return SetLaunchServicesEnabled(bundleName, userId, appIndex, token, enable, callerUid,
+        [callback](int32_t result) { callback->OnResult(result); });
 }
 
 void AppMgrServiceInner::StartLaunchServicesAfterBoot()
@@ -13511,13 +13650,17 @@ void AppMgrServiceInner::StartLaunchServicesAfterBoot()
 int32_t AppMgrServiceInner::RegisterLaunchServiceObserver(
     const sptr<AbilityRuntime::ILaunchServiceObserver> &observer, int32_t callerUid)
 {
-    return GetLaunchServiceManager()->RegisterLaunchServiceObserver(observer, callerUid);
+    return RunLaunchServiceTask([observer, callerUid](const auto &inner) {
+        return inner->GetLaunchServiceManager()->RegisterLaunchServiceObserver(observer, callerUid);
+    });
 }
 
 int32_t AppMgrServiceInner::UnregisterLaunchServiceObserver(
     const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
 {
-    return GetLaunchServiceManager()->UnregisterLaunchServiceObserver(observer);
+    return RunLaunchServiceTask([observer](const auto &inner) {
+        return inner->GetLaunchServiceManager()->UnregisterLaunchServiceObserver(observer);
+    });
 }
 } // namespace AppExecFwk
 }  // namespace OHOS
