@@ -13,7 +13,7 @@
 |-------------|-------------------|----------------|
 | 未找到 `.codespec/registry.md` | ohos-validate | 当前 change 不具备归档条件；不在验证缺失时伪造 registry/done。 |
 | `manifest.status=approved`，要求 done/archived | ohos-validate | 保持 `approved`，不声称完成或归档。 |
-| TASK-1/AC-5.1～AC-5.10 为 Blocked，Actual Result 非 PASS | ohos-plan | 全量构建已 PASS；实现前 Red 和 ARM 运行断言未执行。保持 Blocked，待设备恢复后执行并回填。 |
+| TASK-1/AC-5.1～AC-5.6 为 Blocked，Actual Result 非 PASS | ohos-plan | 全量构建已 PASS；实现前 Red 和 ARM 运行断言未执行。保持 Blocked，待设备恢复后执行并回填。 |
 | 三份 Review Evidence 非 Approved | ohos-review | 静态实现映射和质量维度为 PASS，但 Spec Compliance/Code Quality/Verification 均保留 Blocked；不以静态结论替代运行门禁。 |
 
 ## 已消除的附带问题

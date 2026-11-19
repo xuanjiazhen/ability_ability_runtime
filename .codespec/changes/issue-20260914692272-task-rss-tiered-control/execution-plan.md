@@ -66,16 +66,12 @@
 
 | AC | 来源 | Task | 计划代码范围 | 实际 Code Ref | Commit | Review Evidence | 验证状态 |
 |----|------|------|--------------|-----------------|--------|-----------------|----------|
-| AC-5.1 | spec.md US-1 / R-1 | TASK-1 | process_schedule.*、attribution_record.*、task_manager_service.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.2 | spec.md US-1 / R-1 | TASK-1 | process_schedule.*、attribution_record.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.3 | spec.md US-1 / R-2 | TASK-1 | process_schedule.*、resource_control_proxy.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.4 | spec.md US-2 / R-3 | TASK-1 | process_schedule.*、resource_control_proxy.*、task_manager_service.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.5 | spec.md US-2 / R-4 | TASK-1 | resource_control_proxy.*、process_schedule_test/* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.6 | spec.md US-2 / R-5 | TASK-1 | resource_control_proxy.*、process_schedule_test/* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.7 | spec.md US-2 / R-6 | TASK-1 | process_schedule.*、resource_control_proxy.*、task_manager_service.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.8 | spec.md US-1 / R-7 | TASK-1 | resource_control_proxy.*、resource_control_proxy_test.cpp | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.9 | spec.md US-3 / R-8 | TASK-1 | process_schedule.*、task_manager_service_test.cpp、resource_control_proxy.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
-| AC-5.10 | spec.md US-1 / R-9 | TASK-1 | attribution_record.*、task_manager_service.*、process_schedule_test/* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.1 | spec.md US-1 / R-1 | TASK-1 | process_schedule.*、attribution_record.*、task_manager_service.*、resource_control_proxy.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.2 | spec.md US-2 / R-1 | TASK-1 | process_schedule.*、resource_control_proxy.*、task_manager_service.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.3 | spec.md US-2 / R-2 | TASK-1 | resource_control_proxy.*、process_schedule.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.4 | spec.md US-2 / R-4 | TASK-1 | process_schedule.*、resource_control_proxy.*、task_manager_service.* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.5 | spec.md US-1 / R-5 | TASK-1 | resource_control_proxy.*、resource_control_proxy_test.cpp | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
+| AC-5.6 | spec.md US-1 / R-6 | TASK-1 | attribution_record.*、task_manager_service.*、process_schedule_test/* | 已实现（当前工作区） | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `evidence/reviews/`（已生成） | Blocked（运行验证未闭合） |
 
 ## 首批实现边界
 
@@ -88,7 +84,7 @@
 | 阶段 | 目标 | 关键 Task | 结束门槛 | 最小验证 |
 |------|------|-----------|----------|----------|
 | Phase-1 | 数据模型与 Red | TASK-1 | 新增用例能证明当前缺失字段、过滤、动作和窗口，既有用例基线可运行 | `process_schedule_test` 聚焦 Red |
-| Phase-2 | 单队列完整实现 | TASK-1 | AC-5.1～AC-5.10 用例转 Green，无真实 RSS 调用 | `ability_runtime_test` 全量编译及聚焦用例 |
+| Phase-2 | 单队列完整实现 | TASK-1 | AC-5.1～AC-5.6 用例转 Green，无真实 RSS 调用 | `ability_runtime_test` 全量编译及聚焦用例 |
 | Phase-3 | 回归与代码检视 | TASK-1 | 相关回归无新增失败，spec/plan 追溯和代码检视证据齐全 | 最终构建、静态检查和 review 记录 |
 
 ## Task 粒度原则
@@ -112,7 +108,7 @@
 
 | Task ID | 目标 | 文件范围 | AC 映射 | 前置依赖 | 完成判据 | 验证命令 | 状态 |
 |---------|------|----------|---------|----------|----------|----------|------|
-| TASK-1 | 完成 uid 缓存、受管集合/主类型、单串行队列、尾随合并与空代理、死亡优先和全部测试 | Files 表列出的生产与测试文件 | AC-5.1～AC-5.10 | proposal/spec/design 均 Approved | AC 用例转 Green；目标构建通过；代码范围无偏差；检视证据齐全 | `./build.sh --product-name rk3568 --ccache --build-target ability_runtime_test --no-prebuilt-sdk --gn-args use_thin_lto=false`（工作目录 `/code`） | Blocked（运行验证未闭合） |
+| TASK-1 | 完成 uid 缓存、受管集合/主类型、单串行队列、尾随合并与空代理、死亡优先和全部测试 | Files 表列出的生产与测试文件 | AC-5.1～AC-5.6 | proposal/spec/design 均 Approved | AC 用例转 Green；目标构建通过；代码范围无偏差；检视证据齐全 | `./build.sh --product-name rk3568 --ccache --build-target ability_runtime_test --no-prebuilt-sdk --gn-args use_thin_lto=false`（工作目录 `/code`） | Blocked（运行验证未闭合） |
 
 ## Task 详情
 
@@ -120,8 +116,8 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | 在既有 appmgr 内实现受管工具过滤、uid 缓存与重试、完整事件载荷、单串行队列、固定 1000ms 尾随合并、死亡优先和空实现日志，AC-5.1～AC-5.10 全部可验证 |
-| AC 映射 | AC-5.1、AC-5.2、AC-5.3、AC-5.4、AC-5.5、AC-5.6、AC-5.7、AC-5.8、AC-5.9、AC-5.10 |
+| 任务目标 | 在既有 appmgr 内实现受管工具过滤、uid 缓存与重试、完整事件载荷、单串行队列、固定 1000ms 尾随合并、死亡优先和空实现日志，AC-5.1～AC-5.6 全部可验证 |
+| AC 映射 | AC-5.1、AC-5.2、AC-5.3、AC-5.4、AC-5.5、AC-5.6 |
 | 前置依赖 | Approved proposal.md、spec.md、design.md；已合入依赖需求 20260914692273 |
 | 非目标 | 真实 RSS 调用、性能功耗、资源配额、动态策略、独立 NotifyTaskEnd、新类型实际纳管通道、Public/System API |
 | 完成判据 | 全部 AC 测试通过，目标构建无编译错误，无计划外文件，spec 符合性/代码质量/验证审查证据完整 |
@@ -194,12 +190,12 @@
 
 **Spec References**
 
-- AC / Rules: `AC-5.1`、`AC-5.2`、`AC-5.3`、`AC-5.4`、`AC-5.5`、`AC-5.6`、`AC-5.7`、`AC-5.8`、`AC-5.9`、`AC-5.10`；`R-1`、`R-2`、`R-3`、`R-4`、`R-5`、`R-6`、`R-7`、`R-8`、`R-9`
+- AC / Rules: `AC-5.1`、`AC-5.2`、`AC-5.3`、`AC-5.4`、`AC-5.5`、`AC-5.6`；`R-1`、`R-2`、`R-3`、`R-4`、`R-5`、`R-6`
 - Anchors: `spec.md#用户故事`、`spec.md#验收追溯`、`spec.md#规则定义`、`spec.md#验证映射`
 
 **Design References**
 
-- IDs / Anchors: `ADR-1`、`ADR-2`、`ADR-3`、`ADR-4`、`ADR-5`、`ADR-6`、`ADR-7`、`ADR-8`、`ADR-9`；`STATE-1`、`STATE-2`、`STATE-3`、`STATE-4`；`INV-1`、`INV-2`、`INV-3`、`INV-4`、`INV-5`、`INV-6`、`INV-7`、`INV-8`
+- IDs / Anchors: `ADR-1`、`ADR-1`、`ADR-2`、`ADR-4`、`ADR-5`、`ADR-6`、`ADR-7`、`ADR-8`、`ADR-9`；`STATE-1`、`STATE-2`、`STATE-3`、`STATE-4`；`INV-1`、`INV-2`、`INV-3`、`INV-4`、`INV-5`、`INV-6`、`INV-7`、`INV-8`
 - Anchors: `design.md#关键设计决策`、`design.md#状态归属与不变量`、`design.md#算法与状态机`、`design.md#线程与并发模型`
 
 **Required Rules**
@@ -218,7 +214,7 @@
 
 - [ ] 运行现有 `process_schedule_test` 与 `task_manager_service_test` 基线，记录当前通过项和不可用于 Red 的兼容项。（ARM 无 qemu、hdc `E002110`，未执行）
 - [x] 按 VM-1～VM-10 写失败测试：受管字段/过滤/主类型、动作、单队列顺序、固定窗口、陈旧回调、死亡优先、uid 失败恢复和空代理。
-- [ ] 运行聚焦测试，确认缺失能力产生具体 Red；AC-5.9 仅保留兼容性 N/A 说明，不制造假 Red。（实现前 Red 未执行，未以此作为完成证据）
+- [ ] 运行聚焦测试，确认缺失能力产生具体 Red；AC-5.4 仅保留兼容性 N/A 说明，不制造假 Red。（实现前 Red 未执行，未以此作为完成证据）
 - [x] 实现 AttributionRecord uid 与 VIRTUAL_SCREEN_ABILITY、TaskManagerService 查询/重试/原因/死亡优先。
 - [x] 实现 ProcessSchedule 受管集合、max/主类型、单队列候选事件与 provider。
 - [x] 实现 ResourceControlProxy 尾随窗口、epoch、独立 EmitEvent 和空实现日志。
@@ -238,7 +234,7 @@
 
 | Check | Required Evidence |
 |-------|-------------------|
-| AC closed | AC-5.1～AC-5.10 每项均有对应正向/异常/边界用例及 fresh 输出；AC-5.9 的兼容性 N/A 有既有用例支持 |
+| AC closed | AC-5.1～AC-5.6 每项均有对应正向/异常/边界用例及 fresh 输出；AC-5.4 的兼容性 N/A 有既有用例支持 |
 | Scope respected | `git diff --name-only` 只包含 Files 表和本计划允许的文档，无生产越界、无真实 RSS、无生成物 |
 | State lifecycle complete | STATE-1～4 创建、读取、更新、清理、恢复和 Reset 均有测试；epoch 不回退、旧生命周期不复活 |
 | Interface contract matched | Produces/Consumes 与实际签名、字段、枚举和 EventProvider 一致；无独立 NotifyTaskEnd、无递归 Apply/Restore |
@@ -248,9 +244,9 @@
 
 | 证据类型 | 命令/路径 | Expected Result | Actual Result |
 |----------|-----------|-----------------|---------------|
-| TDD Red | `process_schedule_test` 聚焦新增用例 | 当前缺失能力产生具体字段/过滤/动作/窗口/uid 失败断言失败；AC-5.9 为 N/A 说明 | BLOCKED（未执行实现前 Red，不以此为完成证据） |
+| TDD Red | `process_schedule_test` 聚焦新增用例 | 当前缺失能力产生具体字段/过滤/动作/窗口/uid 失败断言失败；AC-5.4 为 N/A 说明 | BLOCKED（未执行实现前 Red，不以此为完成证据） |
 | 构建 | `/code` 下 `./build.sh --product-name rk3568 --ccache --build-target ability_runtime_test --no-prebuilt-sdk --gn-args use_thin_lto=false` | 全量目标及新增代理/测试编译、链接成功，无新增编译错误 | PASS：`rk3568 build success`，4079 steps，退出码 0；`ability_runtime_build3.log` |
-| 聚焦与回归 | `process_schedule_test`、`task_manager_service_test` 相关用例 | AC-5.1～AC-5.10 全 Green，既有相关回归无新增失败 | BLOCKED（最终构建 PASS；ARM 无 qemu，hdc `E002110`，未执行运行断言） |
+| 聚焦与回归 | `process_schedule_test`、`task_manager_service_test` 相关用例 | AC-5.1～AC-5.6 全 Green，既有相关回归无新增失败 | BLOCKED（最终构建 PASS；ARM 无 qemu，hdc `E002110`，未执行运行断言） |
 | 静态检查 | `git diff --check`、SDD `validate . --level C` 与代码检视工具 | 无 whitespace 错误；spec→design/plan 依赖边通过；发现项有处置记录 | PASS：diff-check 通过；Level C `9 checks, 0 broken, 0 warn`；codecheck `PASS`；稳定性专项无未解决 Finding |
 
 **Handoff Summary**
@@ -261,7 +257,7 @@
 | 允许修改 | `services/appmgr/include/task_mgr/`、`services/appmgr/src/task_mgr/`、`services/appmgr/BUILD.gn`、`test/unittest/process_schedule_test/`、`test/unittest/task_manager_service_test/`、本 change 文档及本计划列出的直接聚合目标 BUILD.gn |
 | 允许新建 | `services/appmgr/include/task_mgr/resource_control_proxy.h`、`services/appmgr/src/task_mgr/resource_control_proxy.cpp`、`test/unittest/process_schedule_test/resource_control_proxy_test.cpp`、`evidence/reviews/` |
 | 只读参考 | `services/appdfr/src/appfreeze_util.cpp`、`services/common/*task_handler_wrap*`、`services/abilitymgr/src/ability_manager_service.cpp`、两个原需求目录、Approved 上游文档 |
-| Spec 引用 | AC-5.1～AC-5.10 / R-1～R-9 / `spec.md#规则定义`、`spec.md#验证映射` |
+| Spec 引用 | AC-5.1～AC-5.6 / R-1～R-6 / `spec.md#规则定义`、`spec.md#验证映射` |
 | Design 引用 | ADR-1～ADR-9 / STATE-1～STATE-4 / INV-1～INV-8 / `design.md#状态归属与不变量` |
 | 执行步骤 | 本 Task Card 的 Steps，先 Red 后实现再 Green 和审查 |
 | 验证命令 | `/code` 下 `./build.sh --product-name rk3568 --ccache --build-target ability_runtime_test --no-prebuilt-sdk --gn-args use_thin_lto=false` / 期望: PASS |
@@ -271,7 +267,7 @@
 
 | Reviewer | Input |
 |----------|-------|
-| Spec Compliance | AC-5.1～AC-5.10→TASK-1→实际代码→测试/证据；受管过滤、主类型、uid 异常、死亡优先和计划偏差 |
+| Spec Compliance | AC-5.1～AC-5.6→TASK-1→实际代码→测试/证据；受管过滤、主类型、uid 异常、死亡优先和计划偏差 |
 | Code Quality | 实际代码范围、单队列顺序、epoch/生命周期、锁边界、资源所有权、Base/Head SHA、静态与构建结果 |
 | Verification | TDD Red/Green、目标构建、聚焦与既有回归、Actual Result、未执行真机项目的明确说明 |
 

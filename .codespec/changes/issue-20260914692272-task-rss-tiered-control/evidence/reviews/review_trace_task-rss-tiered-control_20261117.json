@@ -9,7 +9,7 @@
     "status": "available",
     "revision": "b3910d099d653e97070519a0529af31b336e7bc21774a33bacbf65902a72564c",
     "references": [
-      ".codespec/changes/issue-20260914692272-task-rss-tiered-control/spec.md#AC-5.1-AC-5.10",
+      ".codespec/changes/issue-20260914692272-task-rss-tiered-control/spec.md#AC-5.1-AC-5.6",
       ".codespec/changes/issue-20260914692272-task-rss-tiered-control/design.md#INV-1-INV-8",
       "abilitykit_sdd/standards/"
     ]

@@ -1,11 +1,11 @@
 ---
-phase_status: approved
+phase_status: awaiting_approval
 approval:
-  status: approved
+  status: awaiting_approval
   approver: "yangzk"
-  evidence: "用户评审简化后的受管范围后回复『批准』（2026-11-16 会话记录，回应重新 Define 审批请求）"
-  approved_at: "2026-11-16"
-  baseline_digest: "a33ad0b7f792f737db1eb013b4edc8fcaa2d858decb1bbc27b8952bd1f3aaeaa"
+  evidence: "AC 合并与连续编号调整后的新基线，待重新批准 Define（2026-11-17 会话记录）"
+  approved_at: ""
+  baseline_digest: "e85f165002889962474594c5b095fee91c0bd95b11140956f425dfcbdaee5a52"
 target_release:
   id: OpenHarmony-7.1-Release
   status: proposed
@@ -28,7 +28,7 @@ target_release:
 | 目标发行版本 | OpenHarmony-7.1-Release |
 | 候选 Profile | none（ability_ability_runtime 未命中现有 arkweb/arkui/arkgraphic/arkdata profile） |
 | 优先级 | P1 |
-| Define 阶段状态 | Approved |
+| Define 阶段状态 | AwaitingApproval |
 
 ### 原始描述
 
@@ -61,12 +61,12 @@ target_release:
 | 基线日期 | 2026-11-16 |
 | Owner | yangzk |
 | 确认人 | yangzk |
-| 确认依据 | 用户评审简化后的受管范围后回复『批准』（2026-11-16 会话记录，回应重新 Define 审批请求） |
+| 确认依据 | AC 合并与连续编号调整后的新基线，待重新批准 Define（2026-11-17 会话记录） |
 | 复杂度 | 标准 |
 | Profile | none |
 | 目标发行版本 | OpenHarmony-7.1-Release（proposed） |
 | 版本状态 | proposed |
-| 基线结论 | 通过 |
+| 基线结论 | 待批准 |
 
 ### 问题、目标与成功指标
 
@@ -103,16 +103,12 @@ target_release:
 
 | AC编号 | 验收标准 | 类型 | 关联Story |
 |--------|----------|------|-----------|
-| AC-5.1 | WHEN 任一纳管进程发生优先级重算 THEN 系统按“事件上下文基线”采集完整快照；实际代理事件日志中的纳管 pid/uid、受管任务集合、各受管任务创建者 pid/uid、受管工具集合、变化前后 effectiveLevel、动作和触发原因均与本次任务事实一致，且不包含 ABILITY、A2A、INSIGHT 产生的管控事件 | 正常 | US-1 |
-| AC-5.2 | WHEN 同一进程被多个受管任务（可含不同创建者及 CLI/VIRTUAL_SCREEN_ABILITY 组合）纳管且叠加不管控任务 THEN 仅保留受管任务及各自工具集合并按最高档合并，VIRTUAL_SCREEN_ABILITY > CLI 仅用于同档主类型/策略选择；WHEN 最后一个受管任务移除或纳管进程死亡导致 END THEN 事件仍保留变化前完整受管上下文，ABILITY、A2A、INSIGHT 不影响该结果 | 边界 | US-1 |
-| AC-5.3 | WHEN 仅新增/移除受管任务或仅受管工具集合变化，且 effectiveLevel 不变且管控未进入开始/结束迁移 THEN 系统只更新完整快照和上下文日志，不产生代理事件；下一次实际 START/END 事件使用最新快照；WHEN 仅 ABILITY、A2A、INSIGHT 变化 THEN 同样不产生代理事件且不影响受管快照与已通知状态 | 边界 | US-1 |
-| AC-5.4 | WHEN 进程由未纳管变为纳管或 effectiveLevel 上升 THEN 立即输出包含最新状态的 START 事件；WHEN 纳管进程死亡 THEN 立即输出 END 事件，并使该 pid 尚未输出的合并事件失效 | 正常/异常 | US-2 |
-| AC-5.5 | WHEN effectiveLevel 下降，或主动注销、任务正常结束、任务超时、创建者死亡导致降档或最终结束 THEN 使用固定 1 秒合并窗口，不读取系统参数；窗口到期按最新状态重算并输出对应事件，降档记 START，最终结束记 END | 正常 | US-2 |
-| AC-5.6 | WHEN 合并窗口内又发生新建、升档、继续降档、任务结束或进程死亡 THEN 不输出基于旧档位的过期事件；最终事件序列只反映各触发点的有效事件及窗口到期时的最新状态，无变化时不额外输出事件 | 边界 | US-2 |
-| AC-5.7 | WHEN 任务结束、超时、创建者死亡或主动注销使最高档任务被移除但同一 pid 仍有其他任务受管 THEN 按进程最终管控状态记降档 START；WHEN 最后一个任务/归因被移除 THEN 记 END；WHEN 纳管进程死亡 THEN 该 pid 的全部归属一次性清理并记 END | 正常/异常 | US-2 |
-| AC-5.8 | WHEN ResourceControlProxy 收到符合上述规则的调用 THEN 本期空实现仅输出可核对日志，不发起真实冻结、调度分组、QoS、speed、生效查询、恢复或撤销重试调用 | 正常 | US-1 |
-| AC-5.9 | WHEN 进程未被任何任务纳管或既有任务/归因数量发生变化 THEN 本需求不向未纳管进程输出代理事件，不新增独立资源数量上限、超限拒绝或新错误码，且不改变既有前端任务与归因上限 | 边界 | US-3 |
-| AC-5.10 | WHEN 纳管登记或后续重算时按 pid 查询 uid 失败 THEN 仅输出告警并抑制字段不完整的代理事件，不拒绝既有纳管；WHEN 后续重试成功 THEN 按原始触发原因恢复完整事件；WHEN 任务结束或纳管进程死亡时 uid 仍持续获取失败 THEN 仅清理并告警，不伪造 START/END 且后续无该旧生命周期事件 | 异常 | US-1 |
+| AC-5.1 | WHEN 纳管进程发生新建归属、effectiveLevel 重算、唯一受管 Task 上下文变化、最后移除或死亡 THEN 实际代理事件仅包含当前唯一受管 Task 的 taskId、创建者 pid/uid、纳管 pid/uid、受管工具、变化前后 effectiveLevel、动作和触发原因；同一进程同一时刻仅允许一个受管 Task，同一 Task 对同一进程仅允许一次纳管，CLI 与 VIRTUAL_SCREEN_ABILITY 不叠加，ABILITY、A2A、INSIGHT 不产生代理事件；不变档上下文变化不增加事件，下一次事件使用最新唯一上下文 | 正常/边界 | US-1 |
+| AC-5.2 | WHEN 进程由未纳管变为纳管或 effectiveLevel 上升 THEN 立即输出包含最新状态的 START 事件；WHEN 纳管进程死亡 THEN 立即输出 END 事件，并使该 pid 尚未输出的合并事件失效 | 正常/异常 | US-2 |
+| AC-5.3 | WHEN effectiveLevel 下降，或主动注销、任务正常结束、任务超时、创建者死亡导致降档或最终结束 THEN 使用固定 1 秒合并窗口且不读取系统参数；窗口内再次变化时仅保留有效触发事件和到期时的最新唯一状态，无变化时不额外输出事件 | 正常/边界 | US-2 |
+| AC-5.4 | WHEN 最后一个受管 Task 或其唯一归因被移除 THEN 输出 END，最终 END 只结束当前生命周期，旧生命周期无后续 START/END；之后同一 pid 重新纳管时开启新生命周期并允许立即 START；死亡 pid 仅输出一个最终 END，其他 pid 不受影响；不新增独立配额、超限拒绝或错误码，既有前端任务与归因上限行为不变 | 正常/异常/边界 | US-2 |
+| AC-5.5 | WHEN ResourceControlProxy 收到符合上述规则的 START/END 事件 THEN 本期空实现仅输出包含完整事件内容的可核对日志，不发起真实冻结、调度分组、QoS、speed、生效查询、恢复或撤销重试调用 | 正常 | US-1 |
+| AC-5.6 | WHEN 纳管登记或后续重算时按 pid 查询 uid 失败 THEN 仅输出告警并抑制字段不完整的代理事件，不拒绝既有纳管；WHEN 后续重试成功 THEN 按原始触发原因恢复完整事件；WHEN 任务结束或纳管进程死亡时 uid 仍持续获取失败 THEN 仅清理并告警，不伪造 START/END 且后续无该旧生命周期事件 | 异常 | US-1 |
 
 ### 范围边界
 

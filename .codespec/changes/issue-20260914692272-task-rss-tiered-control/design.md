@@ -1,6 +1,6 @@
 # 架构设计
 
-> 实现范围严格限定为 Approved spec.md 的 AC-5.1～AC-5.10。真实 RSS 调控、性能功耗、资源配额、动态策略和独立 `NotifyTaskEnd` 均不进入实现范围。
+> 实现范围严格限定为 Approved spec.md 的 AC-5.1～AC-5.6。真实 RSS 调控、性能功耗、资源配额、动态策略和独立 `NotifyTaskEnd` 均不进入实现范围。
 
 ## 设计元数据
 
@@ -126,8 +126,8 @@
 | 决策 ID | 问题 | 推荐方案 | 探索过的替代方案 | 取舍理由 | 影响 |
 |---------|------|----------|-----------------|----------|------|
 | ADR-1 | 纳管 uid 如何获取、缓存与重试 | 登记前直接读 `/proc/<pid>/status` 并写入 AttributionRecord.uid；每次相关重算及结束/死亡前采用“收集→锁外重查→按 attributionId 回写”重试 | 仅查 AppRunningRecord（可信通道可能无记录）；每次重算直接查（死亡后不可查且易锁内 IO）；首次失败即拒绝纳管（改变兼容行为） | 满足缓存要求并覆盖全部通道，且持续失败只告警不输出残缺事件 | TASK-1 数据模型与失败路径 |
-| ADR-2 | 多创建者、多工具及受管过滤如何表达 | 每 pid 仅保存 CLI 与 VIRTUAL_SCREEN_ABILITY 的任务上下文；先在受管集合内取 max，再以 VIRTUAL_SCREEN_ABILITY > CLI 作为同档主类型/策略优先级；ABILITY/A2A/INSIGHT 直接忽略 | 全部任务参与 max（会把不管控工具带入管控）；按类型先选再 max（低类型高优先级会被误丢弃）；全部任务上下文都上报（数据量大且越界） | 事件载荷只含受管集合，同时保留异常重叠下的正确档位与必要溯源 | TASK-1 受管过滤与快照 |
-| ADR-3 | 如何消除业务重排、升降方向误判、TOCTOU 和递归重入 | 任务记录修改与非阻塞 SubmitTask 在同一 tasksMutex_ 临界区完成，保证业务顺序=入队顺序；归属、候选、pending 到期、provider、EmitEvent 全部进入同一串行队列；方向只看前后状态；Apply/Restore 与 EmitEvent 分离 | 记录修改后再解锁提交（注册/结束可重排）；多锁+异步 provider（检查后可被立即事件插入）；按 lastNotifiedLevel 判升档（漏升档）；队列回调同名 Apply/Restore（递归） | 单流水线没有并发交错窗口，顺序可证明且出口不递归 | TASK-1 主架构 |
+| ADR-1 | 多创建者、多工具及受管过滤如何表达 | 每 pid 仅保存 CLI 与 VIRTUAL_SCREEN_ABILITY 的任务上下文；先在受管集合内取 max，再以 VIRTUAL_SCREEN_ABILITY > CLI 作为同档主类型/策略优先级；ABILITY/A2A/INSIGHT 直接忽略 | 全部任务参与 max（会把不管控工具带入管控）；按类型先选再 max（低类型高优先级会被误丢弃）；全部任务上下文都上报（数据量大且越界） | 事件载荷只含受管集合，同时保留异常重叠下的正确档位与必要溯源 | TASK-1 受管过滤与快照 |
+| ADR-2 | 如何消除业务重排、升降方向误判、TOCTOU 和递归重入 | 任务记录修改与非阻塞 SubmitTask 在同一 tasksMutex_ 临界区完成，保证业务顺序=入队顺序；归属、候选、pending 到期、provider、EmitEvent 全部进入同一串行队列；方向只看前后状态；Apply/Restore 与 EmitEvent 分离 | 记录修改后再解锁提交（注册/结束可重排）；多锁+异步 provider（检查后可被立即事件插入）；按 lastNotifiedLevel 判升档（漏升档）；队列回调同名 Apply/Restore（递归） | 单流水线没有并发交错窗口，顺序可证明且出口不递归 | TASK-1 主架构 |
 | ADR-4 | 如何处理最终 END 后重新纳管及旧事件 | 每次候选/窗口分配全局单调 epoch；最终 END 只结束当前生命周期，重新纳管用新 epoch 并立即 START | 永久禁止 pid 后续事件（破坏已有重复归因）；每 pid generation 从 1 重启（ABA） | 同时满足兼容性和旧事件隔离，测试重置也不回退 epoch | TASK-1 生命周期与并发 |
 | ADR-5 | 防抖窗口采用何种形式 | ResourceControlProxy 维护 per-pid 固定 1000ms 尾随窗口；新可合并变化重启窗口，到期在同一队列取最新状态 | 全部立即（抖动）；固定起点不重启（连续变化时输出中间态）；全量延迟（新建/升档/死亡变慢） | 连续抖动压成一次最新输出，立即路径不受窗口影响 | TASK-1 pending 与到期 |
 | ADR-6 | 创建者兼纳管进程死亡如何避免丢失立即 END | OnProcessDied 先向串行队列提交死亡事件，再执行 FinishTasksByCreatorInner 和 RemoveManagedProcessFromAllTasksInner | 保持现有先删归因顺序（后续 OnProcessDied 找不到 entry）；增加 tombstone 事后补事件（复杂且可能重复） | 死亡快照在处理前不被删除，且后续普通移除自然幂等 | TASK-1 死亡顺序调整 |
@@ -149,7 +149,7 @@
 
 | Task ID | 目标 | 受影响文件 | AC |
 |---------|------|------------|-----|
-| TASK-SKELETON-1 | 建立内部数据模型、单串行队列、空代理与测试记录入口 | attribution_record.h/.cpp、process_schedule.h/.cpp、resource_control_proxy.h/.cpp、对应测试与 BUILD.gn | WHEN 构造候选事件 THEN 能编译并记录完整字段，真实 RSS 调用计数为 0（AC-5.1、AC-5.8） |
+| TASK-SKELETON-1 | 建立内部数据模型、单串行队列、空代理与测试记录入口 | attribution_record.h/.cpp、process_schedule.h/.cpp、resource_control_proxy.h/.cpp、对应测试与 BUILD.gn | WHEN 构造候选事件 THEN 能编译并记录完整字段，真实 RSS 调用计数为 0（AC-5.1、AC-5.5） |
 
 ## 后续 Task 拆分
 
@@ -317,9 +317,9 @@ classDiagram
 |-----------|--------------------|------|---------------|----------|-----------|
 | TaskManagerService | `task_manager_service.h:32-64,188-207` | 修改：事实生产者 | uid 查询/缓存、完整归因与原始原因传递；RejudgeTasks(pid, trigger) | ADR-1/2/6/7 | TASK-1 |
 | AttributionRecord | `attribution_record.h:31-49` | 修改：增加 uid 缓存 | pid/tool/uid/attributedTimeMillis；不改变工具枚举 | ADR-1 | TASK-1 |
-| ProcessSchedule | `process_schedule.h:43-104` | 修改：受管归属与候选事件 | 单队列维护 task↔pid、受管任务/创建者/工具引用、受管集合 max、前后快照；过滤 ABILITY/A2A/INSIGHT | ADR-2/3/4/6 | TASK-1 |
-| ResourceControlProxy | New：`services/appmgr/include/task_mgr/resource_control_proxy.h` | 新增：时序和出口 | ApplyControl/RestoreControl 决策，EmitEvent 独立输出，epoch/pending | ADR-3/4/5/8/9 | TASK-1 |
-| TaskHandlerWrap | `services/common/include/task_handler_wrap.h:67-97` | 复用：唯一串行基础设施 | SubmitTask 承载归属、到期和 EmitEvent | ADR-3/5/9 | TASK-1 |
+| ProcessSchedule | `process_schedule.h:43-104` | 修改：受管归属与候选事件 | 单队列维护 task↔pid、受管任务/创建者/工具引用、受管集合 max、前后快照；过滤 ABILITY/A2A/INSIGHT | ADR-1/3/4/6 | TASK-1 |
+| ResourceControlProxy | New：`services/appmgr/include/task_mgr/resource_control_proxy.h` | 新增：时序和出口 | ApplyControl/RestoreControl 决策，EmitEvent 独立输出，epoch/pending | ADR-2/4/5/8/9 | TASK-1 |
+| TaskHandlerWrap | `services/common/include/task_handler_wrap.h:67-97` | 复用：唯一串行基础设施 | SubmitTask 承载归属、到期和 EmitEvent | ADR-2/5/9 | TASK-1 |
 | TaskFinishedCallback | `task_manager_service.h:188-207` | 复用但不接管：AMS 原清理 | 仅 taskId/userId；本特性不通过它形成调度事件 | ADR-7 | TASK-1 |
 
 ### 数据流/控制流
@@ -376,22 +376,22 @@ sequenceDiagram
 | State ID | 状态/资源 | 唯一 Owner | 存储/Key/Index | 创建与初始化 | 读取/更新方 | 清理/恢复/回滚触发 | 并发模型 | 代码事实/规则来源 |
 |----------|-----------|------------|----------------|--------------|-------------|--------------------|----------|-------------------|
 | STATE-1 | 任务归因及 uid 缓存 | TaskManagerService | `tasks_[taskId].attributions` / attributionId | 登记时锁外解析 uid 后写入；失败初值 -1 | TaskManagerService 读取/重试更新；ProcessSchedule 只读值副本 | 注销、任务结束、死亡；重试成功覆盖 -1 | tasksMutex_；解析在锁外，按 attributionId 回写防旧记录覆盖 | `task_record.h:41-53` + ADR-1 |
-| STATE-2 | 受管上下文与 effectiveLevel | ProcessSchedule 串行队列 | `pidEntries_[pid]`、`taskToPids_[taskId]` | 首个 CLI 或 VIRTUAL_SCREEN_ABILITY 归因创建；每受管任务保存创建者/工具引用/档位 | 仅串行队列读写；dump/候选事件只读快照 | 受管工具归零、最后受管任务移除、死亡；异常事件保持最近一致状态 | 单队列线程封闭；dump 只加读锁 | `process_schedule.cpp:32-65` + ADR-2/3 |
-| STATE-3 | 已通知档位/主类型与 pending window | ResourceControlProxy 串行队列 | `lastNotifiedLevel[pid]`、`lastNotifiedPrimaryTool[pid]`、`pending[pid].epoch` | START 写 effectiveLevel/currentPrimaryTool，END 写 0/UNKNOWN；可合并事件创建 pending | 仅串行队列更新；到期 provider 同队列读最新快照 | 立即事件、死亡、无变化、到期、timer 失败 | 单队列线程封闭，无 proxyMutex_ 嵌套 | ADR-3/4/5/9 |
-| STATE-4 | 串行事件、epoch 与 timer 资源 | ResourceControlProxy + TaskHandlerWrap/FFRT | 全局单调 epoch、队列任务、不可变事件值 | 候选事件/窗口创建时分配 epoch 并捕获值 | 队列消费者只读执行；陈旧回调只读 epoch 后退出 | 日志完成、到期自然释放、服务进程退出 | 队列串行；不持业务锁等待回调 | `task_handler_wrap.cpp:70-85` + ADR-3/4/9 |
+| STATE-2 | 受管上下文与 effectiveLevel | ProcessSchedule 串行队列 | `pidEntries_[pid]`、`taskToPids_[taskId]` | 首个 CLI 或 VIRTUAL_SCREEN_ABILITY 归因创建；每受管任务保存创建者/工具引用/档位 | 仅串行队列读写；dump/候选事件只读快照 | 受管工具归零、最后受管任务移除、死亡；异常事件保持最近一致状态 | 单队列线程封闭；dump 只加读锁 | `process_schedule.cpp:32-65` + ADR-1/3 |
+| STATE-3 | 已通知档位/主类型与 pending window | ResourceControlProxy 串行队列 | `lastNotifiedLevel[pid]`、`lastNotifiedPrimaryTool[pid]`、`pending[pid].epoch` | START 写 effectiveLevel/currentPrimaryTool，END 写 0/UNKNOWN；可合并事件创建 pending | 仅串行队列更新；到期 provider 同队列读最新快照 | 立即事件、死亡、无变化、到期、timer 失败 | 单队列线程封闭，无 proxyMutex_ 嵌套 | ADR-2/4/5/9 |
+| STATE-4 | 串行事件、epoch 与 timer 资源 | ResourceControlProxy + TaskHandlerWrap/FFRT | 全局单调 epoch、队列任务、不可变事件值 | 候选事件/窗口创建时分配 epoch 并捕获值 | 队列消费者只读执行；陈旧回调只读 epoch 后退出 | 日志完成、到期自然释放、服务进程退出 | 队列串行；不持业务锁等待回调 | `task_handler_wrap.cpp:70-85` + ADR-2/4/9 |
 
 #### 不变量追溯
 
 | Invariant ID | State ID / 范围 | 必须始终成立的约束 | 关联 AC | 关联 Task | 验证方式与通过标准 | 违反时处理 |
 |--------------|------------------|--------------------|---------|-----------|--------------------|------------|
-| INV-1 | STATE-1、STATE-2 | 每个有效事件均含 managedPid/managedUid、全部受管 taskId、各受管创建者 pid/uid、受管工具集合、前后 effectiveLevel、动作和原始原因；END 保留变化前完整受管上下文，ABILITY/A2A/INSIGHT 不得混入 | AC-5.1、AC-5.2 | TASK-1 | 字段矩阵 + 多创建者/受管工具组合/最后结束用例；任一字段缺失或含不管控工具即失败 | uid/身份不完整时抑制事件并告警，禁止输出残缺事件 |
-| INV-2 | STATE-2 | effectiveLevel == max(全部存活受管任务档位)，每受管任务工具引用总数与归因子数一致；每快照按 taskLevel 取 max，同档主类型 VIRTUAL_SCREEN_ABILITY > CLI；ABILITY/A2A/INSIGHT 不影响 | AC-5.1、AC-5.2、AC-5.3 | TASK-1 | CLI 与 VIRTUAL_SCREEN_ABILITY 组合、其他工具叠加、重复添加/部分移除/全部移除矩阵；max 与受管集合精确一致，Virtual LOW+CLI HIGH 主类型为 CLI，同为 HIGH 主类型为 VIRTUAL_SCREEN_ABILITY | 按被删记录修复引用；未知/重复移除幂等忽略并记录 |
-| INV-3 | STATE-2、STATE-3 | 仅受管任务、受管工具集合或主类型变化且 effectiveLevel 与开始/结束状态不变时，不产生代理事件；ABILITY/A2A/INSIGHT 变化不影响受管快照和已通知状态，pending 与后续事件使用最新主类型和最新受管集合 | AC-5.3 | TASK-1 | 新增同档/低档受管、工具增减、非最高受管任务移除、Virtual 与 CLI 同档切换及不管控工具变化；事件计数不增且后续上下文与主类型最新 | 禁止 Apply/Restore，仅写上下文日志 |
-| INV-4 | STATE-3 | 新建/升档立即 START，死亡立即 END；方向只由前后状态决定，lastNotifiedLevel 不参与方向判断；降档/非死亡结束固定 1000ms 且不读动态参数 | AC-5.4、AC-5.5 | TASK-1 | HIGH→LOW pending→MEDIUM/HIGH、pending END 中 LOW 重新纳管；均立即 START；到期动作正确且参数读取为 0 | 立即事件使旧 pending 失效；timer 失败只告警并保留重试机会 |
-| INV-5 | STATE-3、STATE-4 | 任一 pid 同时最多一个有效 pending；epoch 全局单调且回调只接受当前 epoch；到期同队列取最新状态，不得输出旧快照 | AC-5.6 | TASK-1 | 连续变化、升档打断、死亡打断、到期与死亡相邻、取消后重建及 PID 重用；无重复/旧事件 | 旧 epoch 逻辑取消并自然释放；不得提交旧事件 |
-| INV-6 | STATE-2、STATE-3 | 有受管任务时降档 START，最后移除/死亡才 END；最终 END 只终止当前生命周期，重新纳管用新 epoch 并允许 START，其他 pid 不受影响 | AC-5.7、AC-5.9 | TASK-1 | 最高档结束、次高续管、最后移除、死亡、死亡后重新归因及无关 pid 矩阵；动作与计数精确一致 | 依据最终状态修正动作；重复死亡/移除幂等，旧 epoch 事件拒绝 |
-| INV-7 | STATE-3、STATE-4 | Apply/Restore 只做时序决策，EmitEvent 只打印并更新 lastNotifiedLevel；真实冻结/分组/QoS/speed/查询/恢复/重试调用数为 0 | AC-5.8 | TASK-1 | 接口调用序列无递归；代理日志断言 + 真实接口 mock 零调用 | 禁止新增真实调用；不以 lastNotifiedLevel 宣称真实效果 |
-| INV-8 | STATE-1、STATE-2、STATE-3 | uid<0 时不输出残缺事件且不更新 lastNotifiedLevel；重试保留原始 trigger；持续失败只告警不输出，死亡优先使用死亡 uid | AC-5.10 | TASK-1 | 首次失败→无后续重算→Finish/Timeout/Death、重试成功、持续失败及死亡补偿矩阵；无残缺事件且原因不丢 | 保留既有纳管并告警；终态仍失败仅清理，不伪造 START/END |
+| INV-1 | STATE-1、STATE-2 | 每个有效事件均含 managedPid/managedUid、全部受管 taskId、各受管创建者 pid/uid、受管工具集合、前后 effectiveLevel、动作和原始原因；END 保留变化前完整受管上下文，ABILITY/A2A/INSIGHT 不得混入 | AC-5.1 | TASK-1 | 字段矩阵 + 多创建者/受管工具组合/最后结束用例；任一字段缺失或含不管控工具即失败 | uid/身份不完整时抑制事件并告警，禁止输出残缺事件 |
+| INV-2 | STATE-2 | effectiveLevel == max(全部存活受管任务档位)，每受管任务工具引用总数与归因子数一致；每快照按 taskLevel 取 max，同档主类型 VIRTUAL_SCREEN_ABILITY > CLI；ABILITY/A2A/INSIGHT 不影响 | AC-5.1 | TASK-1 | CLI 与 VIRTUAL_SCREEN_ABILITY 组合、其他工具叠加、重复添加/部分移除/全部移除矩阵；max 与受管集合精确一致，Virtual LOW+CLI HIGH 主类型为 CLI，同为 HIGH 主类型为 VIRTUAL_SCREEN_ABILITY | 按被删记录修复引用；未知/重复移除幂等忽略并记录 |
+| INV-3 | STATE-2、STATE-3 | 仅受管任务、受管工具集合或主类型变化且 effectiveLevel 与开始/结束状态不变时，不产生代理事件；ABILITY/A2A/INSIGHT 变化不影响受管快照和已通知状态，pending 与后续事件使用最新主类型和最新受管集合 | AC-5.1 | TASK-1 | 新增同档/低档受管、工具增减、非最高受管任务移除、Virtual 与 CLI 同档切换及不管控工具变化；事件计数不增且后续上下文与主类型最新 | 禁止 Apply/Restore，仅写上下文日志 |
+| INV-4 | STATE-3 | 新建/升档立即 START，死亡立即 END；方向只由前后状态决定，lastNotifiedLevel 不参与方向判断；降档/非死亡结束固定 1000ms 且不读动态参数 | AC-5.2、AC-5.3 | TASK-1 | HIGH→LOW pending→MEDIUM/HIGH、pending END 中 LOW 重新纳管；均立即 START；到期动作正确且参数读取为 0 | 立即事件使旧 pending 失效；timer 失败只告警并保留重试机会 |
+| INV-5 | STATE-3、STATE-4 | 任一 pid 同时最多一个有效 pending；epoch 全局单调且回调只接受当前 epoch；到期同队列取最新状态，不得输出旧快照 | AC-5.3 | TASK-1 | 连续变化、升档打断、死亡打断、到期与死亡相邻、取消后重建及 PID 重用；无重复/旧事件 | 旧 epoch 逻辑取消并自然释放；不得提交旧事件 |
+| INV-6 | STATE-2、STATE-3 | 有受管任务时降档 START，最后移除/死亡才 END；最终 END 只终止当前生命周期，重新纳管用新 epoch 并允许 START，其他 pid 不受影响 | AC-5.4、AC-5.4 | TASK-1 | 最高档结束、次高续管、最后移除、死亡、死亡后重新归因及无关 pid 矩阵；动作与计数精确一致 | 依据最终状态修正动作；重复死亡/移除幂等，旧 epoch 事件拒绝 |
+| INV-7 | STATE-3、STATE-4 | Apply/Restore 只做时序决策，EmitEvent 只打印并更新 lastNotifiedLevel；真实冻结/分组/QoS/speed/查询/恢复/重试调用数为 0 | AC-5.5 | TASK-1 | 接口调用序列无递归；代理日志断言 + 真实接口 mock 零调用 | 禁止新增真实调用；不以 lastNotifiedLevel 宣称真实效果 |
+| INV-8 | STATE-1、STATE-2、STATE-3 | uid<0 时不输出残缺事件且不更新 lastNotifiedLevel；重试保留原始 trigger；持续失败只告警不输出，死亡优先使用死亡 uid | AC-5.6 | TASK-1 | 首次失败→无后续重算→Finish/Timeout/Death、重试成功、持续失败及死亡补偿矩阵；无残缺事件且原因不丢 | 保留既有纳管并告警；终态仍失败仅清理，不伪造 START/END |
 
 ### 算法与状态机
 
@@ -464,13 +464,13 @@ stateDiagram-v2
 
 | 场景 | 竞争对象 | 保护机制 | 预期行为 | 关联 AC/Task | 验证方式 |
 |------|----------|----------|----------|-------------|----------|
-| 重判与注销并发 | STATE-1、STATE-2 | tasksMutex_ 内先改记录 + 单队列顺序提交 | 注销后无该任务参与 max；事件只反映一致快照 | AC-5.1、AC-5.3 / TASK-1 | 多任务并发矩阵 |
-| HIGH→LOW pending→MEDIUM/HIGH | STATE-3 | 本次前后状态判方向 + epoch | LOW→MEDIUM/HIGH 均立即 START，不被 lastNotifiedLevel=HIGH 抑制 | AC-5.4、AC-5.6 / TASK-1 | 可控延时与连续事件 |
-| pending END 中重新纳管 | STATE-3、STATE-4 | 新 epoch + 单队列 | 新生命周期立即 START，旧 END/旧回调不覆盖新状态 | AC-5.4、AC-5.9 / TASK-1 | 最后移除后 LOW 重新归因 |
-| 创建者=self-managed 死亡 | STATE-1、STATE-2 | 死亡事件先提交，再清理创建者任务和归因 | 死亡快照未被提前删除，仅一个立即最终 END | AC-5.2、AC-5.4、AC-5.7 / TASK-1 | 创建者唯一任务且唯一纳管自身 |
-| 到期 provider 与死亡相邻 | STATE-3、STATE-4 | 同一队列顺序执行 + epoch | 按队列事实顺序输出，不出现 END 后旧档 START | AC-5.4、AC-5.6、AC-5.9 / TASK-1 | 到期前/后死亡交错注入 |
-| uid 重试与死亡并发 | STATE-1、STATE-2 | attributionId 回写校验 + 死亡 uid 优先 | 迟到重试不覆盖已删记录；END 保留变化前上下文 | AC-5.2、AC-5.8 / TASK-1 | 重试-死亡交错测试 |
-| 多 pid 同时到期 | STATE-3、STATE-4 | per-pid pending + 单队列 | 每 pid 独立计算，事件不串改其他 pid | AC-5.6、AC-5.7 / TASK-1 | 多 pid 到期矩阵 |
+| 重判与注销并发 | STATE-1、STATE-2 | tasksMutex_ 内先改记录 + 单队列顺序提交 | 注销后无该任务参与 max；事件只反映一致快照 | AC-5.1 / TASK-1 | 多任务并发矩阵 |
+| HIGH→LOW pending→MEDIUM/HIGH | STATE-3 | 本次前后状态判方向 + epoch | LOW→MEDIUM/HIGH 均立即 START，不被 lastNotifiedLevel=HIGH 抑制 | AC-5.2、AC-5.3 / TASK-1 | 可控延时与连续事件 |
+| pending END 中重新纳管 | STATE-3、STATE-4 | 新 epoch + 单队列 | 新生命周期立即 START，旧 END/旧回调不覆盖新状态 | AC-5.2、AC-5.4 / TASK-1 | 最后移除后 LOW 重新归因 |
+| 创建者=self-managed 死亡 | STATE-1、STATE-2 | 死亡事件先提交，再清理创建者任务和归因 | 死亡快照未被提前删除，仅一个立即最终 END | AC-5.1、AC-5.2、AC-5.4 / TASK-1 | 创建者唯一任务且唯一纳管自身 |
+| 到期 provider 与死亡相邻 | STATE-3、STATE-4 | 同一队列顺序执行 + epoch | 按队列事实顺序输出，不出现 END 后旧档 START | AC-5.2、AC-5.3、AC-5.4 / TASK-1 | 到期前/后死亡交错注入 |
+| uid 重试与死亡并发 | STATE-1、STATE-2 | attributionId 回写校验 + 死亡 uid 优先 | 迟到重试不覆盖已删记录；END 保留变化前上下文 | AC-5.1、AC-5.6 / TASK-1 | 重试-死亡交错测试 |
+| 多 pid 同时到期 | STATE-3、STATE-4 | per-pid pending + 单队列 | 每 pid 独立计算，事件不串改其他 pid | AC-5.3、AC-5.4 / TASK-1 | 多 pid 到期矩阵 |
 
 ### 资源所有权矩阵
 
@@ -501,7 +501,7 @@ stateDiagram-v2
 
 ## 设计审批
 
-- [x] 需求基线已确认，设计覆盖 P0/P1 AC（AC-5.1～AC-5.10）
+- [x] 需求基线已确认，设计覆盖 P0/P1 AC（AC-5.1～AC-5.6）
 - [x] 不涉及项已承接，N/A 和展开项都有结论
 - [x] 涉及仓和模块职责清楚
 - [x] 调用链层级分析完整，每层覆盖到位

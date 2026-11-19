@@ -23,7 +23,7 @@
 
 | Evidence | Output | Reviewed Scope | Verdict |
 |----------|--------|----------------|---------|
-| Spec Compliance | `evidence/reviews/spec-compliance.md` | AC-5.1～AC-5.10 / Base..2ab0f2b02e | Blocked（静态映射 PASS；Red/运行未闭合） |
+| Spec Compliance | `evidence/reviews/spec-compliance.md` | AC-5.1～AC-5.6 / Base..2ab0f2b02e | Blocked（静态映射 PASS；Red/运行未闭合） |
 | Code Quality | `evidence/reviews/code-quality.md` | 计划内生产、测试及 13 个直接聚合目标 | Blocked（质量维度静态 PASS；不能替代运行门禁） |
 | Verification | `evidence/reviews/verification.md` | rk3568 构建、聚焦/全量测试、静态检查 | Blocked（ARM 无 qemu、hdc E002110） |
 

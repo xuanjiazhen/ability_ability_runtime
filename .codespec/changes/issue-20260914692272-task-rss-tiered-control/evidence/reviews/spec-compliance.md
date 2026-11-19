@@ -22,16 +22,12 @@
 
 | AC | Task | Code Ref | Commit | Verification Evidence | Result | Gap |
 |----|------|----------|--------|-----------------------|--------|-----|
-| AC-5.1 | TASK-1 | `process_schedule.cpp:97-119,428-443`；`resource_control_proxy.cpp:47-69,236-258` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `verification.md#execution-records`；`ControlledEventContext_0100`、`TriggerReasonMatrix_0100` | PASS（静态映射） | ARM 运行未闭合 |
-| AC-5.2 | TASK-1 | `process_schedule.cpp:71-119,223-267,332-368` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ControlledTaskMatrix_0100`、`ControlledEndPreviousContext_0100` | PASS（静态映射） | 同上 |
-| AC-5.3 | TASK-1 | `process_schedule.cpp:183-214,223-328`；`resource_control_proxy.cpp:236-258` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ControlledContextOnlyMatrix_0100`、`UncontrolledToolsNoEvent_0100` | PASS（静态映射） | 同上 |
-| AC-5.4 | TASK-1 | `resource_control_proxy.cpp:85-143`；`process_schedule.cpp:151-180` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ImmediateStartAndDeathEnd_0100` | PASS（静态映射） | 同上 |
-| AC-5.5 | TASK-1 | `resource_control_proxy.cpp:95-218`；`process_schedule.cpp:406-439` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `DebounceDownAndEnd_0100`、`TriggerReasonMatrix_0100` | PASS（静态映射） | 同上 |
-| AC-5.6 | TASK-1 | `resource_control_proxy.cpp:146-218`；`process_schedule.cpp:406-439` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `DebounceLatestState_0100`、`PendingDownThenEndUsesLatestPrevious_0100` | PASS（静态映射） | 同上 |
-| AC-5.7 | TASK-1 | `process_schedule.cpp:223-368`；`task_manager_service.cpp:349-368,476-500` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `FinalStateAction_0100`、`SelfManagedDeath_0100`、`CreatorDeathCleanup_0100` | PASS（静态映射） | 同上 |
-| AC-5.8 | TASK-1 | `resource_control_proxy.cpp:236-258`；构建无新增真实 RSS 调用 | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ResourceControlProxy_StubOnly_0100`；`codecheck_report_*#分维度速览` | PASS（静态映射） | 同上 |
-| AC-5.9 | TASK-1 | 既有 `StartTask/RegisterManagedProcess` 上限未改；`resource_control_proxy.cpp:95-218` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `DebounceLatestState_0100`；既有 `StartTask_0700`、`RegisterManagedProcessQuota_0900` | PASS（静态映射） | 同上 |
-| AC-5.10 | TASK-1 | `task_manager_service.cpp:47-69,575-627`；`process_schedule.cpp:309-328,378-439` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ManagedUidCacheAndRetry_0100`、`UidFailureRecoveryMatrix_0100`、`InvalidUidCancelsPending_0100` | PASS（静态映射） | 同上 |
+| AC-5.1 | TASK-1 | `process_schedule.cpp:71-119,183-214,223-328`；`resource_control_proxy.cpp:47-69,236-258` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ControlledEventContext_0100`、`ControlledTaskMatrix_0100`、`ControlledEndPreviousContext_0100`、`ControlledContextOnlyMatrix_0100`、`UncontrolledToolsNoEvent_0100`、`TriggerReasonMatrix_0100` | PASS（静态映射） | ARM 运行未闭合 |
+| AC-5.2 | TASK-1 | `resource_control_proxy.cpp:85-143`；`process_schedule.cpp:151-180` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ImmediateStartAndDeathEnd_0100` | PASS（静态映射） | 同上 |
+| AC-5.3 | TASK-1 | `resource_control_proxy.cpp:95-218`；`process_schedule.cpp:406-439` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `DebounceDownAndEnd_0100`、`DebounceLatestState_0100`、`PendingDownThenEndUsesLatestPrevious_0100`、`TriggerReasonMatrix_0100` | PASS（静态映射） | 同上 |
+| AC-5.4 | TASK-1 | `process_schedule.cpp:223-368`；`task_manager_service.cpp:349-368,476-500`；既有前端上限未改 | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `FinalStateAction_0100`、`SelfManagedDeath_0100`、`CreatorDeathCleanup_0100`、`DebounceLatestState_0100`；既有 `StartTask_0700`、`RegisterManagedProcessQuota_0900` | PASS（静态映射） | 同上 |
+| AC-5.5 | TASK-1 | `resource_control_proxy.cpp:236-258`；构建无新增真实 RSS 调用 | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ResourceControlProxy_StubOnly_0100`；`codecheck_report_*#分维度速览` | PASS（静态映射） | 同上 |
+| AC-5.6 | TASK-1 | `task_manager_service.cpp:47-69,575-627`；`process_schedule.cpp:309-328,378-439` | 2ab0f2b02ebe417d5e5bc990d5db97fcdd65fe99 | `ManagedUidCacheAndRetry_0100`、`UidFailureRecoveryMatrix_0100`、`InvalidUidCancelsPending_0100` | PASS（静态映射） | 同上 |
 
 ## Extra Implementation
 
@@ -43,7 +39,7 @@
 
 | Topic | Spec Says | Implementation Does | Required Action |
 |-------|-----------|---------------------|-----------------|
-| 无已识别语义偏差 | AC-5.1～AC-5.10 与 R-1～R-9 | 受管集合、max/主类型、立即/尾随动作、uid 异常和死亡保序一致 | 无 |
+| 无已识别语义偏差 | AC-5.1～AC-5.6 与 R-1～R-6 | 受管上下文、立即/尾随动作、uid 异常和死亡保序一致 | 无 |
 
 ## Spec Quality Boundary
 
