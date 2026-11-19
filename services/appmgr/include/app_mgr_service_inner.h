@@ -960,6 +960,8 @@ public:
         taskHandler_ = taskHandler;
     }
 
+    void SetLaunchServiceTaskHandler(const std::shared_ptr<AAFwk::TaskHandlerWrap> &handler);
+
     void SetEventHandler(const std::shared_ptr<AMSEventHandler> &eventHandler)
     {
         eventHandler_ = eventHandler;
@@ -1186,6 +1188,8 @@ public:
      */
     void OnRenderProcessExited(pid_t pid);
 
+    std::shared_ptr<AAFwk::TaskHandlerWrap> GetLaunchServiceTaskHandler();
+    void PostLaunchServiceProcessExited(pid_t pid);
     void OnLaunchServiceProcessExited(pid_t pid);
 
     int VerifyKillProcessPermission(const sptr<IRemoteObject> &token) const;
@@ -1966,8 +1970,9 @@ public:
         AbilityRuntime::LaunchServiceInformation &information, int32_t callerUid);
     int32_t GetAllRegisteredInformation(
         std::vector<AbilityRuntime::LaunchServiceInformation> &informations, int32_t userId, int32_t callerUserId);
-    void SetLaunchServicesEnabled(const std::string &bundleName, int32_t userId, int32_t appIndex,
-        const std::vector<uint8_t> &token, bool enable, int32_t callerUid, std::function<void(int32_t)> completion);
+    int32_t SetLaunchServicesEnabled(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        const std::vector<uint8_t> &token, bool enable, int32_t callerUid,
+        const std::function<void(int32_t)> &callback);
 
     void StartLaunchServicesAfterBoot();
 
@@ -2691,6 +2696,8 @@ private:
     std::shared_ptr<RemoteClientManager> remoteClientManager_;
     std::shared_ptr<AppRunningManager> appRunningManager_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
+    std::mutex launchServiceTaskMutex_;
+    std::shared_ptr<AAFwk::TaskHandlerWrap> launchServiceTaskHandler_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> rssTaskHandler_;
     std::shared_ptr<AMSEventHandler> eventHandler_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> dfxTaskHandler_;

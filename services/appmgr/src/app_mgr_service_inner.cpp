@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <cerrno>
 #include <fcntl.h>
+#include <future>
 #include <mutex>
 #include <queue>
 #include <securec.h>
@@ -4995,6 +4996,11 @@ void AppMgrServiceInner::UpdateExtensionState(const sptr<IRemoteObject> &token, 
 
 void AppMgrServiceInner::OnStop()
 {
+    std::shared_ptr<AAFwk::TaskHandlerWrap> launchHandler;
+    {
+        std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
+        launchHandler.swap(launchServiceTaskHandler_);
+    }
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager null");
         return;
@@ -12875,6 +12881,31 @@ int32_t AppMgrServiceInner::ExitMasterProcessRole()
     return ERR_OK;
 }
 
+void AppMgrServiceInner::SetLaunchServiceTaskHandler(const std::shared_ptr<AAFwk::TaskHandlerWrap> &handler)
+{
+    std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
+    launchServiceTaskHandler_ = handler;
+}
+
+std::shared_ptr<AAFwk::TaskHandlerWrap> AppMgrServiceInner::GetLaunchServiceTaskHandler()
+{
+    std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
+    return launchServiceTaskHandler_;
+}
+
+void AppMgrServiceInner::PostLaunchServiceProcessExited(pid_t pid)
+{
+    auto task = [weak = weak_from_this(), pid]() {
+        if (auto inner = weak.lock()) {
+            inner->OnLaunchServiceProcessExited(pid);
+        }
+    };
+    auto handler = GetLaunchServiceTaskHandler();
+    if (handler == nullptr || !handler->SubmitTask(task, "OnLaunchServiceProcessExitedTask")) {
+        TAG_LOGE(AAFwkTag::APPMGR, "post process exit failed, pid:%{public}d", pid);
+    }
+}
+
 void AppMgrServiceInner::OnLaunchServiceProcessExited(pid_t pid)
 {
     GetLaunchServiceManager()->HandleLaunchServiceProcessDied(pid);
@@ -13494,11 +13525,16 @@ int32_t AppMgrServiceInner::GetAllRegisteredInformation(
     return GetLaunchServiceManager()->GetAllRegisteredInformation(informations, userId, callerUserId);
 }
 
-void AppMgrServiceInner::SetLaunchServicesEnabled(const std::string &bundleName, int32_t userId, int32_t appIndex,
-    const std::vector<uint8_t> &token, bool enable, int32_t callerUid, std::function<void(int32_t)> completion)
+int32_t AppMgrServiceInner::SetLaunchServicesEnabled(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    const std::vector<uint8_t> &token, bool enable, int32_t callerUid,
+    const std::function<void(int32_t)> &callback)
 {
-    GetLaunchServiceManager()->SetLaunchServicesEnabled(
-        bundleName, userId, appIndex, token, enable, callerUid, std::move(completion));
+    if (callback == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    GetLaunchServiceManager()->SetLaunchServicesEnabled(bundleName, userId, appIndex, token, enable, callerUid,
+        callback);
+    return ERR_OK;
 }
 
 void AppMgrServiceInner::StartLaunchServicesAfterBoot()

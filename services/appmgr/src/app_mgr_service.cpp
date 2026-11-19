@@ -97,8 +97,8 @@ constexpr int32_t DEFAULT_CONCURRENT_NUMBER = 1;
 constexpr int32_t HIPROFILER_UID = 3063;
 constexpr int32_t REPORT_TEMPLATE_PROCESS_READY_DELAY_TIME = 2000;
 constexpr int32_t LAUNCH_SERVICE_TASK_TIMEOUT_MS = 5000;
-constexpr int32_t MAX_APP_INDEX = 1000;
 constexpr const char *TASK_START_LAUNCH_SERVICES_AFTER_RESIDENT = "StartLaunchServicesAfterResident";
+constexpr int32_t MAX_APP_INDEX = 1000;
 
 namespace {
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
@@ -129,6 +129,7 @@ constexpr int32_t USER_UID = 2000;
 constexpr const char* HIVIEW_PROCESS_NAME = "hiview";
 constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+constexpr const char* LAUNCH_SERVICE_PC_MODE_SWITCH_PARAM = "const.window.support_window_pcmode_switch";
 constexpr const char* LAUNCH_SERVICE_MAIN_MODE_PARAM = "const.sceneboard.mainmode";
 constexpr const char* LAUNCH_SERVICE_PC_MODE_PARAM = "persist.sceneboard.ispcmode";
 constexpr const char* ALLOW_LAUNCH_SERVICE_ON_NON_DUAL_MODE_DEVICE_PARAM =
@@ -136,11 +137,12 @@ constexpr const char* ALLOW_LAUNCH_SERVICE_ON_NON_DUAL_MODE_DEVICE_PARAM =
 
 bool IsDaemonDeviceSupported()
 {
-    if (system::GetParameter(LAUNCH_SERVICE_MAIN_MODE_PARAM, "").empty() &&
-        system::GetParameter(LAUNCH_SERVICE_PC_MODE_PARAM, "").empty()) {
+    if (!system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_SWITCH_PARAM, false)) {
         return system::GetBoolParameter(ALLOW_LAUNCH_SERVICE_ON_NON_DUAL_MODE_DEVICE_PARAM, false);
     }
-    return system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_PARAM, false);
+    auto mainMode = system::GetParameter(LAUNCH_SERVICE_MAIN_MODE_PARAM, "");
+    return (mainMode == "0" || mainMode == "1") &&
+        system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_PARAM, false);
 }
 
 bool VerifyRegisterDaemonPermission()
@@ -248,10 +250,10 @@ void AppMgrService::OnStop()
     appMgrServiceState_.serviceRunningState = ServiceRunningState::STATE_NOT_START;
     eventHandler_.reset();
     taskHandler_.reset();
-    std::shared_ptr<AAFwk::TaskHandlerWrap> launchServiceTaskHandler;
+    std::shared_ptr<AAFwk::TaskHandlerWrap> launchHandler;
     {
         std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
-        launchServiceTaskHandler.swap(launchServiceTaskHandler_);
+        launchHandler.swap(launchServiceTaskHandler_);
     }
     if (appMgrServiceInner_) {
         appMgrServiceInner_->OnStop();
@@ -385,6 +387,7 @@ ErrCode AppMgrService::Init()
         if (launchServiceTaskHandler_ == nullptr) {
             return ERR_INVALID_OPERATION;
         }
+        appMgrServiceInner_->SetLaunchServiceTaskHandler(launchServiceTaskHandler_);
     }
     taskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler("app_mgr_task_queue",
         DEFAULT_CONCURRENT_NUMBER);
@@ -3086,10 +3089,11 @@ int32_t AppMgrService::NotifyResidentStartupCompleted()
         std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
         launchHandler = launchServiceTaskHandler_;
     }
-    if (launchHandler == nullptr) {
+    auto inner = appMgrServiceInner_;
+    if (launchHandler == nullptr || inner == nullptr || taskHandler_ == nullptr) {
         return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
     }
-    auto task = [inner = appMgrServiceInner_, launchHandler]() {
+    auto task = [inner, launchHandler]() {
         auto handle = launchHandler->SubmitTask([inner]() { inner->StartLaunchServicesAfterBoot(); });
         if (!handle) {
             TAG_LOGE(AAFwkTag::APPMGR, "submit boot launch service task failed");
