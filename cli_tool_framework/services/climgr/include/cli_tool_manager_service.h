@@ -276,6 +276,49 @@ private:
     void RemoveSessionRecord(const std::string &sessionId);
 
     void AttachTaskAttribution(const std::shared_ptr<SessionRecord> &record);
+    // Async continuation of AttachTaskAttribution on an ffrt worker: snapshots the chain state
+    // (seams read ONCE here) and runs the first discovery round immediately. The chain polls
+    // ProcScanner for the sandboxed command pid by re-submitting each round with an ffrt delay
+    // — never sleep_for on a worker — so an undiscoverable child (exec-in-place form never
+    // forks one, or /proc blindness) does not park an ffrt worker for the whole window while
+    // sibling tasks (detach IPC, delayed unload, timeout scheduling) need the pool. Aborts
+    // without registering when the teardown consumed the PENDING state mid-chain (nothing
+    // was registered, so nothing needs compensation).
+    void ResolveCommandAndAttach(const std::shared_ptr<SessionRecord> &record, const std::string &taskId,
+        pid_t anchor, int32_t callerUid);
+    // Everything one discovery round needs that must survive the ffrt task that ran it:
+    // held by shared_ptr across the delay-resubmit chain. pollMs/deadline are snapshotted at
+    // chain start so a mid-chain seam mutation (test restoring the production window) cannot
+    // retime a discovery already in flight; observedAlive threads the ALIVE->DEAD gate
+    // across rounds.
+    struct DiscoveryState {
+        std::shared_ptr<SessionRecord> record;
+        std::string taskId;
+        pid_t anchor = -1;
+        int32_t callerUid = -1;
+        int32_t pollMs = 50;
+        std::chrono::steady_clock::time_point deadline;
+        bool observedAlive = false;
+    };
+    // One round of the discovery chain, in the historical order: pending-check =>
+    // FindCommandProcess => deadline-check => liveness gate. Terminal rounds hand off to
+    // FinishCommandAttribution (child found / window lapsed) or simply return (teardown
+    // consumed the PENDING state / observed ALIVE->DEAD skip); every other round re-submits
+    // itself with ffrt::task_attr().delay(pollMs) instead of sleeping.
+    void PollCommandDiscovery(std::shared_ptr<DiscoveryState> state);
+    // Shared terminal of the found and deadline outcomes: stores the command pid on the
+    // record, picks the registration target (command pid, else the anchor fallback),
+    // re-checks PENDING, runs the attach IPC, and reconciles via WriteBackAttachResult
+    // (posting the compensating detach when a teardown consumed the record while the IPC
+    // was in flight).
+    void FinishCommandAttribution(std::shared_ptr<DiscoveryState> state, pid_t commandPid);
+    // Discovery-poll guard: true only while the record is still the live table entry and its
+    // attribution is still PENDING. Races starting after a true verdict are arbitrated by
+    // WriteBackAttachResult on the attach side.
+    bool IsAttributionPending(const std::shared_ptr<SessionRecord> &record);
+    // Test seam only: command-process discovery tuning. Production keeps the defaults.
+    static inline std::atomic<int32_t> commandDiscoveryPollMs_ { 50 };
+    static inline std::atomic<int32_t> commandDiscoveryTimeoutMs_ { 2000 };
     void PostDetachTaskAttribution(const std::string &taskId, int64_t attributionId, int32_t callerUid);
     // Caller must hold sessionsMutex_. Consumes an ATTACHED attribution into the detach triple
     // (returns true) or relays a PENDING one to the write-back (CONSUMED, nothing to detach now).

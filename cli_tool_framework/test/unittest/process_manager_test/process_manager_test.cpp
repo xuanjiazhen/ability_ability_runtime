@@ -16,9 +16,15 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <csignal>
 #include <fcntl.h>
+#include <fstream>
+#include <string>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <thread>
+#include <time.h>
 #include <unistd.h>
 
 #include "cli_error_code.h"
@@ -36,6 +42,32 @@ namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr int64_t TIMEOUT = 30;
+
+// Reads /proc/sys/kernel/pid_max at runtime (digit-parsed, no scanf family). Linux allocates
+// pids via idr_alloc_cyclic strictly BELOW pid_max and wraps back to the low free slots once
+// past it, so (a) the pid_max value itself can never be a live task or a process-group leader
+// — Kill/Killpg on it deterministically return ESRCH and can never hit a foreign process —
+// and (b) a freshly reaped pid is NOT a safe "dead pid": cyclic wraparound reuse of
+// just-reaped pids was really observed on device under process churn, which would SIGKILL a
+// foreign live process mid-test. Kill-class tests therefore use the pid_max value as the
+// dead pid. Returns -1 only when the sysctl is unreadable; callers ASSERT red on that —
+// kill-test safety must not be environment-guessed.
+int32_t ReadKernelPidMax()
+{
+    std::ifstream fin("/proc/sys/kernel/pid_max");
+    std::string line;
+    if (!fin.is_open() || !std::getline(fin, line)) {
+        return -1;
+    }
+    int32_t value = 0;
+    for (char c : line) {
+        if (c < '0' || c > '9') {
+            break;
+        }
+        value = value * 10 + (c - '0');
+    }
+    return value > 0 ? value : -1;
+}
 }
 
 class ProcessManagerTest : public testing::Test {
@@ -454,9 +486,20 @@ HWTEST_F(ProcessManagerTest, CreatePipes_0100, TestSize.Level1)
  */
 HWTEST_F(ProcessManagerTest, Killpg_0100, TestSize.Level1)
 {
-    auto& manager = ProcessManager::GetInstance();
+    GTEST_LOG_(INFO) << "ProcessManager_Killpg_0100 start";
 
-    EXPECT_FALSE(manager.Killpg(999999));
+    // The never-allocatable pid_max value is the "non-existent process group": no process
+    // group can be led by a pid the kernel never allocates, so kill(-pidMax, SIGKILL)
+    // deterministically returns ESRCH and the false branch is exercised with zero risk of
+    // SIGKILLing a live process. A literal invented pid (the previous 999999) could collide
+    // with a real process group under device pid churn — it would both kill the foreign
+    // group and flip this EXPECT to a confusing failure.
+    int32_t pidMax = ReadKernelPidMax();
+    ASSERT_GT(pidMax, 0) << "/proc/sys/kernel/pid_max unreadable: kill-test safety cannot be established";
+    auto& manager = ProcessManager::GetInstance();
+    EXPECT_FALSE(manager.Killpg(static_cast<pid_t>(pidMax)));
+
+    GTEST_LOG_(INFO) << "ProcessManager_Killpg_0100 end";
 }
 
 /**
@@ -920,6 +963,178 @@ HWTEST_F(ProcessManagerTest, CreateShellProcess_ChildEnvTraceIds_0100, TestSize.
     unlink(probePath.c_str());
 
     GTEST_LOG_(INFO) << "ProcessManager_CreateShellProcess_ChildEnvTraceIds_0100 end";
+}
+
+/**
+ * @tc.name: ProcessManager_KillSessionProcess_0100
+ * @tc.desc: Resolved command pid (pid-ns form): a child that became a group leader is killed
+ *           through its group plus the direct kill, even with an invalid anchor pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, KillSessionProcess_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_KillSessionProcess_0100 start";
+
+    pid_t child = fork();
+    ASSERT_GE(child, 0);
+    if (child == 0) {
+        if (setpgid(0, 0) != 0) {
+            _exit(1);
+        }
+        struct timespec ts = { 5, 0 };
+        nanosleep(&ts, nullptr);
+        _exit(0);
+    }
+
+    // Resolved form: the anchor (-1) is irrelevant, the command pid carries the kill.
+    EXPECT_TRUE(ProcessManager::GetInstance().KillSessionProcess(-1, child));
+    ASSERT_GT(waitpid(child, nullptr, 0), 0);
+
+    GTEST_LOG_(INFO) << "ProcessManager_KillSessionProcess_0100 end";
+}
+
+/**
+ * @tc.name: ProcessManager_KillSessionProcess_0200
+ * @tc.desc: Unresolved discovery (exec-in-place form or pre-fork): a non-leader anchor is
+ *           still killed by the direct-kill backstop — plain Killpg alone would miss it.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, KillSessionProcess_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_KillSessionProcess_0200 start";
+
+    pid_t child = fork();
+    ASSERT_GE(child, 0);
+    if (child == 0) {
+        // Deliberately NOT setpgid: mirrors claw_sandbox before its pid-ns fork, so kill(-pid)
+        // finds no group and only the direct kill path can reach it.
+        struct timespec ts = { 5, 0 };
+        nanosleep(&ts, nullptr);
+        _exit(0);
+    }
+
+    EXPECT_TRUE(ProcessManager::GetInstance().KillSessionProcess(child, -1));
+    int32_t status = 0;
+    ASSERT_GT(waitpid(child, &status, 0), 0);
+    EXPECT_TRUE(WIFSIGNALED(status));
+    EXPECT_EQ(WTERMSIG(status), SIGKILL);
+
+    GTEST_LOG_(INFO) << "ProcessManager_KillSessionProcess_0200 end";
+}
+
+/**
+ * @tc.name: ProcessManager_KillSessionProcess_0300
+ * @tc.desc: Unresolved discovery with an already-forked grandchild: the child scan finds
+ *           the command child, kills it, and the anchor itself dies too.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, KillSessionProcess_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_KillSessionProcess_0300 start";
+
+    pid_t anchorPid = -1;
+    pid_t commandPid = -1;
+    // Pipe hand-off (CLOEXEC-free) so the parent learns the command pid deterministically.
+    int fds[2];
+    ASSERT_EQ(pipe(fds), 0);
+    pid_t anchor = fork();
+    ASSERT_GE(anchor, 0);
+    if (anchor == 0) {
+        // Anchor: mirror claw_sandbox — fork the command child, then wait for it.
+        close(fds[0]);
+        pid_t command = fork();
+        if (command == 0) {
+            close(fds[1]);
+            setpgid(0, 0); // command form: group leader before "exec"
+            struct timespec ts = { 5, 0 };
+            nanosleep(&ts, nullptr);
+            _exit(0);
+        }
+        ssize_t written = write(fds[1], &command, sizeof(command));
+        (void)written;
+        close(fds[1]);
+        waitpid(command, nullptr, 0);
+        _exit(0);
+    }
+    close(fds[1]);
+    ASSERT_EQ(read(fds[0], &commandPid, sizeof(commandPid)), static_cast<ssize_t>(sizeof(commandPid)));
+    close(fds[0]);
+    anchorPid = anchor;
+
+    EXPECT_TRUE(ProcessManager::GetInstance().KillSessionProcess(anchorPid, -1));
+    ASSERT_GT(waitpid(anchorPid, nullptr, 0), 0);
+    // The command child dies with the session even though the caller never knew its pid
+    // up front (KillSessionProcess discovered it via the /proc child scan).
+    // The killed grandchild is reparented to init (its anchor parent is gone) and reaped
+    // there — the 1s bounded poll below only tolerates init's reaping latency; it cannot hang.
+    // The poll is a signal-0 existence probe, never a kill target: even if device churn
+    // re-allocates the number after init's reap, this cannot SIGKILL a foreign process — the
+    // worst case is a bounded false-red on the final ESRCH assertion, never collateral damage.
+    for (int waited = 0; waited < 1000; waited += 10) {
+        if (kill(commandPid, 0) != 0) {
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    EXPECT_EQ(kill(commandPid, 0), -1);
+    EXPECT_EQ(errno, ESRCH);
+
+    GTEST_LOG_(INFO) << "ProcessManager_KillSessionProcess_0300 end";
+}
+
+/**
+ * @tc.name: ProcessManager_KillSessionProcess_0400
+ * @tc.desc: Nothing to kill (invalid anchor, discovery unresolved): false, no crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, KillSessionProcess_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_KillSessionProcess_0400 start";
+
+    EXPECT_FALSE(ProcessManager::GetInstance().KillSessionProcess(-1, -1));
+
+    GTEST_LOG_(INFO) << "ProcessManager_KillSessionProcess_0400 end";
+}
+
+/**
+ * @tc.name: ProcessManager_KillSessionProcess_0500
+ * @tc.desc: Resolved form with the command already dead: both command kills miss, and the
+ *           anchor SIGKILL backstop fires instead of relying on the monitor's self-exit.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessManagerTest, KillSessionProcess_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ProcessManager_KillSessionProcess_0500 start";
+
+    // Dead command pid: the never-allocatable pid_max value. Linux allocates pids via
+    // idr_alloc_cyclic strictly below pid_max and wraps back to the low free slots once past
+    // it, so the pid_max value itself can never be a live task or a process-group leader —
+    // Killpg/Kill on it deterministically return ESRCH and can never hit a foreign process.
+    // The premise this case previously relied on — "pid allocation is monotonic, so a freshly
+    // reaped pid cannot be reused" — is wrong: cyclic wraparound reuse of just-reaped pids
+    // was really observed on device (agent churn re-allocating a pid between the reap and
+    // the kill), which would have SIGKILLed a foreign live process and flipped the
+    // anchor-backstop assertions below. An unreadable sysctl means the kill-test environment
+    // is fundamentally broken: fail red instead of environment-guessing the dead pid.
+    int32_t pidMax = ReadKernelPidMax();
+    ASSERT_GT(pidMax, 0) << "/proc/sys/kernel/pid_max unreadable: kill-test safety cannot be established";
+
+    // The lingering anchor: a live process the backstop must reach.
+    pid_t anchor = fork();
+    ASSERT_GE(anchor, 0);
+    if (anchor == 0) {
+        struct timespec ts = { 5, 0 };
+        nanosleep(&ts, nullptr);
+        _exit(0);
+    }
+
+    int status = 0;
+    EXPECT_TRUE(ProcessManager::GetInstance().KillSessionProcess(anchor, static_cast<pid_t>(pidMax)));
+    ASSERT_EQ(waitpid(anchor, &status, 0), anchor);
+    EXPECT_TRUE(WIFSIGNALED(status));
+    EXPECT_EQ(WTERMSIG(status), SIGKILL);
+
+    GTEST_LOG_(INFO) << "ProcessManager_KillSessionProcess_0500 end";
 }
 
 } // namespace CliTool

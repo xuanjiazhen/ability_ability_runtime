@@ -38,6 +38,7 @@
 #include "exec_tool_param.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
+#include "proc_scanner.h"
 #include "tokenid_kit.h"
 #include "tool_info.h"
 #include "tool_util.h"
@@ -323,10 +324,97 @@ bool ProcessManager::Killpg(pid_t pid) const
     }
     int32_t killRet = kill(0 - pid, SIGKILL);
     if (killRet != 0) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "killpg result:%{public}d", killRet);
+        // kill(2) returns -1 for every failure; the errno is the actual verdict. ESRCH is the
+        // normal race (the target exited concurrently with the kill) — DEBUG, not WARN; any
+        // other errno (EPERM: policy/permission anomaly) is urgent and keeps the WARN level.
+        int32_t killErrno = errno;
+        if (killErrno == ESRCH) {
+            TAG_LOGD(AAFwkTag::CLI_TOOL,
+                "killpg pid=%{public}d already gone (ESRCH), errno=%{public}d", pid, killErrno);
+        } else {
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "killpg pid=%{public}d failed, errno=%{public}d", pid, killErrno);
+        }
         return false;
     }
     return true;
+}
+
+bool ProcessManager::Kill(pid_t pid) const
+{
+    if (pid <= 0) {
+        return false;
+    }
+    int32_t killRet = kill(pid, SIGKILL);
+    if (killRet != 0) {
+        // kill(2) returns -1 for every failure; the errno is the actual verdict. ESRCH is the
+        // normal race (the target exited concurrently with the kill) — DEBUG, not WARN; any
+        // other errno (EPERM: policy/permission anomaly) is urgent and keeps the WARN level.
+        int32_t killErrno = errno;
+        if (killErrno == ESRCH) {
+            TAG_LOGD(AAFwkTag::CLI_TOOL,
+                "kill pid=%{public}d already gone (ESRCH), errno=%{public}d", pid, killErrno);
+        } else {
+            TAG_LOGW(AAFwkTag::CLI_TOOL,
+                "kill pid=%{public}d failed, errno=%{public}d", pid, killErrno);
+        }
+        return false;
+    }
+    return true;
+}
+
+bool ProcessManager::KillSessionProcess(pid_t processId, pid_t commandPid) const
+{
+    if (commandPid > 0) {
+        // Resolved pid-ns form: one group kill covers the command and every descendant (seccomp
+        // keeps them in the group); the direct kill covers the window before setpgid(0, 0)
+        // where the group does not exist yet.
+        bool killed = Killpg(commandPid);
+        killed = Kill(commandPid) || killed;
+        if (killed) {
+            // The sandbox monitor follows on its own — it exits as soon as the command it
+            // waits on is gone, so no further kill is needed here.
+            return true;
+        }
+        // Both command kills missed: the command is already gone, and a live anchor only
+        // lingers in the "command died, monitor still waiting" window. Do not rely solely
+        // on the external monitor's self-exit ([HARD] P5-1.8(4): termination keeps a SIGKILL
+        // backstop) and do not report "nothing killed" while the session still has a live
+        // anchor — apply the same anchor backstop the unresolved branch uses.
+        return Killpg(processId) || Kill(processId);
+    }
+    if (processId <= 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "KillSessionProcess skipped: invalid processId=%{public}d", processId);
+        return false;
+    }
+    // Discovery not resolved: the command may already exist as a live child of the sandbox
+    // (claw_sandbox forks exactly one). Kill its group (covers descendants once it leads the
+    // group) and the child itself (covers the pre-setpgid window).
+    bool killed = false;
+    int32_t readStatCount = 0;
+    pid_t child = ProcScanner::FindCommandProcess(processId, &readStatCount);
+    if (child > 0) {
+        killed = Killpg(child) || killed;
+        killed = Kill(child) || killed;
+    } else if (readStatCount == 0) {
+        // Fully blinded scan: no /proc stat was readable at all (config regression — a new
+        // command exec domain missing from aimgr.te, or the readproc gid rolled back from
+        // aimgr.cfg). FindCommandProcess cannot distinguish "no child" from "blind", so
+        // the kill below rides on Killpg/Kill of the anchor only, which cannot reach a
+        // pid-ns command child — the kill coverage is uncertain while the caller sees a
+        // plain verdict. Fired once per call, before the anchor kills (the uncertainty is
+        // the child, not the anchor): this path also serves taskId-less sessions that never
+        // go through the attach-side discovery WARN.
+        TAG_LOGW(AAFwkTag::CLI_TOOL,
+            "no /proc stat readable for the command scan, kill coverage uncertain, "
+            "anchorPid=%{public}d (check aimgr.te task-domain allow rules and the readproc "
+            "gid in aimgr.cfg)", processId);
+    }
+    // Killpg covers the exec-in-place form (the sandbox itself leads the group); the direct
+    // kill covers the pid-ns form, where the sandbox never joins a new group and would
+    // otherwise survive Killpg(processId) as a lingering monitor.
+    killed = Killpg(processId) || killed;
+    return Kill(processId) || killed;
 }
 
 } // namespace CliTool

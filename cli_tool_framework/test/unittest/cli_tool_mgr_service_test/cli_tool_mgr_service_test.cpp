@@ -17,12 +17,14 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <fstream>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <sys/wait.h>
+#include <time.h>
 #include <thread>
 #include <unistd.h>
 #include <cerrno>
@@ -123,9 +125,57 @@ private:
 };
 
 constexpr int32_t ATTR_TEST_CALLER_UID = 3099;
-constexpr pid_t ATTR_TEST_ANCHOR_PID = 4321;
 constexpr int64_t ATTR_TEST_ATTRIBUTION_ID = 5555;
 constexpr int32_t ATTR_TEST_WAIT_MS = 1000;
+
+// A dead pid for "kill must fail / process not found" scenarios: the never-allocatable
+// pid_max value. Linux allocates pids via idr_alloc_cyclic strictly BELOW pid_max and wraps
+// back to the low free slots once past it, so the pid_max value can never be a live task or
+// a process-group leader — the Killpg/Kill pair inside KillSessionProcess deterministically
+// returns ESRCH on it and can never hit a foreign process. (This replaces a freshly reaped
+// pid, whose safety rested on "pid allocation is monotonic" — false: cyclic wraparound reuse
+// of a just-reaped pid was observed on device under process churn, which would have SIGKILLed
+// a foreign live process.) Returns -1 only when the sysctl is unreadable; every caller
+// ASSERTs red on that — kill-test safety must not be environment-guessed.
+pid_t NeverAllocatablePid()
+{
+    std::ifstream fin("/proc/sys/kernel/pid_max");
+    std::string line;
+    if (!fin.is_open() || !std::getline(fin, line)) {
+        return -1;
+    }
+    int32_t value = 0;
+    for (char c : line) {
+        if (c < '0' || c > '9') {
+            break;
+        }
+        value = value * 10 + (c - '0');
+    }
+    return value > 0 ? static_cast<pid_t>(value) : -1;
+}
+
+// A live anchor with no command child: mirrors claw_sandbox before its pid-ns fork (and the
+// exec-in-place form). The 5s sleep bounds the leak window if a case dies mid-flight.
+pid_t ForkLiveAnchor()
+{
+    pid_t pid = fork();
+    if (pid == 0) {
+        struct timespec ts = { 5, 0 };
+        nanosleep(&ts, nullptr);
+        _exit(0);
+    }
+    return pid;
+}
+
+// Session-anchor teardown for cases that forked a live anchor: kill if it is still running,
+// then reap so no child lingers into the next case.
+void ReapAnchor(pid_t pid)
+{
+    if (pid > 0) {
+        kill(pid, SIGKILL);
+        waitpid(pid, nullptr, 0);
+    }
+}
 
 // In-process appmgr endpoint: AppMgrClient resolves it via the test-side GetAppMgrService
 // below; posted detaches arrive asynchronously on an ffrt worker.
@@ -213,6 +263,27 @@ bool WaitForRegisterEntered(int expectedEntries)
     return g_mockAppMgr->cv.wait_for(lock, std::chrono::milliseconds(ATTR_TEST_WAIT_MS),
         [&expectedEntries] { return g_mockAppMgr->registerEntered >= expectedEntries; });
 }
+
+// The attach write-back lands the terminal attribution state after the register IPC returns,
+// so registerCalls alone is observable too early: poll the state itself. The state is guarded
+// by sessionsMutex_: read it under the same lock. Acquiring that lock also orders the worker's
+// mock counter increments (done before the locked write-back) before every later EXPECT on
+// those counters, so the post-wait assertions are race-free (TSAN-clean).
+template<typename ServicePtr, typename RecordPtr>
+bool WaitForAttributionState(const ServicePtr &service, const RecordPtr &record, AttributionState state)
+{
+    for (int waited = 0; waited < ATTR_TEST_WAIT_MS; waited += 10) {
+        {
+            std::lock_guard<ffrt::mutex> guard(service->sessionsMutex_);
+            if (record->attributionState == state) {
+                return true;
+            }
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    std::lock_guard<ffrt::mutex> guard(service->sessionsMutex_);
+    return record->attributionState == state;
+}
 } // namespace {
 } // namespace CliTool
 } // namespace OHOS
@@ -259,7 +330,14 @@ public:
     void TearDown();
 
     sptr<CliToolManagerService> service_;
+
+    // Production discovery defaults captured on the first SetUp (restored in TearDown).
+    static int32_t defaultDiscoveryTimeoutMs_;
+    static int32_t defaultDiscoveryPollMs_;
 };
+
+int32_t CliToolManagerServiceTest::defaultDiscoveryTimeoutMs_ = -1;
+int32_t CliToolManagerServiceTest::defaultDiscoveryPollMs_ = -1;
 
 void CliToolManagerServiceTest::SetUpTestCase(void)
 {
@@ -310,6 +388,14 @@ void CliToolManagerServiceTest::SetUp()
     ccmUtil.isSupportExecCmd_.isLoaded = false;
     ccmUtil.isSupportExecCmd_.value = false;
     PermissionUtilMock::Reset();
+    // Async command-process discovery: shorten the window so attach-path cases resolve fast.
+    // The production defaults are captured once and restored in TearDown.
+    if (defaultDiscoveryTimeoutMs_ < 0) {
+        defaultDiscoveryTimeoutMs_ = CliToolManagerService::commandDiscoveryTimeoutMs_;
+        defaultDiscoveryPollMs_ = CliToolManagerService::commandDiscoveryPollMs_;
+    }
+    CliToolManagerService::commandDiscoveryTimeoutMs_ = 50;
+    CliToolManagerService::commandDiscoveryPollMs_ = 10;
 }
 
 void CliToolManagerServiceTest::TearDown()
@@ -338,6 +424,18 @@ void CliToolManagerServiceTest::TearDown()
     // Safety net (outside sessionsMutex_: StopReaper joins the reaper, whose WaitPid takes sessionsMutex_):
     // stop the reaper if a test started it and did not stop it. No-op if never started.
     service_->StopReaper();
+    // StopReaper deliberately leaves SIGCHLD at SIG_IGN process-wide (auto-reap). That must not
+    // leak into the NEXT cases of this binary: they fork anchors/commands and assert on waitpid,
+    // which returns -1/ECHILD for kernel-auto-reaped children. Restore the default disposition.
+    struct sigaction restoreSa = {};
+    restoreSa.sa_handler = SIG_DFL;
+    sigemptyset(&restoreSa.sa_mask);
+    sigaction(SIGCHLD, &restoreSa, nullptr);
+    // Restore the production discovery defaults for the next case.
+    if (defaultDiscoveryTimeoutMs_ >= 0) {
+        CliToolManagerService::commandDiscoveryTimeoutMs_ = defaultDiscoveryTimeoutMs_;
+        CliToolManagerService::commandDiscoveryPollMs_ = defaultDiscoveryPollMs_;
+    }
 }
 
 /**
@@ -1250,7 +1348,9 @@ HWTEST_F(CliToolManagerServiceTest, HandleProcessTimeout_0100, TestSize.Level1)
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "timeout_session";
     record->eventId = "timeout_event";
-    record->processId = 999999;
+    pid_t deadPid = NeverAllocatablePid();
+    ASSERT_GT(deadPid, 0) << "pid_max unreadable: kill-test safety cannot be established";
+    record->processId = deadPid;
     record->SetBackground(true);
     service_->AddSessionRecord(record);
 
@@ -1277,7 +1377,9 @@ HWTEST_F(CliToolManagerServiceTest, HandleProcessTimeout_0200, TestSize.Level1)
     record->sessionId = "timeout_foreground_session";
     record->eventId = "timeout_foreground_event";
     record->callerPid = IPCSkeleton::GetCallingPid();
-    record->processId = 999999;
+    pid_t deadPid = NeverAllocatablePid();
+    ASSERT_GT(deadPid, 0) << "pid_max unreadable: kill-test safety cannot be established";
+    record->processId = deadPid;
     record->SetBackground(false);
     service_->AddSessionRecord(record);
 
@@ -1760,9 +1862,11 @@ HWTEST_F(CliToolManagerServiceTest, WaitPid_0300, TestSize.Level1)
     record->MarkStderrClosed();
     service_->AddSessionRecord(record);
 
-    // Simulate process killed by SIGKILL (signal 9)
-    int status = 0;
-    status = (9 << 8) | 0x7f; // WIFSIGNALED(status) = true, WTERMSIG(status) = 9
+    // Simulate process killed by SIGKILL. Raw waitpid encoding of a signal death: the low byte
+    // IS the signal number, so WIFSIGNALED(9) is true and WTERMSIG(9) == 9. (The old
+    // (sig << 8) | 0x7f encoding was a WIFSTOPPED-style value: WIFSIGNALED false, WTERMSIG 127 —
+    // the SIGKILL filter below would never have run.)
+    int status = 9;
     service_->WaitPid(record->processId, status, SIGCHLD);
 
     EXPECT_TRUE(record->HasProcessExited());
@@ -1788,9 +1892,10 @@ HWTEST_F(CliToolManagerServiceTest, WaitPid_0400, TestSize.Level1)
     record->MarkStderrClosed();
     service_->AddSessionRecord(record);
 
-    // Simulate process terminated by SIGTERM (signal 15) - should not report
-    int status = 0;
-    status = (15 << 8) | 0x7f; // WIFSIGNALED(status) = true, WTERMSIG(status) = 15
+    // Simulate process terminated by SIGTERM — a reported-signals filter target: WIFSIGNALED
+    // true, WTERMSIG == SIGTERM, which WaitPid must suppress (no CliSignal event). Same raw
+    // encoding note as WaitPid_0300: the low byte is the signal number.
+    int status = SIGTERM;
     service_->WaitPid(record->processId, status, SIGCHLD);
 
     EXPECT_TRUE(record->HasProcessExited());
@@ -1888,7 +1993,9 @@ HWTEST_F(CliToolManagerServiceTest, ClearSession_0300, TestSize.Level1)
     record->sessionId = "clear_cli_not_kill_session";
     record->callerPid = IPCSkeleton::GetCallingPid();
     record->sessionType = SessionType::CLI;
-    record->processId = 999999;
+    pid_t deadPid = NeverAllocatablePid();
+    ASSERT_GT(deadPid, 0) << "pid_max unreadable: kill-test safety cannot be established";
+    record->processId = deadPid;
     record->SetState(SessionState::RUNNING);
     service_->AddSessionRecord(record);
 
@@ -2366,14 +2473,18 @@ HWTEST_F(CliToolManagerServiceTest, OnStop_0200, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnStop_0200 start");
 
     service_->initialized_ = true;
+    // One never-allocatable pid serves both records: OnStop kills each active target
+    // independently, and the same value stays a deterministic ESRCH for both.
+    pid_t deadPid = NeverAllocatablePid();
+    ASSERT_GT(deadPid, 0) << "pid_max unreadable: kill-test safety cannot be established";
     auto liveRecord = std::make_shared<SessionRecord>();
     liveRecord->sessionId = "stop_live_session";
-    liveRecord->processId = 999999;
+    liveRecord->processId = deadPid;
     service_->AddSessionRecord(liveRecord);
 
     auto exitedRecord = std::make_shared<SessionRecord>();
     exitedRecord->sessionId = "stop_exited_session";
-    exitedRecord->processId = 999998;
+    exitedRecord->processId = deadPid;
     exitedRecord->SetTerminalResult(0, 0); // mark process exited
     service_->AddSessionRecord(exitedRecord);
 
@@ -3569,8 +3680,11 @@ HWTEST_F(CliToolManagerServiceTest, PostExecToolTask_0100, TestSize.Level1)
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "postexec_timeout_session";
     record->eventId = "postexec_timeout_event";
-    // nonexistent process-group id, same convention as HandleProcessTimeout_* tests, so Killpg is a safe no-op.
-    record->processId = 999999;
+    // Never-allocatable pid, same convention as HandleProcessTimeout_* tests, so the session
+    // kill (group + direct) is a deterministic ESRCH no-op.
+    pid_t deadPid = NeverAllocatablePid();
+    ASSERT_GT(deadPid, 0) << "pid_max unreadable: kill-test safety cannot be established";
+    record->processId = deadPid;
     record->SetBackground(true);
     service_->AddSessionRecord(record);
 
@@ -3650,9 +3764,12 @@ HWTEST_F(CliToolManagerServiceTest, OnProcessDied_0200, TestSize.Level1)
     auto matchingRecord = std::make_shared<SessionRecord>();
     matchingRecord->sessionId = "active_died_session";
     matchingRecord->callerPid = diedPid;
-    // nonexistent process-group id (same convention as HandleProcessTimeout_* tests) so the post-lock
-    // ProcessManager::Killpg targets nothing real (ESRCH) while still exercising the activePids branch.
-    matchingRecord->processId = 999999;
+    // Never-allocatable pid (same convention as HandleProcessTimeout_* tests) so the post-lock
+    // session kill targets nothing real (deterministic ESRCH) while still exercising the
+    // activeTargets branch.
+    pid_t deadPid = NeverAllocatablePid();
+    ASSERT_GT(deadPid, 0) << "pid_max unreadable: kill-test safety cannot be established";
+    matchingRecord->processId = deadPid;
     auto otherRecord = std::make_shared<SessionRecord>();
     otherRecord->sessionId = "other_active_died_session";
     otherRecord->callerPid = 2004;
@@ -3682,14 +3799,18 @@ HWTEST_F(CliToolManagerServiceTest, OnProcessDied_0300, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnProcessDied_0300 start");
 
     const int32_t diedPid = 2005;
+    // One never-allocatable pid serves both matching records: OnProcessDied kills every
+    // collected target, and the same value stays a deterministic ESRCH for both.
+    pid_t deadPid = NeverAllocatablePid();
+    ASSERT_GT(deadPid, 0) << "pid_max unreadable: kill-test safety cannot be established";
     auto recA = std::make_shared<SessionRecord>();
     recA->sessionId = "multi_died_session_a";
     recA->callerPid = diedPid;
-    recA->processId = 999999;
+    recA->processId = deadPid;
     auto recB = std::make_shared<SessionRecord>();
     recB->sessionId = "multi_died_session_b";
     recB->callerPid = diedPid;
-    recB->processId = 999998;
+    recB->processId = deadPid;
     auto otherRecord = std::make_shared<SessionRecord>();
     otherRecord->sessionId = "multi_died_other_session";
     otherRecord->callerPid = 2006;
@@ -4870,8 +4991,9 @@ HWTEST_F(CliToolManagerServiceTest, MixedDeploy_NewWriteNewRead_0100, TestSize.L
 
 /**
  * @tc.name: CliToolManagerService_AttachTaskAttribution_0100
- * @tc.desc: attach hook, accepted verdict: anchor pid registered with the
- *           CLI tool contract and the session-record uid; handle stored
+ * @tc.desc: attach hook, accepted verdict (no sandboxed command child: the anchor is the
+ *           fallback target): anchor pid registered with the CLI tool contract and the
+ *           session-record uid; handle stored
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0100, TestSize.Level1)
@@ -4881,20 +5003,27 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0100, TestSize.Level1)
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "attach_attrib_session";
     record->taskId = "task_attach_attrib_0100";
-    record->processId = ATTR_TEST_ANCHOR_PID;
+    pid_t anchorPid = ForkLiveAnchor();
+    record->processId = anchorPid;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
     service_->AttachTaskAttribution(record);
+    // The registration now runs on an ffrt worker after the discovery window: the live anchor
+    // has no command child, so the short seam window (SetUp) lapses into the anchor fallback
+    // (the exec-in-place form).
+    EXPECT_TRUE(WaitForAttributionState(service_, record, AttributionState::ATTACHED));
 
     EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
     EXPECT_EQ(g_mockAppMgr->lastRegisterTaskId, "task_attach_attrib_0100");
-    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(ATTR_TEST_ANCHOR_PID));
+    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(anchorPid));
     EXPECT_EQ(g_mockAppMgr->lastRegisterTool, ATTRIBUTION_TOOL_CLI);
     EXPECT_EQ(g_mockAppMgr->lastRegisterCallerUid, ATTR_TEST_CALLER_UID);
     EXPECT_EQ(record->attributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(record->attributionState, AttributionState::ATTACHED);
     EXPECT_EQ(record->taskId, "task_attach_attrib_0100");
+
+    ReapAnchor(anchorPid);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0100 end");
 }
@@ -4912,7 +5041,9 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0200, TestSize.Level1)
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "attach_empty_session";
     record->taskId = "";
-    record->processId = ATTR_TEST_ANCHOR_PID;
+    pid_t deadPid = NeverAllocatablePid();
+    ASSERT_GT(deadPid, 0) << "pid_max unreadable: kill-test safety cannot be established";
+    record->processId = deadPid;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
@@ -4939,16 +5070,20 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0300, TestSize.Level1)
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "attach_reject_session";
     record->taskId = "task_attach_attrib_0300";
-    record->processId = ATTR_TEST_ANCHOR_PID;
+    pid_t anchorPid = ForkLiveAnchor();
+    record->processId = anchorPid;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
     service_->AttachTaskAttribution(record);
+    EXPECT_TRUE(WaitForAttributionState(service_, record, AttributionState::FAILED));
 
     EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
     EXPECT_EQ(record->taskId, "task_attach_attrib_0300");
     EXPECT_EQ(record->attributionId, 0);
     EXPECT_EQ(record->attributionState, AttributionState::FAILED);
+
+    ReapAnchor(anchorPid);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0300 end");
 }
@@ -5178,7 +5313,9 @@ HWTEST_F(CliToolManagerServiceTest, HandleProcessTimeout_NoDetach_0100, TestSize
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "timeout_no_detach_session";
     record->taskId = "task_timeout_0100";
-    record->processId = 999999; // not a live pid: Killpg fails harmlessly
+    pid_t deadPid = NeverAllocatablePid(); // not a live pid: the session kill fails harmlessly
+    ASSERT_GT(deadPid, 0) << "pid_max unreadable: kill-test safety cannot be established";
+    record->processId = deadPid;
     record->attributionId = ATTR_TEST_ATTRIBUTION_ID;
     record->attributionState = AttributionState::ATTACHED;
     record->callerUid = ATTR_TEST_CALLER_UID;
@@ -5274,19 +5411,20 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_RelayDetach_0100, Test
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "relay_teardown_wins_session";
     record->taskId = "task_relay_detach_0100";
-    record->processId = 8811;
+    pid_t anchorPid = ForkLiveAnchor();
+    record->processId = anchorPid;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
     g_mockAppMgr->blockRegister = true;
-    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record); });
+    // Attach snapshots PENDING synchronously, then runs discovery + register on an ffrt worker.
+    service_->AttachTaskAttribution(record);
     ASSERT_TRUE(WaitForRegisterEntered(1));
 
     service_->RemoveSessionRecord(record->sessionId);
 
     g_mockAppMgr->blockRegister = false;
     g_mockAppMgr->cv.notify_all();
-    attachThread.join();
 
     EXPECT_TRUE(WaitForUnregister(1));
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
@@ -5295,6 +5433,8 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_RelayDetach_0100, Test
     EXPECT_EQ(g_mockAppMgr->lastUnregisterCallerUid, ATTR_TEST_CALLER_UID);
     EXPECT_EQ(record->attributionId, 0);
     EXPECT_EQ(record->attributionState, AttributionState::CONSUMED);
+
+    ReapAnchor(anchorPid);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_RelayDetach_0100 end");
 }
@@ -5312,12 +5452,13 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_RelayDetach_0200, Test
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "relay_attach_wins_session";
     record->taskId = "task_relay_detach_0200";
-    record->processId = 8812;
+    pid_t anchorPid = ForkLiveAnchor();
+    record->processId = anchorPid;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
     service_->AttachTaskAttribution(record);
-    EXPECT_EQ(record->attributionState, AttributionState::ATTACHED);
+    EXPECT_TRUE(WaitForAttributionState(service_, record, AttributionState::ATTACHED));
 
     service_->RemoveSessionRecord(record->sessionId);
 
@@ -5325,6 +5466,8 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_RelayDetach_0200, Test
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
     EXPECT_EQ(g_mockAppMgr->lastUnregisterTaskId, "task_relay_detach_0200");
     EXPECT_EQ(record->attributionState, AttributionState::CONSUMED);
+
+    ReapAnchor(anchorPid);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_RelayDetach_0200 end");
 }
@@ -5343,23 +5486,26 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_RelayDetach_0300, Test
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "relay_reject_session";
     record->taskId = "task_relay_detach_0300";
-    record->processId = 8813;
+    pid_t anchorPid = ForkLiveAnchor();
+    record->processId = anchorPid;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
     g_mockAppMgr->blockRegister = true;
-    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record); });
+    // Attach snapshots PENDING synchronously, then runs discovery + register on an ffrt worker.
+    service_->AttachTaskAttribution(record);
     ASSERT_TRUE(WaitForRegisterEntered(1));
 
     service_->RemoveSessionRecord(record->sessionId);
 
     g_mockAppMgr->blockRegister = false;
     g_mockAppMgr->cv.notify_all();
-    attachThread.join();
 
     std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 0);
     EXPECT_EQ(record->attributionState, AttributionState::CONSUMED);
+
+    ReapAnchor(anchorPid);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_RelayDetach_0300 end");
 }
@@ -5378,18 +5524,21 @@ HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_RelayDetach_0400, Test
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "relay_failed_session";
     record->taskId = "task_relay_detach_0400";
-    record->processId = 8814;
+    pid_t anchorPid = ForkLiveAnchor();
+    record->processId = anchorPid;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
     service_->AttachTaskAttribution(record);
-    EXPECT_EQ(record->attributionState, AttributionState::FAILED);
+    EXPECT_TRUE(WaitForAttributionState(service_, record, AttributionState::FAILED));
     EXPECT_EQ(record->taskId, "task_relay_detach_0400");
 
     service_->RemoveSessionRecord(record->sessionId);
 
     std::unique_lock<std::mutex> lock(g_mockAppMgr->mtx);
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 0);
+
+    ReapAnchor(anchorPid);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_RelayDetach_0400 end");
 }
@@ -5409,19 +5558,20 @@ HWTEST_F(CliToolManagerServiceTest, WaitPid_RelayDetach_0100, TestSize.Level1)
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "relay_waitpid_session";
     record->taskId = "task_waitpid_relay_0100";
-    record->processId = 8815;
+    pid_t anchorPid = ForkLiveAnchor();
+    record->processId = anchorPid;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
     g_mockAppMgr->blockRegister = true;
-    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record); });
+    // Attach snapshots PENDING synchronously, then runs discovery + register on an ffrt worker.
+    service_->AttachTaskAttribution(record);
     ASSERT_TRUE(WaitForRegisterEntered(1));
 
     service_->WaitPid(record->processId, 0, 0);
 
     g_mockAppMgr->blockRegister = false;
     g_mockAppMgr->cv.notify_all();
-    attachThread.join();
 
     EXPECT_TRUE(WaitForUnregister(1));
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
@@ -5429,6 +5579,8 @@ HWTEST_F(CliToolManagerServiceTest, WaitPid_RelayDetach_0100, TestSize.Level1)
     EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(record->processId, -1);
     EXPECT_EQ(record->attributionState, AttributionState::CONSUMED);
+
+    ReapAnchor(anchorPid);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_WaitPid_RelayDetach_0100 end");
 }
@@ -5447,19 +5599,20 @@ HWTEST_F(CliToolManagerServiceTest, OnStop_RelayDetach_0100, TestSize.Level1)
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "relay_onstop_session";
     record->taskId = "task_onstop_relay_0100";
-    record->processId = 8816;
+    pid_t anchorPid = ForkLiveAnchor();
+    record->processId = anchorPid;
     record->callerUid = ATTR_TEST_CALLER_UID;
     service_->AddSessionRecord(record);
 
     g_mockAppMgr->blockRegister = true;
-    std::thread attachThread([this, &record] { service_->AttachTaskAttribution(record); });
+    // Attach snapshots PENDING synchronously, then runs discovery + register on an ffrt worker.
+    service_->AttachTaskAttribution(record);
     ASSERT_TRUE(WaitForRegisterEntered(1));
 
     service_->OnStop();
 
     g_mockAppMgr->blockRegister = false;
     g_mockAppMgr->cv.notify_all();
-    attachThread.join();
 
     EXPECT_TRUE(WaitForUnregister(1));
     EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
@@ -5467,7 +5620,207 @@ HWTEST_F(CliToolManagerServiceTest, OnStop_RelayDetach_0100, TestSize.Level1)
     EXPECT_EQ(g_mockAppMgr->lastUnregisterAttributionId, ATTR_TEST_ATTRIBUTION_ID);
     EXPECT_EQ(record->attributionState, AttributionState::CONSUMED);
 
+    ReapAnchor(anchorPid);
+
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnStop_RelayDetach_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_AttachTaskAttribution_0500
+ * @tc.desc: transitional discovery, pid-ns form: the anchor (claw_sandbox monitor) forks the
+ *           real command child which then becomes a group leader — the registration must
+ *           target the command pid (not the anchor), and record->commandPid caches it so the
+ *           kill paths can reach the command's group even after the anchor is gone.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0500 start");
+
+    int fds[2];
+    ASSERT_EQ(pipe(fds), 0);
+    pid_t anchorPid = fork();
+    ASSERT_GE(anchorPid, 0);
+    if (anchorPid == 0) {
+        // Anchor role: fork the command child (mirrors claw_sandbox's pid-ns fork), hand its
+        // pid to the test, then wait for it like the monitor does.
+        close(fds[0]);
+        pid_t commandPid = fork();
+        if (commandPid == 0) {
+            close(fds[1]);
+            setpgid(0, 0); // command form: session leader in its own group
+            struct timespec ts = { 5, 0 };
+            nanosleep(&ts, nullptr);
+            _exit(0);
+        }
+        ssize_t written = write(fds[1], &commandPid, sizeof(commandPid));
+        (void)written;
+        close(fds[1]);
+        waitpid(commandPid, nullptr, 0);
+        _exit(0);
+    }
+    close(fds[1]);
+    pid_t commandPid = -1;
+    ASSERT_EQ(read(fds[0], &commandPid, sizeof(commandPid)), static_cast<ssize_t>(sizeof(commandPid)));
+    close(fds[0]);
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "attach_discovery_session";
+    record->taskId = "task_attach_attrib_0500";
+    record->processId = anchorPid;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    service_->AttachTaskAttribution(record);
+    EXPECT_TRUE(WaitForAttributionState(service_, record, AttributionState::ATTACHED));
+
+    EXPECT_EQ(g_mockAppMgr->lastRegisterTaskId, "task_attach_attrib_0500");
+    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(commandPid));
+    EXPECT_EQ(record->commandPid.load(), commandPid);
+    EXPECT_EQ(record->attributionId, ATTR_TEST_ATTRIBUTION_ID);
+    EXPECT_EQ(record->attributionState, AttributionState::ATTACHED);
+
+    // Teardown: kill the command, reap the anchor, then detach through the session teardown.
+    EXPECT_EQ(kill(commandPid, SIGKILL), 0);
+    ASSERT_GT(waitpid(anchorPid, nullptr, 0), 0);
+    service_->RemoveSessionRecord(record->sessionId);
+    EXPECT_TRUE(WaitForUnregister(1));
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0500 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_AttachTaskAttribution_0600
+ * @tc.desc: transitional discovery, teardown during the poll window: RemoveSessionRecord
+ *           consumes the PENDING snapshot before the anchor's child exists, so the discovery
+ *           worker aborts with zero registrations and zero compensating unregisters (SEC-01).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0600 start");
+
+    pid_t anchorPid = fork();
+    ASSERT_GE(anchorPid, 0);
+    if (anchorPid == 0) {
+        // Live anchor with no command child yet: discovery must keep polling.
+        struct timespec ts = { 5, 0 };
+        nanosleep(&ts, nullptr);
+        _exit(0);
+    }
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "attach_discovery_abort_session";
+    record->taskId = "task_attach_attrib_0600";
+    record->processId = anchorPid;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    // Widen the window to the production default so only the teardown (not the deadline)
+    // can end the discovery loop.
+    CliToolManagerService::commandDiscoveryTimeoutMs_ = defaultDiscoveryTimeoutMs_;
+
+    service_->AttachTaskAttribution(record);
+    // Let the discovery loop start polling (first scan: no children yet).
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    service_->RemoveSessionRecord(record->sessionId);
+    // Allow the worker to observe CONSUMED on its next poll.
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 0);
+    EXPECT_EQ(record->attributionState, AttributionState::CONSUMED);
+
+    EXPECT_EQ(kill(anchorPid, SIGKILL), 0);
+    ASSERT_GT(waitpid(anchorPid, nullptr, 0), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0600 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_AttachTaskAttribution_0700
+ * @tc.desc: anchor observed alive first, then definitively gone mid-discovery: the discovery
+ *           aborts with zero registrations, so no attribution record is ever created — the
+ *           teardown consume is the whole cleanup (no register-then-compensate churn, and
+ *           nothing lingers in appmgr waiting for a detach).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0700 start");
+
+    pid_t anchorPid = ForkLiveAnchor();
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "attach_dead_anchor_session";
+    record->taskId = "task_attach_attrib_0700";
+    record->processId = anchorPid;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    // Production window: the deadline cannot fire first; only the ALIVE->DEAD verdict aborts.
+    CliToolManagerService::commandDiscoveryTimeoutMs_ = defaultDiscoveryTimeoutMs_;
+
+    service_->AttachTaskAttribution(record);
+    // Let the discovery worker observe the anchor ALIVE at least once (poll seam: 10ms).
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // Then the anchor really exits (kill + reap: the pid is gone for good).
+    ASSERT_EQ(kill(anchorPid, SIGKILL), 0);
+    ASSERT_GT(waitpid(anchorPid, nullptr, 0), 0);
+    // Allow the worker to observe DEAD on its next poll round and abort.
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 0);
+    EXPECT_EQ(record->commandPid.load(), -1);
+
+    // The reaper face of the teardown consumes PENDING — and that is the entire cleanup.
+    service_->RemoveSessionRecord(record->sessionId);
+    EXPECT_EQ(record->attributionState, AttributionState::CONSUMED);
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0700 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_AttachTaskAttribution_0800
+ * @tc.desc: anchor DEAD on the FIRST observation (already reaped, or invisible on a hidepid
+ *           system without the readproc gid): the anchor was forked by climgr moments ago, so
+ *           this is an observation artifact, not a death — the discovery must NOT skip;
+ *           it polls out and falls back to registering the anchor (never silently lose the
+ *           attribution).
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, AttachTaskAttribution_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0800 start");
+
+    // A pid the kernel can never allocate: every liveness observation says DEAD, from the
+    // very first one — deterministically, with no pid-reuse caveat.
+    pid_t anchorPid = NeverAllocatablePid();
+    ASSERT_GT(anchorPid, 0) << "pid_max unreadable: kill-test safety cannot be established";
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "attach_first_obs_dead_session";
+    record->taskId = "task_attach_attrib_0800";
+    record->processId = anchorPid;
+    record->callerUid = ATTR_TEST_CALLER_UID;
+    service_->AddSessionRecord(record);
+
+    service_->AttachTaskAttribution(record);
+    // The discovery window (seam: 50ms) lapses without finding a command child.
+    EXPECT_TRUE(WaitForAttributionState(service_, record, AttributionState::ATTACHED));
+
+    EXPECT_EQ(g_mockAppMgr->registerCalls, 1);
+    EXPECT_EQ(g_mockAppMgr->lastRegisterTaskId, "task_attach_attrib_0800");
+    EXPECT_EQ(g_mockAppMgr->lastRegisterPid, static_cast<int32_t>(anchorPid));
+
+    service_->RemoveSessionRecord(record->sessionId);
+    EXPECT_TRUE(WaitForUnregister(1));
+    EXPECT_EQ(g_mockAppMgr->unregisterCalls, 1);
+    EXPECT_EQ(record->attributionState, AttributionState::CONSUMED);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_AttachTaskAttribution_0800 end");
 }
 
 /**
