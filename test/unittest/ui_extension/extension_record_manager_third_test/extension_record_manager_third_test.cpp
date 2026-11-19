@@ -59,7 +59,12 @@ void ExtensionRecordManagerThirdTest::TearDown()
 
 namespace {
 constexpr const char *MIGRATION_TEST_BUNDLE = "com.example.unittest";
-
+constexpr int32_t MIGRATION_PERSISTENT_ID = 10;
+constexpr uint64_t MIGRATION_CREATE_COMPONENT_ID = 100;
+constexpr uint64_t MIGRATION_REQUEST_COMPONENT_ID = 200;
+constexpr uint32_t MIGRATION_HOST_WINDOW_A = 7;
+constexpr uint32_t MIGRATION_HOST_WINDOW_B = 8;
+constexpr uint32_t MIGRATION_HOST_WINDOW_C = 9;
 struct MigrationRecordFixture {
     std::shared_ptr<ExtensionRecordManager> mgr;
     std::shared_ptr<AAFwk::BaseExtensionRecord> record;
@@ -77,8 +82,8 @@ MigrationRecordFixture SetupMigrationRecord(uint32_t hostWindowId)
     createRequest.abilityInfo.name = "MainAbility";
     createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
-    createSessionInfo->uiExtensionComponentId = 100;
-    createSessionInfo->persistentId = 10;
+    createSessionInfo->uiExtensionComponentId = MIGRATION_CREATE_COMPONENT_ID;
+    createSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     createSessionInfo->hostWindowId = hostWindowId;
     createSessionInfo->callerToken = fx.hostToken;
     createRequest.sessionInfo = createSessionInfo;
@@ -98,12 +103,12 @@ AAFwk::AbilityRequest MakeMigrationRequest(uint32_t targetWindowId, const sptr<I
     request.abilityInfo.name = "MainAbility";
     request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
-    sessionInfo->uiExtensionComponentId = 200;
-    sessionInfo->persistentId = 10;
+    sessionInfo->uiExtensionComponentId = MIGRATION_REQUEST_COMPONENT_ID;
+    sessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     sessionInfo->hostWindowId = targetWindowId;
     sessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     sessionInfo->originalCallerInfo.callerToken = prevHostToken;
-    sessionInfo->originalCallerInfo.persistentId = 10;
+    sessionInfo->originalCallerInfo.persistentId = MIGRATION_PERSISTENT_ID;
     request.sessionInfo = sessionInfo;
     return request;
 }
@@ -129,7 +134,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, IsMigrationUpdateRequest_0100, TestSiz
     sessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     EXPECT_FALSE(extRecordMgr->IsMigrationUpdateRequest(sessionInfo));
 
-    sessionInfo->originalCallerInfo.persistentId = 10;
+    sessionInfo->originalCallerInfo.persistentId = MIGRATION_PERSISTENT_ID;
     EXPECT_TRUE(extRecordMgr->IsMigrationUpdateRequest(sessionInfo));
 }
 
@@ -150,8 +155,8 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetAbilityRecordByPersistentId_0100, T
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
-    sessionInfo->uiExtensionComponentId = 100;
-    sessionInfo->persistentId = 10;
+    sessionInfo->uiExtensionComponentId = MIGRATION_CREATE_COMPONENT_ID;
+    sessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     abilityRequest.sessionInfo = sessionInfo;
     auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
@@ -166,7 +171,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetAbilityRecordByPersistentId_0100, T
     sessionParam->persistentId = 0;
     EXPECT_EQ(extRecordMgr->GetAbilityRecordByPersistentId(sessionParam, hostBundle, terminatingMatch), nullptr);
 
-    sessionParam->persistentId = 10;
+    sessionParam->persistentId = MIGRATION_PERSISTENT_ID;
     terminatingMatch = true;
     EXPECT_EQ(extRecordMgr->GetAbilityRecordByPersistentId(sessionParam, hostBundle, terminatingMatch), abilityRecord);
     EXPECT_FALSE(terminatingMatch);
@@ -174,7 +179,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetAbilityRecordByPersistentId_0100, T
     sessionParam->persistentId = 11;
     EXPECT_EQ(extRecordMgr->GetAbilityRecordByPersistentId(sessionParam, hostBundle, terminatingMatch), nullptr);
 
-    sessionParam->persistentId = 10;
+    sessionParam->persistentId = MIGRATION_PERSISTENT_ID;
     EXPECT_EQ(extRecordMgr->GetAbilityRecordByPersistentId(sessionParam, "com.example.other", terminatingMatch),
         abilityRecord);
 }
@@ -196,8 +201,8 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationUp
     createRequest.abilityInfo.name = "MainAbility";
     createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
-    createSessionInfo->uiExtensionComponentId = 100;
-    createSessionInfo->persistentId = 10;
+    createSessionInfo->uiExtensionComponentId = MIGRATION_CREATE_COMPONENT_ID;
+    createSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     createRequest.sessionInfo = createSessionInfo;
     auto createdRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(createRequest);
     ASSERT_NE(createdRecord, nullptr);
@@ -207,7 +212,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationUp
 
     auto previousHostToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     createSessionInfo->callerToken = previousHostToken;
-    createSessionInfo->hostWindowId = 7;
+    createSessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
     createdRecord->SetSessionInfo(createSessionInfo);
 
     AAFwk::AbilityRequest migrationRequest;
@@ -215,12 +220,12 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationUp
     migrationRequest.abilityInfo.name = "MainAbility";
     migrationRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> migrationSessionInfo(new AAFwk::SessionInfo());
-    migrationSessionInfo->uiExtensionComponentId = 200;
-    migrationSessionInfo->persistentId = 10;
-    migrationSessionInfo->hostWindowId = 9;
+    migrationSessionInfo->uiExtensionComponentId = MIGRATION_REQUEST_COMPONENT_ID;
+    migrationSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
+    migrationSessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_C;
     migrationSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     migrationSessionInfo->originalCallerInfo.callerToken = previousHostToken;
-    migrationSessionInfo->originalCallerInfo.persistentId = 10;
+    migrationSessionInfo->originalCallerInfo.persistentId = MIGRATION_PERSISTENT_ID;
     migrationRequest.sessionInfo = migrationSessionInfo;
 
     std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = nullptr;
@@ -251,8 +256,8 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationDe
     createRequest.abilityInfo.name = "MainAbility";
     createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
-    createSessionInfo->uiExtensionComponentId = 100;
-    createSessionInfo->persistentId = 10;
+    createSessionInfo->uiExtensionComponentId = MIGRATION_CREATE_COMPONENT_ID;
+    createSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     createSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     createRequest.sessionInfo = createSessionInfo;
     auto createdRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(createRequest);
@@ -267,11 +272,11 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationDe
     forgedRequest.abilityInfo.name = "MainAbility";
     forgedRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> forgedSessionInfo(new AAFwk::SessionInfo());
-    forgedSessionInfo->uiExtensionComponentId = 200;
-    forgedSessionInfo->persistentId = 10;
+    forgedSessionInfo->uiExtensionComponentId = MIGRATION_REQUEST_COMPONENT_ID;
+    forgedSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     forgedSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     forgedSessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
-    forgedSessionInfo->originalCallerInfo.persistentId = 10;
+    forgedSessionInfo->originalCallerInfo.persistentId = MIGRATION_PERSISTENT_ID;
     forgedRequest.sessionInfo = forgedSessionInfo;
 
     std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = createdRecord;
@@ -299,9 +304,9 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationWi
     createRequest.abilityInfo.name = "MainAbility";
     createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
-    createSessionInfo->uiExtensionComponentId = 100;
-    createSessionInfo->persistentId = 10;
-    createSessionInfo->hostWindowId = 7;
+    createSessionInfo->uiExtensionComponentId = MIGRATION_CREATE_COMPONENT_ID;
+    createSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
+    createSessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
     auto previousHostToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     createSessionInfo->callerToken = previousHostToken;
     createRequest.sessionInfo = createSessionInfo;
@@ -318,12 +323,12 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationWi
     noOpRequest.abilityInfo.name = "MainAbility";
     noOpRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> noOpSessionInfo(new AAFwk::SessionInfo());
-    noOpSessionInfo->uiExtensionComponentId = 200;
-    noOpSessionInfo->persistentId = 10;
-    noOpSessionInfo->hostWindowId = 7;
+    noOpSessionInfo->uiExtensionComponentId = MIGRATION_REQUEST_COMPONENT_ID;
+    noOpSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
+    noOpSessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
     noOpSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     noOpSessionInfo->originalCallerInfo.callerToken = previousHostToken;
-    noOpSessionInfo->originalCallerInfo.persistentId = 10;
+    noOpSessionInfo->originalCallerInfo.persistentId = MIGRATION_PERSISTENT_ID;
     noOpRequest.sessionInfo = noOpSessionInfo;
 
     std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = createdRecord;
@@ -351,8 +356,8 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationTe
     createRequest.abilityInfo.name = "MainAbility";
     createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
-    createSessionInfo->uiExtensionComponentId = 100;
-    createSessionInfo->persistentId = 10;
+    createSessionInfo->uiExtensionComponentId = MIGRATION_CREATE_COMPONENT_ID;
+    createSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     createRequest.sessionInfo = createSessionInfo;
     auto terminatingRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(createRequest);
     ASSERT_NE(terminatingRecord, nullptr);
@@ -366,10 +371,10 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationTe
     migrationRequest.abilityInfo.name = "MainAbility";
     migrationRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> migrationSessionInfo(new AAFwk::SessionInfo());
-    migrationSessionInfo->uiExtensionComponentId = 200;
-    migrationSessionInfo->persistentId = 10;
+    migrationSessionInfo->uiExtensionComponentId = MIGRATION_REQUEST_COMPONENT_ID;
+    migrationSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     migrationSessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
-    migrationSessionInfo->originalCallerInfo.persistentId = 10;
+    migrationSessionInfo->originalCallerInfo.persistentId = MIGRATION_PERSISTENT_ID;
     migrationRequest.sessionInfo = migrationSessionInfo;
 
     std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = terminatingRecord;
@@ -395,10 +400,10 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_MigrationRete
     savedRequest.abilityInfo.name = "MainAbility";
     savedRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> savedSessionInfo(new AAFwk::SessionInfo());
-    savedSessionInfo->uiExtensionComponentId = 100;
-    savedSessionInfo->persistentId = 10;
+    savedSessionInfo->uiExtensionComponentId = MIGRATION_CREATE_COMPONENT_ID;
+    savedSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     savedSessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
-    savedSessionInfo->originalCallerInfo.persistentId = 10;
+    savedSessionInfo->originalCallerInfo.persistentId = MIGRATION_PERSISTENT_ID;
     savedRequest.sessionInfo = savedSessionInfo;
     auto previousHostToken = savedSessionInfo->originalCallerInfo.callerToken;
     auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(savedRequest);
@@ -415,13 +420,13 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_MigrationRete
     reuseRequest.abilityInfo.name = "MainAbility";
     reuseRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> reuseSessionInfo(new AAFwk::SessionInfo());
-    reuseSessionInfo->uiExtensionComponentId = 100;
-    reuseSessionInfo->persistentId = 10;
+    reuseSessionInfo->uiExtensionComponentId = MIGRATION_CREATE_COMPONENT_ID;
+    reuseSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     reuseRequest.sessionInfo = reuseSessionInfo;
 
     extRecord->Update(reuseRequest);
     EXPECT_EQ(reuseSessionInfo->originalCallerInfo.callerToken, nullptr);
-    EXPECT_EQ(reuseSessionInfo->hostWindowId, 9u);
+    EXPECT_EQ(reuseSessionInfo->hostWindowId, MIGRATION_HOST_WINDOW_C);
 }
 
 /**
@@ -440,7 +445,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_ShouldExecute_CheckOn
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
     ASSERT_NE(sessionInfo, nullptr);
     sessionInfo->originalCallerInfo.migrationGen = 4;
-    sessionInfo->hostWindowId = 9;
+    sessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_C;
 
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
     EXPECT_EQ(state.lastGen, 3u);
@@ -463,12 +468,12 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_CommitMigrationState_
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
     ASSERT_NE(sessionInfo, nullptr);
     sessionInfo->originalCallerInfo.migrationGen = 4;
-    sessionInfo->hostWindowId = 9;
+    sessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_C;
 
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
     CommitMigrationState(state, sessionInfo->originalCallerInfo.migrationGen, sessionInfo->hostWindowId);
     EXPECT_EQ(state.lastGen, 4u);
-    EXPECT_EQ(state.currentParentWindowId, 9u);
+    EXPECT_EQ(state.currentParentWindowId, MIGRATION_HOST_WINDOW_C);
 
     EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
     sessionInfo->originalCallerInfo.migrationGen = 3;
@@ -491,7 +496,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_RetryAfterFailedRePar
     ASSERT_NE(sessionInfo, nullptr);
     sessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     sessionInfo->originalCallerInfo.migrationGen = 1;
-    sessionInfo->hostWindowId = 7;
+    sessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
 
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
@@ -516,11 +521,11 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_NoOpBranch_AdvancesGe
     ASSERT_NE(sessionInfo, nullptr);
     sessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     sessionInfo->originalCallerInfo.migrationGen = 5;
-    sessionInfo->hostWindowId = 9;
+    sessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_C;
 
     EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
     EXPECT_EQ(state.lastGen, 5u);
-    EXPECT_EQ(state.currentParentWindowId, 9u);
+    EXPECT_EQ(state.currentParentWindowId, MIGRATION_HOST_WINDOW_C);
 }
 
 /**
@@ -537,7 +542,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_Guards_0100, TestSize
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
     ASSERT_NE(sessionInfo, nullptr);
     sessionInfo->originalCallerInfo.migrationGen = 1;
-    sessionInfo->hostWindowId = 7;
+    sessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
     EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
     EXPECT_EQ(state.lastGen, 0u);
     EXPECT_EQ(state.currentParentWindowId, 0u);
@@ -612,9 +617,9 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationWi
     createRequest.abilityInfo.name = "MainAbility";
     createRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> createSessionInfo(new AAFwk::SessionInfo());
-    createSessionInfo->uiExtensionComponentId = 100;
-    createSessionInfo->persistentId = 10;
-    createSessionInfo->hostWindowId = 7;
+    createSessionInfo->uiExtensionComponentId = MIGRATION_CREATE_COMPONENT_ID;
+    createSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
+    createSessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
     auto previousHostToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     createSessionInfo->callerToken = previousHostToken;
     createRequest.sessionInfo = createSessionInfo;
@@ -630,12 +635,12 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationWi
     zeroRequest.abilityInfo.name = "MainAbility";
     zeroRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     sptr<AAFwk::SessionInfo> zeroSessionInfo(new AAFwk::SessionInfo());
-    zeroSessionInfo->uiExtensionComponentId = 200;
-    zeroSessionInfo->persistentId = 10;
+    zeroSessionInfo->uiExtensionComponentId = MIGRATION_REQUEST_COMPONENT_ID;
+    zeroSessionInfo->persistentId = MIGRATION_PERSISTENT_ID;
     zeroSessionInfo->hostWindowId = 0;
     zeroSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     zeroSessionInfo->originalCallerInfo.callerToken = previousHostToken;
-    zeroSessionInfo->originalCallerInfo.persistentId = 10;
+    zeroSessionInfo->originalCallerInfo.persistentId = MIGRATION_PERSISTENT_ID;
     zeroRequest.sessionInfo = zeroSessionInfo;
 
     std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = createdRecord;
@@ -668,7 +673,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationRe
     sptr<AAFwk::SessionInfo> migrationSessionInfo(new AAFwk::SessionInfo());
     migrationSessionInfo->uiExtensionComponentId = 300;
     migrationSessionInfo->persistentId = 42;
-    migrationSessionInfo->hostWindowId = 9;
+    migrationSessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_C;
     migrationSessionInfo->callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     migrationSessionInfo->originalCallerInfo.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     migrationSessionInfo->originalCallerInfo.persistentId = 42;
@@ -702,20 +707,20 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationState_SetSessionInfoDoesNotRo
     ASSERT_NE(uiRecord, nullptr);
 
     AAFwk::OriginalCallerInfo declaration;
-    declaration.persistentId = 10;
+    declaration.persistentId = MIGRATION_PERSISTENT_ID;
     declaration.migrationGen = 5;
     uiRecord->SetMigrationDeclaration(declaration, 9);
     EXPECT_EQ(uiRecord->GetMigrationGen(), 5u);
 
     auto plainInfo = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
-    plainInfo->hostWindowId = 7;
+    plainInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
     record->SetSessionInfo(plainInfo);
 
     AAFwk::OriginalCallerInfo restored;
     uint32_t targetHostWindowId = 0;
     EXPECT_TRUE(uiRecord->GetMigrationDeclaration(restored, targetHostWindowId));
     EXPECT_EQ(restored.migrationGen, 5u);
-    EXPECT_EQ(targetHostWindowId, 9u);
+    EXPECT_EQ(targetHostWindowId, MIGRATION_HOST_WINDOW_C);
     EXPECT_EQ(uiRecord->GetMigrationGen(), 5u);
 }
 
@@ -742,7 +747,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationState_ConfirmByGen_0100, Test
     EXPECT_EQ(uiRecord->AdvanceMigrationGen(), 2u);
 
     AAFwk::OriginalCallerInfo declaration;
-    declaration.persistentId = 10;
+    declaration.persistentId = MIGRATION_PERSISTENT_ID;
     declaration.migrationGen = 2;
     uiRecord->SetMigrationDeclaration(declaration, 9);
 
@@ -760,7 +765,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationState_ConfirmByGen_0100, Test
 /**
  * @tc.name: UIExtensionRecord_Update_StaleDeclarationStripped_0100
  * @tc.desc: With no pending migration on the record, a stale declaration riding a request
- *           is stripped — declarations only ever leave AMS stamped from the record state
+ *           is stripped — declarations only ever leave the service stamped from the record state
  * @tc.type: FUNC
  * @tc.require: issue
  */
@@ -796,7 +801,8 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_StaleDeclarat
  * @tc.type: FUNC
  * @tc.require: issue
  */
-HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_ProjectionCarriesConsistentPair_0100, TestSize.Level1)
+HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_ProjectionCarriesConsistentPair_0100,
+    TestSize.Level1)
 {
     const std::string hostBundle = "com.example.unittest";
     AAFwk::AbilityRequest request;
@@ -813,19 +819,19 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_ProjectionCar
 
     AAFwk::OriginalCallerInfo declaration;
     declaration.callerToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
-    declaration.persistentId = 10;
+    declaration.persistentId = MIGRATION_PERSISTENT_ID;
     declaration.migrationGen = 1;
     extRecord->SetMigrationDeclaration(declaration, 9);
 
     AAFwk::AbilityRequest staleRequest = request;
     sptr<AAFwk::SessionInfo> staleSessionInfo(new AAFwk::SessionInfo());
-    staleSessionInfo->hostWindowId = 7;
+    staleSessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
     staleSessionInfo->originalCallerInfo.callerToken = declaration.callerToken;
     staleSessionInfo->originalCallerInfo.migrationGen = 0;
     staleRequest.sessionInfo = staleSessionInfo;
 
     extRecord->Update(staleRequest);
-    EXPECT_EQ(staleSessionInfo->hostWindowId, 9u);
+    EXPECT_EQ(staleSessionInfo->hostWindowId, MIGRATION_HOST_WINDOW_C);
     EXPECT_EQ(staleSessionInfo->originalCallerInfo.migrationGen, 1u);
 }
 
@@ -852,7 +858,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_ConfirmAfterSuccess_010
     uint32_t gen = extRecord->AdvanceMigrationGen();
     ASSERT_EQ(gen, 1u);
     AAFwk::OriginalCallerInfo declaration;
-    declaration.persistentId = 10;
+    declaration.persistentId = MIGRATION_PERSISTENT_ID;
     declaration.migrationGen = gen;
     extRecord->SetMigrationDeclaration(declaration, 42);
 
@@ -896,7 +902,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_ReplayStripAndProject_0
 
     uint32_t gen = extRecord->AdvanceMigrationGen();
     AAFwk::OriginalCallerInfo declaration;
-    declaration.persistentId = 10;
+    declaration.persistentId = MIGRATION_PERSISTENT_ID;
     declaration.migrationGen = gen;
     extRecord->SetMigrationDeclaration(declaration, 99);
 
@@ -949,7 +955,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_FailureKeepsMarker_0100
 
     uint32_t gen = extRecord->AdvanceMigrationGen();
     AAFwk::OriginalCallerInfo declaration;
-    declaration.persistentId = 10;
+    declaration.persistentId = MIGRATION_PERSISTENT_ID;
     declaration.migrationGen = gen;
     extRecord->SetMigrationDeclaration(declaration, 77);
 
@@ -998,7 +1004,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_RetryAfterProjectionPol
 
     uint32_t gen = extRecord->AdvanceMigrationGen();
     AAFwk::OriginalCallerInfo declaration;
-    declaration.persistentId = 10;
+    declaration.persistentId = MIGRATION_PERSISTENT_ID;
     declaration.migrationGen = gen;
     extRecord->SetMigrationDeclaration(declaration, 20);
 
@@ -1032,20 +1038,20 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_RetryAfterProjectionPol
  */
 HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationRetrySameTarget_0100, TestSize.Level1)
 {
-    auto fx = SetupMigrationRecord(7);
+    auto fx = SetupMigrationRecord(MIGRATION_HOST_WINDOW_A);
     ASSERT_NE(fx.mgr, nullptr);
     ASSERT_NE(fx.record, nullptr);
 
     std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = fx.record;
     bool isLoaded = false;
-    auto first = MakeMigrationRequest(8, fx.hostToken);
+    auto first = MakeMigrationRequest(MIGRATION_HOST_WINDOW_B, fx.hostToken);
     EXPECT_EQ(fx.mgr->GetOrCreateExtensionRecord(first, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
     EXPECT_TRUE(isLoaded);
 
-    EXPECT_EQ(fx.record->GetSessionInfo()->hostWindowId, 7u);
+    EXPECT_EQ(fx.record->GetSessionInfo()->hostWindowId, MIGRATION_HOST_WINDOW_A);
     EXPECT_EQ(fx.record->GetSessionInfo()->callerToken.GetRefPtr(), fx.hostToken.GetRefPtr());
 
-    auto retry = MakeMigrationRequest(8, fx.hostToken);
+    auto retry = MakeMigrationRequest(MIGRATION_HOST_WINDOW_B, fx.hostToken);
     EXPECT_EQ(fx.mgr->GetOrCreateExtensionRecord(retry, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
     EXPECT_TRUE(isLoaded);
 }
@@ -1070,35 +1076,35 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_ConfirmAdoptsDeliver
     ASSERT_NE(uiRecord, nullptr);
 
     auto fact = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
-    fact->hostWindowId = 7;
+    fact->hostWindowId = MIGRATION_HOST_WINDOW_A;
     auto tokenA = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     fact->callerToken = tokenA;
     record->SetSessionInfo(fact);
 
     uiRecord->SeedConfirmedHostWindowId(7);
-    EXPECT_EQ(uiRecord->GetConfirmedHostWindowId(), 7u);
+    EXPECT_EQ(uiRecord->GetConfirmedHostWindowId(), MIGRATION_HOST_WINDOW_A);
 
     uint32_t gen = uiRecord->AdvanceMigrationGen();
     AAFwk::OriginalCallerInfo declaration;
-    declaration.persistentId = 10;
+    declaration.persistentId = MIGRATION_PERSISTENT_ID;
     declaration.migrationGen = gen;
     uiRecord->SetMigrationDeclaration(declaration, 9);
 
     auto delivery = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
-    delivery->hostWindowId = 9;
+    delivery->hostWindowId = MIGRATION_HOST_WINDOW_C;
     auto tokenB = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     delivery->callerToken = tokenB;
     delivery->originalCallerInfo.migrationGen = gen;
     uiRecord->SetMigrationDeliverySessionInfo(delivery);
 
-    EXPECT_EQ(record->GetSessionInfo()->hostWindowId, 7u);
+    EXPECT_EQ(record->GetSessionInfo()->hostWindowId, MIGRATION_HOST_WINDOW_A);
     EXPECT_EQ(record->GetSessionInfo()->callerToken.GetRefPtr(), tokenA.GetRefPtr());
 
     EXPECT_TRUE(uiRecord->ConfirmMigrationDeclaration(gen));
-    EXPECT_EQ(record->GetSessionInfo()->hostWindowId, 9u);
+    EXPECT_EQ(record->GetSessionInfo()->hostWindowId, MIGRATION_HOST_WINDOW_C);
     EXPECT_EQ(record->GetSessionInfo()->callerToken.GetRefPtr(), tokenB.GetRefPtr());
     EXPECT_EQ(record->GetSessionInfo()->originalCallerInfo.migrationGen, 0u);
-    EXPECT_EQ(uiRecord->GetConfirmedHostWindowId(), 9u);
+    EXPECT_EQ(uiRecord->GetConfirmedHostWindowId(), MIGRATION_HOST_WINDOW_C);
     EXPECT_FALSE(uiRecord->ConfirmMigrationDeclaration(gen));
 }
 
@@ -1113,18 +1119,18 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_ConfirmAdoptsDeliver
 HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationRedeclareConfirmedTarget_0100,
     TestSize.Level1)
 {
-    auto fx = SetupMigrationRecord(7);
+    auto fx = SetupMigrationRecord(MIGRATION_HOST_WINDOW_A);
     ASSERT_NE(fx.mgr, nullptr);
     ASSERT_NE(fx.record, nullptr);
 
-    auto first = MakeMigrationRequest(8, fx.hostToken);
+    auto first = MakeMigrationRequest(MIGRATION_HOST_WINDOW_B, fx.hostToken);
     sptr<IRemoteObject> tokenB = first.sessionInfo->callerToken;
     std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = fx.record;
     bool isLoaded = false;
     EXPECT_EQ(fx.mgr->GetOrCreateExtensionRecord(first, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
     EXPECT_TRUE(fx.wrapper->ConfirmMigrationDeclaration(fx.wrapper->GetMigrationGen()));
 
-    auto redeclare = MakeMigrationRequest(8, tokenB);
+    auto redeclare = MakeMigrationRequest(MIGRATION_HOST_WINDOW_B, tokenB);
     isLoaded = false;
     EXPECT_EQ(fx.mgr->GetOrCreateExtensionRecord(redeclare, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded),
         ERR_INVALID_VALUE);
