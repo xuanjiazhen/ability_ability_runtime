@@ -20,7 +20,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 ani_status IsStageContext(ani_env* env, ani_object object, ani_boolean& stageMode)
 {
-    // arkTS 1.2 only supported stage mode
+    // arkTS 1.2 only supported stage mode 
     stageMode = true;
     return ANI_OK;
 }
