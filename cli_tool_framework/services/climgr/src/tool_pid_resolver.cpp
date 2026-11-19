@@ -15,14 +15,12 @@
 
 #include "tool_pid_resolver.h"
 
-#include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
 
 #include <cerrno>
 #include <charconv>
 #include <cstring>
-#include <limits>
 #include <string>
 
 #include "cli_tool_manager_service.h"
@@ -35,6 +33,10 @@ namespace {
 constexpr int64_t MS_TO_US = 1000; // ffrt task_attr::delay takes microseconds
 constexpr size_t STAT_LINE_MAX = 512; // comm(15) + fixed fields; state/ppid sit right after ')'
 constexpr size_t COMM_MAX = 16; // TASK_COMM_LEN including NUL
+// Probe window above the host pid (enumeration-free discovery): the tool child is forked
+// shortly after the host, so its pid lands within a small monotonic offset (measured
+// on-device: +3..+9). 64 leaves ~7x headroom; pid wrap-around would simply miss.
+constexpr int32_t PROBE_WINDOW = 64;
 
 // /proc/<pid>/stat: "<pid> (<comm>) <state> <ppid> ...". comm may contain '(' or spaces, so
 // the fields only become parseable after the LAST ')'. sscanf/strtol are forbidden by the
@@ -93,21 +95,6 @@ void ExtractSanitizedComm(const char *line, std::string &comm)
             ch = '?';
         }
     }
-}
-
-bool IsNumericProcEntry(const char *name, long &pidValue)
-{
-    if (name == nullptr || name[0] == '\0') {
-        return false;
-    }
-    const char *nameEnd = name + strlen(name);
-    auto [end, ec] = std::from_chars(name, nameEnd, pidValue);
-    // end == nameEnd keeps all-digit entries only ("12x" is rejected, as *end != '\0' was).
-    if (ec != std::errc() || end != nameEnd || pidValue <= 0 ||
-        pidValue > static_cast<long>(std::numeric_limits<pid_t>::max())) {
-        return false;
-    }
-    return true;
 }
 } // namespace
 
@@ -190,28 +177,29 @@ pid_t ToolPidResolver::ScanForChild(pid_t anchor, std::string &comm)
     if (scan_) {
         return scan_(anchor, comm);
     }
-    DIR *dir = opendir("/proc");
-    if (dir == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "ScanForChild opendir /proc failed: %{public}d", errno);
-        return -1;
-    }
+    // Enumeration-free probe (on-device triage, 2026-11-19): readdir("/proc") is
+    // visibility-clipped on this device — climgr enumerates only its own uid + root
+    // entries (measured entries=2), so the tool child is structurally invisible to a
+    // full-table sweep. Opening a KNOWN pid path walks a different permission path, and
+    // the tool pid always lands in a small monotonic window above the host pid
+    // (measured offsets: +3..+9), so probe that window instead of enumerating.
     pid_t toolPid = -1;
-    int32_t entries = 0;
-    int32_t openFail = 0;
-    struct dirent *entry = nullptr;
-    while ((entry = readdir(dir)) != nullptr) {
-        long pidValue = 0;
-        if (!IsNumericProcEntry(entry->d_name, pidValue)) {
-            continue;
-        }
-        ++entries;
+    int32_t probes = 0;
+    int32_t permFail = 0;
+    for (int32_t offset = 1; offset <= PROBE_WINDOW; ++offset) {
+        int32_t candidate = anchor + offset;
+        ++probes;
         // snprintf is forbidden by the secure-coding rules; string concatenation cannot
         // truncate, which also removes the old fixed-buffer length proof.
-        std::string statPath = "/proc/" + std::to_string(pidValue) + "/stat";
+        std::string statPath = "/proc/" + std::to_string(candidate) + "/stat";
         int fd = open(statPath.c_str(), O_RDONLY | O_CLOEXEC);
         if (fd < 0) {
-            ++openFail; // silent in production semantics, but counted: EMFILE would look
-            continue;   // exactly like "never observed" without this line
+            if (errno == EACCES || errno == EPERM) {
+                // Decisive triage signal: the permission wall clips by-name access too
+                // (hidepid-class semantics) — probing cannot work either.
+                ++permFail;
+            }
+            continue; // ENOENT (no process at this pid) or EMFILE: keep probing
         }
         char line[STAT_LINE_MAX];
         ssize_t nread = read(fd, line, sizeof(line) - 1);
@@ -220,26 +208,25 @@ pid_t ToolPidResolver::ScanForChild(pid_t anchor, std::string &comm)
             continue;
         }
         line[nread] = '\0';
-        pid_t pid = static_cast<pid_t>(pidValue);
+        pid_t pid = static_cast<pid_t>(candidate);
         char state = '\0';
         pid_t ppid = -1;
         if (!ParseProcStat(line, pid, state, ppid) || ppid != anchor) {
             continue;
         }
         if (state == 'Z' || state == 'X') {
-            continue; // already dead: never a valid attribution target, keep scanning
+            continue; // already dead: never a valid attribution target, keep probing
         }
         ExtractSanitizedComm(line, comm);
         toolPid = pid;
         break; // one tool child per sandbox session: the first live child claims the slot
     }
-    closedir(dir);
-    // One line per sweep (on-device triage): entries shows the scan actually walked the
-    // table, openFail exposes the fd-exhaustion blind spot, result carries the verdict.
+    // One line per probe sweep (on-device triage): probes shows the window was walked,
+    // permFail separates "pid not present" (ENOENT) from "permission wall" (EACCES/EPERM).
     TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "ScanForChild sweep, hostPid=%{public}d, entries=%{public}d, openFail=%{public}d, "
+        "ScanForChild probe sweep, hostPid=%{public}d, probes=%{public}d, permFail=%{public}d, "
         "result=%{public}d, comm=%{public}s",
-        anchor, entries, openFail, toolPid, comm.c_str());
+        anchor, probes, permFail, toolPid, comm.c_str());
     return toolPid;
 }
 
