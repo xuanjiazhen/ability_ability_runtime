@@ -16,12 +16,16 @@
 #include "app_mgr_service.h"
 
 #include <algorithm>
+#include <charconv>
 #include <chrono>
 #include <cinttypes>
 #include <cstdlib>
+#include <cstring>
+#include <fcntl.h>
 #include <nlohmann/json.hpp>
 #include <sys/types.h>
 #include <thread>
+#include <unistd.h>
 
 #include "ability_manager_errors.h"
 #include "ability_manager_xcollie.h"
@@ -242,6 +246,71 @@ bool IsTrustedAttributionCaller()
     auto callingUid = IPCSkeleton::GetCallingUid();
     return callingUid == AIMGR_SERVICE_UID || callingUid == FOUNDATION_UID;
 }
+
+// Anchor-first /proc probe for the sandbox tool child. The tool process is forked inside
+// the claw_sandbox host shortly after the host itself, so its pid lands in a small
+// monotonic window above the host pid (measured on-device: +3..+14). climgr cannot run
+// this probe itself (the aimgr /proc view is hidepid-clipped), but this service is not.
+// The host-alive precheck cuts the pid-reuse mismatch window: a dead host's pid may be
+// recycled, and without the precheck an unrelated process could look like the tool child.
+// Returns the live tool child pid, or -1 when none is found (caller then falls back to
+// registering the passed-in host pid, i.e. the pre-discovery behavior).
+pid_t ProbeSandboxToolChild(pid_t hostPid)
+{
+    constexpr int32_t PROBE_WINDOW = 64;
+    constexpr size_t STAT_LINE_MAX = 512;
+    // Host must be alive: a dead host has no tool child worth attributing.
+    std::string hostStatPath = "/proc/" + std::to_string(hostPid) + "/stat";
+    int hostFd = open(hostStatPath.c_str(), O_RDONLY | O_CLOEXEC);
+    if (hostFd < 0) {
+        return -1;
+    }
+    close(hostFd);
+    for (int32_t offset = 1; offset <= PROBE_WINDOW; ++offset) {
+        pid_t candidate = hostPid + offset;
+        std::string statPath = "/proc/" + std::to_string(candidate) + "/stat";
+        int fd = open(statPath.c_str(), O_RDONLY | O_CLOEXEC);
+        if (fd < 0) {
+            continue; // pid not present (hidepid/ENOENT) or fd pressure: keep probing
+        }
+        char line[STAT_LINE_MAX];
+        ssize_t nread = read(fd, line, sizeof(line) - 1);
+        close(fd);
+        if (nread <= 0) {
+            continue;
+        }
+        line[nread] = '\0';
+        // "<pid> (<comm>) <state> <ppid> ...": fields sit after the LAST ')' (comm may
+        // contain parens). sscanf/strtol are forbidden by the secure-coding rules, so
+        // locate by scanning and parse with std::from_chars.
+        char *closeParen = strrchr(line, ')');
+        if (closeParen == nullptr) {
+            continue;
+        }
+        const char *cursor = closeParen + 1;
+        while (*cursor == ' ') {
+            ++cursor;
+        }
+        if (*cursor == '\0') {
+            continue;
+        }
+        char state = *cursor;
+        ++cursor;
+        while (*cursor == ' ') {
+            ++cursor;
+        }
+        int32_t ppidValue = 0;
+        auto [end, ec] = std::from_chars(cursor, line + nread, ppidValue);
+        if (ec != std::errc() || end == cursor || ppidValue != hostPid) {
+            continue;
+        }
+        if (state == 'Z' || state == 'X') {
+            continue; // already dead: not a valid attribution target
+        }
+        return candidate;
+    }
+    return -1;
+}
 } // namespace
 
 int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t pid, int32_t tool,
@@ -262,6 +331,22 @@ int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t
     AttributionRecord attribution;
     attribution.pid = pid;
     attribution.tool = static_cast<AttributionTool>(tool);
+    // CLI anchor discovery: the pid registered by climgr is the claw_sandbox HOST, while
+    // the real worker is the host's live tool child. Probe (this process sees the full
+    // /proc; climgr's view is hidepid-clipped) and re-anchor onto the child when one is
+    // alive; otherwise register the passed-in host pid — identical to the pre-discovery
+    // behavior, so a miss never leaves the task without an attribution record.
+    if (attribution.tool == AttributionTool::CLI) {
+        pid_t toolPid = ProbeSandboxToolChild(pid);
+        if (toolPid > 0) {
+            TAG_LOGI(AAFwkTag::APPMGR, "cli attribution re-anchored to tool child, hostPid: %{public}d, "
+                "toolPid: %{public}d, taskId: %{public}s", pid, toolPid, taskId.c_str());
+            attribution.pid = toolPid;
+        } else {
+            TAG_LOGI(AAFwkTag::APPMGR, "cli attribution kept on host pid, no live tool child, "
+                "hostPid: %{public}d, taskId: %{public}s", pid, taskId.c_str());
+        }
+    }
     return TaskManagerService::GetInstance().RegisterManagedProcessForCaller(taskId, attribution, callerUid,
         attributionId);
 }
