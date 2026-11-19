@@ -247,6 +247,36 @@ bool IsTrustedAttributionCaller()
     return callingUid == AIMGR_SERVICE_UID || callingUid == FOUNDATION_UID;
 }
 
+// Stat-line predicate for the anchor probe: does the line describe a LIVE process whose
+// parent is hostPid? "/proc/<pid>/stat" is "<pid> (<comm>) <state> <ppid> ..." and comm
+// may contain parens, so the fields sit after the LAST ')'. sscanf/strtol are forbidden
+// by the secure-coding rules: locate by scanning and parse with std::from_chars.
+bool IsLiveChildOfHost(const char *line, ssize_t nread, pid_t hostPid)
+{
+    const char *closeParen = strrchr(line, ')');
+    if (closeParen == nullptr) {
+        return false;
+    }
+    const char *cursor = closeParen + 1;
+    while (*cursor == ' ') {
+        ++cursor;
+    }
+    if (*cursor == '\0') {
+        return false;
+    }
+    char state = *cursor;
+    ++cursor;
+    while (*cursor == ' ') {
+        ++cursor;
+    }
+    int32_t ppidValue = 0;
+    auto [end, ec] = std::from_chars(cursor, line + nread, ppidValue);
+    if (ec != std::errc() || end == cursor || ppidValue != hostPid) {
+        return false;
+    }
+    return state != 'Z' && state != 'X'; // a dead process is not a valid attribution target
+}
+
 // Anchor-first /proc probe for the sandbox tool child. The tool process is forked inside
 // the claw_sandbox host shortly after the host itself, so its pid lands in a small
 // monotonic window above the host pid (measured on-device: +3..+14). climgr cannot run
@@ -255,59 +285,44 @@ bool IsTrustedAttributionCaller()
 // recycled, and without the precheck an unrelated process could look like the tool child.
 // Returns the live tool child pid, or -1 when none is found (caller then falls back to
 // registering the passed-in host pid, i.e. the pre-discovery behavior).
-pid_t ProbeSandboxToolChild(pid_t hostPid)
+// openFail/hostErrno carry the on-device triage verdict to the caller's log line:
+// hostErrno != 0 — the HOST entry itself is unreadable (host dead, or this process
+//                  cannot even see root-owned entries);
+// openFail > 0   — the window was walked but opens failed (visibility clip on the
+//                  child entries, or fd pressure);
+// both 0         — the window was walked and fully readable, no live child matched.
+pid_t ProbeSandboxToolChild(pid_t hostPid, int &openFail, int &hostErrno)
 {
-    constexpr int32_t PROBE_WINDOW = 64;
-    constexpr size_t STAT_LINE_MAX = 512;
+    constexpr int32_t probeWindow = 64;
+    constexpr size_t statLineMax = 512;
+    openFail = 0;
+    hostErrno = 0;
     // Host must be alive: a dead host has no tool child worth attributing.
     std::string hostStatPath = "/proc/" + std::to_string(hostPid) + "/stat";
     int hostFd = open(hostStatPath.c_str(), O_RDONLY | O_CLOEXEC);
     if (hostFd < 0) {
+        hostErrno = errno;
         return -1;
     }
     close(hostFd);
-    for (int32_t offset = 1; offset <= PROBE_WINDOW; ++offset) {
+    for (int32_t offset = 1; offset <= probeWindow; ++offset) {
         pid_t candidate = hostPid + offset;
         std::string statPath = "/proc/" + std::to_string(candidate) + "/stat";
         int fd = open(statPath.c_str(), O_RDONLY | O_CLOEXEC);
         if (fd < 0) {
-            continue; // pid not present (hidepid/ENOENT) or fd pressure: keep probing
+            ++openFail;
+            continue; // pid not present (visibility clip / ENOENT) or fd pressure: keep probing
         }
-        char line[STAT_LINE_MAX];
+        char line[statLineMax];
         ssize_t nread = read(fd, line, sizeof(line) - 1);
         close(fd);
         if (nread <= 0) {
             continue;
         }
         line[nread] = '\0';
-        // "<pid> (<comm>) <state> <ppid> ...": fields sit after the LAST ')' (comm may
-        // contain parens). sscanf/strtol are forbidden by the secure-coding rules, so
-        // locate by scanning and parse with std::from_chars.
-        char *closeParen = strrchr(line, ')');
-        if (closeParen == nullptr) {
-            continue;
+        if (IsLiveChildOfHost(line, nread, hostPid)) {
+            return candidate;
         }
-        const char *cursor = closeParen + 1;
-        while (*cursor == ' ') {
-            ++cursor;
-        }
-        if (*cursor == '\0') {
-            continue;
-        }
-        char state = *cursor;
-        ++cursor;
-        while (*cursor == ' ') {
-            ++cursor;
-        }
-        int32_t ppidValue = 0;
-        auto [end, ec] = std::from_chars(cursor, line + nread, ppidValue);
-        if (ec != std::errc() || end == cursor || ppidValue != hostPid) {
-            continue;
-        }
-        if (state == 'Z' || state == 'X') {
-            continue; // already dead: not a valid attribution target
-        }
-        return candidate;
     }
     return -1;
 }
@@ -337,14 +352,17 @@ int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t
     // alive; otherwise register the passed-in host pid — identical to the pre-discovery
     // behavior, so a miss never leaves the task without an attribution record.
     if (attribution.tool == AttributionTool::CLI) {
-        pid_t toolPid = ProbeSandboxToolChild(pid);
+        int openFail = 0;
+        int hostErrno = 0;
+        pid_t toolPid = ProbeSandboxToolChild(pid, openFail, hostErrno);
         if (toolPid > 0) {
             TAG_LOGI(AAFwkTag::APPMGR, "cli attribution re-anchored to tool child, hostPid: %{public}d, "
                 "toolPid: %{public}d, taskId: %{public}s", pid, toolPid, taskId.c_str());
             attribution.pid = toolPid;
         } else {
             TAG_LOGI(AAFwkTag::APPMGR, "cli attribution kept on host pid, no live tool child, "
-                "hostPid: %{public}d, taskId: %{public}s", pid, taskId.c_str());
+                "hostPid: %{public}d, openFail: %{public}d, hostErrno: %{public}d, taskId: %{public}s",
+                pid, openFail, hostErrno, taskId.c_str());
         }
     }
     return TaskManagerService::GetInstance().RegisterManagedProcessForCaller(taskId, attribution, callerUid,
