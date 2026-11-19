@@ -618,7 +618,7 @@ HWTEST_F(CacheProcessManagerOverseaTest, OtherApplicationsKeepCacheEligibility, 
 
 /**
  * @tc.name: OverseasAssistantRequiresSupportDeclaration
- * @tc.desc: Overseas eligibility still requires the application to declare process cache support.
+ * @tc.desc: The enabled declaration check rejects an unspecified or unsupported overseas assistant.
  * @tc.type: FUNC
  */
 HWTEST_F(CacheProcessManagerOverseaTest, OverseasAssistantRequiresSupportDeclaration, TestSize.Level1)
@@ -632,11 +632,11 @@ HWTEST_F(CacheProcessManagerOverseaTest, OverseasAssistantRequiresSupportDeclara
 }
 
 /**
- * @tc.name: OverseasAssistantRequiresSupportWhenGlobalCheckIsDisabled
- * @tc.desc: An undeclared overseas assistant is rejected even when undeclared ordinary apps are allowed.
+ * @tc.name: OverseasAssistantFollowsCommonSupportPolicy
+ * @tc.desc: Disabling the declaration check permits unspecified support for the overseas assistant and other apps.
  * @tc.type: FUNC
  */
-HWTEST_F(CacheProcessManagerOverseaTest, OverseasAssistantRequiresSupportWhenGlobalCheckIsDisabled, TestSize.Level1)
+HWTEST_F(CacheProcessManagerOverseaTest, OverseasAssistantFollowsCommonSupportPolicy, TestSize.Level1)
 {
     cacheProcMgr_->isOversea_ = true;
     cacheProcMgr_->shouldCheckSupport = false;
@@ -644,8 +644,10 @@ HWTEST_F(CacheProcessManagerOverseaTest, OverseasAssistantRequiresSupportWhenGlo
     auto otherApp = MockEligibleRecord(DEFAULT_BUNDLE_NAME);
     assistant->procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
     otherApp->procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
-    EXPECT_FALSE(cacheProcMgr_->IsAppShouldCache(assistant));
+    EXPECT_TRUE(cacheProcMgr_->IsAppShouldCache(assistant));
     EXPECT_TRUE(cacheProcMgr_->IsAppShouldCache(otherApp));
+    assistant->SetSupportedProcessCache(false);
+    EXPECT_FALSE(cacheProcMgr_->IsAppShouldCache(assistant));
     assistant->SetSupportedProcessCache(true);
     EXPECT_TRUE(cacheProcMgr_->IsAppShouldCache(assistant));
 }

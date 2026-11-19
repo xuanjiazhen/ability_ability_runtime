@@ -405,14 +405,7 @@ bool CacheProcessManager::CheckSupportState(const std::shared_ptr<AppRunningReco
         case SupportProcessCacheState::UNSPECIFIED:
             TAG_LOGD(AAFwkTag::APPMGR, "App %{public}s has not defined support state.",
                 appRecord->GetBundleName().c_str());
-            if (shouldCheckSupport) {
-                return false;
-            }
-            if (isOversea_ &&
-                appRecord->GetBundleName() == AAFwk::AppUtils::GetInstance().GetBrokerDelegateBundleName()) {
-                return false;
-            }
-            return true;
+            return shouldCheckSupport ? false : true;
         case SupportProcessCacheState::SUPPORT:
             return true;
         case SupportProcessCacheState::NOT_SUPPORT:
