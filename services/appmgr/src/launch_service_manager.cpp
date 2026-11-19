@@ -670,21 +670,18 @@ int32_t SendLaunchServiceKillSignal(int32_t pid)
 {
     int32_t pidfd = static_cast<int32_t>(syscall(SYS_pidfd_open, pid, 0));
     if (pidfd < 0) {
-        const int openError = errno;
-        if (openError != ESRCH) {
-            TAG_LOGE(AAFwkTag::APPMGR,
-                "open launch service pidfd failed, pid=%{public}d, errno=%{public}d", pid, openError);
-            return AAFwk::INNER_ERR;
+        if (errno == ESRCH) {
+            return ERR_OK;
         }
-    } else {
-        auto ret = syscall(SYS_pidfd_send_signal, pidfd, SIGNAL_KILL, nullptr, 0);
-        const int signalError = errno;
-        close(pidfd);
-        if (ret != 0 && signalError != ESRCH) {
-            TAG_LOGE(AAFwkTag::APPMGR,
-                "signal launch service failed, pid=%{public}d, errno=%{public}d", pid, signalError);
-            return AAFwk::INNER_ERR;
-        }
+        TAG_LOGE(AAFwkTag::APPMGR, "open launch service pidfd failed, errno=%{public}d", errno);
+        return AAFwk::INNER_ERR;
+    }
+    auto ret = syscall(SYS_pidfd_send_signal, pidfd, SIGNAL_KILL, nullptr, 0);
+    const int32_t signalError = errno;
+    close(pidfd);
+    if (ret != 0 && signalError != ESRCH) {
+        TAG_LOGE(AAFwkTag::APPMGR, "signal launch service failed, errno=%{public}d", signalError);
+        return AAFwk::INNER_ERR;
     }
     return ERR_OK;
 }
@@ -699,7 +696,7 @@ LaunchServiceManager::LaunchServiceManager(const std::weak_ptr<AppMgrServiceInne
 std::shared_ptr<AAFwk::TaskHandlerWrap> LaunchServiceManager::GetTaskHandler() const
 {
     auto appMgrServiceInner = appMgrServiceInner_.lock();
-    return appMgrServiceInner == nullptr ? nullptr : appMgrServiceInner->taskHandler_;
+    return appMgrServiceInner == nullptr ? nullptr : appMgrServiceInner->GetLaunchServiceTaskHandler();
 }
 
 int32_t LaunchServiceManager::CheckLaunchServiceStartLocked(
@@ -1391,7 +1388,9 @@ void LaunchServiceManager::HandleLaunchServiceProcessDied(int32_t pid)
         }
         manager->RestartLaunchService(key, generation);
     };
-    taskHandler->SubmitTask(restartTask, GetLaunchServiceRestartTaskName(key, generation), delay, false);
+    if (auto inner = appMgrServiceInner_.lock()) {
+        inner->PostLaunchServiceTask(restartTask, GetLaunchServiceRestartTaskName(key, generation), delay);
+    }
 }
 
 void LaunchServiceManager::StopLaunchServices(const std::string &bundleName, int32_t userId, int32_t appIndex)
@@ -1526,12 +1525,13 @@ std::function<void(int32_t)> LaunchServiceManager::CreateLaunchServicesEnabledCo
                     AAFwk::ABILITY_SERVICE_NOT_CONNECTED);
             return;
         }
-        auto handler = AAFwk::TaskHandlerWrap::GetFfrtHandler();
-        if (handler == nullptr) {
+        auto manager = managerWeak.lock();
+        auto inner = manager == nullptr ? nullptr : manager->appMgrServiceInner_.lock();
+        if (inner == nullptr) {
             completion(AAFwk::ABILITY_SERVICE_NOT_CONNECTED);
             return;
         }
-        auto handle = handler->SubmitTask([managerWeak, bundleName, userId, appIndex, enable, completion]() {
+        auto handle = inner->PostLaunchServiceTask([managerWeak, bundleName, userId, appIndex, enable, completion]() {
             auto manager = managerWeak.lock();
             if (manager == nullptr) {
                 completion(AAFwk::ABILITY_SERVICE_NOT_CONNECTED);
@@ -1555,16 +1555,6 @@ void LaunchServiceManager::SetLaunchServicesEnabled(const std::string &bundleNam
 {
     if (IsEnterpriseSpaceCrossUser(callerUid / BASE_USER_RANGE, userId)) {
         completion(AAFwk::ERR_TARGET_BUNDLE_NOT_EXIST);
-        return;
-    }
-    AAFwk::LaunchServiceDescriptor descriptor;
-    descriptor.bundleName = bundleName;
-    descriptor.userId = userId;
-    descriptor.appIndex = appIndex;
-    auto callerResult = CheckDaemonSameDeveloper(descriptor, callerUid);
-    if (callerResult != ERR_OK) {
-        completion(
-            callerResult == AAFwk::ERR_LAUNCH_SERVICE_NOT_FOUND ? AAFwk::ERR_TARGET_BUNDLE_NOT_EXIST : callerResult);
         return;
     }
     auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();

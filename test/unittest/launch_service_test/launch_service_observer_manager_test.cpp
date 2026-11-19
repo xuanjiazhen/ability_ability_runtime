@@ -126,5 +126,66 @@ HWTEST_F(LaunchServiceObserverManagerTest, RegisterObserver_003, TestSize.Level1
     EXPECT_EQ(manager_.RegisterObserver(nullptr, 0, 100), ERR_INVALID_VALUE);
     EXPECT_EQ(manager_.UnregisterObserver(nullptr), ERR_INVALID_VALUE);
 }
+/**
+ * @tc.name: CountAndRemoveObserver_001
+ * @tc.desc: Verify reference counts and explicit removal stop notification.
+ * @tc.type: FUNC
+ */
+HWTEST_F(LaunchServiceObserverManagerTest, CountAndRemoveObserver_001, TestSize.Level1)
+{
+    auto observer = sptr<RecordingLaunchObserver>::MakeSptr();
+    ASSERT_EQ(manager_.RegisterObserver(observer, 0, 100), ERR_OK);
+    ASSERT_EQ(manager_.RegisterObserver(observer, 0, 100), ERR_OK);
+    EXPECT_EQ(manager_.CountObserversLocked(100), 2u);
+    EXPECT_EQ(manager_.CountObserversLocked(200), 0u);
+    ASSERT_EQ(manager_.observers_.size(), 1u);
+    const int id = manager_.observers_.begin()->first;
+    auto record = manager_.observers_.begin()->second;
+    manager_.RemoveObserver(id);
+    EXPECT_FALSE(record->active);
+    EXPECT_TRUE(manager_.observers_.empty());
+    manager_.RemoveObserver(id);
+    manager_.NotifyProcessStateChanged({});
+    EXPECT_EQ(observer->processCount_, 0);
+}
+
+/**
+ * @tc.name: AllocateObserverId_Wrap_001
+ * @tc.desc: Verify ID allocation wraps safely and skips occupied IDs.
+ * @tc.type: FUNC
+ */
+HWTEST_F(LaunchServiceObserverManagerTest, AllocateObserverId_Wrap_001, TestSize.Level1)
+{
+    manager_.nextObserverId_ = 2147483647;
+    EXPECT_EQ(manager_.AllocateObserverIdLocked(), 2147483647);
+    auto observer = sptr<RecordingLaunchObserver>::MakeSptr();
+    ASSERT_EQ(manager_.RegisterObserver(observer, 0, 100), ERR_OK);
+    manager_.nextObserverId_ = 1;
+    EXPECT_EQ(manager_.AllocateObserverIdLocked(), 2);
+    EXPECT_EQ(&LaunchServiceObserverManager::GetInstance(), &LaunchServiceObserverManager::GetInstance());
+}
+
+
+/**
+ * @tc.name: ObserverDeathRecipient_001
+ * @tc.desc: Remote death removes registration and stops subsequent notifications.
+ * @tc.type: FUNC
+ */
+HWTEST_F(LaunchServiceObserverManagerTest, ObserverDeathRecipient_001, TestSize.Level1)
+{
+    auto &manager = LaunchServiceObserverManager::GetInstance();
+    auto observer = sptr<RecordingLaunchObserver>::MakeSptr();
+    ASSERT_EQ(manager.RegisterObserver(observer, 0, 100), ERR_OK);
+    int32_t id = -1;
+    for (const auto &[key, record] : manager.observers_) {
+        if (record->observer.GetRefPtr() == observer.GetRefPtr()) { id = key; }
+    }
+    ASSERT_GT(id, 0);
+    auto recipient = sptr<LaunchServiceObserverManager::ObserverDeathRecipient>::MakeSptr(id);
+    recipient->OnRemoteDied({});
+    EXPECT_EQ(manager.observers_.count(id), 0);
+    manager.NotifyStatusChanged({});
+    EXPECT_EQ(observer->statusCount_, 0);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
