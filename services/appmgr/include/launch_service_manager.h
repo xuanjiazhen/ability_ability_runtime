@@ -30,6 +30,7 @@
 #include "launch_service_info.h"
 #include "launch_service_observer.h"
 #include "task_handler_wrap.h"
+#include "unique_fd.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -83,6 +84,7 @@ private:
         uint32_t restartCount = 0;
         uint64_t generation = 0;
         std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
+        std::shared_ptr<UniqueFd> signalFd;
     };
     int32_t CheckLaunchServiceStartLocked(const LaunchServiceKey &key, AAFwk::LaunchServiceDescriptor &descriptor);
     int32_t CheckLaunchServiceWatcher(const LaunchServiceKey &key, int32_t pid, bool watching);
@@ -92,6 +94,8 @@ private:
         uint64_t expectedGeneration = 0);
     int32_t StartLaunchServiceLocked(const LaunchServiceKey &key, const LaunchService &service,
         uint32_t restartCount, uint64_t expectedGeneration);
+    bool TrackLaunchServiceLocked(const LaunchServiceKey &key, const LaunchService &service,
+        int32_t daemonUid, int32_t pid, uint32_t restartCount);
     int32_t StopLaunchService(const LaunchServiceKey &key, int32_t expectedPid = 0);
     int32_t SpawnDaemonProcess(const AAFwk::LaunchServiceDescriptor &descriptor, int32_t &pid, int32_t &uid);
     void PrepareDaemonStartMsg(const std::shared_ptr<AppMgrServiceInner> &appMgrServiceInner,
