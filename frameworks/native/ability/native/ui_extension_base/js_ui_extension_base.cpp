@@ -841,7 +841,9 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
-        if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
+        auto migrateOption = CreateWindowOption(sessionInfo, want);
+        if (migrateOption == nullptr ||
+            !ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrateOption, migrationFencing_,
             [this, &componentId](const sptr<AAFwk::SessionInfo> &info) {
                 UpdateMigrationProxies(componentId, info);
             })) {

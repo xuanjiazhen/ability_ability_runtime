@@ -557,7 +557,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_Guards_0100, TestSize
 
 /**
  * @tc.name: UpdateWindowParentForMigration_NullGuards_0100
- * @tc.desc: UpdateWindowParentForMigration rejects null sessionInfo / null window
+ * @tc.desc: UpdateWindowParentForMigration rejects null window / null option
  * @tc.type: FUNC
  * @tc.require: issue
  */

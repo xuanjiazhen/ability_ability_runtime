@@ -771,7 +771,9 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
-        if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
+        auto migrateOption = CreateWindowOption(sessionInfo, want);
+        if (migrateOption == nullptr ||
+            !ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrateOption, migrationFencing_,
             [this](const sptr<AAFwk::SessionInfo> &info) {
                 if (etsUiExtContentSession_ != nullptr) {
                     etsUiExtContentSession_->UpdateSessionInfo(info);

@@ -760,7 +760,9 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
-        if (!ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrationFencing_,
+        auto migrateOption = CreateWindowOption(GetContext(), sessionInfo, want);
+        if (migrateOption == nullptr ||
+            !ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrateOption, migrationFencing_,
             [this, &compId](const sptr<AAFwk::SessionInfo> &info) {
                 UpdateMigrationProxies(compId, info);
             })) {
@@ -795,7 +797,7 @@ void JsUIExtension::UpdateMigrationProxies(uint64_t compId, const sptr<AAFwk::Se
     contentSessionPtr->DoUpdateExtensionParent(info);
 }
 
-sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtensionContext> context,
+sptr<Rosen::WindowOption> JsUIExtension::CreateWindowOption(const std::shared_ptr<UIExtensionContext> context,
     const sptr<AAFwk::SessionInfo> &sessionInfo, const AAFwk::Want &want)
 {
     if (context == nullptr || context->GetAbilityInfo() == nullptr) {
@@ -834,6 +836,16 @@ sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtens
     }
     option->SetStartModalExtensionTimeStamp(launchTimestamp);
     option->SetCallerPid(want.GetIntParam(AAFwk::Want::PARAM_RESV_CALLER_PID, -1));
+    return option;
+}
+
+sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtensionContext> context,
+    const sptr<AAFwk::SessionInfo> &sessionInfo, const AAFwk::Want &want)
+{
+    auto option = CreateWindowOption(context, sessionInfo, want);
+    if (option == nullptr) {
+        return nullptr;
+    }
     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
     return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
 }

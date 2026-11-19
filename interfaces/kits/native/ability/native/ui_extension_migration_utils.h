@@ -31,8 +31,8 @@ struct MigrationFencingState {
 };
 
 bool UpdateWindowParentForMigration(
-    const sptr<AAFwk::SessionInfo> &sessionInfo,
-    const sptr<Rosen::Window> &uiWindow);
+    const sptr<Rosen::Window> &uiWindow,
+    const sptr<Rosen::WindowOption> &option);
 
 bool ShouldExecuteMigration(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
@@ -46,6 +46,7 @@ void CommitMigrationState(
 bool ExecuteMigrationIfNeeded(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
     const sptr<Rosen::Window> &uiWindow,
+    const sptr<Rosen::WindowOption> &option,
     MigrationFencingState &fence,
     const std::function<void(const sptr<AAFwk::SessionInfo> &)> &contentSessionUpdater);
 

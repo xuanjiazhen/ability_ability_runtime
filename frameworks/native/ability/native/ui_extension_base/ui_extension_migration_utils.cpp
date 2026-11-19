@@ -21,21 +21,12 @@ namespace OHOS {
 namespace AbilityRuntime {
 
 bool UpdateWindowParentForMigration(
-    const sptr<AAFwk::SessionInfo> &sessionInfo,
-    const sptr<Rosen::Window> &uiWindow)
+    const sptr<Rosen::Window> &uiWindow,
+    const sptr<Rosen::WindowOption> &option)
 {
-    if (sessionInfo == nullptr || uiWindow == nullptr) {
+    if (uiWindow == nullptr || option == nullptr) {
         return false;
     }
-    sptr<Rosen::WindowOption> option = sptr<Rosen::WindowOption>::MakeSptr();
-    if (option == nullptr) {
-        return false;
-    }
-    option->SetParentId(sessionInfo->hostWindowId);
-    option->SetRealParentId(sessionInfo->realHostWindowId);
-    option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
-    option->SetDisplayId(sessionInfo->displayId);
-    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     return uiWindow->UpdateExtensionParent(option) == Rosen::WMError::WM_OK;
 }
 
@@ -67,6 +58,7 @@ void CommitMigrationState(MigrationFencingState &state, uint32_t gen, uint32_t h
 bool ExecuteMigrationIfNeeded(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
     const sptr<Rosen::Window> &uiWindow,
+    const sptr<Rosen::WindowOption> &option,
     MigrationFencingState &fence,
     const std::function<void(const sptr<AAFwk::SessionInfo> &)> &contentSessionUpdater)
 {
@@ -86,7 +78,7 @@ bool ExecuteMigrationIfNeeded(
         "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
         sessionInfo->originalCallerInfo.migrationGen, fence.currentParentWindowId,
         sessionInfo->hostWindowId);
-    if (!UpdateWindowParentForMigration(sessionInfo, uiWindow)) {
+    if (!UpdateWindowParentForMigration(uiWindow, option)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
         sessionInfo->originalCallerInfo.migrationGen = 0;
         return false;

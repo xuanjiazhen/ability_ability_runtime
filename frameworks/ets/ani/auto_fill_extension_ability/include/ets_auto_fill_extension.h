@@ -136,6 +136,8 @@ private:
     void ReleaseObjectReference(ani_ref etsObjRef);
     bool CreateNewWindow(sptr<AAFwk::SessionInfo> sessionInfo, sptr<IRemoteObject> obj,
         std::shared_ptr<AAFwk::Want> sharedWant);
+    sptr<Rosen::WindowOption> CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo,
+        const AAFwk::Want &want);
     void OnWindowCreated(const sptr<AAFwk::SessionInfo> &sessionInfo, const sptr<IRemoteObject> &obj,
         const sptr<Rosen::Window> &uiWindow);
     void UpdateAutoFillMigrationState(const sptr<AAFwk::SessionInfo> &info);
