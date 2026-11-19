@@ -851,6 +851,130 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_info_800, TestSize.Level1)
  * Feature: AbilityAutoStartupDataManager
  * Function: IsEqual
  * SubFunction: NA
+ * FunctionPoints: both sides specify the same moduleName, records match
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_info_900, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "IsEqual_info_900 start";
+    AbilityAutoStartupDataManager abilityAutoStartupDataManager;
+    AutoStartupInfo info;
+    info.bundleName = "com.example.testbundle";
+    info.moduleName = "entry";
+    info.abilityName = "testDemoAbility";
+    info.accessTokenId = "123";
+    info.setterUserId = 100;
+    info.userId = 100;
+    info.canUserModify = true;
+    DistributedKv::Key key = abilityAutoStartupDataManager.ConvertAutoStartupDataToKey(info);
+    auto result = abilityAutoStartupDataManager.IsEqual(key, info);
+    EXPECT_TRUE(result);
+    GTEST_LOG_(INFO) << "IsEqual_info_900 end";
+}
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: IsEqual
+ * SubFunction: NA
+ * FunctionPoints: both sides specify different moduleNames, records do not match
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_info_1000, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "IsEqual_info_1000 start";
+    AbilityAutoStartupDataManager abilityAutoStartupDataManager;
+    AutoStartupInfo info;
+    info.bundleName = "com.example.testbundle";
+    info.moduleName = "entry";
+    info.abilityName = "testDemoAbility";
+    info.accessTokenId = "123";
+    info.setterUserId = 100;
+    info.userId = 100;
+    info.canUserModify = true;
+    DistributedKv::Key key = abilityAutoStartupDataManager.ConvertAutoStartupDataToKey(info);
+    info.moduleName = "feature";
+    auto result = abilityAutoStartupDataManager.IsEqual(key, info);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "IsEqual_info_1000 end";
+}
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: IsEqual
+ * SubFunction: NA
+ * FunctionPoints: caller without moduleName keeps matching records with moduleName
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_info_1100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "IsEqual_info_1100 start";
+    AbilityAutoStartupDataManager abilityAutoStartupDataManager;
+    AutoStartupInfo info;
+    info.bundleName = "com.example.testbundle";
+    info.moduleName = "entry";
+    info.abilityName = "testDemoAbility";
+    info.accessTokenId = "123";
+    info.setterUserId = 100;
+    info.userId = 100;
+    info.canUserModify = true;
+    DistributedKv::Key key = abilityAutoStartupDataManager.ConvertAutoStartupDataToKey(info);
+    info.moduleName = "";
+    auto result = abilityAutoStartupDataManager.IsEqual(key, info);
+    EXPECT_TRUE(result);
+    GTEST_LOG_(INFO) << "IsEqual_info_1100 end";
+}
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: IsEqual
+ * SubFunction: NA
+ * FunctionPoints: record without moduleName keeps matching caller with moduleName
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_info_1200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "IsEqual_info_1200 start";
+    AbilityAutoStartupDataManager abilityAutoStartupDataManager;
+    AutoStartupInfo info;
+    info.bundleName = "com.example.testbundle";
+    info.abilityName = "testDemoAbility";
+    info.accessTokenId = "123";
+    info.setterUserId = 100;
+    info.userId = 100;
+    info.canUserModify = true;
+    DistributedKv::Key key = abilityAutoStartupDataManager.ConvertAutoStartupDataToKey(info);
+    info.moduleName = "entry";
+    auto result = abilityAutoStartupDataManager.IsEqual(key, info);
+    EXPECT_TRUE(result);
+    GTEST_LOG_(INFO) << "IsEqual_info_1200 end";
+}
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: IsEqual
+ * SubFunction: NA
+ * FunctionPoints: legacy key without moduleName field keeps matching caller with moduleName
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_info_1300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "IsEqual_info_1300 start";
+    AbilityAutoStartupDataManager abilityAutoStartupDataManager;
+    // Handwritten legacy key JSON without the moduleName field.
+    DistributedKv::Key key(R"({"accessTokenId":"123","abilityName":"testDemoAbility",)"
+        R"("appCloneIndex":0,"bundleName":"com.example.testbundle","userId":100})");
+    AutoStartupInfo info;
+    info.bundleName = "com.example.testbundle";
+    info.moduleName = "entry";
+    info.abilityName = "testDemoAbility";
+    info.accessTokenId = "123";
+    info.setterUserId = 100;
+    info.userId = 100;
+    info.canUserModify = true;
+    auto result = abilityAutoStartupDataManager.IsEqual(key, info);
+    EXPECT_TRUE(result);
+    GTEST_LOG_(INFO) << "IsEqual_info_1300 end";
+}
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: IsEqual
+ * SubFunction: NA
  * FunctionPoints: AbilityAutoStartupDataManager IsEqual
  */
 HWTEST_F(AbilityAutoStartupDataManagerTest, IsEqual_userId_100, TestSize.Level1)

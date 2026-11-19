@@ -66,8 +66,6 @@ bool AbilityAutoStartupDataManager::IsRecoverableStatus(DistributedKv::Status st
 {
     return status == DistributedKv::Status::DATA_CORRUPTED ||
            status == DistributedKv::Status::DB_CANT_OPEN ||
-           status == DistributedKv::Status::DB_ERROR ||
-           status == DistributedKv::Status::INVALID_QUERY_FORMAT ||
            status == DistributedKv::Status::STORE_NOT_OPEN;
 }
 
@@ -777,6 +775,16 @@ bool AbilityAutoStartupDataManager::IsEqual(const DistributedKv::Key &key, const
         || !AAFwk::JsonUtils::GetInstance().IsEqual(jsonObject, JSON_KEY_APP_CLONE_INDEX, info.appCloneIndex)
         || !AAFwk::JsonUtils::GetInstance().IsEqual(jsonObject, JSON_KEY_ACCESS_TOKENID, info.accessTokenId)
         || !AAFwk::JsonUtils::GetInstance().IsEqual(jsonObject, JSON_KEY_USERID, info.userId)) {
+        return false;
+    }
+
+    // Compare moduleName on demand: skip when either the caller or the stored record does not
+    // specify one, keeping compatibility with legacy callers and legacy records.
+    std::string keyModuleName;
+    if (jsonObject.contains(JSON_KEY_MODULE_NAME) && jsonObject[JSON_KEY_MODULE_NAME].is_string()) {
+        keyModuleName = jsonObject.at(JSON_KEY_MODULE_NAME).get<std::string>();
+    }
+    if (!info.moduleName.empty() && !keyModuleName.empty() && keyModuleName != info.moduleName) {
         return false;
     }
     return true;

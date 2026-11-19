@@ -244,8 +244,6 @@ bool AgentCardDbMgr::IsRecoverableStatus(DistributedKv::Status status)
 {
     return status == DistributedKv::Status::DATA_CORRUPTED ||
            status == DistributedKv::Status::DB_CANT_OPEN ||
-           status == DistributedKv::Status::DB_ERROR ||
-           status == DistributedKv::Status::INVALID_QUERY_FORMAT ||
            status == DistributedKv::Status::STORE_NOT_OPEN;
 }
 
