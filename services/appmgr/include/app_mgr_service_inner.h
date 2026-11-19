@@ -1186,6 +1186,7 @@ public:
      */
     void OnRenderProcessExited(pid_t pid);
 
+    void PostLaunchServiceProcessExited(pid_t pid);
     void OnLaunchServiceProcessExited(pid_t pid);
 
     int VerifyKillProcessPermission(const sptr<IRemoteObject> &token) const;
@@ -1891,6 +1892,18 @@ public:
     virtual int32_t CheckIsKiaProcess(pid_t pid, bool &isKia);
 
     bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &isDebug);
+
+    void SetLaunchServiceTaskHandler(const std::shared_ptr<AAFwk::TaskHandlerWrap> &handler)
+    {
+        std::lock_guard<std::mutex> lock(launchServiceManagerMutex_);
+        launchServiceTaskHandler_ = handler;
+    }
+
+    std::shared_ptr<AAFwk::TaskHandlerWrap> GetLaunchServiceTaskHandler()
+    {
+        std::lock_guard<std::mutex> lock(launchServiceManagerMutex_);
+        return launchServiceTaskHandler_.lock();
+    }
 
     std::shared_ptr<AAFwk::TaskHandlerWrap> GetTaskHandler() const
     {
@@ -2721,6 +2734,7 @@ private:
     std::unordered_set<int32_t> childProcessIsolationUidSet_;
     std::unordered_set<int32_t> uninstallOrUpgradeUidSet_ {};
     std::mutex launchServiceManagerMutex_;
+    std::weak_ptr<AAFwk::TaskHandlerWrap> launchServiceTaskHandler_;
     std::once_flag launchServicesBootFlag_;
     std::shared_ptr<LaunchServiceManager> launchServiceManager_;
     std::unordered_set<std::string> nwebPreloadSet_ {};
