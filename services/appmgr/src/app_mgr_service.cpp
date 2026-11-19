@@ -351,7 +351,11 @@ int32_t AppMgrService::RegisterManagedProcess(const std::string &taskId, int32_t
     // /proc; climgr's view is hidepid-clipped) and re-anchor onto the child when one is
     // alive; otherwise register the passed-in host pid — identical to the pre-discovery
     // behavior, so a miss never leaves the task without an attribution record.
-    if (attribution.tool == AttributionTool::CLI) {
+    // The uid narrows the probe to the DIRECT climgr call: the CLI wire value is shared
+    // with the AMS skill executor (skill_execute_manager, relaying through foundation),
+    // and that path registers the attributed process ITSELF, not a sandbox host — probing
+    // its pid window could re-anchor onto an unrelated forked child of an ability.
+    if (attribution.tool == AttributionTool::CLI && IPCSkeleton::GetCallingUid() == AIMGR_SERVICE_UID) {
         int openFail = 0;
         int hostErrno = 0;
         pid_t toolPid = ProbeSandboxToolChild(pid, openFail, hostErrno);
