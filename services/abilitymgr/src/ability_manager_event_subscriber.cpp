@@ -181,14 +181,12 @@ void AbilityUserUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEven
     userScreenUnlockCallback_(userId);
 }
 
-AbilityPackageDataClearedEventSubscriber::AbilityPackageDataClearedEventSubscriber(
-    const EventFwk::CommonEventSubscribeInfo &subscribeInfo,
-    const std::function<void(const std::string &bundleName, uint32_t tokenId, int32_t userId)>
-        &dataClearedCallback)
+AppDataClearedEventSubscriber::AppDataClearedEventSubscriber(
+    const EventFwk::CommonEventSubscribeInfo &subscribeInfo, const AppDataClearedCallback &dataClearedCallback)
     : EventFwk::CommonEventSubscriber(subscribeInfo), dataClearedCallback_(dataClearedCallback)
 {}
 
-void AbilityPackageDataClearedEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
+void AppDataClearedEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
 {
     const AAFwk::Want &want = data.GetWant();
     const auto &action = want.GetActionRef();
@@ -201,7 +199,7 @@ void AbilityPackageDataClearedEventSubscriber::OnReceiveEvent(const EventFwk::Co
         return;
     }
     // Parameters are set by AppMgrServiceInner::NotifyAppStatusByCallerUid.
-    std::string bundleName = want.GetElement().GetBundleName();
+    const auto &bundleName = want.GetBundleNameRef();
     int32_t tokenId = want.GetIntParam("TOKEN_ID", 0);
     int32_t userId = want.GetIntParam("userId", INVALID_USERID);
     if (bundleName.empty() || tokenId == 0 || userId == INVALID_USERID) {

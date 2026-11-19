@@ -10585,30 +10585,20 @@ void AbilityManagerService::SubscribePackageDataClearedEvent()
     subscribeInfo.SetThreadMode(EventFwk::CommonEventSubscribeInfo::COMMON);
     auto dataClearedCallback = [abilityManager = weak_from_this()](const std::string &bundleName,
         uint32_t accessTokenId, int32_t userId) {
-        auto abilityMgr = abilityManager.lock();
-        if (abilityMgr == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityMgr pointer");
-            return;
-        }
-        auto taskHandler = abilityMgr->GetTaskHandler();
-        if (taskHandler == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid taskHandler");
-            return;
-        }
-        auto task = [abilityManager, bundleName, accessTokenId, userId]() {
+        // Handle the event off the common event dispatch thread: the handling queries the KVStore
+        // and calls the window manager via IPC.
+        ffrt::submit([abilityManager, bundleName, accessTokenId, userId]() {
             auto abilityMgr = abilityManager.lock();
             if (abilityMgr == nullptr) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid abilityMgr pointer");
                 return;
             }
             abilityMgr->HandlePackageDataCleared(bundleName, accessTokenId, userId);
-        };
-        taskHandler->SubmitTask(task, "HandlePackageDataCleared");
+            }, ffrt::task_attr().name("HandlePackageDataCleared"));
     };
-    packageDataClearedSubscriber_ =
-        std::make_shared<AbilityRuntime::AbilityPackageDataClearedEventSubscriber>(subscribeInfo,
-        dataClearedCallback);
-    bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(packageDataClearedSubscriber_);
+    appDataClearedSubscriber_ = std::make_shared<AbilityRuntime::AppDataClearedEventSubscriber>(
+        subscribeInfo, dataClearedCallback);
+    bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(appDataClearedSubscriber_);
     if (!subResult) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "subscribe package data cleared event failed");
         return;

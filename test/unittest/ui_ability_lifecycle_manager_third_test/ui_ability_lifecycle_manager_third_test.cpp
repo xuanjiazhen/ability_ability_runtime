@@ -2684,11 +2684,11 @@ EventFwk::CommonEventData MakePackageDataClearedEvent(const std::string &action,
 } // namespace
 
 /**
- * @tc.name: PackageDataClearedEventSubscriber_OnReceiveEvent_0100
+ * @tc.name: AppDataClearedEventSubscriber_OnReceiveEvent_0100
  * @tc.desc: valid data cleared event, callback invoked with parsed bundleName/tokenId/userId
  * @tc.type: FUNC
  */
-HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_OnReceiveEvent_0100,
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, AppDataClearedEventSubscriber_OnReceiveEvent_0100,
     TestSize.Level1)
 {
     std::string gotBundleName;
@@ -2704,7 +2704,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_O
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
-    auto subscriber = std::make_shared<AbilityRuntime::AbilityPackageDataClearedEventSubscriber>(
+    auto subscriber = std::make_shared<AbilityRuntime::AppDataClearedEventSubscriber>(
         subscribeInfo, callback);
     ASSERT_NE(subscriber, nullptr);
 
@@ -2718,11 +2718,11 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_O
 }
 
 /**
- * @tc.name: PackageDataClearedEventSubscriber_OnReceiveEvent_0200
+ * @tc.name: AppDataClearedEventSubscriber_OnReceiveEvent_0200
  * @tc.desc: action mismatch, callback not invoked
  * @tc.type: FUNC
  */
-HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_OnReceiveEvent_0200,
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, AppDataClearedEventSubscriber_OnReceiveEvent_0200,
     TestSize.Level1)
 {
     int32_t callCount = 0;
@@ -2732,7 +2732,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_O
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
-    auto subscriber = std::make_shared<AbilityRuntime::AbilityPackageDataClearedEventSubscriber>(
+    auto subscriber = std::make_shared<AbilityRuntime::AppDataClearedEventSubscriber>(
         subscribeInfo, callback);
 
     auto data = MakePackageDataClearedEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED,
@@ -2742,11 +2742,11 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_O
 }
 
 /**
- * @tc.name: PackageDataClearedEventSubscriber_OnReceiveEvent_0300
+ * @tc.name: AppDataClearedEventSubscriber_OnReceiveEvent_0300
  * @tc.desc: invalid bundleName, tokenId or userId, callback not invoked
  * @tc.type: FUNC
  */
-HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_OnReceiveEvent_0300,
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, AppDataClearedEventSubscriber_OnReceiveEvent_0300,
     TestSize.Level1)
 {
     int32_t callCount = 0;
@@ -2756,7 +2756,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_O
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
-    auto subscriber = std::make_shared<AbilityRuntime::AbilityPackageDataClearedEventSubscriber>(
+    auto subscriber = std::make_shared<AbilityRuntime::AppDataClearedEventSubscriber>(
         subscribeInfo, callback);
 
     auto action = EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED;
@@ -2779,17 +2779,17 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_O
 }
 
 /**
- * @tc.name: PackageDataClearedEventSubscriber_OnReceiveEvent_0400
+ * @tc.name: AppDataClearedEventSubscriber_OnReceiveEvent_0400
  * @tc.desc: null callback, no crash
  * @tc.type: FUNC
  */
-HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_OnReceiveEvent_0400,
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, AppDataClearedEventSubscriber_OnReceiveEvent_0400,
     TestSize.Level1)
 {
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_DATA_CLEARED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
-    auto subscriber = std::make_shared<AbilityRuntime::AbilityPackageDataClearedEventSubscriber>(
+    auto subscriber = std::make_shared<AbilityRuntime::AppDataClearedEventSubscriber>(
         subscribeInfo, nullptr);
     ASSERT_NE(subscriber, nullptr);
 
@@ -2797,6 +2797,59 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, PackageDataClearedEventSubscriber_O
         NOTIFY_TEST_BUNDLE_NAME, static_cast<int32_t>(NOTIFY_TEST_ACCESS_TOKEN_ID), 100, true);
     subscriber->OnReceiveEvent(data);
     SUCCEED();
+}
+
+/**
+ * @tc.name: SubscribePackageDataClearedEvent_0200
+ * @tc.desc: production data cleared callback runs the full chain: ffrt async task, ams routing,
+ *           manager handling with window notify and record removal
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SubscribePackageDataClearedEvent_0200, TestSize.Level1)
+{
+    auto mockSceneSessionManagerLite = new (std::nothrow) Rosen::MockSceneSessionManagerLite();
+    Rosen::SessionManagerLite::GetInstance().sceneSessionManagerLiteProxy_ = mockSceneSessionManagerLite;
+    EXPECT_CALL(*mockSceneSessionManagerLite, NotifyStackRecoverFromAMS(1, false)).Times(1)
+        .WillOnce(Return(Rosen::WSError::WS_OK));
+    EXPECT_CALL(*mockSceneSessionManagerLite, NotifyStackRecoverFromAMS(2, false)).Times(1)
+        .WillOnce(Return(Rosen::WSError::WS_OK));
+
+    auto kvStore = std::make_shared<MockSingleKvStore>();
+    nlohmann::json recoverInfoJson = nlohmann::json {
+        { "recover_info_list", { NOTIFY_TEST_MODULE_NAME + NOTIFY_TEST_ABILITY_NAME } },
+        { "session_id_list", { 1, 2 } },
+    };
+    DistributedKv::Value recoverValue(recoverInfoJson.dump());
+    EXPECT_CALL(*kvStore, Get(_, _)).WillRepeatedly(
+        DoAll(SetArgReferee<1>(recoverValue), Return(DistributedKv::Status::SUCCESS)));
+    std::vector<DistributedKv::Entry> allEntries;
+    EXPECT_CALL(*kvStore, GetEntries(_, _)).WillRepeatedly(
+        DoAll(SetArgReferee<1>(allEntries), Return(DistributedKv::Status::SUCCESS)));
+    EXPECT_CALL(*kvStore, Delete(_)).Times(AtLeast(1))
+        .WillRepeatedly(Return(DistributedKv::Status::SUCCESS));
+    DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = kvStore;
+
+    constexpr int32_t DATA_CLEARED_USER_ID = 100;
+    auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+    ASSERT_NE(ams, nullptr);
+    auto oldSubManagersHelper = ams->subManagersHelper_;
+    if (ams->subManagersHelper_ == nullptr) {
+        ams->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    }
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    ams->subManagersHelper_->uiAbilityManagers_[DATA_CLEARED_USER_ID] = mgr;
+
+    ams->SubscribePackageDataClearedEvent();
+    ASSERT_NE(ams->appDataClearedSubscriber_, nullptr);
+    ASSERT_TRUE(ams->appDataClearedSubscriber_->dataClearedCallback_ != nullptr);
+    // Trigger the production callback: it submits an ffrt task which routes to the manager of
+    // the user and notifies the window with (sessionId, false) for each recorded session.
+    ams->appDataClearedSubscriber_->dataClearedCallback_(
+        NOTIFY_TEST_BUNDLE_NAME, NOTIFY_TEST_ACCESS_TOKEN_ID, DATA_CLEARED_USER_ID);
+    usleep(400000);
+
+    ams->subManagersHelper_ = oldSubManagersHelper;
+    DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = nullptr;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

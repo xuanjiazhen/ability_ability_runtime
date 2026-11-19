@@ -3263,22 +3263,18 @@ void UIAbilityLifecycleManager::OnAbilityDied(UIAbilityRecordPtr abilityRecord)
 
 void UIAbilityLifecycleManager::NotifyStackRecoverFromDied(const UIAbilityRecordPtr &abilityRecord)
 {
-    if (abilityRecord == nullptr) {
-        return;
-    }
+    CHECK_POINTER(abilityRecord);
     auto sessionInfo = abilityRecord->GetSessionInfo();
-    if (sessionInfo == nullptr || sessionInfo->persistentId <= 0) {
+    auto persistentId = sessionInfo ? sessionInfo->persistentId : -1;
+    if (persistentId <= 0) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid sessionInfo, pid:%{public}d", abilityRecord->GetPid());
         return;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyStackRecoverFromDied, persistentId:%{public}d ", persistentId);
     const auto &abilityInfo = abilityRecord->GetAbilityInfo();
-    if (abilityInfo.bundleName.empty()) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "bundleName empty, persistentId:%{public}d", sessionInfo->persistentId);
-        return;
-    }
     std::string abilityName = abilityInfo.name;
     if (abilityInfo.launchMode == AppExecFwk::LaunchMode::STANDARD) {
-        abilityName += std::to_string(sessionInfo->persistentId);
+        abilityName += std::to_string(persistentId);
     }
     // Query the exit reason recorded by the kill entry before the kill. Use cleanFlag = false
     // to avoid consuming the record, which is still needed by SetLastExitReason on next launch.
@@ -3296,7 +3292,7 @@ void UIAbilityLifecycleManager::NotifyStackRecoverFromDied(const UIAbilityRecord
     }
     if (!isSetReason || (exitReason.reason != Reason::REASON_RESOURCE_CONTROL &&
         exitReason.reason != Reason::REASON_PERFORMANCE_CONTROL)) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "not control kill death, isSetReason:%{public}d reason:%{public}d",
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "isSetReason:%{public}d reason:%{public}d",
             isSetReason, static_cast<int32_t>(exitReason.reason));
         return;
     }
@@ -3304,28 +3300,21 @@ void UIAbilityLifecycleManager::NotifyStackRecoverFromDied(const UIAbilityRecord
     ret = DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->GetAbilityRecoverInfo(
         abilityInfo.applicationInfo.accessTokenId, abilityInfo.moduleName, abilityName, hasRecoverInfo);
     if (ret != ERR_OK || !hasRecoverInfo) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "no recover info, ret:%{public}d bundleName:%{public}s",
-            ret, abilityInfo.bundleName.c_str());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "no recover info, ret:%{public}d", ret);
         return;
     }
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(
-        userId_).GetSceneSessionManagerLiteProxy();
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(userId_).GetSceneSessionManagerLiteProxy();
     if (sceneSessionManager == nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "sceneSessionManager is nullptr, persistentId:%{public}d",
-            sessionInfo->persistentId);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "sceneSessionManager null, userId: %{public}d", userId_);
         return;
     }
-    auto err = sceneSessionManager->NotifyStackRecoverFromAMS(sessionInfo->persistentId, true);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "notify stack recover, persistentId:%{public}d reason:%{public}d err:%{public}d",
-        sessionInfo->persistentId, static_cast<int32_t>(exitReason.reason), static_cast<int32_t>(err));
+    auto err = sceneSessionManager->NotifyStackRecoverFromAMS(persistentId, true);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "persistentId: %{public}d ability: %{public}s err: %{public}d",
+        persistentId, abilityName.c_str(), static_cast<int32_t>(err));
 }
 
 void UIAbilityLifecycleManager::HandleAppDataCleared(const std::string &bundleName, uint32_t accessTokenId)
 {
-    if (bundleName.empty() || accessTokenId == 0) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid bundleName or accessTokenId");
-        return;
-    }
     // Read the session ids from the recover info record before removing it: the record
     // existence itself is the notification gate, so no tracking state is needed.
     std::vector<int32_t> sessionIds;

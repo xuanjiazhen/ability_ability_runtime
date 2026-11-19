@@ -83,19 +83,21 @@ private:
     std::function<void(int32_t)> userScreenUnlockCallback_;
 };
 
-class AbilityPackageDataClearedEventSubscriber : public EventFwk::CommonEventSubscriber {
-public:
-    explicit AbilityPackageDataClearedEventSubscriber(
-        const EventFwk::CommonEventSubscribeInfo &subscribeInfo,
-        const std::function<void(const std::string &bundleName, uint32_t tokenId, int32_t userId)>
-            &dataClearedCallback);
+using AppDataClearedCallback = std::function<void(const std::string &bundleName, uint32_t tokenId,
+    int32_t userId)>;
 
-    ~AbilityPackageDataClearedEventSubscriber() override = default;
+class AppDataClearedEventSubscriber : public EventFwk::CommonEventSubscriber {
+public:
+    explicit AppDataClearedEventSubscriber(
+        const EventFwk::CommonEventSubscribeInfo &subscribeInfo,
+        const AppDataClearedCallback &dataClearedCallback);
+
+    ~AppDataClearedEventSubscriber() override = default;
 
     void OnReceiveEvent(const EventFwk::CommonEventData &data) override;
 
 private:
-    std::function<void(const std::string &bundleName, uint32_t tokenId, int32_t userId)> dataClearedCallback_;
+    AppDataClearedCallback dataClearedCallback_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

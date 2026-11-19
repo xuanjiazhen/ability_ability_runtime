@@ -6512,5 +6512,86 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, SkillExecuteAttribution_ColdAttach
     EXPECT_EQ(status.asUnregisterManagedAttributionId_, SKILL_TEST_ATTRIBUTION_ID);
 }
 
+namespace {
+constexpr char DATA_CLEARED_TEST_BUNDLE[] = "com.test.datacleared";
+constexpr uint32_t DATA_CLEARED_TEST_TOKEN_ID = 123456;
+constexpr int32_t DATA_CLEARED_TEST_USER_ID = 100;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: SubscribePackageDataClearedEvent_001
+ * Function: SubscribePackageDataClearedEvent
+ * SubFunction: NA
+ * FunctionPoints: Verify the subscriber member and the production callback are created.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, SubscribePackageDataClearedEvent_001, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->SubscribePackageDataClearedEvent();
+    EXPECT_NE(abilityMs->appDataClearedSubscriber_, nullptr);
+    EXPECT_TRUE(abilityMs->appDataClearedSubscriber_->dataClearedCallback_ != nullptr);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: SubscribePackageDataClearedEvent_002
+ * Function: SubscribePackageDataClearedEvent
+ * SubFunction: NA
+ * FunctionPoints: Verify the production callback routes to the manager of the user and invokes
+ *                 HandleAppDataCleared via the ffrt async task.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, SubscribePackageDataClearedEvent_002, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.ualmHandleAppDataClearedCalled_ = false;
+    status.ualmHandleAppDataClearedBundle_ = "";
+    status.ualmHandleAppDataClearedTokenId_ = 0;
+    status.smhGetUIAbilityManagerByUserId_ = true;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+    abilityMs->subManagersHelper_->currentUIAbilityManager_ = std::make_shared<UIAbilityLifecycleManager>(
+        DATA_CLEARED_TEST_USER_ID);
+
+    abilityMs->SubscribePackageDataClearedEvent();
+    ASSERT_NE(abilityMs->appDataClearedSubscriber_, nullptr);
+    ASSERT_TRUE(abilityMs->appDataClearedSubscriber_->dataClearedCallback_ != nullptr);
+    // Trigger the production callback: it submits an ffrt task which routes to the manager.
+    abilityMs->appDataClearedSubscriber_->dataClearedCallback_(
+        DATA_CLEARED_TEST_BUNDLE, DATA_CLEARED_TEST_TOKEN_ID, DATA_CLEARED_TEST_USER_ID);
+    usleep(400000);
+    EXPECT_TRUE(status.ualmHandleAppDataClearedCalled_);
+    EXPECT_EQ(status.ualmHandleAppDataClearedBundle_, DATA_CLEARED_TEST_BUNDLE);
+    EXPECT_EQ(status.ualmHandleAppDataClearedTokenId_, DATA_CLEARED_TEST_TOKEN_ID);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: SubscribePackageDataClearedEvent_003
+ * Function: SubscribePackageDataClearedEvent
+ * SubFunction: NA
+ * FunctionPoints: Verify the production callback with no manager of the user does not invoke
+ *                 HandleAppDataCleared and does not crash.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, SubscribePackageDataClearedEvent_003, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.ualmHandleAppDataClearedCalled_ = false;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->SubscribePackageDataClearedEvent();
+    ASSERT_NE(abilityMs->appDataClearedSubscriber_, nullptr);
+    // No subManagersHelper_ is set: the routing finds no manager for the user.
+    abilityMs->appDataClearedSubscriber_->dataClearedCallback_(
+        DATA_CLEARED_TEST_BUNDLE, DATA_CLEARED_TEST_TOKEN_ID, DATA_CLEARED_TEST_USER_ID);
+    usleep(400000);
+    EXPECT_FALSE(status.ualmHandleAppDataClearedCalled_);
+}
+
 } // namespace AAFwk
 } // namespace OHOS

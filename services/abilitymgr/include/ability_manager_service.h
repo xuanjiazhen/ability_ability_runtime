@@ -3798,7 +3798,7 @@ private:
 
     std::shared_ptr<AbilityRuntime::AbilityUserUnlockEventSubscriber> userUnlockSubscriber_;
     std::shared_ptr<AbilityRuntime::AbilityScreenUnlockEventSubscriber> screenSubscriber_;
-    std::shared_ptr<AbilityRuntime::AbilityPackageDataClearedEventSubscriber> packageDataClearedSubscriber_;
+    std::shared_ptr<AbilityRuntime::AppDataClearedEventSubscriber> appDataClearedSubscriber_;
     bool isSubscribed_ = false;
     std::mutex subscribedMutex_;
 
