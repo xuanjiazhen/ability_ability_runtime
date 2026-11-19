@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "function_info.h"
+#include "tool_info.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -22,6 +23,11 @@ public:
     static std::string subCommandName;
     static std::vector<std::string> toolPermissions;
     static std::vector<std::string> subCommandPermissions;
+    // Query-path fixtures (REQ 20260812019200): defaults keep the historical behavior
+    // (GetAllTools -> empty + ERR_OK; GetToolByName fills visibility="private").
+    static int32_t getAllToolsResult;
+    static std::vector<ToolInfo> allTools;
+    static std::string toolVisibility;
 
     static void Reset();
 };

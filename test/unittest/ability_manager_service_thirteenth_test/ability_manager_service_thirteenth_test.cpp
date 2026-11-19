@@ -3593,6 +3593,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_001, TestSiz
     ASSERT_NE(interceptor, nullptr);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().permPermission_ = 0;
     auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
 }
@@ -3625,6 +3626,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_003, TestSiz
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
     MyStatus::GetInstance().ipcGetCallingUid_ = ERECT_SAFE_UID;
+    MyStatus::GetInstance().permPermission_ = 0;
     auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
     EXPECT_EQ(result, ERR_OK);
 }
@@ -3640,6 +3642,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_001, TestS
     ASSERT_NE(interceptor, nullptr);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().permPermission_ = 0;
     auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
 }
@@ -3658,6 +3661,93 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_002, TestS
     MyStatus::GetInstance().ipcGetCallingUid_ = TASKMGR_UID;
     auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
     EXPECT_EQ(result, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RegisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService RegisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_004, TestSize.Level1) {
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new (std::nothrow) MockISAInterceptor();
+    ASSERT_NE(interceptor, nullptr);
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().permPermission_ = 1;
+    auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: UnregisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService UnregisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_003, TestSize.Level1) {
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new (std::nothrow) MockISAInterceptor();
+    ASSERT_NE(interceptor, nullptr);
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().permPermission_ = 1;
+    auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
+    EXPECT_EQ(result, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: UnregisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService UnregisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_004, TestSize.Level1) {
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new (std::nothrow) MockISAInterceptor();
+    ASSERT_NE(interceptor, nullptr);
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = TASKMGR_UID;
+    MyStatus::GetInstance().permPermission_ = 0;
+    auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
+    EXPECT_EQ(result, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RegisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService RegisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_005, TestSize.Level1) {
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new (std::nothrow) MockISAInterceptor();
+    ASSERT_NE(interceptor, nullptr);
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().permPermission_ = 2;
+    auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    MyStatus::GetInstance().permPermission_ = 1;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: UnregisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService UnregisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_005, TestSize.Level1) {
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new (std::nothrow) MockISAInterceptor();
+    ASSERT_NE(interceptor, nullptr);
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    MyStatus::GetInstance().permPermission_ = 2;
+    auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    MyStatus::GetInstance().permPermission_ = 1;
 }
 
 /*
@@ -5853,12 +5943,22 @@ Want MakeSkillExecuteWant(const std::string &requestCode)
 static_assert(SKILL_TEST_ATTRIBUTION_TOOL_CLI == static_cast<int32_t>(AttributionTool::CLI),
     "SKILL_TEST_ATTRIBUTION_TOOL_CLI drifted from AppExecFwk::AttributionTool::CLI");
 
+// The insight intent executor mirrors AttributionTool::INSIGHT as the
+// AAFwk::ATTRIBUTION_TOOL_INSIGHT constant; pin the mirror to the enum so a value
+// change on either side fails in this binary.
+static_assert(AAFwk::ATTRIBUTION_TOOL_INSIGHT == static_cast<int32_t>(AttributionTool::INSIGHT),
+    "AAFwk::ATTRIBUTION_TOOL_INSIGHT drifted from AppExecFwk::AttributionTool::INSIGHT");
+
 // A caller-side token that captures the death recipient wired by
 // SkillExecuteManager::CreateExecuteRecord, so a caller death can be triggered
 // deterministically in-process; the captured recipient runs the production OnCallerDied.
 class SkillCallerDeathProbe : public IRemoteObject {
 public:
-    SkillCallerDeathProbe() = default;
+    // Explicitly pass a non-null descriptor: never rely on the IRemoteObject constructor default
+    // argument. Some IPC component versions ship that default as nullptr (e.g. older
+    // 'explicit IRemoteObject(const std::u16string &descriptor = nullptr)'), and binding it here
+    // would construct std::u16string from nullptr and crash in char_traits<char16_t>::length.
+    SkillCallerDeathProbe() : IRemoteObject(u"ability.test.SkillCallerDeathProbe") {}
     ~SkillCallerDeathProbe() override = default;
 
     int32_t GetObjectRefCount() override

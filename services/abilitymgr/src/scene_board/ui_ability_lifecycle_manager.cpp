@@ -1497,6 +1497,52 @@ int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemot
     return ret;
 }
 
+int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunchByPid(int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call NotifyCompleteGamePreLaunchByPid: %{public}d", pid);
+    UIAbilityRecordPtr prelaunchRecord = nullptr;
+    {
+        std::lock_guard<ffrt::mutex> guard(sessionLock_);
+        for (const auto &[persistentId, record] : sessionAbilityMap_) {
+            if (record == nullptr || record->GetPid() != pid) {
+                continue;
+            }
+            if (record->IsGameSAPreLaunch()) {
+                prelaunchRecord = record;
+                break;
+            }
+        }
+    }
+ 
+    if (prelaunchRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not found game SA prelaunch by pid: %{public}d", pid);
+        return ERR_NOT_GAME_PRELOAD_STATE;
+    }
+ 
+    auto callerToken = prelaunchRecord->GetToken();
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability record token is null");
+        return ERR_INVALID_VALUE;
+    }
+ 
+    CleanupExtendTask(prelaunchRecord->GetRecordId());
+
+    // Clear the game SA prelaunch flag in AbilityRecord and AppRecord
+    prelaunchRecord->SetGameSAPreLaunch(false);
+
+    int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->SetGameSAPrelaunch(callerToken,
+        false));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to SetGameSAPrelaunch, ret=%{public}d", ret);
+        return ret;
+    }
+    // Notification SCB goes to the background
+    int32_t notifyScbBackgroundReason = static_cast<int32_t>(NotifyScbBackgroundReason::GAME_PRELAUNCH_BACKGROUND);
+    ret = NotifySCBToMinimizeUIAbility(callerToken, true, notifyScbBackgroundReason);
+    return ret;
+}
+
 void UIAbilityLifecycleManager::CompleteForegroundSuccess(const UIAbilityRecordPtr &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -4570,7 +4616,8 @@ void UIAbilityLifecycleManager::TerminateSession(std::shared_ptr<AbilityRecord> 
     session->TerminateSession(sessionInfo);
 }
 
-int UIAbilityLifecycleManager::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow)
+int UIAbilityLifecycleManager::ChangeAbilityVisibility(
+    sptr<IRemoteObject> token, bool isShow, const std::shared_ptr<Rosen::WindowShowParams> &params)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     UIAbilityRecordPtr abilityRecord;
@@ -4621,6 +4668,12 @@ int UIAbilityLifecycleManager::ChangeAbilityVisibility(sptr<IRemoteObject> token
     auto callerSessionInfo = abilityRecord->GetSessionInfo();
     CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(callerSessionInfo->sessionToken, ERR_INVALID_VALUE);
+    if (params != nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR,
+            "showAbility delivers showParams to window, windowFocused:%{public}d, raiseTop:%{public}d",
+            params->windowFocused, params->raiseTop);
+        callerSessionInfo->showParams = params;
+    }
     auto callerSession = iface_cast<Rosen::ISession>(callerSessionInfo->sessionToken);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "callerSession ChangeSessionVisibilityWithStatusBar, isShow:%{public}d", isShow);
     CHECK_POINTER_AND_RETURN(callerSession, ERR_INVALID_VALUE);

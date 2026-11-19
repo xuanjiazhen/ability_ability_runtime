@@ -147,6 +147,16 @@ public:
     virtual AppMgrResultCode RegisterAppStateCallback(const sptr<IAppStateCallback> &callback);
 
     /**
+     * Register the task-state callback used by the ability runtime to receive
+     * task-finished notifications from TaskManagerService.
+     * Internal use: called once by AppScheduler during abilitymgr startup.
+     *
+     * @param callback ITaskStateCallback to register, must not be null.
+     * @return RESULT_OK if dispatched, otherwise ERROR_SERVICE_NOT_CONNECTED.
+     */
+    virtual AppMgrResultCode RegisterTaskStateCallback(const sptr<ITaskStateCallback> &callback);
+
+    /**
      * Explicitly connect to the AppMgrService system ability. Usually not needed:
      * every interface call performs a lazy connect. Provided for callers that
      * want to fail fast during startup.
@@ -1898,11 +1908,10 @@ public:
      * Start a task. The caller must be a system app.
      *
      * @param taskId Attribution key of the task (1~256 characters).
-     * @param priority One of the TaskPriority values.
      * @return ERR_OK on success, server error code otherwise;
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
-    int32_t StartTask(const std::string &taskId, int32_t priority);
+    int32_t StartTask(const std::string &taskId);
 
     /**
      * Finish a task. The caller must be the creating system app.

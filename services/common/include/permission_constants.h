@@ -91,14 +91,15 @@ constexpr const char* PERMISSION_SWITCH_KIOSK_MODE = "ohos.permission.SWITCH_KIO
 constexpr const char* PERMISSION_TRIGGER_LOCAL_WANTAGENT = "ohos.permission.TRIGGER_LOCAL_WANTAGENT";
 constexpr const char* PERMISSION_GET_EDM_CONFIG = "ohos.permission.GET_EDM_CONFIG";
 constexpr const char* PERMISSION_ALL_DEBUG = "ohos.permission.kernel.ALLOW_DEBUG";
+constexpr const char* PERMISSION_START_ABILITY_TO_PAGE = "ohos.permission.START_ABILITY_TO_PAGE";
 constexpr const char* PERMISSION_GET_AGENT_CARD = "ohos.permission.GET_AGENT_CARD";
 constexpr const char* PERMISSION_MODIFY_AGENT_CARD = "ohos.permission.MODIFY_AGENT_CARD";
-constexpr const char* PERMISSION_START_ABILITY_TO_PAGE = "ohos.permission.START_ABILITY_TO_PAGE";
 constexpr const char* PERMISSION_CONTINUATION_NOTIFY = "ohos.permission.CONTINUATION_NOTIFY";
 constexpr const char* PERMISSION_EXECUTE_DISTRIBUTED_INTENT = "ohos.permission.EXECUTE_DISTRIBUTED_INTENT";
 constexpr const char* PERMISSION_EXECUTE_INSIGHT_INTENT = "ohos.permission.EXECUTE_INSIGHT_INTENT";
 constexpr const char* PERMISSION_ACCESS_PUBLIC_FUNCTION = "ohos.permission.ACCESS_PUBLIC_FUNCTION";
 constexpr const char* PERMISSION_ALLOW_USE_BM = "ohos.permission.ALLOW_USE_BM";
+constexpr const char* PERMISSION_SA_INTERCEPTOR = "ohos.permission.REGISTER_SA_INTERCEPTOR";
 } // namespace PermissionConstants
 } // namespace AAFwk
 } // namespace OHOS

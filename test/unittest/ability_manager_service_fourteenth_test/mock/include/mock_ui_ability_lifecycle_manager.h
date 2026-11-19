@@ -159,6 +159,13 @@ public:
     int32_t NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken);
 
     /**
+     * @brief Complete game SA prelaunch by pid
+     * @param pid Pid of the game SA prelaunch process
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t NotifyCompleteGamePreLaunchByPid(int32_t pid);
+
+    /**
      * MinimizeUIAbility, minimize the special ability by scb.
      *
      * @param abilityRecord, the ability to minimize.
@@ -418,7 +425,8 @@ public:
 
     int32_t TryPrepareTerminateByPids(const std::vector<int32_t>& pids, bool clear);
 
-    int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow);
+    int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow,
+        const std::shared_ptr<Rosen::WindowShowParams> &params);
 
     int ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> sessionInfo, bool isShow);
 

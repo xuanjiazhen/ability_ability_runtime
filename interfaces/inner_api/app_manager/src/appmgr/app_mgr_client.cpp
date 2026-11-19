@@ -242,6 +242,19 @@ AppMgrResultCode AppMgrClient::RegisterAppStateCallback(const sptr<IAppStateCall
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
+AppMgrResultCode AppMgrClient::RegisterTaskStateCallback(const sptr<ITaskStateCallback> &callback)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        if (amsService != nullptr) {
+            amsService->RegisterTaskStateCallback(callback);
+            return AppMgrResultCode::RESULT_OK;
+        }
+    }
+    return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+}
+
 AppMgrResultCode AppMgrClient::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
@@ -2275,7 +2288,7 @@ int32_t AppMgrClient::NotifyChildProcessState(int32_t pid, int32_t state)
     return service->NotifyChildProcessState(pid, state);
 }
 
-int32_t AppMgrClient::StartTask(const std::string &taskId, int32_t priority)
+int32_t AppMgrClient::StartTask(const std::string &taskId)
 {
     if (mgrHolder_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
@@ -2286,7 +2299,7 @@ int32_t AppMgrClient::StartTask(const std::string &taskId, int32_t priority)
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return service->StartTask(taskId, priority);
+    return service->StartTask(taskId);
 }
 
 int32_t AppMgrClient::FinishTask(const std::string &taskId)

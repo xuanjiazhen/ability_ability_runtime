@@ -310,6 +310,7 @@ private:
     int32_t LaunchGameCustomizedInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyCancelGamePreLaunchInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyCompleteGamePreLaunchInner(MessageParcel &data, MessageParcel &reply);
+    int32_t NotifyCompleteGamePreLaunchByPidInner(MessageParcel &data, MessageParcel &reply);
     int32_t SetGamePreLaunchCompleteTimeInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExtendGamePreLaunchTimeoutInner(MessageParcel &data, MessageParcel &reply);
 
@@ -357,6 +358,7 @@ private:
     int32_t RestartAppInner(MessageParcel &data, MessageParcel &reply);
 
     int32_t GetUIExtensionRootHostInfoInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetUIExtensionRootHostInfoByIdInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetUIExtensionSessionInfoInner(MessageParcel &data, MessageParcel &reply);
     int32_t RequestAssertFaultDialogInner(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyDebugAssertResultInner(MessageParcel &data, MessageParcel &reply);
