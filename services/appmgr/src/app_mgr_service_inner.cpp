@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <cerrno>
 #include <fcntl.h>
+#include <future>
 #include <mutex>
 #include <queue>
 #include <securec.h>
@@ -12873,6 +12874,19 @@ int32_t AppMgrServiceInner::ExitMasterProcessRole()
     appRecord->SetHasBeenExistedMasterProcessRole(true);
 
     return ERR_OK;
+}
+
+void AppMgrServiceInner::PostLaunchServiceProcessExited(pid_t pid)
+{
+    auto task = [weak = weak_from_this(), pid]() {
+        if (auto inner = weak.lock()) {
+            inner->OnLaunchServiceProcessExited(pid);
+        }
+    };
+    auto handler = GetTaskHandler();
+    if (handler == nullptr || !handler->SubmitTask(task, "OnLaunchServiceProcessExitedTask")) {
+        TAG_LOGE(AAFwkTag::APPMGR, "post process exit failed, pid:%{public}d", pid);
+    }
 }
 
 void AppMgrServiceInner::OnLaunchServiceProcessExited(pid_t pid)

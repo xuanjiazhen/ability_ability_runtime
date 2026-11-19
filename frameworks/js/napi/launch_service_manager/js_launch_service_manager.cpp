@@ -166,18 +166,17 @@ private:
             return;
         }
         wptr<JsLaunchServiceObserver> weak = this;
-        auto complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
-            [weak, methodName = std::string(method), descriptor, state, pid, processData](
-                napi_env env, NapiAsyncTask &, int32_t) {
-                auto self = weak.promote();
-                if (self == nullptr || !self->active_.load()) {
-                    return;
-                }
-                self->NotifyObservers(env, methodName, descriptor, state, pid, processData);
-            });
-        napi_ref callback = nullptr;
-        NapiAsyncTask::Schedule("JsLaunchServiceObserver::Notify", env_,
-            std::make_unique<NapiAsyncTask>(callback, nullptr, std::move(complete)));
+        auto notify = [weak, methodName = std::string(method), descriptor, state, pid, processData]() {
+            auto self = weak.promote();
+            if (self == nullptr || !self->active_.load()) {
+                return;
+            }
+            HandleScope scope(self->env_);
+            self->NotifyObservers(self->env_, methodName, descriptor, state, pid, processData);
+        };
+        if (napi_send_event(env_, notify, napi_eprio_immediate) != napi_ok) {
+            TAG_LOGE(AAFwkTag::APPMGR, "send launch service observer event failed");
+        }
     }
 
     void NotifyObservers(napi_env env, const std::string &methodName, const LaunchServiceDescriptor &descriptor,
@@ -582,10 +581,10 @@ void CompleteEnableRequest(const std::shared_ptr<PendingEnableRequest> &request,
     if (request->env == nullptr) {
         return;
     }
-    auto complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
-        [request, result](napi_env env, NapiAsyncTask &task, int32_t status) { HandleEnableResult(request, result); });
-    NapiAsyncTask::Schedule("JsLaunchServiceManager::SetLaunchServicesEnabled", request->env,
-        std::make_unique<NapiAsyncTask>(static_cast<napi_ref>(nullptr), nullptr, std::move(complete)));
+    auto complete = [request, result]() { HandleEnableResult(request, result); };
+    if (napi_send_event(request->env, complete, napi_eprio_immediate) != napi_ok) {
+        TAG_LOGE(AAFwkTag::APPMGR, "send launch service enable result event failed");
+    }
 }
 
 napi_value SubmitLaunchServicesEnabled(napi_env env, const std::string &bundleName, int32_t userId, int32_t appIndex,
@@ -599,8 +598,14 @@ napi_value SubmitLaunchServicesEnabled(napi_env env, const std::string &bundleNa
         std::lock_guard<std::mutex> lock(g_enableMutex);
         g_enableRequests[env].emplace_back(request);
     }
-    DaemonServiceManagerClient::GetInstance().SetLaunchServicesEnabled(bundleName, userId, appIndex, token, enable,
-        [request](int32_t result) { CompleteEnableRequest(request, result); });
+    auto execute = std::make_unique<NapiAsyncTask::ExecuteCallback>(
+        [request, bundleName, userId, appIndex, token, enable]() {
+            DaemonServiceManagerClient::GetInstance().SetLaunchServicesEnabled(
+                bundleName, userId, appIndex, token, enable,
+                [request](int32_t result) { CompleteEnableRequest(request, result); });
+        });
+    NapiAsyncTask::Schedule("JsLaunchServiceManager::SubmitLaunchServicesEnabled", env,
+        std::make_unique<NapiAsyncTask>(static_cast<napi_ref>(nullptr), std::move(execute), nullptr));
     return promise;
 }
 
