@@ -11143,13 +11143,29 @@ int32_t AppMgrServiceInner::GetChildProcessInfoEx(const std::shared_ptr<ChildPro
         TAG_LOGE(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid failed,errcode=%{public}d", errCode);
         return errCode;
     }
+    int32_t appIndex = appRecord->GetAppIndex();
     BundleInfo bundleInfo;
-    if (IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appRecord->GetBundleName(),
-        BUNDLE_INFO_FLAG_WITH_HAP_APP_METADATA, appRecord->GetAppIndex(), bundleInfo, userId) != ERR_OK)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "GetCloneBundleInfo fail");
+    int32_t bundleMgrResult = ERR_OK;
+    if (appIndex == 0 || AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
+        // Main app, app clone and CLI sandbox are all valid clone indexes for BMS.
+        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appRecord->GetBundleName(),
+            BUNDLE_INFO_FLAG_WITH_HAP_APP_METADATA, appIndex, bundleInfo, userId));
+    } else if (appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
+        // PC tablet main instance is not a clone index, GetCloneBundleInfo rejects it.
+        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(appRecord->GetBundleName(),
+            BUNDLE_INFO_FLAG_WITH_HAP_APP_METADATA, bundleInfo, userId));
+    } else {
+        // DLP sandbox index (e.g. 1001, PC tablet DLP 11001~11999) is out of clone range for BMS.
+        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetSandboxBundleInfo(appRecord->GetBundleName(),
+            appIndex, userId, bundleInfo));
+    }
+    if (bundleMgrResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Get bundle info failed, appIndex:%{public}d, err:%{public}d",
+            appIndex, bundleMgrResult);
         return ERR_INVALID_VALUE;
     }
-    info.bundleInfo = std::make_shared<BundleInfo>(bundleInfo);
+    info.bundleInfo = std::make_shared<BundleInfo>(std::move(bundleInfo));
     if (childProcessRecord->GetChildProcessType() != CHILD_PROCESS_TYPE_NATIVE &&
         childProcessRecord->GetChildProcessType() != CHILD_PROCESS_TYPE_NATIVE_ARGS) {
         if (IN_PROCESS_CALL(bundleMgrHelper->GetBaseSharedBundleInfos(appRecord->GetBundleName(), info.hspList,
