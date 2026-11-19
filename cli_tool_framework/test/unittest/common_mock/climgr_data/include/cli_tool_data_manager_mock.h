@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "function_info.h"
 #include "tool_info.h"
 
 namespace OHOS {
@@ -40,6 +41,8 @@ public:
     static int32_t unregisterByNamespaceResult;
     static int32_t resetNamespaceFunctionsResult;
     static int32_t resetNamespaceFunctionsSuccessCount;
+    static std::vector<FunctionInfo> mockFunctions;
+    static FunctionInfo mockFunctionInfo;
 
     static void Reset();
 };
