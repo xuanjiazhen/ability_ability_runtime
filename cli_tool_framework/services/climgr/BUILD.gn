@@ -49,6 +49,7 @@ ohos_shared_library("climgr") {
     "src/cli_tool_manager_service.cpp",
     "src/permission_query_util.cpp",
     "src/process_manager.cpp",
+    "src/proc_scanner.cpp",
     "src/session_record.cpp",
     "src/task_attribution_manager.cpp",
     "src/tool_util.cpp",
