@@ -359,11 +359,11 @@ HWTEST_F(TaskManagerServiceTest, TaskManagerService_StartTask_0800, TestSize.Lev
     };
     for (int32_t fenceRet : fenceRejects) {
         OHOS::Security::SAF::SetMockFenceResult(fenceRet);
-        EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), AAFwk::INVALID_PARAMETERS_ERR);
+        EXPECT_EQ(service.StartTask(taskId), AAFwk::INVALID_PARAMETERS_ERR);
     }
     EXPECT_EQ(service.DumpActiveTasks().find(taskId), std::string::npos);
     OHOS::Security::SAF::SetMockFenceResult(SAF_SUCCESS);
-    EXPECT_EQ(service.StartTask(taskId, TASK_PRIORITY_DEFAULT), ERR_OK);
+    EXPECT_EQ(service.StartTask(taskId), ERR_OK);
     EXPECT_EQ(service.FinishTask(taskId), ERR_OK);
 }
 
