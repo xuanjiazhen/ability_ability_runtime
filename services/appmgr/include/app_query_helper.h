@@ -162,7 +162,7 @@ public:
 
 private:
     bool IsSceneBoardCall();
-
+    int32_t GetValidUserId(int32_t userId);
     RemoveRenderRecordCallback removeRenderRecordCallback_;
 
     std::shared_ptr<AppRunningManager> appRunningManager_;
