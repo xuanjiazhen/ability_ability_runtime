@@ -99,7 +99,10 @@ int32_t AppSpawnClient::PreStartNWebSpawnProcess()
 
 int32_t AppSpawnClient::StartProcess(const AppSpawnStartMsg &startMsg, pid_t &pid)
 {
-    return AAFwk::MyStatus::GetInstance().startProcess_;
+    auto &status = AAFwk::MyStatus::GetInstance();
+    status.spawnUid_ = startMsg.uid;
+    status.spawnAppUid_ = startMsg.appUid;
+    return status.startProcess_;
 }
 
 int32_t AppSpawnClient::StartImageProcess(const AppSpawnStartMsg &startMsg, pid_t &pid, uint64_t &checkpointId)

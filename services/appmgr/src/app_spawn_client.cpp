@@ -221,12 +221,14 @@ int32_t AppSpawnClient::SetDacInfo(const AppSpawnStartMsg &startMsg, AppSpawnReq
     AppDacInfo appDacInfo = {0};
     appDacInfo.uid = startMsg.uid;
     appDacInfo.gid = startMsg.gid;
+    appDacInfo.appUid = startMsg.appUid;
+    TAG_LOGD(AAFwkTag::APPMGR, "send uid: %{public}d, appUid: %{public}d", appDacInfo.uid, appDacInfo.appUid);
     if (startMsg.gids.size() > APP_MAX_GIDS ||
-        startMsg.dataGroupInfoList.size() > APP_MAX_GIDS) {
+        startMsg.dataGroupInfoList.size() > APP_MAX_GIDS || startMsg.ipcGroupInfoList.size() > APP_MAX_GIDS) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid gidCount, exceeds APP_MAX_GIDS");
         return ERR_INVALID_VALUE;
     }
-    size_t totalGidCount = startMsg.gids.size() + startMsg.dataGroupInfoList.size();
+    size_t totalGidCount = startMsg.gids.size() + startMsg.dataGroupInfoList.size() + startMsg.ipcGroupInfoList.size();
     if (totalGidCount > APP_MAX_GIDS) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid gidCount, exceeds APP_MAX_GIDS");
         return ERR_INVALID_VALUE;
@@ -235,8 +237,12 @@ int32_t AppSpawnClient::SetDacInfo(const AppSpawnStartMsg &startMsg, AppSpawnReq
     for (uint32_t i = 0; i < startMsg.gids.size(); i++) {
         appDacInfo.gidTable[i] = startMsg.gids[i];
     }
-    for (uint32_t i = startMsg.gids.size(); i < appDacInfo.gidCount; i++) {
+    uint32_t num = static_cast<uint32_t>(startMsg.gids.size() + startMsg.dataGroupInfoList.size());
+    for (uint32_t i = startMsg.gids.size(); i < num; i++) {
         appDacInfo.gidTable[i] = startMsg.dataGroupInfoList[i - startMsg.gids.size()].gid;
+    }
+    for (uint32_t i = num; i < appDacInfo.gidCount; i++) {
+        appDacInfo.gidTable[i] = startMsg.ipcGroupInfoList[i - num].gid;
     }
     ret = strcpy_s(appDacInfo.userName, sizeof(appDacInfo.userName), APPSPAWN_CLIENT_USER_NAME);
     if (ret) {
@@ -467,22 +473,22 @@ int32_t AppSpawnClient::AppspawnSetExtMsgMore(const AppSpawnStartMsg &startMsg, 
 
 int32_t AppSpawnClient::SetUserIdInfo(const AppSpawnStartMsg &startMsg, AppSpawnReqMsgHandle &reqHandle)
 {
-    if (startMsg.uid < 0) {
+    if (startMsg.appUid < 0) {
         return ERR_INVALID_VALUE;
     }
     int32_t userId = -1;
-    auto errCode = OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(startMsg.uid, userId);
+    auto errCode = OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(startMsg.appUid, userId);
     if (errCode != ERR_OK) {
-        TAG_LOGW(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid failed, uid=%{public}d, errcode=%{public}d",
-            startMsg.uid, errCode);
+        TAG_LOGW(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid failed, appUid=%{public}d, errcode=%{public}d",
+            startMsg.appUid, errCode);
         return errCode;
     }
 
     std::string userIdStr = std::to_string(userId);
     int32_t ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_USERID, userIdStr.c_str());
     if (ret != ERR_OK) {
-        TAG_LOGW(AAFwkTag::APPMGR, "Set userId failed, uid=%{public}d, userId=%{public}d, ret=%{public}d",
-            startMsg.uid, userId, ret);
+        TAG_LOGW(AAFwkTag::APPMGR, "Set userId failed, appUid=%{public}d, userId=%{public}d, ret=%{public}d",
+            startMsg.appUid, userId, ret);
         return ret;
     }
 
@@ -621,11 +627,13 @@ bool AppSpawnClient::VerifyMsg(const AppSpawnStartMsg &startMsg)
         }
 
         if (startMsg.gids.size() > APP_MAX_GIDS ||
-            startMsg.dataGroupInfoList.size() > APP_MAX_GIDS) {
+            startMsg.dataGroupInfoList.size() > APP_MAX_GIDS ||
+            startMsg.ipcGroupInfoList.size() > APP_MAX_GIDS) {
             TAG_LOGE(AAFwkTag::APPMGR, "many app gids or dataGroupInfoList");
             return false;
         }
-        if (startMsg.gids.size() + startMsg.dataGroupInfoList.size() > APP_MAX_GIDS) {
+        if (startMsg.gids.size() + startMsg.dataGroupInfoList.size() +
+            startMsg.ipcGroupInfoList.size() > APP_MAX_GIDS) {
             TAG_LOGE(AAFwkTag::APPMGR, "many app gids and dataGroupInfoList");
             return false;
         }

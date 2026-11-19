@@ -25,6 +25,7 @@ ErrCode OsAccountManagerWrapper::QueryActiveOsAccountIds(std::vector<int32_t>& i
 
 ErrCode OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(const int32_t uid, int32_t& id)
 {
+    id = AAFwk::MyStatus::GetInstance().osAccountLocalId_;
     return AAFwk::MyStatus::GetInstance().getOsAccountLocalIdFromUid_;
 }
 

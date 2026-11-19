@@ -1339,6 +1339,91 @@ HWTEST_F(AppMgrServiceInnerEighthTest, StartChildProcessImpl_005, TestSize.Level
 }
 
 /**
+ * @tc.name: StartChildProcessImpl_AppIdentity
+ * @tc.desc: A normal child preserves appUid while forwarding the process uid unchanged.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, StartChildProcessImpl_AppIdentity, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto &status = AAFwk::MyStatus::GetInstance();
+    auto oldClient = status.getSpawnClient_;
+    auto oldResult = status.startProcess_;
+    status.getSpawnClient_ = std::make_shared<AppSpawnClient>();
+    status.startProcess_ = ERR_OK;
+    for (int32_t processUid : {100, 20020001}) {
+        auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+        appRecord->SetUid(20020001);
+        AppSpawnStartMsg startMsg{};
+        startMsg.uid = processUid;
+        startMsg.appUid = 20020001;
+        appRecord->SetStartMsg(startMsg);
+        ChildProcessRequest request;
+        auto childRecord = std::make_shared<ChildProcessRecord>(0, request, appRecord);
+        pid_t childPid = 0;
+        EXPECT_EQ(appMgrServiceInner->StartChildProcessImpl(childRecord, appRecord, childPid,
+            ChildProcessArgs{}, ChildProcessOptions{}), ERR_OK);
+        EXPECT_EQ(status.spawnUid_, processUid);
+        EXPECT_EQ(status.spawnAppUid_, 20020001);
+        EXPECT_EQ(childRecord->GetUid(), 20020001);
+        EXPECT_TRUE(appMgrServiceInner->childProcessIsolationUidSet_.empty());
+    }
+    status.getSpawnClient_ = oldClient;
+    status.startProcess_ = oldResult;
+}
+
+/**
+ * @tc.name: StartChildProcessImpl_IsolationIdentity
+ * @tc.desc: The allocated isolated identity is sent, recorded and recycled on exit or spawn failure.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, StartChildProcessImpl_IsolationIdentity, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto &status = AAFwk::MyStatus::GetInstance();
+    auto oldClient = status.getSpawnClient_;
+    auto oldResult = status.startProcess_;
+    auto oldAccountResult = status.getOsAccountLocalIdFromUid_;
+    auto oldAccountId = status.osAccountLocalId_;
+    status.getSpawnClient_ = std::make_shared<AppSpawnClient>();
+    status.getOsAccountLocalIdFromUid_ = ERR_OK;
+    status.osAccountLocalId_ = 100;
+    for (int32_t spawnResult : {ERR_OK, ERR_INVALID_VALUE}) {
+        status.startProcess_ = spawnResult;
+        auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+        appRecord->SetUid(20020001);
+        AppSpawnStartMsg startMsg{};
+        startMsg.uid = 100;
+        startMsg.appUid = 20020001;
+        appRecord->SetStartMsg(startMsg);
+        ChildProcessRequest request;
+        auto childRecord = std::make_shared<ChildProcessRecord>(0, request, appRecord);
+        ChildProcessOptions options;
+        options.isolationMode = true;
+        options.isolationUid = true;
+        pid_t childPid = 0;
+        auto ret = appMgrServiceInner->StartChildProcessImpl(childRecord, appRecord, childPid,
+            ChildProcessArgs{}, options);
+        EXPECT_EQ(status.spawnAppUid_, status.spawnUid_);
+        EXPECT_NE(status.spawnAppUid_, startMsg.appUid);
+        EXPECT_EQ(status.spawnAppUid_ / 200000, 100);
+        if (spawnResult == ERR_OK) {
+            EXPECT_EQ(ret, ERR_OK);
+            EXPECT_EQ(childRecord->GetUid(), status.spawnAppUid_);
+            EXPECT_EQ(appMgrServiceInner->childProcessIsolationUidSet_.count(childRecord->GetUid()), 1);
+            appMgrServiceInner->OnChildProcessDied(childRecord);
+        } else {
+            EXPECT_EQ(ret, ERR_APPEXECFWK_BAD_APPSPAWN_CLIENT);
+        }
+        EXPECT_TRUE(appMgrServiceInner->childProcessIsolationUidSet_.empty());
+    }
+    status.getSpawnClient_ = oldClient;
+    status.startProcess_ = oldResult;
+    status.getOsAccountLocalIdFromUid_ = oldAccountResult;
+    status.osAccountLocalId_ = oldAccountId;
+}
+
+/**
  * @tc.name: GetChildProcessInfoForSelf_001
  * @tc.desc: test GetChildProcessInfoForSelf_001
  * @tc.type: FUNC

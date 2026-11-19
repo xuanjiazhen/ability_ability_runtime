@@ -506,6 +506,8 @@ void AbilityManagerService::OnStart()
     bool ret = Publish(instance_);
     if (!ret) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "publish failed");
+        state_ = ServiceRunningState::STATE_NOT_START;
+        instance_ = nullptr;
         return;
     }
 
@@ -4425,6 +4427,7 @@ void AbilityManagerService::UnSubscribeBackgroundTask()
     if (!bgtaskObserver_) {
         return;
     }
+    bgtaskObserver_ = nullptr;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s success", __func__);
 #endif
 }
@@ -4438,6 +4441,12 @@ void AbilityManagerService::SubscribeBundleEventCallback()
         taskHandler_->SubmitTask(startResidentAppsTask, "StartResidentApps");
     }
 
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    if (!bms) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundleManager failed");
+        return;
+    }
+
     if (abilityBundleEventCallback_) {
         return;
     }
@@ -4448,18 +4457,13 @@ void AbilityManagerService::SubscribeBundleEventCallback()
     if (abilityBundleEventCallback_ != nullptr) {
         abilityBundleEventCallback_->SetNotifyAllUsers(true);
     }
-    auto bms = AbilityUtil::GetBundleManagerHelper();
-    if (bms) {
-        bool ret = IN_PROCESS_CALL(bms->RegisterBundleEventCallback(abilityBundleEventCallback_));
-        if (!ret) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "registerBundleEventCallback failed");
-        }
-        auto pluginRet = IN_PROCESS_CALL(bms->RegisterPluginEventCallback(abilityBundleEventCallback_));
-        if (pluginRet != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "RegisterPluginEventCallback failed %{public}d", pluginRet);
-        }
-    } else {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundleManager failed");
+    bool ret = IN_PROCESS_CALL(bms->RegisterBundleEventCallback(abilityBundleEventCallback_));
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "registerBundleEventCallback failed");
+    }
+    auto pluginRet = IN_PROCESS_CALL(bms->RegisterPluginEventCallback(abilityBundleEventCallback_));
+    if (pluginRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "RegisterPluginEventCallback failed %{public}d", pluginRet);
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "SubscribeBundleEventCallback success.");
 }
@@ -12039,7 +12043,11 @@ void AbilityManagerService::ScheduleRecoverAbility(const sptr<IRemoteObject>& to
 
         ReportAppRecoverResult(record->GetUid(), appInfo, abilityInfo.name, "SUCCESS");
     }
+#ifdef APP_NO_RESPONSE_DIALOG
+    RestartApp(curWant, true, record->GetPid());
+#else
     RestartAppWithWindowForRecovery(curWant, record);
+#endif
 }
 
 void AbilityManagerService::RestartAppWithWindowForRecovery(
@@ -20016,8 +20024,9 @@ int32_t AbilityManagerService::RegisterSAInterceptor(sptr<AbilityRuntime::ISAInt
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call RegisterSaInterceptor, callingPid:%{public}d", IPCSkeleton::GetCallingPid());
     auto callingUid = IPCSkeleton::GetCallingAppUid();
-    if (callingUid != PENG_LAI_UID && callingUid != TASKMGR_UID && callingUid != ERECT_SAFE_UID &&
-        callingUid != AbilityRuntime::GlobalConstant::GAME_SA_UID) {
+    bool isAllowCaller = callingUid == PENG_LAI_UID || callingUid == TASKMGR_UID ||
+        callingUid == ERECT_SAFE_UID || callingUid == AbilityRuntime::GlobalConstant::GAME_SA_UID;
+    if (!isAllowCaller && !AAFwk::PermissionVerification::GetInstance()->VerifySAInterceptorPermission()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission call");
         return CHECK_PERMISSION_FAILED;
     }
@@ -20029,7 +20038,9 @@ int32_t AbilityManagerService::UnregisterSAInterceptor(sptr<IRemoteObject> inter
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call UnregisterSaInterceptor");
     auto callingUid = IPCSkeleton::GetCallingAppUid();
-    if (callingUid != TASKMGR_UID && callingUid != AbilityRuntime::GlobalConstant::GAME_SA_UID) {
+    bool isAllowCaller = callingUid == TASKMGR_UID ||
+        callingUid == AbilityRuntime::GlobalConstant::GAME_SA_UID;
+    if (!isAllowCaller && !AAFwk::PermissionVerification::GetInstance()->VerifySAInterceptorPermission()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission call");
         return CHECK_PERMISSION_FAILED;
     }

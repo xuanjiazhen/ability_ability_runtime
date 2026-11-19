@@ -133,6 +133,9 @@ public:
     int getSpawnClientCall_ = 0;
     // app spawn client
     int32_t startProcess_ = ERR_OK;
+    int32_t spawnUid_ = -1;
+    int32_t spawnAppUid_ = -1;
+    int32_t osAccountLocalId_ = -1;
     // os account
     ErrCode queryActiveOsAccountIds_ = ERR_OK;
     ErrCode getOsAccountLocalIdFromUid_ = ERR_OK;

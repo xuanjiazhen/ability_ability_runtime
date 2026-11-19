@@ -18,7 +18,31 @@
 #define private public
 #include "app_spawn_client.h"
 #undef private
+namespace {
+// Captures the string-message boundary only during these synchronous unit tests.
+struct SpawnStringCapture {
+    bool enabled = false;
+    int result = 0;
+    int calls = 0;
+    std::string name;
+    std::string value;
+};
+SpawnStringCapture g_spawnStringCapture;
+
+int CaptureSpawnStringInfo(AppSpawnReqMsgHandle reqHandle, const char *name, const char *value)
+{
+    if (!g_spawnStringCapture.enabled) {
+        return AppSpawnReqMsgAddStringInfo(reqHandle, name, value);
+    }
+    ++g_spawnStringCapture.calls;
+    g_spawnStringCapture.name = name;
+    g_spawnStringCapture.value = value;
+    return g_spawnStringCapture.result;
+}
+} // namespace
+#define AppSpawnReqMsgAddStringInfo CaptureSpawnStringInfo
 #include "app_spawn_client.cpp"
+#undef AppSpawnReqMsgAddStringInfo
 
 using namespace testing;
 using namespace testing::ext;
@@ -40,10 +64,14 @@ void AppSpawnClientTest::TearDownTestCase(void)
 {}
 
 void AppSpawnClientTest::SetUp()
-{}
+{
+    g_spawnStringCapture = {};
+}
 
 void AppSpawnClientTest::TearDown()
-{}
+{
+    g_spawnStringCapture = {};
+}
 
 /**
  * @tc.name: PreStartNWebSpawnProcess_001
@@ -255,6 +283,34 @@ HWTEST_F(AppSpawnClientTest, SetDacInfo_001, TestSize.Level2)
     EXPECT_EQ(ret, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "SetDacInfo_001 end");
+}
+
+/**
+ * @tc.name: SetDacInfo_002
+ * @tc.desc: appspawn SetDacInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSpawnClientTest, SetDacInfo_002, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetDacInfo_002 start");
+    AppSpawnStartMsg startMsg = {0};
+    startMsg.uid = 20010034;
+    startMsg.gid = 20010034;
+    startMsg.appUid = 20010034;
+    std::string procName("test_proc_name");
+    startMsg.procName = procName;
+
+    auto asc = std::make_shared<AppSpawnClient>(false);
+    int32_t ret = 0;
+    AppSpawnReqMsgHandle reqHandle = nullptr;
+    ret = asc->OpenConnection();
+    EXPECT_EQ(ret, ERR_OK);
+    ret = AppSpawnReqMsgCreate(static_cast<AppSpawnMsgType>(startMsg.code), startMsg.procName.c_str(), &reqHandle);
+    EXPECT_EQ(ret, ERR_OK);
+    ret = asc->SetDacInfo(startMsg, reqHandle);
+    EXPECT_EQ(ret, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "SetDacInfo_002 end");
 }
 
 /**
@@ -1007,5 +1063,62 @@ HWTEST_F(AppSpawnClientTest, SendAppSpawnUninstallDebugHapMsg_001, TestSize.Leve
     auto ret = appSpawnClient->SendAppSpawnUninstallDebugHapMsg(userId);
     ASSERT_EQ(ret, ERR_OK);
 }
+/**
+ * @tc.name: SetUserIdInfo_AppIdentity
+ * @tc.desc: The user extension is derived from appUid for both shared and ordinary process UIDs.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSpawnClientTest, SetUserIdInfo_AppIdentity, TestSize.Level1)
+{
+    AppSpawnClient client;
+    g_spawnStringCapture.enabled = true;
+    AppSpawnReqMsgHandle handle = nullptr;
+    for (int32_t processUid : {100, 20020001}) {
+        AppSpawnStartMsg startMsg{};
+        startMsg.uid = processUid;
+        startMsg.appUid = 20020001;
+        EXPECT_EQ(client.SetUserIdInfo(startMsg, handle), ERR_OK);
+        EXPECT_EQ(g_spawnStringCapture.name, MSG_EXT_NAME_USERID);
+        EXPECT_EQ(g_spawnStringCapture.value, "100");
+    }
+    EXPECT_EQ(g_spawnStringCapture.calls, 2);
+}
+
+/**
+ * @tc.name: SetUserIdInfo_InvalidAppIdentity
+ * @tc.desc: A valid process UID cannot hide an invalid application identity.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSpawnClientTest, SetUserIdInfo_InvalidAppIdentity, TestSize.Level1)
+{
+    AppSpawnClient client;
+    g_spawnStringCapture.enabled = true;
+    AppSpawnReqMsgHandle handle = nullptr;
+    AppSpawnStartMsg startMsg{};
+    startMsg.uid = 100;
+    startMsg.appUid = -1;
+    EXPECT_EQ(client.SetUserIdInfo(startMsg, handle), ERR_INVALID_VALUE);
+    EXPECT_EQ(g_spawnStringCapture.calls, 0);
+}
+
+/**
+ * @tc.name: SetUserIdInfo_WriteFailure
+ * @tc.desc: An extension-write failure is returned without changing the derived user identity.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSpawnClientTest, SetUserIdInfo_WriteFailure, TestSize.Level1)
+{
+    AppSpawnClient client;
+    g_spawnStringCapture.enabled = true;
+    g_spawnStringCapture.result = ERR_INVALID_VALUE;
+    AppSpawnReqMsgHandle handle = nullptr;
+    AppSpawnStartMsg startMsg{};
+    startMsg.uid = 101;
+    startMsg.appUid = 20220001;
+    EXPECT_EQ(client.SetUserIdInfo(startMsg, handle), ERR_INVALID_VALUE);
+    EXPECT_EQ(g_spawnStringCapture.value, "101");
+    EXPECT_EQ(g_spawnStringCapture.calls, 1);
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

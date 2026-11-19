@@ -3449,6 +3449,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, SetRenderStartMsg_001, TestSize.Level1)
     AAFwk::MyStatus::GetInstance().startProcess_ = ERR_OK;
 
     AppSpawnStartMsg startMsg;
+    startMsg.appUid = 20020001;
     startMsg.gids.push_back(0);
     std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
     pid_t hostPid = 1;
@@ -3461,6 +3462,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, SetRenderStartMsg_001, TestSize.Level1)
     int32_t renderUid = 1;
     bool isGPU = true;
     appMgrServiceInner->SetRenderStartMsg(startMsg, renderRecord, renderUid, isGPU);
+    EXPECT_EQ(startMsg.appUid, renderUid);
+    EXPECT_EQ(startMsg.uid, renderUid);
     EXPECT_EQ(startMsg.gids.size(), 2);
     TAG_LOGI(AAFwkTag::TEST, "SetRenderStartMsg_001 end");
 }
@@ -3479,6 +3482,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, SetRenderStartMsg_002, TestSize.Level1)
     AAFwk::MyStatus::GetInstance().startProcess_ = ERR_OK;
 
     AppSpawnStartMsg startMsg;
+    startMsg.appUid = 20020001;
     startMsg.gids.push_back(SHADER_CACHE_GROUPID);
     std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
     pid_t hostPid = 1;
@@ -3491,6 +3495,8 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, SetRenderStartMsg_002, TestSize.Level1)
     int32_t renderUid = 1;
     bool isGPU = true;
     appMgrServiceInner->SetRenderStartMsg(startMsg, renderRecord, renderUid, isGPU);
+    EXPECT_EQ(startMsg.appUid, renderUid);
+    EXPECT_EQ(startMsg.uid, renderUid);
     EXPECT_EQ(startMsg.gids.size(), 1);
     TAG_LOGI(AAFwkTag::TEST, "SetRenderStartMsg_002 end");
 }
