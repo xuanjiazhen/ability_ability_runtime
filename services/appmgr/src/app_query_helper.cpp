@@ -846,7 +846,8 @@ int32_t AppQueryHelper::IsAppRunning(const std::string &bundleName, int32_t appC
         TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
         return ERR_PERMISSION_DENIED;
     }
-    if (appCloneIndex < 0 || appCloneIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (!AbilityRuntime::GlobalConstant::IsAppCloneIndex(appCloneIndex) &&
+        appCloneIndex != AbilityRuntime::GlobalConstant::PC_TABLET_INDEX && appCloneIndex!=0) {
         TAG_LOGE(AAFwkTag::APPMGR, "appCloneIndex invalid");
         return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -860,6 +861,10 @@ int32_t AppQueryHelper::IsAppRunning(const std::string &bundleName, int32_t appC
         return ERR_INVALID_OPERATION;
     }
     int32_t userId = UserController::GetInstance().GetCallerUserId();
+    if (appCloneIndex == 0) {
+        userId = GetValidUserId(userId);
+        bundleMgrHelper->GetDualModeBundleInfo(name, userId, appCloneIndex);
+    }
     BundleInfo bundleInfo;
     int32_t bundleMgrResult;
     if (appCloneIndex == 0) {
@@ -893,7 +898,8 @@ int32_t AppQueryHelper::IsAppRunning(const std::string &bundleName, int32_t appC
         TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
         return ERR_PERMISSION_DENIED;
     }
-    if (appCloneIndex < 0 || appCloneIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (!AbilityRuntime::GlobalConstant::IsAppCloneIndex(appCloneIndex) &&
+        appCloneIndex != AbilityRuntime::GlobalConstant::PC_TABLET_INDEX && appCloneIndex!=0) {
         TAG_LOGE(AAFwkTag::APPMGR, "appCloneIndex invalid, bundleName: %{public}s, appCloneIndex: %{public}d",
             bundleName.c_str(), appCloneIndex);
         return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
@@ -902,6 +908,15 @@ int32_t AppQueryHelper::IsAppRunning(const std::string &bundleName, int32_t appC
         TAG_LOGE(AAFwkTag::APPMGR,
             "userId invalid, bundleName: %{public}s, userId: %{public}d", bundleName.c_str(), userId);
         return AAFwk::INVALID_PARAMETERS_ERR;
+    }
+    if (appCloneIndex == 0) {
+        auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+        if (bundleMgrHelper == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
+            return ERR_INVALID_OPERATION;
+        }
+        userId = GetValidUserId(userId);
+        bundleMgrHelper->GetDualModeBundleInfo(name, userId, appCloneIndex);
     }
 
     return appRunningManager_->IsAppRunningByBundleName(bundleName, appCloneIndex, userId, isRunning);
