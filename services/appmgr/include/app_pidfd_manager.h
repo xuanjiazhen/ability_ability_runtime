@@ -97,7 +97,6 @@ private:
     std::mutex mapMutex_;
     std::weak_ptr<AppMgrServiceInner> appMgrServiceInner_;
     std::weak_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> launchServiceTaskHandler_;
 
     DISALLOW_COPY_AND_MOVE(AppPidFdManager);
 };

@@ -73,6 +73,7 @@ ohos_unittest("ability_manager_service_third_test") {
   ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/daemon_service_manager:daemon_service_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
