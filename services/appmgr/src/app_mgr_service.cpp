@@ -96,9 +96,7 @@ constexpr const char SIGN_TERMINAL = '\0';
 constexpr int32_t DEFAULT_CONCURRENT_NUMBER = 1;
 constexpr int32_t HIPROFILER_UID = 3063;
 constexpr int32_t REPORT_TEMPLATE_PROCESS_READY_DELAY_TIME = 2000;
-constexpr int32_t LAUNCH_SERVICE_TASK_TIMEOUT_MS = 5000;
 constexpr int32_t MAX_APP_INDEX = 1000;
-constexpr const char *TASK_START_LAUNCH_SERVICES_AFTER_RESIDENT = "StartLaunchServicesAfterResident";
 
 namespace {
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
@@ -129,6 +127,7 @@ constexpr int32_t USER_UID = 2000;
 constexpr const char* HIVIEW_PROCESS_NAME = "hiview";
 constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+constexpr const char* LAUNCH_SERVICE_PC_MODE_SWITCH_PARAM = "const.window.support_window_pcmode_switch";
 constexpr const char* LAUNCH_SERVICE_MAIN_MODE_PARAM = "const.sceneboard.mainmode";
 constexpr const char* LAUNCH_SERVICE_PC_MODE_PARAM = "persist.sceneboard.ispcmode";
 constexpr const char* ALLOW_LAUNCH_SERVICE_ON_NON_DUAL_MODE_DEVICE_PARAM =
@@ -136,11 +135,12 @@ constexpr const char* ALLOW_LAUNCH_SERVICE_ON_NON_DUAL_MODE_DEVICE_PARAM =
 
 bool IsDaemonDeviceSupported()
 {
-    if (system::GetParameter(LAUNCH_SERVICE_MAIN_MODE_PARAM, "").empty() &&
-        system::GetParameter(LAUNCH_SERVICE_PC_MODE_PARAM, "").empty()) {
+    if (!system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_SWITCH_PARAM, false)) {
         return system::GetBoolParameter(ALLOW_LAUNCH_SERVICE_ON_NON_DUAL_MODE_DEVICE_PARAM, false);
     }
-    return system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_PARAM, false);
+    auto mainMode = system::GetParameter(LAUNCH_SERVICE_MAIN_MODE_PARAM, "");
+    return (mainMode == "0" || mainMode == "1") &&
+        system::GetBoolParameter(LAUNCH_SERVICE_PC_MODE_PARAM, false);
 }
 
 bool VerifyRegisterDaemonPermission()
@@ -248,11 +248,6 @@ void AppMgrService::OnStop()
     appMgrServiceState_.serviceRunningState = ServiceRunningState::STATE_NOT_START;
     eventHandler_.reset();
     taskHandler_.reset();
-    std::shared_ptr<AAFwk::TaskHandlerWrap> launchServiceTaskHandler;
-    {
-        std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
-        launchServiceTaskHandler.swap(launchServiceTaskHandler_);
-    }
     if (appMgrServiceInner_) {
         appMgrServiceInner_->OnStop();
     }
@@ -378,13 +373,8 @@ ErrCode AppMgrService::Init()
         return ERR_INVALID_OPERATION;
     }
 
-    {
-        std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
-        launchServiceTaskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler(
-            "app_mgr_launch_service_queue", DEFAULT_CONCURRENT_NUMBER, AAFwk::TaskQoS::USER_INTERACTIVE);
-        if (launchServiceTaskHandler_ == nullptr) {
-            return ERR_INVALID_OPERATION;
-        }
+    if (!appMgrServiceInner_->InitLaunchServiceTaskHandler()) {
+        return ERR_INVALID_OPERATION;
     }
     taskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler("app_mgr_task_queue",
         DEFAULT_CONCURRENT_NUMBER);
@@ -2867,16 +2857,14 @@ void AppMgrService::CancelDelayedExitTask(int32_t pid)
 int32_t AppMgrService::RunLaunchServiceTask(
     const std::function<int32_t(const std::shared_ptr<AppMgrServiceInner> &)> &task)
 {
-    std::shared_ptr<AAFwk::TaskHandlerWrap> handler;
-    {
-        std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
-        handler = launchServiceTaskHandler_;
-    }
     auto inner = appMgrServiceInner_;
-    if (handler == nullptr || inner == nullptr) {
+    auto handler = inner == nullptr ? nullptr : inner->GetLaunchServiceTaskHandler();
+    if (handler == nullptr) {
         return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
     }
-    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(LAUNCH_SERVICE_TASK_TIMEOUT_MS);
+    constexpr int32_t launchServiceTaskTimeoutMs = 5000;
+    const auto deadline = std::chrono::steady_clock::now() +
+        std::chrono::milliseconds(launchServiceTaskTimeoutMs);
     auto promise = std::make_shared<std::promise<int32_t>>();
     auto future = promise->get_future();
     auto handle = handler->SubmitTask([inner, task, promise, deadline]() {
@@ -2897,6 +2885,37 @@ int32_t AppMgrService::RunLaunchServiceTask(
     return future.get();
 }
 
+int32_t AppMgrService::PostResidentStartupCompleted()
+{
+    auto inner = appMgrServiceInner_;
+    auto launchHandler = inner == nullptr ? nullptr : inner->GetLaunchServiceTaskHandler();
+    if (launchHandler == nullptr || taskHandler_ == nullptr) {
+        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    }
+    auto task = [inner, launchHandler]() {
+        auto handle = launchHandler->SubmitTask([inner]() { inner->StartLaunchServicesAfterBoot(); });
+        if (!handle) {
+            TAG_LOGE(AAFwkTag::APPMGR, "submit boot launch service task failed");
+        }
+    };
+    auto handle = taskHandler_->SubmitTask(task,
+        AAFwk::TaskAttribute{
+            .taskName_ = "StartLaunchServicesAfterResident", .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE});
+    return handle ? ERR_OK : AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+}
+
+bool AppMgrService::PostLaunchServiceTask(
+    const std::function<void()> &task, const std::string &name, int64_t delayMillis)
+{
+    auto inner = appMgrServiceInner_;
+    auto handler = inner == nullptr ? nullptr : inner->GetLaunchServiceTaskHandler();
+    if (handler == nullptr) {
+        return false;
+    }
+    auto handle = handler->SubmitTask(task, name, delayMillis);
+    return static_cast<bool>(handle);
+}
+
 int32_t AppMgrService::RegisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
 {
     if (!IsDaemonDeviceSupported()) {
@@ -2911,8 +2930,9 @@ int32_t AppMgrService::RegisterDaemon(const AAFwk::LaunchServiceDescriptor &desc
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
     const int32_t callerUid = IPCSkeleton::GetCallingUid();
-    return RunLaunchServiceTask(
-        [descriptor, callerUid](const auto &inner) { return inner->RegisterDaemon(descriptor, callerUid); });
+    return RunLaunchServiceTask([descriptor, callerUid](const auto &inner) {
+        return inner->RegisterDaemon(descriptor, callerUid);
+    });
 }
 
 int32_t AppMgrService::UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
@@ -2929,8 +2949,9 @@ int32_t AppMgrService::UnregisterDaemon(const AAFwk::LaunchServiceDescriptor &de
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
     const int32_t callerUid = IPCSkeleton::GetCallingUid();
-    return RunLaunchServiceTask(
-        [descriptor, callerUid](const auto &inner) { return inner->UnregisterDaemon(descriptor, callerUid); });
+    return RunLaunchServiceTask([descriptor, callerUid](const auto &inner) {
+        return inner->UnregisterDaemon(descriptor, callerUid);
+    });
 }
 
 int32_t AppMgrService::StartDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
@@ -2949,8 +2970,9 @@ int32_t AppMgrService::StartDaemon(const AAFwk::LaunchServiceDescriptor &descrip
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
     const int32_t callerUid = IPCSkeleton::GetCallingUid();
-    return RunLaunchServiceTask(
-        [descriptor, callerUid](const auto &inner) { return inner->StartDaemon(descriptor, callerUid); });
+    return RunLaunchServiceTask([descriptor, callerUid](const auto &inner) {
+        return inner->StartDaemon(descriptor, callerUid);
+    });
 }
 
 int32_t AppMgrService::StopDaemon(const AAFwk::LaunchServiceDescriptor &descriptor)
@@ -2969,8 +2991,9 @@ int32_t AppMgrService::StopDaemon(const AAFwk::LaunchServiceDescriptor &descript
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
     const int32_t callerUid = IPCSkeleton::GetCallingUid();
-    return RunLaunchServiceTask(
-        [descriptor, callerUid](const auto &inner) { return inner->StopDaemon(descriptor, callerUid); });
+    return RunLaunchServiceTask([descriptor, callerUid](const auto &inner) {
+        return inner->StopDaemon(descriptor, callerUid);
+    });
 }
 
 int32_t AppMgrService::GetLaunchServiceInformation(
@@ -2988,11 +3011,10 @@ int32_t AppMgrService::GetLaunchServiceInformation(
     if (!descriptor.IsValid()) {
         return ERR_INVALID_VALUE;
     }
-    AbilityRuntime::LaunchServiceDescriptor targetDescriptor = descriptor;
     const int32_t callerUid = IPCSkeleton::GetCallingUid();
     auto result = std::make_shared<AbilityRuntime::LaunchServiceInformation>();
-    auto ret = RunLaunchServiceTask([targetDescriptor, callerUid, result](const auto &inner) {
-        return inner->GetLaunchServiceInformation(targetDescriptor, *result, callerUid);
+    auto ret = RunLaunchServiceTask([descriptor, callerUid, result](const auto &inner) {
+        return inner->GetLaunchServiceInformation(descriptor, *result, callerUid);
     });
     if (ret == ERR_OK) {
         information = std::move(*result);
@@ -3058,19 +3080,9 @@ int32_t AppMgrService::SetLaunchServicesEnabled(const std::string &bundleName, i
     if (inner == nullptr) {
         return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
     }
-    std::shared_ptr<AAFwk::TaskHandlerWrap> handler;
-    {
-        std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
-        handler = launchServiceTaskHandler_;
-    }
-    if (handler == nullptr) {
-        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
-    }
-    auto handle = handler->SubmitTask([inner, bundleName, userId, appIndex, token, enable, callerUid, callback]() {
-        inner->SetLaunchServicesEnabled(bundleName, userId, appIndex, token, enable, callerUid,
-            [callback](int32_t result) { callback->OnResult(result); });
-    });
-    return handle ? ERR_OK : AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    return PostLaunchServiceTask([inner, bundleName, userId, appIndex, token, enable, callerUid, callback]() {
+        inner->SetLaunchServicesEnabled(bundleName, userId, appIndex, token, enable, callerUid, callback);
+    }) ? ERR_OK : AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
 }
 
 int32_t AppMgrService::NotifyResidentStartupCompleted()
@@ -3081,24 +3093,7 @@ int32_t AppMgrService::NotifyResidentStartupCompleted()
     if (!IsReady()) {
         return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
     }
-    std::shared_ptr<AAFwk::TaskHandlerWrap> launchHandler;
-    {
-        std::lock_guard<std::mutex> lock(launchServiceTaskMutex_);
-        launchHandler = launchServiceTaskHandler_;
-    }
-    if (launchHandler == nullptr) {
-        return AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
-    }
-    auto task = [inner = appMgrServiceInner_, launchHandler]() {
-        auto handle = launchHandler->SubmitTask([inner]() { inner->StartLaunchServicesAfterBoot(); });
-        if (!handle) {
-            TAG_LOGE(AAFwkTag::APPMGR, "submit boot launch service task failed");
-        }
-    };
-    auto handle = taskHandler_->SubmitTask(task,
-        AAFwk::TaskAttribute{
-            .taskName_ = TASK_START_LAUNCH_SERVICES_AFTER_RESIDENT, .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE});
-    return handle ? ERR_OK : AAFwk::ABILITY_SERVICE_NOT_CONNECTED;
+    return PostResidentStartupCompleted();
 }
 
 int32_t AppMgrService::RegisterLaunchServiceObserver(const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
@@ -3116,8 +3111,9 @@ int32_t AppMgrService::RegisterLaunchServiceObserver(const sptr<AbilityRuntime::
     }
 
     const int32_t callerUid = IPCSkeleton::GetCallingUid();
-    return RunLaunchServiceTask(
-        [observer, callerUid](const auto &inner) { return inner->RegisterLaunchServiceObserver(observer, callerUid); });
+    return RunLaunchServiceTask([observer, callerUid](const auto &inner) {
+        return inner->RegisterLaunchServiceObserver(observer, callerUid);
+    });
 }
 
 int32_t AppMgrService::UnregisterLaunchServiceObserver(const sptr<AbilityRuntime::ILaunchServiceObserver> &observer)
@@ -3133,8 +3129,9 @@ int32_t AppMgrService::UnregisterLaunchServiceObserver(const sptr<AbilityRuntime
         AAFwk::PermissionConstants::PERMISSION_MANAGE_DAEMON_SERVICE)) {
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
-    return RunLaunchServiceTask(
-        [observer](const auto &inner) { return inner->UnregisterLaunchServiceObserver(observer); });
+    return RunLaunchServiceTask([observer](const auto &inner) {
+        return inner->UnregisterLaunchServiceObserver(observer);
+    });
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
