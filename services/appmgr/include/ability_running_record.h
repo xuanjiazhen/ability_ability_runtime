@@ -30,7 +30,8 @@ namespace AppExecFwk {
 class AbilityRunningRecord {
 public:
     AbilityRunningRecord(std::shared_ptr<AbilityInfo> info, sptr<IRemoteObject> token,
-        int32_t abilityRecordId);
+        int32_t abilityRecordId, const std::shared_ptr<ApplicationInfo> &appInfo = nullptr,
+        int32_t appIndex = 0);
     virtual ~AbilityRunningRecord();
 
     /**
@@ -60,6 +61,11 @@ public:
      * @return Returns the ability info.
      */
     const std::shared_ptr<AbilityInfo> &GetAbilityInfo() const;
+
+    // Owning application metadata supplied by the module, independent of AbilityInfo query flags.
+    const std::shared_ptr<ApplicationInfo> &GetApplicationInfo() const;
+
+    int32_t GetAppIndex() const;
 
     /**
      * @brief Obtains the info of the ability.
@@ -158,6 +164,8 @@ private:
     int32_t abilityRecordId_ = 0;
     int32_t uiExtensionAbilityId_ = 0;
     std::shared_ptr<AbilityInfo> info_;
+    std::shared_ptr<ApplicationInfo> appInfo_;
+    int32_t appIndex_ = 0;
     sptr<IRemoteObject> token_;
     sptr<IRemoteObject> preToken_;
     std::shared_ptr<AAFwk::Want> want_ = nullptr;

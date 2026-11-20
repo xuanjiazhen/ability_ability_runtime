@@ -293,7 +293,7 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t ki
         return INVALID_PARAMETERS_ERR;
     }
     std::string bundleName = record->GetAbilityInfo().bundleName;
-    int32_t recordUid = record->GetAbilityInfo().uid;
+    int32_t recordUid = record->GetUid();
     int32_t callingUid = IPCSkeleton::GetCallingAppUid();
     bool isSelf = (callingUid == recordUid);
     if (isSelf && IsCallerBackgroundAndScreenLocked(callerToken)) {

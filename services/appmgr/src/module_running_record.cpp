@@ -89,7 +89,8 @@ std::shared_ptr<AbilityRunningRecord> ModuleRunningRecord::AddAbility(sptr<IRemo
         TAG_LOGE(AAFwkTag::APPMGR, "AbilityRecord no need to add");
         return nullptr;
     }
-    auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, abilityRecordId);
+    auto abilityRecord =
+        std::make_shared<AbilityRunningRecord>(abilityInfo, token, abilityRecordId, appInfo_, appIndex_);
     abilityRecord->SetWant(want);
     if (appInfo_) {
         abilityRecord->SetIsSingleUser(appInfo_->singleton);

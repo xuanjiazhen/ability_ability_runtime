@@ -394,7 +394,8 @@ bool AbilityPermissionUtil::NeedCheckStatusBar(std::shared_ptr<AbilityRecord> ab
         return false;
     }
     if (abilityRequest.abilityInfo.type != AppExecFwk::AbilityType::PAGE ||
-        abilityRequest.abilityInfo.uid != abilityRecord->GetUid()) {
+        abilityRequest.uid <= 0 || abilityRequest.uid != abilityRecord->GetUid() ||
+        abilityRequest.appInfo.appIndex != abilityRecord->GetAppIndex()) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "not uiAbility or not the same uid.");
             return false;
     }

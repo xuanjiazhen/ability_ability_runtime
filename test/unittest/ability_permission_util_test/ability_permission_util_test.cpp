@@ -1208,6 +1208,7 @@ HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_0100, TestSize.Level1)
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     abilityRequest.abilityInfo.uid = 1000;
+    abilityRequest.uid = 1000;
     abilityRequest.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
 
     auto ret = AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(abilityRecord, abilityRequest);
@@ -1234,6 +1235,7 @@ HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_0200, TestSize.Level1)
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
     abilityRequest.abilityInfo.uid = 1000;
+    abilityRequest.uid = 1000;
     abilityRequest.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
 
     auto ret = AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(abilityRecord, abilityRequest);
@@ -1260,6 +1262,7 @@ HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_0300, TestSize.Level1)
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     abilityRequest.abilityInfo.uid = 1100;
+    abilityRequest.uid = 1100;
     abilityRequest.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
 
     auto ret = AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(abilityRecord, abilityRequest);
@@ -1286,6 +1289,7 @@ HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_0400, TestSize.Level1)
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
     abilityRequest.abilityInfo.uid = 1100;
+    abilityRequest.uid = 1100;
     abilityRequest.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
 
     auto ret = AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(abilityRecord, abilityRequest);
@@ -1312,6 +1316,7 @@ HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_0500, TestSize.Level1)
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     abilityRequest.abilityInfo.uid = 1000;
+    abilityRequest.uid = 1000;
     abilityRequest.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
 
     auto ret = AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(abilityRecord, abilityRequest);
@@ -1338,6 +1343,7 @@ HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_0600, TestSize.Level1)
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     abilityRequest.abilityInfo.uid = 1000;
+    abilityRequest.uid = 1000;
     abilityRequest.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::APP_CLONE;
 
     auto ret = AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(abilityRecord, abilityRequest);
@@ -1364,6 +1370,7 @@ HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_0700, TestSize.Level1)
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     abilityRequest.abilityInfo.uid = 1000;
+    abilityRequest.uid = 1000;
     abilityRequest.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
 
     auto ret = AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(abilityRecord, abilityRequest);
@@ -1390,6 +1397,7 @@ HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_0800, TestSize.Level1)
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     abilityRequest.abilityInfo.uid = 1000;
+    abilityRequest.uid = 1000;
     abilityRequest.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::APP_CLONE;
 
     auto ret = AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(abilityRecord, abilityRequest);
@@ -1414,6 +1422,7 @@ HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_0900, TestSize.Level1)
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     abilityRequest.abilityInfo.uid = 1000;
+    abilityRequest.uid = 1000;
     abilityRequest.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::APP_CLONE;
 
     auto ret = AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(abilityRecord, abilityRequest);
@@ -1614,6 +1623,33 @@ HWTEST_F(AbilityPermissionUtilTest, DirectBoot_UnlockedSkipsPermissionAndCloneQu
     EXPECT_TRUE(AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus("com.example.directboot"));
     EXPECT_EQ(BundleMgrHelper::cloneQueryCount, 0);
     EXPECT_EQ(directBootPermissionChecks, 0);
+}
+
+/**
+ * @tc.name: NeedCheckStatusBar_SharedUidIdentity
+ * @tc.desc: Shared process credentials must not merge applications or clone instances.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_SharedUidIdentity, TestSize.Level1)
+{
+    auto record = std::make_shared<AbilityRecord>();
+    record->uid_ = 20020002;
+    record->abilityInfo.uid = 100;
+    AbilityRequest request;
+    request.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    request.abilityInfo.uid = 100;
+    request.uid = 20020002;
+    request.appInfo.multiAppMode.multiAppModeType = AppExecFwk::MultiAppModeType::APP_CLONE;
+    EXPECT_TRUE(AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(record, request));
+    request.uid = 20020003;
+    EXPECT_FALSE(AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(record, request));
+    request.uid = 20020002;
+    request.appInfo.appIndex = 1;
+    EXPECT_FALSE(AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(record, request));
+    record->appIndex_ = 1;
+    EXPECT_TRUE(AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(record, request));
+    request.uid = 0;
+    EXPECT_FALSE(AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(record, request));
 }
 
 }  // namespace AAFwk

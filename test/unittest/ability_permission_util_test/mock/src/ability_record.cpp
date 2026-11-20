@@ -61,6 +61,11 @@ int32_t AbilityRecord::GetUid() const
     return uid_;
 }
 
+int32_t AbilityRecord::GetAppIndex() const
+{
+    return appIndex_;
+}
+
 int32_t AbilityRecord::GetOwnerMissionUserId()
 {
     return ownerMissionUserId_;

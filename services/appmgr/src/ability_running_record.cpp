@@ -25,8 +25,9 @@ constexpr const char* IS_HOOK = "ohos.ability_runtime.is_hook";
 static const std::string EMPTY_NAME;
 }
 AbilityRunningRecord::AbilityRunningRecord(std::shared_ptr<AbilityInfo> info,
-    sptr<IRemoteObject> token, int32_t abilityRecordId)
-    : abilityRecordId_(abilityRecordId), info_(info), token_(token)
+    sptr<IRemoteObject> token, int32_t abilityRecordId,
+    const std::shared_ptr<ApplicationInfo> &appInfo, int32_t appIndex)
+    : abilityRecordId_(abilityRecordId), info_(info), appInfo_(appInfo), appIndex_(appIndex), token_(token)
 {}
 
 AbilityRunningRecord::~AbilityRunningRecord()
@@ -62,6 +63,16 @@ const std::string &AbilityRunningRecord::GetModuleName() const
 const std::shared_ptr<AbilityInfo> &AbilityRunningRecord::GetAbilityInfo() const
 {
     return info_;
+}
+
+const std::shared_ptr<ApplicationInfo> &AbilityRunningRecord::GetApplicationInfo() const
+{
+    return appInfo_;
+}
+
+int32_t AbilityRunningRecord::GetAppIndex() const
+{
+    return appIndex_;
 }
 
 const std::shared_ptr<AAFwk::Want> &AbilityRunningRecord::GetWant() const

@@ -209,7 +209,9 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, IsSpecifiedModuleLoaded_003, TestS
 
     mgr->sessionAbilityMap_.emplace(0, nullptr);
 
-    int32_t uid = 100;
+    int32_t uid = 20020002;
+    abilityRequest.uid = uid;
+    abilityRequest.appInfo.appUid = uid;
     std::string instanceKey = "testInstanceKey";
     abilityRequest.abilityInfo.uid = uid;
     abilityRequest.want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
@@ -2433,5 +2435,35 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, BuildStartSpecifiedParam_003, Test
     EXPECT_EQ(param.processMode, static_cast<int32_t>(ProcessMode::UNSPECIFIED));
     EXPECT_FALSE(param.isPreloadStart);
 }
+
+/**
+ * @tc.name: IsSpecifiedModuleLoaded_SharedUidIdentity
+ * @tc.desc: A loaded instance is matched by application identity and clone index.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerSecondTest, IsSpecifiedModuleLoaded_SharedUidIdentity, TestSize.Level1)
+{
+    auto manager = std::make_shared<UIAbilityLifecycleManager>();
+    AbilityRequest target;
+    target.uid = 20020002;
+    target.abilityInfo.uid = 100;
+    target.appInfo.appUid = target.uid;
+    target.appInfo.appIndex = 1;
+    target.abilityInfo.applicationInfo.appIndex = 1;
+    auto record = UIAbilityRecord::CreateAbilityRecord(target);
+    ASSERT_NE(record, nullptr);
+    manager->sessionAbilityMap_.emplace(1, record);
+    bool isDebug = false;
+    EXPECT_TRUE(manager->IsSpecifiedModuleLoaded(target, true, isDebug));
+    target.uid = 20020003;
+    EXPECT_FALSE(manager->IsSpecifiedModuleLoaded(target, true, isDebug));
+    target.uid = 20020002;
+    target.appInfo.appIndex = 0;
+    EXPECT_FALSE(manager->IsSpecifiedModuleLoaded(target, true, isDebug));
+    target.appInfo.appIndex = 1;
+    target.uid = 0;
+    EXPECT_FALSE(manager->IsSpecifiedModuleLoaded(target, true, isDebug));
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

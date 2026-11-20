@@ -1246,5 +1246,42 @@ HWTEST_F(KioskManagerTest, EnterKioskMode_SAProxy_002, TestSize.Level1) {
     KioskManager::GetInstance().kioskStatus_.Clear();
 }
 
+/**
+ * @tc.name: EnterKioskMode_SharedUidIdentity
+ * @tc.desc: Proxy state and subsequent matching retain the target application identity.
+ * @tc.type: FUNC
+ */
+HWTEST_F(KioskManagerTest, EnterKioskMode_SharedUidIdentity, TestSize.Level1)
+{
+    auto &manager = KioskManager::GetInstance();
+    manager.kioskStatus_.Clear();
+    manager.kioskWhitelistMap_.clear();
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+    MyFlag::permissionFlag_ = 1;
+    MyStatus::GetInstance().ipcGetCallingAppUid_ = 20020003;
+    AbilityRequest request;
+    request.uid = 20020002;
+    request.appInfo.appUid = request.uid;
+    request.abilityInfo.uid = 100;
+    request.abilityInfo.bundleName = "com.test.demo";
+    request.abilityInfo.type = AbilityType::PAGE;
+    abilityRecord = AbilityRecord::CreateAbilityRecord(request);
+    ASSERT_NE(abilityRecord, nullptr);
+    manager.kioskWhitelistMap_[20020003] = {"com.test.demo"};
+    auto result = manager.EnterKioskMode(abilityRecord->GetToken(),
+        static_cast<int32_t>(Rosen::KioskType::EXAM_MODE));
+    EXPECT_TRUE(result == INNER_ERR || result == ERR_OK);
+    EXPECT_EQ(manager.kioskStatus_.kioskBundleUid_, 20020002);
+    EXPECT_EQ(manager.kioskStatus_.kioskCallerUid_, 20020003);
+    EXPECT_TRUE(manager.kioskStatus_.isProxyEnter_);
+    EXPECT_TRUE(manager.IsKioskBundleUid(20020002));
+    EXPECT_FALSE(manager.IsKioskBundleUid(20020003));
+    EXPECT_FALSE(manager.IsKioskBundleUid(100));
+    manager.kioskWhitelistMap_.clear();
+    manager.kioskStatus_.Clear();
+}
+
+
 } // namespace AAFwk
 } // namespace OHOS

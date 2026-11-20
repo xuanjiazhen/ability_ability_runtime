@@ -364,7 +364,7 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     loadParam.byCallStatus = GetByCallStatus();
     loadParam.isGamePrelaunch = IsGameSAPreLaunch();
     FillProcessInfoFromSession(loadParam);
-    auto userId = abilityInfo_.uid / BASE_USER_RANGE;
+    auto userId = GetUid() / BASE_USER_RANGE;
     bool isMainUIAbility =
         MainElementUtils::IsMainUIAbility(abilityInfo_.bundleName, abilityInfo_.name, userId);
     MainElementUtils::SetMainUIAbilityKeepAliveFlag(isMainUIAbility,
@@ -384,7 +384,7 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     // Handle bundle first launch event via posttask
     if (abilityInfo_.type == AppExecFwk::AbilityType::PAGE &&
         !abilityInfo_.applicationInfo.isBundleFirstLaunched) {
-        auto userId = abilityInfo_.uid / BASE_USER_RANGE;
+        auto userId = GetUid() / BASE_USER_RANGE;
         std::string callerBundleName = firstCallerBundleName_.empty() ? "_system" : firstCallerBundleName_;
         ffrt::submit([this, appInfo = abilityInfo_.applicationInfo, userId, callerBundleName]() {
             AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, callerBundleName);

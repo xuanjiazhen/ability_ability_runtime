@@ -23,6 +23,7 @@
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
 #include "bundle_mgr_helper.h"
+#include "global_constant.h"
 
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
@@ -72,6 +73,48 @@ void AppLifeCycleDeal::AddAbilityStage(const HapModuleInfo &abilityStage)
     appThread->ScheduleAbilityStage(abilityStage);
 }
 
+bool AppLifeCycleDeal::ResolveHookAbility(const std::shared_ptr<AbilityRunningRecord> &ability,
+    std::shared_ptr<AbilityInfo> &abilityInfo)
+{
+    const auto &appInfo = ability->GetApplicationInfo();
+    auto appIndex = ability->GetAppIndex();
+    if (!appInfo || appInfo->bundleName.empty() || appInfo->appUid <= 0 ||
+        appIndex < 0 || appInfo->appIndex != appIndex) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Hook ability application identity unavailable");
+        return false;
+    }
+    constexpr int32_t BASE_USER_RANGE = 200000;
+    auto userId = appInfo->appUid / BASE_USER_RANGE;
+    auto bundleManagerHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    HapModuleInfo hapModuleInfo;
+    if (!bundleManagerHelper->GetHapModuleInfo(*abilityInfo, userId, hapModuleInfo)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "GetHapModuleInfo fail");
+        return false;
+    }
+    abilityInfo = std::make_shared<AbilityInfo>();
+    Want want;
+    want.SetElementName("", hapModuleInfo.bundleName, hapModuleInfo.abilitySrcEntryDelegator,
+        hapModuleInfo.abilityStageSrcEntryDelegator);
+    auto flags = AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION;
+    bool resolved = false;
+    if (appIndex == 0) {
+        resolved = IN_PROCESS_CALL(bundleManagerHelper->QueryAbilityInfo(
+            want, flags, userId, *abilityInfo));
+    } else if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
+        resolved = IN_PROCESS_CALL(bundleManagerHelper->QueryCloneAbilityInfo(
+            want.GetElement(), flags, appIndex, *abilityInfo, userId)) == ERR_OK;
+    } else {
+        resolved = IN_PROCESS_CALL(bundleManagerHelper->GetSandboxAbilityInfo(
+            want, appIndex, flags, userId, *abilityInfo)) == ERR_OK;
+    }
+    if (!resolved) {
+        TAG_LOGW(AAFwkTag::APPMGR, "Query hook ability fail");
+        return false;
+    }
+    return true;
+}
+
 void AppLifeCycleDeal::LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability,
     std::shared_ptr<AppUpdateInfo> updateInfo)
 {
@@ -88,24 +131,8 @@ void AppLifeCycleDeal::LaunchAbility(const std::shared_ptr<AbilityRunningRecord>
         }
         TAG_LOGD(AAFwkTag::APPMGR, "Launch");
         bool isHookAbility = ability->IsHook();
-        if (isHookAbility) {
-            auto bundleManagerHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
-            HapModuleInfo hapModuleInfo;
-            if (!bundleManagerHelper->GetHapModuleInfo(*abilityInfo, hapModuleInfo)) {
-                TAG_LOGW(AAFwkTag::APPMGR, "GetHapModuleInfo fail");
-                return;
-            }
-            int32_t BASE_USER_RANGE = 200000;
-            auto userId = abilityInfo->uid / BASE_USER_RANGE;
-            abilityInfo = std::make_shared<AbilityInfo>();
-            Want want;
-            want.SetElementName("", hapModuleInfo.bundleName, hapModuleInfo.abilitySrcEntryDelegator,
-                hapModuleInfo.abilityStageSrcEntryDelegator);
-            if (!IN_PROCESS_CALL(bundleManagerHelper->QueryAbilityInfo(
-                want, AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, *abilityInfo))) {
-                TAG_LOGW(AAFwkTag::APPMGR, "QueryAbilityInfo fail");
-                return;
-            }
+        if (isHookAbility && !ResolveHookAbility(ability, abilityInfo)) {
+            return;
         }
         appThread->ScheduleLaunchAbility(*abilityInfo, ability->GetToken(),
             ability->GetWant(), ability->GetAbilityRecordId(), updateInfo);

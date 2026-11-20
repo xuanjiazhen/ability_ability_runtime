@@ -340,6 +340,9 @@ public:
     int32_t PreTemplateProcessDeepFrozen();
 
 private:
+    bool ResolveHookAbility(const std::shared_ptr<AbilityRunningRecord> &ability,
+        std::shared_ptr<AbilityInfo> &abilityInfo);
+
     mutable std::mutex schedulerMutex_;
     sptr<IAppScheduler> appThread_ = nullptr;
 };

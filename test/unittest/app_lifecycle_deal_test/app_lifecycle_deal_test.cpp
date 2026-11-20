@@ -23,6 +23,7 @@
 #include "application_info.h"
 #include "app_mgr_service_dump_error_code.h"
 #include "mock_ability_token.h"
+#include "module_running_record.h"
 #include "hilog_tag_wrapper.h"
 
 using namespace testing;
@@ -556,6 +557,79 @@ HWTEST_F(AppLifecycleDealTest, ScheduleMem_002, TestSize.Level1)
     EXPECT_CALL(*mockAppScheduler, ScheduleMem(_, _)).Times(1);
     appLifeCycle->ScheduleMem(info, callback);
     TAG_LOGD(AAFwkTag::TEST, "ScheduleMem_002 end.");
+}
+
+/**
+ * @tc.name: LaunchAbility_HookMissingIdentity
+ * @tc.desc: Missing owning metadata cannot fall back to a shared uid or nested metadata.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppLifecycleDealTest, LaunchAbility_HookMissingIdentity, TestSize.Level1)
+{
+    auto lifecycle = std::make_shared<AppLifeCycleDeal>();
+    sptr<MockAppScheduler> scheduler = new (std::nothrow) MockAppScheduler();
+    lifecycle->SetApplicationClient(scheduler);
+    auto info = std::make_shared<AbilityInfo>();
+    info->uid = 100;
+    info->applicationInfo.appUid = 20020002;
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    auto ability = std::make_shared<AbilityRunningRecord>(info, token, 1);
+    auto want = std::make_shared<AAFwk::Want>();
+    want->SetParam("ohos.ability_runtime.is_hook", true);
+    ability->SetWant(want);
+    EXPECT_CALL(*scheduler, ScheduleLaunchAbility(_, _, _, _, _)).Times(0);
+    lifecycle->LaunchAbility(ability);
+}
+
+/**
+ * @tc.name: GetApplicationInfo_FromModule
+ * @tc.desc: Module registration preserves independent application metadata for Hook dispatch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppLifecycleDealTest, GetApplicationInfo_FromModule, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->uid = 100;
+    appInfo->appUid = 20020002;
+    appInfo->appIndex = 1;
+    ModuleRunningRecord module(appInfo, nullptr);
+    HapModuleInfo moduleInfo;
+    module.Init(moduleInfo, 1, {}, nullptr);
+    auto info = std::make_shared<AbilityInfo>();
+    info->uid = 100;
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    auto ability = module.AddAbility(token, info, nullptr, 1);
+    ASSERT_NE(ability, nullptr);
+    EXPECT_EQ(ability->GetApplicationInfo(), appInfo);
+    EXPECT_EQ(ability->GetApplicationInfo()->appUid, 20020002);
+    EXPECT_EQ(ability->GetApplicationInfo()->appIndex, 1);
+    EXPECT_EQ(ability->GetAppIndex(), 1);
+}
+
+/**
+ * @tc.name: ResolveHookAbility_RejectMismatchedOwner
+ * @tc.desc: A clone cannot query a delegator through main-application or absent identity metadata.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppLifecycleDealTest, ResolveHookAbility_RejectMismatchedOwner, TestSize.Level1)
+{
+    AppLifeCycleDeal lifecycle;
+    auto info = std::make_shared<AbilityInfo>();
+    info->uid = 100;
+    info->bundleName = "com.test.demo";
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = info->bundleName;
+    appInfo->appUid = 20020002;
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    auto ability = std::make_shared<AbilityRunningRecord>(info, token, 1, appInfo, 1);
+    EXPECT_FALSE(lifecycle.ResolveHookAbility(ability, info));
+    appInfo->appIndex = 1;
+    appInfo->appUid = 0;
+    EXPECT_FALSE(lifecycle.ResolveHookAbility(ability, info));
+    appInfo->appUid = 20020002;
+    appInfo->bundleName.clear();
+    info->bundleName.clear();
+    EXPECT_FALSE(lifecycle.ResolveHookAbility(ability, info));
 }
 
 }  // namespace AppExecFwk

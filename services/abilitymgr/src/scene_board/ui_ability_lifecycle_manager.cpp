@@ -5062,7 +5062,8 @@ bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &ab
             if (abilityRecord == nullptr) {
                 continue;
             }
-            if (abilityRecord->GetAbilityInfo().uid == abilityRequest.abilityInfo.uid &&
+            if (abilityRequest.uid > 0 && abilityRecord->GetUid() == abilityRequest.uid &&
+                abilityRecord->GetAppIndex() == abilityRequest.appInfo.appIndex &&
                 abilityRecord->GetInstanceKey() == instanceKey) {
                 isDebug = abilityRecord->IsDebug();
                 return true;

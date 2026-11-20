@@ -461,5 +461,33 @@ HWTEST_F(AbilityRunningRecordTest, IsSceneBoard_002, TestSize.Level1)
     EXPECT_FALSE(record->IsSceneBoard());
     TAG_LOGD(AAFwkTag::TEST, "IsSceneBoard_002 end.");
 }
+
+/**
+ * @tc.name: GetApplicationInfo_OwningIdentity
+ * @tc.desc: Hook identity comes from the owning module, independently of AbilityInfo query flags.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityRunningRecordTest, GetApplicationInfo_OwningIdentity, TestSize.Level1)
+{
+    auto info = std::make_shared<AbilityInfo>();
+    info->uid = 100;
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->uid = 100;
+    appInfo->appUid = 20020002;
+    appInfo->appIndex = 1;
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    AbilityRunningRecord record(info, token, 1, appInfo, 1);
+    ASSERT_EQ(record.GetApplicationInfo(), appInfo);
+    EXPECT_EQ(record.GetApplicationInfo()->appUid, 20020002);
+    EXPECT_EQ(record.GetApplicationInfo()->appIndex, 1);
+    EXPECT_EQ(record.GetAppIndex(), 1);
+    info->applicationInfo.appUid = 20020003;
+    EXPECT_EQ(record.GetApplicationInfo()->appUid, 20020002);
+    AbilityRunningRecord missing(info, token, 2);
+    EXPECT_EQ(missing.GetApplicationInfo(), nullptr);
+}
+
+
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

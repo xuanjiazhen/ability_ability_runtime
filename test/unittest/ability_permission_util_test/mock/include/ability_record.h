@@ -67,6 +67,8 @@ public:
 
     int32_t GetUid() const;
 
+    int32_t GetAppIndex() const;
+
     int32_t GetOwnerMissionUserId();
 
 public:
@@ -75,6 +77,7 @@ public:
     std::string instanceKey;
     bool isTerminating = false;
     int32_t uid_ = -1;
+    int32_t appIndex_ = 0;
     int32_t ownerMissionUserId_ = 0;
 };
 
@@ -84,6 +87,7 @@ struct AbilityRequest {
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo appInfo;
     bool startRecent = false;
+    int32_t uid = 0;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
