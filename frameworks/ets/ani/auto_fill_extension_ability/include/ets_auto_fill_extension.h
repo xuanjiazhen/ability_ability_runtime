@@ -20,7 +20,9 @@
 #include "auto_fill_extension_context.h"
 #include "configuration.h"
 #include "ets_runtime.h"
+#include "ets_ui_extension_content_session.h"
 #include "session_info.h"
+#include "ui_extension_migration_utils.h"
 #include "view_data.h"
 
 namespace OHOS {
@@ -134,6 +136,11 @@ private:
     void ReleaseObjectReference(ani_ref etsObjRef);
     bool CreateNewWindow(sptr<AAFwk::SessionInfo> sessionInfo, sptr<IRemoteObject> obj,
         std::shared_ptr<AAFwk::Want> sharedWant);
+    sptr<Rosen::WindowOption> CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo,
+        const AAFwk::Want &want);
+    void OnWindowCreated(const sptr<AAFwk::SessionInfo> &sessionInfo, const sptr<IRemoteObject> &obj,
+        const sptr<Rosen::Window> &uiWindow);
+    void UpdateAutoFillMigrationState(const sptr<AAFwk::SessionInfo> &info);
     bool CreateSessionAndReference(sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow);
     void ProcessRequest(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
         ani_object nativeContentSession);
@@ -142,9 +149,11 @@ private:
     std::shared_ptr<AppExecFwk::ETSNativeReference> etsObj_;
     std::shared_ptr<AppExecFwk::ETSNativeReference> shellContextRef_ = nullptr;
     std::map<sptr<IRemoteObject>, sptr<Rosen::Window>> uiWindowMap_;
+    MigrationFencingState migrationFencing_;
     std::set<sptr<IRemoteObject>> foregroundWindows_;
     std::map<sptr<IRemoteObject>, ani_ref> contentSessions_;
     std::map<sptr<IRemoteObject>, ani_ref> callbacks_;
+    std::shared_ptr<EtsUIExtensionContentSession> etsUiExtContentSession_;
     bool isPopup_ = false;
 };
 } // namespace AbilityRuntime
