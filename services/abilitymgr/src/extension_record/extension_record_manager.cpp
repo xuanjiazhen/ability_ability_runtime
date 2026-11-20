@@ -18,7 +18,6 @@
 #include <cstdint>
 
 #include "ability_util.h"
-#include "ability_record/ability_record_utils.h"
 #include "app_utils.h"
 #include "global_constant.h"
 #include "extension_running_timeout_monitor.h"
@@ -254,16 +253,7 @@ bool ExtensionRecordManager::CheckMigrationDeclaration(const AAFwk::AbilityReque
         ret = ERR_INVALID_VALUE;
         return false;
     }
-    auto hostRecord = AAFwk::Token::GetAbilityRecordByToken(recordSessionInfo->callerToken);
-    bool callerOwnsHostToken = hostRecord == nullptr ||
-        (hostRecord->GetPid() == IPCSkeleton::GetCallingPid() &&
-        hostRecord->GetUid() == IPCSkeleton::GetCallingUid());
-    if (hostRecord == nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration host token not resolvable, persistentId: %{public}d",
-            recordSessionInfo->persistentId);
-    }
-    bool declarationMatched = callerOwnsHostToken &&
+    bool declarationMatched =
         abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken;
     if (!declarationMatched) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
@@ -291,15 +281,15 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         return true;
     }
     auto recordSessionInfo = migrationRecord->GetSessionInfo();
-    if (!CheckMigrationDeclaration(abilityRequest, recordSessionInfo, ret)) {
-        return true;
-    }
     auto extensionRecord = FindExtensionRecordById(migrationRecord->GetUIExtensionAbilityId());
     if (extensionRecord == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "migration update: wrapper not found, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    if (!CheckMigrationDeclaration(abilityRequest, recordSessionInfo, ret)) {
         return true;
     }
     if (recordSessionInfo != nullptr && recordSessionInfo->hostWindowId != 0) {

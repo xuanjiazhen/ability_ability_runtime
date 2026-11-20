@@ -540,8 +540,10 @@ void EtsAutoFillExtension::UpdateAutoFillMigrationState(const sptr<AAFwk::Sessio
     auto migrateContext = GetContext();
     if (migrateContext != nullptr) {
         auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*info);
-        cachedInfo->originalCallerInfo.callerToken = nullptr;
-        migrateContext->SetSessionInfo(cachedInfo);
+        if (cachedInfo != nullptr) {
+            cachedInfo->originalCallerInfo.callerToken = nullptr;
+            migrateContext->SetSessionInfo(cachedInfo);
+        }
     }
     if (etsUiExtContentSession_ != nullptr) {
         etsUiExtContentSession_->DoUpdateExtensionParent(info);

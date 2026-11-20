@@ -604,8 +604,10 @@ void JsAutoFillExtension::UpdateAutoFillMigrationState(const sptr<IRemoteObject>
     auto migrateContext = GetContext();
     if (migrateContext != nullptr) {
         auto cachedInfo = sptr<AAFwk::SessionInfo>::MakeSptr(*info);
-        cachedInfo->originalCallerInfo.callerToken = nullptr;
-        migrateContext->SetSessionInfo(cachedInfo);
+        if (cachedInfo != nullptr) {
+            cachedInfo->originalCallerInfo.callerToken = nullptr;
+            migrateContext->SetSessionInfo(cachedInfo);
+        }
     }
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();

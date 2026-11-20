@@ -1467,8 +1467,11 @@ void JsUIExtensionContentSession::DoUpdateExtensionParent(const sptr<AAFwk::Sess
         TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
         return;
     }
-    sessionInfo_ = sptr<AAFwk::SessionInfo>::MakeSptr(*sessionInfo);
-    sessionInfo_->originalCallerInfo.callerToken = nullptr;
+    auto copied = sptr<AAFwk::SessionInfo>::MakeSptr(*sessionInfo);
+    if (copied != nullptr) {
+        copied->originalCallerInfo.callerToken = nullptr;
+        sessionInfo_ = copied;
+    }
     TAG_LOGI(AAFwkTag::UI_EXT, "DoUpdateExtensionParent, persistentId: %{public}d, hostWindowId: %{public}u",
         sessionInfo->persistentId, sessionInfo->hostWindowId);
 
