@@ -21,6 +21,7 @@
 
 #include "ani.h"
 #include "ani_common_util.h"
+#include "ani_extension_window.h"
 #include "ets_free_install_observer.h"
 #include "ets_runtime.h"
 #include "session_info.h"
@@ -137,6 +138,66 @@ public:
     {
         return sessionInfo_;
     }
+
+    /**
+     * @brief Update the cached session info after the window has been re-parented during a
+     * host window migration. ETS has no proxy-cache tracking (a new proxy is created each
+     * time GetUIExtensionHostWindowProxy is called), so updating sessionInfo_ here is
+     * sufficient — the next proxy call picks up the new hostWindowId automatically.
+     * A COPY without the previous-host token is cached: the provider does not need that
+     * capability object after the re-parent, and caching it widens the token's exposure.
+     *
+     * @param sessionInfo The migrated session info carrying the new host window id.
+     */
+    void UpdateSessionInfo(const sptr<AAFwk::SessionInfo> &sessionInfo)
+    {
+        if (sessionInfo != nullptr) {
+            auto copied = sptr<AAFwk::SessionInfo>::MakeSptr(*sessionInfo);
+            if (copied != nullptr) {
+                copied->originalCallerInfo.callerToken = nullptr;
+                sessionInfo_ = copied;
+            }
+        }
+    }
+
+    void DoUpdateExtensionParent(const sptr<AAFwk::SessionInfo> &sessionInfo)
+    {
+        if (sessionInfo == nullptr) {
+            return;
+        }
+        UpdateSessionInfo(sessionInfo);
+        if (env_ == nullptr || aniExtensionWindowRefs_.empty()) {
+            return;
+        }
+        auto option = sptr<Rosen::WindowOption>::MakeSptr();
+        if (option == nullptr) {
+            return;
+        }
+        option->SetParentId(sessionInfo->hostWindowId);
+        uint32_t refreshed = 0;
+        for (auto it = aniExtensionWindowRefs_.begin(); it != aniExtensionWindowRefs_.end();) {
+            ani_ref windowObj = nullptr;
+            ani_boolean wasReleased = ANI_FALSE;
+            if (env_->WeakReference_GetReference(*it, &wasReleased, &windowObj) != ANI_OK ||
+                wasReleased == ANI_TRUE || windowObj == nullptr) {
+                env_->WeakReference_Delete(*it);
+                it = aniExtensionWindowRefs_.erase(it);
+                continue;
+            }
+            ani_long nativePtr = 0;
+            if (env_->Object_GetFieldByName_Long(reinterpret_cast<ani_object>(windowObj), "nativeObj",
+                &nativePtr) != ANI_OK || nativePtr == 0) {
+                ++it;
+                continue;
+            }
+            auto *aniExtWin = reinterpret_cast<Rosen::AniExtensionWindow *>(nativePtr);
+            if (aniExtWin->UpdateExtensionParent(option) == Rosen::WMError::WM_OK) {
+                ++refreshed;
+            }
+            ++it;
+        }
+    }
+
 private:
     void SetReceiveDataCallbackRegister(ani_env *env, ani_object functionObj);
     void SetReceiveDataForResultCallbackRegister(ani_env *env, ani_object funcObj);
@@ -146,6 +207,7 @@ private:
         ani_env *env, ani_string aniType, ani_ref aniWantParam, std::string &type, AAFwk::WantParams &wantParam);
     ani_object GetUIExtensionHostWindowProxy(ani_env *env, ani_object object);
     ani_object GetUIExtensionWindowProxy(ani_env *env, ani_object object);
+    void RegisterAniExtensionWindow(ani_env *env, ani_object etsExtensionWindow);
     void SetWindowPrivacyModeInner(ani_env *env, ani_boolean isPrivacyMode, ani_object callbackObj,
         ani_vm *etsVm, ani_ref callbackRef);
     ani_ref CreateCallbackRef(ani_env *env, ani_object callback, ani_vm *&etsVm);
@@ -156,6 +218,8 @@ private:
 
     sptr<AAFwk::SessionInfo> sessionInfo_;
     sptr<Rosen::Window> uiWindow_;
+    ani_env *env_ = nullptr;
+    std::vector<ani_wref> aniExtensionWindowRefs_;
     std::weak_ptr<AbilityRuntime::Context> context_;
     std::shared_ptr<CallbackWrapper> receiveDataCallback_;
     bool isRegistered_ = false;

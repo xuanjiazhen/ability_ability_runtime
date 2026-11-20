@@ -345,7 +345,12 @@ void EtsUIExtensionContentSession::Clean(ani_env *env, ani_object object)
     }
 
     if (ptr != 0) {
-        delete reinterpret_cast<EtsUIExtensionContentSession*>(ptr);
+        auto *session = reinterpret_cast<EtsUIExtensionContentSession *>(ptr);
+        for (auto &wref : session->aniExtensionWindowRefs_) {
+            env->WeakReference_Delete(wref);
+        }
+        session->aniExtensionWindowRefs_.clear();
+        delete session;
         ptr = 0;
     }
 }
@@ -455,6 +460,9 @@ ani_object EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(ani_
     if (!EtsUIExtensionContentSession::BindNativePtrCleaner(env)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
+    }
+    if (contentSessionPtr != nullptr) {
+        contentSessionPtr->env_ = env;
     }
     return object;
 }
@@ -677,6 +685,7 @@ ani_object EtsUIExtensionContentSession::GetUIExtensionHostWindowProxy(ani_env *
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return nullptr;
     }
+    RegisterAniExtensionWindow(env, etsExtensionWindow);
     return etsExtensionWindow;
 }
 
@@ -696,7 +705,22 @@ ani_object EtsUIExtensionContentSession::GetUIExtensionWindowProxy(ani_env *env,
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return nullptr;
     }
+    RegisterAniExtensionWindow(env, etsExtensionWindow);
     return etsExtensionWindow;
+}
+
+void EtsUIExtensionContentSession::RegisterAniExtensionWindow(ani_env *env, ani_object etsExtensionWindow)
+{
+    ani_wref wref = nullptr;
+    if (env == nullptr || etsExtensionWindow == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "register ani extension window skipped, null param");
+        return;
+    }
+    if (env->WeakReference_Create(etsExtensionWindow, &wref) != ANI_OK || wref == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "WeakReference_Create failed");
+        return;
+    }
+    aniExtensionWindowRefs_.push_back(wref);
 }
 
 void EtsUIExtensionContentSession::SetReceiveDataCallback(ani_env *env, ani_object functionObj)

@@ -189,7 +189,18 @@ public:
      */
     int ScheduleCommandAbilityDoneLocked(const sptr<IRemoteObject> &token);
 
+    /**
+     * @brief Complete a window command from the provider. Virtual: UIExtensionAbilityManager
+     *        overrides it to add host-window-migration confirmation bookkeeping on top of
+     *        the base behaviour (same pattern as StartAbilityLocked).
+     */
     int ScheduleCommandAbilityWindowDone(
+        const sptr<IRemoteObject> &token,
+        const sptr<SessionInfo> &sessionInfo,
+        WindowCommand winCmd,
+        AbilityCommand abilityCmd);
+
+    virtual int ScheduleCommandAbilityWindowDoneLocked(
         const sptr<IRemoteObject> &token,
         const sptr<SessionInfo> &sessionInfo,
         WindowCommand winCmd,
@@ -284,6 +295,15 @@ public:
      * @return Returns BaseExtensionRecord shared_ptr.
      */
     std::shared_ptr<BaseExtensionRecord> GetServiceRecordByAbilityRequest(const AbilityRequest &abilityRequest);
+
+    /**
+     * GetServiceRecordByElementName. NOTE: UIExtension records are keyed by
+     * element.GetURI() + UIExtensionAbilityId (suffix); only that exact key matches.
+     *
+     * @param element, the exact serviceMap_ key (e.g. the record's GetURI()).
+     * @return Returns BaseExtensionRecord shared_ptr.
+     */
+    std::shared_ptr<BaseExtensionRecord> GetServiceRecordByElementName(const std::string &element);
 
     bool HasRequestIdInLoadAbilityQueue(int32_t requestId);
     void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId);
@@ -714,14 +734,6 @@ private:
      * @param abilityRecord, the ptr of the ability to command.
      */
     void CompleteCommandAbility(std::shared_ptr<BaseExtensionRecord> abilityRecord);
-
-    /**
-     * GetServiceRecordByElementName.
-     *
-     * @param element, service ability's element.
-     * @return Returns BaseExtensionRecord shared_ptr.
-     */
-    std::shared_ptr<BaseExtensionRecord> GetServiceRecordByElementName(const std::string &element);
 
     /**
      * GetAbilityConnectedRecordFromRecordList.

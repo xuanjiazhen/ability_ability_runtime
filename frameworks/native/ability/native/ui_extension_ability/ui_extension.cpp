@@ -275,7 +275,7 @@ void UIExtension::OnCommandWindow(const AAFwk::Want &want, const sptr<AAFwk::Ses
         TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
         return;
     }
-    TAG_LOGD(AAFwkTag::UI_EXT, "begin. persistentId: %{private}d, winCmd: %{public}d",
+    TAG_LOGD(AAFwkTag::UI_EXT, "begin. persistentId: %{public}d, winCmd: %{public}d",
         sessionInfo->persistentId, winCmd);
     Extension::OnCommandWindow(want, sessionInfo, winCmd);
     if (InsightIntentExecuteParam::IsInsightIntentExecute(want) && winCmd == AAFwk::WIN_CMD_FOREGROUND) {
