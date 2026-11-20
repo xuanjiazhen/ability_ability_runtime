@@ -314,12 +314,12 @@ private:
     ErrCode RunAsDestroySnapshotCommand();
     ErrCode RunAsListSnapshotCommand();
     ErrCode ParseCreateSnapshotOptions(std::string &bundleName, std::string &abilityName,
-        bool &disableRevoke, std::string &perfCmd);
+        bool &disableRevoke, std::string &perfCmd, bool &wantHelp);
     ErrCode HandleCreateSnapshotOption(int option, std::string &bundleName, std::string &abilityName,
-        bool &disableRevoke, std::string &perfCmd);
+        bool &disableRevoke, std::string &perfCmd, bool &wantHelp);
     ErrCode ParseDestroySnapshotOptions(std::string &bundleName, std::string &abilityName,
-        std::string &pidParse);
-    ErrCode ParseListSnapshotOptions(std::string &bundleName, std::string &abilityName);
+        std::string &pidParse, bool &wantHelp);
+    ErrCode ParseListSnapshotOptions(std::string &bundleName, std::string &abilityName, bool &wantHelp);
     ErrCode ParsePreStartOptions(int32_t& mode, std::string& bundleName, int32_t& userId);
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
     bool IsLongStartOption(const std::string &argv);
