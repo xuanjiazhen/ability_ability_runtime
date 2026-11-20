@@ -873,6 +873,8 @@ public:
 
     bool GetPromotePriority();
 
+    bool GetPromotePriorityInfo(int32_t &callerUid, int32_t &callerPid);
+
     bool PromotePriority();
 
     std::string GetFirstCallerBundleName()

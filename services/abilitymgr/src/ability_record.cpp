@@ -362,6 +362,7 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     loadParam.isPreloadStart = isPreloadStart_;
     loadParam.selfPid = selfPid;
     loadParam.byCallStatus = GetByCallStatus();
+    loadParam.promotePriority = GetPromotePriorityInfo(loadParam.callerUid, loadParam.callerPid);
     loadParam.isGamePrelaunch = IsGameSAPreLaunch();
     FillProcessInfoFromSession(loadParam);
     auto userId = abilityInfo_.uid / BASE_USER_RANGE;
@@ -3628,6 +3629,16 @@ void AbilityRecord::SetPromotePriority(bool promotePriority)
 bool AbilityRecord::GetPromotePriority()
 {
     return uiAbilityProperty_ != nullptr && uiAbilityProperty_->promotePriority && GetPid() > 0;
+}
+
+bool AbilityRecord::GetPromotePriorityInfo(int32_t &callerUid, int32_t &callerPid)
+{
+    if (uiAbilityProperty_ == nullptr || !uiAbilityProperty_->promotePriority) {
+        return false;
+    }
+    callerUid = uiAbilityProperty_->byCallCallerSaUid;
+    callerPid = uiAbilityProperty_->byCallCallerSaPid;
+    return true;
 }
 
 bool AbilityRecord::PromotePriority()
