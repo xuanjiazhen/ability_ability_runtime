@@ -658,6 +658,7 @@ group("unittest") {
 
     if (ability_runtime_screenlock_enable) {
       deps += [
+        "ability_manager_service_emulator_test:unittest",
         "ability_manager_service_fourteenth_test:unittest",
         "ability_manager_service_second_test:unittest",
         "ability_manager_service_third_test:unittest",
