@@ -21,7 +21,6 @@
 
 #include "ani.h"
 #include "ani_common_util.h"
-#include "ani_extension_window.h"
 #include "ets_free_install_observer.h"
 #include "ets_runtime.h"
 #include "session_info.h"
@@ -160,43 +159,7 @@ public:
         }
     }
 
-    void DoUpdateExtensionParent(const sptr<AAFwk::SessionInfo> &sessionInfo)
-    {
-        if (sessionInfo == nullptr) {
-            return;
-        }
-        UpdateSessionInfo(sessionInfo);
-        if (env_ == nullptr || aniExtensionWindowRefs_.empty()) {
-            return;
-        }
-        auto option = sptr<Rosen::WindowOption>::MakeSptr();
-        if (option == nullptr) {
-            return;
-        }
-        option->SetParentId(sessionInfo->hostWindowId);
-        uint32_t refreshed = 0;
-        for (auto it = aniExtensionWindowRefs_.begin(); it != aniExtensionWindowRefs_.end();) {
-            ani_ref windowObj = nullptr;
-            ani_boolean wasReleased = ANI_FALSE;
-            if (env_->WeakReference_GetReference(*it, &wasReleased, &windowObj) != ANI_OK ||
-                wasReleased == ANI_TRUE || windowObj == nullptr) {
-                env_->WeakReference_Delete(*it);
-                it = aniExtensionWindowRefs_.erase(it);
-                continue;
-            }
-            ani_long nativePtr = 0;
-            if (env_->Object_GetFieldByName_Long(reinterpret_cast<ani_object>(windowObj), "nativeObj",
-                &nativePtr) != ANI_OK || nativePtr == 0) {
-                ++it;
-                continue;
-            }
-            auto *aniExtWin = reinterpret_cast<Rosen::AniExtensionWindow *>(nativePtr);
-            if (aniExtWin->UpdateExtensionParent(option) == Rosen::WMError::WM_OK) {
-                ++refreshed;
-            }
-            ++it;
-        }
-    }
+    void DoUpdateExtensionParent(const sptr<AAFwk::SessionInfo> &sessionInfo);
 
 private:
     void SetReceiveDataCallbackRegister(ani_env *env, ani_object functionObj);

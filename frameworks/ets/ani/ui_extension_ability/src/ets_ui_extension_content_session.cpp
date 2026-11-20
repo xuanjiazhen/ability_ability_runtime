@@ -709,6 +709,41 @@ ani_object EtsUIExtensionContentSession::GetUIExtensionWindowProxy(ani_env *env,
     return etsExtensionWindow;
 }
 
+void EtsUIExtensionContentSession::DoUpdateExtensionParent(const sptr<AAFwk::SessionInfo> &sessionInfo)
+{
+    if (sessionInfo == nullptr) {
+        return;
+    }
+    UpdateSessionInfo(sessionInfo);
+    if (env_ == nullptr || aniExtensionWindowRefs_.empty()) {
+        return;
+    }
+    auto option = sptr<Rosen::WindowOption>::MakeSptr();
+    if (option == nullptr) {
+        return;
+    }
+    option->SetParentId(sessionInfo->hostWindowId);
+    for (auto it = aniExtensionWindowRefs_.begin(); it != aniExtensionWindowRefs_.end();) {
+        ani_ref windowObj = nullptr;
+        ani_boolean wasReleased = ANI_FALSE;
+        if (env_->WeakReference_GetReference(*it, &wasReleased, &windowObj) != ANI_OK ||
+            wasReleased == ANI_TRUE || windowObj == nullptr) {
+            env_->WeakReference_Delete(*it);
+            it = aniExtensionWindowRefs_.erase(it);
+            continue;
+        }
+        ani_long nativePtr = 0;
+        if (env_->Object_GetFieldByName_Long(reinterpret_cast<ani_object>(windowObj), "nativeObj",
+            &nativePtr) != ANI_OK || nativePtr == 0) {
+            ++it;
+            continue;
+        }
+        auto *aniExtWin = reinterpret_cast<Rosen::AniExtensionWindow *>(nativePtr);
+        aniExtWin->UpdateExtensionParent(option);
+        ++it;
+    }
+}
+
 void EtsUIExtensionContentSession::RegisterAniExtensionWindow(ani_env *env, ani_object etsExtensionWindow)
 {
     ani_wref wref = nullptr;
