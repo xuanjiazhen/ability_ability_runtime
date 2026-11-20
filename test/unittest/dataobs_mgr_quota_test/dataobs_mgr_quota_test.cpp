@@ -63,7 +63,17 @@ public:
 void DataObsMgrQuotaTest::SetUpTestCase(void) {}
 void DataObsMgrQuotaTest::TearDownTestCase(void) {}
 void DataObsMgrQuotaTest::SetUp() {}
-void DataObsMgrQuotaTest::TearDown() {}
+void DataObsMgrQuotaTest::TearDown()
+{
+    auto &quota = ObsTokenQuota::GetInstance();
+    for (auto tokenId : { TOKEN_QUOTA_TEST, TOKEN_INNER_TEST, TOKEN_INNER_OTHER,
+                          TOKEN_PREF_TEST, TOKEN_EXT_TEST, TOKEN_SHARED_TEST }) {
+        uint32_t held = quota.GetCount(tokenId);
+        if (held > 0) {
+            quota.Release(tokenId, held);
+        }
+    }
+}
 
 /*
  * Feature: ObsTokenQuota
