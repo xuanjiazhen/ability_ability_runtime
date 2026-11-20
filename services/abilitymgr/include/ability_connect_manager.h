@@ -189,7 +189,18 @@ public:
      */
     int ScheduleCommandAbilityDoneLocked(const sptr<IRemoteObject> &token);
 
+    /**
+     * @brief Complete a window command from the provider. Virtual: UIExtensionAbilityManager
+     *        overrides it to add host-window-migration confirmation bookkeeping on top of
+     *        the base behaviour (same pattern as StartAbilityLocked).
+     */
     int ScheduleCommandAbilityWindowDone(
+        const sptr<IRemoteObject> &token,
+        const sptr<SessionInfo> &sessionInfo,
+        WindowCommand winCmd,
+        AbilityCommand abilityCmd);
+
+    virtual int ScheduleCommandAbilityWindowDoneLocked(
         const sptr<IRemoteObject> &token,
         const sptr<SessionInfo> &sessionInfo,
         WindowCommand winCmd,

@@ -19,6 +19,7 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include "extension_record.h"
@@ -39,6 +40,24 @@ public:
     void ForegroundTimeout();
     void BackgroundTimeout();
     void TerminateTimeout();
+
+    uint32_t AdvanceMigrationGen() override;
+
+    void SetMigrationDeclaration(const AAFwk::OriginalCallerInfo &declaration,
+        uint32_t targetHostWindowId) override;
+
+    void SetMigrationDeliverySessionInfo(const sptr<AAFwk::SessionInfo> &deliverySessionInfo) override;
+
+    bool GetMigrationDeclaration(AAFwk::OriginalCallerInfo &declaration,
+        uint32_t &targetHostWindowId) override;
+
+    bool ConfirmMigrationDeclaration(uint32_t gen) override;
+
+    uint32_t GetMigrationGen() override;
+    uint32_t GetConfirmedHostWindowId() override;
+
+    void SeedConfirmedHostWindowId(uint32_t factHostWindowId) override;
+
 private:
     enum ErrorCode {
         LOAD_TIMEOUT = 0,
@@ -47,6 +66,13 @@ private:
         TERMINATE_TIMEOUT = 3
     };
     void HandleNotifyUIExtensionTimeout(ErrorCode code);
+
+    std::mutex migrationMutex_;
+    uint32_t migrationGen_ = 0;
+    AAFwk::OriginalCallerInfo migrationDeclaration_ = {};
+    uint32_t migrationTargetHostWindowId_ = 0;
+    uint32_t confirmedHostWindowId_ = 0;
+    sptr<AAFwk::SessionInfo> migrationDeliverySessionInfo_ = nullptr;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

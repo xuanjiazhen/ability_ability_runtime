@@ -495,11 +495,18 @@ void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<
     CHECK_POINTER(sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s/%{public}s, persistentId:%{public}d, "
-        "abilityState:%{public}s, pendingState:%{public}d",
+        "abilityState:%{public}s, pendingState:%{public}d, "
+        "sessionInfo: compId: %{public}" PRIu64 ", hostWindowId: %{public}u, realHostWindowId: %{public}d, "
+        "migrationGen: %{public}u, migrationDeclared: %{public}d",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(),
         sessionInfo->persistentId, abilitystateStr.c_str(),
-        static_cast<int32_t>(abilityRecord->GetPendingState()));
+        static_cast<int32_t>(abilityRecord->GetPendingState()),
+        sessionInfo->uiExtensionComponentId,
+        sessionInfo->hostWindowId,
+        sessionInfo->realHostWindowId,
+        sessionInfo->originalCallerInfo.migrationGen,
+        sessionInfo->originalCallerInfo.migrationGen != 0 ? 1 : 0);
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
     if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
         MoveToBackground(abilityRecord);
@@ -655,6 +662,64 @@ int32_t UIExtensionAbilityManager::UnRegisterPreloadUIExtensionHostClient(int32_
     return ERR_OK;
 }
 
+int UIExtensionAbilityManager::ScheduleCommandAbilityWindowDoneLocked(const sptr<IRemoteObject> &token,
+    const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd, AbilityCommand abilityCmd)
+{
+    if (winCmd == WIN_CMD_FOREGROUND && abilityCmd == AAFwk::ABILITY_CMD_FOREGROUND &&
+        sessionInfo != nullptr && sessionInfo->originalCallerInfo.migrationGen != 0) {
+        auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
+        std::shared_ptr<ExtensionRecord> extensionRecord;
+        if (abilityRecord != nullptr && uiExtensionAbilityRecordMgr_ != nullptr) {
+            extensionRecord = uiExtensionAbilityRecordMgr_->FindExtensionRecordById(
+                abilityRecord->GetUIExtensionAbilityId());
+        }
+        if (extensionRecord != nullptr) {
+            if (extensionRecord->ConfirmMigrationDeclaration(
+                sessionInfo->originalCallerInfo.migrationGen)) {
+                TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{public}d, gen: %{public}u",
+                    sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+            } else {
+                TAG_LOGW(AAFwkTag::UI_EXT,
+                    "migration completion ignored (no marker or stale gen), persistentId: %{public}d, "
+                    "done gen: %{public}u, record gen: %{public}u",
+                    sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
+                    extensionRecord->GetMigrationGen());
+            }
+        }
+    }
+    return AbilityConnectManager::ScheduleCommandAbilityWindowDoneLocked(token, sessionInfo, winCmd, abilityCmd);
+}
+
+void UIExtensionAbilityManager::UpdateSessionInfoForMigration(
+    const std::shared_ptr<BaseExtensionRecord> &targetService, const sptr<SessionInfo> &sessionInfo)
+{
+    std::shared_ptr<ExtensionRecord> extensionRecord;
+    if (uiExtensionAbilityRecordMgr_ != nullptr) {
+        extensionRecord = uiExtensionAbilityRecordMgr_->FindExtensionRecordById(
+            targetService->GetUIExtensionAbilityId());
+    }
+    AAFwk::OriginalCallerInfo declaration;
+    uint32_t targetHostWindowId = 0;
+    if (extensionRecord != nullptr &&
+        extensionRecord->GetMigrationDeclaration(declaration, targetHostWindowId)) {
+        if (sessionInfo != nullptr) {
+            sessionInfo->originalCallerInfo = declaration;
+            sessionInfo->hostWindowId = targetHostWindowId;
+        }
+        auto recordInfo = targetService->GetSessionInfo();
+        if (recordInfo != nullptr) {
+            recordInfo->originalCallerInfo.migrationGen = declaration.migrationGen;
+            recordInfo->hostWindowId = targetHostWindowId;
+        }
+    } else {
+        if (sessionInfo != nullptr && sessionInfo->originalCallerInfo.migrationGen != 0) {
+            sessionInfo->originalCallerInfo.migrationGen = 0;
+            sessionInfo->originalCallerInfo.callerToken = nullptr;
+        }
+        targetService->SetSessionInfo(sessionInfo);
+    }
+}
+
 int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abilityRequest)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
@@ -708,7 +773,7 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
     targetService->DoBackgroundAbilityWindowDelayed(false);
-    targetService->SetSessionInfo(abilityRequest.sessionInfo);
+    UpdateSessionInfoForMigration(targetService, abilityRequest.sessionInfo);
 
     if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
         auto &remoteObj = abilityRequest.sessionInfo->sessionToken;
@@ -810,10 +875,17 @@ void UIExtensionAbilityManager::DoForegroundUIExtension(std::shared_ptr<BaseExte
 
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "foreground ability: %{public}s/%{public}s, persistentId: %{public}d, abilityState: %{public}s",
+        "foreground ability: %{public}s/%{public}s, persistentId: %{public}d, abilityState: %{public}s, "
+        "sessionInfo: compId: %{public}" PRIu64 ", hostWindowId: %{public}u, realHostWindowId: %{public}d, "
+        "migrationGen: %{public}u, migrationDeclared: %{public}d",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(),
-        abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str());
+        abilityRequest.sessionInfo->persistentId, abilitystateStr.c_str(),
+        abilityRequest.sessionInfo->uiExtensionComponentId,
+        abilityRequest.sessionInfo->hostWindowId,
+        abilityRequest.sessionInfo->realHostWindowId,
+        abilityRequest.sessionInfo->originalCallerInfo.migrationGen,
+        abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0 ? 1 : 0);
 
     if (abilityRecord->IsReady() && !abilityRecord->IsAbilityState(AbilityState::INACTIVATING) &&
         !abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING) &&

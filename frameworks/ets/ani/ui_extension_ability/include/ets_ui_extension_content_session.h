@@ -137,6 +137,30 @@ public:
     {
         return sessionInfo_;
     }
+
+    /**
+     * @brief Update the cached session info after the window has been re-parented during a
+     * host window migration. ETS has no proxy-cache tracking (a new proxy is created each
+     * time GetUIExtensionHostWindowProxy is called), so updating sessionInfo_ here is
+     * sufficient — the next proxy call picks up the new hostWindowId automatically.
+     * A COPY without the previous-host token is cached: the provider does not need that
+     * capability object after the re-parent, and caching it widens the token's exposure.
+     *
+     * @param sessionInfo The migrated session info carrying the new host window id.
+     */
+    void UpdateSessionInfo(const sptr<AAFwk::SessionInfo> &sessionInfo)
+    {
+        if (sessionInfo != nullptr) {
+            auto copied = sptr<AAFwk::SessionInfo>::MakeSptr(*sessionInfo);
+            if (copied != nullptr) {
+                copied->originalCallerInfo.callerToken = nullptr;
+                sessionInfo_ = copied;
+            }
+        }
+    }
+
+    void DoUpdateExtensionParent(const sptr<AAFwk::SessionInfo> &sessionInfo);
+
 private:
     void SetReceiveDataCallbackRegister(ani_env *env, ani_object functionObj);
     void SetReceiveDataForResultCallbackRegister(ani_env *env, ani_object funcObj);
@@ -146,6 +170,7 @@ private:
         ani_env *env, ani_string aniType, ani_ref aniWantParam, std::string &type, AAFwk::WantParams &wantParam);
     ani_object GetUIExtensionHostWindowProxy(ani_env *env, ani_object object);
     ani_object GetUIExtensionWindowProxy(ani_env *env, ani_object object);
+    void RegisterAniExtensionWindow(ani_env *env, ani_object etsExtensionWindow);
     void SetWindowPrivacyModeInner(ani_env *env, ani_boolean isPrivacyMode, ani_object callbackObj,
         ani_vm *etsVm, ani_ref callbackRef);
     ani_ref CreateCallbackRef(ani_env *env, ani_object callback, ani_vm *&etsVm);
@@ -156,6 +181,8 @@ private:
 
     sptr<AAFwk::SessionInfo> sessionInfo_;
     sptr<Rosen::Window> uiWindow_;
+    ani_env *env_ = nullptr;
+    std::vector<ani_wref> aniExtensionWindowRefs_;
     std::weak_ptr<AbilityRuntime::Context> context_;
     std::shared_ptr<CallbackWrapper> receiveDataCallback_;
     bool isRegistered_ = false;

@@ -15,6 +15,8 @@
 
 #include "extension_record_manager.h"
 
+#include <cstdint>
+
 #include "ability_util.h"
 #include "app_utils.h"
 #include "global_constant.h"
@@ -212,10 +214,125 @@ int32_t ExtensionRecordManager::GetActiveUIExtensionListByUid(
     return ERR_OK;
 }
 
+std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::FindLiveMigrationRecord(
+    const sptr<AAFwk::SessionInfo> &sessionInfo, const std::string &hostBundleName, int32_t &ret)
+{
+    bool hasTerminatingMatch = false;
+    auto migrationRecord = GetAbilityRecordByPersistentId(sessionInfo, hostBundleName, hasTerminatingMatch);
+    if (migrationRecord != nullptr) {
+        return migrationRecord;
+    }
+    if (hasTerminatingMatch) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration update: record terminating, persistentId: %{public}d, rejected",
+            sessionInfo->persistentId);
+    } else {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration update: record not found, persistentId: %{public}d, rejected",
+            sessionInfo->persistentId);
+    }
+    ret = ERR_INVALID_VALUE;
+    return nullptr;
+}
+
+bool ExtensionRecordManager::CheckMigrationDeclaration(const AAFwk::AbilityRequest &abilityRequest,
+    const sptr<AAFwk::SessionInfo> &recordSessionInfo, int32_t &ret)
+{
+    if (recordSessionInfo == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration declaration mismatch, no recorded session, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return false;
+    }
+    if (abilityRequest.sessionInfo->originalCallerInfo.persistentId != recordSessionInfo->persistentId) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration persistentId mismatch, declared: %{public}d, recorded: %{public}d, rejected",
+            abilityRequest.sessionInfo->originalCallerInfo.persistentId,
+            recordSessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return false;
+    }
+    bool declarationMatched =
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken;
+    if (!declarationMatched) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration declaration mismatch, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return false;
+    }
+    if (abilityRequest.sessionInfo->hostWindowId == 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration to invalid hostWindowId 0, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return false;
+    }
+    return true;
+}
+
+bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityRequest &abilityRequest,
+    const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
+    bool &isLoaded, int32_t &ret)
+{
+    auto migrationRecord = FindLiveMigrationRecord(abilityRequest.sessionInfo, hostBundleName, ret);
+    if (migrationRecord == nullptr) {
+        return true;
+    }
+    auto recordSessionInfo = migrationRecord->GetSessionInfo();
+    auto extensionRecord = FindExtensionRecordById(migrationRecord->GetUIExtensionAbilityId());
+    if (extensionRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration update: wrapper not found, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    if (!CheckMigrationDeclaration(abilityRequest, recordSessionInfo, ret)) {
+        return true;
+    }
+    if (recordSessionInfo != nullptr && recordSessionInfo->hostWindowId != 0) {
+        extensionRecord->SeedConfirmedHostWindowId(recordSessionInfo->hostWindowId);
+    }
+    if (extensionRecord->GetConfirmedHostWindowId() == abilityRequest.sessionInfo->hostWindowId) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    uint32_t newGen = extensionRecord->AdvanceMigrationGen();
+    if (newGen == 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "migration gen saturated, persistentId: %{public}d, rejected",
+            abilityRequest.sessionInfo->persistentId);
+        ret = ERR_INVALID_VALUE;
+        return true;
+    }
+    abilityRequest.sessionInfo->originalCallerInfo.migrationGen = newGen;
+    abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
+    extensionRecord->SetMigrationDeclaration(abilityRequest.sessionInfo->originalCallerInfo,
+        abilityRequest.sessionInfo->hostWindowId);
+    extensionRecord->SetMigrationDeliverySessionInfo(abilityRequest.sessionInfo);
+    abilityRecord = migrationRecord;
+    isLoaded = true;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d",
+        abilityRequest.sessionInfo->persistentId);
+    ret = ERR_OK;
+    return true;
+}
+
 int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
     const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded)
 {
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
+    if (IsMigrationUpdateRequest(abilityRequest.sessionInfo)) {
+        int32_t migrationRet = ERR_OK;
+        if (GetMigrationUpdateRecord(abilityRequest, hostBundleName, abilityRecord, isLoaded, migrationRet)) {
+            return migrationRet;
+        }
+    }
     abilityRecord = GetAbilityRecordBySessionInfo(abilityRequest.sessionInfo);
     if (abilityRecord != nullptr) {
         isLoaded = true;
@@ -290,6 +407,65 @@ std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRe
                 "found record, uiExtensionComponentId: %{public}" PRIu64, sessionInfo->uiExtensionComponentId);
             return abilityRecord;
         }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRecordByPersistentId(
+    const sptr<AAFwk::SessionInfo> &sessionInfo, const std::string &hostBundleName,
+    bool &hasTerminatingMatch)
+{
+    CHECK_POINTER_AND_RETURN(sessionInfo, nullptr);
+    hasTerminatingMatch = false;
+    if (sessionInfo->persistentId == 0) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "persistentId invalid.");
+        return nullptr;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto& it : extensionRecords_) {
+        if (it.second == nullptr) {
+            continue;
+        }
+        std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord = it.second->abilityRecord_;
+        if (abilityRecord == nullptr) {
+            continue;
+        }
+        sptr<AAFwk::SessionInfo> recordSessionInfo = abilityRecord->GetSessionInfo();
+        if (recordSessionInfo == nullptr) {
+            continue;
+        }
+        if (recordSessionInfo->persistentId != sessionInfo->persistentId) {
+            continue;
+        }
+        if (abilityRecord->IsTerminating()) {
+            hasTerminatingMatch = true;
+            continue;
+        }
+        if (it.second->hostBundleName_ != hostBundleName) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "cross-bundle host migration, persistentId: %{public}d, from: %{public}s, to: %{public}s",
+                sessionInfo->persistentId, it.second->hostBundleName_.c_str(), hostBundleName.c_str());
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "found record, persistentId: %{public}d", sessionInfo->persistentId);
+        return abilityRecord;
+    }
+    return nullptr;
+}
+
+bool ExtensionRecordManager::IsMigrationUpdateRequest(const sptr<AAFwk::SessionInfo> &sessionInfo) const
+{
+    return sessionInfo != nullptr &&
+        sessionInfo->originalCallerInfo.callerToken != nullptr &&
+        sessionInfo->originalCallerInfo.persistentId != 0;
+}
+
+std::shared_ptr<ExtensionRecord> ExtensionRecordManager::FindExtensionRecordById(int32_t recordId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = extensionRecords_.find(recordId);
+    if (it != extensionRecords_.end()) {
+        return it->second;
     }
     return nullptr;
 }
