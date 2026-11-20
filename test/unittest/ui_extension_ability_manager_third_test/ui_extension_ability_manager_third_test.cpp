@@ -658,5 +658,116 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, RegisterPreloadUIExtensionHostClien
 
     EXPECT_EQ(connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid), ERR_OK);
 }
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CleanupUIExtensionSessionOnTerminated
+ * CaseDescription: Verify session cleanup when record's sessionInfo differs from the map key
+ *                  (simulates concurrent SetSessionInfo overwrite during terminate IPC gap)
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, CleanupUIExtensionSessionOnTerminated_001, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->uiExtensionMap_.clear();
+
+    sptr<SessionInfo> mapSessionInfo = sptr<SessionInfo>::MakeSptr();
+    ASSERT_NE(mapSessionInfo, nullptr);
+    mapSessionInfo->sessionToken = new MockPreloadHostClient(true);
+    mapSessionInfo->persistentId = 100;
+
+    AbilityRequest request;
+    request.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    connectManager->uiExtensionMap_.emplace(mapSessionInfo->sessionToken,
+        UIExtensionAbilityManager::UIExtWindowMapValType(abilityRecord, mapSessionInfo));
+    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 1);
+
+    sptr<SessionInfo> overwrittenSessionInfo = sptr<SessionInfo>::MakeSptr();
+    ASSERT_NE(overwrittenSessionInfo, nullptr);
+    overwrittenSessionInfo->sessionToken = new MockPreloadHostClient(true);
+    overwrittenSessionInfo->persistentId = 200;
+    abilityRecord->sessionInfo_ = overwrittenSessionInfo;
+
+    connectManager->CleanupUIExtensionSessionOnTerminated(abilityRecord);
+
+    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 0);
+    EXPECT_EQ(connectManager->uiExtensionMap_.count(mapSessionInfo->sessionToken), 0);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CleanupUIExtensionSessionOnTerminated
+ * CaseDescription: Verify session cleanup when record's sessionInfo is null but map has entries
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, CleanupUIExtensionSessionOnTerminated_002, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->uiExtensionMap_.clear();
+
+    sptr<SessionInfo> mapSessionInfo = sptr<SessionInfo>::MakeSptr();
+    ASSERT_NE(mapSessionInfo, nullptr);
+    mapSessionInfo->sessionToken = new MockPreloadHostClient(true);
+    mapSessionInfo->persistentId = 300;
+
+    AbilityRequest request;
+    request.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    connectManager->uiExtensionMap_.emplace(mapSessionInfo->sessionToken,
+        UIExtensionAbilityManager::UIExtWindowMapValType(abilityRecord, mapSessionInfo));
+    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 1);
+
+    connectManager->CleanupUIExtensionSessionOnTerminated(abilityRecord);
+
+    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 0);
+    EXPECT_EQ(connectManager->uiExtensionMap_.count(mapSessionInfo->sessionToken), 0);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CleanupUIExtensionSessionOnTerminated
+ * CaseDescription: Verify all entries for the same record are cleaned up when multiple entries exist
+ *                  (simulates concurrent host re-launch adding a second entry before terminate completes)
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, CleanupUIExtensionSessionOnTerminated_003, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->uiExtensionMap_.clear();
+
+    AbilityRequest request;
+    request.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    sptr<SessionInfo> sessionInfo1 = sptr<SessionInfo>::MakeSptr();
+    ASSERT_NE(sessionInfo1, nullptr);
+    sessionInfo1->sessionToken = new MockPreloadHostClient(true);
+    sessionInfo1->persistentId = 400;
+    connectManager->uiExtensionMap_.emplace(sessionInfo1->sessionToken,
+        UIExtensionAbilityManager::UIExtWindowMapValType(abilityRecord, sessionInfo1));
+
+    sptr<SessionInfo> sessionInfo2 = sptr<SessionInfo>::MakeSptr();
+    ASSERT_NE(sessionInfo2, nullptr);
+    sessionInfo2->sessionToken = new MockPreloadHostClient(true);
+    sessionInfo2->persistentId = 500;
+    connectManager->uiExtensionMap_.emplace(sessionInfo2->sessionToken,
+        UIExtensionAbilityManager::UIExtWindowMapValType(abilityRecord, sessionInfo2));
+
+    abilityRecord->sessionInfo_ = sessionInfo2;
+
+    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 2);
+
+    connectManager->CleanupUIExtensionSessionOnTerminated(abilityRecord);
+
+    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 0);
+    EXPECT_EQ(connectManager->uiExtensionMap_.count(sessionInfo1->sessionToken), 0);
+    EXPECT_EQ(connectManager->uiExtensionMap_.count(sessionInfo2->sessionToken), 0);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

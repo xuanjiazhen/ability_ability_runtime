@@ -244,6 +244,7 @@ private:
     void CleanActivatingTimeoutAbilityInner(std::shared_ptr<BaseExtensionRecord> abilityRecord) override;
 
     void TerminateDone(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
+    void CleanupUIExtensionSessionOnTerminated(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
     bool HandleExtensionAbilityRemove(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
 

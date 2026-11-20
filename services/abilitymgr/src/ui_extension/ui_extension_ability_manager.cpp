@@ -1420,17 +1420,34 @@ void UIExtensionAbilityManager::TerminateDone(const std::shared_ptr<BaseExtensio
     DelayedSingleton<AppScheduler>::GetInstance()->TerminateAbility(abilityRecord->GetToken(), false);
     if (UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         RemoveUIExtensionAbilityRecord(abilityRecord);
-        auto sessionInfo = abilityRecord->GetSessionInfo();
-        if (sessionInfo != nullptr && sessionInfo->sessionToken != nullptr) {
-            TAG_LOGI(AAFwkTag::UI_EXT, "uiExtAbility terminated, cleanup session, persistentId: %{public}d",
-                sessionInfo->persistentId);
-            RemoveUIExtWindowDeathRecipient(sessionInfo->sessionToken);
-            RemoveUIExtensionBySessionInfoToken(sessionInfo->sessionToken);
-        } else {
-            TAG_LOGW(AAFwkTag::UI_EXT, "uiExtAbility terminated without valid sessionInfo");
-        }
+        CleanupUIExtensionSessionOnTerminated(abilityRecord);
     }
     RemoveServiceAbility(abilityRecord);
+}
+
+void UIExtensionAbilityManager::CleanupUIExtensionSessionOnTerminated(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+    CHECK_POINTER(abilityRecord);
+    std::lock_guard guard(uiExtensionMapMutex_);
+    for (auto it = uiExtensionMap_.begin(); it != uiExtensionMap_.end();) {
+        std::shared_ptr<BaseExtensionRecord> uiExtAbility = it->second.first.lock();
+        if (uiExtAbility == nullptr) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "uiExtAbility null");
+            RemoveUIExtWindowDeathRecipient(it->first);
+            it = uiExtensionMap_.erase(it);
+            continue;
+        }
+        if (abilityRecord == uiExtAbility) {
+            auto sessionInfo = it->second.second;
+            TAG_LOGI(AAFwkTag::UI_EXT, "uiExtAbility terminated, cleanup session, persistentId: %{public}d",
+                sessionInfo ? sessionInfo->persistentId : -1);
+            RemoveUIExtWindowDeathRecipient(it->first);
+            it = uiExtensionMap_.erase(it);
+            continue;
+        }
+        ++it;
+    }
 }
 
 bool UIExtensionAbilityManager::HandleExtensionAbilityRemove(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
