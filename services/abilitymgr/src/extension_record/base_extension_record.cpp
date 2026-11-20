@@ -448,5 +448,25 @@ size_t BaseExtensionRecord::CleanTaskAttributionsByTaskId(const std::string &tas
     }
     return removed;
 }
+
+bool BaseExtensionRecord::PromotePriority()
+{
+    if (!GetPromotePriority()) {
+        return false;
+    }
+    auto abilityInfo = GetAbilityInfo();
+    int32_t extensionType = static_cast<int32_t>(abilityInfo.extensionAbilityType);
+    int32_t callerUid = uiAbilityProperty_->byCallCallerSaUid;
+    int32_t callerPid = uiAbilityProperty_->byCallCallerSaPid;
+    TAG_LOGD(AAFwkTag::EXT,
+        "promoting extension priority, bundleName:%{public}s, callerUid:%{public}d, callerPid:%{public}d, "
+        "targetUid:%{public}d, targetPid:%{public}d, extensionType:%{public}d",
+        abilityInfo.bundleName.c_str(), callerUid, callerPid, GetUid(), GetPid(), extensionType);
+    ExtensionPromoteInfo info {
+        callerUid, callerPid, GetUid(), GetPid(), abilityInfo.bundleName, extensionType
+    };
+    ResSchedUtil::GetInstance().PromoteExtensionPriorityToRSS(info);
+    return true;
+}
 } // namespace AAFwk
 } // namespace OHOS

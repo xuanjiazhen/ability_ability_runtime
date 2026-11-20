@@ -60,6 +60,7 @@ int CommonExtensionManager::AttachAbilityThreadInner(const sptr<IAbilitySchedule
     abilityRecord->RemoveLoadTimeoutTask();
     AbilityRuntime::FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
     abilityRecord->SetScheduler(scheduler);
+    (void)abilityRecord->PromotePriority();
     TAG_LOGD(AAFwkTag::EXT, "Inactivate");
     abilityRecord->Inactivate();
     return ERR_OK;
