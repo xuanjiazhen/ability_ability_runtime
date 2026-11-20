@@ -564,7 +564,7 @@ int32_t AppMgrService::GetHyperSnapLastError(int32_t errType, HyperSnapErrorReco
 }
 
 int32_t AppMgrService::DebugCreateSnapshot(const std::string &bundleName, const std::string &abilityName,
-    bool debugReportOnly, const std::string &perfCmd)
+    bool disableRevoke, const std::string &perfCmd)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "DebugCreateSnapshot called");
     if (!IsReady()) {
@@ -579,7 +579,7 @@ int32_t AppMgrService::DebugCreateSnapshot(const std::string &bundleName, const 
         TAG_LOGE(AAFwkTag::APPMGR, "DebugCreateSnapshot failed: developer mode false");
         return AAFwk::ERR_NOT_DEVELOPER_MODE;
     }
-    return appMgrServiceInner_->DebugCreateSnapshot(bundleName, abilityName, debugReportOnly, perfCmd);
+    return appMgrServiceInner_->DebugCreateSnapshot(bundleName, abilityName, disableRevoke, perfCmd);
 }
 
 int32_t AppMgrService::DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName,

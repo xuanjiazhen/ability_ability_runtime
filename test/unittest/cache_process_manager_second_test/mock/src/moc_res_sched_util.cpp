@@ -89,7 +89,7 @@ std::unordered_set<std::string> ResSchedUtil::GetNWebPreloadSet() const
 }
 
 int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
-    bool debugReportOnly, const std::string &perfCmd, int32_t userId, int32_t &errcode)
+    bool disableRevoke, const std::string &perfCmd, int32_t userId, int32_t &errcode)
 {
     return -1;
 }

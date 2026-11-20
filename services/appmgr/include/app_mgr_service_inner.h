@@ -505,13 +505,13 @@ public:
      *
      * @param bundleName Bundle name of the debug-signed application.
      * @param abilityName Ability to make a snapshot of.
-     * @param debugReportOnly True to only report invalidation without invalidating.
+     * @param disableRevoke True to only report invalidation without invalidating.
      * @param perfCmd Perf command to launch hiperf for stack recording; empty means not to launch.
      * @return Returns ERR_OK on accepted, ERR_NOT_DEBUG_APP on non-debug target,
      *         others on failure.
      */
     int32_t DebugCreateSnapshot(const std::string &bundleName, const std::string &abilityName,
-        bool debugReportOnly, const std::string &perfCmd);
+        bool disableRevoke, const std::string &perfCmd);
 
     /**
      * aa debug command: delete the snapshot of the debug-signed application.
@@ -2754,7 +2754,7 @@ private:
         int32_t result, const std::string &reason);
 
     void MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord, std::string bundleName,
-        bool debugReportOnly = false);
+        bool disableRevoke = false);
     void UnMarkTemplateProcess(int32_t templatePid);
 
     std::shared_ptr<RemoteClientManager> remoteClientManager_;

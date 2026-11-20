@@ -243,11 +243,11 @@ void ResSchedUtil::ReportEventToRSS(const int32_t uid, const std::string &bundle
 }
 
 int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName,
-    const std::string &abilityName, bool debugReportOnly, const std::string &perfCmd, int32_t userId,
+    const std::string &abilityName, bool disableRevoke, const std::string &perfCmd, int32_t userId,
     int32_t &errcode)
 {
     TAG_LOGI(AAFwkTag::DEFAULT, "ReportCreateSnapshotCmdToRSS bundleName:%{public}s abilityName:%{public}s "
-        "debugReportOnly:%{public}d userId:%{public}d", bundleName.c_str(), abilityName.c_str(), debugReportOnly,
+        "disableRevoke:%{public}d userId:%{public}d", bundleName.c_str(), abilityName.c_str(), disableRevoke,
         userId);
     errcode = -1;
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
@@ -256,7 +256,7 @@ int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName
     payload.emplace("userId", std::to_string(userId));
     payload.emplace("bundleName", bundleName);
     payload.emplace("abilityName", abilityName);
-    payload.emplace("dr", debugReportOnly);
+    payload.emplace("dr", disableRevoke);
     payload.emplace("perfCmd", perfCmd);
     nlohmann::json reply;
     TAG_LOGD(AAFwkTag::DEFAULT, "create snapshot payload: %{public}s", payload.dump().c_str());

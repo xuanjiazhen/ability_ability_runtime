@@ -40,7 +40,7 @@ struct PreloadRequest {
     bool needMakeImage = false;
     bool needDestroyTemplate = false;
     // aa debug create-snapshot options, passed via Want params when RSS triggers MakeImage.
-    bool debugReportOnly = false; // -dr: only report invalidation without invalidating the snapshot.
+    bool disableRevoke = false; // -dr, --disable-revoke: do not revoke the snapshot, only report.
     std::string perfCmd; // -p: perf command used to launch hiperf for stack recording.
 };
 

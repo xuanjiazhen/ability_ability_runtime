@@ -719,9 +719,9 @@ int32_t AppMgrStub::HandleDebugCreateSnapshot(MessageParcel &data, MessageParcel
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::string bundleName = data.ReadString();
     std::string abilityName = data.ReadString();
-    bool debugReportOnly = data.ReadBool();
+    bool disableRevoke = data.ReadBool();
     std::string perfCmd = data.ReadString();
-    auto result = DebugCreateSnapshot(bundleName, abilityName, debugReportOnly, perfCmd);
+    auto result = DebugCreateSnapshot(bundleName, abilityName, disableRevoke, perfCmd);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write result failed.");
         return ERR_APPEXECFWK_PARCEL_ERROR;

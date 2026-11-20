@@ -266,7 +266,7 @@ constexpr struct option LONG_OPTIONS_CREATE_SNAPSHOT[] = {
     {"help", no_argument, nullptr, 'h'},
     {"bundle", required_argument, nullptr, 'b'},
     {"ability", required_argument, nullptr, 'a'},
-    {"dr", no_argument, nullptr, 'd'},
+    {"disable-revoke", no_argument, nullptr, 'd'},
     {"perf", required_argument, nullptr, 'p'},
     {nullptr, 0, nullptr, 0},
 };
@@ -1206,7 +1206,7 @@ ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, s
 }
 
 ErrCode AbilityManagerShellCommand::HandleCreateSnapshotOption(int option, std::string &bundleName,
-    std::string &abilityName, bool &debugReportOnly, std::string &perfCmd)
+    std::string &abilityName, bool &disableRevoke, std::string &perfCmd)
 {
     switch (option) {
         case 'h': {
@@ -1223,10 +1223,10 @@ ErrCode AbilityManagerShellCommand::HandleCreateSnapshotOption(int option, std::
             abilityName = optarg;
             break;
         }
-        case 'd': // 'd' and 'r' both map to the debug-report-only flag, so '-dr' works as written
+        case 'd': // 'd' and 'r' both map to the disable-revoke flag, so '-dr' works as written
         case 'r': {
-            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -dr' debug report only", cmd_.c_str());
-            debugReportOnly = true;
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -dr' disable revoke", cmd_.c_str());
+            disableRevoke = true;
             break;
         }
         case 'p': {
@@ -1253,7 +1253,7 @@ ErrCode AbilityManagerShellCommand::HandleCreateSnapshotOption(int option, std::
 }
 
 ErrCode AbilityManagerShellCommand::ParseCreateSnapshotOptions(std::string &bundleName,
-    std::string &abilityName, bool &debugReportOnly, std::string &perfCmd)
+    std::string &abilityName, bool &disableRevoke, std::string &perfCmd)
 {
     int option = -1;
     int counter = 0;
@@ -1274,7 +1274,7 @@ ErrCode AbilityManagerShellCommand::ParseCreateSnapshotOptions(std::string &bund
             }
             break;
         }
-        ErrCode handleResult = HandleCreateSnapshotOption(option, bundleName, abilityName, debugReportOnly,
+        ErrCode handleResult = HandleCreateSnapshotOption(option, bundleName, abilityName, disableRevoke,
             perfCmd);
         if (handleResult != OHOS::ERR_OK) {
             return handleResult;
@@ -1290,8 +1290,8 @@ ErrCode AbilityManagerShellCommand::RunAsCreateSnapshotCommand()
     std::string bundleName = "";
     std::string abilityName = "";
     std::string perfCmd = "";
-    bool debugReportOnly = false;
-    ParseCreateSnapshotOptions(bundleName, abilityName, debugReportOnly, perfCmd);
+    bool disableRevoke = false;
+    ParseCreateSnapshotOptions(bundleName, abilityName, disableRevoke, perfCmd);
     // abilityName is optional: an empty name snapshots the whole app instead of one ability.
     if (bundleName.empty()) {
         resultReceiver_.append(HELP_MSG_CREATE_SNAPSHOT + "\n");
@@ -1299,9 +1299,9 @@ ErrCode AbilityManagerShellCommand::RunAsCreateSnapshotCommand()
     }
 
     TAG_LOGI(AAFwkTag::AA_TOOL, "bundle:%{public}s ability:%{public}s dr:%{public}d",
-        bundleName.c_str(), abilityName.c_str(), debugReportOnly);
+        bundleName.c_str(), abilityName.c_str(), disableRevoke);
     auto result = DelayedSingleton<AppMgrClient>::GetInstance()->DebugCreateSnapshot(bundleName,
-        abilityName, debugReportOnly, perfCmd);
+        abilityName, disableRevoke, perfCmd);
     if (result == OHOS::ERR_OK) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_CREATE_SNAPSHOT_OK.c_str());
         resultReceiver_ = STRING_CREATE_SNAPSHOT_OK + "\n";
@@ -1309,7 +1309,7 @@ ErrCode AbilityManagerShellCommand::RunAsCreateSnapshotCommand()
         if (!abilityName.empty()) {
             resultReceiver_ += ", ability: " + abilityName;
         }
-        resultReceiver_ += ", debug report only: " + (debugReportOnly ? std::string("on") : std::string("off")) + "\n";
+        resultReceiver_ += ", disable revoke: " + (disableRevoke ? std::string("on") : std::string("off")) + "\n";
     } else {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d",
             STRING_CREATE_SNAPSHOT_NG.c_str(), result);

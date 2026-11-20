@@ -1576,8 +1576,8 @@ public:
      *
      * @param bundleName The bundle name of the debug-signed application.
      * @param abilityName The ability to make a snapshot of.
-     * @param debugReportOnly True to only report invalidation without
-     *        invalidating the snapshot (debug mode only).
+     * @param disableRevoke True to disable revoking the snapshot and only
+     *        report (debug mode only).
      * @param perfCmd The perf command used to launch hiperf for stack
      *        recording; empty means not to launch.
      * @return ERR_OK on accepted, server error code otherwise;
@@ -1585,7 +1585,7 @@ public:
      *         failures.
      */
     int32_t DebugCreateSnapshot(const std::string &bundleName, const std::string &abilityName,
-        bool debugReportOnly, const std::string &perfCmd);
+        bool disableRevoke, const std::string &perfCmd);
 
     /**
      * Delete the snapshot of the specified debug-signed application

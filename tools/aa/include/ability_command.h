@@ -162,8 +162,8 @@ const std::string HELP_MSG_CREATE_SNAPSHOT =
     "Optional:\n"
     "  -h, --help                      Show this help message\n"
     "  -a, --ability <ABILITY-NAME>    Ability name to make a snapshot of; empty means all\n"
-    "  -dr                             Only report invalidation without invalidating\n"
-    "                                  the snapshot (debug mode only)\n"
+    "  -dr, --disable-revoke           Do not invalidate the snapshot, only report\n"
+    "                                  (debug mode only)\n"
     "  -p, --perf <PERF-CMD>           Perf command used to launch hiperf for stack\n"
     "                                  recording\n";
 
@@ -314,9 +314,9 @@ private:
     ErrCode RunAsDestroySnapshotCommand();
     ErrCode RunAsListSnapshotCommand();
     ErrCode ParseCreateSnapshotOptions(std::string &bundleName, std::string &abilityName,
-        bool &debugReportOnly, std::string &perfCmd);
+        bool &disableRevoke, std::string &perfCmd);
     ErrCode HandleCreateSnapshotOption(int option, std::string &bundleName, std::string &abilityName,
-        bool &debugReportOnly, std::string &perfCmd);
+        bool &disableRevoke, std::string &perfCmd);
     ErrCode ParseDestroySnapshotOptions(std::string &bundleName, std::string &abilityName,
         std::string &pidParse);
     ErrCode ParseListSnapshotOptions(std::string &bundleName, std::string &abilityName);

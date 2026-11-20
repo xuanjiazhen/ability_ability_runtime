@@ -344,7 +344,7 @@ constexpr const char* KILL_SUB_PROCESS_REASON_PREFIX = "Kill SubProcess Reason:"
 constexpr const char* MAKE_IMAGE_TIMEOUT_EVENT = "MakeImageTimeout";
 constexpr const char* NEED_DESTROY_TEMPLATE = "ohos.ability.runtime.needDestroyTemplate";
 // aa debug create-snapshot options, set by RSS when it triggers MakeImage back.
-constexpr const char* DEBUG_SNAPSHOT_REPORT_ONLY = "ohos.ability.runtime.dr";
+constexpr const char* DEBUG_SNAPSHOT_DISABLE_REVOKE = "ohos.ability.runtime.dr";
 constexpr const char* DEBUG_SNAPSHOT_PERF_CMD = "ohos.ability.runtime.perfCmd";
 
 constexpr const char* PROC_SELF_TASK_PATH = "/proc/self/task/";
@@ -759,10 +759,10 @@ int32_t AppMgrServiceInner::PreloadApplication(const AAFwk::Want &want, int32_t 
         const_cast<Want&>(want).RemoveParam(NEED_DESTROY_TEMPLATE);
         TAG_LOGI(AAFwkTag::APPMGR, "needDestroyTemplate: %{public}d", request.needDestroyTemplate);
     }
-    if (want.HasParameter(DEBUG_SNAPSHOT_REPORT_ONLY)) {
-        request.debugReportOnly = want.GetBoolParam(DEBUG_SNAPSHOT_REPORT_ONLY, false);
-        const_cast<Want&>(want).RemoveParam(DEBUG_SNAPSHOT_REPORT_ONLY);
-        TAG_LOGI(AAFwkTag::APPMGR, "debugReportOnly: %{public}d", request.debugReportOnly);
+    if (want.HasParameter(DEBUG_SNAPSHOT_DISABLE_REVOKE)) {
+        request.disableRevoke = want.GetBoolParam(DEBUG_SNAPSHOT_DISABLE_REVOKE, false);
+        const_cast<Want&>(want).RemoveParam(DEBUG_SNAPSHOT_DISABLE_REVOKE);
+        TAG_LOGI(AAFwkTag::APPMGR, "disableRevoke: %{public}d", request.disableRevoke);
     }
     if (want.HasParameter(DEBUG_SNAPSHOT_PERF_CMD)) {
         request.perfCmd = want.GetStringParam(DEBUG_SNAPSHOT_PERF_CMD);
@@ -1795,7 +1795,7 @@ void AppMgrServiceInner::SnapshotErrorReport(int32_t uid, const std::string &bun
 }
 
 void AppMgrServiceInner::MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord,
-    std::string imageName, bool debugReportOnly)
+    std::string imageName, bool disableRevoke)
 {
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "MarkTemplateProcess null appRecord");
@@ -1823,7 +1823,7 @@ void AppMgrServiceInner::MarkTemplateProcess(const std::shared_ptr<AppRunningRec
     // -dr (aa debug create-snapshot) skips the application build/install debug property:
     // the debug signature plus developer mode are enough to set the debug-app flag.
     if (isDebugSigned && system::GetBoolParameter(DEVELOPER_MODE_STATE, false) &&
-        (debugReportOnly || applicationInfo->debug)) {
+        (disableRevoke || applicationInfo->debug)) {
         mark.type |= CHECKPOINT_DEBUG_APP_TYPE_FLAG;
     }
     int ret = ioctl(fd, CHECKPOINT_MONITOR_IOCTL_MARK_TEMPLATE, &mark);
@@ -2011,7 +2011,7 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
             hapModuleInfo, want, appExistFlag, true, request.preloadMode);
         if (request.needMakeImage && appRecord->GetPid() > 0) {
             SetTemplatePid(appRecord);
-            MarkTemplateProcess(appRecord, request.imageName, request.debugReportOnly);
+            MarkTemplateProcess(appRecord, request.imageName, request.disableRevoke);
         }
         appRecord->SetNeedLimitPrio(false);
         if (request.preloadMode == AppExecFwk::PreloadMode::PRELOAD_MODULE) {
@@ -13448,11 +13448,11 @@ int32_t AppMgrServiceInner::GetHyperSnapLastError(HyperSnapErrorType errType, Hy
 }
 
 int32_t AppMgrServiceInner::DebugCreateSnapshot(const std::string &bundleName,
-    const std::string &abilityName, bool debugReportOnly, const std::string &perfCmd)
+    const std::string &abilityName, bool disableRevoke, const std::string &perfCmd)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "DebugCreateSnapshot bundleName:%{public}s abilityName:%{public}s "
-        "debugReportOnly:%{public}d", bundleName.c_str(), abilityName.c_str(), debugReportOnly);
+        "disableRevoke:%{public}d", bundleName.c_str(), abilityName.c_str(), disableRevoke);
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid parameters");
         return ERR_INVALID_VALUE;
@@ -13464,7 +13464,7 @@ int32_t AppMgrServiceInner::DebugCreateSnapshot(const std::string &bundleName,
     int32_t targetUserId = UserController::GetInstance().GetCallerUserId();
     int32_t errcode = -1;
     auto ret = AAFwk::ResSchedUtil::GetInstance().ReportCreateSnapshotCmdToRSS(
-        bundleName, abilityName, debugReportOnly, perfCmd, targetUserId, errcode);
+        bundleName, abilityName, disableRevoke, perfCmd, targetUserId, errcode);
     if (ret != 0 || errcode < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "forward create cmd to RSS fail, ret: %{public}d errcode: %{public}d",
             ret, errcode);

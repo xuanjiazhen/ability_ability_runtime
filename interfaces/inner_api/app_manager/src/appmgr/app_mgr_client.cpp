@@ -1878,7 +1878,7 @@ int32_t AppMgrClient::GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecor
 }
 
 int32_t AppMgrClient::DebugCreateSnapshot(const std::string &bundleName, const std::string &abilityName,
-    bool debugReportOnly, const std::string &perfCmd)
+    bool disableRevoke, const std::string &perfCmd)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "DebugCreateSnapshot called");
     if (mgrHolder_ == nullptr) {
@@ -1890,7 +1890,7 @@ int32_t AppMgrClient::DebugCreateSnapshot(const std::string &bundleName, const s
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return service->DebugCreateSnapshot(bundleName, abilityName, debugReportOnly, perfCmd);
+    return service->DebugCreateSnapshot(bundleName, abilityName, disableRevoke, perfCmd);
 }
 
 int32_t AppMgrClient::DebugDestroySnapshot(const std::string &bundleName, const std::string &abilityName,

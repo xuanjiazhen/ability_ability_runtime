@@ -189,7 +189,7 @@ int32_t AppMgrProxy::GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecord
 }
 
 int32_t AppMgrProxy::DebugCreateSnapshot(const std::string &bundleName, const std::string &abilityName,
-    bool debugReportOnly, const std::string &perfCmd)
+    bool disableRevoke, const std::string &perfCmd)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
@@ -201,7 +201,7 @@ int32_t AppMgrProxy::DebugCreateSnapshot(const std::string &bundleName, const st
     }
     PARCEL_UTIL_WRITE_RET_INT(data, String, bundleName);
     PARCEL_UTIL_WRITE_RET_INT(data, String, abilityName);
-    PARCEL_UTIL_WRITE_RET_INT(data, Bool, debugReportOnly);
+    PARCEL_UTIL_WRITE_RET_INT(data, Bool, disableRevoke);
     PARCEL_UTIL_WRITE_RET_INT(data, String, perfCmd);
 
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::DEBUG_CREATE_SNAPSHOT, data, reply, option);
