@@ -2863,7 +2863,6 @@ ohos_shared_library("ui_extension_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_servicehost_stub_impl.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/src/ets_uiservice_uiext_connection.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_base/src/ets_ui_extension_base.cpp",
-    "${ability_runtime_path}/frameworks/native/ability/native/ui_extension_base/ui_extension_migration_utils.cpp",
   ]
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
@@ -3740,7 +3739,6 @@ ohos_shared_library("auto_fill_extension") {
       "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_auto_fill_extension_util.cpp",
       "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_fill_request_callback.cpp",
       "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/js_save_request_callback.cpp",
-      "${ability_runtime_native_path}/ability/native/ui_extension_base/ui_extension_migration_utils.cpp",
       "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/src/ets_auto_fill_extension_instance.cpp",
     ]
   }
@@ -3814,7 +3812,6 @@ ohos_shared_library("auto_fill_extension_ani") {
       "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/src/ets_auto_fill_extension_util.cpp",
       "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/src/ets_fill_request_callback.cpp",
       "${ability_runtime_path}/frameworks/ets/ani/auto_fill_extension_ability/src/ets_save_request_callback.cpp",
-      "${ability_runtime_path}/frameworks/native/ability/native/ui_extension_base/ui_extension_migration_utils.cpp",
     ]
   }
 

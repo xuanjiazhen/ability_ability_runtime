@@ -90,7 +90,6 @@ ohos_unittest("extension_record_manager_second_test") {
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",

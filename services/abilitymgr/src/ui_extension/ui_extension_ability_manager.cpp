@@ -690,6 +690,36 @@ int UIExtensionAbilityManager::ScheduleCommandAbilityWindowDoneLocked(const sptr
     return AbilityConnectManager::ScheduleCommandAbilityWindowDoneLocked(token, sessionInfo, winCmd, abilityCmd);
 }
 
+void UIExtensionAbilityManager::UpdateSessionInfoForMigration(
+    const std::shared_ptr<BaseExtensionRecord> &targetService, const sptr<SessionInfo> &sessionInfo)
+{
+    std::shared_ptr<ExtensionRecord> extensionRecord;
+    if (uiExtensionAbilityRecordMgr_ != nullptr) {
+        extensionRecord = uiExtensionAbilityRecordMgr_->FindExtensionRecordById(
+            targetService->GetUIExtensionAbilityId());
+    }
+    AAFwk::OriginalCallerInfo declaration;
+    uint32_t targetHostWindowId = 0;
+    if (extensionRecord != nullptr &&
+        extensionRecord->GetMigrationDeclaration(declaration, targetHostWindowId)) {
+        if (sessionInfo != nullptr) {
+            sessionInfo->originalCallerInfo = declaration;
+            sessionInfo->hostWindowId = targetHostWindowId;
+        }
+        auto recordInfo = targetService->GetSessionInfo();
+        if (recordInfo != nullptr) {
+            recordInfo->originalCallerInfo.migrationGen = declaration.migrationGen;
+            recordInfo->hostWindowId = targetHostWindowId;
+        }
+    } else {
+        if (sessionInfo != nullptr && sessionInfo->originalCallerInfo.migrationGen != 0) {
+            sessionInfo->originalCallerInfo.migrationGen = 0;
+            sessionInfo->originalCallerInfo.callerToken = nullptr;
+        }
+        targetService->SetSessionInfo(sessionInfo);
+    }
+}
+
 int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abilityRequest)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
@@ -743,34 +773,7 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
     targetService->DoBackgroundAbilityWindowDelayed(false);
-    {
-        std::shared_ptr<ExtensionRecord> extensionRecord;
-        if (uiExtensionAbilityRecordMgr_ != nullptr) {
-            extensionRecord = uiExtensionAbilityRecordMgr_->FindExtensionRecordById(
-                targetService->GetUIExtensionAbilityId());
-        }
-        AAFwk::OriginalCallerInfo declaration;
-        uint32_t targetHostWindowId = 0;
-        if (extensionRecord != nullptr &&
-            extensionRecord->GetMigrationDeclaration(declaration, targetHostWindowId)) {
-            if (abilityRequest.sessionInfo != nullptr) {
-                abilityRequest.sessionInfo->originalCallerInfo = declaration;
-                abilityRequest.sessionInfo->hostWindowId = targetHostWindowId;
-            }
-            auto recordInfo = targetService->GetSessionInfo();
-            if (recordInfo != nullptr) {
-                recordInfo->originalCallerInfo.migrationGen = declaration.migrationGen;
-                recordInfo->hostWindowId = targetHostWindowId;
-            }
-        } else {
-            if (abilityRequest.sessionInfo != nullptr &&
-                abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
-                abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
-                abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
-            }
-            targetService->SetSessionInfo(abilityRequest.sessionInfo);
-        }
-    }
+    UpdateSessionInfoForMigration(targetService, abilityRequest.sessionInfo);
 
     if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
         auto &remoteObj = abilityRequest.sessionInfo->sessionToken;
