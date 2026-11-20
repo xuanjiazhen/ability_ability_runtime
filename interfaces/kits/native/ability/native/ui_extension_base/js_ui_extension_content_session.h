@@ -96,6 +96,18 @@ public:
         return context_.lock();
     }
 
+    /**
+     * @brief Update the cached session info and JS-visible extension window proxies after
+     * the window has been re-parented by the base class (UpdateParentForMigration).
+     *
+     * This is the napi-dependent second step of migration: the actual wm re-parent call
+     * happens in the pure C++ base-class path; this method only syncs the cache and
+     * refreshes every proxy the application holds. No napi API is exposed.
+     *
+     * @param sessionInfo The migrated session info carrying the new host window id.
+     */
+    void DoUpdateExtensionParent(const sptr<AAFwk::SessionInfo> &sessionInfo);
+
 protected:
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityAsCaller(napi_env env, NapiCallbackInfo& info);
@@ -148,6 +160,8 @@ private:
     std::shared_ptr<UISessionAbilityResultListener> listener_;
     sptr<JsFreeInstallObserver> freeInstallObserver_ = nullptr;
     bool isFirstTriggerBindModal_ = true;
+    std::vector<napi_ref> jsExtensionWindowRefs_;
+    napi_env env_ = nullptr;
 #ifdef SUPPORT_SCREEN
     void InitDisplayId(AAFwk::Want &want);
     void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions, napi_env &env, NapiCallbackInfo& info);

@@ -46,6 +46,7 @@
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
 #include "tokenid_kit.h"
+#include "ui_extension_migration_utils.h"
 #include "ui_extension_window_command.h"
 #include "want_params_wrapper.h"
 
@@ -622,6 +623,8 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             CallObjectMethod(false, "onSessionCreate", nullptr, wantObj, sessonObj);
             RegisterBrandColorChangeListener(uiWindow);
         }
+        migrationFencing_ = MigrationFencingState {};
+        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[compId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context && context->GetWindow() == nullptr) {
@@ -635,11 +638,21 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        auto migrateOption = CreateWindowOption(GetContext(), sessionInfo, want);
+        if (migrateOption == nullptr ||
+            !ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrateOption, migrationFencing_,
+            [this](const sptr<AAFwk::SessionInfo> &info) {
+                if (etsUiExtContentSession_ != nullptr) {
+                    etsUiExtContentSession_->DoUpdateExtensionParent(info);
+                }
+            })) {
+            return false;
+        }
     }
     return true;
 }
 
-sptr<Rosen::Window> EtsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtensionContext> context,
+sptr<Rosen::WindowOption> EtsUIExtension::CreateWindowOption(const std::shared_ptr<UIExtensionContext> context,
     const sptr<AAFwk::SessionInfo> &sessionInfo, const AAFwk::Want &want)
 {
     if (context == nullptr || context->GetAbilityInfo() == nullptr || sessionInfo == nullptr) {
@@ -661,12 +674,23 @@ sptr<Rosen::Window> EtsUIExtension::CreateUIWindow(const std::shared_ptr<UIExten
     option->SetDensity(sessionInfo->density);
     option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
     option->SetDisplayId(sessionInfo->displayId);
+    option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     if (context->isNotAllow != -1) {
         bool isNotAllow = context->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
         option->SetConstrainedModal(isNotAllow);
     }
     option->SetCallerPid(want.GetIntParam(AAFwk::Want::PARAM_RESV_CALLER_PID, -1));
+    return option;
+}
+
+sptr<Rosen::Window> EtsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtensionContext> context,
+    const sptr<AAFwk::SessionInfo> &sessionInfo, const AAFwk::Want &want)
+{
+    auto option = CreateWindowOption(context, sessionInfo, want);
+    if (option == nullptr) {
+        return nullptr;
+    }
     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
     return Rosen::Window::Create(option, context, sessionInfo->sessionToken);
 }
