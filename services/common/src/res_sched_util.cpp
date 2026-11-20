@@ -269,7 +269,7 @@ int32_t ResSchedUtil::ReportCreateSnapshotCmdToRSS(const std::string &bundleName
         TAG_LOGE(AAFwkTag::DEFAULT, "ReportCreateSnapshotCmdToRSS fail, ret: %{public}d", ret);
         return -1;
     }
-    errcode = reply.value("errcode", -1);
+    errcode = reply.value("errCode", -1);
     return 0;
 #else
     TAG_LOGE(AAFwkTag::DEFAULT, "RESOURCE_SCHEDULE_SERVICE_ENABLE off");
@@ -299,7 +299,7 @@ int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleNam
         TAG_LOGE(AAFwkTag::DEFAULT, "ReportDestroySnapshotCmdToRSS fail, ret: %{public}d", ret);
         return -1;
     }
-    errcode = reply.value("errcode", -1);
+    errcode = reply.value("errCode", -1);
     return 0;
 #else
     TAG_LOGE(AAFwkTag::DEFAULT, "RESOURCE_SCHEDULE_SERVICE_ENABLE off");
@@ -381,7 +381,7 @@ int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName, 
         TAG_LOGE(AAFwkTag::DEFAULT, "ReportListSnapshotCmdToRSS fail, ret: %{public}d", ret);
         return -1;
     }
-    errcode = reply.value("errcode", -1);
+    errcode = reply.value("errCode", -1);
     if (errcode != 0) {
         return 0;
     }
