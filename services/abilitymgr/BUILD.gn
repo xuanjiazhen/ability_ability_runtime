@@ -338,6 +338,10 @@ ohos_shared_library("abilityms") {
     external_deps += [ "security_guard:libsg_collect_sdk" ]
   }
 
+  if (is_emulator) {
+    defines += [ "EMULATOR_BUILD" ]
+  }
+
   ldflags = [ "-Wl,-Bsymbolic" ]
 
   version_script = "libabilityms.map"
@@ -540,6 +544,9 @@ ohos_static_library("abilityms_static") {
     defines += [ "DISABLE_LAUNCHER" ]
   }
 
+  if (is_emulator) {
+    defines += [ "EMULATOR_BUILD" ]
+  }
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
