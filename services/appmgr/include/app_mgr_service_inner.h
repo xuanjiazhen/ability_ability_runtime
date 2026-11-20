@@ -2639,6 +2639,7 @@ private:
         const HapModuleInfo &hapModuleInfo) const;
     int32_t DealWithUserConfiguration(const Configuration &config, const int32_t userId, int32_t &notifyUserId);
     bool CheckIsDebugApp(const std::string &bundleName);
+    bool CheckIsDebugSignedApp(const std::string &bundleName);
     int32_t MakeKiaProcess(std::shared_ptr<AAFwk::Want> want, bool &isKia, std::string &watermarkBusinessName,
         bool &isWatermarkEnabled, bool &isFileUri, std::string &processName);
     int32_t ProcessKia(bool isKia, std::shared_ptr<AppRunningRecord> appRecord,

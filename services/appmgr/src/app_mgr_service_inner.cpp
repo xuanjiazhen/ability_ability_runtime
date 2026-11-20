@@ -10543,6 +10543,25 @@ bool AppMgrServiceInner::CheckIsDebugApp(const std::string &bundleName)
            (bundleInfo.applicationInfo.appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG);
 }
 
+bool AppMgrServiceInner::CheckIsDebugSignedApp(const std::string &bundleName)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    CHECK_POINTER_AND_RETURN_VALUE(remoteClientManager_, false);
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN_VALUE(bundleMgrHelper, false);
+
+    BundleInfo bundleInfo;
+    auto userId = UserController::GetInstance().GetCallerUserId();
+    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION), bundleInfo, userId));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "getBundleInfo fail");
+        return false;
+    }
+
+    return bundleInfo.applicationInfo.appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG;
+}
+
 bool AppMgrServiceInner::IsWaitingDebugApp(const std::string &bundleName)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -13434,22 +13453,14 @@ int32_t AppMgrServiceInner::DebugCreateSnapshot(const std::string &bundleName,
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "DebugCreateSnapshot bundleName:%{public}s abilityName:%{public}s "
         "debugReportOnly:%{public}d", bundleName.c_str(), abilityName.c_str(), debugReportOnly);
-    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
-        return AAFwk::ERR_NOT_DEVELOPER_MODE;
-    }
-    // abilityName is optional: an empty name lets RSS make a snapshot of the whole app.
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid parameters");
         return ERR_INVALID_VALUE;
     }
-    // Debug gate first: no side effect for non-debug targets (aa debug commands only).
-    if (!CheckIsDebugApp(bundleName)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not debug app, bundleName:%{public}s", bundleName.c_str());
+    if (!CheckIsDebugSignedApp(bundleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not debug signed app, bundleName:%{public}s", bundleName.c_str());
         return AAFwk::ERR_NOT_DEBUG_APP;
     }
-    // Acceptance-level forward: the making itself is triggered by RSS asynchronously.
-    // RSS scopes by the target app's user; GetCallerUserId falls back to the foreground user for the aa caller.
     int32_t targetUserId = UserController::GetInstance().GetCallerUserId();
     int32_t errcode = -1;
     auto ret = AAFwk::ResSchedUtil::GetInstance().ReportCreateSnapshotCmdToRSS(
@@ -13527,22 +13538,15 @@ int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, 
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "DebugDestroySnapshot bundleName:%{public}s abilityName:%{public}s pid:%{public}d",
         bundleName.c_str(), abilityName.c_str(), pid);
-    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
-        return AAFwk::ERR_NOT_DEVELOPER_MODE;
-    }
     std::string targetBundle;
     int32_t resolveErr = ResolveDestroyTargetBundle(bundleName, pid, targetBundle);
     if (resolveErr != ERR_OK) {
         return resolveErr;
     }
-    // Debug gate first: no side effect for non-debug targets.
-    if (!CheckIsDebugApp(targetBundle)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not debug app, bundleName:%{public}s", targetBundle.c_str());
+    if (!CheckIsDebugSignedApp(targetBundle)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not debug signed app, bundleName:%{public}s", targetBundle.c_str());
         return AAFwk::ERR_NOT_DEBUG_APP;
     }
-    // Acceptance-level forward: the deletion itself is triggered by RSS asynchronously.
-    // RSS destroys by bundleName; a pid-only request has been resolved to targetBundle above.
     int32_t targetUserId = UserController::GetInstance().GetCallerUserId();
     int32_t errcode = -1;
     auto ret = AAFwk::ResSchedUtil::GetInstance().ReportDestroySnapshotCmdToRSS(targetBundle, abilityName,
@@ -13561,12 +13565,8 @@ int32_t AppMgrServiceInner::DebugListSnapshot(const std::string &bundleName, con
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "DebugListSnapshot bundleName:%{public}s abilityName:%{public}s",
         bundleName.c_str(), abilityName.c_str());
-    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
-        return AAFwk::ERR_NOT_DEVELOPER_MODE;
-    }
-    if (!bundleName.empty() && !CheckIsDebugApp(bundleName)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not debug app, bundleName:%{public}s", bundleName.c_str());
+    if (!bundleName.empty() && !CheckIsDebugSignedApp(bundleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not debug signed app, bundleName:%{public}s", bundleName.c_str());
         return AAFwk::ERR_NOT_DEBUG_APP;
     }
     info = SnapshotDebugInfo();

@@ -571,6 +571,14 @@ int32_t AppMgrService::DebugCreateSnapshot(const std::string &bundleName, const 
         TAG_LOGE(AAFwkTag::APPMGR, "DebugCreateSnapshot failed: service not ready");
         return ERR_INVALID_OPERATION;
     }
+    if (!AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugCreateSnapshot failed: not shell call");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugCreateSnapshot failed: developer mode false");
+        return AAFwk::ERR_NOT_DEVELOPER_MODE;
+    }
     return appMgrServiceInner_->DebugCreateSnapshot(bundleName, abilityName, debugReportOnly, perfCmd);
 }
 
@@ -582,6 +590,14 @@ int32_t AppMgrService::DebugDestroySnapshot(const std::string &bundleName, const
         TAG_LOGE(AAFwkTag::APPMGR, "DebugDestroySnapshot failed: service not ready");
         return ERR_INVALID_OPERATION;
     }
+    if (!AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugDestroySnapshot failed: not shell call");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugDestroySnapshot failed: developer mode false");
+        return AAFwk::ERR_NOT_DEVELOPER_MODE;
+    }
     return appMgrServiceInner_->DebugDestroySnapshot(bundleName, abilityName, pid);
 }
 
@@ -592,6 +608,14 @@ int32_t AppMgrService::DebugListSnapshot(const std::string &bundleName, const st
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot failed: service not ready");
         return ERR_INVALID_OPERATION;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot failed: not shell call");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot failed: developer mode false");
+        return AAFwk::ERR_NOT_DEVELOPER_MODE;
     }
     return appMgrServiceInner_->DebugListSnapshot(bundleName, abilityName, info);
 }
