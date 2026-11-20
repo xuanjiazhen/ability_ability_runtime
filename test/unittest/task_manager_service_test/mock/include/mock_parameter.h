@@ -13,32 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_IPC_IPC_SKELETON_H
-#define OHOS_IPC_IPC_SKELETON_H
-
-#include <sys/types.h>
+#ifndef MOCK_PARAMETER_H
+#define MOCK_PARAMETER_H
 
 namespace OHOS {
-class IPCSkeleton {
-public:
-    IPCSkeleton() = default;
-    ~IPCSkeleton() = default;
+namespace system {
+// Mirrors SECURE_STATE/DEBUGGABLE_STATE in app_mgr_service.cpp.
+constexpr const char *MOCK_SECURE_KEY = "const.secure";
+constexpr const char *MOCK_DEBUGGABLE_KEY = "const.debuggable";
 
-    static pid_t GetCallingPid();
-
-    static pid_t GetCallingUid();
-
-    static uint32_t GetCallingTokenID();
-
-    static uint64_t GetCallingFullTokenID();
-
-    static void SetCallingUid(pid_t uid);
-
-    static void SetCallingPid(pid_t pid);
-
-    static uint32_t SetCallingTokenID(pid_t tokenId);
-
-    static void SetCallingFullTokenID(uint64_t tokenId);
-};
-}  // namespace OHOS
-#endif  // OHOS_IPC_IPC_SKELETON_H
+// Test seam for the debug-build gate of the --task register/unregister hooks.
+void SetMockSystemDebuggable(bool enabled);
+} // namespace system
+} // namespace OHOS
+#endif // MOCK_PARAMETER_H

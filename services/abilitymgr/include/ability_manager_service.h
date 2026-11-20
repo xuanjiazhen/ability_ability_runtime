@@ -3916,6 +3916,7 @@ private:
     std::weak_ptr<AbilityManagerService> appSpawnContext_;
     ffrt::mutex appSpawnPipeMutex_;
     ffrt::mutex globalLock_;
+    ffrt::mutex abilityControllerLock_;
     ffrt::mutex bgtaskObserverMutex_;
     ffrt::mutex abilityTokenLock_;
     ffrt::mutex preStartSessionMapLock_;
@@ -3931,8 +3932,8 @@ private:
     ffrt::mutex delayedStartPidsLock_;
     std::unordered_set<int32_t> delayedStartPids_;
 
-    std::mutex prepareTermiationCallbackMutex_;
-    std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;
+    std::mutex prepareTerminationCallbackMutex_;
+    std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTerminationCallbacks_;
 
     ffrt::mutex remoteTaskHandlesMutex_;
     std::map<uint32_t, std::shared_ptr<ffrt::task_handle>> remoteTaskHandles_;

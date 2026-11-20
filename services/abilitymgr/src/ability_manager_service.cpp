@@ -33,7 +33,6 @@
 #include "agent_card.h"
 #include "agent_extension_connection_constants.h"
 #include "agent_manager_client.h"
-#include "ams_want_param_filter.h"
 #include "app_utils.h"
 #include "app_exit_reason_data_manager.h"
 #include "app_mgr_constants.h"
@@ -46,6 +45,7 @@
 #include "config_policy_utils.h"
 #include "connection_state_manager.h"
 #include "c/executor_task.h"
+#include "daemon_service_manager_client.h"
 #include "display_manager.h"
 #include "display_util.h"
 #include "distributed_client.h"
@@ -491,7 +491,6 @@ void AbilityManagerService::OnStart()
         return;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
-    AMSWantParamFilter::GetInstance()->InstallFilter();
     /* Publish service maybe failed, so we need call this function at the last,
      * so it can't affect the TDD test program */
     instance_ = DelayedSingleton<AbilityManagerService>::GetInstance().get();
@@ -892,7 +891,7 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
     int32_t ret = StartAbilityInner(startAbilityWrapParam);
     AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityInner", want.GetFlags(), ret);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityError:%{public}d", eventInfo->errCode);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityError:%{public}d", ret);
     }
     return ret;
 }
@@ -9308,7 +9307,7 @@ int AbilityManagerService::StartHighestPriorityAbility(int32_t userId, uint64_t 
     int32_t ret = StartAbilityInner(startAbilityWrapParam);
     AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityInner", abilityWant.GetFlags(), ret);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityError:%{public}d", eventInfo->errCode);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityError:%{public}d", ret);
     }
     return ret;
 }
@@ -10356,6 +10355,13 @@ void AbilityManagerService::StartResidentApps(int32_t userId)
         }
 #endif
         residentProcessManager->StartResidentProcess(bundleInfos);
+    }
+    if (userId == U0_USER_ID) {
+        auto result = IN_PROCESS_CALL(
+            AbilityRuntime::DaemonServiceManagerClient::GetInstance().NotifyResidentStartupCompleted());
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "notify resident startup completed failed: %{public}d", result);
+        }
     }
 }
 
@@ -12342,7 +12348,7 @@ int AbilityManagerService::SetAbilityController(const sptr<IAbilityController> &
         return CHECK_PERMISSION_FAILED;
     }
 
-    std::lock_guard<ffrt::mutex> guard(globalLock_);
+    std::lock_guard<ffrt::mutex> guard(abilityControllerLock_);
     abilityController_ = abilityController;
     controllerIsAStabilityTest_ = imAStabilityTest;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s, end", __func__);
@@ -12351,7 +12357,7 @@ int AbilityManagerService::SetAbilityController(const sptr<IAbilityController> &
 
 bool AbilityManagerService::IsRunningInStabilityTest()
 {
-    std::lock_guard<ffrt::mutex> guard(globalLock_);
+    std::lock_guard<ffrt::mutex> guard(abilityControllerLock_);
     bool ret = abilityController_ != nullptr && controllerIsAStabilityTest_;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s, IsRunningInStabilityTest: %{public}d", __func__, ret);
     return ret;
@@ -12360,14 +12366,21 @@ bool AbilityManagerService::IsRunningInStabilityTest()
 bool AbilityManagerService::IsAbilityControllerStart(const Want &want, const std::string &bundleName)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "method call, controllerIsAStabilityTest_: %{public}d", controllerIsAStabilityTest_);
-    if (abilityController_ == nullptr) {
+    sptr<AppExecFwk::IAbilityController> controller;
+    bool isStabilityTest = false;
+    {
+        std::lock_guard<ffrt::mutex> guard(abilityControllerLock_);
+        controller = abilityController_;
+        isStabilityTest = controllerIsAStabilityTest_;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "method call, controllerIsAStabilityTest_: %{public}d", isStabilityTest);
+    if (controller == nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityController_ is nullptr");
         return true;
     }
 
-    if (controllerIsAStabilityTest_) {
-        bool isStart = abilityController_->AllowAbilityStart(want, bundleName);
+    if (isStabilityTest) {
+        bool isStart = controller->AllowAbilityStart(want, bundleName);
         if (!isStart) {
             TAG_LOGI(AAFwkTag::ABILITYMGR,
                 "controller starting can't start ability:%{public}s", bundleName.c_str());
@@ -12379,14 +12392,21 @@ bool AbilityManagerService::IsAbilityControllerStart(const Want &want, const std
 
 bool AbilityManagerService::IsAbilityControllerForeground(const std::string &bundleName)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "method call, controllerIsAStabilityTest_: %{public}d", controllerIsAStabilityTest_);
-    if (abilityController_ == nullptr) {
+    sptr<AppExecFwk::IAbilityController> controller;
+    bool isStabilityTest = false;
+    {
+        std::lock_guard<ffrt::mutex> guard(abilityControllerLock_);
+        controller = abilityController_;
+        isStabilityTest = controllerIsAStabilityTest_;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "method call, controllerIsAStabilityTest_: %{public}d", isStabilityTest);
+    if (controller == nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityController_ is nullptr");
         return true;
     }
 
-    if (controllerIsAStabilityTest_) {
-        bool isResume = abilityController_->AllowAbilityBackground(bundleName);
+    if (isStabilityTest) {
+        bool isResume = controller->AllowAbilityBackground(bundleName);
         if (!isResume) {
             TAG_LOGI(AAFwkTag::ABILITYMGR,
                 "controller resuming can't terminate ability:%{public}s", bundleName.c_str());
@@ -12645,7 +12665,6 @@ int AbilityManagerService::DoAbilityForeground(const sptr<IRemoteObject> &token,
         return ERR_INVALID_VALUE;
     }
 
-    std::lock_guard<ffrt::mutex> guard(globalLock_);
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     if (!JudgeSelfCalled(abilityRecord)) {
@@ -13427,13 +13446,13 @@ int AbilityManagerService::PrepareTerminateAbility(const sptr<IRemoteObject> &to
         callback->DoPrepareTerminate();
         return ERR_OK;
     }
-    std::lock_guard<std::mutex> guard(prepareTermiationCallbackMutex_);
+    std::lock_guard<std::mutex> guard(prepareTerminationCallbackMutex_);
     auto abilityRecordId = std::to_string(abilityRecord->GetAbilityRecordId());
-    if (prepareTermiationCallbacks_.find(abilityRecordId) != prepareTermiationCallbacks_.end()) {
+    if (prepareTerminationCallbacks_.find(abilityRecordId) != prepareTerminationCallbacks_.end()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "abilityRecordId=%{public}s already exists", abilityRecordId.c_str());
         return ERR_OK;
     }
-    prepareTermiationCallbacks_[abilityRecordId] = callback;
+    prepareTerminationCallbacks_[abilityRecordId] = callback;
 
     auto timeoutTask = [callback]() {
         if (callback != nullptr) {
@@ -13463,9 +13482,9 @@ void AbilityManagerService::PrepareTerminateAbilityDone(const sptr<IRemoteObject
         return;
     }
     auto abilityRecordId = std::to_string(abilityRecord->GetAbilityRecordId());
-    std::lock_guard<std::mutex> guard(prepareTermiationCallbackMutex_);
-    auto iter = prepareTermiationCallbacks_.find(abilityRecordId);
-    if (iter == prepareTermiationCallbacks_.end()) {
+    std::lock_guard<std::mutex> guard(prepareTerminationCallbackMutex_);
+    auto iter = prepareTerminationCallbacks_.find(abilityRecordId);
+    if (iter == prepareTerminationCallbacks_.end()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, abilityRecordId=%{public}s not found", abilityRecordId.c_str());
         uiAbilityManager->PrepareTerminateAbilityDone(
             std::static_pointer_cast<UIAbilityRecord>(abilityRecord), isTerminate);
@@ -13475,7 +13494,7 @@ void AbilityManagerService::PrepareTerminateAbilityDone(const sptr<IRemoteObject
         TAG_LOGI(AAFwkTag::ABILITYMGR, "abilityRecordId=%{public}s, calling callback", abilityRecordId.c_str());
         iter->second->DoPrepareTerminate();
     }
-    prepareTermiationCallbacks_.erase(iter);
+    prepareTerminationCallbacks_.erase(iter);
     if (taskHandler_) {
         taskHandler_->CancelTask("PrepareTerminate_" + abilityRecordId);
     }
@@ -15645,7 +15664,7 @@ int32_t AbilityManagerService::StartAbilityWithServiceMatch(const InsightIntentE
     int32_t ret = StartAbilityInner(startAbilityWrapParam);
     AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityInner", want.GetFlags(), ret);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityError:%{public}d", eventInfo->errCode);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityError:%{public}d", ret);
     }
     return ret;
 

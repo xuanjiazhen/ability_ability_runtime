@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <gtest/gtest.h>
 #include "ability_util.h"  // Mock header to override CHECK_POINTER_AND_RETURN_LOG
 #include "mock_task_handler_wrap.h"  // Mock TaskHandlerWrap for testing
@@ -396,6 +397,52 @@ HWTEST_F(AppMgrServiceInnerTenthTest, SetAppInfo_ShareUid_002, TestSize.Level1)
     EXPECT_EQ(startMsg.appUid, 20010034);
     EXPECT_EQ(startMsg.flags & (1ULL << AppFlagsIndex::APP_FLAGS_SHAREUID_ENABLED), 0ULL);
     TAG_LOGI(AAFwkTag::TEST, "SetAppInfo_ShareUid_002 end");
+}
+
+/**
+ * @tc.name: SetAppInfo_DaemonAppIdentity_001
+ * @tc.desc: Daemon permission preparation preserves appUid independently of DAC credentials.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTenthTest, SetAppInfo_DaemonAppIdentity_001, TestSize.Level1)
+{
+    auto inner = std::make_shared<AppMgrServiceInner>();
+    BundleInfo bundleInfo;
+    bundleInfo.uid = 100;
+    bundleInfo.gid = 100;
+    bundleInfo.appUid = 20010034;
+    bundleInfo.applicationInfo.appUid = 20010035;
+    bundleInfo.applicationInfo.sharedUID = true;
+    AppSpawnStartMsg startMsg{};
+    startMsg.code = MSG_SPAWN_SERVICE_BIN;
+    inner->SetAppInfo(bundleInfo, startMsg);
+    EXPECT_EQ(startMsg.appUid, bundleInfo.appUid);
+    EXPECT_EQ(startMsg.uid, bundleInfo.uid);
+    EXPECT_EQ(startMsg.gid, bundleInfo.gid);
+    EXPECT_NE(startMsg.flags & (1ULL << AppFlagsIndex::APP_FLAGS_SHAREUID_ENABLED), 0ULL);
+    EXPECT_NE(std::find(startMsg.gids.begin(), startMsg.gids.end(), bundleInfo.gid), startMsg.gids.end());
+}
+
+/**
+ * @tc.name: SetAppInfo_DaemonAppIdentity_002
+ * @tc.desc: Ordinary daemon credentials and appUid remain unchanged after permission preparation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTenthTest, SetAppInfo_DaemonAppIdentity_002, TestSize.Level1)
+{
+    auto inner = std::make_shared<AppMgrServiceInner>();
+    BundleInfo bundleInfo;
+    bundleInfo.uid = 20010034;
+    bundleInfo.gid = 20010034;
+    bundleInfo.appUid = 20010034;
+    bundleInfo.applicationInfo.sharedUID = false;
+    AppSpawnStartMsg startMsg{};
+    startMsg.code = MSG_SPAWN_SERVICE_BIN;
+    inner->SetAppInfo(bundleInfo, startMsg);
+    EXPECT_EQ(startMsg.appUid, bundleInfo.appUid);
+    EXPECT_EQ(startMsg.uid, bundleInfo.uid);
+    EXPECT_EQ(startMsg.gid, bundleInfo.gid);
+    EXPECT_EQ(startMsg.flags & (1ULL << AppFlagsIndex::APP_FLAGS_SHAREUID_ENABLED), 0ULL);
 }
 
 /**
