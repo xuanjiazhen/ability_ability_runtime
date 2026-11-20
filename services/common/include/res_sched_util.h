@@ -17,13 +17,14 @@
 #define OHOS_ABILITY_RUNTIME_RES_SCHED_UTIL_H
 
 #include <unordered_set>
+#include <vector>
 
 #include "nocopyable.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 struct AbilityInfo;
-struct SnapshotDebugInfo;
+struct SnapshotDebugAppInfo;
 }
 namespace AAFwk {
 namespace {
@@ -83,7 +84,7 @@ public:
     int32_t ReportDestroySnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
         int32_t userId, int32_t &errcode);
     int32_t ReportListSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
-        int32_t userId, AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode);
+        int32_t userId, std::vector<AppExecFwk::SnapshotDebugAppInfo> &appList, int32_t &errcode);
 private:
     ResSchedUtil() = default;
     ~ResSchedUtil() = default;

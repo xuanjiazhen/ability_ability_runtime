@@ -750,8 +750,8 @@ int32_t AppMgrStub::HandleDebugListSnapshot(MessageParcel &data, MessageParcel &
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     std::string bundleName = data.ReadString();
     std::string abilityName = data.ReadString();
-    SnapshotDebugInfo info;
-    auto result = DebugListSnapshot(bundleName, abilityName, info);
+    std::vector<SnapshotDebugAppInfo> appList;
+    auto result = DebugListSnapshot(bundleName, abilityName, appList);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write result failed.");
         return ERR_APPEXECFWK_PARCEL_ERROR;
@@ -761,12 +761,18 @@ int32_t AppMgrStub::HandleDebugListSnapshot(MessageParcel &data, MessageParcel &
         return NO_ERROR;
     }
 
-    if (!reply.WriteParcelable(&info)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write info failed.");
+    if (!reply.WriteInt32(static_cast<int32_t>(appList.size()))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write appList size failed.");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
+    for (auto &app : appList) {
+        if (!reply.WriteParcelable(&app)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write app info failed.");
+            return ERR_APPEXECFWK_PARCEL_ERROR;
+        }
+    }
 
-    TAG_LOGD(AAFwkTag::APPMGR, "DebugListSnapshot success, appList size: %{public}zu", info.appList.size());
+    TAG_LOGD(AAFwkTag::APPMGR, "DebugListSnapshot success, appList size: %{public}zu", appList.size());
     return NO_ERROR;
 }
 

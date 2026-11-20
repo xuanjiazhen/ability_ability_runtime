@@ -104,7 +104,7 @@ public:
         int32_t pid) override;
 
     virtual int32_t DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
-        SnapshotDebugInfo &info) override;
+        std::vector<SnapshotDebugAppInfo> &appList) override;
 
     virtual int32_t NotifyTemplateProcessDeepFrozen(int32_t pid) override;
 

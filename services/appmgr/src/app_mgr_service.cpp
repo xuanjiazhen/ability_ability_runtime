@@ -602,7 +602,7 @@ int32_t AppMgrService::DebugDestroySnapshot(const std::string &bundleName, const
 }
 
 int32_t AppMgrService::DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
-    SnapshotDebugInfo &info)
+    std::vector<SnapshotDebugAppInfo> &appList)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "DebugListSnapshot called");
     if (!IsReady()) {
@@ -617,7 +617,7 @@ int32_t AppMgrService::DebugListSnapshot(const std::string &bundleName, const st
         TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot failed: developer mode false");
         return AAFwk::ERR_NOT_DEVELOPER_MODE;
     }
-    return appMgrServiceInner_->DebugListSnapshot(bundleName, abilityName, info);
+    return appMgrServiceInner_->DebugListSnapshot(bundleName, abilityName, appList);
 }
 
 int32_t AppMgrService::NotifyTemplateProcessDeepFrozen(int32_t pid)

@@ -20,12 +20,13 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 #include <memory>
 
 namespace OHOS {
 namespace AppExecFwk {
 struct AbilityInfo;
-struct SnapshotDebugInfo;
+struct SnapshotDebugAppInfo;
 }
 namespace AAFwk {
 using AbilityInfo = AppExecFwk::AbilityInfo;
@@ -87,7 +88,7 @@ public:
         (const std::string &bundleName, const std::string &abilityName, int32_t userId, int32_t &errcode), ());
     MOCK_METHOD(int32_t, ReportListSnapshotCmdToRSS,
         (const std::string &bundleName, const std::string &abilityName, int32_t userId,
-        AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode), ());
+        std::vector<AppExecFwk::SnapshotDebugAppInfo> &appList, int32_t &errcode), ());
 };
 } // namespace AAFwk
 } // namespace OHOS

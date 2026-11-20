@@ -1612,14 +1612,14 @@ public:
      *
      * @param bundleName The bundle name to filter; empty means no filter.
      * @param abilityName The ability name to filter; empty means no filter.
-     * @param info Output parameter, the snapshot overview mirrored from the
-     *        RSS reply.
+     * @param appList Output parameter, the snapshot info of debug-signed
+     *        applications mirrored from the RSS reply.
      * @return ERR_OK on success, server error code otherwise;
      *         ERROR_SERVICE_NOT_READY/ERROR_SERVICE_NOT_CONNECTED on client
      *         failures.
      */
     int32_t DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
-        SnapshotDebugInfo &info);
+        std::vector<SnapshotDebugAppInfo> &appList);
 
     /**
      * Enable or disable the process-cache feature for the process identified by

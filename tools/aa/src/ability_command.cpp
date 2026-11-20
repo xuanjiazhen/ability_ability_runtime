@@ -1473,40 +1473,18 @@ ErrCode AbilityManagerShellCommand::RunAsListSnapshotCommand()
     std::string abilityName = "";
     ParseListSnapshotOptions(bundleName, abilityName);
 
-    SnapshotDebugInfo info;
-    auto result = DelayedSingleton<AppMgrClient>::GetInstance()->DebugListSnapshot(bundleName, abilityName, info);
+    std::vector<SnapshotDebugAppInfo> appList;
+    auto result = DelayedSingleton<AppMgrClient>::GetInstance()->DebugListSnapshot(bundleName, abilityName, appList);
     if (result == OHOS::ERR_OK) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_LIST_SNAPSHOT_OK.c_str());
         resultReceiver_ = STRING_LIST_SNAPSHOT_OK + "\n";
-        resultReceiver_ += "snapshot switch: " + std::to_string(info.switchState) +
-            ", current creating: " + std::to_string(info.currentCreating) +
-            ", max creating: " + std::to_string(info.maxCreating) + "\n";
-        resultReceiver_ += "debug application count: " + std::to_string(info.appList.size()) + "\n";
-        for (const auto &app : info.appList) {
+        resultReceiver_ += "debug application count: " + std::to_string(appList.size()) + "\n";
+        for (const auto &app : appList) {
             resultReceiver_ += "  bundle: " + app.bundleName +
                 " uid: " + std::to_string(app.uid) +
-                " userId: " + std::to_string(app.userId) + "\n";
-            resultReceiver_ += "  state: " + app.state +
-                " snapshotId: " + std::to_string(app.snapshotId) +
                 " imagePid: " + std::to_string(app.imagePid) +
-                " templatePid: " + std::to_string(app.templatePid) +
                 " isEnable: " + std::to_string(app.isEnable) +
-                " debug: " + std::to_string(app.isDebug) + "\n";
-            resultReceiver_ += "  autoMakeImage: " + std::to_string(app.autoMakeImage) +
-                " defaultEnable: " + std::to_string(app.defaultEnable) +
-                " maxRecords: " + std::to_string(app.maxRecords) +
-                " recordTimeMs: " + std::to_string(app.recordTimeMs) + "\n";
-            resultReceiver_ += "  lowMemWatermark: " + std::to_string(app.lowMemWatermark) +
-                " delayedSeconds: " + std::to_string(app.delayedSeconds) +
-                " imageExpireSeconds: " + std::to_string(app.imageExpireSeconds) +
-                " imageExpireRemaining: " + std::to_string(app.imageExpireRemaining) + "\n";
-            resultReceiver_ += "  noSnapshotReason: " +
-                (app.noSnapshotReason.empty() ? std::string("(none)") : app.noSnapshotReason) + "\n";
-            std::string pids;
-            for (int32_t pid : app.runningPids) {
-                pids += std::to_string(pid) + " ";
-            }
-            resultReceiver_ += "  runningPids: " + (pids.empty() ? std::string("(none)") : pids) + "\n";
+                " state: " + app.state + "\n";
         }
     } else {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d",

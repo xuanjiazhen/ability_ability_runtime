@@ -228,7 +228,7 @@ int32_t AppMgrProxy::DebugDestroySnapshot(const std::string &bundleName, const s
 }
 
 int32_t AppMgrProxy::DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
-    SnapshotDebugInfo &info)
+    std::vector<SnapshotDebugAppInfo> &appList)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
@@ -249,14 +249,13 @@ int32_t AppMgrProxy::DebugListSnapshot(const std::string &bundleName, const std:
         return result;
     }
 
-    std::unique_ptr<SnapshotDebugInfo> infoReply(reply.ReadParcelable<SnapshotDebugInfo>());
-    if (infoReply == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot ReadParcelable failed.");
-        return IPC_PROXY_ERR;
+    auto error = GetParcelableInfos<SnapshotDebugAppInfo>(reply, appList);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DebugListSnapshot GetParcelableInfos fail, error: %{public}d", error);
+        return error;
     }
-    info = *infoReply;
 
-    TAG_LOGD(AAFwkTag::APPMGR, "DebugListSnapshot success, appList size: %{public}zu", info.appList.size());
+    TAG_LOGD(AAFwkTag::APPMGR, "DebugListSnapshot success, appList size: %{public}zu", appList.size());
     return ERR_OK;
 }
 

@@ -1910,7 +1910,7 @@ int32_t AppMgrClient::DebugDestroySnapshot(const std::string &bundleName, const 
 }
 
 int32_t AppMgrClient::DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
-    SnapshotDebugInfo &info)
+    std::vector<SnapshotDebugAppInfo> &appList)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "DebugListSnapshot called");
     if (mgrHolder_ == nullptr) {
@@ -1922,7 +1922,7 @@ int32_t AppMgrClient::DebugListSnapshot(const std::string &bundleName, const std
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return service->DebugListSnapshot(bundleName, abilityName, info);
+    return service->DebugListSnapshot(bundleName, abilityName, appList);
 }
 
 int32_t AppMgrClient::GetSelfUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos)

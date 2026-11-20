@@ -101,7 +101,7 @@ int32_t ResSchedUtil::ReportDestroySnapshotCmdToRSS(const std::string &bundleNam
 }
 
 int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
-    int32_t userId, AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode)
+    int32_t userId, std::vector<AppExecFwk::SnapshotDebugAppInfo> &appList, int32_t &errcode)
 {
     return -1;
 }

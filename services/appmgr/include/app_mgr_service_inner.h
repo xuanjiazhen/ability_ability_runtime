@@ -536,11 +536,12 @@ public:
      * @param bundleName Bundle name to filter; empty means no filter. A non-empty
      *        bundle which is not debug-signed returns ERR_NOT_DEBUG_APP.
      * @param abilityName Ability name to filter; empty means no filter.
-     * @param info Output, the snapshot overview mirrored from the RSS reply.
+     * @param appList Output, the snapshot info of debug-signed applications
+     *        mirrored from the RSS reply.
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
-        SnapshotDebugInfo &info);
+        std::vector<SnapshotDebugAppInfo> &appList);
 
     /**
      * Find the image info whose template or image process id matches the given

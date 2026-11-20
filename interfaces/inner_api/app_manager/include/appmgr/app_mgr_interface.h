@@ -180,15 +180,16 @@ public:
      * Query the debug snapshot information of debug-signed applications.
      * Only allowed when developer mode is enabled; the query is forwarded
      * to RSS through the report-data channel; the
-     * "errcode" of the RSS reply is mapped to the return code.
+     * "errCode" of the RSS reply is mapped to the return code.
      *
      * @param bundleName The bundle name to filter; empty means no filter.
      * @param abilityName The ability name to filter; empty means no filter.
-     * @param info The snapshot overview mirrored from the RSS reply.
+     * @param appList The snapshot info of debug-signed applications mirrored
+     *        from the RSS reply.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
-        SnapshotDebugInfo &info)
+        std::vector<SnapshotDebugAppInfo> &appList)
     {
         return 0;
     }

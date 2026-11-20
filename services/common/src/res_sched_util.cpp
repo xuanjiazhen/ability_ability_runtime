@@ -313,39 +313,14 @@ void ParseSnapshotAppInfo(nlohmann::json &appObj, AppExecFwk::SnapshotDebugAppIn
 {
     app.bundleName = appObj.value("name", std::string(""));
     app.uid = appObj.value("uid", -1);
-    app.userId = appObj.value("userId", -1);
-    app.imagePid = appObj.value("imagePid", -1);
-    app.templatePid = appObj.value("templatePid", -1);
     app.state = appObj.value("state", std::string(""));
-    app.snapshotId = appObj.value("snapshotId", static_cast<int64_t>(-1));
     app.isEnable = appObj.value("isEnable", 0);
-    app.isDebug = appObj.value("debug", 0);
-
-    app.autoMakeImage = appObj.value("autoMakeImage", 0);
-    app.defaultEnable = appObj.value("defaultEnable", 0);
-    app.maxRecords = appObj.value("maxRecords", 0);
-    app.recordTimeMs = appObj.value("recordTimeMs", 0);
-    app.lowMemWatermark = appObj.value("lowMemWatermark", 0);
-    app.delayedSeconds = appObj.value("delayedSeconds", int64_t(0));
-    app.imageExpireSeconds = appObj.value("imageExpireSeconds", int64_t(0));
-    app.imageExpireRemaining = appObj.value("imageExpireRemaining", int64_t(0));
-
-    app.noSnapshotReason = appObj.value("noSnapshotReason", std::string(""));
-    if (appObj.contains("runningPids") && appObj["runningPids"].is_array()) {
-        for (nlohmann::json &pidObj : appObj["runningPids"]) {
-            if (pidObj.is_number_integer()) {
-                app.runningPids.push_back(pidObj.get<int32_t>());
-            }
-        }
-    }
+    app.imagePid = appObj.value("imagePid", -1);
 }
 
-void ParseSnapshotReply(nlohmann::json &reply, AppExecFwk::SnapshotDebugInfo &info)
+void ParseSnapshotReply(nlohmann::json &reply, std::vector<AppExecFwk::SnapshotDebugAppInfo> &appList)
 {
-    info = AppExecFwk::SnapshotDebugInfo();
-    info.switchState = reply.value("switch", 0);
-    info.maxCreating = reply.value("maxCreating", 0);
-    info.currentCreating = reply.value("currentCreating", 0);
+    appList.clear();
     if (!reply.contains("appList") || !reply["appList"].is_array()) {
         TAG_LOGE(AAFwkTag::DEFAULT, "appList missing or not array");
         return;
@@ -353,14 +328,14 @@ void ParseSnapshotReply(nlohmann::json &reply, AppExecFwk::SnapshotDebugInfo &in
     for (nlohmann::json &appObj : reply["appList"]) {
         AppExecFwk::SnapshotDebugAppInfo app;
         ParseSnapshotAppInfo(appObj, app);
-        info.appList.push_back(app);
+        appList.push_back(app);
     }
 }
 } // namespace
 #endif
 
 int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName, const std::string &abilityName,
-    int32_t userId, AppExecFwk::SnapshotDebugInfo &info, int32_t &errcode)
+    int32_t userId, std::vector<AppExecFwk::SnapshotDebugAppInfo> &appList, int32_t &errcode)
 {
     TAG_LOGI(AAFwkTag::DEFAULT, "ReportListSnapshotCmdToRSS bundleName:%{public}s abilityName:%{public}s "
         "userId:%{public}d", bundleName.c_str(), abilityName.c_str(), userId);
@@ -385,7 +360,7 @@ int32_t ResSchedUtil::ReportListSnapshotCmdToRSS(const std::string &bundleName, 
     if (errcode != 0) {
         return 0;
     }
-    ParseSnapshotReply(reply, info);
+    ParseSnapshotReply(reply, appList);
     return 0;
 #else
     TAG_LOGE(AAFwkTag::DEFAULT, "RESOURCE_SCHEDULE_SERVICE_ENABLE off");

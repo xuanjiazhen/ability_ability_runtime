@@ -13560,7 +13560,7 @@ int32_t AppMgrServiceInner::DebugDestroySnapshot(const std::string &bundleName, 
 }
 
 int32_t AppMgrServiceInner::DebugListSnapshot(const std::string &bundleName, const std::string &abilityName,
-    SnapshotDebugInfo &info)
+    std::vector<SnapshotDebugAppInfo> &appList)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "DebugListSnapshot bundleName:%{public}s abilityName:%{public}s",
@@ -13569,11 +13569,11 @@ int32_t AppMgrServiceInner::DebugListSnapshot(const std::string &bundleName, con
         TAG_LOGE(AAFwkTag::APPMGR, "not debug signed app, bundleName:%{public}s", bundleName.c_str());
         return AAFwk::ERR_NOT_DEBUG_APP;
     }
-    info = SnapshotDebugInfo();
+    appList.clear();
     int32_t targetUserId = UserController::GetInstance().GetCallerUserId();
     int32_t errcode = -1;
     auto ret = AAFwk::ResSchedUtil::GetInstance().ReportListSnapshotCmdToRSS(bundleName, abilityName, targetUserId,
-        info, errcode);
+        appList, errcode);
     if (ret != 0 || errcode < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "forward list cmd to RSS fail, ret: %{public}d errcode: %{public}d",
             ret, errcode);
