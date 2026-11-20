@@ -15,6 +15,8 @@
 
 #include "ui_extension_record.h"
 
+#include <cstdint>
+
 #include "ability_util.h"
 #include "session/host/include/zidl/session_interface.h"
 
@@ -37,7 +39,23 @@ void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord_");
         return;
     }
-    abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
+    {
+        AAFwk::OriginalCallerInfo declaration;
+        uint32_t targetHostWindowId = 0;
+        if (GetMigrationDeclaration(declaration, targetHostWindowId)) {
+            if (abilityRequest.sessionInfo != nullptr) {
+                abilityRequest.sessionInfo->originalCallerInfo = declaration;
+                abilityRequest.sessionInfo->hostWindowId = targetHostWindowId;
+            }
+        } else {
+            if (abilityRequest.sessionInfo != nullptr &&
+                abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
+                abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
+                abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
+            }
+            abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
+        }
+    }
 }
 
 void UIExtensionRecord::HandleNotifyUIExtensionTimeout(ErrorCode code)
@@ -79,6 +97,82 @@ void UIExtensionRecord::TerminateTimeout()
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     HandleNotifyUIExtensionTimeout(ErrorCode::TERMINATE_TIMEOUT);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Notify wms, the uiextension terminate time out.");
+}
+
+uint32_t UIExtensionRecord::AdvanceMigrationGen()
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (migrationGen_ == UINT32_MAX) {
+        return 0;
+    }
+    return ++migrationGen_;
+}
+
+void UIExtensionRecord::SetMigrationDeclaration(const AAFwk::OriginalCallerInfo &declaration,
+    uint32_t targetHostWindowId)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    migrationDeclaration_ = declaration;
+    migrationTargetHostWindowId_ = targetHostWindowId;
+}
+
+void UIExtensionRecord::SetMigrationDeliverySessionInfo(const sptr<AAFwk::SessionInfo> &deliverySessionInfo)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    migrationDeliverySessionInfo_ = deliverySessionInfo;
+}
+
+bool UIExtensionRecord::GetMigrationDeclaration(AAFwk::OriginalCallerInfo &declaration,
+    uint32_t &targetHostWindowId)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (migrationDeclaration_.migrationGen == 0) {
+        return false;
+    }
+    declaration = migrationDeclaration_;
+    targetHostWindowId = migrationTargetHostWindowId_;
+    return true;
+}
+
+bool UIExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (migrationDeclaration_.migrationGen == 0 || gen != migrationDeclaration_.migrationGen) {
+        return false;
+    }
+    migrationDeclaration_.migrationGen = 0;
+    confirmedHostWindowId_ = migrationTargetHostWindowId_;
+    if (migrationDeliverySessionInfo_ != nullptr && abilityRecord_ != nullptr) {
+        auto factSession = sptr<AAFwk::SessionInfo>::MakeSptr(*migrationDeliverySessionInfo_);
+        if (factSession != nullptr) {
+            factSession->originalCallerInfo.migrationGen = 0;
+            abilityRecord_->SetSessionInfo(factSession);
+        }
+        migrationDeliverySessionInfo_ = nullptr;
+    }
+    return true;
+}
+
+uint32_t UIExtensionRecord::GetMigrationGen()
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    return migrationGen_;
+}
+
+uint32_t UIExtensionRecord::GetConfirmedHostWindowId()
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    return confirmedHostWindowId_;
+}
+
+void UIExtensionRecord::SeedConfirmedHostWindowId(uint32_t factHostWindowId)
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (factHostWindowId == 0 || confirmedHostWindowId_ != 0 ||
+        migrationGen_ != 0 || migrationDeclaration_.migrationGen != 0) {
+        return;
+    }
+    confirmedHostWindowId_ = factHostWindowId;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

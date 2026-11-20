@@ -474,7 +474,7 @@ void ExtensionImpl::CommandExtensionWindow(const Want &want, const sptr<AAFwk::S
         return;
     }
     PreHandleExtensionParam(const_cast<AAFwk::Want &>(want));
-    TAG_LOGD(AAFwkTag::EXT, "persistentId: %{private}d, componentId: %{public}" PRId64 ", winCmd: %{public}d",
+    TAG_LOGD(AAFwkTag::EXT, "persistentId: %{public}d, componentId: %{public}" PRId64 ", winCmd: %{public}d",
         sessionInfo->persistentId, sessionInfo->uiExtensionComponentId, winCmd);
     extension_->OnCommandWindow(want, sessionInfo, winCmd);
     TAG_LOGD(AAFwkTag::EXT, "ok");
