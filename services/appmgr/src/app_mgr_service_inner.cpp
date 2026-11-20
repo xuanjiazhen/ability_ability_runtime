@@ -4104,11 +4104,12 @@ int32_t AppMgrServiceInner::KillApplicationByUserIdLocked(
 
     TAG_LOGD(AAFwkTag::APPMGR, "userId: %{public}d, bundleName: %{public}s, appCloneIndex: %{public}d",
         userId, bundleName.c_str(), appCloneIndex);
-    int uid = IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(bundleName, userId, appCloneIndex));
-    TAG_LOGI(AAFwkTag::APPMGR, "KillApplicationByUserIdLocked value: %{public}d", uid);
     if (appCloneIndex == 0) {
         bundleMgrHelper->GetDualModeBundleInfo(bundleName, userId, appCloneIndex);
     }
+    int uid = IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(bundleName, userId, appCloneIndex));
+    TAG_LOGI(AAFwkTag::APPMGR, "KillApplicationByUserIdLocked value: %{public}d", uid);
+
     if (!appRunningManager_->ProcessExitByBundleNameAndUid(bundleName, uid, pids, config)) {
         TAG_LOGI(AAFwkTag::APPMGR, "process corresponding package name unstart");
         return ERR_OK;
@@ -7391,7 +7392,7 @@ int AppMgrServiceInner::StartUserTestProcess(
     std::string processName;
     MakeProcessName(std::make_shared<ApplicationInfo>(bundleInfo.applicationInfo), hapModuleInfo, processName);
     if (appIndex == AbilityRuntime::GlobalConstant::PC_TABLET_INDEX) {
-        processName += std::to_string(appIndex);
+        processName += ":" + std::to_string(appIndex);
     }
     TAG_LOGI(AAFwkTag::APPMGR, "processName: [%{public}s]", processName.c_str());
 
