@@ -196,7 +196,6 @@ constexpr int64_t IPC_LATENCY_NOT_MEASURED = -1;
 constexpr int64_t APPFREEZE_CAPTURE_TIMEOUT_MS = 30000;
 constexpr size_t APPFREEZE_MAX_PENDING = 2;
 constexpr size_t APPFREEZE_MAX_ATTACHMENTS = 2;
-constexpr auto APPFREEZE_ATTACHMENT_TIMEOUT = std::chrono::milliseconds(500);
 std::atomic<uint64_t> appfreezeRequestSequence {0};
 } // namespace
 
@@ -1188,11 +1187,11 @@ int AppfreezeManager::MergeNotifyInfo(FaultData& faultNotifyData, const Appfreez
 }
 
 AppfreezeCaptureResult AppfreezeManager::RunAppfreezeAttachments(const FaultData& faultData, int32_t pid,
-    const FreezeInfo& request, std::chrono::steady_clock::time_point deadline)
+    const FreezeInfo& request)
 {
     AppfreezeCaptureResult result;
-    const auto cancelled = [request, deadline] {
-        return request->IsCancelled() || std::chrono::steady_clock::now() >= deadline;
+    const auto cancelled = [request] {
+        return request->IsCancelled();
     };
 #ifdef __cpp_exceptions
     try {
@@ -1213,15 +1212,14 @@ AppfreezeCaptureResult AppfreezeManager::RunAppfreezeAttachments(const FaultData
         result = {};
     }
 #endif
-    // Timeout/cancellation never releases capacity while a collector is still executing.
     --activeAttachments_;
     return result;
 }
 
 ffrt::future<AppfreezeCaptureResult> AppfreezeManager::CollectAppfreezeAttachments(const FaultData& faultData,
-    int32_t pid, const FreezeInfo& request, std::chrono::steady_clock::time_point deadline)
+    int32_t pid, const FreezeInfo& request)
 {
-    if (!request || request->IsCancelled() || std::chrono::steady_clock::now() >= deadline) {
+    if (!request || request->IsCancelled()) {
         return {};
     }
     auto active = activeAttachments_.load();
@@ -1234,8 +1232,8 @@ ffrt::future<AppfreezeCaptureResult> AppfreezeManager::CollectAppfreezeAttachmen
     try {
 #endif
         ffrt::packaged_task<AppfreezeCaptureResult()> collect(
-            [self = shared_from_this(), faultData, pid, request, deadline] {
-                return self->RunAppfreezeAttachments(faultData, pid, request, deadline);
+            [self = shared_from_this(), faultData, pid, request] {
+                return self->RunAppfreezeAttachments(faultData, pid, request);
             });
         auto future = collect.get_future();
         ffrt::submit([collect = std::move(collect)]() mutable { collect(); },
@@ -1256,8 +1254,7 @@ bool AppfreezeManager::CaptureAppfreeze(const FaultData& faultData,
     if (!request || request->IsCancelled() || !collector_->IsHandleAppfreeze(appInfo.bundleName)) {
         return false;
     }
-    const auto deadline = std::chrono::steady_clock::now() + APPFREEZE_ATTACHMENT_TIMEOUT;
-    auto attachments = CollectAppfreezeAttachments(faultData, appInfo.pid, request, deadline);
+    auto attachments = CollectAppfreezeAttachments(faultData, appInfo.pid, request);
     result.processStart = request->processStartTime;
     result.stackTraceStartTime = AbilityRuntime::TimeUtil::DefaultCurrentTimeStr();
     DumpTiming timing;
@@ -1276,14 +1273,10 @@ bool AppfreezeManager::CaptureAppfreeze(const FaultData& faultData,
     const std::string fileName = faultData.errorObject.name + "_" + std::to_string(appInfo.pid) + "_" +
         request->episodeId + "_" + std::to_string(request->requestId) + "_stack";
     result.stack = collector_->GetCatcherStack(fileName, stack);
-    // Consume only this future's value; a late FFRT task cannot modify the returned capture result.
-    if (!request->IsCancelled() && attachments.valid() &&
-        attachments.wait_until(deadline) == ffrt::future_status::ready) {
+    if (!request->IsCancelled() && attachments.valid()) {
         auto collected = attachments.get();
         result.binderInfo = std::move(collected.binderInfo);
         result.memoryContent = std::move(collected.memoryContent);
-    } else if (!request->IsCancelled() && attachments.valid()) {
-        TAG_LOGW(AAFwkTag::APPDFR, "Appfreeze attachments timed out, pid:%{public}d", appInfo.pid);
     }
     return !request->IsCancelled();
 }

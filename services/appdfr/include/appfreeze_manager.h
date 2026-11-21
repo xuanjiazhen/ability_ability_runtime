@@ -244,11 +244,9 @@ private:
     AppfreezeManager& operator=(const AppfreezeManager&) = delete;
     AppfreezeManager(const AppfreezeManager&) = delete;
     int AcquireStack(const FaultData& faultData, const AppInfo& appInfo, const std::string& memoryContent);
-    AppfreezeCaptureResult RunAppfreezeAttachments(const FaultData& faultData, int32_t pid, const FreezeInfo& request,
-        std::chrono::steady_clock::time_point deadline);
+    AppfreezeCaptureResult RunAppfreezeAttachments(const FaultData& faultData, int32_t pid, const FreezeInfo& request);
     __attribute__((visibility("hidden"))) ffrt::future<AppfreezeCaptureResult> CollectAppfreezeAttachments(
-        const FaultData& faultData, int32_t pid, const FreezeInfo& request,
-        std::chrono::steady_clock::time_point deadline);
+        const FaultData& faultData, int32_t pid, const FreezeInfo& request);
     std::string GetAppfreezeInfoPath(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     int NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
         const std::string& binderInfo, const std::string& memoryContent);
