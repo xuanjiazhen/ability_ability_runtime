@@ -45,6 +45,16 @@ public:
     }
 
     /**
+     * @brief Atomically publish a new pending migration and its complete target session snapshot.
+     * @return The new migration generation, or 0 when the declaration cannot be published.
+     */
+    virtual uint32_t DeclareMigration(const AAFwk::OriginalCallerInfo &declaration,
+        uint32_t targetHostWindowId, const sptr<AAFwk::SessionInfo> &deliverySessionInfo)
+    {
+        return 0;
+    }
+
+    /**
      * @brief Declare an unconfirmed migration (marker on) until gen-matched confirmation.
      */
     virtual void SetMigrationDeclaration(const AAFwk::OriginalCallerInfo &declaration,
@@ -69,12 +79,25 @@ public:
     }
 
     /**
-     * @brief Confirm-clear by gen: only the CURRENT generation's completion may clear.
-     * @return true when the marker existed and the gen matched (marker cleared).
+     * @brief Confirm-clear the current migration by generation and persistent session id.
+     * @return true when both identifiers match the pending migration; false otherwise.
      */
-    virtual bool ConfirmMigrationDeclaration(uint32_t gen)
+    virtual bool ConfirmMigrationDeclaration(uint32_t gen, int32_t persistentId)
     {
         return false;
+    }
+
+    /**
+     * @brief Build a detached delivery snapshot for the current pending migration.
+     *
+     * The returned object may be modified by the caller. The previous-host credential is
+     * removed, while the target host session fields and current declaration are preserved.
+     *
+     * @return A copied delivery snapshot, or nullptr when no migration is pending.
+     */
+    virtual sptr<AAFwk::SessionInfo> BuildMigrationDeliverySessionInfo()
+    {
+        return nullptr;
     }
 
     /** Current migration gen (diagnosis/logging). */

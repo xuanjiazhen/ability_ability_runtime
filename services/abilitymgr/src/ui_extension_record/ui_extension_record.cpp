@@ -39,28 +39,21 @@ void UIExtensionRecord::Update(const AAFwk::AbilityRequest &abilityRequest)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord_");
         return;
     }
-    {
-        AAFwk::OriginalCallerInfo declaration;
-        uint32_t targetHostWindowId = 0;
-        if (GetMigrationDeclaration(declaration, targetHostWindowId)) {
-            if (abilityRequest.sessionInfo != nullptr) {
-                abilityRequest.sessionInfo->originalCallerInfo = declaration;
-                abilityRequest.sessionInfo->hostWindowId = targetHostWindowId;
-            }
-            auto recordInfo = abilityRecord_->GetSessionInfo();
-            if (recordInfo != nullptr) {
-                recordInfo->originalCallerInfo.migrationGen = declaration.migrationGen;
-                recordInfo->hostWindowId = targetHostWindowId;
-            }
-        } else {
-            if (abilityRequest.sessionInfo != nullptr &&
-                abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
-                abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
-                abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
-            }
-            abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
+    auto delivery = BuildMigrationDeliverySessionInfo();
+    if (delivery != nullptr) {
+        if (abilityRequest.sessionInfo != nullptr) {
+            // A queued request may belong to an older migration generation. Replace the entire
+            // delivery carrier so its window, token, display and migration fence come from one target.
+            *abilityRequest.sessionInfo = *delivery;
         }
+        return;
     }
+    if (abilityRequest.sessionInfo != nullptr &&
+        abilityRequest.sessionInfo->originalCallerInfo.migrationGen != 0) {
+        abilityRequest.sessionInfo->originalCallerInfo.migrationGen = 0;
+        abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
+    }
+    abilityRecord_->SetSessionInfo(abilityRequest.sessionInfo);
 }
 
 void UIExtensionRecord::HandleNotifyUIExtensionTimeout(ErrorCode code)
@@ -113,6 +106,30 @@ uint32_t UIExtensionRecord::AdvanceMigrationGen()
     return ++migrationGen_;
 }
 
+uint32_t UIExtensionRecord::DeclareMigration(const AAFwk::OriginalCallerInfo &declaration,
+    uint32_t targetHostWindowId, const sptr<AAFwk::SessionInfo> &deliverySessionInfo)
+{
+    if (deliverySessionInfo == nullptr) {
+        return 0;
+    }
+    auto delivery = sptr<AAFwk::SessionInfo>::MakeSptr(*deliverySessionInfo);
+    if (delivery == nullptr) {
+        return 0;
+    }
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (migrationGen_ == UINT32_MAX) {
+        return 0;
+    }
+    migrationDeclaration_ = declaration;
+    migrationDeclaration_.migrationGen = ++migrationGen_;
+    migrationDeclaration_.callerToken = nullptr;
+    migrationTargetHostWindowId_ = targetHostWindowId;
+    delivery->originalCallerInfo = migrationDeclaration_;
+    delivery->hostWindowId = migrationTargetHostWindowId_;
+    migrationDeliverySessionInfo_ = delivery;
+    return migrationGen_;
+}
+
 void UIExtensionRecord::SetMigrationDeclaration(const AAFwk::OriginalCallerInfo &declaration,
     uint32_t targetHostWindowId)
 {
@@ -124,7 +141,8 @@ void UIExtensionRecord::SetMigrationDeclaration(const AAFwk::OriginalCallerInfo 
 void UIExtensionRecord::SetMigrationDeliverySessionInfo(const sptr<AAFwk::SessionInfo> &deliverySessionInfo)
 {
     std::lock_guard<std::mutex> lock(migrationMutex_);
-    migrationDeliverySessionInfo_ = deliverySessionInfo;
+    migrationDeliverySessionInfo_ = deliverySessionInfo == nullptr ?
+        nullptr : sptr<AAFwk::SessionInfo>::MakeSptr(*deliverySessionInfo);
 }
 
 bool UIExtensionRecord::GetMigrationDeclaration(AAFwk::OriginalCallerInfo &declaration,
@@ -139,10 +157,13 @@ bool UIExtensionRecord::GetMigrationDeclaration(AAFwk::OriginalCallerInfo &decla
     return true;
 }
 
-bool UIExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen)
+bool UIExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen, int32_t persistentId)
 {
     std::lock_guard<std::mutex> lock(migrationMutex_);
     if (migrationDeclaration_.migrationGen == 0 || gen != migrationDeclaration_.migrationGen) {
+        return false;
+    }
+    if (persistentId != migrationDeclaration_.persistentId) {
         return false;
     }
     migrationDeclaration_.migrationGen = 0;
@@ -156,6 +177,21 @@ bool UIExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen)
         migrationDeliverySessionInfo_ = nullptr;
     }
     return true;
+}
+
+sptr<AAFwk::SessionInfo> UIExtensionRecord::BuildMigrationDeliverySessionInfo()
+{
+    std::lock_guard<std::mutex> lock(migrationMutex_);
+    if (migrationDeliverySessionInfo_ == nullptr || migrationDeclaration_.migrationGen == 0) {
+        return nullptr;
+    }
+    auto delivery = sptr<AAFwk::SessionInfo>::MakeSptr(*migrationDeliverySessionInfo_);
+    if (delivery != nullptr) {
+        delivery->originalCallerInfo = migrationDeclaration_;
+        delivery->originalCallerInfo.callerToken = nullptr;
+        delivery->hostWindowId = migrationTargetHostWindowId_;
+    }
+    return delivery;
 }
 
 uint32_t UIExtensionRecord::GetMigrationGen()

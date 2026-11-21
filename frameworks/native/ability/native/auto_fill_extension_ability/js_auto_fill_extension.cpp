@@ -588,6 +588,7 @@ sptr<Rosen::WindowOption> JsAutoFillExtension::CreateWindowOption(const sptr<AAF
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     option->SetDensity(sessionInfo->density);
     option->SetDpiFollowStrategy(static_cast<Rosen::DpiFollowStrategy>(sessionInfo->dpiFollowStrategy));
+    option->SetDisplayId(sessionInfo->displayId);
     option->SetCallerPersistentId(sessionInfo->callerPersistentId);
     if (context->isNotAllow != -1) {
         bool isNotAllow = context->isNotAllow == 1 ? true : false;

@@ -43,6 +43,9 @@ public:
 
     uint32_t AdvanceMigrationGen() override;
 
+    uint32_t DeclareMigration(const AAFwk::OriginalCallerInfo &declaration,
+        uint32_t targetHostWindowId, const sptr<AAFwk::SessionInfo> &deliverySessionInfo) override;
+
     void SetMigrationDeclaration(const AAFwk::OriginalCallerInfo &declaration,
         uint32_t targetHostWindowId) override;
 
@@ -51,7 +54,9 @@ public:
     bool GetMigrationDeclaration(AAFwk::OriginalCallerInfo &declaration,
         uint32_t &targetHostWindowId) override;
 
-    bool ConfirmMigrationDeclaration(uint32_t gen) override;
+    bool ConfirmMigrationDeclaration(uint32_t gen, int32_t persistentId) override;
+
+    sptr<AAFwk::SessionInfo> BuildMigrationDeliverySessionInfo() override;
 
     uint32_t GetMigrationGen() override;
     uint32_t GetConfirmedHostWindowId() override;

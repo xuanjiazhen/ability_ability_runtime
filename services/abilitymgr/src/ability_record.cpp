@@ -464,6 +464,12 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
 
 void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
 {
+    ForegroundUIExtensionAbility(GetSessionInfo(), sceneFlag);
+}
+
+void AbilityRecord::ForegroundUIExtensionAbility(const sptr<SessionInfo> &deliverySessionInfo,
+    uint32_t sceneFlag)
+{
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundUIExtensionAbility:%{public}s/%{public}s",
         GetInfoBundleName().c_str(), GetInfoAbilityName().c_str());
@@ -472,13 +478,12 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
     if (IsAbilityState(AbilityState::BACKGROUND)) {
         SendAppStartupTypeEvent(AppExecFwk::AppStartType::HOT);
     }
-    // schedule active after updating AbilityState and sending timeout message to avoid ability async callback
-    // earlier than above actions.
+    // Update the state before scheduling so an asynchronous provider callback cannot observe stale state.
 #ifdef SUPPORT_SCREEN
     SetAbilityStateInner(AbilityState::FOREGROUNDING);
 #endif // SUPPORT_SCREEN
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
-    lifecycleDeal_->ForegroundNew(GetWant(), lifeCycleStateInfo_, GetSessionInfo());
+    lifecycleDeal_->ForegroundNew(GetWant(), lifeCycleStateInfo_, deliverySessionInfo);
     lifeCycleStateInfo_.sceneFlag = 0;
     lifeCycleStateInfo_.sceneFlagBak = 0;
     {

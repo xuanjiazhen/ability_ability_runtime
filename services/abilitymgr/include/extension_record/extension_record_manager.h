@@ -126,14 +126,13 @@ public:
     /**
      * @brief Find extension record by persistentId for host window migration update.
      *
-     * persistentId stays stable when UIExtension component migrates between host windows
-     * (uiExtensionComponentId changes because the host record id changes), so the original
-     * record is matched by persistentId. Terminating matches do not stop the scan (they never
-     * shadow a live one) but are reported via hasTerminatingMatch so the caller can reject.
+     * persistentId stays stable when UIExtension component migrates between host windows,
+     * so the original record is matched by persistentId. The host bundle must remain unchanged.
+     * Terminating matches do not stop the scan (they never shadow a live one) but are reported
+     * via hasTerminatingMatch so the caller can reject.
      *
      * @param sessionInfo The session info of the migration update request.
-     * @param hostBundleName The host bundle name, observation only (cross-bundle host
-     *        migration is legal within one process).
+     * @param hostBundleName The host bundle name. A bundle mismatch is rejected.
      * @param hasTerminatingMatch Set true when a record with the same persistentId was seen
      *        but its termination had already been triggered (death rule: unusable).
      * @return The matched live record, or nullptr when not found.
@@ -212,7 +211,8 @@ private:
         const sptr<AAFwk::SessionInfo> &sessionInfo, const std::string &hostBundleName, int32_t &ret);
 
     bool CheckMigrationDeclaration(const AAFwk::AbilityRequest &abilityRequest,
-        const sptr<AAFwk::SessionInfo> &recordSessionInfo, int32_t &ret);
+        const sptr<AAFwk::SessionInfo> &recordSessionInfo,
+        const sptr<AAFwk::SessionInfo> &pendingDelivery, int32_t &ret);
 
 private:
     int32_t userId_;
