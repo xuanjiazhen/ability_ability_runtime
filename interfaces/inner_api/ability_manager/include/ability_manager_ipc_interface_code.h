@@ -825,11 +825,11 @@ enum class AbilityManagerInterfaceCode {
     // get ui extension root host info by ability record id
     GET_UI_EXTENSION_HOST_INFO_BY_ID = 6192,
 
-    // UEA reports that it invoked the parent-window update interface.
-    REPORT_UI_EXTENSION_PARENT_UPDATE_INVOKED = 6193,
-
     // force stop process with kill id for cli tool
     FORCE_STOP_PROCESS = 6195,
+
+    // UEA reports that it invoked the parent-window update interface.
+    REPORT_UI_EXTENSION_PARENT_UPDATE_INVOKED = 6196,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
