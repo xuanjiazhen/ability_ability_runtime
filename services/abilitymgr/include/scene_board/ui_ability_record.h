@@ -170,19 +170,26 @@ public:
         return isByOeExt_;
     }
 
-    // (taskId, handle) pairs; duplicates ignored; released by the destructor's async task.
-    // Not self-locked: guard with sessionLock_.
+    // One managed attribution per task id under this record: a record may hold several
+    // task ids in parallel, but each task keeps a single attribution handle. While the
+    // record lives it is always the same process, so a repeated report for an already
+    // attributed task is a duplicate registration — the caller checks HasTaskAttribution
+    // before reporting and skips the whole IPC/RSS round; the first handle stays until
+    // the destructor's async unregister. Not self-locked: guard with sessionLock_.
     inline void AddTaskAttribution(const std::string &taskId, int64_t attributionId)
     {
-        for (const auto &item : taskAttributions_) {
-            if (item.first == taskId && item.second == attributionId) {
-                return;
-            }
-        }
-        taskAttributions_.emplace_back(taskId, attributionId);
+        taskAttributions_.emplace(taskId, attributionId);
     }
 
-    inline const std::vector<std::pair<std::string, int64_t>> &GetTaskAttributions() const
+    // True when this record is already attributed to the task: the report path uses
+    // it to drop duplicate registrations (same task, same instance, same process —
+    // no RSS/priority work is needed) before any IPC is made.
+    inline bool HasTaskAttribution(const std::string &taskId) const
+    {
+        return taskAttributions_.find(taskId) != taskAttributions_.end();
+    }
+
+    inline const std::map<std::string, int64_t> &GetTaskAttributions() const
     {
         return taskAttributions_;
     }
@@ -218,7 +225,7 @@ private:
     std::atomic_int32_t scenarios_ = 0;
     std::shared_ptr<Want> launchWant_;
     std::shared_ptr<Want> lastWant_;
-    std::vector<std::pair<std::string, int64_t>> taskAttributions_;
+    std::map<std::string, int64_t> taskAttributions_;
     std::map<std::string, PendingTaskAttribution> pendingTaskAttributions_;
 };
 }  // namespace AAFwk

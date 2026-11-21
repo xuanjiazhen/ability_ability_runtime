@@ -9869,6 +9869,51 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionReusePidRe
 }
 
 /**
+ * @tc.name: StartUIAbility_TaskAttributionDuplicateReportSkipped_0500
+ * @tc.desc: While the instance lives it is the same process, so a repeated report
+ *           for a task the record is already attributed to is dropped on the
+ *           bookkeeping check before any IPC: the first handle stays and neither
+ *           the bookkeeping nor the pending map grows.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionDuplicateReportSkipped_0500, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 63;
+
+    AbilityRequest createRequest;
+    createRequest.abilityInfo.name = "MainAbility";
+    createRequest.abilityInfo.bundleName = "com.example.unittest";
+    createRequest.abilityInfo.moduleName = "entry";
+    createRequest.sessionInfo = sessionInfo;
+    auto record = UIAbilityRecord::CreateAbilityRecord(createRequest);
+    ASSERT_NE(record, nullptr);
+    record->SetPid(4323);
+    // the record is already attributed to task-warm-dup-ut (first registration succeeded)
+    record->AddTaskAttribution("task-warm-dup-ut", 77);
+    mgr->sessionAbilityMap_.emplace(63, record);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo = createRequest.abilityInfo;
+    abilityRequest.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-warm-dup-ut"));
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, 5001);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, 6001);
+    AbilityRuntime::StartParamsBySCB params;
+    bool isColdStart = false;
+
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, params, isColdStart), ERR_OK);
+    // duplicate registration skipped before any IPC: the first handle is kept as is
+    const auto &attributions = record->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(1));
+    EXPECT_EQ(attributions.at("task-warm-dup-ut"), 77);
+    EXPECT_TRUE(record->GetPendingTaskAttributions().empty());
+    EXPECT_TRUE(record->HasTaskAttribution("task-warm-dup-ut"));
+}
+
+/**
  * @tc.name: GenerateAbilityRecord_TaskAttributionRetargetedStash_0100
  * @tc.desc: A retargeted start (tmp map hit) before attach stashes the context into
  *           the pending map.

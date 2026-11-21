@@ -99,11 +99,22 @@ auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     FreezeUtil::GetInstance().DeleteLifecycleEvent(token->AsObject());
 };
 
-// Shared report core: register then append, dedup exact (taskId, handle) pairs.
+// Shared report core. One managed attribution per (record, task id): while the record
+// lives it is the same process, so a report for a task the record is already attributed
+// to is a duplicate registration — it would only redo the same RSS/priority work via
+// the kernel. The bookkeeping check below drops it before any IPC. TMS cannot tell
+// whether two registrations hit the same ability instance, so the dedup lives here,
+// on the instance-holding side; a fresh record starts with empty bookkeeping, so a
+// re-start after destruction reports again as usual.
 void ReportTaskAttributionForContext(const std::string &taskId, int32_t callerUid, int32_t callerPid,
     const UIAbilityRecordPtr &uiAbilityRecord)
 {
     if (taskId.empty() || uiAbilityRecord == nullptr || uiAbilityRecord->GetPid() <= 0) {
+        return;
+    }
+    if (uiAbilityRecord->HasTaskAttribution(taskId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "duplicate task attribution skipped, taskId: %{public}s, "
+            "pid: %{public}d", taskId.c_str(), uiAbilityRecord->GetPid());
         return;
     }
     int64_t attributionId = 0;
