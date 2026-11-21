@@ -196,7 +196,6 @@ constexpr int64_t IPC_LATENCY_NOT_MEASURED = -1;
 constexpr int64_t APPFREEZE_CAPTURE_TIMEOUT_MS = 30000;
 constexpr size_t APPFREEZE_MAX_PENDING = 2;
 constexpr size_t APPFREEZE_MAX_ATTACHMENTS = 2;
-constexpr auto APPFREEZE_ATTACHMENT_TIMEOUT = std::chrono::milliseconds(500);
 std::atomic<uint64_t> appfreezeRequestSequence {0};
 } // namespace
 
@@ -1213,7 +1212,6 @@ AppfreezeCaptureResult AppfreezeManager::RunAppfreezeAttachments(const FaultData
         result = {};
     }
 #endif
-    // Timeout/cancellation never releases capacity while a collector is still executing.
     --activeAttachments_;
     return result;
 }
@@ -1256,7 +1254,8 @@ bool AppfreezeManager::CaptureAppfreeze(const FaultData& faultData,
     if (!request || request->IsCancelled() || !collector_->IsHandleAppfreeze(appInfo.bundleName)) {
         return false;
     }
-    const auto deadline = std::chrono::steady_clock::now() + APPFREEZE_ATTACHMENT_TIMEOUT;
+    const auto deadline = std::chrono::steady_clock::now() +
+        std::chrono::milliseconds(APPFREEZE_CAPTURE_TIMEOUT_MS);
     auto attachments = CollectAppfreezeAttachments(faultData, appInfo.pid, request, deadline);
     result.processStart = request->processStartTime;
     result.stackTraceStartTime = AbilityRuntime::TimeUtil::DefaultCurrentTimeStr();
@@ -1276,7 +1275,6 @@ bool AppfreezeManager::CaptureAppfreeze(const FaultData& faultData,
     const std::string fileName = faultData.errorObject.name + "_" + std::to_string(appInfo.pid) + "_" +
         request->episodeId + "_" + std::to_string(request->requestId) + "_stack";
     result.stack = collector_->GetCatcherStack(fileName, stack);
-    // Consume only this future's value; a late FFRT task cannot modify the returned capture result.
     if (!request->IsCancelled() && attachments.valid() &&
         attachments.wait_until(deadline) == ffrt::future_status::ready) {
         auto collected = attachments.get();
