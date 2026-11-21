@@ -224,8 +224,8 @@ constexpr size_t OFFSET = 32;
 inline uint64_t GenerateUIExtensionComponentId(int32_t persistentId)
 {
     if (persistentId <= 0) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid persistentId: %{public}d, sanitized to 0", persistentId);
-        persistentId = 0;
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid persistentId: %{public}d", persistentId);
+        return 0;
     }
     return (static_cast<uint64_t>(IPCSkeleton::GetCallingPid()) << OFFSET) |
         static_cast<uint64_t>(persistentId);
@@ -5419,6 +5419,10 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
     abilityRequest.sessionInfo->uiExtensionComponentId =
         GenerateUIExtensionComponentId(abilityRequest.sessionInfo->persistentId);
+    if (abilityRequest.sessionInfo->uiExtensionComponentId == 0) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "generate component id failed");
+        return ERR_INVALID_VALUE;
+    }
     TAG_LOGI(AAFwkTag::UI_EXT, "StartUIExtension: persistentId: %{public}d, element: %{public}s/%{public}s",
         abilityRequest.sessionInfo->persistentId, extensionSessionInfo->want.GetBundleNameRef().c_str(),
         extensionSessionInfo->want.GetAbilityNameRef().c_str());
@@ -6274,6 +6278,10 @@ int AbilityManagerService::MinimizeUIExtensionAbility(const sptr<SessionInfo> &e
     }
     extensionSessionInfo->uiExtensionComponentId =
         GenerateUIExtensionComponentId(extensionSessionInfo->persistentId);
+    if (extensionSessionInfo->uiExtensionComponentId == 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "generate component id failed");
+        return ERR_INVALID_VALUE;
+    }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "UIExtension component id: %{public}" PRId64 ", element: %{public}s/%{public}s",
         extensionSessionInfo->uiExtensionComponentId, extensionSessionInfo->want.GetBundleNameRef().c_str(),
         extensionSessionInfo->want.GetAbilityNameRef().c_str());

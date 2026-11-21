@@ -389,7 +389,21 @@ void UIExtensionAbilityManager::OnAbilityRequestDone(const sptr<IRemoteObject> &
         static_cast<int32_t>(abilityRecord->GetPendingState()));
     if (currentAbilityState == AbilityState::BACKGROUND || currentAbilityState == AbilityState::INITIAL ||
         currentAbilityState == AbilityState::INACTIVE || currentAbilityState == AbilityState::ACTIVE) {
-        abilityRecord->ForegroundUIExtensionAbility();
+        std::shared_ptr<ExtensionRecord> extensionRecord;
+        if (uiExtensionAbilityRecordMgr_ != nullptr) {
+            extensionRecord = uiExtensionAbilityRecordMgr_->FindExtensionRecordById(
+                abilityRecord->GetUIExtensionAbilityId());
+        }
+        if (extensionRecord != nullptr) {
+            auto delivery = extensionRecord->BuildMigrationDeliverySessionInfo();
+            if (delivery != nullptr) {
+                abilityRecord->ForegroundUIExtensionAbility(delivery);
+            } else {
+                abilityRecord->ForegroundUIExtensionAbility();
+            }
+        } else {
+            abilityRecord->ForegroundUIExtensionAbility();
+        }
         abilityRecord->RemoveUIExtensionLaunchTimestamp();
     } else {
         TAG_LOGW(AAFwkTag::UI_EXT, "skip foreground, abilityState not in {BACKGROUND, INITIAL, INACTIVE, ACTIVE}");
@@ -675,12 +689,12 @@ int UIExtensionAbilityManager::ScheduleCommandAbilityWindowDoneLocked(const sptr
         }
         if (extensionRecord != nullptr) {
             if (extensionRecord->ConfirmMigrationDeclaration(
-                sessionInfo->originalCallerInfo.migrationGen)) {
+                sessionInfo->originalCallerInfo.migrationGen, sessionInfo->persistentId)) {
                 TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{public}d, gen: %{public}u",
                     sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
             } else {
                 TAG_LOGW(AAFwkTag::UI_EXT,
-                    "migration completion ignored (no marker or stale gen), persistentId: %{public}d, "
+                    "migration completion ignored (marker/gen/persistentId mismatch), persistentId: %{public}d, "
                     "done gen: %{public}u, record gen: %{public}u",
                     sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
                     extensionRecord->GetMigrationGen());
@@ -690,7 +704,7 @@ int UIExtensionAbilityManager::ScheduleCommandAbilityWindowDoneLocked(const sptr
     return AbilityConnectManager::ScheduleCommandAbilityWindowDoneLocked(token, sessionInfo, winCmd, abilityCmd);
 }
 
-void UIExtensionAbilityManager::UpdateSessionInfoForMigration(
+sptr<SessionInfo> UIExtensionAbilityManager::PrepareSessionInfoForStart(
     const std::shared_ptr<BaseExtensionRecord> &targetService, const sptr<SessionInfo> &sessionInfo)
 {
     std::shared_ptr<ExtensionRecord> extensionRecord;
@@ -698,26 +712,18 @@ void UIExtensionAbilityManager::UpdateSessionInfoForMigration(
         extensionRecord = uiExtensionAbilityRecordMgr_->FindExtensionRecordById(
             targetService->GetUIExtensionAbilityId());
     }
-    AAFwk::OriginalCallerInfo declaration;
-    uint32_t targetHostWindowId = 0;
-    if (extensionRecord != nullptr &&
-        extensionRecord->GetMigrationDeclaration(declaration, targetHostWindowId)) {
-        if (sessionInfo != nullptr) {
-            sessionInfo->originalCallerInfo = declaration;
-            sessionInfo->hostWindowId = targetHostWindowId;
+    if (extensionRecord != nullptr) {
+        auto delivery = extensionRecord->BuildMigrationDeliverySessionInfo();
+        if (delivery != nullptr) {
+            return delivery;
         }
-        auto recordInfo = targetService->GetSessionInfo();
-        if (recordInfo != nullptr) {
-            recordInfo->originalCallerInfo.migrationGen = declaration.migrationGen;
-            recordInfo->hostWindowId = targetHostWindowId;
-        }
-    } else {
-        if (sessionInfo != nullptr && sessionInfo->originalCallerInfo.migrationGen != 0) {
-            sessionInfo->originalCallerInfo.migrationGen = 0;
-            sessionInfo->originalCallerInfo.callerToken = nullptr;
-        }
-        targetService->SetSessionInfo(sessionInfo);
     }
+    if (sessionInfo != nullptr && sessionInfo->originalCallerInfo.migrationGen != 0) {
+        sessionInfo->originalCallerInfo.migrationGen = 0;
+        sessionInfo->originalCallerInfo.callerToken = nullptr;
+    }
+    targetService->SetSessionInfo(sessionInfo);
+    return sessionInfo;
 }
 
 int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abilityRequest)
@@ -770,16 +776,19 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
         targetService->SetLaunchReasonMessage(value);
     }
 
+    AbilityRequest effectiveRequest = abilityRequest;
+    effectiveRequest.sessionInfo = PrepareSessionInfoForStart(targetService, abilityRequest.sessionInfo);
+    CHECK_POINTER_AND_RETURN(effectiveRequest.sessionInfo, ERR_INVALID_VALUE);
+
     targetService->AddCallerRecord(abilityRequest.callerToken, abilityRequest.requestCode, abilityRequest.want);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_START_EXTENSION);
     targetService->DoBackgroundAbilityWindowDelayed(false);
-    UpdateSessionInfoForMigration(targetService, abilityRequest.sessionInfo);
 
-    if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
-        auto &remoteObj = abilityRequest.sessionInfo->sessionToken;
+    if (effectiveRequest.sessionInfo->sessionToken) {
+        auto &remoteObj = effectiveRequest.sessionInfo->sessionToken;
         {
             std::lock_guard guard(uiExtensionMapMutex_);
-            uiExtensionMap_[remoteObj] = UIExtWindowMapValType(targetService, abilityRequest.sessionInfo);
+            uiExtensionMap_[remoteObj] = UIExtWindowMapValType(targetService, effectiveRequest.sessionInfo);
         }
         AddUIExtWindowDeathRecipient(remoteObj);
         targetService->AddUIExtensionLaunchTimestamp();
@@ -812,7 +821,7 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     } else {
         AddStartingRecord(abilityRequest.uid, targetService->GetPid(),
             targetService->GetAbilityRecordId(), GetForegroundTimeoutMultiple(targetService));
-        DoForegroundUIExtension(targetService, abilityRequest);
+        DoForegroundUIExtension(targetService, effectiveRequest);
     }
     return ERR_OK;
 }

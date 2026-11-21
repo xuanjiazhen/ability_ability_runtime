@@ -109,6 +109,7 @@ public:
      */
     void ForegroundAbility(uint32_t sceneFlag = 0);
     void ForegroundUIExtensionAbility(uint32_t sceneFlag = 0);
+    void ForegroundUIExtensionAbility(const sptr<SessionInfo> &deliverySessionInfo, uint32_t sceneFlag = 0);
 
     /**
      * process request of foregrounding the ability.

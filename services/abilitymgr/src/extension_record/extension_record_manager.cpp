@@ -236,7 +236,8 @@ std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::FindLiveMigr
 }
 
 bool ExtensionRecordManager::CheckMigrationDeclaration(const AAFwk::AbilityRequest &abilityRequest,
-    const sptr<AAFwk::SessionInfo> &recordSessionInfo, int32_t &ret)
+    const sptr<AAFwk::SessionInfo> &recordSessionInfo,
+    const sptr<AAFwk::SessionInfo> &pendingDelivery, int32_t &ret)
 {
     if (recordSessionInfo == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
@@ -253,8 +254,18 @@ bool ExtensionRecordManager::CheckMigrationDeclaration(const AAFwk::AbilityReque
         ret = ERR_INVALID_VALUE;
         return false;
     }
-    bool declarationMatched =
-        abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken;
+    bool declarationMatched = false;
+    if (pendingDelivery == nullptr) {
+        declarationMatched =
+            abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken;
+    } else if (abilityRequest.sessionInfo->hostWindowId == pendingDelivery->hostWindowId) {
+        declarationMatched =
+            abilityRequest.sessionInfo->originalCallerInfo.callerToken == recordSessionInfo->callerToken ||
+            abilityRequest.sessionInfo->originalCallerInfo.callerToken == pendingDelivery->callerToken;
+    } else {
+        declarationMatched =
+            abilityRequest.sessionInfo->originalCallerInfo.callerToken == pendingDelivery->callerToken;
+    }
     if (!declarationMatched) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "migration declaration mismatch, persistentId: %{public}d, rejected",
@@ -289,32 +300,34 @@ bool ExtensionRecordManager::GetMigrationUpdateRecord(const AAFwk::AbilityReques
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    if (!CheckMigrationDeclaration(abilityRequest, recordSessionInfo, ret)) {
+    auto pendingDelivery = extensionRecord->BuildMigrationDeliverySessionInfo();
+    if (!CheckMigrationDeclaration(abilityRequest, recordSessionInfo, pendingDelivery, ret)) {
         return true;
     }
     if (recordSessionInfo != nullptr && recordSessionInfo->hostWindowId != 0) {
         extensionRecord->SeedConfirmedHostWindowId(recordSessionInfo->hostWindowId);
     }
-    if (extensionRecord->GetConfirmedHostWindowId() == abilityRequest.sessionInfo->hostWindowId) {
+    if (pendingDelivery == nullptr &&
+        extensionRecord->GetConfirmedHostWindowId() == abilityRequest.sessionInfo->hostWindowId) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "migration declared but hostWindowId unchanged, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
     }
-    uint32_t newGen = extensionRecord->AdvanceMigrationGen();
+    AAFwk::OriginalCallerInfo declaration = abilityRequest.sessionInfo->originalCallerInfo;
+    declaration.callerToken = nullptr;
+    uint32_t newGen = extensionRecord->DeclareMigration(
+        declaration, abilityRequest.sessionInfo->hostWindowId, abilityRequest.sessionInfo);
     if (newGen == 0) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "migration gen saturated, persistentId: %{public}d, rejected",
+            "failed to publish migration declaration, persistentId: %{public}d, rejected",
             abilityRequest.sessionInfo->persistentId);
         ret = ERR_INVALID_VALUE;
         return true;
     }
     abilityRequest.sessionInfo->originalCallerInfo.migrationGen = newGen;
     abilityRequest.sessionInfo->originalCallerInfo.callerToken = nullptr;
-    extensionRecord->SetMigrationDeclaration(abilityRequest.sessionInfo->originalCallerInfo,
-        abilityRequest.sessionInfo->hostWindowId);
-    extensionRecord->SetMigrationDeliverySessionInfo(abilityRequest.sessionInfo);
     abilityRecord = migrationRecord;
     isLoaded = true;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d",
@@ -443,9 +456,10 @@ std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRe
             continue;
         }
         if (it.second->hostBundleName_ != hostBundleName) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR,
-                "cross-bundle host migration, persistentId: %{public}d, from: %{public}s, to: %{public}s",
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "cross-bundle host migration rejected, persistentId: %{public}d, from: %{public}s, to: %{public}s",
                 sessionInfo->persistentId, it.second->hostBundleName_.c_str(), hostBundleName.c_str());
+            continue;
         }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "found record, persistentId: %{public}d", sessionInfo->persistentId);
         return abilityRecord;

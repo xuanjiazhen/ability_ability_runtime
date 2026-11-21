@@ -17,7 +17,9 @@
 #include <gtest/gtest.h>
 
 #include "hilog_tag_wrapper.h"
+#define private public
 #include "ability_connect_manager.h"
+#undef private
 #include "ability_record.h"
 #include "base_extension_record.h"
 #include "extension_record.h"
@@ -72,7 +74,8 @@ constexpr int32_t MIGRATION_TEST_PERSISTENT_ID_ALT = 42;
 constexpr uint32_t MIGRATION_STALE_TARGET_WINDOW = 50;
 constexpr uint32_t MIGRATION_DECLARATION_TARGET = 20;
 constexpr uint32_t MIGRATION_DECLARATION_TARGET_ALT = 77;
-constexpr uint32_t MIGRATION_DECLARATION_TARGET_ALT2 = 99;struct MigrationRecordFixture {
+constexpr uint32_t MIGRATION_DECLARATION_TARGET_ALT2 = 99;
+struct MigrationRecordFixture {
     std::shared_ptr<ExtensionRecordManager> mgr;
     std::shared_ptr<AAFwk::BaseExtensionRecord> record;
     std::shared_ptr<UIExtensionRecord> wrapper;
@@ -188,7 +191,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetAbilityRecordByPersistentId_0100, T
 
     sessionParam->persistentId = MIGRATION_PERSISTENT_ID;
     EXPECT_EQ(extRecordMgr->GetAbilityRecordByPersistentId(sessionParam, "com.example.other", terminatingMatch),
-        abilityRecord);
+        nullptr);
 }
 
 /**
@@ -213,8 +216,9 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationUp
     createRequest.sessionInfo = createSessionInfo;
     auto createdRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(createRequest);
     ASSERT_NE(createdRecord, nullptr);
-    auto extRecord = std::make_shared<ExtensionRecord>(createdRecord);
+    auto extRecord = std::make_shared<UIExtensionRecord>(createdRecord);
     extRecord->hostBundleName_ = hostBundle;
+    createdRecord->SetUIExtensionAbilityId(MIGRATION_RECORD_ID);
     extRecordMgr->AddExtensionRecord(MIGRATION_RECORD_ID, extRecord);
 
     auto previousHostToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
@@ -241,7 +245,8 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationUp
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_TRUE(isLoaded);
     EXPECT_EQ(resultRecord, createdRecord);
-    ret = extRecordMgr->GetOrCreateExtensionRecord(migrationRequest, hostBundle, resultRecord, isLoaded);
+    auto migrationRetry = MakeMigrationRequest(MIGRATION_HOST_WINDOW_C, previousHostToken);
+    ret = extRecordMgr->GetOrCreateExtensionRecord(migrationRetry, hostBundle, resultRecord, isLoaded);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(resultRecord, createdRecord);
 }
@@ -420,7 +425,13 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_MigrationRete
     ASSERT_NE(extRecord, nullptr);
     AAFwk::OriginalCallerInfo storedDeclaration = savedSessionInfo->originalCallerInfo;
     storedDeclaration.callerToken = nullptr;
+    storedDeclaration.migrationGen = extRecord->AdvanceMigrationGen();
     extRecord->SetMigrationDeclaration(storedDeclaration, 9);
+    auto delivery = sptr<AAFwk::SessionInfo>::MakeSptr(*savedSessionInfo);
+    ASSERT_NE(delivery, nullptr);
+    delivery->hostWindowId = MIGRATION_HOST_WINDOW_C;
+    delivery->originalCallerInfo = storedDeclaration;
+    extRecord->SetMigrationDeliverySessionInfo(delivery);
 
     AAFwk::AbilityRequest reuseRequest;
     reuseRequest.appInfo.bundleName = hostBundle;
@@ -537,7 +548,8 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_NoOpBranch_AdvancesGe
 
 /**
  * @tc.name: MigrationFencing_Guards_0100
- * @tc.desc: Non-migration inputs (null sessionInfo / null declared callerToken) never migrate
+ * @tc.desc: Null sessionInfo never migrates; valid migration (gen > lastGen, different
+ *           parent) returns true without modifying the fence (commit happens later)
  * @tc.type: FUNC
  * @tc.require: issue
  */
@@ -550,7 +562,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_Guards_0100, TestSize
     ASSERT_NE(sessionInfo, nullptr);
     sessionInfo->originalCallerInfo.migrationGen = 1;
     sessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
-    EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
+    EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
     EXPECT_EQ(state.lastGen, 0u);
     EXPECT_EQ(state.currentParentWindowId, 0u);
 }
@@ -758,12 +770,12 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationState_ConfirmByGen_0100, Test
     declaration.migrationGen = 2;
     uiRecord->SetMigrationDeclaration(declaration, 9);
 
-    EXPECT_FALSE(uiRecord->ConfirmMigrationDeclaration(1));
+    EXPECT_FALSE(uiRecord->ConfirmMigrationDeclaration(1, 10));
     AAFwk::OriginalCallerInfo restored;
     uint32_t target = 0;
     EXPECT_TRUE(uiRecord->GetMigrationDeclaration(restored, target));
 
-    EXPECT_TRUE(uiRecord->ConfirmMigrationDeclaration(2));
+    EXPECT_TRUE(uiRecord->ConfirmMigrationDeclaration(2, 10));
     EXPECT_FALSE(uiRecord->GetMigrationDeclaration(restored, target));
     EXPECT_EQ(uiRecord->GetMigrationGen(), 2u);
     EXPECT_EQ(uiRecord->AdvanceMigrationGen(), 3u);
@@ -830,6 +842,15 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_ProjectionCar
     declaration.migrationGen = 1;
     extRecord->SetMigrationDeclaration(declaration, 9);
 
+    auto targetToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    auto delivery = sptr<AAFwk::SessionInfo>::MakeSptr();
+    ASSERT_NE(delivery, nullptr);
+    delivery->hostWindowId = MIGRATION_HOST_WINDOW_C;
+    delivery->realHostWindowId = MIGRATION_DECLARATION_TARGET_ALT;
+    delivery->displayId = MIGRATION_DECLARATION_TARGET_ALT2;
+    delivery->callerToken = targetToken;
+    extRecord->SetMigrationDeliverySessionInfo(delivery);
+
     AAFwk::AbilityRequest staleRequest = request;
     sptr<AAFwk::SessionInfo> staleSessionInfo(new AAFwk::SessionInfo());
     staleSessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
@@ -840,6 +861,10 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_ProjectionCar
     extRecord->Update(staleRequest);
     EXPECT_EQ(staleSessionInfo->hostWindowId, MIGRATION_HOST_WINDOW_C);
     EXPECT_EQ(staleSessionInfo->originalCallerInfo.migrationGen, 1u);
+    EXPECT_EQ(staleSessionInfo->originalCallerInfo.callerToken, nullptr);
+    EXPECT_EQ(staleSessionInfo->callerToken.GetRefPtr(), targetToken.GetRefPtr());
+    EXPECT_EQ(staleSessionInfo->realHostWindowId, static_cast<int32_t>(MIGRATION_DECLARATION_TARGET_ALT));
+    EXPECT_EQ(staleSessionInfo->displayId, MIGRATION_DECLARATION_TARGET_ALT2);
 }
 
 /**
@@ -875,9 +900,9 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_ConfirmAfterSuccess_010
     EXPECT_EQ(projected.migrationGen, gen);
     EXPECT_EQ(targetHostWindowId, 42u);
 
-    EXPECT_FALSE(extRecord->ConfirmMigrationDeclaration(0));
-    EXPECT_FALSE(extRecord->ConfirmMigrationDeclaration(gen + 1));
-    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen));
+    EXPECT_FALSE(extRecord->ConfirmMigrationDeclaration(0, 10));
+    EXPECT_FALSE(extRecord->ConfirmMigrationDeclaration(gen + 1, 10));
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen, 10));
 
     AAFwk::OriginalCallerInfo emptyDecl;
     uint32_t emptyTarget = 0;
@@ -934,7 +959,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_ReplayStripAndProject_0
     EXPECT_TRUE(ShouldExecuteMigration(replayInfo, fence));
 
     CommitMigrationState(fence, gen, 99u);
-    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen));
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen, 10));
     AAFwk::OriginalCallerInfo empty;
     uint32_t emptyTarget = 0;
     EXPECT_FALSE(extRecord->GetMigrationDeclaration(empty, emptyTarget));
@@ -984,7 +1009,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_FailureKeepsMarker_0100
     EXPECT_EQ(retry.migrationGen, gen);
     EXPECT_EQ(retryTarget, 77u);
 
-    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen));
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen, 10));
 }
 
 /**
@@ -1029,7 +1054,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_RetryAfterProjectionPol
     extRecord->SetMigrationDeclaration(declaration, MIGRATION_DECLARATION_TARGET);
     declaration.migrationGen = retryGen;
     extRecord->SetMigrationDeclaration(declaration, MIGRATION_DECLARATION_TARGET);
-    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(retryGen));
+    EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(retryGen, 10));
     EXPECT_EQ(extRecord->GetConfirmedHostWindowId(), 20u);
 
     EXPECT_EQ(extRecord->GetConfirmedHostWindowId(), 20u);
@@ -1059,7 +1084,13 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationRe
     EXPECT_EQ(fx.record->GetSessionInfo()->callerToken.GetRefPtr(), fx.hostToken.GetRefPtr());
 
     auto retry = MakeMigrationRequest(MIGRATION_HOST_WINDOW_B, fx.hostToken);
+    auto latestTokenB = retry.sessionInfo->callerToken;
     EXPECT_EQ(fx.mgr->GetOrCreateExtensionRecord(retry, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
+    EXPECT_TRUE(isLoaded);
+
+    auto advancedHostRetry = MakeMigrationRequest(MIGRATION_HOST_WINDOW_B, latestTokenB);
+    EXPECT_EQ(fx.mgr->GetOrCreateExtensionRecord(
+        advancedHostRetry, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
     EXPECT_TRUE(isLoaded);
 }
 
@@ -1107,12 +1138,103 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_ConfirmAdoptsDeliver
     EXPECT_EQ(record->GetSessionInfo()->hostWindowId, MIGRATION_HOST_WINDOW_A);
     EXPECT_EQ(record->GetSessionInfo()->callerToken.GetRefPtr(), tokenA.GetRefPtr());
 
-    EXPECT_TRUE(uiRecord->ConfirmMigrationDeclaration(gen));
+    EXPECT_FALSE(uiRecord->ConfirmMigrationDeclaration(gen, MIGRATION_TEST_PERSISTENT_ID_ALT));
+    AAFwk::OriginalCallerInfo pendingDeclaration;
+    uint32_t pendingTarget = 0;
+    EXPECT_TRUE(uiRecord->GetMigrationDeclaration(pendingDeclaration, pendingTarget));
+
+    EXPECT_TRUE(uiRecord->ConfirmMigrationDeclaration(gen, MIGRATION_PERSISTENT_ID));
     EXPECT_EQ(record->GetSessionInfo()->hostWindowId, MIGRATION_HOST_WINDOW_C);
     EXPECT_EQ(record->GetSessionInfo()->callerToken.GetRefPtr(), tokenB.GetRefPtr());
     EXPECT_EQ(record->GetSessionInfo()->originalCallerInfo.migrationGen, 0u);
     EXPECT_EQ(uiRecord->GetConfirmedHostWindowId(), MIGRATION_HOST_WINDOW_C);
-    EXPECT_FALSE(uiRecord->ConfirmMigrationDeclaration(gen));
+    EXPECT_FALSE(uiRecord->ConfirmMigrationDeclaration(gen, MIGRATION_PERSISTENT_ID));
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecord_MigrationPendingCredentialChain_0100
+ * @tc.desc: A pending migration accepts the pending target credential for a new target and
+ *           keeps the committed fact frozen until confirmation.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationPendingCredentialChain_0100,
+    TestSize.Level1)
+{
+    auto fx = SetupMigrationRecord(MIGRATION_HOST_WINDOW_A);
+    std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = fx.record;
+    bool isLoaded = false;
+
+    auto first = MakeMigrationRequest(MIGRATION_HOST_WINDOW_B, fx.hostToken);
+    auto tokenB = first.sessionInfo->callerToken;
+    ASSERT_EQ(fx.mgr->GetOrCreateExtensionRecord(first, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
+    uint32_t firstGen = fx.wrapper->GetMigrationGen();
+
+    auto second = MakeMigrationRequest(MIGRATION_HOST_WINDOW_C, tokenB);
+    auto tokenC = second.sessionInfo->callerToken;
+    ASSERT_EQ(fx.mgr->GetOrCreateExtensionRecord(second, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
+    EXPECT_EQ(fx.wrapper->GetMigrationGen(), firstGen + 1);
+
+    auto delivery = fx.wrapper->BuildMigrationDeliverySessionInfo();
+    ASSERT_NE(delivery, nullptr);
+    EXPECT_EQ(delivery->hostWindowId, MIGRATION_HOST_WINDOW_C);
+    EXPECT_EQ(delivery->callerToken.GetRefPtr(), tokenC.GetRefPtr());
+    EXPECT_EQ(delivery->originalCallerInfo.callerToken, nullptr);
+    EXPECT_EQ(delivery->originalCallerInfo.migrationGen, firstGen + 1);
+    EXPECT_EQ(fx.record->GetSessionInfo()->hostWindowId, MIGRATION_HOST_WINDOW_A);
+    EXPECT_EQ(fx.record->GetSessionInfo()->callerToken.GetRefPtr(), fx.hostToken.GetRefPtr());
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecord_MigrationPendingRejectsStaleSource_0100
+ * @tc.desc: A stale committed-host credential may retry the same target but cannot replace a
+ *           pending migration with a different target.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationPendingRejectsStaleSource_0100,
+    TestSize.Level1)
+{
+    auto fx = SetupMigrationRecord(MIGRATION_HOST_WINDOW_A);
+    std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = fx.record;
+    bool isLoaded = false;
+
+    auto first = MakeMigrationRequest(MIGRATION_HOST_WINDOW_B, fx.hostToken);
+    ASSERT_EQ(fx.mgr->GetOrCreateExtensionRecord(first, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
+    uint32_t firstGen = fx.wrapper->GetMigrationGen();
+
+    auto staleSource = MakeMigrationRequest(MIGRATION_HOST_WINDOW_C, fx.hostToken);
+    EXPECT_EQ(fx.mgr->GetOrCreateExtensionRecord(staleSource, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded),
+        ERR_INVALID_VALUE);
+    EXPECT_EQ(fx.wrapper->GetMigrationGen(), firstGen);
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecord_MigrationReturnsToConfirmedHost_0100
+ * @tc.desc: A pending target may be superseded by the confirmed host using the pending target
+ *           credential; a new generation prevents the old completion from winning.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationReturnsToConfirmedHost_0100,
+    TestSize.Level1)
+{
+    auto fx = SetupMigrationRecord(MIGRATION_HOST_WINDOW_A);
+    std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = fx.record;
+    bool isLoaded = false;
+
+    auto first = MakeMigrationRequest(MIGRATION_HOST_WINDOW_B, fx.hostToken);
+    auto tokenB = first.sessionInfo->callerToken;
+    ASSERT_EQ(fx.mgr->GetOrCreateExtensionRecord(first, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
+    uint32_t firstGen = fx.wrapper->GetMigrationGen();
+
+    auto backToConfirmed = MakeMigrationRequest(MIGRATION_HOST_WINDOW_A, tokenB);
+    ASSERT_EQ(fx.mgr->GetOrCreateExtensionRecord(
+        backToConfirmed, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
+    EXPECT_EQ(fx.wrapper->GetMigrationGen(), firstGen + 1);
+    auto delivery = fx.wrapper->BuildMigrationDeliverySessionInfo();
+    ASSERT_NE(delivery, nullptr);
+    EXPECT_EQ(delivery->hostWindowId, MIGRATION_HOST_WINDOW_A);
 }
 
 /**
@@ -1135,7 +1257,8 @@ HWTEST_F(ExtensionRecordManagerThirdTest, GetOrCreateExtensionRecord_MigrationRe
     std::shared_ptr<AAFwk::BaseExtensionRecord> resultRecord = fx.record;
     bool isLoaded = false;
     EXPECT_EQ(fx.mgr->GetOrCreateExtensionRecord(first, MIGRATION_TEST_BUNDLE, resultRecord, isLoaded), ERR_OK);
-    EXPECT_TRUE(fx.wrapper->ConfirmMigrationDeclaration(fx.wrapper->GetMigrationGen()));
+    EXPECT_TRUE(fx.wrapper->ConfirmMigrationDeclaration(fx.wrapper->GetMigrationGen(), 10));
+    EXPECT_EQ(fx.record->GetSessionInfo()->originalCallerInfo.callerToken, nullptr);
 
     auto redeclare = MakeMigrationRequest(MIGRATION_HOST_WINDOW_B, tokenB);
     isLoaded = false;
