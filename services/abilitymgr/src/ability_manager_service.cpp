@@ -10204,6 +10204,18 @@ void AbilityManagerService::OnTaskFinished(const std::string &taskId, int32_t us
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "task finished callback, taskId=%{public}s, userId=%{public}d", taskId.c_str(), userId);
+    // The task id namespace is global (no per-user dimension) and a task may have
+    // attributed abilities started under another user, so the UIAbility bookkeeping
+    // of every lifecycle manager is cleaned, not only the callback user's. The server
+    // has already dropped the task's attributions, so surviving entries are stale
+    // handles and must be removed: a later task reusing the same task id would
+    // otherwise be deduped forever.
+    auto uiAbilityManagers = GetUIAbilityManagers();
+    for (auto &item : uiAbilityManagers) {
+        if (item.second != nullptr) {
+            item.second->CleanTaskAttributionsByTaskId(taskId);
+        }
+    }
     auto manager = GetConnectManagerByUserId(userId, AppExecFwk::ExtensionAbilityType::AGENT);
     if (manager == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,

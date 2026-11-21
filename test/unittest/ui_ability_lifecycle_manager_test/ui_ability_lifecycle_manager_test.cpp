@@ -18,9 +18,14 @@
 #include "ability_manager_errors.h"
 #define private public
 #define protected public
+// Include the mock app_scheduler.h BEFORE any header that pulls the real one in
+// with a same-directory quoted include (ability_record.h, state_utils.h, ...):
+// both share the same include guard, so whichever resolves first wins the whole TU.
+// The mock dir is first in include_dirs, so this line resolves to the mock.
+#include "app_scheduler.h"
+#include "app_scheduler_stub_probe.h"
 #include "ability_record.h"
 #include "ability_start_setting.h"
-#include "app_scheduler.h"
 #include "app_utils.h"
 #include "scene_board/ui_ability_lifecycle_manager.h"
 #undef protected
@@ -9830,8 +9835,9 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionReusePreAt
 
 /**
  * @tc.name: StartUIAbility_TaskAttributionReusePidReadyDropped_0400
- * @tc.desc: A warm reuse with a live pid reports immediately; with the appmgr service
- *           unreachable in UT the report is dropped (no accounting, no residue).
+ * @tc.desc: A warm reuse with a live pid reports immediately; the AppScheduler stub
+ *           (default failing registration, like the unreachable appmgr service) drops
+ *           the report (no accounting, no residue).
  * @tc.type: FUNC
  */
 HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionReusePidReadyDropped_0400, TestSize.Level1)
@@ -9862,10 +9868,216 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionReusePidRe
     AbilityRuntime::StartParamsBySCB params;
     bool isColdStart = false;
 
+    AppSchedulerStubReset();
     EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, params, isColdStart), ERR_OK);
-    // report attempted and dropped: neither accounted nor left pending
+    // report attempted and dropped: neither accounted nor left pending.
+    // The registration was attempted exactly once (no dedup: empty bookkeeping).
+    EXPECT_EQ(AppSchedulerStub().attributeCalls, 1);
     EXPECT_TRUE(record->GetTaskAttributions().empty());
     EXPECT_TRUE(record->GetPendingTaskAttributions().empty());
+    AppSchedulerStubReset();
+}
+
+/**
+ * @tc.name: StartUIAbility_TaskAttributionDuplicateReportSkipped_0500
+ * @tc.desc: While the instance lives it is the same process, so a repeated report
+ *           for a task the record is already attributed to is dropped on the
+ *           bookkeeping check before any registration: the first handle stays and
+ *           neither the bookkeeping nor the pending map grows. The registration
+ *           channel is stubbed to succeed, so a removed/broken dedup would be
+ *           observable (attributeCalls > 0) and the case fails — the test guards
+ *           the dedup itself, not only its bookkeeping effect.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionDuplicateReportSkipped_0500, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 63;
+
+    AbilityRequest createRequest;
+    createRequest.abilityInfo.name = "MainAbility";
+    createRequest.abilityInfo.bundleName = "com.example.unittest";
+    createRequest.abilityInfo.moduleName = "entry";
+    createRequest.sessionInfo = sessionInfo;
+    auto record = UIAbilityRecord::CreateAbilityRecord(createRequest);
+    ASSERT_NE(record, nullptr);
+    record->SetPid(4323);
+    // the record is already attributed to task-warm-dup-ut (first registration succeeded)
+    record->AddTaskAttribution("task-warm-dup-ut", 77);
+    mgr->sessionAbilityMap_.emplace(63, record);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo = createRequest.abilityInfo;
+    abilityRequest.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-warm-dup-ut"));
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, 5001);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, 6001);
+    AbilityRuntime::StartParamsBySCB params;
+    bool isColdStart = false;
+
+    // make any attempted registration succeed: a dedup that fails to drop the
+    // duplicate would be caught by attributeCalls > 0
+    AppSchedulerStubReset();
+    AppSchedulerStub().attributeSucceeds = true;
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, params, isColdStart), ERR_OK);
+    // duplicate registration skipped before any registration: nothing was attempted
+    // and the first handle is kept as is; the inactivity-window restart side effect
+    // of the dropped registration is intentionally NOT compensated (a duplicate
+    // does not change any attribution state on the server, and task keep-alive
+    // belongs to the task creator)
+    EXPECT_EQ(AppSchedulerStub().attributeCalls, 0);
+    const auto &attributions = record->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(1));
+    EXPECT_EQ(attributions.at("task-warm-dup-ut"), 77);
+    EXPECT_TRUE(record->GetPendingTaskAttributions().empty());
+    EXPECT_TRUE(record->HasTaskAttribution("task-warm-dup-ut"));
+    AppSchedulerStubReset();
+}
+
+/**
+ * @tc.name: StartUIAbility_TaskAttributionFirstReportAccounted_0600
+ * @tc.desc: With the registration channel stubbed to succeed, a warm start for a task
+ *           the record is NOT yet attributed to performs the registration and
+ *           accounts the server-assigned handle — the success counterpart of the
+ *           dedup case, also guarding that the dedup never fires on fresh tasks.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionFirstReportAccounted_0600, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 64;
+
+    AbilityRequest createRequest;
+    createRequest.abilityInfo.name = "MainAbility";
+    createRequest.abilityInfo.bundleName = "com.example.unittest";
+    createRequest.abilityInfo.moduleName = "entry";
+    createRequest.sessionInfo = sessionInfo;
+    auto record = UIAbilityRecord::CreateAbilityRecord(createRequest);
+    ASSERT_NE(record, nullptr);
+    record->SetPid(4325);
+    mgr->sessionAbilityMap_.emplace(64, record);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo = createRequest.abilityInfo;
+    abilityRequest.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-warm-first-ut"));
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, 5001);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, 6001);
+    AbilityRuntime::StartParamsBySCB params;
+    bool isColdStart = false;
+
+    AppSchedulerStubReset();
+    AppSchedulerStub().attributeSucceeds = true;
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, params, isColdStart), ERR_OK);
+    EXPECT_EQ(AppSchedulerStub().attributeCalls, 1);
+    const auto &attributions = record->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(1));
+    EXPECT_EQ(attributions.at("task-warm-first-ut"), 4701);
+    AppSchedulerStubReset();
+}
+
+/**
+ * @tc.name: CleanTaskAttributionsByTaskId_RemovesOnlyFinishedTask_0100
+ * @tc.desc: Task-finished cleanup removes the stale bookkeeping of the finished task
+ *           from every container while parallel tasks survive: the server already
+ *           dropped the finished task together with its attributions, so the local
+ *           entries are dead handles; surviving entries must not be touched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, CleanTaskAttributionsByTaskId_RemovesOnlyFinishedTask_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 65;
+
+    AbilityRequest createRequest;
+    createRequest.abilityInfo.name = "MainAbility";
+    createRequest.abilityInfo.bundleName = "com.example.unittest";
+    createRequest.abilityInfo.moduleName = "entry";
+    createRequest.sessionInfo = sessionInfo;
+
+    // one record in the session map, one in the terminating list, both attributed to
+    // the finished task plus an unrelated surviving task
+    auto sessionRecord = UIAbilityRecord::CreateAbilityRecord(createRequest);
+    ASSERT_NE(sessionRecord, nullptr);
+    sessionRecord->AddTaskAttribution("task-finished-ut", 11);
+    sessionRecord->AddTaskAttribution("task-alive-ut", 12);
+    mgr->sessionAbilityMap_.emplace(65, sessionRecord);
+
+    AbilityRequest terminateRequest = createRequest;
+    terminateRequest.abilityInfo.name = "SecondAbility";
+    auto terminatingRecord = UIAbilityRecord::CreateAbilityRecord(terminateRequest);
+    ASSERT_NE(terminatingRecord, nullptr);
+    terminatingRecord->AddTaskAttribution("task-finished-ut", 21);
+    mgr->terminateAbilityList_.push_back(terminatingRecord);
+
+    EXPECT_EQ(mgr->CleanTaskAttributionsByTaskId("task-finished-ut"), static_cast<size_t>(2));
+    // only the finished task's entries are gone, the parallel task survives
+    EXPECT_FALSE(sessionRecord->HasTaskAttribution("task-finished-ut"));
+    EXPECT_TRUE(sessionRecord->HasTaskAttribution("task-alive-ut"));
+    EXPECT_FALSE(terminatingRecord->HasTaskAttribution("task-finished-ut"));
+    // empty task id is a guarded no-op
+    EXPECT_EQ(mgr->CleanTaskAttributionsByTaskId(""), static_cast<size_t>(0));
+    EXPECT_EQ(mgr->CleanTaskAttributionsByTaskId("task-unknown-ut"), static_cast<size_t>(0));
+    EXPECT_TRUE(sessionRecord->HasTaskAttribution("task-alive-ut"));
+}
+
+/**
+ * @tc.name: StartUIAbility_TaskAttributionTaskIdReuseAfterFinish_0700
+ * @tc.desc: A caller may reuse a finished task's id for a new task; after the
+ *           task-finished cleanup removed the stale bookkeeping, the same surviving
+ *           instance reports normally for the new task and gets the fresh server
+ *           handle — the regression chain the cleanup exists for (without it the
+ *           reuse would be deduped forever on a dead handle).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_TaskAttributionTaskIdReuseAfterFinish_0700, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->persistentId = 66;
+
+    AbilityRequest createRequest;
+    createRequest.abilityInfo.name = "MainAbility";
+    createRequest.abilityInfo.bundleName = "com.example.unittest";
+    createRequest.abilityInfo.moduleName = "entry";
+    createRequest.sessionInfo = sessionInfo;
+    auto record = UIAbilityRecord::CreateAbilityRecord(createRequest);
+    ASSERT_NE(record, nullptr);
+    record->SetPid(4327);
+    // the record was attributed to the first incarnation of task-reuse-ut
+    record->AddTaskAttribution("task-reuse-ut", 77);
+    mgr->sessionAbilityMap_.emplace(66, record);
+
+    // the first task incarnation finished: the callback-side cleanup runs
+    EXPECT_EQ(mgr->CleanTaskAttributionsByTaskId("task-reuse-ut"), static_cast<size_t>(1));
+    EXPECT_FALSE(record->HasTaskAttribution("task-reuse-ut"));
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo = createRequest.abilityInfo;
+    abilityRequest.want.SetParam(Want::PARAM_RESV_AGENT_TASK_ID, std::string("task-reuse-ut"));
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, 5001);
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_PID, 6001);
+    AbilityRuntime::StartParamsBySCB params;
+    bool isColdStart = false;
+
+    AppSchedulerStubReset();
+    AppSchedulerStub().attributeSucceeds = true;
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, sessionInfo, params, isColdStart), ERR_OK);
+    // the reused task id is reported again and accounts the fresh server handle
+    EXPECT_EQ(AppSchedulerStub().attributeCalls, 1);
+    const auto &attributions = record->GetTaskAttributions();
+    ASSERT_EQ(attributions.size(), static_cast<size_t>(1));
+    EXPECT_EQ(attributions.at("task-reuse-ut"), 4701);
+    AppSchedulerStubReset();
 }
 
 /**
