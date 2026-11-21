@@ -988,6 +988,17 @@ public:
         AAFwk::AbilityCommand abilityCmd) = 0;
 
     /**
+     * Report that this UIExtension invoked UpdateExtensionParent for a migration generation.
+     * The report says nothing about the window service's final result. Only the owning
+     * UIExtension process may call it.
+     */
+    virtual int ReportUIExtensionParentUpdateInvoked(
+        const sptr<IRemoteObject> &token, int32_t persistentId, uint32_t gen)
+    {
+        return ERR_INVALID_VALUE;
+    }
+
+    /**
      * dump ability stack info, about userID, mission stack info,
      * mission record info and ability info.
      *

@@ -63,6 +63,7 @@ public:
 
     void SeedConfirmedHostWindowId(uint32_t factHostWindowId) override;
 
+
 private:
     enum ErrorCode {
         LOAD_TIMEOUT = 0,
@@ -77,6 +78,7 @@ private:
     AAFwk::OriginalCallerInfo migrationDeclaration_ = {};
     uint32_t migrationTargetHostWindowId_ = 0;
     uint32_t confirmedHostWindowId_ = 0;
+    uint32_t lastHandledMigrationGen_ = 0;
     sptr<AAFwk::SessionInfo> migrationDeliverySessionInfo_ = nullptr;
 };
 } // namespace AbilityRuntime

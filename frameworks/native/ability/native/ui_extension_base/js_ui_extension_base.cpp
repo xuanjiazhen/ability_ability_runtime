@@ -800,6 +800,10 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
     std::shared_ptr<AAFwk::Want> sharedWant = std::make_shared<AAFwk::Want>(want);
     auto componentId = sessionInfo->uiExtensionComponentId;
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
+        if (sessionInfo->originalCallerInfo.migrationGen != 0) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "migration delivered without an existing window");
+            return false;
+        }
         if (context_ == nullptr || context_->GetAbilityInfo() == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null context");
             return false;
@@ -826,7 +830,6 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
         }
         RegisterBrandColorChangeListener(uiWindow);
         migrationFencing_ = MigrationFencingState {};
-        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[componentId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context_->GetWindow() == nullptr) {
@@ -842,7 +845,7 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
         uiWindow->UpdateExtensionConfig(sharedWant);
         auto migrateOption = CreateWindowOption(sessionInfo, want);
         if (migrateOption == nullptr ||
-            !ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrateOption, migrationFencing_,
+            !ExecuteMigrationIfNeeded(sessionInfo, token_, uiWindow, migrateOption, migrationFencing_,
             [this, &componentId](const sptr<AAFwk::SessionInfo> &info) {
                 UpdateMigrationProxies(componentId, info);
             })) {

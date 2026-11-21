@@ -160,12 +160,17 @@ bool UIExtensionRecord::GetMigrationDeclaration(AAFwk::OriginalCallerInfo &decla
 bool UIExtensionRecord::ConfirmMigrationDeclaration(uint32_t gen, int32_t persistentId)
 {
     std::lock_guard<std::mutex> lock(migrationMutex_);
-    if (migrationDeclaration_.migrationGen == 0 || gen != migrationDeclaration_.migrationGen) {
+    if (migrationDeclaration_.migrationGen == 0) {
+        return gen != 0 && gen == lastHandledMigrationGen_ &&
+            persistentId == migrationDeclaration_.persistentId;
+    }
+    if (gen != migrationDeclaration_.migrationGen) {
         return false;
     }
     if (persistentId != migrationDeclaration_.persistentId) {
         return false;
     }
+    lastHandledMigrationGen_ = gen;
     migrationDeclaration_.migrationGen = 0;
     confirmedHostWindowId_ = migrationTargetHostWindowId_;
     if (migrationDeliverySessionInfo_ != nullptr && abilityRecord_ != nullptr) {

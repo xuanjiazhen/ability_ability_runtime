@@ -118,6 +118,9 @@ int AbilityManagerStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &
     if (interfaceCode == AbilityManagerInterfaceCode::COMMAND_ABILITY_WINDOW_DONE) {
         return ScheduleCommandAbilityWindowDoneInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::REPORT_UI_EXTENSION_PARENT_UPDATE_INVOKED) {
+        return ReportUIExtensionParentUpdateInvokedInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::ACQUIRE_DATA_ABILITY) {
         return AcquireDataAbilityInner(data, reply);
     }
@@ -1572,6 +1575,18 @@ int AbilityManagerStub::ScheduleCommandAbilityWindowDoneInner(MessageParcel &dat
     int32_t result = ScheduleCommandAbilityWindowDone(token, sessionInfo,
         static_cast<WindowCommand>(winCmd), static_cast<AbilityCommand>(abilityCmd));
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::ReportUIExtensionParentUpdateInvokedInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto token = data.ReadRemoteObject();
+    int32_t persistentId = 0;
+    uint32_t gen = 0;
+    if (token == nullptr || !data.ReadInt32(persistentId) || !data.ReadUint32(gen)) {
+        return ERR_INVALID_VALUE;
+    }
+    reply.WriteInt32(ReportUIExtensionParentUpdateInvoked(token, persistentId, gen));
     return NO_ERROR;
 }
 

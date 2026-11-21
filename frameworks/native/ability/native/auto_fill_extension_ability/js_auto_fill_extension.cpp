@@ -512,6 +512,10 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
     auto obj = sessionInfo->sessionToken;
     std::shared_ptr<AAFwk::Want> sharedWant = std::make_shared<AAFwk::Want>(want);
     if (uiWindowMap_.find(obj) == uiWindowMap_.end()) {
+        if (sessionInfo->originalCallerInfo.migrationGen != 0) {
+            TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "migration delivered without an existing window");
+            return false;
+        }
         auto context = GetContext();
         if (context == nullptr) {
             TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null context");
@@ -541,7 +545,6 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
             obj, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
         CallJsOnRequest(*sharedWant, sessionInfo, uiWindow);
         migrationFencing_ = MigrationFencingState {};
-        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[obj] = uiWindow;
         context->SetSessionInfo(sessionInfo);
 #ifdef SUPPORT_GRAPHICS
@@ -556,7 +559,8 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         uiWindow->UpdateExtensionConfig(sharedWant);
         auto migrateOption = CreateWindowOption(sessionInfo, want);
         if (migrateOption == nullptr ||
-            !ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrateOption, migrationFencing_,
+            !ExecuteMigrationIfNeeded(sessionInfo, GetContext() == nullptr ? nullptr : GetContext()->GetToken(),
+                uiWindow, migrateOption, migrationFencing_,
             [this, &obj](const sptr<AAFwk::SessionInfo> &info) {
                 UpdateAutoFillMigrationState(obj, info);
             })) {

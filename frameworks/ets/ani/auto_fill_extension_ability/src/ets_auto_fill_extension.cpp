@@ -458,6 +458,10 @@ bool EtsAutoFillExtension::CreateSessionAndReference(sptr<AAFwk::SessionInfo> se
 bool EtsAutoFillExtension::CreateNewWindow(sptr<AAFwk::SessionInfo> sessionInfo, sptr<IRemoteObject> obj,
     std::shared_ptr<AAFwk::Want> sharedWant)
 {
+    if (sessionInfo != nullptr && sessionInfo->originalCallerInfo.migrationGen != 0) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "migration delivered without an existing window");
+        return false;
+    }
     if (sharedWant == nullptr) {
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null sharedWant");
         return false;
@@ -489,7 +493,6 @@ void EtsAutoFillExtension::OnWindowCreated(const sptr<AAFwk::SessionInfo> &sessi
     const sptr<IRemoteObject> &obj, const sptr<Rosen::Window> &uiWindow)
 {
     migrationFencing_ = MigrationFencingState {};
-    migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
     uiWindowMap_[obj] = uiWindow;
     auto context = GetContext();
     if (context == nullptr) {
@@ -566,7 +569,8 @@ bool EtsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, sptr<AA
         uiWindow->UpdateExtensionConfig(sharedWant);
         auto migrateOption = CreateWindowOption(sessionInfo, want);
         if (migrateOption == nullptr ||
-            !ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrateOption, migrationFencing_,
+            !ExecuteMigrationIfNeeded(sessionInfo, GetContext() == nullptr ? nullptr : GetContext()->GetToken(),
+                uiWindow, migrateOption, migrationFencing_,
             [this](const sptr<AAFwk::SessionInfo> &info) { UpdateAutoFillMigrationState(info); })) {
             return false;
         }

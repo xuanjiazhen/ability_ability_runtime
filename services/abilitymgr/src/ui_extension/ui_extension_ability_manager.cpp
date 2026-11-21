@@ -676,32 +676,24 @@ int32_t UIExtensionAbilityManager::UnRegisterPreloadUIExtensionHostClient(int32_
     return ERR_OK;
 }
 
-int UIExtensionAbilityManager::ScheduleCommandAbilityWindowDoneLocked(const sptr<IRemoteObject> &token,
-    const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd, AbilityCommand abilityCmd)
+int UIExtensionAbilityManager::OnParentUpdateInvoked(const sptr<IRemoteObject> &token,
+    int32_t persistentId, uint32_t gen)
 {
-    if (winCmd == WIN_CMD_FOREGROUND && abilityCmd == AAFwk::ABILITY_CMD_FOREGROUND &&
-        sessionInfo != nullptr && sessionInfo->originalCallerInfo.migrationGen != 0) {
-        auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
-        std::shared_ptr<ExtensionRecord> extensionRecord;
-        if (abilityRecord != nullptr && uiExtensionAbilityRecordMgr_ != nullptr) {
-            extensionRecord = uiExtensionAbilityRecordMgr_->FindExtensionRecordById(
-                abilityRecord->GetUIExtensionAbilityId());
-        }
-        if (extensionRecord != nullptr) {
-            if (extensionRecord->ConfirmMigrationDeclaration(
-                sessionInfo->originalCallerInfo.migrationGen, sessionInfo->persistentId)) {
-                TAG_LOGI(AAFwkTag::UI_EXT, "migration confirmed, persistentId: %{public}d, gen: %{public}u",
-                    sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
-            } else {
-                TAG_LOGW(AAFwkTag::UI_EXT,
-                    "migration completion ignored (marker/gen/persistentId mismatch), persistentId: %{public}d, "
-                    "done gen: %{public}u, record gen: %{public}u",
-                    sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
-                    extensionRecord->GetMigrationGen());
-            }
-        }
+    std::lock_guard guard(serialMutex_);
+    auto abilityRecord = GetExtensionByTokenFromServiceMap(token);
+    if (abilityRecord == nullptr || !IsUIExtensionAbility(abilityRecord) || uiExtensionAbilityRecordMgr_ == nullptr) {
+        return ERR_INVALID_VALUE;
     }
-    return AbilityConnectManager::ScheduleCommandAbilityWindowDoneLocked(token, sessionInfo, winCmd, abilityCmd);
+    auto extensionRecord = uiExtensionAbilityRecordMgr_->FindExtensionRecordById(
+        abilityRecord->GetUIExtensionAbilityId());
+    if (extensionRecord == nullptr || !extensionRecord->ConfirmMigrationDeclaration(gen, persistentId)) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "parent update report ignored, persistentId: %{public}d, gen: %{public}u",
+            persistentId, gen);
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGI(AAFwkTag::UI_EXT, "parent update invoked, persistentId: %{public}d, gen: %{public}u",
+        persistentId, gen);
+    return ERR_OK;
 }
 
 sptr<SessionInfo> UIExtensionAbilityManager::PrepareSessionInfoForStart(

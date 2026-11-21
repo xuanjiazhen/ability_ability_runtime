@@ -26,8 +26,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 
 struct MigrationFencingState {
+    // Latest generation for which this UEA invoked the parent-window update interface.
     uint32_t lastGen = 0;
-    uint32_t currentParentWindowId = 0;
 };
 
 bool UpdateWindowParentForMigration(
@@ -36,15 +36,15 @@ bool UpdateWindowParentForMigration(
 
 bool ShouldExecuteMigration(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
-    MigrationFencingState &state);
+    const MigrationFencingState &state);
 
-void CommitMigrationState(
-    MigrationFencingState &state,
-    uint32_t gen,
-    uint32_t hostWindowId);
+/** Report that UEA invoked UpdateExtensionParent. Repeating the report is safe. */
+void ReportParentUpdateInvoked(const sptr<IRemoteObject> &abilityToken,
+    const sptr<AAFwk::SessionInfo> &sessionInfo);
 
 bool ExecuteMigrationIfNeeded(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
+    const sptr<IRemoteObject> &abilityToken,
     const sptr<Rosen::Window> &uiWindow,
     const sptr<Rosen::WindowOption> &option,
     MigrationFencingState &fence,

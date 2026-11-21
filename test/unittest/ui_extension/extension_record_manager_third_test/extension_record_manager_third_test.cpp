@@ -69,7 +69,6 @@ constexpr uint32_t MIGRATION_HOST_WINDOW_B = 8;
 constexpr uint32_t MIGRATION_HOST_WINDOW_C = 9;
 constexpr int32_t MIGRATION_RECORD_ID = 5;
 constexpr uint32_t MIGRATION_TEST_GEN = 5;
-constexpr uint32_t MIGRATION_FENCE_TEST_WINDOW = 5;
 constexpr int32_t MIGRATION_TEST_PERSISTENT_ID_ALT = 42;
 constexpr uint32_t MIGRATION_STALE_TARGET_WINDOW = 50;
 constexpr uint32_t MIGRATION_DECLARATION_TARGET = 20;
@@ -449,8 +448,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_MigrationRete
 
 /**
  * @tc.name: MigrationFencing_ShouldExecute_CheckOnly_0100
- * @tc.desc: ShouldExecuteMigration is check-only on the execution branch: the fence is
- *           NOT advanced before the re-parent result is known
+ * @tc.desc: Checking a new generation does not advance the fence before the window API call.
  * @tc.type: FUNC
  * @tc.require: issue
  */
@@ -458,7 +456,6 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_ShouldExecute_CheckOn
 {
     MigrationFencingState state;
     state.lastGen = 3;
-    state.currentParentWindowId = MIGRATION_FENCE_TEST_WINDOW;
 
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
     ASSERT_NE(sessionInfo, nullptr);
@@ -467,21 +464,18 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_ShouldExecute_CheckOn
 
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
     EXPECT_EQ(state.lastGen, 3u);
-    EXPECT_EQ(state.currentParentWindowId, 5u);
 }
 
 /**
- * @tc.name: MigrationFencing_CommitMigrationState_0100
- * @tc.desc: CommitMigrationState records the executed gen/parent; the committed gen and
- *           older gens are then fenced as stale (out-of-order protection regression)
+ * @tc.name: MigrationFencing_AttemptedGeneration_0100
+ * @tc.desc: Once the window API has been called, the same and older generations are fenced.
  * @tc.type: FUNC
  * @tc.require: issue
  */
-HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_CommitMigrationState_0100, TestSize.Level1)
+HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_AttemptedGeneration_0100, TestSize.Level1)
 {
     MigrationFencingState state;
     state.lastGen = 3;
-    state.currentParentWindowId = MIGRATION_FENCE_TEST_WINDOW;
 
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
     ASSERT_NE(sessionInfo, nullptr);
@@ -489,9 +483,8 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_CommitMigrationState_
     sessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_C;
 
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
-    CommitMigrationState(state, sessionInfo->originalCallerInfo.migrationGen, sessionInfo->hostWindowId);
+    state.lastGen = sessionInfo->originalCallerInfo.migrationGen;
     EXPECT_EQ(state.lastGen, 4u);
-    EXPECT_EQ(state.currentParentWindowId, MIGRATION_HOST_WINDOW_C);
 
     EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
     sessionInfo->originalCallerInfo.migrationGen = 3;
@@ -501,13 +494,12 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_CommitMigrationState_
 }
 
 /**
- * @tc.name: MigrationFencing_RetryAfterFailedReParent_0100
- * @tc.desc: Without CommitMigrationState (re-parent failed), the SAME gen is re-executable;
- *           after commit (success), it is fenced. This is the RT-01 fix contract.
+ * @tc.name: MigrationFencing_NoWindowRetryAfterAttempt_0100
+ * @tc.desc: A window API error still consumes the generation. Re-delivery only resends the report.
  * @tc.type: FUNC
  * @tc.require: issue
  */
-HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_RetryAfterFailedReParent_0100, TestSize.Level1)
+HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_NoWindowRetryAfterAttempt_0100, TestSize.Level1)
 {
     MigrationFencingState state;
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
@@ -518,22 +510,20 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_RetryAfterFailedRePar
 
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
-    CommitMigrationState(state, sessionInfo->originalCallerInfo.migrationGen, sessionInfo->hostWindowId);
+    state.lastGen = sessionInfo->originalCallerInfo.migrationGen;
     EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
 }
 
 /**
- * @tc.name: MigrationFencing_NoOpBranch_AdvancesGen_0100
- * @tc.desc: A newer gen whose hostWindowId equals the current parent is a no-op: skipped
- *           but lastGen advances (no pending side effect)
+ * @tc.name: MigrationFencing_NewGenEligibleRegardlessOfTarget_0100
+ * @tc.desc: A new generation is eligible without a cached-parent shortcut.
  * @tc.type: FUNC
  * @tc.require: issue
  */
-HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_NoOpBranch_AdvancesGen_0100, TestSize.Level1)
+HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_NewGenEligibleRegardlessOfTarget_0100, TestSize.Level1)
 {
     MigrationFencingState state;
     state.lastGen = 3;
-    state.currentParentWindowId = 9;
 
     sptr<AAFwk::SessionInfo> sessionInfo(new AAFwk::SessionInfo());
     ASSERT_NE(sessionInfo, nullptr);
@@ -541,15 +531,13 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_NoOpBranch_AdvancesGe
     sessionInfo->originalCallerInfo.migrationGen = MIGRATION_TEST_GEN;
     sessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_C;
 
-    EXPECT_FALSE(ShouldExecuteMigration(sessionInfo, state));
-    EXPECT_EQ(state.lastGen, 5u);
-    EXPECT_EQ(state.currentParentWindowId, MIGRATION_HOST_WINDOW_C);
+    EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
+    EXPECT_EQ(state.lastGen, 3u);
 }
 
 /**
  * @tc.name: MigrationFencing_Guards_0100
- * @tc.desc: Null sessionInfo never migrates; valid migration (gen > lastGen, different
- *           parent) returns true without modifying the fence (commit happens later)
+ * @tc.desc: Null sessionInfo never migrates; a new gen is eligible without changing the fence.
  * @tc.type: FUNC
  * @tc.require: issue
  */
@@ -564,7 +552,6 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationFencing_Guards_0100, TestSize
     sessionInfo->hostWindowId = MIGRATION_HOST_WINDOW_A;
     EXPECT_TRUE(ShouldExecuteMigration(sessionInfo, state));
     EXPECT_EQ(state.lastGen, 0u);
-    EXPECT_EQ(state.currentParentWindowId, 0u);
 }
 
 /**
@@ -868,13 +855,13 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_Update_ProjectionCar
 }
 
 /**
- * @tc.name: MigrationChain_ConfirmAfterSuccess_0100
+ * @tc.name: MigrationChain_ParentUpdateInvoked_0100
  * @tc.desc: A-1 integration: full migration lifecycle — declare → advance gen → project →
- *           confirm-clear. Simulates the ScheduleCommandAbilityWindowDone flow.
+ *           confirm-clear. Simulates the UEA parent-update invocation report.
  * @tc.type: FUNC
  * @tc.require: issue
  */
-HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_ConfirmAfterSuccess_0100, TestSize.Level1)
+HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_ParentUpdateInvoked_0100, TestSize.Level1)
 {
     const std::string hostBundle = "com.example.unittest";
     AAFwk::AbilityRequest request;
@@ -958,7 +945,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_ReplayStripAndProject_0
     MigrationFencingState fence;
     EXPECT_TRUE(ShouldExecuteMigration(replayInfo, fence));
 
-    CommitMigrationState(fence, gen, 99u);
+    fence.lastGen = gen;
     EXPECT_TRUE(extRecord->ConfirmMigrationDeclaration(gen, 10));
     AAFwk::OriginalCallerInfo empty;
     uint32_t emptyTarget = 0;
@@ -966,13 +953,13 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_ReplayStripAndProject_0
 }
 
 /**
- * @tc.name: MigrationChain_FailureKeepsMarker_0100
- * @tc.desc: A-1 integration: re-parent failure sets migrationGen=0 on the receipt →
- *           confirm fails → marker retained → at-least-once retries succeed.
+ * @tc.name: MigrationChain_PreInvocationFailureKeepsMarker_0100
+ * @tc.desc: If window preparation fails before UEA invokes the window API, UEA sends no
+ *           report. The pending declaration remains available for a later dispatch.
  * @tc.type: FUNC
  * @tc.require: issue
  */
-HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_FailureKeepsMarker_0100, TestSize.Level1)
+HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_PreInvocationFailureKeepsMarker_0100, TestSize.Level1)
 {
     const std::string hostBundle = "com.example.unittest";
     AAFwk::AbilityRequest request;
@@ -990,13 +977,6 @@ HWTEST_F(ExtensionRecordManagerThirdTest, MigrationChain_FailureKeepsMarker_0100
     declaration.persistentId = MIGRATION_PERSISTENT_ID;
     declaration.migrationGen = gen;
     extRecord->SetMigrationDeclaration(declaration, MIGRATION_DECLARATION_TARGET_ALT);
-
-    sptr<AAFwk::SessionInfo> receipt = sptr<AAFwk::SessionInfo>(new AAFwk::SessionInfo());
-    receipt->originalCallerInfo = declaration;
-
-    receipt->originalCallerInfo.migrationGen = 0;
-
-    EXPECT_EQ(receipt->originalCallerInfo.migrationGen, 0u);
 
     AAFwk::OriginalCallerInfo still;
     uint32_t stillTarget = 0;
@@ -1148,7 +1128,7 @@ HWTEST_F(ExtensionRecordManagerThirdTest, UIExtensionRecord_ConfirmAdoptsDeliver
     EXPECT_EQ(record->GetSessionInfo()->callerToken.GetRefPtr(), tokenB.GetRefPtr());
     EXPECT_EQ(record->GetSessionInfo()->originalCallerInfo.migrationGen, 0u);
     EXPECT_EQ(uiRecord->GetConfirmedHostWindowId(), MIGRATION_HOST_WINDOW_C);
-    EXPECT_FALSE(uiRecord->ConfirmMigrationDeclaration(gen, MIGRATION_PERSISTENT_ID));
+    EXPECT_TRUE(uiRecord->ConfirmMigrationDeclaration(gen, MIGRATION_PERSISTENT_ID));
 }
 
 /**

@@ -15,6 +15,7 @@
 
 #include "ui_extension_migration_utils.h"
 
+#include "ability_manager_client.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -32,31 +33,30 @@ bool UpdateWindowParentForMigration(
 
 bool ShouldExecuteMigration(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
-    MigrationFencingState &state)
+    const MigrationFencingState &state)
 {
-    if (sessionInfo == nullptr ||
-        sessionInfo->originalCallerInfo.migrationGen == 0) {
-        return false;
-    }
-    uint32_t gen = sessionInfo->originalCallerInfo.migrationGen;
-    if (gen <= state.lastGen) {
-        return false;
-    }
-    if (sessionInfo->hostWindowId == state.currentParentWindowId) {
-        state.lastGen = gen;
-        return false;
-    }
-    return true;
+    return sessionInfo != nullptr && sessionInfo->originalCallerInfo.migrationGen != 0 &&
+        sessionInfo->originalCallerInfo.migrationGen > state.lastGen;
 }
 
-void CommitMigrationState(MigrationFencingState &state, uint32_t gen, uint32_t hostWindowId)
+void ReportParentUpdateInvoked(const sptr<IRemoteObject> &abilityToken,
+    const sptr<AAFwk::SessionInfo> &sessionInfo)
 {
-    state.lastGen = gen;
-    state.currentParentWindowId = hostWindowId;
+    if (abilityToken == nullptr || sessionInfo == nullptr ||
+        sessionInfo->originalCallerInfo.migrationGen == 0) {
+        return;
+    }
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ReportUIExtensionParentUpdateInvoked(
+        abilityToken, sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "migration report failed, persistentId: %{public}d, gen: %{public}u, ret: %{public}d",
+            sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen, ret);
+    }
 }
 
 bool ExecuteMigrationIfNeeded(
     const sptr<AAFwk::SessionInfo> &sessionInfo,
+    const sptr<IRemoteObject> &abilityToken,
     const sptr<Rosen::Window> &uiWindow,
     const sptr<Rosen::WindowOption> &option,
     MigrationFencingState &fence,
@@ -65,26 +65,34 @@ bool ExecuteMigrationIfNeeded(
     if (sessionInfo == nullptr) {
         return true;
     }
+    if (sessionInfo->originalCallerInfo.migrationGen != 0 && (uiWindow == nullptr || option == nullptr)) {
+        return false;
+    }
     if (!ShouldExecuteMigration(sessionInfo, fence)) {
         if (sessionInfo->originalCallerInfo.migrationGen != 0) {
             TAG_LOGI(AAFwkTag::UI_EXT, "migration skipped, persistentId: %{public}d, gen: %{public}u, "
-                "lastGen: %{public}u, hostWindowId: %{public}u, currentParent: %{public}u",
+                "lastGen: %{public}u, hostWindowId: %{public}u",
                 sessionInfo->persistentId, sessionInfo->originalCallerInfo.migrationGen,
-                fence.lastGen, sessionInfo->hostWindowId, fence.currentParentWindowId);
+                fence.lastGen, sessionInfo->hostWindowId);
+        }
+        // A repeated delivery may follow a lost report. Older generations must not be reported.
+        if (sessionInfo->originalCallerInfo.migrationGen != 0 &&
+            sessionInfo->originalCallerInfo.migrationGen == fence.lastGen) {
+            ReportParentUpdateInvoked(abilityToken, sessionInfo);
         }
         return true;
     }
     TAG_LOGI(AAFwkTag::UI_EXT, "host window migration, update parent, persistentId: %{public}d, "
-        "gen: %{public}u, parent: %{public}u -> %{public}u", sessionInfo->persistentId,
-        sessionInfo->originalCallerInfo.migrationGen, fence.currentParentWindowId,
-        sessionInfo->hostWindowId);
-    if (!UpdateWindowParentForMigration(uiWindow, option)) {
+        "gen: %{public}u, target parent: %{public}u", sessionInfo->persistentId,
+        sessionInfo->originalCallerInfo.migrationGen, sessionInfo->hostWindowId);
+    bool updated = UpdateWindowParentForMigration(uiWindow, option);
+    // The ability layer records that it invoked the window API, independently of its result.
+    fence.lastGen = sessionInfo->originalCallerInfo.migrationGen;
+    ReportParentUpdateInvoked(abilityToken, sessionInfo);
+    if (!updated) {
         TAG_LOGE(AAFwkTag::UI_EXT, "re-parent failed, keep session backgrounded");
-        sessionInfo->originalCallerInfo.migrationGen = 0;
         return false;
     }
-    CommitMigrationState(fence, sessionInfo->originalCallerInfo.migrationGen,
-        sessionInfo->hostWindowId);
     TAG_LOGI(AAFwkTag::UI_EXT, "re-parent ok, hostWindowId updated to: %{public}u, persistentId: "
         "%{public}d", sessionInfo->hostWindowId, sessionInfo->persistentId);
     if (contentSessionUpdater) {

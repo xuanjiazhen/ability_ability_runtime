@@ -229,6 +229,9 @@ public:
         WindowCommand winCmd,
         AbilityCommand abilityCmd);
 
+    ErrCode ReportUIExtensionParentUpdateInvoked(
+        const sptr<IRemoteObject> &token, int32_t persistentId, uint32_t gen);
+
     /**
      * Get the ElementName of the current foreground (focus) ability. System-api gate: only
      * callers allowed to use system APIs or test processes get a real result; others receive an
