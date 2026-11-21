@@ -689,6 +689,9 @@ public:
         WindowCommand winCmd,
         AbilityCommand abilityCmd) override;
 
+    int ReportUIExtensionParentUpdateInvoked(
+        const sptr<IRemoteObject> &token, int32_t persistentId, uint32_t gen) override;
+
     /**
      * dump ability stack info, about userID, mission stack info,
      * mission record info and ability info.

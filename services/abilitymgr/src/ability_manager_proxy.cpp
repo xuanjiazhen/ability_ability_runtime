@@ -1930,6 +1930,19 @@ int AbilityManagerProxy::ScheduleCommandAbilityWindowDone(
     return reply.ReadInt32();
 }
 
+int AbilityManagerProxy::ReportUIExtensionParentUpdateInvoked(
+    const sptr<IRemoteObject> &token, int32_t persistentId, uint32_t gen)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data) || !data.WriteRemoteObject(token) ||
+        !data.WriteInt32(persistentId) || !data.WriteUint32(gen)) {
+        return ERR_INVALID_VALUE;
+    }
+    return SendRequest(AbilityManagerInterfaceCode::REPORT_UI_EXTENSION_PARENT_UPDATE_INVOKED, data, reply, option);
+}
+
 void AbilityManagerProxy::DumpSysState(
     const std::string& args, std::vector<std::string>& state, bool isClient, bool isUserId, int UserId)
 {

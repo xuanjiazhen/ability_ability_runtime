@@ -9097,6 +9097,24 @@ int AbilityManagerService::ScheduleCommandAbilityWindowDone(
     return connectManager->ScheduleCommandAbilityWindowDone(token, sessionInfo, winCmd, abilityCmd);
 }
 
+int AbilityManagerService::ReportUIExtensionParentUpdateInvoked(
+    const sptr<IRemoteObject> &token, int32_t persistentId, uint32_t gen)
+{
+    if (gen == 0 || persistentId == 0 || !VerificationAllToken(token)) {
+        return ERR_INVALID_VALUE;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    if (abilityRecord == nullptr || !JudgeSelfCalled(abilityRecord) ||
+        abilityRecord->GetPid() <= 0 || IPCSkeleton::GetCallingPid() != abilityRecord->GetPid() ||
+        !UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+        return CHECK_PERMISSION_FAILED;
+    }
+    auto userId = abilityRecord->GetApplicationInfo().uid / BASE_USER_RANGE;
+    auto uiExtensionManager = GetUIExtensionAbilityManagerByUserId(userId);
+    return uiExtensionManager == nullptr ? ERR_INVALID_VALUE :
+        uiExtensionManager->OnParentUpdateInvoked(token, persistentId, gen);
+}
+
 void AbilityManagerService::OnAbilityRequestDone(const sptr<IRemoteObject> &token, const int32_t state)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

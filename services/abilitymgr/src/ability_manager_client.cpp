@@ -140,6 +140,14 @@ ErrCode AbilityManagerClient::ScheduleCommandAbilityWindowDone(
     return abms->ScheduleCommandAbilityWindowDone(token, sessionInfo, winCmd, abilityCmd);
 }
 
+ErrCode AbilityManagerClient::ReportUIExtensionParentUpdateInvoked(
+    const sptr<IRemoteObject> &token, int32_t persistentId, uint32_t gen)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->ReportUIExtensionParentUpdateInvoked(token, persistentId, gen);
+}
+
 ErrCode AbilityManagerClient::StartAbility(const Want &want, int requestCode, int32_t userId,
     uint64_t specifiedFullTokenId)
 {

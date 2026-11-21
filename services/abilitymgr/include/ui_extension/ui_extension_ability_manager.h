@@ -152,13 +152,12 @@ public:
     int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken);
     int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid) override;
 
+    int OnParentUpdateInvoked(const sptr<IRemoteObject> &token, int32_t persistentId, uint32_t gen);
+
     bool IsUIExtensionStarting(int32_t uid, pid_t pid = -1);
 
 protected:
     int32_t StartAbilityLocked(const AbilityRequest &abilityRequest) override;
-
-    int ScheduleCommandAbilityWindowDoneLocked(const sptr<IRemoteObject> &token,
-        const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd, AbilityCommand abilityCmd) override;
 
     sptr<SessionInfo> PrepareSessionInfoForStart(const std::shared_ptr<BaseExtensionRecord> &targetService,
         const sptr<SessionInfo> &sessionInfo);

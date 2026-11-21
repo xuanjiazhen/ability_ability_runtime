@@ -732,6 +732,10 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
     auto componentId = sessionInfo->uiExtensionComponentId;
     std::unique_lock<std::mutex> lck(g_mtxWindowMapRecord);
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
+        if (sessionInfo->originalCallerInfo.migrationGen != 0) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "migration delivered without an existing window");
+            return false;
+        }
         if (context_ == nullptr || context_->GetAbilityInfo() == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null context");
             return false;
@@ -756,7 +760,6 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
         }
         RegisterBrandColorChangeListener(uiWindow);
         migrationFencing_ = MigrationFencingState {};
-        migrationFencing_.currentParentWindowId = sessionInfo->hostWindowId;
         uiWindowMap_[componentId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
         if (context_->GetWindow() == nullptr) {
@@ -772,7 +775,7 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
         uiWindow->UpdateExtensionConfig(sharedWant);
         auto migrateOption = CreateWindowOption(sessionInfo, want);
         if (migrateOption == nullptr ||
-            !ExecuteMigrationIfNeeded(sessionInfo, uiWindow, migrateOption, migrationFencing_,
+            !ExecuteMigrationIfNeeded(sessionInfo, token_, uiWindow, migrateOption, migrationFencing_,
             [this](const sptr<AAFwk::SessionInfo> &info) {
                 if (etsUiExtContentSession_ != nullptr) {
                     etsUiExtContentSession_->DoUpdateExtensionParent(info);

@@ -978,6 +978,9 @@ public:
         WindowCommand winCmd,
         AbilityCommand abilityCmd) override;
 
+    int ReportUIExtensionParentUpdateInvoked(
+        const sptr<IRemoteObject> &token, int32_t persistentId, uint32_t gen) override;
+
     /**
      *  Request to clean UIAbility from user.
      *
