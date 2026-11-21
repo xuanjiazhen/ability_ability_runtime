@@ -826,7 +826,7 @@ enum class AbilityManagerInterfaceCode {
     GET_UI_EXTENSION_HOST_INFO_BY_ID = 6192,
 
     // UEA reports that it invoked the parent-window update interface.
-    REPORT_UI_EXTENSION_PARENT_UPDATE_INVOKED = 6193,
+    REPORT_UI_EXTENSION_PARENT_UPDATE_INVOKED = 6196,
 
     // force stop process with kill id for cli tool
     FORCE_STOP_PROCESS = 6195,
