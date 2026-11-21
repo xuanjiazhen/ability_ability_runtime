@@ -488,6 +488,18 @@ public:
         int32_t appIndex);
 
     /**
+     * @brief Remove stale task-attribution bookkeeping of a finished task from every
+     *        record this manager holds. Invoked from the task-finished callback: the
+     *        server has already dropped the whole task together with its attributions,
+     *        so surviving local entries are dead handles and must not dedupe reports
+     *        for a later task reusing the same task id.
+     *        Acquires sessionLock_ internally; do NOT call while holding sessionLock_.
+     * @param taskId Task id of the finished task
+     * @return Number of removed bookkeeping entries (0 when nothing was stale)
+     */
+    size_t CleanTaskAttributionsByTaskId(const std::string &taskId);
+
+    /**
      * @brief Get ability record by token (thread-safe).
      *        Acquires sessionLock_ internally; do NOT call while holding sessionLock_
      *        (use GetAbilityRecordByTokenLocked instead).

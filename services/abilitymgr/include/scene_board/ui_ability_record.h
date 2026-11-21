@@ -170,19 +170,41 @@ public:
         return isByOeExt_;
     }
 
-    // (taskId, handle) pairs; duplicates ignored; released by the destructor's async task.
+    // One managed attribution per task id under this record: a record may hold several
+    // task ids in parallel, but each task keeps a single attribution handle. While the
+    // record lives it is always the same process, so a repeated report for an already
+    // attributed task is a duplicate registration — the caller checks HasTaskAttribution
+    // before reporting and drops the duplicate with no compensation (a duplicate does
+    // not change any attribution state on the server, and keeping a task alive is the
+    // task creator's own business); the first handle leaves through the task-finished
+    // cleanup or the destructor's async unregister, whichever happens first.
     // Not self-locked: guard with sessionLock_.
     inline void AddTaskAttribution(const std::string &taskId, int64_t attributionId)
     {
-        for (const auto &item : taskAttributions_) {
-            if (item.first == taskId && item.second == attributionId) {
-                return;
-            }
-        }
-        taskAttributions_.emplace_back(taskId, attributionId);
+        taskAttributions_.emplace(taskId, attributionId);
     }
 
-    inline const std::vector<std::pair<std::string, int64_t>> &GetTaskAttributions() const
+    // True when this record is already attributed to the task: the report path uses
+    // it to drop duplicate registrations (same task, same instance, same process —
+    // no attribution state changes on the server, so no RSS/priority work and no
+    // window restart is needed) before any IPC is made.
+    inline bool HasTaskAttribution(const std::string &taskId) const
+    {
+        return taskAttributions_.find(taskId) != taskAttributions_.end();
+    }
+
+    // The task is finished: the server already dropped the whole task together with
+    // its attributions, so any local entry for this task id is stale (a dead handle
+    // that can never be unregistered again). Removing it lets a later task reusing
+    // the same id report normally instead of being deduped forever. Mirrors the A2A
+    // extension-record convention on task-finished cleanup. Not self-locked: guard
+    // with sessionLock_.
+    inline size_t RemoveTaskAttributionByTaskId(const std::string &taskId)
+    {
+        return taskAttributions_.erase(taskId);
+    }
+
+    inline const std::map<std::string, int64_t> &GetTaskAttributions() const
     {
         return taskAttributions_;
     }
@@ -218,7 +240,7 @@ private:
     std::atomic_int32_t scenarios_ = 0;
     std::shared_ptr<Want> launchWant_;
     std::shared_ptr<Want> lastWant_;
-    std::vector<std::pair<std::string, int64_t>> taskAttributions_;
+    std::map<std::string, int64_t> taskAttributions_;
     std::map<std::string, PendingTaskAttribution> pendingTaskAttributions_;
 };
 }  // namespace AAFwk

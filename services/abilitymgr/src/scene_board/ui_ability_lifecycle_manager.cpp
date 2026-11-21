@@ -99,11 +99,29 @@ auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     FreezeUtil::GetInstance().DeleteLifecycleEvent(token->AsObject());
 };
 
-// Shared report core: register then append, dedup exact (taskId, handle) pairs.
+// Shared report core. One managed attribution per (record, task id): while the record
+// lives it is the same process, so a report for a task the record is already attributed
+// to is a duplicate registration — it would redo the same RSS/priority work via the
+// kernel, consume attribution quota, grow the server ledger and (as a side effect of
+// the registration path) restart the task's inactivity window. The bookkeeping check
+// below drops it before any registration, with no compensation: a duplicate does not
+// change any attribution state on the server, so there is nothing for the window to
+// react to, and keeping a task alive is the task creator's own business (any of its
+// registrations restarts the window; a finished task can be re-created). TMS cannot
+// tell whether two registrations hit the same ability instance, so the dedup lives
+// here, on the instance-holding side. Stale bookkeeping is cleaned by the
+// task-finished callback (OnTaskFinished), so a later task reusing the same task id
+// reports normally; a fresh record starts with empty bookkeeping, so a re-start
+// after destruction reports again as usual.
 void ReportTaskAttributionForContext(const std::string &taskId, int32_t callerUid, int32_t callerPid,
     const UIAbilityRecordPtr &uiAbilityRecord)
 {
     if (taskId.empty() || uiAbilityRecord == nullptr || uiAbilityRecord->GetPid() <= 0) {
+        return;
+    }
+    if (uiAbilityRecord->HasTaskAttribution(taskId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "duplicate task attribution skipped, taskId: %{public}s, "
+            "pid: %{public}d", taskId.c_str(), uiAbilityRecord->GetPid());
         return;
     }
     int64_t attributionId = 0;
@@ -3773,6 +3791,41 @@ std::vector<UIAbilityRecordPtr> UIAbilityLifecycleManager::GetAbilityRecordsByNa
 {
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
     return GetAbilityRecordsByNameInner(element, appIndex);
+}
+
+size_t UIAbilityLifecycleManager::CleanTaskAttributionsByTaskId(const std::string &taskId)
+{
+    if (taskId.empty()) {
+        return 0;
+    }
+    size_t removed = 0;
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    auto cleanRecord = [&taskId, &removed](const UIAbilityRecordPtr &record) {
+        if (record != nullptr) {
+            removed += record->RemoveTaskAttributionByTaskId(taskId);
+        }
+    };
+    for (const auto &item : sessionAbilityMap_) {
+        cleanRecord(item.second);
+    }
+    for (const auto &item : lowMemKillAbilityMap_) {
+        cleanRecord(item.second);
+    }
+    for (const auto &item : tmpAbilityMap_) {
+        cleanRecord(item.second);
+    }
+    for (const auto &item : terminateAbilityList_) {
+        cleanRecord(item);
+    }
+    for (const auto &item : reuseWindowRecords_) {
+        cleanRecord(item);
+    }
+    if (removed > 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
+            "stale UIAbility attributions cleaned by finished taskId=%{public}s, removed=%{public}zu",
+            taskId.c_str(), removed);
+    }
+    return removed;
 }
 
 std::vector<UIAbilityRecordPtr> UIAbilityLifecycleManager::GetAbilityRecordsByNameInner(
