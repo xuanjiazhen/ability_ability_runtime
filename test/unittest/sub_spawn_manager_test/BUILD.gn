@@ -60,7 +60,11 @@ ohos_unittest("sub_spawn_manager_test") {
     "samgr:samgr_proxy",
   ]
 
-  cflags_cc = []
+  cflags_cc = [
+    "-fexceptions",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 group("unittest") {
